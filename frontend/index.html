@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scan QC System - AI-Powered Quality Control</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            min-height: 100vh;
+            color: #e2e8f0;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #60a5fa, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+        }
+        
+        .header p {
+            color: #94a3b8;
+            font-size: 1.1rem;
+        }
+        
+        /* Cards */
+        .card {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(148, 163, 184, 0.1);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+        }
+        
+        .card-header .icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+        
+        .card-header h2 {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+        
+        /* Form */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .form-group.full-width {
+            grid-column: span 2;
+        }
+        
+        label {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #94a3b8;
+        }
+        
+        input[type="text"],
+        input[type="number"] {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            border-radius: 8px;
+            padding: 12px 16px;
+            color: #e2e8f0;
+            font-size: 1rem;
+            transition: all 0.2s;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+        }
+        
+        /* File Upload */
+        .file-upload {
+            border: 2px dashed rgba(148, 163, 184, 0.3);
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: rgba(15, 23, 42, 0.4);
+        }
+        
+        .file-upload:hover {
+            border-color: #3b82f6;
+            background: rgba(59, 130, 246, 0.1);
+        }
+        
+        .file-upload.dragover {
+            border-color: #8b5cf6;
+            background: rgba(139, 92, 246, 0.1);
+        }
+        
+        .file-upload.has-file {
+            border-color: #10b981;
+            background: rgba(16, 185, 129, 0.1);
+        }
+        
+        .file-upload input {
+            display: none;
+        }
+        
+        .file-upload .icon {
+            font-size: 2.5rem;
+            margin-bottom: 12px;
+        }
+        
+        .file-upload .text {
+            color: #94a3b8;
+        }
+        
+        .file-upload .filename {
+            margin-top: 8px;
+            color: #10b981;
+            font-weight: 500;
+        }
+        
+        /* Button */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 14px 28px;
+            font-size: 1rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            color: white;
+        }
+        
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(59, 130, 246, 0.3);
+        }
+        
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .btn-download {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+        }
+        
+        .btn-download:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(16, 185, 129, 0.3);
+        }
+        
+        /* Progress */
+        .progress-container {
+            display: none;
+        }
+        
+        .progress-container.active {
+            display: block;
+        }
+        
+        .progress-bar-wrapper {
+            background: rgba(15, 23, 42, 0.6);
+            border-radius: 12px;
+            height: 24px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+            border-radius: 12px;
+            transition: width 0.3s ease;
+            position: relative;
+        }
+        
+        .progress-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            animation: shimmer 1.5s infinite;
+        }
+        
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+        
+        .progress-text {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 12px;
+            font-size: 0.875rem;
+        }
+        
+        .progress-text .stage {
+            color: #60a5fa;
+            font-weight: 500;
+        }
+        
+        .progress-text .percentage {
+            color: #94a3b8;
+        }
+        
+        .progress-message {
+            margin-top: 8px;
+            color: #94a3b8;
+            font-size: 0.875rem;
+        }
+        
+        /* Results */
+        .results-container {
+            display: none;
+        }
+        
+        .results-container.active {
+            display: block;
+        }
+        
+        .verdict-card {
+            text-align: center;
+            padding: 40px;
+            border-radius: 16px;
+            margin-bottom: 24px;
+        }
+        
+        .verdict-card.pass {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(5, 150, 105, 0.1));
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+        
+        .verdict-card.fail {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(220, 38, 38, 0.1));
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+        
+        .verdict-card.warning {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(217, 119, 6, 0.1));
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+        
+        .verdict-icon {
+            font-size: 4rem;
+            margin-bottom: 16px;
+        }
+        
+        .verdict-text {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        
+        .verdict-card.pass .verdict-text { color: #10b981; }
+        .verdict-card.fail .verdict-text { color: #ef4444; }
+        .verdict-card.warning .verdict-text { color: #f59e0b; }
+        
+        .verdict-score {
+            font-size: 1.1rem;
+            color: #94a3b8;
+        }
+        
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        
+        .stat-card {
+            background: rgba(15, 23, 42, 0.6);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #f8fafc;
+            margin-bottom: 4px;
+        }
+        
+        .stat-label {
+            font-size: 0.75rem;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        /* Table */
+        .table-container {
+            overflow-x: auto;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th, td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+        }
+        
+        th {
+            background: rgba(15, 23, 42, 0.6);
+            color: #94a3b8;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        td {
+            font-size: 0.875rem;
+        }
+        
+        .status-ok {
+            color: #10b981;
+            font-weight: 600;
+        }
+        
+        .status-attention {
+            color: #f59e0b;
+            font-weight: 600;
+        }
+        
+        /* AI Summary */
+        .ai-summary {
+            background: rgba(59, 130, 246, 0.1);
+            border-left: 4px solid #3b82f6;
+            padding: 20px;
+            border-radius: 0 12px 12px 0;
+            margin-bottom: 24px;
+        }
+        
+        .ai-summary h3 {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+            color: #60a5fa;
+        }
+        
+        /* Root Causes */
+        .root-cause-item {
+            background: rgba(15, 23, 42, 0.6);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            border-left: 4px solid;
+        }
+        
+        .root-cause-item.critical { border-left-color: #ef4444; }
+        .root-cause-item.high { border-left-color: #f59e0b; }
+        .root-cause-item.medium { border-left-color: #3b82f6; }
+        
+        .root-cause-item h4 {
+            font-size: 0.875rem;
+            margin-bottom: 8px;
+        }
+        
+        .root-cause-item p {
+            font-size: 0.875rem;
+            color: #94a3b8;
+        }
+        
+        /* Download Section */
+        .download-section {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            padding-top: 24px;
+            border-top: 1px solid rgba(148, 163, 184, 0.1);
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .form-group.full-width {
+                grid-column: span 1;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🔬 Scan QC System</h1>
+            <p>AI-Powered Quality Control for Sheet Metal Parts</p>
+        </div>
+        
+        <!-- Upload Form -->
+        <div class="card" id="uploadCard">
+            <div class="card-header">
+                <div class="icon">📤</div>
+                <h2>Upload Files for Analysis</h2>
+            </div>
+            
+            <form id="analysisForm">
+                <div class="form-grid">
+                    <!-- Part Info -->
+                    <div class="form-group">
+                        <label for="partId">Part Number</label>
+                        <input type="text" id="partId" name="part_id" value="PART_001" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="partName">Part Name</label>
+                        <input type="text" id="partName" name="part_name" value="Sheet Metal Part" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="material">Material</label>
+                        <input type="text" id="material" name="material" value="Al-5053-H32">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="tolerance">Tolerance (±mm)</label>
+                        <input type="number" id="tolerance" name="tolerance" value="0.1" step="0.01" min="0.01" required>
+                    </div>
+                    
+                    <!-- File Uploads -->
+                    <div class="form-group">
+                        <label>Reference Model (STL)</label>
+                        <div class="file-upload" id="referenceUpload">
+                            <input type="file" id="referenceFile" accept=".stl,.obj,.ply" required>
+                            <div class="icon">📐</div>
+                            <div class="text">Drop reference STL or click to browse</div>
+                            <div class="filename" id="referenceFilename"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Scan File (STL/PLY)</label>
+                        <div class="file-upload" id="scanUpload">
+                            <input type="file" id="scanFile" accept=".stl,.ply,.obj,.pcd" required>
+                            <div class="icon">📷</div>
+                            <div class="text">Drop scan file or click to browse</div>
+                            <div class="filename" id="scanFilename"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group full-width">
+                        <label>Technical Drawing (Optional PDF)</label>
+                        <div class="file-upload" id="drawingUpload">
+                            <input type="file" id="drawingFile" accept=".pdf">
+                            <div class="icon">📄</div>
+                            <div class="text">Drop technical drawing PDF for AI context (optional)</div>
+                            <div class="filename" id="drawingFilename"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 24px; text-align: center;">
+                    <button type="submit" class="btn btn-primary" id="analyzeBtn">
+                        <span>🚀</span> Start Analysis
+                    </button>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Progress -->
+        <div class="card progress-container" id="progressCard">
+            <div class="card-header">
+                <div class="icon">⚙️</div>
+                <h2>Analysis in Progress</h2>
+            </div>
+            
+            <div class="progress-bar-wrapper">
+                <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+            </div>
+            
+            <div class="progress-text">
+                <span class="stage" id="progressStage">Initializing...</span>
+                <span class="percentage" id="progressPercent">0%</span>
+            </div>
+            
+            <div class="progress-message" id="progressMessage">Preparing analysis...</div>
+        </div>
+        
+        <!-- Results -->
+        <div class="results-container" id="resultsContainer">
+            <!-- Verdict -->
+            <div class="verdict-card" id="verdictCard">
+                <div class="verdict-icon" id="verdictIcon">✓</div>
+                <div class="verdict-text" id="verdictText">PASS</div>
+                <div class="verdict-score" id="verdictScore">Quality Score: 95/100 | Confidence: 95%</div>
+            </div>
+            
+            <!-- AI Summary -->
+            <div class="ai-summary">
+                <h3>🤖 AI Analysis Summary</h3>
+                <p id="aiSummary"></p>
+            </div>
+            
+            <!-- Stats -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="statPoints">-</div>
+                    <div class="stat-label">Points Analyzed</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="statPassRate">-</div>
+                    <div class="stat-label">Pass Rate</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="statMaxDev">-</div>
+                    <div class="stat-label">Max Deviation</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="statAlignment">-</div>
+                    <div class="stat-label">Alignment</div>
+                </div>
+            </div>
+            
+            <!-- Regional Analysis -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="icon">📊</div>
+                    <h2>Regional Analysis</h2>
+                </div>
+                
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Region</th>
+                                <th>Points</th>
+                                <th>Mean Dev.</th>
+                                <th>Max Dev.</th>
+                                <th>Pass Rate</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="regionsTable"></tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Root Causes -->
+            <div class="card" id="rootCausesCard">
+                <div class="card-header">
+                    <div class="icon">🔍</div>
+                    <h2>Root Cause Analysis</h2>
+                </div>
+                <div id="rootCausesList"></div>
+            </div>
+            
+            <!-- Download -->
+            <div class="download-section">
+                <button class="btn btn-download" id="downloadPdfBtn" onclick="downloadPdf()">
+                    📄 Download PDF Report
+                </button>
+                <button class="btn btn-primary" id="downloadJsonBtn" onclick="downloadJson()">
+                    📋 Download JSON Data
+                </button>
+                <button class="btn btn-primary" onclick="resetForm()">
+                    🔄 New Analysis
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // State
+        let currentJobId = null;
+        let progressSource = null;
+        
+        // File upload handlers
+        function setupFileUpload(uploadId, inputId, filenameId) {
+            const upload = document.getElementById(uploadId);
+            const input = document.getElementById(inputId);
+            const filename = document.getElementById(filenameId);
+            
+            upload.addEventListener('click', () => input.click());
+            
+            upload.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                upload.classList.add('dragover');
+            });
+            
+            upload.addEventListener('dragleave', () => {
+                upload.classList.remove('dragover');
+            });
+            
+            upload.addEventListener('drop', (e) => {
+                e.preventDefault();
+                upload.classList.remove('dragover');
+                if (e.dataTransfer.files.length) {
+                    input.files = e.dataTransfer.files;
+                    updateFilename(upload, filename, e.dataTransfer.files[0].name);
+                }
+            });
+            
+            input.addEventListener('change', () => {
+                if (input.files.length) {
+                    updateFilename(upload, filename, input.files[0].name);
+                }
+            });
+        }
+        
+        function updateFilename(upload, filenameEl, name) {
+            filenameEl.textContent = name;
+            upload.classList.add('has-file');
+        }
+        
+        setupFileUpload('referenceUpload', 'referenceFile', 'referenceFilename');
+        setupFileUpload('scanUpload', 'scanFile', 'scanFilename');
+        setupFileUpload('drawingUpload', 'drawingFile', 'drawingFilename');
+        
+        // Form submission
+        document.getElementById('analysisForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData();
+            formData.append('reference_file', document.getElementById('referenceFile').files[0]);
+            formData.append('scan_file', document.getElementById('scanFile').files[0]);
+            
+            const drawingFile = document.getElementById('drawingFile').files[0];
+            if (drawingFile) {
+                formData.append('drawing_file', drawingFile);
+            }
+            
+            formData.append('part_id', document.getElementById('partId').value);
+            formData.append('part_name', document.getElementById('partName').value);
+            formData.append('material', document.getElementById('material').value);
+            formData.append('tolerance', document.getElementById('tolerance').value);
+            
+            // Start analysis
+            try {
+                document.getElementById('analyzeBtn').disabled = true;
+                
+                const response = await fetch('/api/analyze', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Analysis failed');
+                }
+                
+                const data = await response.json();
+                currentJobId = data.job_id;
+                
+                // Show progress
+                document.getElementById('uploadCard').style.display = 'none';
+                document.getElementById('progressCard').classList.add('active');
+                
+                // Start progress polling
+                startProgressPolling();
+                
+            } catch (error) {
+                alert('Error: ' + error.message);
+                document.getElementById('analyzeBtn').disabled = false;
+            }
+        });
+        
+        // Progress polling
+        function startProgressPolling() {
+            const poll = async () => {
+                try {
+                    const response = await fetch(`/api/progress/${currentJobId}`);
+                    const data = await response.json();
+                    
+                    updateProgress(data);
+                    
+                    if (data.status === 'running' || data.status === 'pending') {
+                        setTimeout(poll, 500);
+                    } else if (data.status === 'completed') {
+                        loadResults();
+                    } else if (data.status === 'failed') {
+                        alert('Analysis failed: ' + data.error);
+                        resetForm();
+                    }
+                } catch (error) {
+                    console.error('Progress poll error:', error);
+                    setTimeout(poll, 1000);
+                }
+            };
+            
+            poll();
+        }
+        
+        function updateProgress(data) {
+            document.getElementById('progressBar').style.width = data.progress + '%';
+            document.getElementById('progressPercent').textContent = Math.round(data.progress) + '%';
+            document.getElementById('progressStage').textContent = formatStage(data.stage);
+            document.getElementById('progressMessage').textContent = data.message;
+        }
+        
+        function formatStage(stage) {
+            const stages = {
+                'load': '📂 Loading Files',
+                'preprocess': '🔧 Preprocessing',
+                'align': '🎯 Aligning',
+                'analyze': '📊 Analyzing',
+                'ai': '🤖 AI Processing',
+                'complete': '✅ Complete'
+            };
+            return stages[stage] || stage;
+        }
+        
+        // Load results
+        async function loadResults() {
+            try {
+                const response = await fetch(`/api/result/${currentJobId}`);
+                const data = await response.json();
+                
+                if (data.status === 'completed') {
+                    displayResults(data.result);
+                }
+            } catch (error) {
+                console.error('Error loading results:', error);
+            }
+        }
+        
+        function displayResults(result) {
+            // Hide progress, show results
+            document.getElementById('progressCard').classList.remove('active');
+            document.getElementById('resultsContainer').classList.add('active');
+            
+            // Verdict
+            const verdictCard = document.getElementById('verdictCard');
+            verdictCard.className = 'verdict-card ' + result.overall_result.toLowerCase();
+            
+            const icons = { PASS: '✓', FAIL: '✗', WARNING: '⚠' };
+            document.getElementById('verdictIcon').textContent = icons[result.overall_result] || '?';
+            document.getElementById('verdictText').textContent = result.overall_result;
+            document.getElementById('verdictScore').textContent = 
+                `Quality Score: ${result.quality_score}/100 | Confidence: ${result.confidence}%`;
+            
+            // AI Summary
+            document.getElementById('aiSummary').textContent = result.ai_summary;
+            
+            // Stats
+            const stats = result.statistics;
+            document.getElementById('statPoints').textContent = stats.total_points.toLocaleString();
+            document.getElementById('statPassRate').textContent = stats.pass_rate.toFixed(1) + '%';
+            document.getElementById('statMaxDev').textContent = stats.max_deviation_mm.toFixed(3) + 'mm';
+            document.getElementById('statAlignment').textContent = result.alignment.fitness.toFixed(1) + '%';
+            
+            // Regions table
+            const tbody = document.getElementById('regionsTable');
+            tbody.innerHTML = '';
+            result.regions.forEach(r => {
+                const statusClass = r.status === 'OK' ? 'status-ok' : 'status-attention';
+                tbody.innerHTML += `
+                    <tr>
+                        <td><strong>${r.name}</strong></td>
+                        <td>${r.point_count.toLocaleString()}</td>
+                        <td>${r.mean_deviation_mm.toFixed(4)}mm</td>
+                        <td>${r.max_deviation_mm.toFixed(4)}mm</td>
+                        <td>${r.pass_rate.toFixed(1)}%</td>
+                        <td class="${statusClass}">${r.status === 'OK' ? '✓ OK' : '⚠ ATTENTION'}</td>
+                    </tr>
+                `;
+            });
+            
+            // Root causes
+            const rcList = document.getElementById('rootCausesList');
+            rcList.innerHTML = '';
+            
+            if (result.root_causes.length === 0) {
+                rcList.innerHTML = '<p style="color: #10b981;">✓ No significant manufacturing issues identified.</p>';
+            } else {
+                result.root_causes.forEach(rc => {
+                    const priorityClass = rc.priority.toLowerCase();
+                    rcList.innerHTML += `
+                        <div class="root-cause-item ${priorityClass}">
+                            <h4>[${rc.priority}] ${rc.issue}</h4>
+                            <p><strong>Cause:</strong> ${rc.likely_cause}</p>
+                            <p>${rc.explanation}</p>
+                            <p><strong>Recommendation:</strong> ${rc.recommendation}</p>
+                        </div>
+                    `;
+                });
+            }
+        }
+        
+        // Downloads
+        function downloadPdf() {
+            if (currentJobId) {
+                window.open(`/api/download/${currentJobId}/pdf`, '_blank');
+            }
+        }
+        
+        function downloadJson() {
+            if (currentJobId) {
+                window.open(`/api/download/${currentJobId}/json`, '_blank');
+            }
+        }
+        
+        // Reset
+        function resetForm() {
+            currentJobId = null;
+            document.getElementById('uploadCard').style.display = 'block';
+            document.getElementById('progressCard').classList.remove('active');
+            document.getElementById('resultsContainer').classList.remove('active');
+            document.getElementById('analyzeBtn').disabled = false;
+            document.getElementById('progressBar').style.width = '0%';
+            
+            // Clear file inputs
+            ['referenceFile', 'scanFile', 'drawingFile'].forEach(id => {
+                document.getElementById(id).value = '';
+            });
+            ['referenceFilename', 'scanFilename', 'drawingFilename'].forEach(id => {
+                document.getElementById(id).textContent = '';
+            });
+            ['referenceUpload', 'scanUpload', 'drawingUpload'].forEach(id => {
+                document.getElementById(id).classList.remove('has-file');
+            });
+        }
+    </script>
+</body>
+</html>
