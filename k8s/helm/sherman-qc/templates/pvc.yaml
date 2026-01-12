@@ -1,0 +1,39 @@
+{{- if .Values.storage.scans.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "sherman-qc.fullname" . }}-scans
+  labels:
+    {{- include "sherman-qc.labels" . | nindent 4 }}
+spec:
+  accessModes:
+    {{- toYaml .Values.storage.scans.accessModes | nindent 4 }}
+  {{- if .Values.storage.scans.storageClass }}
+  storageClassName: {{ .Values.storage.scans.storageClass }}
+  {{- else if .Values.global.storageClass }}
+  storageClassName: {{ .Values.global.storageClass }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.storage.scans.size }}
+{{- end }}
+---
+{{- if .Values.storage.reports.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "sherman-qc.fullname" . }}-reports
+  labels:
+    {{- include "sherman-qc.labels" . | nindent 4 }}
+spec:
+  accessModes:
+    {{- toYaml .Values.storage.reports.accessModes | nindent 4 }}
+  {{- if .Values.storage.reports.storageClass }}
+  storageClassName: {{ .Values.storage.reports.storageClass }}
+  {{- else if .Values.global.storageClass }}
+  storageClassName: {{ .Values.global.storageClass }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.storage.reports.size }}
+{{- end }}

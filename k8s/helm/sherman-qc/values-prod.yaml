@@ -1,0 +1,287 @@
+# Sherman QC - Production Environment Values
+# Usage: helm install sherman-qc ./k8s/helm/sherman-qc -f ./k8s/helm/sherman-qc/values-prod.yaml
+
+namespace: sherman-qc
+
+# Backend configuration - production
+backend:
+  replicaCount: 3
+  image:
+    pullPolicy: Always
+  autoscaling:
+    enabled: true
+    minReplicas: 3
+    maxReplicas: 20
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+  resources:
+    limits:
+      cpu: 2000m
+      memory: 4Gi
+    requests:
+      cpu: 500m
+      memory: 1Gi
+  env:
+    LOG_LEVEL: "WARNING"
+    WORKERS: "8"
+
+# Frontend configuration - production
+frontend:
+  replicaCount: 3
+  image:
+    pullPolicy: Always
+  autoscaling:
+    enabled: true
+    minReplicas: 3
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 80
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+
+# Worker configuration - production
+worker:
+  enabled: true
+  replicaCount: 3
+  image:
+    pullPolicy: Always
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 30
+    targetCPUUtilizationPercentage: 60
+  resources:
+    limits:
+      cpu: 4000m
+      memory: 8Gi
+    requests:
+      cpu: 1000m
+      memory: 2Gi
+
+# Ingress with production TLS
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/proxy-body-size: "100m"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+  hosts:
+    - host: qc.82labs.com
+      paths:
+        - path: /api
+          pathType: Prefix
+          service: backend
+        - path: /
+          pathType: Prefix
+          service: frontend
+  tls:
+    - secretName: sherman-qc-prod-tls
+      hosts:
+        - qc.82labs.com
+
+# PostgreSQL - production with HA
+postgresql:
+  enabled: true
+  auth:
+    password: ""  # MUST be set via external secret manager
+    postgresPassword: ""  # MUST be set via external secret manager
+    database: shermanqc
+  primary:
+    persistence:
+      enabled: true
+      size: 100Gi
+      storageClass: "fast-ssd"  # Use your cluster's fast storage class
+    resources:
+      limits:
+        cpu: 4000m
+        memory: 8Gi
+      requests:
+        cpu: 1000m
+        memory: 2Gi
+  readReplicas:
+    replicaCount: 2
+    persistence:
+      enabled: true
+      size: 100Gi
+      storageClass: "fast-ssd"
+    resources:
+      limits:
+        cpu: 2000m
+        memory: 4Gi
+      requests:
+        cpu: 500m
+        memory: 1Gi
+
+# Redis - production with HA
+redis:
+  enabled: true
+  auth:
+    enabled: true
+    password: ""  # MUST be set via external secret manager
+  master:
+    persistence:
+      enabled: true
+      size: 20Gi
+      storageClass: "fast-ssd"
+    resources:
+      limits:
+        cpu: 1000m
+        memory: 2Gi
+      requests:
+        cpu: 250m
+        memory: 512Mi
+  replica:
+    replicaCount: 2
+    persistence:
+      enabled: true
+      size: 20Gi
+
+# Storage - production volumes
+storage:
+  scans:
+    enabled: true
+    size: 500Gi
+    storageClass: "fast-ssd"
+    accessModes:
+      - ReadWriteMany
+  reports:
+    enabled: true
+    size: 200Gi
+    storageClass: "fast-ssd"
+    accessModes:
+      - ReadWriteMany
+
+# AI configuration
+ai:
+  provider: claude
+  # Use external secrets for API keys
+  anthropicApiKeySecret:
+    name: sherman-qc-ai-secrets
+    key: anthropic-api-key
+
+# Auth with external secret
+auth:
+  jwtSecret:
+    name: sherman-qc-auth-secrets
+    key: jwt-secret
+  tokenExpireMinutes: 30
+  refreshExpireMinutes: 10080
+
+# Pod disruption budget for HA
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 2
+
+# Network policies enabled
+networkPolicy:
+  enabled: true
+  ingress:
+    enabled: true
+    allowExternal: false
+  egress:
+    enabled: true
+
+# Full monitoring
+monitoring:
+  enabled: true
+  serviceMonitor:
+    enabled: true
+    interval: 15s
+    labels:
+      release: prometheus  # Match your Prometheus operator selector
+  prometheusRules:
+    enabled: true
+    rules:
+      - alert: ShermanQCHighErrorRate
+        expr: |
+          sum(rate(http_requests_total{service="sherman-qc",status=~"5.."}[5m])) /
+          sum(rate(http_requests_total{service="sherman-qc"}[5m])) > 0.01
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High error rate (>1%) in Sherman QC"
+          description: "Error rate is {{ $value | humanizePercentage }}"
+
+      - alert: ShermanQCHighLatency
+        expr: |
+          histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{service="sherman-qc"}[5m])) > 1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High latency (p95 > 1s) in Sherman QC"
+
+      - alert: ShermanQCPodNotReady
+        expr: |
+          kube_pod_status_ready{pod=~"sherman-qc-.*", condition="true"} == 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Sherman QC pod not ready"
+
+      - alert: ShermanQCDatabaseConnectionHigh
+        expr: |
+          pg_stat_activity_count{datname="shermanqc"} > 80
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High database connection count"
+
+# Node affinity for production workloads
+nodeSelector:
+  node-type: production
+
+tolerations:
+  - key: "production"
+    operator: "Equal"
+    value: "true"
+    effect: "NoSchedule"
+
+affinity:
+  podAntiAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      - labelSelector:
+          matchExpressions:
+            - key: app.kubernetes.io/name
+              operator: In
+              values:
+                - sherman-qc
+        topologyKey: kubernetes.io/hostname
+  podAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 50
+        podAffinityTerm:
+          labelSelector:
+            matchExpressions:
+              - key: app.kubernetes.io/name
+                operator: In
+                values:
+                  - postgresql
+          topologyKey: topology.kubernetes.io/zone
+
+# Security context
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  readOnlyRootFilesystem: true
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+
+podSecurityContext:
+  fsGroup: 1000
+  seccompProfile:
+    type: RuntimeDefault

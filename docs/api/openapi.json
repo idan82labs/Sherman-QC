@@ -1,0 +1,154 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Sherman Scan QC System API",
+    "description": "AI-Powered Quality Control for Sheet Metal Parts\n\n## Features\n\n* **3D Scan Analysis** - Compare scan data against CAD reference\n* **AI-Powered Inspection** - Multimodal AI analysis\n* **GD&T Calculations** - ASME Y14.5 compliant\n* **SPC Analysis** - Cp/Cpk and control charts\n\n## Authentication\n\nUse `/api/auth/login` to get a JWT token. Include in `Authorization: Bearer <token>` header.",
+    "version": "1.0.0",
+    "contact": {"name": "Sherman QC", "email": "support@sherman-qc.local"}
+  },
+  "servers": [{"url": "http://localhost:8080", "description": "Development"}],
+  "tags": [
+    {"name": "Analysis", "description": "QC analysis operations"},
+    {"name": "Jobs", "description": "Job management"},
+    {"name": "Authentication", "description": "User authentication"},
+    {"name": "GD&T", "description": "Geometric Dimensioning & Tolerancing"},
+    {"name": "SPC", "description": "Statistical Process Control"},
+    {"name": "Reports", "description": "Report retrieval"}
+  ],
+  "paths": {
+    "/api/analyze": {
+      "post": {
+        "tags": ["Analysis"],
+        "summary": "Start QC analysis",
+        "operationId": "startAnalysis",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": ["reference_file", "scan_file"],
+                "properties": {
+                  "reference_file": {"type": "string", "format": "binary"},
+                  "scan_file": {"type": "string", "format": "binary"},
+                  "part_id": {"type": "string"},
+                  "part_name": {"type": "string"},
+                  "material": {"type": "string"},
+                  "tolerance": {"type": "number", "default": 0.1}
+                }
+              }
+            }
+          }
+        },
+        "responses": {"200": {"description": "Analysis started"}}
+      }
+    },
+    "/api/jobs": {
+      "get": {
+        "tags": ["Jobs"],
+        "summary": "List jobs",
+        "parameters": [
+          {"name": "status", "in": "query", "schema": {"type": "string"}},
+          {"name": "limit", "in": "query", "schema": {"type": "integer", "default": 50}}
+        ],
+        "responses": {"200": {"description": "Job list"}}
+      }
+    },
+    "/api/jobs/{job_id}": {
+      "get": {
+        "tags": ["Jobs"],
+        "summary": "Get job",
+        "parameters": [{"name": "job_id", "in": "path", "required": true, "schema": {"type": "string"}}],
+        "responses": {"200": {"description": "Job details"}}
+      },
+      "delete": {
+        "tags": ["Jobs"],
+        "summary": "Delete job",
+        "parameters": [{"name": "job_id", "in": "path", "required": true, "schema": {"type": "string"}}],
+        "responses": {"200": {"description": "Job deleted"}}
+      }
+    },
+    "/api/auth/login": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Login",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {"type": "object", "properties": {"username": {"type": "string"}, "password": {"type": "string"}}}
+            }
+          }
+        },
+        "responses": {"200": {"description": "Token"}}
+      }
+    },
+    "/api/auth/me": {
+      "get": {
+        "tags": ["Authentication"],
+        "summary": "Current user",
+        "security": [{"bearerAuth": []}],
+        "responses": {"200": {"description": "User info"}}
+      }
+    },
+    "/api/gdt/flatness": {
+      "post": {
+        "tags": ["GD&T"],
+        "summary": "Calculate flatness",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["points", "tolerance"],
+                "properties": {
+                  "points": {"type": "array", "items": {"type": "array", "items": {"type": "number"}}},
+                  "tolerance": {"type": "number"}
+                }
+              }
+            }
+          }
+        },
+        "responses": {"200": {"description": "GD&T result"}}
+      }
+    },
+    "/api/gdt/cylindricity": {"post": {"tags": ["GD&T"], "summary": "Calculate cylindricity", "responses": {"200": {"description": "Result"}}}},
+    "/api/gdt/circularity": {"post": {"tags": ["GD&T"], "summary": "Calculate circularity", "responses": {"200": {"description": "Result"}}}},
+    "/api/gdt/position": {"post": {"tags": ["GD&T"], "summary": "Calculate position", "responses": {"200": {"description": "Result"}}}},
+    "/api/gdt/parallelism": {"post": {"tags": ["GD&T"], "summary": "Calculate parallelism", "responses": {"200": {"description": "Result"}}}},
+    "/api/gdt/perpendicularity": {"post": {"tags": ["GD&T"], "summary": "Calculate perpendicularity", "responses": {"200": {"description": "Result"}}}},
+    "/api/gdt/types": {"get": {"tags": ["GD&T"], "summary": "Supported types", "responses": {"200": {"description": "Types"}}}},
+    "/api/spc/capability": {
+      "post": {
+        "tags": ["SPC"],
+        "summary": "Calculate Cp/Cpk",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["data", "usl", "lsl"],
+                "properties": {
+                  "data": {"type": "array", "items": {"type": "number"}},
+                  "usl": {"type": "number"},
+                  "lsl": {"type": "number"},
+                  "target": {"type": "number"},
+                  "subgroup_size": {"type": "integer", "default": 1}
+                }
+              }
+            }
+          }
+        },
+        "responses": {"200": {"description": "Capability"}}
+      }
+    },
+    "/api/spc/control-charts": {"post": {"tags": ["SPC"], "summary": "Generate control charts", "responses": {"200": {"description": "Charts"}}}},
+    "/api/spc/histogram": {"post": {"tags": ["SPC"], "summary": "Generate histogram", "responses": {"200": {"description": "Histogram"}}}},
+    "/api/spc/analyze": {"post": {"tags": ["SPC"], "summary": "Full SPC analysis", "responses": {"200": {"description": "Analysis"}}}},
+    "/api/report/{job_id}": {"get": {"tags": ["Reports"], "summary": "Get JSON report", "parameters": [{"name": "job_id", "in": "path", "required": true, "schema": {"type": "string"}}], "responses": {"200": {"description": "Report"}}}},
+    "/api/report/{job_id}/pdf": {"get": {"tags": ["Reports"], "summary": "Download PDF", "parameters": [{"name": "job_id", "in": "path", "required": true, "schema": {"type": "string"}}], "responses": {"200": {"description": "PDF"}}}},
+    "/api/stats": {"get": {"tags": ["Jobs"], "summary": "System stats", "responses": {"200": {"description": "Stats"}}}}
+  },
+  "components": {
+    "securitySchemes": {"bearerAuth": {"type": "http", "scheme": "bearer", "bearerFormat": "JWT"}}
+  }
+}

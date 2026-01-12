@@ -436,18 +436,101 @@
             border-top: 1px solid rgba(148, 163, 184, 0.1);
         }
         
+        /* Heatmap Visualization */
+        .heatmap-container {
+            padding: 16px 0;
+        }
+
+        .heatmap-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+            padding-bottom: 12px;
+        }
+
+        .heatmap-tab {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            border-radius: 8px;
+            padding: 10px 20px;
+            color: #94a3b8;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .heatmap-tab:hover {
+            background: rgba(59, 130, 246, 0.2);
+            border-color: #3b82f6;
+        }
+
+        .heatmap-tab.active {
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            color: white;
+            border-color: transparent;
+        }
+
+        .heatmap-display {
+            text-align: center;
+        }
+
+        .heatmap-display img {
+            max-width: 100%;
+            border-radius: 12px;
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            background: rgba(15, 23, 42, 0.8);
+        }
+
+        .heatmap-legend {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 12px;
+            font-size: 0.75rem;
+            color: #94a3b8;
+        }
+
+        .legend-gradient {
+            width: 120px;
+            height: 12px;
+            border-radius: 6px;
+            background: linear-gradient(to right, #16a34a, #fbbf24, #dc2626);
+        }
+
+        .legend-label {
+            font-size: 0.75rem;
+        }
+
+        /* AI Model Badge */
+        .ai-model-badge {
+            display: inline-block;
+            background: rgba(139, 92, 246, 0.2);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 6px;
+            padding: 4px 10px;
+            font-size: 0.75rem;
+            color: #a78bfa;
+            margin-left: 12px;
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             .form-grid {
                 grid-template-columns: 1fr;
             }
-            
+
             .form-group.full-width {
                 grid-column: span 1;
             }
-            
+
             .stats-grid {
                 grid-template-columns: repeat(2, 1fr);
+            }
+
+            .heatmap-tabs {
+                flex-wrap: wrap;
             }
         }
     </style>
@@ -583,7 +666,31 @@
                     <div class="stat-label">Alignment</div>
                 </div>
             </div>
-            
+
+            <!-- Heatmap Visualization -->
+            <div class="card" id="heatmapCard" style="display: none;">
+                <div class="card-header">
+                    <div class="icon">🗺️</div>
+                    <h2>Deviation Heatmaps</h2>
+                </div>
+                <div class="heatmap-container">
+                    <div class="heatmap-tabs">
+                        <button class="heatmap-tab active" data-view="multi_view">Multi-View</button>
+                        <button class="heatmap-tab" data-view="top">Top</button>
+                        <button class="heatmap-tab" data-view="front">Front</button>
+                        <button class="heatmap-tab" data-view="side">Side</button>
+                    </div>
+                    <div class="heatmap-display">
+                        <img id="heatmapImage" src="" alt="Deviation Heatmap" />
+                        <div class="heatmap-legend">
+                            <span class="legend-label">Inward (Green)</span>
+                            <div class="legend-gradient"></div>
+                            <span class="legend-label">Outward (Red)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Regional Analysis -->
             <div class="card">
                 <div class="card-header">
@@ -786,31 +893,56 @@
             }
         }
         
+        // Store current heatmaps for tab switching
+        let currentHeatmaps = {};
+
         function displayResults(result) {
             // Hide progress, show results
             document.getElementById('progressCard').classList.remove('active');
             document.getElementById('resultsContainer').classList.add('active');
-            
+
             // Verdict
             const verdictCard = document.getElementById('verdictCard');
             verdictCard.className = 'verdict-card ' + result.overall_result.toLowerCase();
-            
+
             const icons = { PASS: '✓', FAIL: '✗', WARNING: '⚠' };
             document.getElementById('verdictIcon').textContent = icons[result.overall_result] || '?';
             document.getElementById('verdictText').textContent = result.overall_result;
-            document.getElementById('verdictScore').textContent = 
-                `Quality Score: ${result.quality_score}/100 | Confidence: ${result.confidence}%`;
-            
+
+            // Build verdict score with optional AI model badge
+            let scoreText = `Quality Score: ${result.quality_score}/100 | Confidence: ${result.confidence}%`;
+            if (result.ai_model_used) {
+                scoreText += ` <span class="ai-model-badge">🤖 ${result.ai_model_used}</span>`;
+            }
+            document.getElementById('verdictScore').innerHTML = scoreText;
+
             // AI Summary
             document.getElementById('aiSummary').textContent = result.ai_summary;
-            
+
             // Stats
             const stats = result.statistics;
             document.getElementById('statPoints').textContent = stats.total_points.toLocaleString();
             document.getElementById('statPassRate').textContent = stats.pass_rate.toFixed(1) + '%';
             document.getElementById('statMaxDev').textContent = stats.max_deviation_mm.toFixed(3) + 'mm';
             document.getElementById('statAlignment').textContent = result.alignment.fitness.toFixed(1) + '%';
-            
+
+            // Display heatmaps if available
+            if (result.heatmaps && Object.values(result.heatmaps).some(v => v)) {
+                currentHeatmaps = result.heatmaps;
+                document.getElementById('heatmapCard').style.display = 'block';
+
+                // Show first available heatmap
+                const firstView = result.heatmaps.multi_view || result.heatmaps.top || '';
+                if (firstView) {
+                    document.getElementById('heatmapImage').src = firstView;
+                }
+
+                // Setup tab click handlers
+                setupHeatmapTabs();
+            } else {
+                document.getElementById('heatmapCard').style.display = 'none';
+            }
+
             // Regions table
             const tbody = document.getElementById('regionsTable');
             tbody.innerHTML = '';
@@ -827,11 +959,11 @@
                     </tr>
                 `;
             });
-            
+
             // Root causes
             const rcList = document.getElementById('rootCausesList');
             rcList.innerHTML = '';
-            
+
             if (result.root_causes.length === 0) {
                 rcList.innerHTML = '<p style="color: #10b981;">✓ No significant manufacturing issues identified.</p>';
             } else {
@@ -847,6 +979,24 @@
                     `;
                 });
             }
+        }
+
+        function setupHeatmapTabs() {
+            const tabs = document.querySelectorAll('.heatmap-tab');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    // Update active tab
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+
+                    // Update image
+                    const view = tab.dataset.view;
+                    const imageUrl = currentHeatmaps[view];
+                    if (imageUrl) {
+                        document.getElementById('heatmapImage').src = imageUrl;
+                    }
+                });
+            });
         }
         
         // Downloads

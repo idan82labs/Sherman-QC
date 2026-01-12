@@ -1,0 +1,32 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "sherman-qc.fullname" . }}-config
+  labels:
+    {{- include "sherman-qc.labels" . | nindent 4 }}
+data:
+  # Server configuration
+  HOST: "0.0.0.0"
+  PORT: "{{ .Values.backend.service.port }}"
+  PRODUCTION: "true"
+  LOG_LEVEL: {{ .Values.backend.env.LOG_LEVEL | default "INFO" | quote }}
+  WORKERS: {{ .Values.backend.env.WORKERS | default "4" | quote }}
+
+  # QC Analysis defaults
+  DEFAULT_TOLERANCE_MM: "0.1"
+  DEFAULT_MATERIAL: "Al-5053-H32"
+  MIN_REGION_POINTS: "100"
+
+  # Storage paths
+  UPLOAD_DIR: "/data/scans"
+  OUTPUT_DIR: "/data/reports"
+
+  # Auth configuration
+  TOKEN_EXPIRE_MINUTES: {{ .Values.auth.tokenExpireMinutes | quote }}
+  REFRESH_EXPIRE_MINUTES: {{ .Values.auth.refreshExpireMinutes | quote }}
+
+  # AI Provider
+  AI_PROVIDER: {{ .Values.ai.provider | quote }}
+  {{- if .Values.ai.model }}
+  AI_MODEL: {{ .Values.ai.model | quote }}
+  {{- end }}

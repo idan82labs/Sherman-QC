@@ -3,6 +3,7 @@ Scan QC Engine - Core Analysis Module
 Handles mesh loading, alignment, deviation computation, and AI analysis.
 """
 
+import os
 import numpy as np
 from dataclasses import dataclass, field
 from typing import Optional, List, Dict, Any, Callable
@@ -14,6 +15,9 @@ import time
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# AI Integration flag - set via environment or auto-detect
+AI_ENABLED = os.environ.get("ANTHROPIC_API_KEY") or os.environ.get("GOOGLE_API_KEY") or os.environ.get("OPENAI_API_KEY")
 
 
 class QCResult(Enum):
@@ -64,36 +68,44 @@ class QCReport:
     material: str
     tolerance: float
     timestamp: str
-    
+
     # Overall result
     overall_result: QCResult = QCResult.PASS
     quality_score: float = 0.0
     confidence: float = 0.0
-    
+
     # Statistics
     total_points: int = 0
     points_in_tolerance: int = 0
     points_out_of_tolerance: int = 0
     pass_rate: float = 0.0
-    
+
     mean_deviation: float = 0.0
     max_deviation: float = 0.0
     min_deviation: float = 0.0
     std_deviation: float = 0.0
-    
+
     # Alignment quality
     alignment_fitness: float = 0.0
     alignment_rmse: float = 0.0
-    
+
     # Detailed analysis
     regions: List[RegionAnalysis] = field(default_factory=list)
     root_causes: List[RootCause] = field(default_factory=list)
     recommendations: List[Dict] = field(default_factory=list)
-    
+
     # AI summary
     ai_summary: str = ""
     ai_detailed_analysis: str = ""
-    
+    ai_model_used: str = ""
+    ai_tokens_used: int = 0
+
+    # Heatmap images (paths or URLs)
+    heatmap_multi_view: str = ""
+    heatmap_top: str = ""
+    heatmap_front: str = ""
+    heatmap_side: str = ""
+
     # Drawing context
     drawing_context: str = ""
     
@@ -148,21 +160,42 @@ class QCReport:
             "recommendations": self.recommendations,
             "ai_summary": self.ai_summary,
             "ai_detailed_analysis": self.ai_detailed_analysis,
+            "ai_model_used": self.ai_model_used,
+            "ai_tokens_used": self.ai_tokens_used,
+            "heatmaps": {
+                "multi_view": self.heatmap_multi_view,
+                "top": self.heatmap_top,
+                "front": self.heatmap_front,
+                "side": self.heatmap_side,
+            },
             "drawing_context": self.drawing_context,
         }
 
 
 class ScanQCEngine:
     """Main QC analysis engine"""
-    
-    def __init__(self, progress_callback: Callable[[ProgressUpdate], None] = None):
+
+    def __init__(self, progress_callback: Callable[[ProgressUpdate], None] = None, output_dir: Optional[str] = None):
         self.progress_callback = progress_callback or (lambda x: None)
         self.reference_mesh = None
         self.scan_pcd = None
         self.aligned_scan = None
         self.deviations = None
+        self.output_dir = output_dir  # For saving heatmaps
         self._o3d = None
         self._trimesh = None
+        self._heatmap_renderer = None
+
+    @property
+    def heatmap_renderer(self):
+        """Lazy-load heatmap renderer"""
+        if self._heatmap_renderer is None:
+            try:
+                from ai_analyzer import DeviationHeatmapRenderer
+                self._heatmap_renderer = DeviationHeatmapRenderer()
+            except ImportError:
+                self._heatmap_renderer = None
+        return self._heatmap_renderer
         
     def _update_progress(self, stage: str, progress: float, message: str):
         """Send progress update"""
@@ -279,6 +312,56 @@ class ScanQCEngine:
         self._update_progress("analyze", 85, f"Computed {len(self.deviations)} deviation values")
         return self.deviations
     
+    def generate_heatmaps(self, tolerance: float, output_dir: str) -> Dict[str, str]:
+        """Generate and save deviation heatmap images.
+
+        Args:
+            tolerance: Tolerance threshold in mm
+            output_dir: Directory to save heatmap images
+
+        Returns:
+            Dict mapping view name to file path
+        """
+        if self.aligned_scan is None or self.deviations is None:
+            logger.warning("Cannot generate heatmaps: no scan data available")
+            return {}
+
+        if self.heatmap_renderer is None:
+            logger.warning("Heatmap renderer not available")
+            return {}
+
+        self._update_progress("analyze", 86, "Generating heatmap visualizations...")
+
+        points = np.asarray(self.aligned_scan.points)
+        deviations = self.deviations
+        output_path = Path(output_dir)
+        output_path.mkdir(parents=True, exist_ok=True)
+
+        heatmap_paths = {}
+
+        try:
+            # Generate multi-view heatmap
+            multi_view_bytes = self.heatmap_renderer.render_multi_view(points, deviations, tolerance)
+            multi_path = output_path / "heatmap_multi_view.png"
+            with open(multi_path, "wb") as f:
+                f.write(multi_view_bytes)
+            heatmap_paths["multi_view"] = str(multi_path)
+
+            # Generate individual views
+            for view in ["top", "front", "side"]:
+                view_bytes = self.heatmap_renderer.render_heatmap(points, deviations, tolerance, view)
+                view_path = output_path / f"heatmap_{view}.png"
+                with open(view_path, "wb") as f:
+                    f.write(view_bytes)
+                heatmap_paths[view] = str(view_path)
+
+            logger.info(f"Generated {len(heatmap_paths)} heatmap images")
+
+        except Exception as e:
+            logger.error(f"Failed to generate heatmaps: {e}")
+
+        return heatmap_paths
+
     def analyze_regions(self, tolerance: float) -> List[RegionAnalysis]:
         """Analyze deviations by region"""
         self._update_progress("analyze", 88, "Analyzing regions...")
@@ -333,11 +416,27 @@ class ScanQCEngine:
         part_name: str,
         material: str,
         tolerance: float,
-        drawing_context: str = ""
+        drawing_context: str = "",
+        output_dir: Optional[str] = None
     ) -> QCReport:
-        """Run complete QC analysis"""
+        """Run complete QC analysis.
+
+        Args:
+            part_id: Part number/ID
+            part_name: Part name/description
+            material: Material specification
+            tolerance: Tolerance in mm
+            drawing_context: Extracted text from technical drawing PDF
+            output_dir: Directory to save heatmap images
+
+        Returns:
+            Complete QCReport with analysis results
+        """
         from datetime import datetime
-        
+
+        # Use provided output_dir or instance default
+        heatmap_dir = output_dir or self.output_dir
+
         # Initialize report
         report = QCReport(
             part_id=part_id,
@@ -347,67 +446,208 @@ class ScanQCEngine:
             timestamp=datetime.now().isoformat(),
             drawing_context=drawing_context
         )
-        
+
         try:
             # Preprocess
             self.preprocess()
-            
+
             # Align
             fitness, rmse = self.align()
             report.alignment_fitness = fitness
             report.alignment_rmse = rmse
-            
+
             # Compute deviations
             deviations = self.compute_deviations()
             abs_devs = np.abs(deviations)
-            
+
             # Statistics
             report.total_points = len(deviations)
             report.mean_deviation = float(np.mean(deviations))
             report.max_deviation = float(np.max(deviations))
             report.min_deviation = float(np.min(deviations))
             report.std_deviation = float(np.std(deviations))
-            
+
             report.points_in_tolerance = int(np.sum(abs_devs <= tolerance))
             report.points_out_of_tolerance = int(np.sum(abs_devs > tolerance))
             report.pass_rate = report.points_in_tolerance / len(deviations)
-            
+
+            # Generate heatmaps if output directory provided
+            if heatmap_dir:
+                heatmap_paths = self.generate_heatmaps(tolerance, heatmap_dir)
+                report.heatmap_multi_view = heatmap_paths.get("multi_view", "")
+                report.heatmap_top = heatmap_paths.get("top", "")
+                report.heatmap_front = heatmap_paths.get("front", "")
+                report.heatmap_side = heatmap_paths.get("side", "")
+
             # Regional analysis
             self._update_progress("analyze", 90, "Performing regional analysis...")
             report.regions = self.analyze_regions(tolerance)
-            
+
             # AI Analysis
             self._update_progress("ai", 92, "Running AI interpretation...")
             self._run_ai_analysis(report, drawing_context)
-            
+
             # Calculate quality score and verdict
             self._calculate_verdict(report)
-            
+
             self._update_progress("complete", 100, "Analysis complete!")
-            
+
         except Exception as e:
             logger.error(f"Analysis failed: {e}")
             report.overall_result = QCResult.FAIL
             report.ai_summary = f"Analysis error: {str(e)}"
-        
+
         return report
     
     def _run_ai_analysis(self, report: QCReport, drawing_context: str):
-        """Generate AI interpretations for regions and root causes"""
-        
+        """Generate AI interpretations for regions and root causes.
+
+        Uses multimodal AI (Claude/Gemini/GPT) when API key is available,
+        falls back to rule-based analysis otherwise.
+        """
+        # Try AI-powered analysis first if API key is available
+        if AI_ENABLED and self.aligned_scan is not None and self.deviations is not None:
+            try:
+                self._update_progress("ai", 93, "Running AI vision analysis...")
+                ai_result = self._run_multimodal_ai_analysis(report, drawing_context)
+                if ai_result:
+                    logger.info(f"AI analysis complete. Model: {ai_result.get('model_used', 'unknown')}")
+                    return  # AI analysis succeeded
+            except Exception as e:
+                logger.warning(f"AI analysis failed, falling back to rule-based: {e}")
+
+        # Fallback to rule-based analysis
+        self._update_progress("ai", 93, "Running rule-based analysis...")
+
         # Interpret each region
         for region in report.regions:
             region.ai_interpretation = self._interpret_region(region, report.tolerance, report.material)
-        
+
         # Identify root causes
         report.root_causes = self._identify_root_causes(report)
-        
+
         # Generate recommendations
         report.recommendations = self._generate_recommendations(report)
-        
+
         # Generate AI summary
         report.ai_summary = self._generate_summary(report, drawing_context)
         report.ai_detailed_analysis = self._generate_detailed_analysis(report, drawing_context)
+
+    def _run_multimodal_ai_analysis(self, report: QCReport, drawing_context: str) -> Optional[Dict]:
+        """Run actual multimodal AI analysis using vision models.
+
+        Args:
+            report: The QC report to populate
+            drawing_context: Extracted text from technical drawing PDF
+
+        Returns:
+            Dict with AI results if successful, None otherwise
+        """
+        try:
+            from ai_analyzer import create_ai_analyzer, AIProvider
+
+            # Get points and deviations
+            points = np.asarray(self.aligned_scan.points)
+            deviations = self.deviations
+
+            # Determine which provider to use
+            if os.environ.get("ANTHROPIC_API_KEY"):
+                provider = "claude"
+            elif os.environ.get("GOOGLE_API_KEY"):
+                provider = "gemini"
+            elif os.environ.get("OPENAI_API_KEY"):
+                provider = "openai"
+            else:
+                return None
+
+            # Create analyzer
+            analyzer = create_ai_analyzer(provider=provider)
+
+            # Prepare part info
+            part_info = {
+                "part_id": report.part_id,
+                "part_name": report.part_name,
+                "material": report.material
+            }
+
+            # Prepare regional data for context
+            regions_data = [
+                {
+                    "name": r.name,
+                    "mean_deviation_mm": r.mean_deviation,
+                    "max_deviation_mm": r.max_deviation,
+                    "pass_rate": r.pass_rate * 100
+                }
+                for r in report.regions
+            ]
+
+            # Call AI analyzer
+            ai_result = analyzer.analyze(
+                points=points,
+                deviations=deviations,
+                tolerance=report.tolerance,
+                part_info=part_info,
+                regions=regions_data,
+                technical_drawing=None  # TODO: Pass actual drawing bytes if available
+            )
+
+            # Populate report from AI result
+            report.overall_result = QCResult(ai_result.verdict) if ai_result.verdict in ["PASS", "FAIL", "WARNING"] else report.overall_result
+            report.quality_score = ai_result.quality_score
+            report.confidence = ai_result.confidence
+            report.ai_summary = ai_result.summary
+            report.ai_detailed_analysis = ai_result.detailed_analysis
+
+            # Convert AI root causes to our format
+            report.root_causes = [
+                RootCause(
+                    issue=rc.get("issue", "Unknown issue"),
+                    likely_cause=rc.get("cause", "Unknown cause"),
+                    technical_explanation=rc.get("evidence", ""),
+                    confidence=rc.get("confidence", 0.5),
+                    recommendation="",  # Will be filled from recommendations
+                    priority="HIGH" if rc.get("confidence", 0) > 0.7 else "MEDIUM"
+                )
+                for rc in ai_result.root_causes
+            ]
+
+            # Convert AI recommendations
+            report.recommendations = [
+                {
+                    "priority": rec.get("priority", "MEDIUM").upper(),
+                    "action": rec.get("action", ""),
+                    "expected_improvement": rec.get("expected_improvement", "")
+                }
+                for rec in ai_result.recommendations
+            ]
+
+            # Update regions with AI defect locations if available
+            for defect in ai_result.defects_found:
+                location = defect.get("location", "").lower()
+                for region in report.regions:
+                    if region.name.lower() in location or location in region.name.lower():
+                        region.ai_interpretation = defect.get("description", region.ai_interpretation)
+
+            # Fill any regions without AI interpretation with rule-based
+            for region in report.regions:
+                if not region.ai_interpretation:
+                    region.ai_interpretation = self._interpret_region(region, report.tolerance, report.material)
+
+            # Store AI metadata
+            report.ai_model_used = ai_result.model_used
+            report.ai_tokens_used = ai_result.tokens_used
+
+            return {
+                "model_used": ai_result.model_used,
+                "tokens_used": ai_result.tokens_used
+            }
+
+        except ImportError as e:
+            logger.warning(f"AI analyzer module not available: {e}")
+            return None
+        except Exception as e:
+            logger.error(f"Multimodal AI analysis failed: {e}")
+            return None
     
     def _interpret_region(self, region: RegionAnalysis, tolerance: float, material: str) -> str:
         """AI interpretation of a single region"""

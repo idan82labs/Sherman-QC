@@ -1,0 +1,65 @@
+# Sherman QC - Worker Dockerfile
+# For async task processing with Celery
+
+# ============================================================================
+# Stage 1: Build dependencies
+# ============================================================================
+FROM python:3.11-slim as builder
+
+WORKDIR /app
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    libgl1-mesa-glx \
+    libglib2.0-0 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Python dependencies (including celery)
+COPY requirements.txt .
+RUN pip install --no-cache-dir --user -r requirements.txt celery[redis]
+
+# ============================================================================
+# Stage 2: Production image
+# ============================================================================
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Create non-root user for security
+RUN groupadd -r shermanqc && useradd -r -g shermanqc shermanqc
+
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libgl1-mesa-glx \
+    libglib2.0-0 \
+    libsm6 \
+    libxext6 \
+    libxrender1 \
+    libgomp1 \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
+
+# Copy Python packages from builder
+COPY --from=builder /root/.local /home/shermanqc/.local
+ENV PATH=/home/shermanqc/.local/bin:$PATH
+
+# Copy application code
+COPY backend/ ./backend/
+
+# Create directories for data
+RUN mkdir -p /data/scans /data/reports /app/logs \
+    && chown -R shermanqc:shermanqc /app /data
+
+# Environment variables
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PRODUCTION=true
+ENV LOG_LEVEL=INFO
+ENV C_FORCE_ROOT=false
+
+# Switch to non-root user
+USER shermanqc
+
+# Default command runs Celery worker
+CMD ["python", "-m", "celery", "-A", "backend.tasks", "worker", "--loglevel=info", "--concurrency=4"]

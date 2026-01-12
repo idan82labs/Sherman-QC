@@ -1,0 +1,27 @@
+apiVersion: v2
+name: sherman-qc
+description: AI-Powered Quality Control System for CNC Manufacturing
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+kubeVersion: ">=1.25.0"
+keywords:
+  - quality-control
+  - manufacturing
+  - ai
+  - inspection
+  - cnc
+  - gdt
+home: https://github.com/82labs/sherman-qc
+maintainers:
+  - name: 82Labs
+    email: support@82labs.com
+dependencies:
+  - name: postgresql
+    version: "12.x.x"
+    repository: https://charts.bitnami.com/bitnami
+    condition: postgresql.enabled
+  - name: redis
+    version: "17.x.x"
+    repository: https://charts.bitnami.com/bitnami
+    condition: redis.enabled

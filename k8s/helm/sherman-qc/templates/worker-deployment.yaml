@@ -1,0 +1,149 @@
+{{- if .Values.worker.enabled }}
+{{- include "sherman-qc.validateWorkerDeps" . }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "sherman-qc.fullname" . }}-worker
+  labels:
+    {{- include "sherman-qc.worker.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.worker.autoscaling.enabled }}
+  replicas: {{ .Values.worker.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "sherman-qc.worker.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "sherman-qc.worker.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "sherman-qc.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: worker
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.global.imageRegistry }}{{ .Values.worker.image.repository }}:{{ .Values.worker.image.tag }}"
+          imagePullPolicy: {{ .Values.worker.image.pullPolicy }}
+          command:
+            - python
+            - -m
+            - celery
+            - -A
+            - backend.tasks
+            - worker
+            - --loglevel=info
+            - --concurrency=4
+          env:
+            - name: DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  {{- if .Values.postgresql.enabled }}
+                  name: {{ include "sherman-qc.fullname" . }}-postgresql
+                  key: password
+                  {{- else }}
+                  name: {{ .Values.externalPostgresql.existingSecret }}
+                  key: {{ .Values.externalPostgresql.existingSecretPasswordKey }}
+                  {{- end }}
+            - name: DATABASE_URL
+              value: {{ include "sherman-qc.databaseUrl" . | quote }}
+            {{- if or .Values.redis.enabled .Values.externalRedis.enabled }}
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  {{- if .Values.redis.enabled }}
+                  name: {{ include "sherman-qc.fullname" . }}-redis
+                  key: redis-password
+                  {{- else }}
+                  name: {{ .Values.externalRedis.existingSecret }}
+                  key: {{ .Values.externalRedis.existingSecretPasswordKey }}
+                  {{- end }}
+            - name: REDIS_URL
+              value: {{ include "sherman-qc.redisUrl" . | quote }}
+            - name: CELERY_BROKER_URL
+              value: {{ include "sherman-qc.redisUrl" . | quote }}
+            - name: CELERY_RESULT_BACKEND
+              value: {{ include "sherman-qc.redisUrl" . | quote }}
+            {{- end }}
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.auth.jwtSecret.name }}
+                  key: {{ .Values.auth.jwtSecret.key }}
+            - name: AI_PROVIDER
+              value: {{ .Values.ai.provider | quote }}
+            {{- if eq .Values.ai.provider "claude" }}
+            - name: ANTHROPIC_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.ai.anthropicApiKeySecret.name }}
+                  key: {{ .Values.ai.anthropicApiKeySecret.key }}
+            {{- end }}
+            {{- if eq .Values.ai.provider "gemini" }}
+            - name: GOOGLE_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.ai.googleApiKeySecret.name }}
+                  key: {{ .Values.ai.googleApiKeySecret.key }}
+            {{- end }}
+            {{- if eq .Values.ai.provider "openai" }}
+            - name: OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.ai.openaiApiKeySecret.name }}
+                  key: {{ .Values.ai.openaiApiKeySecret.key }}
+            {{- end }}
+            {{- range $key, $value := .Values.backend.env }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
+            {{- with .Values.extraEnv }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          volumeMounts:
+            {{- if .Values.storage.scans.enabled }}
+            - name: scans
+              mountPath: /data/scans
+            {{- end }}
+            {{- if .Values.storage.reports.enabled }}
+            - name: reports
+              mountPath: /data/reports
+            {{- end }}
+            {{- with .Values.extraVolumeMounts }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          resources:
+            {{- toYaml .Values.worker.resources | nindent 12 }}
+      volumes:
+        {{- if .Values.storage.scans.enabled }}
+        - name: scans
+          persistentVolumeClaim:
+            claimName: {{ include "sherman-qc.fullname" . }}-scans
+        {{- end }}
+        {{- if .Values.storage.reports.enabled }}
+        - name: reports
+          persistentVolumeClaim:
+            claimName: {{ include "sherman-qc.fullname" . }}-reports
+        {{- end }}
+        {{- with .Values.extraVolumes }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

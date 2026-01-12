@@ -1,0 +1,116 @@
+================================================================================
+                    Sherman QC - AI-Powered Quality Control
+================================================================================
+
+Thank you for installing {{ .Chart.Name }}!
+
+{{ if .Values.ingress.enabled }}
+Your application is accessible at:
+{{- range .Values.ingress.hosts }}
+  https://{{ .host }}
+{{- end }}
+{{ else }}
+To access the application, forward the ports:
+
+  # Frontend
+  kubectl port-forward svc/{{ include "sherman-qc.fullname" . }}-frontend {{ .Values.frontend.service.port }}:{{ .Values.frontend.service.port }}
+
+  # Backend API
+  kubectl port-forward svc/{{ include "sherman-qc.fullname" . }}-backend {{ .Values.backend.service.port }}:{{ .Values.backend.service.port }}
+
+Then open http://localhost:{{ .Values.frontend.service.port }} in your browser.
+{{ end }}
+
+================================================================================
+                              IMPORTANT NEXT STEPS
+================================================================================
+
+1. CREATE AI API KEY SECRET
+   The application requires an AI provider API key. Create the secret:
+
+   # For Claude (recommended)
+   kubectl create secret generic {{ .Values.ai.anthropicApiKeySecret.name }} \
+     --from-literal={{ .Values.ai.anthropicApiKeySecret.key }}=YOUR_ANTHROPIC_API_KEY
+
+   # For Gemini
+   kubectl create secret generic {{ .Values.ai.googleApiKeySecret.name }} \
+     --from-literal={{ .Values.ai.googleApiKeySecret.key }}=YOUR_GOOGLE_API_KEY
+
+   # For OpenAI
+   kubectl create secret generic {{ .Values.ai.openaiApiKeySecret.name }} \
+     --from-literal={{ .Values.ai.openaiApiKeySecret.key }}=YOUR_OPENAI_API_KEY
+
+{{ if not .Values.postgresql.enabled }}
+{{ if .Values.externalPostgresql.enabled }}
+2. VERIFY DATABASE CONNECTION
+   Ensure your external PostgreSQL is accessible at:
+   {{ .Values.externalPostgresql.host }}:{{ .Values.externalPostgresql.port }}
+{{ end }}
+{{ else }}
+2. DATABASE CREDENTIALS
+   PostgreSQL has been installed. Retrieve the password:
+
+   kubectl get secret {{ include "sherman-qc.fullname" . }}-postgresql \
+     -o jsonpath='{.data.password}' | base64 -d
+{{ end }}
+
+{{ if .Values.redis.enabled }}
+3. REDIS CREDENTIALS
+   Redis has been installed. Retrieve the password:
+
+   kubectl get secret {{ include "sherman-qc.fullname" . }}-redis \
+     -o jsonpath='{.data.redis-password}' | base64 -d
+{{ end }}
+
+================================================================================
+                              USEFUL COMMANDS
+================================================================================
+
+# Check pod status
+kubectl get pods -l app.kubernetes.io/name={{ include "sherman-qc.name" . }}
+
+# View backend logs
+kubectl logs -f -l app.kubernetes.io/component=backend
+
+# View worker logs (if enabled)
+kubectl logs -f -l app.kubernetes.io/component=worker
+
+# Check HPA status
+kubectl get hpa
+
+# Access API documentation
+{{- if .Values.ingress.enabled }}
+{{- range .Values.ingress.hosts }}
+  https://{{ .host }}/api/docs
+{{- end }}
+{{- else }}
+  http://localhost:{{ .Values.backend.service.port }}/api/docs
+{{- end }}
+
+================================================================================
+                              MONITORING
+================================================================================
+
+{{ if .Values.monitoring.enabled }}
+Monitoring is enabled. ServiceMonitor and PrometheusRules have been created.
+
+# View metrics endpoint
+kubectl port-forward svc/{{ include "sherman-qc.fullname" . }}-backend {{ .Values.backend.service.port }}:{{ .Values.backend.service.port }}
+curl http://localhost:{{ .Values.backend.service.port }}/metrics
+{{ else }}
+Monitoring is disabled. Enable it by setting:
+  monitoring.enabled=true
+{{ end }}
+
+================================================================================
+                              SUPPORT
+================================================================================
+
+Documentation: {{ .Chart.Home }}
+Issues: {{ .Chart.Home }}/issues
+
+For questions, contact: {{ range .Chart.Maintainers }}{{ .Email }}{{ end }}
+
+Release: {{ .Release.Name }}
+Version: {{ .Chart.Version }}
+App Version: {{ .Chart.AppVersion }}

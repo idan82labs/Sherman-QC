@@ -1,0 +1,79 @@
+# Sherman QC - Development Environment Values
+# Usage: helm install sherman-qc ./k8s/helm/sherman-qc -f ./k8s/helm/sherman-qc/values-dev.yaml
+
+# Reduced replicas for development
+backend:
+  replicaCount: 1
+  autoscaling:
+    enabled: false
+  resources:
+    limits:
+      cpu: 500m
+      memory: 1Gi
+    requests:
+      cpu: 100m
+      memory: 256Mi
+  env:
+    LOG_LEVEL: "DEBUG"
+    WORKERS: "1"
+
+frontend:
+  replicaCount: 1
+  autoscaling:
+    enabled: false
+  resources:
+    limits:
+      cpu: 200m
+      memory: 128Mi
+    requests:
+      cpu: 50m
+      memory: 64Mi
+
+worker:
+  enabled: false  # Disable workers in dev (sync processing)
+
+# Ingress disabled - use port-forward
+ingress:
+  enabled: false
+
+# Smaller PostgreSQL for dev
+postgresql:
+  enabled: true
+  auth:
+    password: "dev-password-change-me"
+    database: shermanqc_dev
+  primary:
+    persistence:
+      size: 5Gi
+    resources:
+      limits:
+        cpu: 500m
+        memory: 512Mi
+      requests:
+        cpu: 100m
+        memory: 256Mi
+  readReplicas:
+    replicaCount: 0
+
+# Disable Redis in dev
+redis:
+  enabled: false
+
+# Smaller storage for dev
+storage:
+  scans:
+    enabled: true
+    size: 10Gi
+  reports:
+    enabled: true
+    size: 5Gi
+
+# Disable production features
+podDisruptionBudget:
+  enabled: false
+
+networkPolicy:
+  enabled: false
+
+monitoring:
+  enabled: false

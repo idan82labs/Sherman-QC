@@ -19,6 +19,13 @@ from dataclasses import dataclass
 from enum import Enum
 import numpy as np
 
+from material_prompts import (
+    build_material_specific_prompt,
+    get_material_properties,
+    get_root_cause_hints,
+    MaterialCategory,
+)
+
 logger = logging.getLogger(__name__)
 
 
@@ -34,17 +41,29 @@ class AIAnalysisResult:
     verdict: str  # PASS, FAIL, WARNING
     quality_score: float  # 0-100
     confidence: float  # 0-1
-    
+
     defects_found: List[Dict[str, Any]]
     root_causes: List[Dict[str, Any]]
     recommendations: List[Dict[str, Any]]
-    
+
     summary: str
     detailed_analysis: str
-    
+
+    # Material-specific analysis factors
+    material_factors: Dict[str, Any] = None
+
     raw_response: str = ""
     model_used: str = ""
     tokens_used: int = 0
+
+    def __post_init__(self):
+        if self.material_factors is None:
+            self.material_factors = {
+                "springback_observed": False,
+                "work_hardening_effects": False,
+                "thermal_effects": False,
+                "material_specific_issues": []
+            }
 
 
 class DeviationHeatmapRenderer:
@@ -329,17 +348,24 @@ class MultimodalQCAnalyzer:
         self,
         part_info: Dict[str, str],
         stats: Dict[str, Any],
-        regions: Optional[List[Dict]] = None
+        regions: Optional[List[Dict]] = None,
+        process: str = "both"
     ) -> str:
-        """Build the analysis prompt"""
-        
+        """Build the analysis prompt with material-specific guidance"""
+
+        material = part_info.get('material', 'Unknown')
+        tolerance = stats['tolerance_mm']
+
+        # Get material properties for context
+        mat_props = get_material_properties(material)
+
         prompt = f"""You are an expert manufacturing quality control engineer specializing in sheet metal forming and CNC machining. You are analyzing a LiDAR scan comparison between a manufactured part and its CAD reference model.
 
 ## Part Information
 - Part ID: {part_info.get('part_id', 'Unknown')}
 - Part Name: {part_info.get('part_name', 'Unknown')}
-- Material: {part_info.get('material', 'Unknown')}
-- Tolerance Specification: ±{stats['tolerance_mm']}mm
+- Material: {material}
+- Tolerance Specification: ±{tolerance}mm
 
 ## Deviation Statistics
 - Total Points Measured: {stats['total_points']:,}
@@ -351,12 +377,16 @@ class MultimodalQCAnalyzer:
 - Max Negative Deviation (inward): {stats['min_deviation_mm']:.4f}mm
 - Standard Deviation: {stats['std_deviation_mm']:.4f}mm
 """
-        
+
         if regions:
             prompt += "\n## Regional Analysis\n"
             for r in regions:
                 prompt += f"- **{r['name']}**: Mean={r['mean_deviation_mm']:.4f}mm, Max={r['max_deviation_mm']:.4f}mm, Pass Rate={r['pass_rate']:.1f}%\n"
-        
+
+        # Add material-specific analysis guidance
+        material_guidance = build_material_specific_prompt(material, tolerance, process)
+        prompt += material_guidance
+
         prompt += """
 ## Images Provided
 1. Multi-view deviation heatmap (Top, Front, Side, Isometric views)
@@ -365,21 +395,31 @@ class MultimodalQCAnalyzer:
 Color scale: Red = positive deviation (outward/bulging), Green = negative deviation (inward/depressed)
 
 ## Your Task
-Analyze the deviation heatmaps and statistics to:
+Analyze the deviation heatmaps and statistics, applying the material-specific knowledge above:
 
 1. **Identify Defects**: Look for patterns indicating manufacturing issues:
+   - Material-specific defects listed above for this material
    - Springback (uniform outward deviation in bent areas)
    - Edge curl/deformation
    - Thickness variation
    - Surface waviness
    - Tool marks or damage
    - Localized anomalies
+   - Process-specific defects (galling, work hardening, thermal damage)
 
-2. **Determine Root Causes**: For each defect pattern, identify the likely manufacturing root cause with a confidence level (0-100%).
+2. **Determine Root Causes**: For each defect pattern:
+   - Consider the material properties (springback tendency, work hardening, etc.)
+   - Identify the likely manufacturing root cause
+   - Provide confidence level (0-100%) based on material behavior match
 
-3. **Make Recommendations**: Provide specific, actionable recommendations to fix identified issues.
+3. **Make Recommendations**: Provide specific, actionable recommendations:
+   - Consider material-specific solutions (overbend compensation, tooling changes)
+   - Account for material behavior in your suggestions
+   - Prioritize based on defect severity and material constraints
 
 4. **Verdict**: Determine if the part should PASS, FAIL, or receive a WARNING.
+   - Consider achievable tolerances for this material
+   - Factor in material-specific acceptance criteria
 
 ## Response Format
 Respond ONLY with valid JSON in this exact structure:
@@ -388,12 +428,19 @@ Respond ONLY with valid JSON in this exact structure:
     "verdict": "PASS|FAIL|WARNING",
     "quality_score": 0-100,
     "confidence": 0.0-1.0,
+    "material_factors": {
+        "springback_observed": true|false,
+        "work_hardening_effects": true|false,
+        "thermal_effects": true|false,
+        "material_specific_issues": ["list of material-specific issues found"]
+    },
     "defects_found": [
         {
             "type": "defect type",
             "location": "where on part",
             "severity": "minor|moderate|severe",
             "deviation_mm": 0.0,
+            "material_related": true|false,
             "description": "detailed description"
         }
     ],
@@ -402,23 +449,25 @@ Respond ONLY with valid JSON in this exact structure:
             "issue": "what is wrong",
             "cause": "why it happened",
             "confidence": 0.0-1.0,
-            "evidence": "what in the data supports this"
+            "evidence": "what in the data supports this",
+            "material_factor": "how material properties contribute"
         }
     ],
     "recommendations": [
         {
             "priority": "critical|high|medium|low",
             "action": "what to do",
-            "expected_improvement": "expected result"
+            "expected_improvement": "expected result",
+            "material_consideration": "material-specific notes"
         }
     ],
-    "summary": "2-3 sentence executive summary",
-    "detailed_analysis": "Detailed technical analysis paragraph"
+    "summary": "2-3 sentence executive summary including material considerations",
+    "detailed_analysis": "Detailed technical analysis paragraph with material-specific insights"
 }
 ```
 
-Analyze the provided images now and respond with JSON only."""
-        
+Analyze the provided images now, applying your knowledge of {material} behavior, and respond with JSON only."""
+
         return prompt
     
     def _call_claude(
@@ -535,7 +584,7 @@ Analyze the provided images now and respond with JSON only."""
     
     def _parse_response(self, raw_text: str, model: str, tokens: int) -> AIAnalysisResult:
         """Parse AI response into structured result"""
-        
+
         # Extract JSON from response
         try:
             # Find JSON block
@@ -545,9 +594,19 @@ Analyze the provided images now and respond with JSON only."""
                 json_str = raw_text.split("```")[1].split("```")[0]
             else:
                 json_str = raw_text
-            
+
             data = json.loads(json_str.strip())
-            
+
+            # Extract material factors with defaults
+            material_factors = data.get("material_factors", {})
+            if not material_factors:
+                material_factors = {
+                    "springback_observed": False,
+                    "work_hardening_effects": False,
+                    "thermal_effects": False,
+                    "material_specific_issues": []
+                }
+
             return AIAnalysisResult(
                 verdict=data.get("verdict", "FAIL"),
                 quality_score=float(data.get("quality_score", 0)),
@@ -557,11 +616,12 @@ Analyze the provided images now and respond with JSON only."""
                 recommendations=data.get("recommendations", []),
                 summary=data.get("summary", "Analysis failed to parse"),
                 detailed_analysis=data.get("detailed_analysis", ""),
+                material_factors=material_factors,
                 raw_response=raw_text,
                 model_used=model,
                 tokens_used=tokens
             )
-            
+
         except (json.JSONDecodeError, IndexError, KeyError) as e:
             logger.error(f"Failed to parse AI response: {e}")
             return AIAnalysisResult(
@@ -573,6 +633,12 @@ Analyze the provided images now and respond with JSON only."""
                 recommendations=[],
                 summary=f"Failed to parse AI response: {e}",
                 detailed_analysis=raw_text[:500],
+                material_factors={
+                    "springback_observed": False,
+                    "work_hardening_effects": False,
+                    "thermal_effects": False,
+                    "material_specific_issues": []
+                },
                 raw_response=raw_text,
                 model_used=model,
                 tokens_used=tokens

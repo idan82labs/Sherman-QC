@@ -1,0 +1,181 @@
+# Sherman Scan QC System - Docker Compose
+# One-command deployment for development and production
+#
+# Usage:
+#   Development (SQLite):  docker compose up -d
+#   Production (Postgres): docker compose --profile production up -d
+
+version: '3.8'
+
+services:
+  # ==========================================================================
+  # Main Application
+  # ==========================================================================
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sherman-qc
+    restart: unless-stopped
+    ports:
+      - "${PORT:-8080}:8080"
+    volumes:
+      # Persistent data storage
+      - ./data:/app/data
+      - ./uploads:/app/uploads
+      - ./output:/app/output
+      - ./logs:/app/logs
+    environment:
+      # Server configuration
+      - HOST=0.0.0.0
+      - PORT=8080
+      - PRODUCTION=${PRODUCTION:-false}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+
+      # AI Provider (set in .env file)
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY:-}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - AI_PROVIDER=${AI_PROVIDER:-claude}
+
+      # Database (empty = SQLite, set DATABASE_URL for PostgreSQL)
+      - DATABASE_URL=${DATABASE_URL:-}
+
+      # Security
+      - SECRET_KEY=${SECRET_KEY:-change-this-in-production}
+      - CORS_ORIGINS=${CORS_ORIGINS:-*}
+
+      # QC Defaults
+      - DEFAULT_TOLERANCE_MM=${DEFAULT_TOLERANCE_MM:-0.1}
+      - DEFAULT_MATERIAL=${DEFAULT_MATERIAL:-Al-5053-H32}
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/api/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    networks:
+      - sherman-network
+
+  # ==========================================================================
+  # Main Application (Production with PostgreSQL)
+  # ==========================================================================
+  app-prod:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sherman-qc-prod
+    restart: unless-stopped
+    profiles:
+      - production
+    ports:
+      - "${PORT:-8080}:8080"
+    volumes:
+      - ./uploads:/app/uploads
+      - ./output:/app/output
+      - ./logs:/app/logs
+    environment:
+      - HOST=0.0.0.0
+      - PORT=8080
+      - PRODUCTION=true
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY:-}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - AI_PROVIDER=${AI_PROVIDER:-claude}
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-sherman}:${POSTGRES_PASSWORD:-shermanqc2026}@db:5432/${POSTGRES_DB:-sherman_qc}
+      - SECRET_KEY=${SECRET_KEY:-change-this-in-production}
+      - CORS_ORIGINS=${CORS_ORIGINS:-*}
+      - DEFAULT_TOLERANCE_MM=${DEFAULT_TOLERANCE_MM:-0.1}
+      - DEFAULT_MATERIAL=${DEFAULT_MATERIAL:-Al-5053-H32}
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/api/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    networks:
+      - sherman-network
+
+  # ==========================================================================
+  # PostgreSQL Database (Production)
+  # ==========================================================================
+  db:
+    image: postgres:15-alpine
+    container_name: sherman-db
+    restart: unless-stopped
+    profiles:
+      - production
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-sherman}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-shermanqc2026}
+      - POSTGRES_DB=${POSTGRES_DB:-sherman_qc}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-sherman}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - sherman-network
+
+  # ==========================================================================
+  # Redis Cache (Optional - for session/cache in production)
+  # ==========================================================================
+  redis:
+    image: redis:7-alpine
+    container_name: sherman-redis
+    restart: unless-stopped
+    profiles:
+      - production
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - sherman-network
+
+  # ==========================================================================
+  # Nginx Reverse Proxy (Production)
+  # ==========================================================================
+  nginx:
+    image: nginx:alpine
+    container_name: sherman-nginx
+    restart: unless-stopped
+    profiles:
+      - production
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - ./frontend:/var/www/html:ro
+    depends_on:
+      - app
+    networks:
+      - sherman-network
+
+# ==========================================================================
+# Volumes
+# ==========================================================================
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+# ==========================================================================
+# Networks
+# ==========================================================================
+networks:
+  sherman-network:
+    driver: bridge
