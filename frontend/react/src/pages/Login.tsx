@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Activity, AlertCircle } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
+import { getErrorMessage } from '../services/api'
 
 export default function Login() {
   const [username, setUsername] = useState('')
@@ -19,8 +20,8 @@ export default function Login() {
     try {
       await login({ username, password })
       navigate('/')
-    } catch (err: any) {
-      setError(err.response?.data?.detail || 'Invalid credentials')
+    } catch (err: unknown) {
+      setError(getErrorMessage(err))
     } finally {
       setIsLoading(false)
     }
@@ -115,10 +116,6 @@ export default function Login() {
               )}
             </button>
           </form>
-
-          <div className="mt-6 text-center text-sm text-dark-400">
-            <p>Default credentials: admin / admin123</p>
-          </div>
         </div>
       </div>
     </div>

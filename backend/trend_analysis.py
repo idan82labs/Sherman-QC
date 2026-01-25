@@ -53,6 +53,44 @@ class WearStage(Enum):
 
 
 @dataclass
+class WearThresholdConfig:
+    """Configurable thresholds for wear stage classification.
+
+    Allows customization per tool type, material, or process.
+    All values are normalized wear indices (0.0-1.0+).
+    """
+    # Threshold below which tool is considered NEW
+    new_threshold: float = 0.1
+    # Threshold below which tool is in NORMAL wear
+    normal_threshold: float = 0.3
+    # Threshold for MODERATE_WEAR (default: uses wear_threshold parameter)
+    moderate_wear_threshold: Optional[float] = None
+    # Threshold for SIGNIFICANT_WEAR (default: uses critical_threshold parameter)
+    significant_wear_threshold: Optional[float] = None
+    # Value at or above which tool is END_OF_LIFE
+    end_of_life_threshold: float = 1.0
+
+    @classmethod
+    def default(cls) -> 'WearThresholdConfig':
+        """Return default configuration"""
+        return cls()
+
+    @classmethod
+    def for_material(cls, material: str) -> 'WearThresholdConfig':
+        """Get optimized thresholds for specific materials"""
+        material_lower = material.lower()
+        if 'titanium' in material_lower or 'inconel' in material_lower:
+            # Hard materials cause faster tool wear
+            return cls(new_threshold=0.08, normal_threshold=0.25, end_of_life_threshold=0.9)
+        elif 'aluminum' in material_lower:
+            # Soft materials are gentler on tools
+            return cls(new_threshold=0.12, normal_threshold=0.35, end_of_life_threshold=1.1)
+        elif 'steel' in material_lower:
+            return cls(new_threshold=0.1, normal_threshold=0.3, end_of_life_threshold=1.0)
+        return cls.default()
+
+
+@dataclass
 class DataPoint:
     """Single measurement data point"""
     timestamp: datetime
@@ -207,7 +245,8 @@ class TrendAnalyzer:
         self,
         min_data_points: int = 10,
         significance_level: float = 0.05,
-        trend_threshold: float = 0.01
+        trend_threshold: float = 0.01,
+        wear_config: Optional[WearThresholdConfig] = None
     ):
         """
         Initialize trend analyzer.
@@ -216,10 +255,12 @@ class TrendAnalyzer:
             min_data_points: Minimum points required for analysis
             significance_level: Statistical significance threshold
             trend_threshold: Minimum slope to consider a trend
+            wear_config: Configurable thresholds for wear classification
         """
         self.min_data_points = min_data_points
         self.significance_level = significance_level
         self.trend_threshold = trend_threshold
+        self.wear_config = wear_config or WearThresholdConfig.default()
 
     def analyze_trend(
         self,
@@ -507,16 +548,26 @@ class TrendAnalyzer:
         wear_threshold: float,
         critical_threshold: float
     ) -> WearStage:
-        """Classify current wear stage"""
-        if current_value < 0.1:
+        """Classify current wear stage using configurable thresholds.
+
+        Uses self.wear_config for NEW/NORMAL/END_OF_LIFE thresholds,
+        and method parameters for MODERATE/SIGNIFICANT wear (allows per-call customization).
+        """
+        cfg = self.wear_config
+
+        # Use config thresholds with parameter overrides where specified
+        moderate_threshold = cfg.moderate_wear_threshold or wear_threshold
+        significant_threshold = cfg.significant_wear_threshold or critical_threshold
+
+        if current_value < cfg.new_threshold:
             return WearStage.NEW
-        elif current_value < 0.3:
+        elif current_value < cfg.normal_threshold:
             return WearStage.NORMAL
-        elif current_value < wear_threshold:
+        elif current_value < moderate_threshold:
             return WearStage.MODERATE_WEAR
-        elif current_value < critical_threshold:
+        elif current_value < significant_threshold:
             return WearStage.SIGNIFICANT_WEAR
-        elif current_value < 1.0:
+        elif current_value < cfg.end_of_life_threshold:
             return WearStage.CRITICAL_WEAR
         else:
             return WearStage.END_OF_LIFE

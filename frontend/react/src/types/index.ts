@@ -1,3 +1,37 @@
+// API Response types
+export interface APIError {
+  error: string
+  code: string
+  details?: Record<string, unknown>
+}
+
+export interface PaginatedResponse<T> {
+  items: T[]
+  total: number
+  count: number
+  offset: number
+  limit: number
+  has_more: boolean
+}
+
+export interface JobsListResponse {
+  jobs: Job[]
+  total: number
+  count: number
+  offset: number
+  limit: number
+  has_more: boolean
+}
+
+export interface BatchListResponse {
+  batches: BatchJob[]
+  total: number
+  count: number
+  offset: number
+  limit: number
+  has_more: boolean
+}
+
 // User types
 export interface User {
   id: number
@@ -92,17 +126,32 @@ export interface RegionAnalysis {
   notes: string | null
 }
 
+export interface Recommendation {
+  priority?: 'HIGH' | 'MEDIUM' | 'LOW'
+  action: string
+  expected_improvement?: string
+}
+
 export interface AIAnalysis {
   summary: string
   critical_findings: string[]
   root_causes: RootCause[]
-  recommendations: string[]
+  recommendations: (string | Recommendation)[]
 }
 
 export interface RootCause {
   category: string
   description: string
   confidence: number
+}
+
+export interface Defect {
+  type: string
+  location: string
+  severity: 'minor' | 'moderate' | 'severe' | 'critical' | 'major'
+  deviation_mm: number
+  material_related: boolean
+  description: string
 }
 
 // Batch types
@@ -194,4 +243,289 @@ export interface SPCCapability {
   ppm_below: number
   ppm_above: number
   ppm_total: number
+}
+
+// Enhanced Analysis Types (Bend Detection + Multi-Model)
+
+export interface BendFeature {
+  bend_id: number
+  bend_name: string
+  angle_degrees: number
+  radius_mm: number
+  bend_line_start: [number, number, number]
+  bend_line_end: [number, number, number]
+  bend_apex: [number, number, number]
+  region_point_count: number
+  adjacent_surfaces: number[]
+  detection_confidence: number
+  bend_direction: string
+}
+
+export interface BendResult {
+  bend: BendFeature
+  nominal_angle: number | null
+  angle_deviation_deg: number
+  springback_indicator: number
+  over_bend_indicator: number
+  apex_deviation_mm: number
+  radius_deviation_mm: number
+  twist_angle_deg: number
+  status: 'pass' | 'warning' | 'fail'
+  recommendations: string[]
+  root_causes: string[]
+}
+
+export interface BendDetectionResult {
+  bends: BendFeature[]
+  total_bends_detected: number
+  detection_method: string
+  processing_time_ms: number
+  warnings: string[]
+}
+
+export interface CorrelationMapping {
+  mapping_id: string
+  drawing_element_id: string
+  drawing_element_type: string
+  feature_3d_id: string
+  feature_3d_type: string
+  confidence: number
+  nominal_value: number | null
+  measured_value: number | null
+  deviation: number | null
+  is_in_tolerance: boolean | null
+  notes: string
+}
+
+export interface CriticalDeviation {
+  deviation_id: string
+  feature_id: string
+  feature_type: string
+  location: [number, number, number]
+  deviation_mm: number
+  severity: 'critical' | 'major' | 'minor'
+  affected_dimensions: string[]
+  affected_gdt: string[]
+  affected_bends: number[]
+  description: string
+}
+
+export interface Correlation2D3D {
+  correlation_id: string
+  correlation_timestamp: string
+  mappings: CorrelationMapping[]
+  critical_deviations: CriticalDeviation[]
+  unmatched_drawing_elements: string[]
+  unmatched_3d_features: string[]
+  overall_correlation_score: number
+  model_used: string
+}
+
+export interface EnhancedRootCause {
+  cause_id: string
+  category: 'tooling' | 'material' | 'process' | 'design' | 'measurement'
+  description: string
+  severity: 'critical' | 'major' | 'minor'
+  confidence: number
+  affected_features: string[]
+  affected_bends: number[]
+  evidence: string[]
+  recommendations: string[]
+  estimated_impact: string | null
+  priority: number
+}
+
+export interface PipelineStageStatus {
+  stage: string
+  status: 'pending' | 'running' | 'completed' | 'failed' | 'skipped'
+  model_used: string | null
+  fallback_used: boolean
+  start_time: string | null
+  end_time: string | null
+  duration_ms: number | null
+  error_message: string | null
+}
+
+export interface PipelineStatus {
+  job_id: string
+  current_stage: string
+  stages: Record<string, PipelineStageStatus>
+  overall_progress: number
+  started_at: string | null
+  completed_at: string | null
+  total_duration_ms: number | null
+}
+
+export interface EnhancedAnalysisResult {
+  job_id: string
+  analysis_timestamp: string
+  drawing_extraction: DrawingExtraction | null
+  point_cloud_features: PointCloudFeatures | null
+  correlation_2d_3d: Correlation2D3D | null
+  bend_results: BendResult[]
+  enhanced_root_causes: EnhancedRootCause[]
+  pipeline_status: PipelineStatus | null
+  summary: {
+    total_bends_detected: number
+    bends_in_tolerance: number
+    bends_out_of_tolerance: number
+    critical_issues_count: number
+  }
+  metadata: {
+    models_used: string[]
+    fallbacks_triggered: string[]
+    processing_time_ms: number
+  }
+}
+
+export interface DrawingExtraction {
+  drawing_id: string
+  extraction_timestamp: string
+  dimensions: DrawingDimension[]
+  gdt_callouts: GDTCallout[]
+  bends: DrawingBend[]
+  material: string | null
+  thickness: number | null
+  part_number: string | null
+  revision: string | null
+  notes: string[]
+  extraction_confidence: number
+  model_used: string
+}
+
+export interface DrawingDimension {
+  id: string
+  type: string
+  nominal: number
+  tolerance_plus: number
+  tolerance_minus: number
+  unit: string
+  feature_ref: string | null
+  location_hint: string | null
+}
+
+export interface GDTCallout {
+  id: string
+  type: string
+  tolerance: number
+  unit: string
+  feature_ref: string | null
+  datums: string[]
+  modifier: string | null
+}
+
+export interface DrawingBend {
+  id: string
+  sequence: number
+  angle_nominal: number
+  angle_tolerance: number
+  radius: number
+  direction: string
+  bend_line_location: string | null
+}
+
+export interface PointCloudFeatures {
+  scan_id: string
+  detection_timestamp: string
+  bends: BendFeature[]
+  surfaces: Feature3D[]
+  edges: Feature3D[]
+  other_features: Feature3D[]
+  total_points: number
+  processed_points: number
+  detection_confidence: number
+  model_used: string
+}
+
+export interface Feature3D {
+  feature_id: string
+  feature_type: string
+  location: [number, number, number]
+  normal: [number, number, number] | null
+  parameters: Record<string, unknown>
+  point_count: number
+  deviation_stats: Record<string, number>
+  detection_confidence: number
+}
+
+// Dimension Analysis Types (XLSX-based comparison)
+
+export interface DimensionComparison {
+  dim_id: number
+  type: string
+  description: string
+  expected: number
+  cad_value: number | null
+  scan_value: number | null
+  unit: string
+  tolerance: string
+  cad_deviation: number | null
+  scan_deviation: number | null
+  scan_deviation_percent: number | null
+  status: 'pass' | 'fail' | 'warning' | 'not_measured' | 'pending'
+}
+
+export interface BendMatchAnalysis {
+  dim_id: number
+  type: string
+  expected: number
+  tolerance: string
+  cad: {
+    angle: number | null
+    radius: number | null
+    position: [number, number, number] | null
+    deviation: number | null
+    matched: boolean
+  }
+  scan: {
+    angle: number | null
+    radius: number | null
+    deviation: number | null
+    measured: boolean
+  }
+  status: 'pass' | 'fail' | 'warning' | 'pending'
+}
+
+export interface DimensionAnalysisSummary {
+  total_dimensions: number
+  measured: number
+  passed: number
+  failed: number
+  warnings: number
+  pass_rate: number
+}
+
+export interface BendAnalysisSummary {
+  total_bends: number
+  passed: number
+  failed: number
+}
+
+export interface DimensionAnalysisResult {
+  metadata: {
+    part_id: string
+    part_name: string
+    timestamp: string
+  }
+  summary: DimensionAnalysisSummary
+  bend_summary: BendAnalysisSummary
+  dimensions: DimensionComparison[]
+  bend_analysis: {
+    success: boolean
+    summary: {
+      total_bends: number
+      matched: number
+      passed: number
+      failed: number
+      warnings: number
+    }
+    bend_radius_spec: number | null
+    matches: BendMatchAnalysis[]
+    unmatched_xlsx: any[]
+    unmatched_cad_count: number
+    warnings: string[]
+    error: string | null
+  } | null
+  failed_dimensions: DimensionComparison[]
+  worst_deviations: DimensionComparison[]
 }

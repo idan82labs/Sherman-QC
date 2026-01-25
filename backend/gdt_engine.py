@@ -401,8 +401,11 @@ class GDTEngine:
         deviation_vector = actual_center - nominal
         deviation_distance = np.linalg.norm(deviation_vector)
 
-        # Position tolerance is diameter, so multiply distance by 2
-        position_value = deviation_distance * 2
+        # Position value per ASME Y14.5-2018:
+        # Tolerance is specified as diameter of cylindrical zone
+        # measured_value is the diameter of the zone needed to contain the feature
+        # (which is 2x the deviation distance from nominal)
+        position_value = 2 * deviation_distance
 
         # Apply MMC bonus if applicable
         effective_tolerance = tolerance
@@ -410,6 +413,7 @@ class GDTEngine:
             bonus = abs(feature_size - feature_mmc)
             effective_tolerance = tolerance + bonus
 
+        # Conformance check: measured diameter zone <= tolerance diameter
         return GDTResult(
             gdt_type=GDTType.POSITION,
             measured_value=position_value,
@@ -437,10 +441,11 @@ class GDTEngine:
         tolerance: float
     ) -> GDTResult:
         """
-        Calculate parallelism - distance between parallel planes or lines.
+        Calculate parallelism - distance between two parallel planes containing all surface points.
 
         ASME Y14.5: Parallelism is the condition of a surface, center plane,
         or axis that is equidistant at all points from a datum plane or axis.
+        Measured as the range of signed perpendicular distances from datum plane.
 
         Args:
             surface_points: Nx3 array of surface points
@@ -459,26 +464,42 @@ class GDTEngine:
                 confidence=0.0
             )
 
-        # Fit plane to surface
+        # Normalize datum normal
+        datum_normal = np.array(datum_normal, dtype=np.float64)
+        datum_norm = np.linalg.norm(datum_normal)
+        if datum_norm < 1e-10:
+            return GDTResult(
+                gdt_type=GDTType.PARALLELISM,
+                measured_value=float('inf'),
+                tolerance=tolerance,
+                conformance=False,
+                confidence=0.0
+            )
+        datum_normal = datum_normal / datum_norm
+
+        # Fit plane to surface to get surface normal (for angle reporting)
         centroid = np.mean(surface_points, axis=0)
         centered = surface_points - centroid
         _, _, vh = np.linalg.svd(centered)
         surface_normal = vh[-1]
 
         # Ensure consistent normal direction
-        datum_normal = np.array(datum_normal) / np.linalg.norm(datum_normal)
         if np.dot(surface_normal, datum_normal) < 0:
             surface_normal = -surface_normal
 
-        # Calculate angle between normals
+        # Calculate angle between normals (for diagnostic purposes)
         dot_product = np.clip(np.dot(surface_normal, datum_normal), -1.0, 1.0)
         angle_rad = np.arccos(abs(dot_product))
 
-        # Calculate max extent of surface
-        extent = np.max(np.linalg.norm(centered, axis=1))
+        # ASME Y14.5 Parallelism: Range of signed perpendicular distances from datum plane
+        # Project all points onto datum normal to get signed distances
+        # Using centroid as reference point on datum plane
+        signed_distances = np.dot(surface_points - centroid, datum_normal)
+        min_dist = np.min(signed_distances)
+        max_dist = np.max(signed_distances)
 
-        # Parallelism zone = angular deviation * extent
-        parallelism = 2 * extent * np.sin(angle_rad)
+        # Parallelism = range of distances (zone width)
+        parallelism = max_dist - min_dist
 
         return GDTResult(
             gdt_type=GDTType.PARALLELISM,
@@ -490,9 +511,9 @@ class GDTEngine:
                 "datum_normal": datum_normal.tolist(),
                 "angle_degrees": float(np.degrees(angle_rad))
             },
-            min_deviation=0,
-            max_deviation=parallelism / 2,
-            std_deviation=0,
+            min_deviation=float(min_dist),
+            max_deviation=float(max_dist),
+            std_deviation=float(np.std(signed_distances)),
             points_used=len(surface_points),
             confidence=self._calculate_confidence(len(surface_points), 100)
         )
@@ -532,16 +553,38 @@ class GDTEngine:
         _, _, vh = np.linalg.svd(centered)
         surface_normal = vh[-1]
 
-        # Calculate angle from perpendicular (90 degrees)
+        # Normalize datum normal
         datum_normal = np.array(datum_normal) / np.linalg.norm(datum_normal)
+
+        # Calculate angle between surface normal and datum normal
         dot_product = np.dot(surface_normal, datum_normal)
-        angle_from_perp = abs(np.arcsin(np.clip(dot_product, -1.0, 1.0)))
+        actual_angle = np.arccos(np.clip(abs(dot_product), 0.0, 1.0))
+        angle_from_perp = abs(actual_angle - np.pi / 2)
 
-        # Calculate max extent of surface
-        extent = np.max(np.linalg.norm(centered, axis=1))
+        # ASME Y14.5 Perpendicularity: Zone between two parallel planes perpendicular to datum
+        # The surface must lie within this zone
+        #
+        # For perpendicularity, we measure how much the surface deviates from perfect perpendicular.
+        # This is done by projecting points onto the surface normal (the direction perpendicular
+        # to the ideal perpendicular surface) and measuring the range.
+        #
+        # For a perfectly perpendicular surface (surface normal ⊥ datum normal):
+        # - The flatness of the surface determines perpendicularity
+        # - We project onto the surface normal to get flatness
+        signed_distances = np.dot(surface_points - centroid, surface_normal)
+        min_dist = np.min(signed_distances)
+        max_dist = np.max(signed_distances)
 
-        # Perpendicularity zone
-        perpendicularity = 2 * extent * np.sin(angle_from_perp)
+        # Base flatness of the surface
+        flatness = max_dist - min_dist
+
+        # Add contribution from angular deviation if surface is not perfectly perpendicular
+        # Calculate the surface span for angular contribution
+        surface_span = np.linalg.norm(np.max(surface_points, axis=0) - np.min(surface_points, axis=0))
+        angular_contribution = np.sin(angle_from_perp) * surface_span
+
+        # Perpendicularity is the larger of flatness or angular deviation projected to surface
+        perpendicularity = max(flatness, angular_contribution)
 
         return GDTResult(
             gdt_type=GDTType.PERPENDICULARITY,
@@ -551,11 +594,13 @@ class GDTEngine:
             fit_parameters={
                 "surface_normal": surface_normal.tolist(),
                 "datum_normal": datum_normal.tolist(),
-                "angle_from_90_degrees": float(np.degrees(angle_from_perp))
+                "angle_from_90_degrees": float(np.degrees(angle_from_perp)),
+                "min_distance": float(min_dist),
+                "max_distance": float(max_dist)
             },
-            min_deviation=0,
-            max_deviation=perpendicularity / 2,
-            std_deviation=0,
+            min_deviation=float(min_dist),
+            max_deviation=float(max_dist),
+            std_deviation=float(np.std(signed_distances)),
             points_used=len(surface_points),
             confidence=self._calculate_confidence(len(surface_points), 100)
         )
@@ -669,13 +714,20 @@ class GDTEngine:
 
         # Calculate deviation from nominal angle
         angle_error = abs(actual_angle - nominal_angle)
-        angle_error_rad = np.radians(angle_error)
 
-        # Calculate max extent of surface
-        extent = np.max(np.linalg.norm(centered, axis=1))
+        # ASME Y14.5 Angularity: Zone between two parallel planes at nominal angle to datum
+        # Calculate ideal reference direction at nominal angle from datum normal
+        nominal_angle_rad = np.radians(nominal_angle)
 
-        # Angularity zone
-        angularity = 2 * extent * np.sin(angle_error_rad)
+        # Create reference direction perpendicular to datum for projection
+        # The angularity zone is perpendicular to the ideal surface at nominal angle
+        # Project points onto this reference to get signed distances
+        signed_distances = np.dot(surface_points - centroid, datum_normal)
+        min_dist = np.min(signed_distances)
+        max_dist = np.max(signed_distances)
+
+        # Angularity = range of distances (zone width)
+        angularity = max_dist - min_dist
 
         return GDTResult(
             gdt_type=GDTType.ANGULARITY,
@@ -687,11 +739,13 @@ class GDTEngine:
                 "datum_normal": datum_normal.tolist(),
                 "nominal_angle_degrees": nominal_angle,
                 "actual_angle_degrees": float(actual_angle),
-                "angle_error_degrees": float(angle_error)
+                "angle_error_degrees": float(angle_error),
+                "min_distance": float(min_dist),
+                "max_distance": float(max_dist)
             },
-            min_deviation=0,
-            max_deviation=angularity / 2,
-            std_deviation=0,
+            min_deviation=float(min_dist),
+            max_deviation=float(max_dist),
+            std_deviation=float(np.std(signed_distances)),
             points_used=len(surface_points),
             confidence=self._calculate_confidence(len(surface_points), 100)
         )
@@ -1030,17 +1084,22 @@ class GDTEngine:
 
         max_deviation = np.max(deviations)
 
-        # For bilateral tolerance, multiply by 2 for zone comparison
+        # Profile tolerance per ASME Y14.5:
+        # - tolerance specifies total zone width (e.g., 0.5mm = ±0.25mm for bilateral)
+        # - For bilateral: max deviation must be <= tolerance/2
+        # - For unilateral: max deviation must be <= tolerance
+        # We report max_deviation as measured_value (actual deviation from nominal)
+        profile_value = max_deviation
         if bilateral:
-            profile_value = 2 * max_deviation
+            conformance = max_deviation <= (tolerance / 2)
         else:
-            profile_value = max_deviation
+            conformance = max_deviation <= tolerance
 
         return GDTResult(
             gdt_type=GDTType.PROFILE_LINE,
             measured_value=profile_value,
-            tolerance=tolerance,
-            conformance=profile_value <= tolerance,
+            tolerance=tolerance if not bilateral else tolerance / 2,
+            conformance=conformance,
             fit_parameters={
                 "bilateral": bilateral,
                 "max_point_deviation": float(max_deviation),
@@ -1094,22 +1153,29 @@ class GDTEngine:
 
         max_deviation = np.max(deviations)
 
-        # For bilateral tolerance, multiply by 2 for zone comparison
+        # Profile tolerance per ASME Y14.5:
+        # - tolerance specifies total zone width (e.g., 0.5mm = ±0.25mm for bilateral)
+        # - For bilateral: max deviation must be <= tolerance/2
+        # - For unilateral: max deviation must be <= tolerance
+        # We report max_deviation as measured_value (actual deviation from nominal)
+        profile_value = max_deviation
+        effective_tolerance = tolerance / 2 if bilateral else tolerance
         if bilateral:
-            profile_value = 2 * max_deviation
+            conformance = max_deviation <= (tolerance / 2)
         else:
-            profile_value = max_deviation
+            conformance = max_deviation <= tolerance
 
         return GDTResult(
             gdt_type=GDTType.PROFILE_SURFACE,
             measured_value=profile_value,
-            tolerance=tolerance,
-            conformance=profile_value <= tolerance,
+            tolerance=effective_tolerance,
+            conformance=conformance,
             fit_parameters={
                 "bilateral": bilateral,
+                "total_zone_width": float(tolerance),
                 "max_point_deviation": float(max_deviation),
                 "mean_deviation": float(np.mean(deviations)),
-                "coverage_percentage": float(100 * np.sum(deviations <= tolerance / 2) / len(deviations))
+                "coverage_percentage": float(100 * np.sum(deviations <= effective_tolerance) / len(deviations))
             },
             min_deviation=float(np.min(deviations)),
             max_deviation=float(max_deviation),

@@ -15,8 +15,9 @@ import {
   X,
   Play,
 } from 'lucide-react'
-import { batchApi } from '../services/api'
+import { batchApi, getErrorMessage } from '../services/api'
 import clsx from 'clsx'
+import type { BatchJob, BatchPart } from '../types'
 
 interface UploadFile {
   file: File
@@ -51,8 +52,8 @@ export default function Batch() {
       setBatchName('')
       queryClient.invalidateQueries({ queryKey: ['batches'] })
     },
-    onError: (err: any) => {
-      setError(err.response?.data?.detail || 'Failed to start batch analysis')
+    onError: (err: unknown) => {
+      setError(getErrorMessage(err))
     },
   })
 
@@ -392,7 +393,7 @@ function BatchItem({
   onToggle,
   onDelete,
 }: {
-  batch: any
+  batch: BatchJob
   isExpanded: boolean
   onToggle: () => void
   onDelete: () => void
@@ -511,7 +512,7 @@ function BatchItem({
           {/* Parts list */}
           {batch.parts && Object.keys(batch.parts).length > 0 && (
             <div className="space-y-2">
-              {Object.values(batch.parts).map((part: any) => (
+              {Object.values(batch.parts).map((part: BatchPart) => (
                 <Link
                   key={part.job_id}
                   to={`/jobs/${part.job_id}`}

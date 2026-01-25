@@ -11,6 +11,7 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel, EmailStr, Field
 import uvicorn
 import asyncio
+import aiofiles
 import json
 import uuid
 import shutil
@@ -118,6 +119,10 @@ DATA_DIR = BASE_DIR / "data"
 UPLOAD_DIR.mkdir(exist_ok=True)
 OUTPUT_DIR.mkdir(exist_ok=True)
 DATA_DIR.mkdir(exist_ok=True)
+
+# File size limits (in bytes)
+MAX_MESH_FILE_SIZE = 100 * 1024 * 1024  # 100 MB for STL/PLY/OBJ files
+MAX_DRAWING_FILE_SIZE = 50 * 1024 * 1024  # 50 MB for drawings/PDFs
 
 # Initialize database
 db = init_db()
@@ -230,10 +235,164 @@ security = HTTPBearer(auto_error=False)
 user_manager = get_user_manager()
 
 
+# ==========================================================================
+# Standardized API Response Models
+# ==========================================================================
+
+class APIError(BaseModel):
+    """Standardized error response format for all API errors"""
+    error: str = Field(..., description="Human-readable error message")
+    code: str = Field(..., description="Machine-readable error code (e.g., ERR_NOT_FOUND)")
+    details: Optional[Dict[str, Any]] = Field(None, description="Additional error context")
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "error": "Job not found",
+                "code": "ERR_NOT_FOUND",
+                "details": {"job_id": "abc123"}
+            }
+        }
+
+
+class PaginatedResponse(BaseModel):
+    """Base model for paginated list responses"""
+    items: List[Any] = Field(..., description="List of items")
+    total: int = Field(..., description="Total count of items matching query")
+    limit: int = Field(..., description="Maximum items returned")
+    offset: int = Field(..., description="Number of items skipped")
+    has_more: bool = Field(..., description="Whether more items exist beyond this page")
+
+
+# Pagination constants
+MAX_PAGINATION_LIMIT = 1000
+DEFAULT_PAGINATION_LIMIT = 50
+
+
+def validate_pagination(limit: int, offset: int) -> tuple[int, int]:
+    """Validate and constrain pagination parameters."""
+    limit = min(max(1, limit), MAX_PAGINATION_LIMIT)
+    offset = max(0, offset)
+    return limit, offset
+
+
+# ==========================================================================
+# Input Validation Models
+# ==========================================================================
+
+class AnalysisRequest(BaseModel):
+    """Validated analysis request parameters"""
+    part_id: str = Field(
+        ...,
+        min_length=1,
+        max_length=100,
+        description="Part identifier (e.g., PART-001)"
+    )
+    part_name: str = Field(
+        default="Unnamed Part",
+        max_length=200,
+        description="Human-readable part name"
+    )
+    material: str = Field(
+        default="Unknown",
+        max_length=100,
+        description="Material specification (e.g., Al-5053-H32)"
+    )
+    tolerance: float = Field(
+        default=0.1,
+        gt=0,
+        le=10.0,
+        description="Tolerance in mm (0.01 - 10.0)"
+    )
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "part_id": "BRACKET-001",
+                "part_name": "Main Bracket Assembly",
+                "material": "Al-5053-H32",
+                "tolerance": 0.1
+            }
+        }
+
+
+class JobListParams(BaseModel):
+    """Query parameters for job listing"""
+    status: Optional[str] = Field(None, description="Filter by status: pending, running, completed, failed")
+    part_id: Optional[str] = Field(None, description="Filter by part ID")
+    limit: int = Field(DEFAULT_PAGINATION_LIMIT, ge=1, le=MAX_PAGINATION_LIMIT)
+    offset: int = Field(0, ge=0)
+
+    @property
+    def validated(self) -> tuple[int, int]:
+        return validate_pagination(self.limit, self.offset)
+
+
+# ==========================================================================
+# Custom Exception Handler
+# ==========================================================================
+
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request, exc: HTTPException):
+    """Convert HTTPException to standardized APIError format"""
+    # Map status codes to error codes
+    code_map = {
+        400: "ERR_BAD_REQUEST",
+        401: "ERR_UNAUTHORIZED",
+        403: "ERR_FORBIDDEN",
+        404: "ERR_NOT_FOUND",
+        409: "ERR_CONFLICT",
+        413: "ERR_PAYLOAD_TOO_LARGE",
+        422: "ERR_VALIDATION",
+        429: "ERR_RATE_LIMITED",
+        500: "ERR_INTERNAL",
+        503: "ERR_SERVICE_UNAVAILABLE"
+    }
+
+    error_code = code_map.get(exc.status_code, f"ERR_{exc.status_code}")
+
+    return JSONResponse(
+        status_code=exc.status_code,
+        content=APIError(
+            error=str(exc.detail),
+            code=error_code,
+            details={"status_code": exc.status_code}
+        ).model_dump()
+    )
+
+
+from pydantic import ValidationError
+
+
+@app.exception_handler(ValidationError)
+async def validation_exception_handler(request, exc: ValidationError):
+    """Handle Pydantic validation errors"""
+    errors = []
+    for error in exc.errors():
+        errors.append({
+            "field": ".".join(str(loc) for loc in error["loc"]),
+            "message": error["msg"],
+            "type": error["type"]
+        })
+
+    return JSONResponse(
+        status_code=422,
+        content=APIError(
+            error="Validation failed",
+            code="ERR_VALIDATION",
+            details={"errors": errors}
+        ).model_dump()
+    )
+
+
+# ==========================================================================
+# Authentication Models & Endpoints
+# ==========================================================================
+
 class LoginRequest(BaseModel):
     """Login request body"""
-    username: str
-    password: str
+    username: str = Field(..., min_length=1, max_length=100)
+    password: str = Field(..., min_length=1)
 
 
 class RegisterRequest(BaseModel):
@@ -416,12 +575,32 @@ async def delete_user(
 # ==========================================================================
 
 
+async def validate_file_size(file: UploadFile, max_size: int, file_type: str) -> int:
+    """
+    Validate file size and return actual size.
+    Raises HTTPException if file exceeds limit.
+    """
+    # UploadFile.size may be None; read content to determine size
+    content = await file.read()
+    await file.seek(0)  # Reset for later reading
+    size = len(content)
+
+    if size > max_size:
+        raise HTTPException(
+            413,
+            f"{file_type} file exceeds maximum size of {max_size // (1024*1024)}MB "
+            f"(got {size // (1024*1024)}MB)"
+        )
+    return size
+
+
 @app.post("/api/analyze")
 async def start_analysis(
     background_tasks: BackgroundTasks,
     reference_file: UploadFile = File(...),
     scan_file: UploadFile = File(...),
     drawing_file: Optional[UploadFile] = File(None),
+    dimension_file: Optional[UploadFile] = File(None),
     part_id: str = Form("PART_001"),
     part_name: str = Form("Unnamed Part"),
     material: str = Form("Al-5053-H32"),
@@ -433,6 +612,7 @@ async def start_analysis(
     - reference_file: Reference STL model
     - scan_file: Scan file (STL, PLY)
     - drawing_file: Optional PDF technical drawing for context
+    - dimension_file: Optional XLSX file with dimension specifications (bend angles, tolerances)
     - part_id: Part number/ID
     - part_name: Part name/description
     - material: Material specification
@@ -444,11 +624,17 @@ async def start_analysis(
     ref_ext = Path(reference_file.filename).suffix.lower()
     scan_ext = Path(scan_file.filename).suffix.lower()
 
-    if ref_ext not in ['.stl', '.obj', '.ply']:
-        raise HTTPException(400, f"Reference must be STL/OBJ/PLY, got {ref_ext}")
+    # Reference can be mesh (STL/OBJ/PLY) or CAD (STEP/IGES)
+    valid_ref_exts = ['.stl', '.obj', '.ply', '.step', '.stp', '.iges', '.igs']
+    if ref_ext not in valid_ref_exts:
+        raise HTTPException(400, f"Reference must be STL/OBJ/PLY/STEP/IGES, got {ref_ext}")
 
     if scan_ext not in ['.stl', '.ply', '.obj', '.pcd']:
         raise HTTPException(400, f"Scan must be STL/PLY/OBJ/PCD, got {scan_ext}")
+
+    # Validate file sizes
+    await validate_file_size(reference_file, MAX_MESH_FILE_SIZE, "Reference")
+    await validate_file_size(scan_file, MAX_MESH_FILE_SIZE, "Scan")
 
     # Create job ID
     job_id = str(uuid.uuid4())[:8]
@@ -460,22 +646,48 @@ async def start_analysis(
     ref_path = job_dir / f"reference{ref_ext}"
     scan_path = job_dir / f"scan{scan_ext}"
 
-    with open(ref_path, "wb") as f:
-        shutil.copyfileobj(reference_file.file, f)
+    # Use async file I/O to avoid blocking the event loop
+    ref_content = await reference_file.read()
+    async with aiofiles.open(ref_path, "wb") as f:
+        await f.write(ref_content)
 
-    with open(scan_path, "wb") as f:
-        shutil.copyfileobj(scan_file.file, f)
+    scan_content = await scan_file.read()
+    async with aiofiles.open(scan_path, "wb") as f:
+        await f.write(scan_content)
 
-    # Save drawing if provided
+    # Save drawing if provided (PDF or image)
     drawing_path = None
     drawing_context = ""
     if drawing_file and drawing_file.filename:
         drawing_ext = Path(drawing_file.filename).suffix.lower()
-        if drawing_ext == '.pdf':
+        valid_drawing_exts = ['.pdf', '.png', '.jpg', '.jpeg', '.tiff', '.tif']
+        if drawing_ext in valid_drawing_exts:
+            # Validate drawing file size
+            await validate_file_size(drawing_file, MAX_DRAWING_FILE_SIZE, "Drawing")
+
             drawing_path = job_dir / f"drawing{drawing_ext}"
-            with open(drawing_path, "wb") as f:
-                shutil.copyfileobj(drawing_file.file, f)
-            drawing_context = extract_text_from_pdf(str(drawing_path))
+            drawing_content = await drawing_file.read()
+            async with aiofiles.open(drawing_path, "wb") as f:
+                await f.write(drawing_content)
+            # Extract text from PDF, or note that image will be analyzed visually
+            if drawing_ext == '.pdf':
+                drawing_context = extract_text_from_pdf(str(drawing_path))
+            else:
+                drawing_context = f"[Technical drawing image: {drawing_file.filename}]"
+
+    # Save dimension file if provided (XLSX)
+    dimension_path = None
+    if dimension_file and dimension_file.filename:
+        dim_ext = Path(dimension_file.filename).suffix.lower()
+        if dim_ext in ['.xlsx', '.xls']:
+            # Validate file size (use drawing limit)
+            await validate_file_size(dimension_file, MAX_DRAWING_FILE_SIZE, "Dimension")
+
+            dimension_path = job_dir / f"dimensions{dim_ext}"
+            dim_content = await dimension_file.read()
+            async with aiofiles.open(dimension_path, "wb") as f:
+                await f.write(dim_content)
+            logger.info(f"Saved dimension file: {dimension_path}")
 
     # Create job in database
     db.create_job(
@@ -502,7 +714,9 @@ async def start_analysis(
         part_name,
         material,
         tolerance,
-        drawing_context
+        drawing_context,
+        str(drawing_path) if drawing_path else None,
+        str(dimension_path) if dimension_path else None
     )
 
     return {"job_id": job_id, "status": "started"}
@@ -516,7 +730,9 @@ async def run_analysis(
     part_name: str,
     material: str,
     tolerance: float,
-    drawing_context: str
+    drawing_context: str,
+    drawing_path: str = None,
+    dimension_path: str = None
 ):
     """Run QC analysis in background"""
     progress_state = job_progress.get(job_id)
@@ -530,12 +746,17 @@ async def run_analysis(
     db.update_job_progress(job_id, "running", 0, "init", "Starting analysis...")
 
     def progress_callback(update: ProgressUpdate):
-        progress_state.stage = update.stage
-        progress_state.progress = update.progress
-        progress_state.message = update.message
-        # Periodically update database (every 10% or on stage change)
-        if update.progress % 10 == 0 or update.stage in ["load", "preprocess", "align", "analyze", "ai", "complete"]:
-            db.update_job_progress(job_id, "running", update.progress, update.stage, update.message)
+        """Update progress with error handling to prevent analysis interruption"""
+        try:
+            progress_state.stage = update.stage
+            progress_state.progress = update.progress
+            progress_state.message = update.message
+            # Periodically update database (every 10% or on stage change)
+            if update.progress % 10 == 0 or update.stage in ["load", "preprocess", "align", "analyze", "ai", "complete"]:
+                db.update_job_progress(job_id, "running", update.progress, update.stage, update.message)
+        except Exception as e:
+            # Log error but don't crash the analysis
+            logger.warning(f"Progress update failed for job {job_id}: {e}")
 
     try:
         # Create output directory for this job
@@ -559,8 +780,24 @@ async def run_analysis(
             material=material,
             tolerance=tolerance,
             drawing_context=drawing_context,
+            drawing_path=drawing_path,
             output_dir=str(output_dir)
         )
+
+        # Run dimension analysis if XLSX provided
+        if dimension_path:
+            try:
+                dimension_analysis = engine.run_dimension_analysis(
+                    xlsx_path=dimension_path,
+                    part_id=part_id,
+                    part_name=part_name
+                )
+                report.dimension_analysis = dimension_analysis
+                logger.info(f"Dimension analysis completed for job {job_id}")
+            except Exception as e:
+                logger.error(f"Dimension analysis failed for job {job_id}: {e}")
+                # Continue without dimension analysis - don't fail the whole job
+                report.dimension_analysis = {"error": str(e)}
 
         # Convert to dict
         report_dict = report.to_dict()
@@ -596,7 +833,9 @@ async def run_analysis(
         )
 
     except Exception as e:
+        import traceback
         logger.error(f"Analysis failed: {e}")
+        logger.error(f"Traceback: {traceback.format_exc()}")
         progress_state.status = "failed"
         progress_state.message = f"Error: {str(e)}"
 
@@ -785,34 +1024,149 @@ async def list_heatmaps(job_id: str):
     return {"job_id": job_id, "heatmaps": heatmaps}
 
 
+@app.get("/api/files/{job_id}/{filename:path}")
+async def get_uploaded_file(job_id: str, filename: str):
+    """Serve uploaded files (scan, reference) for 3D viewer.
+
+    Args:
+        job_id: The job ID
+        filename: The filename (e.g., scan.ply, reference.stl)
+    """
+    # Validate to prevent path traversal
+    if ".." in job_id or ".." in filename:
+        raise HTTPException(400, "Invalid path")
+    if "/" in job_id or "\\" in job_id:
+        raise HTTPException(400, "Invalid job ID")
+
+    file_path = UPLOAD_DIR / job_id / filename
+    if not file_path.exists():
+        raise HTTPException(404, f"File not found: {filename}")
+
+    # Determine media type based on extension
+    ext = file_path.suffix.lower()
+    media_types = {
+        ".stl": "application/sla",
+        ".ply": "application/x-ply",
+        ".obj": "text/plain",
+        ".step": "application/step",
+        ".stp": "application/step",
+        ".iges": "application/iges",
+        ".igs": "application/iges",
+    }
+    media_type = media_types.get(ext, "application/octet-stream")
+
+    return FileResponse(
+        str(file_path),
+        media_type=media_type,
+        filename=filename
+    )
+
+
+@app.get("/api/deviations/{job_id}")
+async def get_deviations(job_id: str):
+    """Get deviation values for 3D viewer heatmap.
+
+    Returns the deviation array as JSON for rendering heatmaps in the 3D viewer.
+    """
+    import numpy as np
+
+    # Check output directory for deviations file
+    deviations_path = OUTPUT_DIR / job_id / "deviations.npy"
+    if not deviations_path.exists():
+        raise HTTPException(404, "Deviations not available for this job")
+
+    try:
+        deviations = np.load(str(deviations_path))
+        return {
+            "job_id": job_id,
+            "count": len(deviations),
+            "deviations": deviations.tolist()
+        }
+    except Exception as e:
+        raise HTTPException(500, f"Failed to load deviations: {str(e)}")
+
+
+@app.head("/api/aligned-scan/{job_id}.ply")
+@app.get("/api/aligned-scan/{job_id}.ply")
+async def get_aligned_scan(job_id: str):
+    """Get aligned scan for 3D viewer.
+
+    Returns the scan AFTER ICP alignment to the reference, so both models
+    are in the same coordinate system for proper overlay visualization.
+    """
+    scan_path = OUTPUT_DIR / job_id / "aligned_scan.ply"
+    if not scan_path.exists():
+        raise HTTPException(404, "Aligned scan not available for this job")
+
+    return FileResponse(
+        str(scan_path),
+        media_type="application/x-ply",
+        filename="aligned_scan.ply"
+    )
+
+
+@app.head("/api/reference-mesh/{job_id}.ply")
+@app.get("/api/reference-mesh/{job_id}.ply")
+async def get_reference_mesh(job_id: str):
+    """Get converted reference mesh for 3D viewer.
+
+    Returns the reference mesh converted to PLY format for display in 3D viewer.
+    Supports both GET and HEAD requests (Three.js loaders use HEAD to check availability).
+    URL includes .ply extension so Three.js PLYLoader recognizes the format.
+    """
+    mesh_path = OUTPUT_DIR / job_id / "reference_mesh.ply"
+    if not mesh_path.exists():
+        raise HTTPException(404, "Reference mesh not available for this job")
+
+    return FileResponse(
+        str(mesh_path),
+        media_type="application/x-ply",
+        filename="reference_mesh.ply"
+    )
+
+
 @app.get("/api/jobs")
 async def list_jobs(
-    status: Optional[str] = Query(None, description="Filter by status"),
+    status: Optional[str] = Query(None, description="Filter by status: pending, running, completed, failed"),
     part_id: Optional[str] = Query(None, description="Filter by part ID"),
-    limit: int = Query(100, ge=1, le=1000, description="Max jobs to return"),
+    limit: int = Query(DEFAULT_PAGINATION_LIMIT, ge=1, le=MAX_PAGINATION_LIMIT, description="Max jobs to return"),
     offset: int = Query(0, ge=0, description="Offset for pagination")
 ):
-    """List all analysis jobs with optional filtering"""
+    """
+    List all analysis jobs with optional filtering and pagination.
+
+    Returns paginated list of jobs with total count for building pagination UI.
+    Maximum limit is 1000 items per request.
+    """
+    # Validate and constrain pagination
+    limit, offset = validate_pagination(limit, offset)
+
+    # Get jobs and total count
     jobs_list = db.list_jobs(status=status, part_id=part_id, limit=limit, offset=offset)
+    total_count = db.count_jobs(status=status, part_id=part_id)
+
+    jobs_data = [
+        {
+            "job_id": j.job_id,
+            "status": j.status,
+            "part_id": j.part_id,
+            "part_name": j.part_name,
+            "material": j.material,
+            "tolerance": j.tolerance,
+            "created_at": j.created_at,
+            "completed_at": j.completed_at,
+            "progress": j.progress
+        }
+        for j in jobs_list
+    ]
 
     return {
-        "jobs": [
-            {
-                "job_id": j.job_id,
-                "status": j.status,
-                "part_id": j.part_id,
-                "part_name": j.part_name,
-                "material": j.material,
-                "tolerance": j.tolerance,
-                "created_at": j.created_at,
-                "completed_at": j.completed_at,
-                "progress": j.progress
-            }
-            for j in jobs_list
-        ],
-        "count": len(jobs_list),
+        "jobs": jobs_data,
+        "total": total_count,
+        "count": len(jobs_data),
         "offset": offset,
-        "limit": limit
+        "limit": limit,
+        "has_more": offset + len(jobs_data) < total_count
     }
 
 
@@ -833,24 +1187,181 @@ async def delete_job(job_id: str):
     if not job:
         raise HTTPException(404, "Job not found")
 
-    # Delete files
+    # Track cleanup errors but don't fail the request
+    cleanup_errors = []
+
+    # Delete upload files
     job_upload_dir = UPLOAD_DIR / job_id
-    job_output_dir = OUTPUT_DIR / job_id
-
     if job_upload_dir.exists():
-        shutil.rmtree(job_upload_dir)
+        try:
+            shutil.rmtree(job_upload_dir)
+            logger.info(f"Deleted upload directory: {job_upload_dir}")
+        except Exception as e:
+            cleanup_errors.append(f"upload dir: {e}")
+            logger.warning(f"Failed to delete upload directory {job_upload_dir}: {e}")
 
+    # Delete output files
+    job_output_dir = OUTPUT_DIR / job_id
     if job_output_dir.exists():
-        shutil.rmtree(job_output_dir)
+        try:
+            shutil.rmtree(job_output_dir)
+            logger.info(f"Deleted output directory: {job_output_dir}")
+        except Exception as e:
+            cleanup_errors.append(f"output dir: {e}")
+            logger.warning(f"Failed to delete output directory {job_output_dir}: {e}")
 
     # Delete from database
-    db.delete_job(job_id)
+    try:
+        db.delete_job(job_id)
+        logger.info(f"Deleted job from database: {job_id}")
+    except Exception as e:
+        cleanup_errors.append(f"database: {e}")
+        logger.error(f"Failed to delete job from database {job_id}: {e}")
+        raise HTTPException(500, "Failed to delete job from database")
 
     # Remove from in-memory progress
     if job_id in job_progress:
         del job_progress[job_id]
 
-    return {"message": f"Job {job_id} deleted", "job_id": job_id}
+    response = {"message": f"Job {job_id} deleted", "job_id": job_id}
+    if cleanup_errors:
+        response["warnings"] = cleanup_errors
+        logger.warning(f"Job {job_id} deleted with cleanup errors: {cleanup_errors}")
+
+    return response
+
+
+@app.get("/api/jobs/{job_id}/dimensions")
+async def get_job_dimensions(job_id: str):
+    """
+    Get dimension analysis results for a job.
+
+    Returns comparison of expected (XLSX) vs actual (scan) dimensions with:
+    - Per-dimension comparison (expected, CAD, scan, deviation, status)
+    - Bend-by-bend analysis with pass/fail status
+    - Summary statistics (total, passed, failed, pass rate)
+    """
+    job = db.get_job(job_id)
+    if not job:
+        raise HTTPException(404, "Job not found")
+
+    # Get result data
+    report_path = OUTPUT_DIR / job_id / "report.json"
+    if not report_path.exists():
+        return {"dimension_analysis": None, "message": "No analysis data available"}
+
+    try:
+        with open(report_path, 'r') as f:
+            result_data = json.load(f)
+
+        dimension_analysis = result_data.get("dimension_analysis")
+
+        if not dimension_analysis:
+            return {
+                "job_id": job_id,
+                "dimension_analysis": None,
+                "message": "No dimension analysis available (XLSX file may not have been provided)"
+            }
+
+        return {
+            "job_id": job_id,
+            "dimension_analysis": dimension_analysis,
+            "summary": dimension_analysis.get("summary", {}),
+            "bend_summary": dimension_analysis.get("bend_summary", {}),
+            "failed_dimensions": dimension_analysis.get("failed_dimensions", []),
+            "worst_deviations": dimension_analysis.get("worst_deviations", [])
+        }
+    except Exception as e:
+        logger.error(f"Failed to load dimension data for {job_id}: {e}")
+        return {"dimension_analysis": None, "error": str(e)}
+
+
+@app.get("/api/jobs/{job_id}/bends")
+async def get_job_bends(job_id: str):
+    """Get bend detection results for a job"""
+    job = db.get_job(job_id)
+    if not job:
+        raise HTTPException(404, "Job not found")
+
+    # Get result data
+    result_path = OUTPUT_DIR / job_id / "result.json"
+    if not result_path.exists():
+        return {"bends": [], "message": "No bend data available"}
+
+    try:
+        with open(result_path, 'r') as f:
+            result_data = json.load(f)
+
+        bend_results = result_data.get("bend_results", [])
+        bend_detection = result_data.get("bend_detection_result", {})
+
+        return {
+            "job_id": job_id,
+            "bends": bend_results,
+            "detection_result": bend_detection,
+            "total_bends": len(bend_results)
+        }
+    except Exception as e:
+        logger.error(f"Failed to load bend data for {job_id}: {e}")
+        return {"bends": [], "error": str(e)}
+
+
+@app.get("/api/jobs/{job_id}/correlations")
+async def get_job_correlations(job_id: str):
+    """Get 2D-3D correlation results for a job"""
+    job = db.get_job(job_id)
+    if not job:
+        raise HTTPException(404, "Job not found")
+
+    # Get result data
+    result_path = OUTPUT_DIR / job_id / "result.json"
+    if not result_path.exists():
+        return {"correlation": None, "message": "No correlation data available"}
+
+    try:
+        with open(result_path, 'r') as f:
+            result_data = json.load(f)
+
+        correlation = result_data.get("correlation_2d_3d")
+        pipeline_status = result_data.get("pipeline_status")
+
+        return {
+            "job_id": job_id,
+            "correlation": correlation,
+            "pipeline_status": pipeline_status
+        }
+    except Exception as e:
+        logger.error(f"Failed to load correlation data for {job_id}: {e}")
+        return {"correlation": None, "error": str(e)}
+
+
+@app.get("/api/jobs/{job_id}/enhanced-analysis")
+async def get_enhanced_analysis(job_id: str):
+    """Get complete enhanced analysis results for a job"""
+    job = db.get_job(job_id)
+    if not job:
+        raise HTTPException(404, "Job not found")
+
+    # Get result data
+    result_path = OUTPUT_DIR / job_id / "result.json"
+    if not result_path.exists():
+        return {"enhanced_analysis": None, "message": "No enhanced analysis available"}
+
+    try:
+        with open(result_path, 'r') as f:
+            result_data = json.load(f)
+
+        return {
+            "job_id": job_id,
+            "enhanced_analysis": result_data.get("enhanced_analysis"),
+            "bend_results": result_data.get("bend_results", []),
+            "bend_detection_result": result_data.get("bend_detection_result"),
+            "correlation_2d_3d": result_data.get("correlation_2d_3d"),
+            "pipeline_status": result_data.get("pipeline_status")
+        }
+    except Exception as e:
+        logger.error(f"Failed to load enhanced analysis for {job_id}: {e}")
+        return {"enhanced_analysis": None, "error": str(e)}
 
 
 @app.get("/api/stats")
@@ -949,11 +1460,17 @@ async def start_batch_analysis(
         ref_ext = Path(ref_file.filename).suffix.lower()
         scan_ext = Path(scan_file.filename).suffix.lower()
 
-        if ref_ext not in ['.stl', '.obj', '.ply']:
-            raise HTTPException(400, f"Part {i+1}: Reference must be STL/OBJ/PLY, got {ref_ext}")
+        # Reference can be mesh (STL/OBJ/PLY) or CAD (STEP/IGES)
+        valid_ref_exts = ['.stl', '.obj', '.ply', '.step', '.stp', '.iges', '.igs']
+        if ref_ext not in valid_ref_exts:
+            raise HTTPException(400, f"Part {i+1}: Reference must be STL/OBJ/PLY/STEP/IGES, got {ref_ext}")
 
         if scan_ext not in ['.stl', '.ply', '.obj', '.pcd']:
             raise HTTPException(400, f"Part {i+1}: Scan must be STL/PLY/OBJ/PCD, got {scan_ext}")
+
+        # Validate file sizes
+        await validate_file_size(ref_file, MAX_MESH_FILE_SIZE, f"Part {i+1} reference")
+        await validate_file_size(scan_file, MAX_MESH_FILE_SIZE, f"Part {i+1} scan")
 
         # Create job ID for this part
         job_id = f"{batch_id}_{i:03d}"
@@ -962,15 +1479,17 @@ async def start_batch_analysis(
         part_dir = batch_dir / f"part_{i:03d}"
         part_dir.mkdir(exist_ok=True)
 
-        # Save files
+        # Save files using async I/O
         ref_path = part_dir / f"reference{ref_ext}"
         scan_path = part_dir / f"scan{scan_ext}"
 
-        with open(ref_path, "wb") as f:
-            shutil.copyfileobj(ref_file.file, f)
+        ref_content = await ref_file.read()
+        async with aiofiles.open(ref_path, "wb") as f:
+            await f.write(ref_content)
 
-        with open(scan_path, "wb") as f:
-            shutil.copyfileobj(scan_file.file, f)
+        scan_content = await scan_file.read()
+        async with aiofiles.open(scan_path, "wb") as f:
+            await f.write(scan_content)
 
         # Create database job entry
         db.create_job(
@@ -1313,17 +1832,30 @@ async def stream_batch_progress(batch_id: str):
 
 @app.get("/api/batch", tags=["Batch"])
 async def list_batches(
-    status: Optional[str] = Query(None, description="Filter by status"),
-    limit: int = Query(50, ge=1, le=100)
+    status: Optional[str] = Query(None, description="Filter by status: pending, running, completed, failed"),
+    limit: int = Query(DEFAULT_PAGINATION_LIMIT, ge=1, le=MAX_PAGINATION_LIMIT, description="Max batches to return"),
+    offset: int = Query(0, ge=0, description="Offset for pagination")
 ):
-    """List all batch jobs"""
-    batches = []
+    """
+    List all batch jobs with optional filtering and pagination.
 
-    for batch_id, batch_state in list(batch_jobs.items())[-limit:]:
-        if status and batch_state.status != status:
-            continue
+    Returns paginated list of batch jobs with total count.
+    """
+    # Validate pagination
+    limit, offset = validate_pagination(limit, offset)
 
-        batches.append({
+    # Filter batches
+    all_batches = list(batch_jobs.items())
+    if status:
+        all_batches = [(bid, bs) for bid, bs in all_batches if bs.status == status]
+
+    total_count = len(all_batches)
+
+    # Apply pagination
+    paginated = all_batches[offset:offset + limit]
+
+    batches_data = [
+        {
             "batch_id": batch_id,
             "name": batch_state.name,
             "status": batch_state.status,
@@ -1333,9 +1865,18 @@ async def list_batches(
             "failed_parts": batch_state.failed_parts,
             "created_at": batch_state.created_at,
             "completed_at": batch_state.completed_at
-        })
+        }
+        for batch_id, batch_state in paginated
+    ]
 
-    return {"batches": batches, "count": len(batches)}
+    return {
+        "batches": batches_data,
+        "total": total_count,
+        "count": len(batches_data),
+        "offset": offset,
+        "limit": limit,
+        "has_more": offset + len(batches_data) < total_count
+    }
 
 
 @app.delete("/api/batch/{batch_id}", tags=["Batch"])

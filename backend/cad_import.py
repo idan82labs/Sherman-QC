@@ -631,6 +631,8 @@ def import_cad_file(file_path: str, deflection: float = 0.1) -> CADImportResult:
     """
     Import CAD file with default settings.
 
+    Tries PythonOCC first, falls back to gmsh if unavailable.
+
     Args:
         file_path: Path to STEP/IGES file
         deflection: Tessellation accuracy in mm
@@ -638,8 +640,16 @@ def import_cad_file(file_path: str, deflection: float = 0.1) -> CADImportResult:
     Returns:
         CADImportResult with mesh and metadata
     """
-    importer = CADImporter(linear_deflection=deflection)
-    return importer.import_file(file_path)
+    # Try PythonOCC first
+    try:
+        from OCC.Core.STEPControl import STEPControl_Reader
+        importer = CADImporter(linear_deflection=deflection)
+        return importer.import_file(file_path)
+    except ImportError:
+        pass
+
+    # Fall back to gmsh
+    return _import_with_gmsh(file_path, deflection)
 
 
 def cad_to_point_cloud(file_path: str, density: float = 1.0) -> Optional[np.ndarray]:
@@ -660,12 +670,173 @@ def cad_to_point_cloud(file_path: str, density: float = 1.0) -> Optional[np.ndar
 
 
 def is_cad_import_available() -> bool:
-    """Check if PythonOCC is available for CAD import"""
+    """Check if CAD import is available (PythonOCC or gmsh)"""
+    # Check PythonOCC first
     try:
         from OCC.Core.STEPControl import STEPControl_Reader
         return True
     except ImportError:
-        return False
+        pass
+
+    # Check gmsh as fallback
+    try:
+        import gmsh
+        return True
+    except ImportError:
+        pass
+
+    return False
+
+
+def _import_with_gmsh(file_path: str, deflection: float = 0.1) -> CADImportResult:
+    """
+    Import CAD file using gmsh library (fallback when PythonOCC unavailable).
+
+    Args:
+        file_path: Path to STEP/IGES file
+        deflection: Mesh size factor (smaller = finer mesh)
+
+    Returns:
+        CADImportResult with mesh data
+    """
+    try:
+        import gmsh
+    except ImportError:
+        return CADImportResult(
+            success=False,
+            format=CADFormat.UNKNOWN,
+            error="Neither PythonOCC nor gmsh is installed"
+        )
+
+    path = Path(file_path)
+    ext = path.suffix.lower()
+
+    if ext in ['.step', '.stp']:
+        format = CADFormat.STEP
+    elif ext in ['.iges', '.igs']:
+        format = CADFormat.IGES
+    else:
+        return CADImportResult(
+            success=False,
+            format=CADFormat.UNKNOWN,
+            error=f"Unsupported format: {ext}"
+        )
+
+    try:
+        gmsh.initialize()
+        gmsh.option.setNumber("General.Terminal", 0)  # Suppress output
+
+        # Import the CAD file
+        gmsh.model.add("import")
+
+        try:
+            gmsh.model.occ.importShapes(str(file_path))
+            gmsh.model.occ.synchronize()
+        except Exception as e:
+            gmsh.finalize()
+            return CADImportResult(
+                success=False,
+                format=format,
+                error=f"Failed to import CAD file: {e}"
+            )
+
+        # Get bounding box
+        try:
+            bbox = gmsh.model.getBoundingBox(-1, -1)
+            bounding_box = BoundingBox(
+                min_point=(bbox[0], bbox[1], bbox[2]),
+                max_point=(bbox[3], bbox[4], bbox[5])
+            )
+            # Use bounding box diagonal for mesh sizing
+            diag = bounding_box.diagonal
+            mesh_size = diag * deflection * 0.1  # Scale deflection to mesh size
+        except:
+            bounding_box = None
+            mesh_size = deflection
+
+        # Set mesh size
+        gmsh.option.setNumber("Mesh.CharacteristicLengthMin", mesh_size * 0.5)
+        gmsh.option.setNumber("Mesh.CharacteristicLengthMax", mesh_size * 2.0)
+
+        # Generate 2D mesh (surface mesh)
+        gmsh.model.mesh.generate(2)
+
+        # Extract mesh data
+        node_tags, node_coords, _ = gmsh.model.mesh.getNodes()
+
+        # Build vertex array
+        vertices = np.array(node_coords).reshape(-1, 3)
+
+        # Build node tag to index mapping
+        tag_to_idx = {tag: idx for idx, tag in enumerate(node_tags)}
+
+        # Get triangles
+        faces = []
+        element_types, element_tags, node_tags_per_element = gmsh.model.mesh.getElements(2)  # dim=2 for surfaces
+
+        for elem_type, elem_tags, elem_nodes in zip(element_types, element_tags, node_tags_per_element):
+            # Get element properties
+            elem_name, dim, order, num_nodes, _, _ = gmsh.model.mesh.getElementProperties(elem_type)
+
+            if num_nodes == 3:  # Triangles
+                elem_nodes = np.array(elem_nodes).reshape(-1, 3)
+                for tri_nodes in elem_nodes:
+                    try:
+                        face = [tag_to_idx[int(n)] for n in tri_nodes]
+                        faces.append(face)
+                    except KeyError:
+                        continue
+
+        gmsh.finalize()
+
+        if len(faces) == 0:
+            return CADImportResult(
+                success=False,
+                format=format,
+                error="No triangles generated from mesh"
+            )
+
+        faces_array = np.array(faces, dtype=np.int32)
+
+        # Calculate normals
+        normals = []
+        for face in faces_array:
+            v0 = vertices[face[0]]
+            v1 = vertices[face[1]]
+            v2 = vertices[face[2]]
+            edge1 = v1 - v0
+            edge2 = v2 - v0
+            normal = np.cross(edge1, edge2)
+            norm = np.linalg.norm(normal)
+            if norm > 0:
+                normal = normal / norm
+            normals.append(normal)
+
+        mesh = CADMesh(
+            vertices=vertices,
+            faces=faces_array,
+            normals=np.array(normals, dtype=np.float64)
+        )
+
+        return CADImportResult(
+            success=True,
+            format=format,
+            mesh=mesh,
+            bounding_box=bounding_box,
+            num_faces=len(faces_array)
+        )
+
+    except Exception as e:
+        try:
+            gmsh.finalize()
+        except:
+            pass
+        logger.error(f"gmsh import error: {e}")
+        return CADImportResult(
+            success=False,
+            format=format,
+            error=str(e)
+        )
 
 
 def get_supported_formats() -> List[Dict[str, str]]:

@@ -4,7 +4,7 @@ import { OrbitControls, Grid, Environment, Html } from '@react-three/drei'
 import * as THREE from 'three'
 import { STLLoader } from 'three/examples/jsm/loaders/STLLoader.js'
 import { PLYLoader } from 'three/examples/jsm/loaders/PLYLoader.js'
-import { Maximize2, Minimize2, RotateCcw, Eye, EyeOff, Palette } from 'lucide-react'
+import { Maximize2, Minimize2, RotateCcw, Box, Scan, Palette } from 'lucide-react'
 import clsx from 'clsx'
 
 interface ThreeViewerProps {
@@ -23,6 +23,7 @@ export default function ThreeViewer({
   className,
 }: ThreeViewerProps) {
   const [isFullscreen, setIsFullscreen] = useState(false)
+  const [showScan, setShowScan] = useState(true)
   const [showReference, setShowReference] = useState(true)
   const [showHeatmap, setShowHeatmap] = useState(true)
   const [isLoading, setIsLoading] = useState(false)
@@ -34,34 +35,55 @@ export default function ThreeViewer({
     }
   }
 
+  const hasDeviations = deviations && deviations.length > 0
+
   return (
     <div className={clsx('relative bg-dark-900 rounded-lg overflow-hidden', className)}>
-      {/* Controls */}
-      <div className="absolute top-4 right-4 z-10 flex gap-2">
+      {/* Toggle Controls */}
+      <div className="absolute top-4 left-4 z-10 flex flex-col gap-2">
+        {modelUrl && (
+          <button
+            onClick={() => setShowScan(!showScan)}
+            className={clsx(
+              'flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors',
+              showScan ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' : 'bg-dark-700 text-dark-400'
+            )}
+            title={showScan ? 'Hide scan' : 'Show scan'}
+          >
+            <Scan className="w-3.5 h-3.5" />
+            Scan
+          </button>
+        )}
         {referenceUrl && (
           <button
             onClick={() => setShowReference(!showReference)}
             className={clsx(
-              'p-2 rounded-lg transition-colors',
-              showReference ? 'bg-primary-500/20 text-primary-400' : 'bg-dark-700 text-dark-400'
+              'flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors',
+              showReference ? 'bg-purple-500/20 text-purple-400 border border-purple-500/30' : 'bg-dark-700 text-dark-400'
             )}
-            title={showReference ? 'Hide reference' : 'Show reference'}
+            title={showReference ? 'Hide CAD reference' : 'Show CAD reference'}
           >
-            {showReference ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+            <Box className="w-3.5 h-3.5" />
+            CAD
           </button>
         )}
-        {deviations && (
+        {hasDeviations && (
           <button
             onClick={() => setShowHeatmap(!showHeatmap)}
             className={clsx(
-              'p-2 rounded-lg transition-colors',
-              showHeatmap ? 'bg-primary-500/20 text-primary-400' : 'bg-dark-700 text-dark-400'
+              'flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors',
+              showHeatmap ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30' : 'bg-dark-700 text-dark-400'
             )}
-            title={showHeatmap ? 'Hide heatmap' : 'Show heatmap'}
+            title={showHeatmap ? 'Hide deviation heatmap' : 'Show deviation heatmap'}
           >
-            <Palette className="w-4 h-4" />
+            <Palette className="w-3.5 h-3.5" />
+            Heatmap
           </button>
         )}
+      </div>
+
+      {/* Action Controls */}
+      <div className="absolute top-4 right-4 z-10 flex gap-2">
         <button
           onClick={resetCamera}
           className="p-2 bg-dark-700 rounded-lg text-dark-400 hover:text-dark-200 transition-colors"
@@ -79,7 +101,7 @@ export default function ThreeViewer({
       </div>
 
       {/* Color scale legend */}
-      {showHeatmap && deviations && (
+      {showHeatmap && hasDeviations && (
         <div className="absolute bottom-4 left-4 z-10 bg-dark-800/90 p-3 rounded-lg">
           <p className="text-xs text-dark-400 mb-2">Deviation Scale (mm)</p>
           <div className="flex items-center gap-2">
@@ -94,6 +116,14 @@ export default function ThreeViewer({
           </div>
         </div>
       )}
+
+      {/* Legend */}
+      <div className="absolute bottom-4 right-4 z-10 bg-dark-800/90 p-2 rounded-lg text-xs">
+        <div className="flex items-center gap-4">
+          {showScan && <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-blue-400"></span> Scan</span>}
+          {showReference && <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-purple-400"></span> CAD</span>}
+        </div>
+      </div>
 
       {/* Loading indicator */}
       {isLoading && (
@@ -115,27 +145,22 @@ export default function ThreeViewer({
           <directionalLight position={[10, 10, 10]} intensity={1} />
           <directionalLight position={[-10, -10, -10]} intensity={0.3} />
 
-          {modelUrl && (
-            <Model
-              url={modelUrl}
-              deviations={showHeatmap ? deviations : undefined}
-              tolerance={tolerance}
-              onLoadStart={() => setIsLoading(true)}
-              onLoadEnd={() => setIsLoading(false)}
-            />
-          )}
+          {/* Aligned models - both centered and scaled together */}
+          <AlignedModels
+            scanUrl={modelUrl}
+            referenceUrl={referenceUrl}
+            showScan={showScan}
+            showReference={showReference}
+            deviations={showHeatmap ? deviations : undefined}
+            tolerance={tolerance}
+            onLoadStart={() => setIsLoading(true)}
+            onLoadEnd={() => setIsLoading(false)}
+          />
 
-          {referenceUrl && showReference && (
-            <Model
-              url={referenceUrl}
-              isReference
-              onLoadStart={() => setIsLoading(true)}
-              onLoadEnd={() => setIsLoading(false)}
-            />
-          )}
-
+          {/* Grid positioned below the model */}
           <Grid
             args={[20, 20]}
+            position={[0, -3, 0]}
             cellSize={1}
             cellThickness={0.5}
             cellColor="#1e293b"
@@ -178,128 +203,350 @@ function LoadingFallback() {
   )
 }
 
-interface ModelProps {
-  url: string
+// Component that manages loading and aligning both models together
+interface AlignedModelsProps {
+  scanUrl?: string
+  referenceUrl?: string
+  showScan: boolean
+  showReference: boolean
   deviations?: number[]
   tolerance?: number
-  isReference?: boolean
   onLoadStart?: () => void
   onLoadEnd?: () => void
 }
 
-function Model({
-  url,
+function AlignedModels({
+  scanUrl,
+  referenceUrl,
+  showScan,
+  showReference,
   deviations,
   tolerance = 0.1,
-  isReference = false,
   onLoadStart,
   onLoadEnd,
-}: ModelProps) {
-  const meshRef = useRef<THREE.Mesh>(null)
-  const [geometry, setGeometry] = useState<THREE.BufferGeometry | null>(null)
+}: AlignedModelsProps) {
+  const [scanGeometry, setScanGeometry] = useState<THREE.BufferGeometry | null>(null)
+  const [refGeometry, setRefGeometry] = useState<THREE.BufferGeometry | null>(null)
+  const [sharedCenter, setSharedCenter] = useState<THREE.Vector3 | null>(null)
+  const [sharedScale, setSharedScale] = useState<number>(1)
+  const [scanError, setScanError] = useState<string | null>(null)
+  const [refError, setRefError] = useState<string | null>(null)
+  const [scanIsMesh, setScanIsMesh] = useState<boolean>(false)
+  const [refIsMesh, setRefIsMesh] = useState<boolean>(true)
 
+  // Detect if geometry should be rendered as mesh or point cloud
+  // STL files are ALWAYS meshes (triangulated surfaces)
+  // PLY files: check if indexed (mesh) or from aligned-scan endpoint (point cloud)
+  const detectGeometryType = (url: string, geometry: THREE.BufferGeometry): boolean => {
+    const lowerUrl = url.toLowerCase()
+
+    // STL files are always meshes
+    if (lowerUrl.endsWith('.stl')) {
+      return true
+    }
+
+    // Reference mesh endpoint always returns meshes
+    if (lowerUrl.includes('/api/reference-mesh/')) {
+      return true
+    }
+
+    // Aligned scan endpoint returns point clouds
+    if (lowerUrl.includes('/api/aligned-scan/')) {
+      return false
+    }
+
+    // PLY files: check if indexed (mesh) or non-indexed
+    // If indexed, it's a mesh
+    if (geometry.index !== null) {
+      return true
+    }
+
+    // For non-indexed PLY, check vertex count
+    // If vertex count is divisible by 3 and forms reasonable triangles, it might be a mesh
+    // But our aligned scans are point clouds, so default to point cloud for non-indexed PLY
+    return false
+  }
+
+  // Load geometries
   useEffect(() => {
-    const loadModel = async () => {
+    const loadGeometry = async (url: string): Promise<{ geometry: THREE.BufferGeometry; isMesh: boolean }> => {
+      const isSTL = url.toLowerCase().endsWith('.stl')
+      const isPLY = url.toLowerCase().endsWith('.ply')
+
+      let geometry: THREE.BufferGeometry
+
+      if (isSTL) {
+        const loader = new STLLoader()
+        geometry = await new Promise((resolve, reject) => {
+          loader.load(url, resolve, undefined, reject)
+        })
+      } else if (isPLY) {
+        const loader = new PLYLoader()
+        geometry = await new Promise((resolve, reject) => {
+          loader.load(url, resolve, undefined, reject)
+        })
+      } else {
+        throw new Error('Unsupported file format')
+      }
+
+      const isMesh = detectGeometryType(url, geometry)
+      return { geometry, isMesh }
+    }
+
+    const loadBoth = async () => {
       onLoadStart?.()
+      const geometries: { scan?: THREE.BufferGeometry; ref?: THREE.BufferGeometry } = {}
 
-      try {
-        const isSTL = url.toLowerCase().endsWith('.stl')
-        const isPLY = url.toLowerCase().endsWith('.ply')
-
-        let loadedGeometry: THREE.BufferGeometry
-
-        if (isSTL) {
-          const loader = new STLLoader()
-          loadedGeometry = await new Promise((resolve, reject) => {
-            loader.load(url, resolve, undefined, reject)
-          })
-        } else if (isPLY) {
-          const loader = new PLYLoader()
-          loadedGeometry = await new Promise((resolve, reject) => {
-            loader.load(url, resolve, undefined, reject)
-          })
-        } else {
-          throw new Error('Unsupported file format')
+      // Load scan
+      if (scanUrl) {
+        try {
+          const result = await loadGeometry(scanUrl)
+          geometries.scan = result.geometry
+          setScanIsMesh(result.isMesh)
+          setScanError(null)
+        } catch (e) {
+          console.error('Error loading scan:', e)
+          setScanError(e instanceof Error ? e.message : 'Failed to load')
         }
+      }
 
-        // Center the geometry
-        loadedGeometry.computeBoundingBox()
+      // Load reference
+      if (referenceUrl) {
+        try {
+          const result = await loadGeometry(referenceUrl)
+          geometries.ref = result.geometry
+          setRefIsMesh(result.isMesh)
+          setRefError(null)
+        } catch (e) {
+          console.error('Error loading reference:', e)
+          setRefError(e instanceof Error ? e.message : 'Failed to load')
+        }
+      }
+
+      // Compute combined bounding box for shared centering
+      const combinedBox = new THREE.Box3()
+      if (geometries.scan) {
+        geometries.scan.computeBoundingBox()
+        if (geometries.scan.boundingBox) {
+          combinedBox.union(geometries.scan.boundingBox)
+        }
+      }
+      if (geometries.ref) {
+        geometries.ref.computeBoundingBox()
+        if (geometries.ref.boundingBox) {
+          combinedBox.union(geometries.ref.boundingBox)
+        }
+      }
+
+      // Calculate shared center and scale
+      if (!combinedBox.isEmpty()) {
         const center = new THREE.Vector3()
-        loadedGeometry.boundingBox?.getCenter(center)
-        loadedGeometry.translate(-center.x, -center.y, -center.z)
+        combinedBox.getCenter(center)
+        setSharedCenter(center)
 
-        // Compute normals if not present
-        if (!loadedGeometry.attributes.normal) {
-          loadedGeometry.computeVertexNormals()
+        const size = new THREE.Vector3()
+        combinedBox.getSize(size)
+        const maxDim = Math.max(size.x, size.y, size.z)
+        const targetSize = 4
+        setSharedScale(maxDim > 0 ? targetSize / maxDim : 1)
+      }
+
+      // Apply transformations and store
+      if (geometries.scan && sharedCenter) {
+        geometries.scan.translate(-sharedCenter.x, -sharedCenter.y, -sharedCenter.z)
+        geometries.scan.scale(sharedScale, sharedScale, sharedScale)
+        if (!geometries.scan.attributes.normal) {
+          geometries.scan.computeVertexNormals()
         }
-
-        // Apply deviation colors if provided
+        // Apply heatmap colors if deviations provided
         if (deviations && deviations.length > 0) {
-          const colors = new Float32Array(loadedGeometry.attributes.position.count * 3)
-
-          for (let i = 0; i < deviations.length && i < colors.length / 3; i++) {
-            const deviation = deviations[i]
+          const colors = new Float32Array(geometries.scan.attributes.position.count * 3)
+          for (let i = 0; i < geometries.scan.attributes.position.count; i++) {
+            const deviation = i < deviations.length ? deviations[i] : 0
             const color = deviationToColor(deviation, tolerance)
             colors[i * 3] = color.r
             colors[i * 3 + 1] = color.g
             colors[i * 3 + 2] = color.b
           }
-
-          loadedGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3))
+          geometries.scan.setAttribute('color', new THREE.BufferAttribute(colors, 3))
         }
-
-        setGeometry(loadedGeometry)
-      } catch (error) {
-        console.error('Error loading model:', error)
-      } finally {
-        onLoadEnd?.()
+        setScanGeometry(geometries.scan)
+      } else if (geometries.scan) {
+        // First load - store raw geometry, will transform on next render
+        setScanGeometry(geometries.scan)
       }
+
+      if (geometries.ref && sharedCenter) {
+        geometries.ref.translate(-sharedCenter.x, -sharedCenter.y, -sharedCenter.z)
+        geometries.ref.scale(sharedScale, sharedScale, sharedScale)
+        if (!geometries.ref.attributes.normal) {
+          geometries.ref.computeVertexNormals()
+        }
+        setRefGeometry(geometries.ref)
+      } else if (geometries.ref) {
+        setRefGeometry(geometries.ref)
+      }
+
+      onLoadEnd?.()
     }
 
-    loadModel()
-  }, [url, deviations, tolerance, onLoadStart, onLoadEnd])
+    loadBoth()
 
-  if (!geometry) return null
+    return () => {
+      scanGeometry?.dispose()
+      refGeometry?.dispose()
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [scanUrl, referenceUrl])
+
+  // Apply transformations when shared center/scale are computed
+  useEffect(() => {
+    if (!sharedCenter) return
+
+    if (scanGeometry && !scanGeometry.userData.transformed) {
+      scanGeometry.translate(-sharedCenter.x, -sharedCenter.y, -sharedCenter.z)
+      scanGeometry.scale(sharedScale, sharedScale, sharedScale)
+      if (!scanGeometry.attributes.normal) {
+        scanGeometry.computeVertexNormals()
+      }
+      scanGeometry.userData.transformed = true
+    }
+
+    if (refGeometry && !refGeometry.userData.transformed) {
+      refGeometry.translate(-sharedCenter.x, -sharedCenter.y, -sharedCenter.z)
+      refGeometry.scale(sharedScale, sharedScale, sharedScale)
+      if (!refGeometry.attributes.normal) {
+        refGeometry.computeVertexNormals()
+      }
+      refGeometry.userData.transformed = true
+    }
+  }, [sharedCenter, sharedScale, scanGeometry, refGeometry])
+
+  // Apply/remove heatmap colors reactively based on deviations prop
+  useEffect(() => {
+    if (!scanGeometry) return
+
+    if (deviations && deviations.length > 0) {
+      // Apply heatmap colors
+      const colors = new Float32Array(scanGeometry.attributes.position.count * 3)
+      for (let i = 0; i < scanGeometry.attributes.position.count; i++) {
+        const deviation = i < deviations.length ? deviations[i] : 0
+        const color = deviationToColor(deviation, tolerance)
+        colors[i * 3] = color.r
+        colors[i * 3 + 1] = color.g
+        colors[i * 3 + 2] = color.b
+      }
+      scanGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3))
+    } else {
+      // Remove color attribute when heatmap is off
+      if (scanGeometry.attributes.color) {
+        scanGeometry.deleteAttribute('color')
+      }
+    }
+  }, [scanGeometry, deviations, tolerance])
 
   return (
-    <mesh ref={meshRef} geometry={geometry}>
-      {isReference ? (
-        <meshStandardMaterial
-          color="#3b82f6"
-          transparent
-          opacity={0.3}
-          side={THREE.DoubleSide}
-          wireframe
-        />
-      ) : deviations ? (
-        <meshStandardMaterial
-          vertexColors
-          side={THREE.DoubleSide}
-          metalness={0.1}
-          roughness={0.8}
-        />
-      ) : (
-        <meshStandardMaterial
-          color="#94a3b8"
-          side={THREE.DoubleSide}
-          metalness={0.2}
-          roughness={0.6}
-        />
+    <>
+      {/* Scan - render as mesh if STL/mesh, points if point cloud */}
+      {showScan && scanGeometry && !scanError && (
+        scanIsMesh ? (
+          // Mesh rendering (STL or indexed PLY)
+          <mesh geometry={scanGeometry}>
+            {deviations && deviations.length > 0 ? (
+              <meshStandardMaterial
+                vertexColors
+                side={THREE.DoubleSide}
+                metalness={0.1}
+                roughness={0.7}
+              />
+            ) : (
+              <meshStandardMaterial
+                color="#3b82f6"
+                side={THREE.DoubleSide}
+                metalness={0.2}
+                roughness={0.6}
+              />
+            )}
+          </mesh>
+        ) : (
+          // Point cloud rendering
+          <points geometry={scanGeometry}>
+            {deviations && deviations.length > 0 ? (
+              <pointsMaterial
+                size={2}
+                sizeAttenuation={false}
+                vertexColors={true}
+              />
+            ) : (
+              <pointsMaterial
+                size={2}
+                sizeAttenuation={false}
+                color="#3b82f6"
+              />
+            )}
+          </points>
+        )
       )}
-    </mesh>
+
+      {/* Reference CAD model - render as mesh or points based on type */}
+      {showReference && refGeometry && !refError && (
+        refIsMesh ? (
+          // Mesh rendering with wireframe overlay
+          <mesh geometry={refGeometry}>
+            <meshStandardMaterial
+              color="#a855f7"
+              transparent
+              opacity={0.4}
+              side={THREE.DoubleSide}
+              wireframe
+            />
+          </mesh>
+        ) : (
+          // Point cloud rendering for reference
+          <points geometry={refGeometry}>
+            <pointsMaterial
+              size={2}
+              sizeAttenuation={false}
+              color="#a855f7"
+              transparent
+              opacity={0.6}
+            />
+          </points>
+        )
+      )}
+
+      {/* Error displays */}
+      {scanError && showScan && (
+        <Html center>
+          <div className="bg-red-500/20 text-red-300 px-4 py-2 rounded-lg text-sm">
+            Scan: {scanError}
+          </div>
+        </Html>
+      )}
+      {refError && showReference && (
+        <Html center>
+          <div className="bg-red-500/20 text-red-300 px-4 py-2 rounded-lg text-sm">
+            CAD: {refError}
+          </div>
+        </Html>
+      )}
+    </>
   )
 }
 
+// Convert deviation value to color (green -> yellow -> red)
 function deviationToColor(deviation: number, tolerance: number): THREE.Color {
-  const normalizedDeviation = Math.max(-1, Math.min(1, deviation / tolerance))
+  const absDeviation = Math.abs(deviation)
+  const normalized = Math.min(absDeviation / tolerance, 1)
 
-  // Green (0,1,0) -> Yellow (1,1,0) -> Red (1,0,0)
-  if (normalizedDeviation <= 0) {
-    // Green to Yellow transition for negative deviations
-    const t = Math.abs(normalizedDeviation)
-    return new THREE.Color(t, 1, 0)
+  // Green (0) -> Yellow (0.5) -> Red (1)
+  if (normalized < 0.5) {
+    // Green to Yellow
+    const t = normalized * 2
+    return new THREE.Color(t, 1, 0) // RGB interpolation
   } else {
-    // Yellow to Red transition for positive deviations
-    return new THREE.Color(1, 1 - normalizedDeviation, 0)
+    // Yellow to Red
+    const t = (normalized - 0.5) * 2
+    return new THREE.Color(1, 1 - t, 0)
   }
 }

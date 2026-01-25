@@ -380,8 +380,17 @@ class TestConvenienceFunctions:
         assert points is None
 
 
+def _has_pythonocc():
+    """Check if PythonOCC is specifically available"""
+    try:
+        from OCC.Core.STEPControl import STEPControl_Reader
+        return True
+    except ImportError:
+        return False
+
+
 @pytest.mark.skipif(
-    not is_cad_import_available(),
+    not _has_pythonocc(),
     reason="PythonOCC not installed"
 )
 class TestWithOCC:

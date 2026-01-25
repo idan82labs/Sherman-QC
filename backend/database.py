@@ -105,6 +105,8 @@ class SQLiteDatabaseManager:
         """Get database connection with context manager"""
         conn = sqlite3.connect(str(self.db_path), timeout=30)
         conn.row_factory = sqlite3.Row
+        # Set busy timeout for concurrent access
+        conn.execute("PRAGMA busy_timeout = 5000")
         try:
             yield conn
             conn.commit()
@@ -145,9 +147,15 @@ class SQLiteDatabaseManager:
                 )
             """)
 
+            # Single column indexes
             conn.execute("CREATE INDEX IF NOT EXISTS idx_jobs_status ON jobs(status)")
             conn.execute("CREATE INDEX IF NOT EXISTS idx_jobs_part_id ON jobs(part_id)")
             conn.execute("CREATE INDEX IF NOT EXISTS idx_jobs_created_at ON jobs(created_at)")
+
+            # Composite indexes for common query patterns
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_jobs_status_created ON jobs(status, created_at DESC)")
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_jobs_part_id_created ON jobs(part_id, created_at DESC)")
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_jobs_updated_at ON jobs(updated_at)")
 
             logger.info(f"Database initialized at {self.db_path}")
 
@@ -274,19 +282,41 @@ class SQLiteDatabaseManager:
                     status = 'failed',
                     message = 'Analysis failed',
                     error = ?,
-                    updated_at = ?
+                    updated_at = ?,
+                    completed_at = ?
                 WHERE job_id = ?
-            """, (error, now, job_id))
+            """, (error, now, now, job_id))
 
     def list_jobs(
         self,
         status: Optional[str] = None,
         part_id: Optional[str] = None,
         limit: int = 50,
-        offset: int = 0
+        offset: int = 0,
+        include_result: bool = False
     ) -> List[JobRecord]:
-        """List jobs with optional filters"""
-        query = "SELECT * FROM jobs WHERE 1=1"
+        """List jobs with optional filters
+
+        Args:
+            status: Filter by job status
+            part_id: Filter by part ID
+            limit: Maximum number of results (capped at 1000)
+            offset: Number of records to skip
+            include_result: If False, excludes large result_json field for performance
+        """
+        # Cap limit to prevent excessive queries
+        limit = min(limit, 1000)
+
+        # Select only needed columns for list view (exclude large result_json unless needed)
+        if include_result:
+            columns = "*"
+        else:
+            columns = """job_id, status, progress, stage, message, error,
+                        part_id, part_name, material, tolerance,
+                        reference_path, scan_path, drawing_path, report_path, pdf_path,
+                        created_at, updated_at, completed_at"""
+
+        query = f"SELECT {columns} FROM jobs WHERE 1=1"
         params = []
 
         if status:
@@ -302,7 +332,58 @@ class SQLiteDatabaseManager:
 
         with self.get_connection() as conn:
             rows = conn.execute(query, params).fetchall()
-            return [self._row_to_job(row) for row in rows]
+            jobs = []
+            for row in rows:
+                # Handle missing result_json when not included
+                row_dict = dict(row)
+                if not include_result and 'result_json' not in row_dict:
+                    row_dict['result_json'] = None
+                jobs.append(self._row_to_job_from_dict(row_dict))
+            return jobs
+
+    def _row_to_job_from_dict(self, row_dict: Dict) -> JobRecord:
+        """Convert dictionary to JobRecord"""
+        return JobRecord(
+            job_id=row_dict["job_id"],
+            status=row_dict["status"],
+            progress=row_dict["progress"],
+            stage=row_dict["stage"],
+            message=row_dict["message"],
+            error=row_dict["error"],
+            part_id=row_dict["part_id"],
+            part_name=row_dict["part_name"],
+            material=row_dict["material"],
+            tolerance=row_dict["tolerance"],
+            reference_path=row_dict["reference_path"],
+            scan_path=row_dict["scan_path"],
+            drawing_path=row_dict.get("drawing_path"),
+            report_path=row_dict.get("report_path"),
+            pdf_path=row_dict.get("pdf_path"),
+            result_json=row_dict.get("result_json"),
+            created_at=row_dict["created_at"],
+            updated_at=row_dict["updated_at"],
+            completed_at=row_dict.get("completed_at")
+        )
+
+    def count_jobs(
+        self,
+        status: Optional[str] = None,
+        part_id: Optional[str] = None
+    ) -> int:
+        """Count jobs with optional filters"""
+        query = "SELECT COUNT(*) FROM jobs WHERE 1=1"
+        params = []
+
+        if status:
+            query += " AND status = ?"
+            params.append(status)
+
+        if part_id:
+            query += " AND part_id = ?"
+            params.append(part_id)
+
+        with self.get_connection() as conn:
+            return conn.execute(query, params).fetchone()[0]
 
     def delete_job(self, job_id: str) -> bool:
         """Delete a job"""
@@ -544,7 +625,8 @@ class PostgreSQLDatabaseManager:
                         status = 'failed',
                         message = 'Analysis failed',
                         error = %s,
-                        updated_at = NOW()
+                        updated_at = NOW(),
+                        completed_at = NOW()
                     WHERE job_id = %s
                 """, (error, job_id))
 

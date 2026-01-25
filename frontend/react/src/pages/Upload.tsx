@@ -1,48 +1,64 @@
 import { useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Upload as UploadIcon, X, FileText, AlertCircle, CheckCircle } from 'lucide-react'
+import { Upload as UploadIcon, X, AlertCircle, CheckCircle, Box, FileImage, Scan, FileSpreadsheet } from 'lucide-react'
 import { useMutation } from '@tanstack/react-query'
-import { jobsApi } from '../services/api'
+import { jobsApi, getErrorMessage } from '../services/api'
+import { useNotification } from '../contexts/NotificationContext'
 import clsx from 'clsx'
 
 interface UploadFile {
   file: File
-  type: 'scan' | 'cad'
+  type: 'scan' | 'cad' | 'drawing' | 'dimension'
   preview?: string
 }
 
 export default function Upload() {
   const navigate = useNavigate()
+  const { success, error: showError } = useNotification()
   const [scanFile, setScanFile] = useState<UploadFile | null>(null)
   const [cadFile, setCadFile] = useState<UploadFile | null>(null)
+  const [drawingFile, setDrawingFile] = useState<UploadFile | null>(null)
+  const [dimensionFile, setDimensionFile] = useState<UploadFile | null>(null)
   const [partId, setPartId] = useState('')
   const [partName, setPartName] = useState('')
   const [material, setMaterial] = useState('aluminum')
   const [tolerance, setTolerance] = useState('0.1')
   const [error, setError] = useState('')
+  const [uploadProgress, setUploadProgress] = useState(0)
 
   const uploadMutation = useMutation({
     mutationFn: async (formData: FormData) => {
-      return jobsApi.startAnalysis(formData)
+      setUploadProgress(0)
+      return jobsApi.startAnalysis(formData, (progress) => {
+        setUploadProgress(progress)
+      })
     },
     onSuccess: (data) => {
+      success('Analysis started successfully!')
       navigate(`/jobs/${data.job_id}`)
     },
-    onError: (err: any) => {
-      setError(err.response?.data?.detail || 'Failed to start analysis')
+    onError: (err: unknown) => {
+      const message = getErrorMessage(err)
+      setError(message)
+      showError(message)
+      setUploadProgress(0)
     },
   })
 
   const handleDrop = useCallback(
-    (type: 'scan' | 'cad') => (e: React.DragEvent) => {
+    (type: 'scan' | 'cad' | 'drawing' | 'dimension') => (e: React.DragEvent) => {
       e.preventDefault()
       const file = e.dataTransfer.files[0]
       if (file) {
         const uploadFile: UploadFile = { file, type }
         if (type === 'scan') {
           setScanFile(uploadFile)
-        } else {
+        } else if (type === 'cad') {
           setCadFile(uploadFile)
+        } else if (type === 'dimension') {
+          setDimensionFile(uploadFile)
+        } else {
+          setDrawingFile(uploadFile)
         }
       }
     },
@@ -50,25 +66,33 @@ export default function Upload() {
   )
 
   const handleFileSelect = useCallback(
-    (type: 'scan' | 'cad') => (e: React.ChangeEvent<HTMLInputElement>) => {
+    (type: 'scan' | 'cad' | 'drawing' | 'dimension') => (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0]
       if (file) {
         const uploadFile: UploadFile = { file, type }
         if (type === 'scan') {
           setScanFile(uploadFile)
-        } else {
+        } else if (type === 'cad') {
           setCadFile(uploadFile)
+        } else if (type === 'dimension') {
+          setDimensionFile(uploadFile)
+        } else {
+          setDrawingFile(uploadFile)
         }
       }
     },
     []
   )
 
-  const removeFile = (type: 'scan' | 'cad') => {
+  const removeFile = (type: 'scan' | 'cad' | 'drawing' | 'dimension') => {
     if (type === 'scan') {
       setScanFile(null)
-    } else {
+    } else if (type === 'cad') {
       setCadFile(null)
+    } else if (type === 'dimension') {
+      setDimensionFile(null)
+    } else {
+      setDrawingFile(null)
     }
   }
 
@@ -77,7 +101,12 @@ export default function Upload() {
     setError('')
 
     if (!scanFile) {
-      setError('Please upload a scan file (PDF or image)')
+      setError('Please upload a scan file (STL, PLY, PCD, or OBJ)')
+      return
+    }
+
+    if (!cadFile) {
+      setError('Please upload a CAD reference file (STL, STEP, or IGES)')
       return
     }
 
@@ -87,9 +116,13 @@ export default function Upload() {
     }
 
     const formData = new FormData()
-    formData.append('scan', scanFile.file)
-    if (cadFile) {
-      formData.append('cad', cadFile.file)
+    formData.append('scan_file', scanFile.file)
+    formData.append('reference_file', cadFile.file)
+    if (drawingFile) {
+      formData.append('drawing_file', drawingFile.file)
+    }
+    if (dimensionFile) {
+      formData.append('dimension_file', dimensionFile.file)
     }
     formData.append('part_id', partId.trim())
     formData.append('part_name', partName.trim() || partId.trim())
@@ -100,11 +133,11 @@ export default function Upload() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="max-w-5xl mx-auto space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-dark-100">New Analysis</h1>
-        <p className="text-dark-400 mt-1">Upload scan and CAD files for quality control analysis</p>
+        <h1 className="text-2xl font-bold text-dark-100">New Scan Analysis</h1>
+        <p className="text-dark-400 mt-1">Upload 3D scan and CAD reference files for quality control analysis</p>
       </div>
 
       {error && (
@@ -115,17 +148,23 @@ export default function Upload() {
       )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* File uploads */}
+        {/* Primary file uploads - Scan and CAD */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Scan file */}
+          {/* Scan file - Point Cloud */}
           <div className="card p-6">
-            <h3 className="font-semibold text-dark-100 mb-4">Scan File *</h3>
+            <div className="flex items-center mb-4">
+              <Scan className="w-5 h-5 text-primary-400 mr-2" />
+              <h3 className="font-semibold text-dark-100">3D Scan File *</h3>
+            </div>
+            <p className="text-sm text-dark-400 mb-4">
+              Point cloud from LiDAR or 3D scanner (the actual manufactured part)
+            </p>
             {scanFile ? (
               <div className="border border-dark-600 rounded-lg p-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
                     <div className="w-10 h-10 bg-primary-500/20 rounded-lg flex items-center justify-center mr-3">
-                      <FileText className="w-5 h-5 text-primary-400" />
+                      <Scan className="w-5 h-5 text-primary-400" />
                     </div>
                     <div>
                       <p className="font-medium text-dark-100 truncate max-w-[180px]">
@@ -154,7 +193,7 @@ export default function Upload() {
                 <input
                   type="file"
                   id="scan-file"
-                  accept=".pdf,.png,.jpg,.jpeg"
+                  accept=".ply,.stl,.pcd,.obj,.xyz,.pts"
                   onChange={handleFileSelect('scan')}
                   className="hidden"
                 />
@@ -163,21 +202,27 @@ export default function Upload() {
                   <p className="text-dark-300 mb-2">
                     Drag & drop or <span className="text-primary-400">browse</span>
                   </p>
-                  <p className="text-sm text-dark-500">PDF, PNG, JPG (max 50MB)</p>
+                  <p className="text-sm text-dark-500">STL, PLY, PCD, OBJ, XYZ (max 100MB)</p>
                 </label>
               </div>
             )}
           </div>
 
-          {/* CAD file */}
+          {/* CAD file - Reference geometry */}
           <div className="card p-6">
-            <h3 className="font-semibold text-dark-100 mb-4">CAD Reference (Optional)</h3>
+            <div className="flex items-center mb-4">
+              <Box className="w-5 h-5 text-secondary-400 mr-2" />
+              <h3 className="font-semibold text-dark-100">CAD Reference *</h3>
+            </div>
+            <p className="text-sm text-dark-400 mb-4">
+              Nominal geometry from CAD (the designed/intended part)
+            </p>
             {cadFile ? (
               <div className="border border-dark-600 rounded-lg p-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
                     <div className="w-10 h-10 bg-secondary-500/20 rounded-lg flex items-center justify-center mr-3">
-                      <FileText className="w-5 h-5 text-secondary-400" />
+                      <Box className="w-5 h-5 text-secondary-400" />
                     </div>
                     <div>
                       <p className="font-medium text-dark-100 truncate max-w-[180px]">
@@ -206,7 +251,7 @@ export default function Upload() {
                 <input
                   type="file"
                   id="cad-file"
-                  accept=".pdf,.dxf,.step,.stp"
+                  accept=".stl,.step,.stp,.iges,.igs,.obj"
                   onChange={handleFileSelect('cad')}
                   className="hidden"
                 />
@@ -215,10 +260,150 @@ export default function Upload() {
                   <p className="text-dark-300 mb-2">
                     Drag & drop or <span className="text-secondary-400">browse</span>
                   </p>
-                  <p className="text-sm text-dark-500">PDF, DXF, STEP (max 50MB)</p>
+                  <p className="text-sm text-dark-500">STL, STEP, IGES, OBJ (max 100MB)</p>
                 </label>
               </div>
             )}
+          </div>
+        </div>
+
+        {/* Technical Drawing - Optional */}
+        <div className="card p-6">
+          <div className="flex items-center mb-4">
+            <FileImage className="w-5 h-5 text-amber-400 mr-2" />
+            <h3 className="font-semibold text-dark-100">Technical Drawing</h3>
+            <span className="ml-2 text-xs bg-dark-700 text-dark-400 px-2 py-1 rounded">Optional</span>
+          </div>
+          <p className="text-sm text-dark-400 mb-4">
+            2D engineering drawing with GD&T callouts, dimensions, and tolerances.
+            <span className="text-amber-400"> AI will use this to provide context-aware analysis</span> with accurate
+            feature names, callout references, and manufacturing specifications.
+          </p>
+          {drawingFile ? (
+            <div className="border border-dark-600 rounded-lg p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <div className="w-10 h-10 bg-amber-500/20 rounded-lg flex items-center justify-center mr-3">
+                    <FileImage className="w-5 h-5 text-amber-400" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-dark-100 truncate max-w-[300px]">
+                      {drawingFile.file.name}
+                    </p>
+                    <p className="text-sm text-dark-400">
+                      {(drawingFile.file.size / 1024 / 1024).toFixed(2)} MB
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => removeFile('drawing')}
+                  className="p-2 hover:bg-dark-700 rounded-lg transition-colors"
+                >
+                  <X className="w-5 h-5 text-dark-400" />
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div
+              onDrop={handleDrop('drawing')}
+              onDragOver={(e) => e.preventDefault()}
+              className="border-2 border-dashed border-dark-600 rounded-lg p-6 text-center hover:border-amber-500/50 transition-colors cursor-pointer"
+            >
+              <input
+                type="file"
+                id="drawing-file"
+                accept=".pdf,.png,.jpg,.jpeg,.tiff,.tif"
+                onChange={handleFileSelect('drawing')}
+                className="hidden"
+              />
+              <label htmlFor="drawing-file" className="cursor-pointer flex items-center justify-center">
+                <FileImage className="w-8 h-8 text-dark-500 mr-4" />
+                <div className="text-left">
+                  <p className="text-dark-300">
+                    Drag & drop or <span className="text-amber-400">browse</span>
+                  </p>
+                  <p className="text-sm text-dark-500">PDF, PNG, JPG, TIFF (max 50MB)</p>
+                </div>
+              </label>
+            </div>
+          )}
+          <div className="mt-3 p-3 bg-amber-500/5 border border-amber-500/20 rounded-lg">
+            <p className="text-xs text-amber-400/80">
+              <strong>Pro tip:</strong> Including the technical drawing enables AI to correlate deviations
+              to specific callouts (e.g., "Feature B is 0.08mm out of position per callout 3.2") and
+              provide manufacturing-specific recommendations based on GD&T requirements.
+            </p>
+          </div>
+        </div>
+
+        {/* Dimension Specifications - Optional XLSX */}
+        <div className="card p-6">
+          <div className="flex items-center mb-4">
+            <FileSpreadsheet className="w-5 h-5 text-emerald-400 mr-2" />
+            <h3 className="font-semibold text-dark-100">Dimension Specifications</h3>
+            <span className="ml-2 text-xs bg-dark-700 text-dark-400 px-2 py-1 rounded">Optional</span>
+          </div>
+          <p className="text-sm text-dark-400 mb-4">
+            Excel file with dimension specifications (bend angles, linear dimensions, tolerances).
+            <span className="text-emerald-400"> Enables precise bend-by-bend comparison</span> showing
+            expected vs actual values with pass/fail status.
+          </p>
+          {dimensionFile ? (
+            <div className="border border-dark-600 rounded-lg p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <div className="w-10 h-10 bg-emerald-500/20 rounded-lg flex items-center justify-center mr-3">
+                    <FileSpreadsheet className="w-5 h-5 text-emerald-400" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-dark-100 truncate max-w-[300px]">
+                      {dimensionFile.file.name}
+                    </p>
+                    <p className="text-sm text-dark-400">
+                      {(dimensionFile.file.size / 1024).toFixed(1)} KB
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => removeFile('dimension')}
+                  className="p-2 hover:bg-dark-700 rounded-lg transition-colors"
+                >
+                  <X className="w-5 h-5 text-dark-400" />
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div
+              onDrop={handleDrop('dimension')}
+              onDragOver={(e) => e.preventDefault()}
+              className="border-2 border-dashed border-dark-600 rounded-lg p-6 text-center hover:border-emerald-500/50 transition-colors cursor-pointer"
+            >
+              <input
+                type="file"
+                id="dimension-file"
+                accept=".xlsx,.xls"
+                onChange={handleFileSelect('dimension')}
+                className="hidden"
+              />
+              <label htmlFor="dimension-file" className="cursor-pointer flex items-center justify-center">
+                <FileSpreadsheet className="w-8 h-8 text-dark-500 mr-4" />
+                <div className="text-left">
+                  <p className="text-dark-300">
+                    Drag & drop or <span className="text-emerald-400">browse</span>
+                  </p>
+                  <p className="text-sm text-dark-500">Excel files (.xlsx, .xls)</p>
+                </div>
+              </label>
+            </div>
+          )}
+          <div className="mt-3 p-3 bg-emerald-500/5 border border-emerald-500/20 rounded-lg">
+            <p className="text-xs text-emerald-400/80">
+              <strong>Non-AI Analysis:</strong> Dimension specifications provide deterministic comparison
+              without AI interpretation. Results show exact deviations from spec for each dimension,
+              ideal for compliance documentation and traceable QC records.
+            </p>
           </div>
         </div>
 
@@ -263,19 +448,40 @@ export default function Upload() {
                 onChange={(e) => setMaterial(e.target.value)}
                 className="input"
               >
-                <option value="aluminum">Aluminum</option>
-                <option value="steel">Steel</option>
-                <option value="stainless_steel">Stainless Steel</option>
-                <option value="titanium">Titanium</option>
-                <option value="brass">Brass</option>
-                <option value="copper">Copper</option>
-                <option value="plastic">Plastic</option>
+                <optgroup label="Aluminum Alloys">
+                  <option value="Al-6061-T6">Al 6061-T6</option>
+                  <option value="Al-7075-T6">Al 7075-T6</option>
+                  <option value="Al-5052-H32">Al 5052-H32</option>
+                  <option value="Al-2024-T3">Al 2024-T3</option>
+                </optgroup>
+                <optgroup label="Steel">
+                  <option value="Steel-1018">Steel 1018 (Mild)</option>
+                  <option value="Steel-4140">Steel 4140</option>
+                  <option value="Steel-A36">Steel A36</option>
+                </optgroup>
+                <optgroup label="Stainless Steel">
+                  <option value="SS-304">SS 304</option>
+                  <option value="SS-316">SS 316</option>
+                  <option value="SS-17-4PH">SS 17-4 PH</option>
+                </optgroup>
+                <optgroup label="Other Metals">
+                  <option value="Titanium-6Al4V">Titanium 6Al-4V</option>
+                  <option value="Brass-C360">Brass C360</option>
+                  <option value="Copper-C110">Copper C110</option>
+                  <option value="Inconel-718">Inconel 718</option>
+                </optgroup>
+                <optgroup label="Plastics">
+                  <option value="Delrin">Delrin (POM)</option>
+                  <option value="PEEK">PEEK</option>
+                  <option value="Nylon">Nylon</option>
+                  <option value="UHMW">UHMW-PE</option>
+                </optgroup>
                 <option value="other">Other</option>
               </select>
             </div>
             <div>
               <label htmlFor="tolerance" className="label">
-                Tolerance (mm)
+                Default Tolerance (mm)
               </label>
               <select
                 id="tolerance"
@@ -283,15 +489,36 @@ export default function Upload() {
                 onChange={(e) => setTolerance(e.target.value)}
                 className="input"
               >
+                <option value="0.005">+/- 0.005 mm (Precision)</option>
                 <option value="0.01">+/- 0.01 mm (Very Tight)</option>
-                <option value="0.05">+/- 0.05 mm (Tight)</option>
-                <option value="0.1">+/- 0.1 mm (Standard)</option>
+                <option value="0.025">+/- 0.025 mm (Tight)</option>
+                <option value="0.05">+/- 0.05 mm (Standard - Machined)</option>
+                <option value="0.1">+/- 0.1 mm (General)</option>
                 <option value="0.25">+/- 0.25 mm (Loose)</option>
                 <option value="0.5">+/- 0.5 mm (Very Loose)</option>
               </select>
+              <p className="text-xs text-dark-500 mt-1">
+                Used when not specified in drawing. GD&T from drawing takes precedence.
+              </p>
             </div>
           </div>
         </div>
+
+        {/* Upload Progress */}
+        {uploadMutation.isPending && uploadProgress > 0 && (
+          <div className="card p-4">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm text-dark-300">Uploading files...</span>
+              <span className="text-sm font-medium text-primary-400">{uploadProgress}%</span>
+            </div>
+            <div className="w-full bg-dark-700 rounded-full h-2">
+              <div
+                className="bg-primary-500 h-2 rounded-full transition-all duration-300"
+                style={{ width: `${uploadProgress}%` }}
+              />
+            </div>
+          </div>
+        )}
 
         {/* Submit */}
         <div className="flex justify-end gap-4">
@@ -299,6 +526,7 @@ export default function Upload() {
             type="button"
             onClick={() => navigate('/')}
             className="btn btn-secondary"
+            disabled={uploadMutation.isPending}
           >
             Cancel
           </button>
@@ -332,7 +560,7 @@ export default function Upload() {
                     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                   />
                 </svg>
-                Starting Analysis...
+                {uploadProgress < 100 ? `Uploading ${uploadProgress}%...` : 'Starting Analysis...'}
               </>
             ) : (
               <>

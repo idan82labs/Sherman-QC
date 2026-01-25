@@ -35,8 +35,8 @@ export default function Jobs() {
 
   const filteredJobs = data?.jobs?.filter(
     (job) =>
-      job.part_id.toLowerCase().includes(search.toLowerCase()) ||
-      job.part_name.toLowerCase().includes(search.toLowerCase())
+      (job.part_id || '').toLowerCase().includes(search.toLowerCase()) ||
+      (job.part_name || '').toLowerCase().includes(search.toLowerCase())
   )
 
   const totalPages = Math.ceil((data?.count || 0) / ITEMS_PER_PAGE)
@@ -168,12 +168,12 @@ export default function Jobs() {
                     </td>
                     <td className="px-6 py-4 text-dark-300 capitalize">
                       <Link to={`/jobs/${job.job_id}`} className="block">
-                        {job.material.replace('_', ' ')}
+                        {job.material?.replace('_', ' ') || '-'}
                       </Link>
                     </td>
                     <td className="px-6 py-4">
                       <Link to={`/jobs/${job.job_id}`} className="block">
-                        {job.quality_score !== null ? (
+                        {job.quality_score != null ? (
                           <QualityBadge score={job.quality_score} />
                         ) : (
                           <span className="text-dark-500">-</span>
