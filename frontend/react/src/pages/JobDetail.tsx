@@ -22,8 +22,9 @@ import {
 } from 'lucide-react'
 import { jobsApi } from '../services/api'
 import clsx from 'clsx'
-import { useEffect, useState, lazy, Suspense } from 'react'
+import { useEffect, useState, lazy, Suspense, useMemo } from 'react'
 import { BendResult, Correlation2D3D, PipelineStatus, DimensionAnalysisResult } from '../types'
+import type { BendAnnotation, DeviationStats } from '../components/ThreeViewer'
 
 // Lazy load the 3D viewer for better performance
 const ThreeViewer = lazy(() => import('../components/ThreeViewer'))
@@ -413,7 +414,7 @@ export default function JobDetail() {
           <EnhancedAnalysisSections qcResult={qcResult} tolerance={tolerance} />
 
           {/* 3D Viewer - only show for supported formats (STL, PLY) */}
-          <ThreeViewerSection job={job} tolerance={tolerance} />
+          <ThreeViewerSection job={job} tolerance={tolerance} qcResult={qcResult} />
         </>
       )}
 
@@ -598,9 +599,10 @@ function EnhancedAnalysisSections({ qcResult, tolerance }: { qcResult: any; tole
   )
 }
 
-function ThreeViewerSection({ job, tolerance }: { job: any; tolerance: number }) {
+function ThreeViewerSection({ job, tolerance, qcResult }: { job: any; tolerance: number; qcResult?: any }) {
   const [deviations, setDeviations] = useState<number[] | undefined>(undefined)
   const [deviationsLoading, setDeviationsLoading] = useState(false)
+  const [deviationStats, setDeviationStats] = useState<DeviationStats | undefined>(undefined)
 
   const supportedScanFormats = ['.stl', '.ply']
   const cadFormats = ['.step', '.stp', '.iges', '.igs']
@@ -610,6 +612,22 @@ function ThreeViewerSection({ job, tolerance }: { job: any; tolerance: number })
   const scanSupported = supportedScanFormats.some(ext => scanPath.toLowerCase().endsWith(ext))
   const refIsCad = cadFormats.some(ext => refPath.toLowerCase().endsWith(ext))
   const refSupported = supportedScanFormats.some(ext => refPath.toLowerCase().endsWith(ext)) || refIsCad
+
+  // Extract bend annotations from dimension analysis
+  const bendAnnotations: BendAnnotation[] = useMemo(() => {
+    if (!qcResult?.dimension_analysis?.bend_analysis?.matches) return []
+
+    return qcResult.dimension_analysis.bend_analysis.matches
+      .filter((match: any) => match.cad?.position)
+      .map((match: any) => ({
+        id: match.dim_id,
+        position: match.cad.position as [number, number, number],
+        expectedAngle: match.expected,
+        measuredAngle: match.scan?.angle ?? null,
+        deviation: match.scan?.deviation ?? null,
+        status: match.status as 'pass' | 'fail' | 'warning' | 'pending',
+      }))
+  }, [qcResult])
 
   // Fetch deviations from API for heatmap
   useEffect(() => {
@@ -622,6 +640,17 @@ function ThreeViewerSection({ job, tolerance }: { job: any; tolerance: number })
         if (response.ok) {
           const data = await response.json()
           setDeviations(data.deviations)
+
+          // Compute stats from deviations
+          if (data.deviations && data.deviations.length > 0) {
+            const devs = data.deviations as number[]
+            const min = Math.min(...devs)
+            const max = Math.max(...devs)
+            const mean = devs.reduce((a: number, b: number) => a + b, 0) / devs.length
+            const minIdx = devs.indexOf(min)
+            const maxIdx = devs.indexOf(max)
+            setDeviationStats({ min, max, mean, minIdx, maxIdx })
+          }
         }
       } catch (error) {
         console.log('Deviations not available:', error)
@@ -700,6 +729,8 @@ function ThreeViewerSection({ job, tolerance }: { job: any; tolerance: number })
           deviations={deviations}
           tolerance={tolerance}
           className="h-[400px]"
+          bendAnnotations={bendAnnotations}
+          deviationStats={deviationStats}
         />
       </Suspense>
     </div>

@@ -1,11 +1,31 @@
-import { Suspense, useState, useRef, useEffect } from 'react'
+import { Suspense, useState, useRef, useEffect, useMemo } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { OrbitControls, Grid, Environment, Html } from '@react-three/drei'
 import * as THREE from 'three'
 import { STLLoader } from 'three/examples/jsm/loaders/STLLoader.js'
 import { PLYLoader } from 'three/examples/jsm/loaders/PLYLoader.js'
-import { Maximize2, Minimize2, RotateCcw, Box, Scan, Palette } from 'lucide-react'
+import { Maximize2, Minimize2, RotateCcw, Box, Scan, Palette, Tag, TrendingDown, TrendingUp } from 'lucide-react'
 import clsx from 'clsx'
+
+// Types for 3D annotations
+interface BendAnnotation {
+  id: number
+  position: [number, number, number]
+  expectedAngle: number
+  measuredAngle: number | null
+  deviation: number | null
+  status: 'pass' | 'fail' | 'warning' | 'pending'
+}
+
+interface DeviationStats {
+  min: number
+  max: number
+  mean: number
+  minIdx?: number
+  maxIdx?: number
+  minPosition?: [number, number, number]
+  maxPosition?: [number, number, number]
+}
 
 interface ThreeViewerProps {
   modelUrl?: string
@@ -13,6 +33,10 @@ interface ThreeViewerProps {
   deviations?: number[]
   tolerance?: number
   className?: string
+  // New props for annotations
+  bendAnnotations?: BendAnnotation[]
+  deviationStats?: DeviationStats
+  scanPositions?: Float32Array  // Point positions for finding extremes
 }
 
 export default function ThreeViewer({
@@ -21,12 +45,19 @@ export default function ThreeViewer({
   deviations,
   tolerance = 0.1,
   className,
+  bendAnnotations,
+  deviationStats,
+  scanPositions,
 }: ThreeViewerProps) {
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [showScan, setShowScan] = useState(true)
   const [showReference, setShowReference] = useState(true)
   const [showHeatmap, setShowHeatmap] = useState(true)
+  const [showAnnotations, setShowAnnotations] = useState(true)
+  const [showExtremes, setShowExtremes] = useState(true)
   const [isLoading, setIsLoading] = useState(false)
+  const [transformData, setTransformData] = useState<{ center: THREE.Vector3; scale: number } | null>(null)
+  const [extremePositions, setExtremePositions] = useState<{ minPosition?: [number, number, number]; maxPosition?: [number, number, number] } | null>(null)
   const controlsRef = useRef<any>(null)
 
   const resetCamera = () => {
@@ -36,6 +67,8 @@ export default function ThreeViewer({
   }
 
   const hasDeviations = deviations && deviations.length > 0
+  const hasBendAnnotations = bendAnnotations && bendAnnotations.length > 0
+  const hasExtremes = deviationStats && (deviationStats.minPosition || deviationStats.maxPosition || deviationStats.minIdx !== undefined || deviationStats.maxIdx !== undefined)
 
   return (
     <div className={clsx('relative bg-dark-900 rounded-lg overflow-hidden', className)}>
@@ -80,6 +113,32 @@ export default function ThreeViewer({
             Heatmap
           </button>
         )}
+        {hasBendAnnotations && (
+          <button
+            onClick={() => setShowAnnotations(!showAnnotations)}
+            className={clsx(
+              'flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors',
+              showAnnotations ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-dark-700 text-dark-400'
+            )}
+            title={showAnnotations ? 'Hide bend annotations' : 'Show bend annotations'}
+          >
+            <Tag className="w-3.5 h-3.5" />
+            Bends
+          </button>
+        )}
+        {(hasExtremes || hasDeviations) && (
+          <button
+            onClick={() => setShowExtremes(!showExtremes)}
+            className={clsx(
+              'flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors',
+              showExtremes ? 'bg-red-500/20 text-red-400 border border-red-500/30' : 'bg-dark-700 text-dark-400'
+            )}
+            title={showExtremes ? 'Hide min/max markers' : 'Show min/max markers'}
+          >
+            <TrendingUp className="w-3.5 h-3.5" />
+            Extremes
+          </button>
+        )}
       </div>
 
       {/* Action Controls */}
@@ -114,6 +173,17 @@ export default function ThreeViewer({
             <span>0</span>
             <span>+{tolerance}</span>
           </div>
+          {deviationStats && (
+            <div className="mt-2 pt-2 border-t border-dark-700 text-xs">
+              <div className="flex justify-between">
+                <span className="text-emerald-400">Min: {deviationStats.min.toFixed(3)}mm</span>
+                <span className="text-red-400">Max: {deviationStats.max.toFixed(3)}mm</span>
+              </div>
+              <div className="text-dark-400 mt-1">
+                Mean: {deviationStats.mean.toFixed(3)}mm
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -153,9 +223,34 @@ export default function ThreeViewer({
             showReference={showReference}
             deviations={showHeatmap ? deviations : undefined}
             tolerance={tolerance}
+            deviationStats={deviationStats}
             onLoadStart={() => setIsLoading(true)}
             onLoadEnd={() => setIsLoading(false)}
+            onTransformComputed={setTransformData}
+            onExtremePositionsComputed={setExtremePositions}
           />
+
+          {/* 3D Annotations for bends */}
+          {showAnnotations && hasBendAnnotations && transformData && (
+            <BendAnnotations3D
+              annotations={bendAnnotations!}
+              transform={transformData}
+            />
+          )}
+
+          {/* Deviation extremes markers */}
+          {showExtremes && deviationStats && transformData && (
+            <ExtremeMarkers3D
+              stats={{
+                ...deviationStats,
+                minPosition: deviationStats.minPosition ?? extremePositions?.minPosition,
+                maxPosition: deviationStats.maxPosition ?? extremePositions?.maxPosition,
+              }}
+              transform={transformData}
+              deviations={deviations}
+              scanPositions={scanPositions}
+            />
+          )}
 
           {/* Grid positioned below the model */}
           <Grid
@@ -211,8 +306,11 @@ interface AlignedModelsProps {
   showReference: boolean
   deviations?: number[]
   tolerance?: number
+  deviationStats?: DeviationStats
   onLoadStart?: () => void
   onLoadEnd?: () => void
+  onTransformComputed?: (data: { center: THREE.Vector3; scale: number }) => void
+  onExtremePositionsComputed?: (positions: { minPosition?: [number, number, number]; maxPosition?: [number, number, number] }) => void
 }
 
 function AlignedModels({
@@ -222,8 +320,11 @@ function AlignedModels({
   showReference,
   deviations,
   tolerance = 0.1,
+  deviationStats,
   onLoadStart,
   onLoadEnd,
+  onTransformComputed,
+  onExtremePositionsComputed,
 }: AlignedModelsProps) {
   const [scanGeometry, setScanGeometry] = useState<THREE.BufferGeometry | null>(null)
   const [refGeometry, setRefGeometry] = useState<THREE.BufferGeometry | null>(null)
@@ -233,6 +334,12 @@ function AlignedModels({
   const [refError, setRefError] = useState<string | null>(null)
   const [scanIsMesh, setScanIsMesh] = useState<boolean>(false)
   const [refIsMesh, setRefIsMesh] = useState<boolean>(true)
+
+  // Refs to track current geometries for proper disposal
+  const scanGeometryRef = useRef<THREE.BufferGeometry | null>(null)
+  const refGeometryRef = useRef<THREE.BufferGeometry | null>(null)
+  // Store raw (pre-transform) scan positions for extreme marker extraction
+  const rawScanPositionsRef = useRef<Float32Array | null>(null)
 
   // Detect if geometry should be rendered as mesh or point cloud
   // STL files are ALWAYS meshes (triangulated surfaces)
@@ -302,6 +409,11 @@ function AlignedModels({
         try {
           const result = await loadGeometry(scanUrl)
           geometries.scan = result.geometry
+          // Snapshot raw vertex positions before any transforms
+          const posAttr = result.geometry.getAttribute('position')
+          if (posAttr) {
+            rawScanPositionsRef.current = new Float32Array(posAttr.array)
+          }
           setScanIsMesh(result.isMesh)
           setScanError(null)
         } catch (e) {
@@ -323,32 +435,36 @@ function AlignedModels({
         }
       }
 
-      // Compute combined bounding box for shared centering
-      const combinedBox = new THREE.Box3()
-      if (geometries.scan) {
-        geometries.scan.computeBoundingBox()
-        if (geometries.scan.boundingBox) {
-          combinedBox.union(geometries.scan.boundingBox)
-        }
-      }
+      // Compute bounding boxes for centering and scaling
+      // Use REFERENCE geometry center for centering (backend already aligned scan to reference)
+      // Use COMBINED bounding box for scale (viewport fitting)
       if (geometries.ref) {
         geometries.ref.computeBoundingBox()
-        if (geometries.ref.boundingBox) {
-          combinedBox.union(geometries.ref.boundingBox)
-        }
+      }
+      if (geometries.scan) {
+        geometries.scan.computeBoundingBox()
       }
 
-      // Calculate shared center and scale
-      if (!combinedBox.isEmpty()) {
+      // Center on reference geometry to preserve backend alignment
+      const centerBox = geometries.ref?.boundingBox ?? geometries.scan?.boundingBox
+      const scaleBox = new THREE.Box3()
+      if (geometries.scan?.boundingBox) scaleBox.union(geometries.scan.boundingBox)
+      if (geometries.ref?.boundingBox) scaleBox.union(geometries.ref.boundingBox)
+
+      if (centerBox && !centerBox.isEmpty()) {
         const center = new THREE.Vector3()
-        combinedBox.getCenter(center)
+        centerBox.getCenter(center)
         setSharedCenter(center)
 
         const size = new THREE.Vector3()
-        combinedBox.getSize(size)
+        scaleBox.getSize(size)
         const maxDim = Math.max(size.x, size.y, size.z)
         const targetSize = 4
-        setSharedScale(maxDim > 0 ? targetSize / maxDim : 1)
+        const scale = maxDim > 0 ? targetSize / maxDim : 1
+        setSharedScale(scale)
+
+        // Notify parent of transform data for annotations
+        onTransformComputed?.({ center, scale })
       }
 
       // Apply transformations and store
@@ -370,9 +486,15 @@ function AlignedModels({
           }
           geometries.scan.setAttribute('color', new THREE.BufferAttribute(colors, 3))
         }
+        // Dispose previous geometry before setting new one
+        scanGeometryRef.current?.dispose()
+        scanGeometryRef.current = geometries.scan
         setScanGeometry(geometries.scan)
       } else if (geometries.scan) {
         // First load - store raw geometry, will transform on next render
+        // Dispose previous geometry before setting new one
+        scanGeometryRef.current?.dispose()
+        scanGeometryRef.current = geometries.scan
         setScanGeometry(geometries.scan)
       }
 
@@ -382,8 +504,14 @@ function AlignedModels({
         if (!geometries.ref.attributes.normal) {
           geometries.ref.computeVertexNormals()
         }
+        // Dispose previous geometry before setting new one
+        refGeometryRef.current?.dispose()
+        refGeometryRef.current = geometries.ref
         setRefGeometry(geometries.ref)
       } else if (geometries.ref) {
+        // Dispose previous geometry before setting new one
+        refGeometryRef.current?.dispose()
+        refGeometryRef.current = geometries.ref
         setRefGeometry(geometries.ref)
       }
 
@@ -392,9 +520,13 @@ function AlignedModels({
 
     loadBoth()
 
+    // Cleanup function uses refs to ensure current geometries are disposed
     return () => {
-      scanGeometry?.dispose()
-      refGeometry?.dispose()
+      scanGeometryRef.current?.dispose()
+      scanGeometryRef.current = null
+      refGeometryRef.current?.dispose()
+      refGeometryRef.current = null
+      rawScanPositionsRef.current = null
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scanUrl, referenceUrl])
@@ -444,6 +576,29 @@ function AlignedModels({
       }
     }
   }, [scanGeometry, deviations, tolerance])
+
+  // Extract extreme deviation positions from raw (pre-transform) scan vertex data
+  useEffect(() => {
+    if (!rawScanPositionsRef.current || !deviationStats || !onExtremePositionsComputed) return
+    if (deviationStats.minIdx === undefined && deviationStats.maxIdx === undefined) return
+
+    const raw = rawScanPositionsRef.current
+    const vertexCount = raw.length / 3
+    const result: { minPosition?: [number, number, number]; maxPosition?: [number, number, number] } = {}
+
+    if (deviationStats.minIdx !== undefined && deviationStats.minIdx < vertexCount) {
+      const idx = deviationStats.minIdx
+      result.minPosition = [raw[idx * 3], raw[idx * 3 + 1], raw[idx * 3 + 2]]
+    }
+    if (deviationStats.maxIdx !== undefined && deviationStats.maxIdx < vertexCount) {
+      const idx = deviationStats.maxIdx
+      result.maxPosition = [raw[idx * 3], raw[idx * 3 + 1], raw[idx * 3 + 2]]
+    }
+
+    if (result.minPosition || result.maxPosition) {
+      onExtremePositionsComputed(result)
+    }
+  }, [scanGeometry, deviationStats, onExtremePositionsComputed])
 
   return (
     <>
@@ -550,3 +705,228 @@ function deviationToColor(deviation: number, tolerance: number): THREE.Color {
     return new THREE.Color(1, 1 - t, 0)
   }
 }
+
+// 3D Bend Annotations Component
+interface BendAnnotations3DProps {
+  annotations: BendAnnotation[]
+  transform: { center: THREE.Vector3; scale: number }
+}
+
+function BendAnnotations3D({ annotations, transform }: BendAnnotations3DProps) {
+  return (
+    <>
+      {annotations.map((annotation) => {
+        if (!annotation.position) return null
+
+        // Transform the position to match the model
+        const pos = new THREE.Vector3(
+          (annotation.position[0] - transform.center.x) * transform.scale,
+          (annotation.position[1] - transform.center.y) * transform.scale,
+          (annotation.position[2] - transform.center.z) * transform.scale
+        )
+
+        const statusColors = {
+          pass: { bg: 'bg-emerald-500/90', border: 'border-emerald-400', text: 'text-emerald-100' },
+          fail: { bg: 'bg-red-500/90', border: 'border-red-400', text: 'text-red-100' },
+          warning: { bg: 'bg-amber-500/90', border: 'border-amber-400', text: 'text-amber-100' },
+          pending: { bg: 'bg-gray-500/90', border: 'border-gray-400', text: 'text-gray-100' },
+        }
+
+        const colors = statusColors[annotation.status] || statusColors.pending
+
+        return (
+          <group key={annotation.id} position={[pos.x, pos.y, pos.z]}>
+            {/* Marker sphere */}
+            <mesh>
+              <sphereGeometry args={[0.08, 16, 16]} />
+              <meshStandardMaterial
+                color={annotation.status === 'pass' ? '#22c55e' : annotation.status === 'fail' ? '#ef4444' : '#f59e0b'}
+                emissive={annotation.status === 'pass' ? '#22c55e' : annotation.status === 'fail' ? '#ef4444' : '#f59e0b'}
+                emissiveIntensity={0.3}
+              />
+            </mesh>
+
+            {/* Connecting line going up */}
+            <line>
+              <bufferGeometry>
+                <bufferAttribute
+                  attach="attributes-position"
+                  count={2}
+                  array={new Float32Array([0, 0, 0, 0, 0.5, 0])}
+                  itemSize={3}
+                />
+              </bufferGeometry>
+              <lineBasicMaterial color="#ffffff" opacity={0.5} transparent />
+            </line>
+
+            {/* HTML Label */}
+            <Html
+              position={[0, 0.6, 0]}
+              center
+              distanceFactor={8}
+              style={{ pointerEvents: 'none' }}
+            >
+              <div className={clsx(
+                'px-2 py-1 rounded-lg border shadow-lg backdrop-blur-sm whitespace-nowrap',
+                colors.bg, colors.border
+              )}>
+                <div className="text-xs font-bold text-white">
+                  Bend {annotation.id}
+                </div>
+                <div className={clsx('text-xs', colors.text)}>
+                  {annotation.measuredAngle != null ? (
+                    <>
+                      <span className="font-mono">{annotation.measuredAngle.toFixed(1)}°</span>
+                      {annotation.deviation != null && (
+                        <span className="ml-1 opacity-80">
+                          ({annotation.deviation > 0 ? '+' : ''}{annotation.deviation.toFixed(1)}°)
+                        </span>
+                      )}
+                    </>
+                  ) : (
+                    <span className="opacity-60">Expected: {annotation.expectedAngle.toFixed(1)}°</span>
+                  )}
+                </div>
+              </div>
+            </Html>
+          </group>
+        )
+      })}
+    </>
+  )
+}
+
+// Extreme deviation markers component
+interface ExtremeMarkers3DProps {
+  stats: DeviationStats
+  transform: { center: THREE.Vector3; scale: number }
+  deviations?: number[]
+  scanPositions?: Float32Array
+}
+
+function ExtremeMarkers3D({ stats, transform, deviations, scanPositions }: ExtremeMarkers3DProps) {
+  // Find positions of min/max deviations if not provided but we have deviation data
+  const extremePositions = useMemo(() => {
+    const result: { min?: THREE.Vector3; max?: THREE.Vector3 } = {}
+
+    // Use provided positions if available
+    if (stats.minPosition) {
+      result.min = new THREE.Vector3(
+        (stats.minPosition[0] - transform.center.x) * transform.scale,
+        (stats.minPosition[1] - transform.center.y) * transform.scale,
+        (stats.minPosition[2] - transform.center.z) * transform.scale
+      )
+    }
+
+    if (stats.maxPosition) {
+      result.max = new THREE.Vector3(
+        (stats.maxPosition[0] - transform.center.x) * transform.scale,
+        (stats.maxPosition[1] - transform.center.y) * transform.scale,
+        (stats.maxPosition[2] - transform.center.z) * transform.scale
+      )
+    }
+
+    // If positions not provided, find them from scan data
+    if ((!result.min || !result.max) && deviations && scanPositions && scanPositions.length >= deviations.length * 3) {
+      let minIdx = 0
+      let maxIdx = 0
+      let minVal = Infinity
+      let maxVal = -Infinity
+
+      for (let i = 0; i < deviations.length; i++) {
+        const dev = deviations[i]
+        if (dev < minVal) {
+          minVal = dev
+          minIdx = i
+        }
+        if (dev > maxVal) {
+          maxVal = dev
+          maxIdx = i
+        }
+      }
+
+      if (!result.min && minIdx * 3 + 2 < scanPositions.length) {
+        result.min = new THREE.Vector3(
+          (scanPositions[minIdx * 3] - transform.center.x) * transform.scale,
+          (scanPositions[minIdx * 3 + 1] - transform.center.y) * transform.scale,
+          (scanPositions[minIdx * 3 + 2] - transform.center.z) * transform.scale
+        )
+      }
+
+      if (!result.max && maxIdx * 3 + 2 < scanPositions.length) {
+        result.max = new THREE.Vector3(
+          (scanPositions[maxIdx * 3] - transform.center.x) * transform.scale,
+          (scanPositions[maxIdx * 3 + 1] - transform.center.y) * transform.scale,
+          (scanPositions[maxIdx * 3 + 2] - transform.center.z) * transform.scale
+        )
+      }
+    }
+
+    return result
+  }, [stats, transform, deviations, scanPositions])
+
+  return (
+    <>
+      {/* Min deviation marker */}
+      {extremePositions.min && (
+        <group position={[extremePositions.min.x, extremePositions.min.y, extremePositions.min.z]}>
+          {/* Pulsing ring */}
+          <mesh rotation={[Math.PI / 2, 0, 0]}>
+            <ringGeometry args={[0.1, 0.15, 32]} />
+            <meshBasicMaterial color="#22c55e" transparent opacity={0.8} side={THREE.DoubleSide} />
+          </mesh>
+
+          {/* Label */}
+          <Html
+            position={[0, 0.4, 0]}
+            center
+            distanceFactor={8}
+            style={{ pointerEvents: 'none' }}
+          >
+            <div className="px-2 py-1 rounded-lg bg-emerald-600/90 border border-emerald-400 shadow-lg whitespace-nowrap">
+              <div className="flex items-center gap-1 text-xs font-bold text-white">
+                <TrendingDown className="w-3 h-3" />
+                MIN
+              </div>
+              <div className="text-xs text-emerald-100 font-mono">
+                {stats.min.toFixed(3)}mm
+              </div>
+            </div>
+          </Html>
+        </group>
+      )}
+
+      {/* Max deviation marker */}
+      {extremePositions.max && (
+        <group position={[extremePositions.max.x, extremePositions.max.y, extremePositions.max.z]}>
+          {/* Pulsing ring */}
+          <mesh rotation={[Math.PI / 2, 0, 0]}>
+            <ringGeometry args={[0.1, 0.15, 32]} />
+            <meshBasicMaterial color="#ef4444" transparent opacity={0.8} side={THREE.DoubleSide} />
+          </mesh>
+
+          {/* Label */}
+          <Html
+            position={[0, 0.4, 0]}
+            center
+            distanceFactor={8}
+            style={{ pointerEvents: 'none' }}
+          >
+            <div className="px-2 py-1 rounded-lg bg-red-600/90 border border-red-400 shadow-lg whitespace-nowrap">
+              <div className="flex items-center gap-1 text-xs font-bold text-white">
+                <TrendingUp className="w-3 h-3" />
+                MAX
+              </div>
+              <div className="text-xs text-red-100 font-mono">
+                {stats.max.toFixed(3)}mm
+              </div>
+            </div>
+          </Html>
+        </group>
+      )}
+    </>
+  )
+}
+
+// Export types for use in other components
+export type { BendAnnotation, DeviationStats }
