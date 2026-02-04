@@ -7,6 +7,9 @@ import {
   LogOut,
   Settings,
   Activity,
+  Ruler,
+  Database,
+  Scan,
 } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
 import clsx from 'clsx'
@@ -16,6 +19,9 @@ const navItems = [
   { to: '/upload', icon: Upload, label: 'New Analysis' },
   { to: '/jobs', icon: FileStack, label: 'Jobs' },
   { to: '/batch', icon: Layers, label: 'Batch Processing' },
+  { to: '/bend-inspection', icon: Ruler, label: 'Bend Inspection' },
+  { to: '/live-scan', icon: Scan, label: 'Live Scan' },
+  { to: '/parts', icon: Database, label: 'Part Catalog' },
 ]
 
 export default function Layout() {

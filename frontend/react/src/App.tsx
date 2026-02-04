@@ -5,6 +5,9 @@ import Upload from './pages/Upload'
 import Jobs from './pages/Jobs'
 import JobDetail from './pages/JobDetail'
 import Batch from './pages/Batch'
+import BendInspection from './pages/BendInspection'
+import PartCatalog from './pages/PartCatalog'
+import LiveScan from './pages/LiveScan'
 import Login from './pages/Login'
 import { useAuth } from './hooks/useAuth'
 
@@ -39,6 +42,9 @@ export default function App() {
         <Route path="jobs" element={<Jobs />} />
         <Route path="jobs/:jobId" element={<JobDetail />} />
         <Route path="batch" element={<Batch />} />
+        <Route path="bend-inspection" element={<BendInspection />} />
+        <Route path="parts" element={<PartCatalog />} />
+        <Route path="live-scan" element={<LiveScan />} />
       </Route>
     </Routes>
   )

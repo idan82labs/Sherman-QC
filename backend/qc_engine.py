@@ -19,7 +19,9 @@ logger = logging.getLogger(__name__)
 
 # Import enhanced analysis modules
 try:
-    from bend_detector import BendDetector, BendDetectionResult, analyze_bend_deviations
+    from bend_detector import BendDetector, BendDetectionResult, analyze_bend_deviations, measure_all_scan_bends
+    from cad_bend_extractor import CADBendExtractor, CADBendExtractionResult
+    from cad_dimension_extractor import CADDimensionExtractor, CADDimensionExtractionResult, measure_scan_dimension, measure_scan_dimensions_batch
     from multi_model import (
         MultiModelOrchestrator,
         EnhancedAnalysisResult,
@@ -150,6 +152,9 @@ class QCReport:
     # Drawing context
     drawing_context: str = ""
 
+    # Bend analysis images (paths)
+    bend_snapshot_paths: Dict[str, str] = field(default_factory=dict)
+
     # Enhanced analysis (bend detection + multi-model)
     enhanced_analysis: Optional[Dict] = None
     bend_results: List[Dict] = field(default_factory=list)
@@ -225,6 +230,7 @@ class QCReport:
                 "front": self.snapshot_3d_front,
                 "side": self.snapshot_3d_side,
                 "top": self.snapshot_3d_top,
+                **self.bend_snapshot_paths,
             },
             "drawing_context": self.drawing_context,
             # Enhanced analysis results
@@ -295,19 +301,19 @@ class ScanQCEngine:
 
     def detect_bends(self, points: np.ndarray = None, deviations: np.ndarray = None) -> Optional[Dict]:
         """
-        Detect bends in the point cloud.
+        Detect bends using dual approach: CAD mesh first, point cloud fallback.
+
+        Primary: Extract bends from the CAD reference mesh (clean, structured data).
+        Fallback: Detect bends from the scan point cloud (noisy but always available).
+        Scan measurement: Measure actual bend angles in scan at CAD-specified locations.
 
         Args:
             points: Optional point cloud (uses self.aligned_scan if not provided)
             deviations: Optional deviations array
 
         Returns:
-            BendDetectionResult as dict, or None if detection fails
+            BendDetectionResult-compatible dict, or None if detection fails
         """
-        if self.bend_detector is None:
-            logger.warning("Bend detector not available")
-            return None
-
         if points is None:
             if self.aligned_scan is None:
                 logger.warning("No point cloud available for bend detection")
@@ -317,14 +323,110 @@ class ScanQCEngine:
         if deviations is None:
             deviations = self.deviations
 
-        try:
-            self._update_progress("bend_detect", 88, "Detecting bends in point cloud...")
-            result = self.bend_detector.detect_bends(points, deviations)
-            logger.info(f"Detected {result.total_bends_detected} bends")
-            return result.to_dict()
-        except Exception as e:
-            logger.error(f"Bend detection failed: {e}")
-            return None
+        # Primary approach: extract bends from CAD reference mesh
+        cad_bends_result = None
+        if self.reference_mesh is not None and ENHANCED_ANALYSIS_AVAILABLE:
+            try:
+                self._update_progress("bend_detect", 88, "Extracting bends from CAD mesh...")
+                extractor = CADBendExtractor()
+                cad_bends_result = extractor.extract_from_mesh(self.reference_mesh)
+                logger.info(f"CAD mesh bend extraction: {cad_bends_result.total_bends} bends "
+                           f"from {cad_bends_result.total_major_surfaces} surfaces "
+                           f"({cad_bends_result.processing_time_ms:.0f}ms)")
+            except Exception as e:
+                logger.warning(f"CAD mesh bend extraction failed: {e}")
+
+        # If CAD extraction found bends, measure them in the scan
+        if cad_bends_result and cad_bends_result.total_bends > 0:
+            try:
+                self._update_progress("bend_detect", 90, "Measuring scan bends at CAD locations...")
+                cad_bend_dicts = [b.to_dict() for b in cad_bends_result.bends]
+
+                # Build surface face map for surface classification measurement
+                cad_vertices = np.asarray(self.reference_mesh.vertices)
+                cad_triangles = np.asarray(self.reference_mesh.triangles)
+                surface_face_map = {
+                    s.surface_id: s.face_indices
+                    for s in cad_bends_result.surfaces
+                }
+
+                scan_measurements = measure_all_scan_bends(
+                    points, cad_bend_dicts, search_radius=35.0,
+                    cad_vertices=cad_vertices,
+                    cad_triangles=cad_triangles,
+                    surface_face_map=surface_face_map,
+                    deviations=deviations,
+                )
+
+                # Build combined result with CAD angles + scan measurements
+                bends = []
+                for cad_bend, measurement in zip(cad_bends_result.bends, scan_measurements):
+                    bend_dict = cad_bend.to_dict()
+                    bend_dict["detection_source"] = "cad_mesh"
+                    if measurement["success"]:
+                        bend_dict["scan_angle"] = measurement["measured_angle"]
+                        bend_dict["scan_deviation"] = measurement["deviation"]
+                        bend_dict["scan_measured"] = True
+                        bend_dict["measurement_method"] = measurement.get("measurement_method", "unknown")
+                        # Use confidence from the measurement method if provided
+                        # (gradient method computes its own R²-based confidence)
+                        if "measurement_confidence" in measurement and measurement["measurement_confidence"]:
+                            bend_dict["measurement_confidence"] = measurement["measurement_confidence"]
+                        else:
+                            # Fallback: heuristic based on point count and CAD alignment
+                            pts = measurement.get("side1_points", 0) + measurement.get("side2_points", 0)
+                            align = (measurement.get("cad_alignment1", 0) + measurement.get("cad_alignment2", 0)) / 2
+                            if pts >= 100 and align >= 0.95:
+                                bend_dict["measurement_confidence"] = "high"
+                            elif pts >= 50 and align >= 0.9:
+                                bend_dict["measurement_confidence"] = "medium"
+                            else:
+                                bend_dict["measurement_confidence"] = "low"
+                    else:
+                        bend_dict["scan_angle"] = None
+                        bend_dict["scan_deviation"] = None
+                        bend_dict["scan_measured"] = False
+                        bend_dict["measurement_method"] = None
+                        bend_dict["measurement_confidence"] = None
+                    bends.append(bend_dict)
+
+                measured_count = sum(1 for m in scan_measurements if m["success"])
+                logger.info(f"Scan measurement: {measured_count}/{len(scan_measurements)} bends measured")
+
+                return {
+                    "bends": bends,
+                    "total_bends_detected": len(bends),
+                    "detection_method": "cad_mesh_extraction",
+                    "processing_time_ms": cad_bends_result.processing_time_ms,
+                    "scan_measured_count": measured_count,
+                    "cad_surfaces": cad_bends_result.total_major_surfaces,
+                    "warnings": cad_bends_result.warnings,
+                }
+            except Exception as e:
+                logger.warning(f"Scan bend measurement failed: {e}")
+                # Still return CAD-only results
+                return {
+                    "bends": [b.to_dict() for b in cad_bends_result.bends],
+                    "total_bends_detected": cad_bends_result.total_bends,
+                    "detection_method": "cad_mesh_extraction",
+                    "processing_time_ms": cad_bends_result.processing_time_ms,
+                    "scan_measured_count": 0,
+                    "warnings": cad_bends_result.warnings + ["Scan measurement failed"],
+                }
+
+        # Fallback: point cloud bend detection
+        if self.bend_detector is not None:
+            try:
+                self._update_progress("bend_detect", 88, "Detecting bends in point cloud (fallback)...")
+                result = self.bend_detector.detect_bends(points, deviations)
+                logger.info(f"Point cloud fallback: {result.total_bends_detected} bends")
+                result_dict = result.to_dict()
+                result_dict["detection_method"] = "point_cloud_curvature"
+                return result_dict
+            except Exception as e:
+                logger.error(f"Point cloud bend detection failed: {e}")
+
+        return None
 
     def _detect_bends_by_surface_clustering(
         self,
@@ -350,8 +452,8 @@ class ScanQCEngine:
         try:
             # Sample points for speed
             if len(points) > 25000:
-                idx = np.random.choice(len(points), 25000, replace=False)
-                sample_points = points[idx]
+                stride = max(1, len(points) // 25000)
+                sample_points = points[::stride][:25000]
             else:
                 sample_points = points
 
@@ -391,8 +493,27 @@ class ScanQCEngine:
                 for j in range(i + 1, len(cluster_info)):
                     n1, n2 = cluster_info[i]['normal'], cluster_info[j]['normal']
                     dot = np.clip(np.dot(n1, n2), -1, 1)
-                    angle_between_normals = np.degrees(np.arccos(abs(dot)))
+
+                    # For sheet metal with outward-pointing normals:
+                    # - Parallel surfaces (flat): dot ≈ 1 → angle ≈ 0° → not a bend
+                    # - 90° bend: dot ≈ 0 → angle = 90°
+                    # - Normals pointing opposite (180° apart): dot ≈ -1 → angle = 180°
+                    #
+                    # The bend angle is how much the sheet is bent from flat (180°).
+                    # If surfaces are nearly parallel (dot close to 1 or -1), it's not a bend.
+                    # Using abs(dot) incorrectly treats opposite-pointing normals as parallel.
+                    angle_between_normals = np.degrees(np.arccos(dot))
+
+                    # Bend angle: supplement of the angle between normals
+                    # For outward normals: bend_angle = 180° - angle_between_normals
+                    # But we need to handle cases where normals might be inconsistently oriented.
+                    # If angle > 90°, the bend angle is 180° - angle (convex bend)
+                    # If angle < 90°, the bend angle is 180° - angle (concave bend)
                     bend_angle = 180 - angle_between_normals
+
+                    # Skip near-parallel surfaces (flat regions) - not actual bends
+                    if abs(dot) > 0.95:  # Within ~18° of parallel
+                        continue
 
                     if min_bend_angle < bend_angle < max_bend_angle:
                         # Midpoint between surface centers as bend apex
@@ -469,32 +590,49 @@ class ScanQCEngine:
             logger.info(f"Parsed {len(xlsx_result.dimensions)} dimensions, "
                        f"{len(xlsx_result.bend_angles)} bend angles")
 
-            # Step 2: Detect bends in scan (CAD detection often fails due to sparse points)
+            # Step 2: Detect bends - use CAD mesh extraction (primary) or point cloud (fallback)
             self._update_progress("dimension_analysis", 87, "Detecting bends...")
             cad_bends = []
             bends_from_scan = False
 
-            if self.aligned_scan is not None:
+            # Primary: Extract bends from CAD reference mesh
+            if self.reference_mesh is not None and ENHANCED_ANALYSIS_AVAILABLE:
+                try:
+                    extractor = CADBendExtractor()
+                    cad_extraction = extractor.extract_from_mesh(self.reference_mesh)
+                    if cad_extraction.total_bends > 0:
+                        cad_bends = [
+                            {
+                                'bend_id': b.bend_id,
+                                'angle_degrees': b.bend_angle,
+                                'radius_mm': 5.0,  # Default radius estimate
+                                'bend_apex': list(b.bend_center),
+                                'detection_confidence': b.confidence,
+                            }
+                            for b in cad_extraction.bends
+                        ]
+                        logger.info(f"CAD mesh: extracted {len(cad_bends)} bends")
+                except Exception as e:
+                    logger.warning(f"CAD mesh bend extraction failed: {e}")
+
+            # Fallback: point cloud detection
+            if not cad_bends and self.aligned_scan is not None:
                 aligned_points = np.asarray(self.aligned_scan.points)
 
-                # Try primary bend detector first
                 if ENHANCED_ANALYSIS_AVAILABLE:
                     detector = BendDetector(
                         normal_radius=10.0,
                         curvature_radius=5.0,
                         min_surface_points=200,
                     )
-                    # Subsample for speed
                     if len(aligned_points) > 100000:
-                        idx = np.random.choice(len(aligned_points), 100000, replace=False)
-                        sample_points = aligned_points[idx]
+                        stride = max(1, len(aligned_points) // 100000)
+                        sample_points = aligned_points[::stride][:100000]
                     else:
                         sample_points = aligned_points
 
                     bend_result = detector.detect_bends(sample_points)
                     cad_bends = bend_result.bends if bend_result else []
-
-                    # Convert to dict format for matcher
                     cad_bends = [
                         {
                             'bend_id': b.bend_id,
@@ -506,15 +644,13 @@ class ScanQCEngine:
                         for b in cad_bends
                     ]
 
-                # If primary detector found no bends, use fallback surface-normal clustering
-                # Mark bends as detected from scan (so we use detected angle directly, not re-measure)
-                bends_from_scan = False
                 if not cad_bends:
-                    logger.info("Primary bend detector found no bends, trying surface-normal clustering...")
-                    cad_bends = self._detect_bends_by_surface_clustering(aligned_points)
-                    bends_from_scan = True  # These are scan measurements, not CAD
+                    logger.info("Primary detectors found no bends, trying surface-normal clustering...")
+                    if self.aligned_scan is not None:
+                        cad_bends = self._detect_bends_by_surface_clustering(aligned_points)
+                        bends_from_scan = True
 
-                logger.info(f"Detected {len(cad_bends)} bends in scan")
+            logger.info(f"Total bends detected: {len(cad_bends)}")
 
             # Step 3: Match XLSX to detected bends
             self._update_progress("dimension_analysis", 90, "Matching dimensions to features...")
@@ -560,6 +696,286 @@ class ScanQCEngine:
             return None
         except Exception as e:
             logger.error(f"Dimension analysis failed: {e}")
+            import traceback
+            traceback.print_exc()
+            return None
+
+    def run_cad_dimension_analysis(
+        self,
+        part_id: str = "",
+        part_name: str = "",
+    ) -> Optional[Dict]:
+        """
+        Run dimension analysis extracting dimensions from CAD when XLSX is not available.
+
+        This is a fallback for when no XLSX specification file is provided.
+        It extracts linear dimensions directly from the CAD mesh geometry:
+        1. Bounding box dimensions (overall length, width, height)
+        2. Distances between parallel planar surfaces (step heights, etc.)
+
+        Args:
+            part_id: Part identifier
+            part_name: Part name
+
+        Returns:
+            Dimension analysis report as dict, or None on failure
+        """
+        if not ENHANCED_ANALYSIS_AVAILABLE:
+            logger.warning("CAD dimension extraction modules not available")
+            return None
+
+        if self.reference_mesh is None:
+            logger.warning("No CAD reference mesh available for dimension extraction")
+            return None
+
+        try:
+            self._update_progress("dimension_analysis", 85, "Extracting dimensions from CAD...")
+
+            # Extract dimensions from CAD mesh with comprehensive settings
+            extractor = CADDimensionExtractor(
+                min_surface_area_pct=0.5,  # Lower threshold for more surfaces
+                num_slices=8,  # Cross-section slices per axis
+                edge_angle_threshold=25.0,  # Detect feature edges
+                min_dimension=2.0,  # Minimum dimension to report
+                max_dimensions=80,  # Maximum dimensions to extract
+            )
+            cad_result = extractor.extract_from_mesh(self.reference_mesh)
+
+            logger.info(f"CAD dimension extraction: {cad_result.total_dimensions} dimensions "
+                       f"({cad_result.processing_time_ms:.0f}ms)")
+            if cad_result.extraction_summary:
+                logger.info(f"  Breakdown: {cad_result.extraction_summary}")
+
+            if cad_result.total_dimensions == 0:
+                logger.warning("No dimensions extracted from CAD mesh")
+                return {
+                    "source": "cad_extraction",
+                    "status": "no_dimensions",
+                    "message": "No linear dimensions could be extracted from CAD geometry",
+                    "bounding_box": cad_result.bounding_box,
+                }
+
+            # Measure corresponding dimensions in scan if available
+            scan_measurements = []
+            if self.aligned_scan is not None:
+                self._update_progress("dimension_analysis", 90, "Measuring dimensions in scan...")
+                aligned_points = np.asarray(self.aligned_scan.points)
+
+                # Use batch measurement for efficiency
+                scan_measurements = measure_scan_dimensions_batch(
+                    aligned_points, cad_result.dimensions, search_radius=8.0
+                )
+
+                logger.info(f"Measured {len(scan_measurements)}/{cad_result.total_dimensions} "
+                           "dimensions in scan")
+
+            # Build report in format expected by frontend
+            pass_count = sum(1 for m in scan_measurements if m["status"] == "PASS")
+            fail_count = sum(1 for m in scan_measurements if m["status"] == "FAIL")
+
+            # Convert measurements to DimensionComparison format expected by frontend
+            dimension_comparisons = []
+            for m in scan_measurements:
+                dimension_comparisons.append({
+                    "id": m["dim_id"],
+                    "name": m["description"],
+                    "type": m["type"],
+                    "nominal": m["cad_value"],
+                    "actual": m["scan_value"],
+                    "deviation": m["deviation"],
+                    "tolerance_plus": m["tolerance"],
+                    "tolerance_minus": -m["tolerance"],
+                    "status": m["status"],
+                    "unit": "mm",
+                    "measurement_axis": m.get("measurement_axis", ""),
+                    "confidence": m.get("confidence", 1.0),
+                })
+
+            # Get failed dimensions
+            failed_dimensions = [d for d in dimension_comparisons if d["status"] == "FAIL"]
+
+            # Get worst deviations (sorted by absolute deviation)
+            worst_deviations = sorted(
+                dimension_comparisons,
+                key=lambda d: abs(d["deviation"]) if d["deviation"] else 0,
+                reverse=True
+            )[:10]
+
+            from datetime import datetime
+
+            report = {
+                "source": "cad_extraction",
+                "metadata": {
+                    "part_id": part_id,
+                    "part_name": part_name,
+                    "timestamp": datetime.now().isoformat(),
+                },
+                "summary": {
+                    "total_dimensions": cad_result.total_dimensions,
+                    "measured": len(scan_measurements),
+                    "passed": pass_count,
+                    "failed": fail_count,
+                    "warnings": len(cad_result.warnings),
+                },
+                "bend_summary": {
+                    "total_bends": 0,
+                    "matched": 0,
+                    "passed": 0,
+                    "failed": 0,
+                    "warnings": 0,
+                },
+                "dimensions": dimension_comparisons,
+                "bend_analysis": None,
+                "failed_dimensions": failed_dimensions,
+                "worst_deviations": worst_deviations,
+                "bounding_box": cad_result.bounding_box,
+                "extraction_summary": cad_result.extraction_summary,
+                "cad_dimensions": [d.to_dict() for d in cad_result.dimensions],
+                "processing_time_ms": cad_result.processing_time_ms,
+            }
+
+            self._update_progress("dimension_analysis", 95, "Dimension analysis complete")
+
+            return report
+
+        except Exception as e:
+            logger.error(f"CAD dimension analysis failed: {e}")
+            import traceback
+            traceback.print_exc()
+            return None
+
+    def run_feature_dimension_analysis(
+        self,
+        xlsx_path: str,
+        part_id: str = "",
+        part_name: str = "",
+    ) -> Optional[Dict]:
+        """
+        Complete feature-based dimension analysis with three-way comparison.
+
+        This implements the feature detection -> matching -> measurement pipeline:
+        1. Parse XLSX -> DimensionSpec list
+        2. Extract CAD features -> FeatureRegistry
+        3. Match XLSX to CAD features -> FeatureMatch list
+        4. Measure each feature in scan
+        5. Compute deviations and status
+        6. Generate ThreeWayReport
+
+        This method enables accurate comparison of:
+        - XLSX specification (engineering spec)
+        - CAD design (nominal geometry)
+        - Scan actual (measured part)
+
+        Args:
+            xlsx_path: Path to XLSX dimension specification file
+            part_id: Part identifier
+            part_name: Part name
+
+        Returns:
+            ThreeWayReport as dict, or None on failure
+        """
+        try:
+            from dimension_parser import parse_dimension_file
+            from feature_detection import (
+                CADFeatureExtractor,
+                FeatureMatcher,
+                ScanFeatureMeasurer,
+                ThreeWayReport,
+            )
+            import time
+
+            start_time = time.time()
+
+            self._update_progress("feature_analysis", 85, "Parsing dimension specifications...")
+
+            # Step 1: Parse XLSX
+            xlsx_result = parse_dimension_file(xlsx_path)
+            if not xlsx_result.success:
+                logger.error(f"Failed to parse XLSX: {xlsx_result.error}")
+                return None
+
+            logger.info(f"Parsed {len(xlsx_result.dimensions)} dimensions from XLSX")
+
+            # Step 2: Extract CAD features
+            self._update_progress("feature_analysis", 87, "Extracting features from CAD mesh...")
+
+            if self.reference_mesh is None:
+                logger.error("No CAD reference mesh available")
+                return None
+
+            extractor = CADFeatureExtractor()
+            cad_features = extractor.extract(self.reference_mesh)
+
+            logger.info(
+                f"Extracted CAD features: {len(cad_features.holes)} holes, "
+                f"{len(cad_features.linear_dims)} linear, "
+                f"{len(cad_features.angles)} angles"
+            )
+
+            # Step 3: Match XLSX to CAD features
+            self._update_progress("feature_analysis", 90, "Matching dimensions to CAD features...")
+
+            matcher = FeatureMatcher()
+            matches, unmatched_xlsx, unmatched_cad = matcher.match(
+                xlsx_result.dimensions,
+                cad_features
+            )
+
+            logger.info(
+                f"Feature matching: {len(matches)} matched, "
+                f"{len(unmatched_xlsx)} unmatched XLSX, "
+                f"{len(unmatched_cad)} unmatched CAD"
+            )
+
+            # Step 4: Measure in scan
+            self._update_progress("feature_analysis", 93, "Measuring features in scan...")
+
+            if self.aligned_scan is not None:
+                scan_points = np.asarray(self.aligned_scan.points)
+
+                measurer = ScanFeatureMeasurer()
+                matches = measurer.measure_all(
+                    scan_points,
+                    matches,
+                    deviations=self.deviations
+                )
+
+                measured_count = sum(1 for m in matches if m.scan_value is not None)
+                logger.info(f"Measured {measured_count}/{len(matches)} features in scan")
+            else:
+                logger.warning("No aligned scan available for measurement")
+
+            # Step 5: Compute status (already done in measure_all via compute_status)
+            # Step 6: Generate report
+            self._update_progress("feature_analysis", 95, "Generating three-way comparison report...")
+
+            processing_time = (time.time() - start_time) * 1000
+
+            report = ThreeWayReport(
+                part_id=part_id or part_name,
+                matches=matches,
+                unmatched_xlsx=unmatched_xlsx,
+                unmatched_cad=unmatched_cad,
+                processing_time_ms=processing_time,
+            )
+            report.compute_summary()
+
+            logger.info(
+                f"Feature dimension analysis complete: "
+                f"{report.pass_count}/{report.measured_count} passed "
+                f"({processing_time:.0f}ms)"
+            )
+
+            # Log table for debugging
+            logger.info("\n" + report.to_table_string())
+
+            return report.to_dict()
+
+        except ImportError as e:
+            logger.warning(f"Feature detection modules not available: {e}")
+            return None
+        except Exception as e:
+            logger.error(f"Feature dimension analysis failed: {e}")
             import traceback
             traceback.print_exc()
             return None
@@ -611,13 +1027,7 @@ class ScanQCEngine:
                 bend_result_obj = self.bend_detector.detect_bends(points, deviations)
                 bend_result = bend_result_obj
 
-            # Step 2: Prepare regional analysis for context
-            regional_data = {}
-            if hasattr(self, 'region_config'):
-                # Already computed in analyze_regions
-                pass
-
-            # Step 3: Run multi-model orchestrator
+            # Step 2: Run multi-model orchestrator
             self._update_progress("enhanced", 90, "Running multi-model AI analysis...")
             orchestrator = MultiModelOrchestrator()
 
@@ -628,7 +1038,7 @@ class ScanQCEngine:
                 bend_detection_result=bend_result,
                 drawing_path=drawing_path,
                 part_info=part_info,
-                regional_analysis=regional_data,
+                regional_analysis={},
                 tolerance=tolerance,
             )
 
@@ -778,202 +1188,488 @@ class ScanQCEngine:
 
         return eigenvectors.T  # Rotation matrix (3x3)
 
-    def _try_alignment_with_rotation(self, scan_pcd, ref_pcd, rotation_matrix, scale_factors):
-        """Try ICP alignment with a given initial rotation and return fitness score."""
-        import copy
+    def align(self, auto_scale: bool = True, tolerance: float = 1.0) -> tuple:
+        """ISO 5459-compliant scan-to-CAD alignment pipeline.
 
-        scan_test = copy.deepcopy(scan_pcd)
-
-        # Apply rotation
-        points = np.asarray(scan_test.points)
-        rotated = points @ rotation_matrix.T
-        scan_test.points = self.o3d.utility.Vector3dVector(rotated)
-        scan_test.estimate_normals()
-
-        # Run quick ICP
-        reg = self.o3d.pipelines.registration.registration_icp(
-            scan_test, ref_pcd, 20.0, np.eye(4),
-            self.o3d.pipelines.registration.TransformationEstimationPointToPoint(),
-            self.o3d.pipelines.registration.ICPConvergenceCriteria(max_iteration=30)
-        )
-
-        return reg.fitness, reg.transformation, rotation_matrix
-
-    def align(self, auto_scale: bool = True) -> tuple:
-        """Align scan to reference using PCA pre-alignment, auto-scaling, and ICP.
-
-        This method uses a professional-grade alignment pipeline:
-        1. PCA-based pre-alignment to handle arbitrary initial orientations
-        2. Auto-scaling to handle different unit systems or scale differences
-        3. Multi-hypothesis rotation search to find best initial orientation
-        4. Coarse-to-fine ICP for precise final alignment
-
-        Args:
-            auto_scale: Automatically scale scan to match reference size (default True)
+        Pipeline:
+        1. PCA pre-alignment (resolve arbitrary orientation)
+        2. Auto-scaling (detect unit mismatch only)
+        3. Flip hypothesis search (resolve PCA 180° ambiguity)
+        4. Fine ICP (point-to-plane with Tukey robust kernel)
+        5. RANSAC datum alignment (ISO 5459 3-2-1)
+        6. Apply final transformation
         """
         import copy
 
+        ref_pcd = self._prepare_reference()
+        scan_working, ref_centered, scan_center, ref_center = self._center_clouds(ref_pcd)
+        pca_rotation = self._pca_pre_align(scan_working, ref_centered)
+        self._auto_scale(scan_working, ref_centered, auto_scale)
+        best_flip, best_icp_init = self._search_flip_hypotheses(scan_working, ref_centered)
+        self._apply_flip(scan_working, best_flip)
+        reg_fine = self._fine_icp(scan_working, ref_centered, best_icp_init)
+        final_transform, final_fitness, final_rmse = self._ransac_datum_alignment(
+            scan_working, ref_centered, reg_fine, tolerance)
+        self._apply_final_transform(
+            scan_center, ref_center, pca_rotation, best_flip, final_transform, auto_scale)
+
+        self._update_progress("align", 70, f"Alignment complete. Fitness: {final_fitness:.2%}")
+        logger.info(f"Final alignment: fitness={final_fitness:.2%}, RMSE={final_rmse:.3f}mm")
+
+        return final_fitness, final_rmse
+
+    # --- Alignment sub-methods ---
+
+    def _prepare_reference(self):
+        """Sample reference mesh uniformly and estimate normals."""
         self._update_progress("align", 50, "Converting reference to point cloud...")
-        ref_pcd = self.reference_mesh.sample_points_uniformly(
-            number_of_points=max(100000, len(self.scan_pcd.points))
-        )
+        n_points = max(100_000, len(self.scan_pcd.points))
+        ref_pcd = self.reference_mesh.sample_points_uniformly(number_of_points=n_points)
         ref_pcd.estimate_normals()
+        return ref_pcd
 
-        # Store scale factor for reporting
-        self.scale_factor = 1.0
-        self.scale_factors = np.array([1.0, 1.0, 1.0])
-
-        # Center both point clouds at origin
+    def _center_clouds(self, ref_pcd):
+        """Center both clouds at origin. Returns working copies and original centers."""
+        import copy
         self._update_progress("align", 52, "Centering point clouds...")
-        scan_center = self.scan_pcd.get_center()
-        ref_center = ref_pcd.get_center()
+        scan_center = np.asarray(self.scan_pcd.get_center())
+        ref_center = np.asarray(ref_pcd.get_center())
 
         scan_working = copy.deepcopy(self.scan_pcd)
         scan_working.translate(-scan_center)
         ref_centered = copy.deepcopy(ref_pcd)
         ref_centered.translate(-ref_center)
 
-        # === PCA-BASED PRE-ALIGNMENT ===
-        self._update_progress("align", 54, "Computing PCA alignment...")
+        return scan_working, ref_centered, scan_center, ref_center
 
+    def _pca_pre_align(self, scan_working, ref_centered):
+        """Apply PCA rotation to align scan principal axes with reference. Returns rotation matrix."""
+        self._update_progress("align", 54, "Computing PCA alignment...")
         scan_points = np.asarray(scan_working.points)
         ref_points = np.asarray(ref_centered.points)
 
-        # Get PCA rotation matrices
         scan_pca = self._compute_pca_rotation(scan_points)
         ref_pca = self._compute_pca_rotation(ref_points)
 
-        # Rotation to align scan's principal axes with reference's principal axes
-        # R_align = R_ref @ R_scan.T (from scan PCA space to reference PCA space)
+        # R_align maps scan PCA space → reference PCA space
         pca_rotation = ref_pca.T @ scan_pca
 
-        # Apply PCA rotation to scan
-        scan_rotated = scan_points @ pca_rotation.T
-        scan_working.points = self.o3d.utility.Vector3dVector(scan_rotated)
+        # Apply in-place via numpy (no deep copy)
+        rotated = scan_points @ pca_rotation.T
+        scan_working.points = self.o3d.utility.Vector3dVector(rotated)
 
-        # Auto-scale AFTER PCA rotation (now axes are aligned, so per-axis scaling makes sense)
-        if auto_scale:
-            self._update_progress("align", 56, "Computing scale factors...")
-            scan_bbox = scan_working.get_axis_aligned_bounding_box()
-            ref_bbox = ref_centered.get_axis_aligned_bounding_box()
-            scan_size = np.asarray(scan_bbox.max_bound) - np.asarray(scan_bbox.min_bound)
-            ref_size = np.asarray(ref_bbox.max_bound) - np.asarray(ref_bbox.min_bound)
+        return pca_rotation
 
-            # Uniform scale to preserve shape (use geometric mean)
-            # Per-axis can distort the shape, uniform is safer
-            scale_ratio = ref_size / np.maximum(scan_size, 1e-6)
-            self.scale_factor = float(np.cbrt(np.prod(scale_ratio)))  # Geometric mean
-            self.scale_factors = np.array([self.scale_factor, self.scale_factor, self.scale_factor])
+    def _auto_scale(self, scan_working, ref_centered, auto_scale):
+        """Detect and apply uniform scaling for unit mismatch (e.g. mm vs inches).
 
-            logger.info(f"Auto-scaling scan by uniform factor {self.scale_factor:.4f}")
+        Only scales if per-axis ratios are consistent (CV < 0.03) AND significantly
+        different from 1.0 (> 5%). Non-uniform ratios indicate genuine manufacturing
+        deviations and are NOT scaled.
+        """
+        self.scale_factor = 1.0
 
-            # Apply uniform scaling
-            points = np.asarray(scan_working.points)
-            points_scaled = points * self.scale_factor
-            scan_working.points = self.o3d.utility.Vector3dVector(points_scaled)
+        if not auto_scale:
+            return
 
-        # === TRY MULTIPLE ROTATIONS ===
-        # PCA can have 180-degree ambiguity, so try flipping axes
+        self._update_progress("align", 56, "Computing scale factors...")
+        scan_bbox = scan_working.get_axis_aligned_bounding_box()
+        ref_bbox = ref_centered.get_axis_aligned_bounding_box()
+        scan_size = np.asarray(scan_bbox.max_bound) - np.asarray(scan_bbox.min_bound)
+        ref_size = np.asarray(ref_bbox.max_bound) - np.asarray(ref_bbox.min_bound)
+
+        scale_ratio = ref_size / np.maximum(scan_size, 1e-6)
+        geo_mean = float(np.cbrt(np.prod(scale_ratio)))
+
+        scale_cv = np.std(scale_ratio) / np.mean(scale_ratio) if np.mean(scale_ratio) > 0 else 0
+        scale_deviation_from_1 = abs(geo_mean - 1.0)
+
+        if scale_cv < 0.03 and scale_deviation_from_1 > 0.05:
+            self.scale_factor = geo_mean
+            logger.info(f"Auto-scaling: uniform factor {geo_mean:.4f} (consistent across axes, CV={scale_cv:.3f})")
+            pts = np.asarray(scan_working.points)
+            scan_working.points = self.o3d.utility.Vector3dVector(pts * self.scale_factor)
+        else:
+            logger.info(f"Auto-scaling: SKIPPED — per-axis ratios are non-uniform "
+                       f"(X={scale_ratio[0]:.4f}, Y={scale_ratio[1]:.4f}, Z={scale_ratio[2]:.4f}, "
+                       f"CV={scale_cv:.3f}, geo_mean={geo_mean:.4f}). "
+                       f"Size differences are genuine manufacturing deviations.")
+
+    def _search_flip_hypotheses(self, scan_working, ref_centered):
+        """Test 8 PCA flip variants to resolve 180° ambiguity. Returns (best_flip, best_icp_transform).
+
+        Uses numpy array operations instead of deep copies for memory efficiency.
+        """
         self._update_progress("align", 58, "Testing rotation hypotheses...")
 
-        # Generate rotation variants (flips around each axis)
         flip_matrices = [
-            np.eye(3),  # No flip
-            np.diag([-1, -1, 1]),   # Flip X and Y
-            np.diag([-1, 1, -1]),   # Flip X and Z
-            np.diag([1, -1, -1]),   # Flip Y and Z
-            np.diag([-1, 1, 1]),    # Flip X only
-            np.diag([1, -1, 1]),    # Flip Y only
-            np.diag([1, 1, -1]),    # Flip Z only
-            np.diag([-1, -1, -1]),  # Flip all
+            np.eye(3),
+            np.diag([-1, -1, 1]),  np.diag([-1, 1, -1]), np.diag([1, -1, -1]),
+            np.diag([-1, 1, 1]),   np.diag([1, -1, 1]),   np.diag([1, 1, -1]),
+            np.diag([-1, -1, -1]),
         ]
 
+        base_points = np.asarray(scan_working.points).copy()
         best_fitness = 0
-        best_icp_transform = np.eye(4)
-        best_pre_rotation = np.eye(3)
-
-        scan_base = copy.deepcopy(scan_working)
+        best_transform = np.eye(4)
+        best_flip = np.eye(3)
 
         for flip in flip_matrices:
-            combined_rotation = flip @ np.eye(3)  # Apply flip after PCA alignment
-            fitness, icp_transform, _ = self._try_alignment_with_rotation(
-                scan_base, ref_centered, combined_rotation, self.scale_factors
+            rotated_pts = base_points @ flip.T
+            test_pcd = self.o3d.geometry.PointCloud()
+            test_pcd.points = self.o3d.utility.Vector3dVector(rotated_pts)
+            test_pcd.estimate_normals()
+
+            reg = self.o3d.pipelines.registration.registration_icp(
+                test_pcd, ref_centered, 20.0, np.eye(4),
+                self.o3d.pipelines.registration.TransformationEstimationPointToPoint(),
+                self.o3d.pipelines.registration.ICPConvergenceCriteria(max_iteration=30)
             )
-            if fitness > best_fitness:
-                best_fitness = fitness
-                best_icp_transform = icp_transform
-                best_pre_rotation = combined_rotation
+
+            if reg.fitness > best_fitness:
+                best_fitness = reg.fitness
+                best_transform = reg.transformation
+                best_flip = flip
 
         logger.info(f"Best pre-alignment fitness: {best_fitness:.2%}")
+        return best_flip, best_transform
 
-        # Apply best pre-rotation
-        points = np.asarray(scan_working.points)
-        rotated = points @ best_pre_rotation.T
-        scan_working.points = self.o3d.utility.Vector3dVector(rotated)
+    def _apply_flip(self, scan_working, flip):
+        """Apply flip rotation to scan_working in-place and estimate normals."""
+        pts = np.asarray(scan_working.points)
+        scan_working.points = self.o3d.utility.Vector3dVector(pts @ flip.T)
         scan_working.estimate_normals()
 
-        # === FINE ICP ===
-        self._update_progress("align", 65, "Running fine alignment (ICP)...")
-        reg_fine = self.o3d.pipelines.registration.registration_icp(
-            scan_working, ref_centered, 5.0, best_icp_transform,
-            self.o3d.pipelines.registration.TransformationEstimationPointToPlane(),
+    def _fine_icp(self, scan_working, ref_centered, initial_transform):
+        """Point-to-plane ICP with Tukey robust kernel for outlier rejection.
+
+        The Tukey biweight function completely rejects outliers beyond 3*k,
+        matching the approach used by GOM ATOS and PolyWorks internally.
+        """
+        self._update_progress("align", 62, "Running fine alignment (ICP)...")
+
+        loss = self.o3d.pipelines.registration.TukeyLoss(k=2.0)
+        estimation = self.o3d.pipelines.registration.TransformationEstimationPointToPlane(loss)
+        criteria = self.o3d.pipelines.registration.ICPConvergenceCriteria(
+            relative_fitness=1e-7,
+            relative_rmse=1e-7,
+            max_iteration=100
+        )
+
+        reg = self.o3d.pipelines.registration.registration_icp(
+            scan_working, ref_centered, 5.0, initial_transform, estimation, criteria
+        )
+
+        logger.info(f"Initial fine ICP: fitness={reg.fitness:.2%}, RMSE={reg.inlier_rmse:.3f}mm")
+        return reg
+
+    def _ransac_datum_alignment(self, scan_working, ref_centered, reg_fine, tolerance: float = 1.0):
+        """RANSAC-based datum alignment per ISO 5459.
+
+        1. Sequential RANSAC extracts planes from reference
+        2. Rank by spatial extent (bounding box area), not point count
+        3. Select primary datum (largest area) + secondary (largest non-parallel)
+        4. Run datum-constrained ICP with Tukey robust kernel
+        5. Evaluate vs. global ICP on primary datum surface
+        """
+        self._update_progress("align", 64, "Refining alignment (RANSAC datum)...")
+
+        best_transform = reg_fine.transformation.copy()
+        best_fitness = reg_fine.fitness
+        best_rmse = reg_fine.inlier_rmse
+
+        try:
+            from scipy.spatial import cKDTree
+
+            ref_planes = self._extract_planes_ransac(ref_centered)
+            if not ref_planes:
+                return best_transform, best_fitness, best_rmse
+
+            primary, secondary = self._select_datums(ref_planes)
+            datum_ref_pts = self._build_datum_point_set(primary, secondary)
+            datum_scan_pts = self._find_datum_scan_points(
+                scan_working, datum_ref_pts, best_transform)
+
+            datum_transform, datum_fitness, datum_rmse = self._datum_icp(
+                datum_scan_pts, datum_ref_pts, best_transform)
+
+            use_datum = self._evaluate_datum_vs_global(
+                scan_working, primary, best_transform, datum_transform, tolerance)
+
+            if use_datum:
+                return datum_transform, datum_fitness, datum_rmse
+
+        except Exception as e:
+            logger.warning(f"RANSAC datum alignment failed: {e}, using initial ICP")
+            import traceback
+            logger.debug(traceback.format_exc())
+
+        return best_transform, best_fitness, best_rmse
+
+    def _extract_planes_ransac(self, ref_pcd, max_planes=6, distance_threshold=0.15):
+        """Sequential RANSAC plane extraction from reference point cloud.
+
+        distance_threshold: 0.15mm (2-3x typical structured-light scanner noise of 0.05mm)
+        min_inliers: max(500, 2% of total points) to reject spurious micro-planes
+        """
+        import copy
+
+        total_points = len(np.asarray(ref_pcd.points))
+        min_inliers = max(500, int(0.02 * total_points))
+
+        remaining = copy.deepcopy(ref_pcd)
+        planes = []
+
+        for i in range(max_planes):
+            pts = np.asarray(remaining.points)
+            if len(pts) < min_inliers:
+                break
+
+            model, inliers = remaining.segment_plane(
+                distance_threshold=distance_threshold,
+                ransac_n=3,
+                num_iterations=2000  # p=0.999, w=0.3 → N=254, with margin
+            )
+
+            if len(inliers) < min_inliers:
+                break
+
+            normal = np.array(model[:3])
+            normal = normal / np.linalg.norm(normal)
+            inlier_pts = pts[inliers]
+            bbox_area = self._compute_plane_extent(inlier_pts)
+
+            planes.append({
+                'normal': normal,
+                'd': model[3],
+                'inlier_pts': inlier_pts,
+                'n_points': len(inliers),
+                'bbox_area': bbox_area,
+                'centroid': inlier_pts.mean(axis=0),
+            })
+
+            logger.info(f"  RANSAC plane {i}: normal=[{normal[0]:.4f}, {normal[1]:.4f}, "
+                       f"{normal[2]:.4f}], pts={len(inliers)}, area={bbox_area:.0f}mm²")
+
+            # Remove inliers for next iteration
+            mask = np.ones(len(pts), dtype=bool)
+            mask[inliers] = False
+            remaining = remaining.select_by_index(np.where(mask)[0])
+
+        return planes
+
+    def _compute_plane_extent(self, points):
+        """Compute bounding box area of points projected onto their best-fit plane.
+
+        Uses PCA to find the two directions of maximum spread.
+        Eigenvalues and eigenvectors are sorted together (fixes B1 desync bug).
+        """
+        centroid = points.mean(axis=0)
+        centered = points - centroid
+
+        cov = np.cov(centered.T)
+        eigvals, eigvecs = np.linalg.eigh(cov)
+
+        # Sort BOTH eigenvalues and eigenvectors together (largest first)
+        sort_idx = np.argsort(eigvals)[::-1]
+        eigvecs = eigvecs[:, sort_idx]
+
+        # The two largest eigenvectors span the plane
+        proj_1 = centered @ eigvecs[:, 0]
+        proj_2 = centered @ eigvecs[:, 1]
+
+        return float(proj_1.ptp() * proj_2.ptp())
+
+    def _select_datums(self, planes):
+        """Select primary and secondary datums per ISO 5459.
+
+        Primary: largest spatial extent (bounding box area).
+        Secondary: largest non-parallel plane (>30° from primary normal).
+        """
+        planes.sort(key=lambda p: p['bbox_area'], reverse=True)
+        primary = planes[0]
+        logger.info(f"  Primary datum: area={primary['bbox_area']:.0f}mm², "
+                   f"normal=[{primary['normal'][0]:.4f}, {primary['normal'][1]:.4f}, "
+                   f"{primary['normal'][2]:.4f}]")
+
+        secondary = None
+        for p in planes[1:]:
+            cos_angle = abs(np.dot(p['normal'], primary['normal']))
+            angle_deg = np.degrees(np.arccos(np.clip(cos_angle, 0, 1)))
+            if angle_deg > 30:
+                secondary = p
+                logger.info(f"  Secondary datum: area={p['bbox_area']:.0f}mm², "
+                           f"angle_from_primary={angle_deg:.1f}°")
+                break
+
+        return primary, secondary
+
+    def _build_datum_point_set(self, primary, secondary):
+        """Build combined datum reference point set from primary (+ optional secondary)."""
+        datum_pts = primary['inlier_pts'].copy()
+        if secondary is not None:
+            datum_pts = np.vstack([datum_pts, secondary['inlier_pts']])
+        return datum_pts
+
+    def _find_datum_scan_points(self, scan_working, datum_ref_pts, transform):
+        """Find scan points near datum surfaces (within 5mm after alignment)."""
+        from scipy.spatial import cKDTree
+
+        # Apply transform via numpy (no deep copy needed)
+        scan_pts = np.asarray(scan_working.points)
+        R, t = transform[:3, :3], transform[:3, 3]
+        scan_pts_aligned = scan_pts @ R.T + t
+
+        datum_tree = cKDTree(datum_ref_pts)
+        dists, _ = datum_tree.query(scan_pts_aligned, k=1)
+
+        datum_mask = dists < 5.0
+        datum_count = int(np.sum(datum_mask))
+        logger.info(f"  Scan points near datum surfaces: {datum_count} "
+                   f"({100*datum_count/len(scan_pts):.1f}%)")
+
+        if datum_count < 500:
+            raise ValueError(f"Too few scan points ({datum_count}) near datum surfaces")
+
+        return scan_pts[datum_mask]
+
+    def _datum_icp(self, datum_scan_pts, datum_ref_pts, initial_transform):
+        """Run point-to-plane ICP on datum points with Tukey robust kernel."""
+        datum_ref_pcd = self.o3d.geometry.PointCloud()
+        datum_ref_pcd.points = self.o3d.utility.Vector3dVector(datum_ref_pts)
+        datum_ref_pcd.estimate_normals()
+
+        datum_scan_pcd = self.o3d.geometry.PointCloud()
+        datum_scan_pcd.points = self.o3d.utility.Vector3dVector(datum_scan_pts)
+        datum_scan_pcd.estimate_normals()
+
+        loss = self.o3d.pipelines.registration.TukeyLoss(k=2.0)
+        estimation = self.o3d.pipelines.registration.TransformationEstimationPointToPlane(loss)
+
+        # Coarse pass
+        reg = self.o3d.pipelines.registration.registration_icp(
+            datum_scan_pcd, datum_ref_pcd, 5.0, initial_transform,
+            estimation,
             self.o3d.pipelines.registration.ICPConvergenceCriteria(max_iteration=100)
         )
 
-        # === APPLY FULL TRANSFORMATION TO ORIGINAL SCAN ===
+        logger.info(f"  Datum ICP: fitness={reg.fitness:.2%}, RMSE={reg.inlier_rmse:.3f}mm")
+
+        # Tight refinement
+        reg_tight = self.o3d.pipelines.registration.registration_icp(
+            datum_scan_pcd, datum_ref_pcd, 2.0, reg.transformation,
+            estimation,
+            self.o3d.pipelines.registration.ICPConvergenceCriteria(max_iteration=50)
+        )
+
+        if reg_tight.fitness > 0.3:
+            logger.info(f"  → Tight pass: fitness={reg_tight.fitness:.2%}, RMSE={reg_tight.inlier_rmse:.3f}mm")
+            return reg_tight.transformation, reg_tight.fitness, reg_tight.inlier_rmse
+
+        return reg.transformation, reg.fitness, reg.inlier_rmse
+
+    def _evaluate_datum_vs_global(self, scan_working, primary, global_transform, datum_transform,
+                                   tolerance: float = 1.0):
+        """Compare datum vs global alignment quality on primary datum surface.
+
+        Uses numpy transforms (no deep copies) for memory efficiency.
+        Returns True if datum alignment should be used.
+
+        Criterion: datum alignment must be within 20% of global median AND
+        below 3x tolerance on the primary datum surface.
+        """
+        from scipy.spatial import cKDTree
+
+        primary_tree = cKDTree(primary['inlier_pts'])
+        scan_pts = np.asarray(scan_working.points)
+
+        def apply_4x4(pts, T):
+            return pts @ T[:3, :3].T + T[:3, 3]
+
+        pts_global = apply_4x4(scan_pts, global_transform)
+        dists_global, _ = primary_tree.query(pts_global, k=1)
+        near_g = dists_global < 10.0
+        median_global = np.median(dists_global[near_g]) if near_g.sum() > 0 else 999
+        p90_global = np.percentile(dists_global[near_g], 90) if near_g.sum() > 0 else 999
+
+        pts_datum = apply_4x4(scan_pts, datum_transform)
+        dists_datum, _ = primary_tree.query(pts_datum, k=1)
+        near_d = dists_datum < 10.0
+        median_datum = np.median(dists_datum[near_d]) if near_d.sum() > 0 else 999
+        p90_datum = np.percentile(dists_datum[near_d], 90) if near_d.sum() > 0 else 999
+
+        mean_global = float(np.mean(dists_global[near_g])) if near_g.sum() > 0 else 999
+        mean_datum = float(np.mean(dists_datum[near_d])) if near_d.sum() > 0 else 999
+
+        logger.info(f"  Primary datum evaluation (ref plane inliers only):")
+        logger.info(f"    Original ICP:      median={median_global:.3f}mm, p90={p90_global:.3f}mm, "
+                   f"mean={mean_global:+.3f}mm")
+        logger.info(f"    Plane-aligned ICP: median={median_datum:.3f}mm, p90={p90_datum:.3f}mm, "
+                   f"mean={mean_datum:+.3f}mm")
+
+        # Tolerance-relative criterion:
+        # Use datum if it's within 20% of global AND below 3x tolerance
+        # Also require p90 not be dramatically worse
+        use_datum = (median_datum < median_global * 1.2
+                     and median_datum < tolerance * 3.0
+                     and p90_datum < p90_global * 1.5)
+        if use_datum:
+            logger.info(f"  → Using PLANE-ALIGNED ICP (better on primary datum)")
+        else:
+            logger.info(f"  → Keeping ORIGINAL ICP (datum alignment not sufficiently better)")
+
+        return use_datum
+
+    def _apply_final_transform(self, scan_center, ref_center, pca_rotation,
+                               flip, icp_transform, auto_scale):
+        """Apply the complete transformation pipeline to the original scan.
+
+        Composes: center → PCA → scale → flip → ICP → re-center
+        into a single matrix multiplication for numerical precision.
+        """
+        import copy
         self._update_progress("align", 68, "Applying transformation...")
 
-        # Build combined transformation pipeline
+        R_icp = icp_transform[:3, :3]
+        t_icp = icp_transform[:3, 3]
+
+        # Composed rotation: ICP_R @ flip @ PCA
+        R_composed = R_icp @ flip @ pca_rotation
+        scale = self.scale_factor if auto_scale else 1.0
+
+        # p' = scale * R_composed @ (p - scan_center) + t_icp + ref_center
+        # = scale * R_composed @ p + (- scale * R_composed @ scan_center + t_icp + ref_center)
         self.aligned_scan = copy.deepcopy(self.scan_pcd)
-
-        # Step 1: Center at origin
-        self.aligned_scan.translate(-scan_center)
-
-        # Step 2: Apply PCA rotation
         points = np.asarray(self.aligned_scan.points)
-        points = points @ pca_rotation.T
-        self.aligned_scan.points = self.o3d.utility.Vector3dVector(points)
 
-        # Step 3: Apply uniform scaling
-        if auto_scale:
-            points = np.asarray(self.aligned_scan.points)
-            points = points * self.scale_factor
-            self.aligned_scan.points = self.o3d.utility.Vector3dVector(points)
-
-        # Step 4: Apply best flip rotation
-        points = np.asarray(self.aligned_scan.points)
-        points = points @ best_pre_rotation.T
-        self.aligned_scan.points = self.o3d.utility.Vector3dVector(points)
-
-        # Step 5: Apply ICP transformation
-        self.aligned_scan.transform(reg_fine.transformation)
-
-        # Step 6: Move to reference center
-        self.aligned_scan.translate(ref_center)
-
-        self._update_progress("align", 70, f"Alignment complete. Fitness: {reg_fine.fitness:.2%}")
-        logger.info(f"Final alignment: fitness={reg_fine.fitness:.2%}, RMSE={reg_fine.inlier_rmse:.3f}mm")
-
-        return reg_fine.fitness, reg_fine.inlier_rmse
+        t_combined = -scale * (R_composed @ scan_center) + t_icp + ref_center
+        transformed = scale * (points @ R_composed.T) + t_combined
+        self.aligned_scan.points = self.o3d.utility.Vector3dVector(transformed)
     
-    def compute_deviations(self, chunk_size: int = 10000, use_kdtree: bool = True) -> np.ndarray:
+    def compute_deviations(self, chunk_size: int = 10000, use_trimesh: bool = True) -> np.ndarray:
         """Compute point-to-mesh distances with chunked processing for memory efficiency.
 
         Args:
             chunk_size: Number of points to process at once (default 10000)
-            use_kdtree: Use scipy KDTree (memory efficient) vs Trimesh BVH (more accurate)
+            use_trimesh: Use Trimesh BVH (geometrically exact) vs KDTree (faster but ~0.5mm error).
+                         Defaults to True for accuracy — Trimesh computes true closest point on
+                         the mesh surface, while KDTree uses sampled points as approximation.
         """
         self._update_progress("analyze", 75, "Computing deviations...")
 
         scan_points = np.asarray(self.aligned_scan.points)
         n_points = len(scan_points)
 
-        if use_kdtree:
-            # Memory-efficient approach using scipy KDTree
-            return self._compute_deviations_kdtree(scan_points, n_points, chunk_size)
+        if use_trimesh:
+            # Trimesh BVH: exact closest-point-on-mesh (preferred for accuracy)
+            try:
+                return self._compute_deviations_trimesh(scan_points, n_points, chunk_size)
+            except Exception as e:
+                logger.warning(f"Trimesh deviation computation failed, falling back to KDTree: {e}")
+                return self._compute_deviations_kdtree(scan_points, n_points, chunk_size)
         else:
-            # Original approach using Trimesh BVH (more accurate but memory intensive)
-            return self._compute_deviations_trimesh(scan_points, n_points, chunk_size)
+            # KDTree: approximate (sampled points), ~sqrt(area/N) error
+            return self._compute_deviations_kdtree(scan_points, n_points, chunk_size)
 
     def _compute_deviations_kdtree(self, scan_points: np.ndarray, n_points: int, chunk_size: int) -> np.ndarray:
         """Memory-efficient deviation computation using scipy cKDTree."""
@@ -1167,6 +1863,78 @@ class ScanQCEngine:
 
         return snapshot_paths
 
+    def generate_bend_snapshots(
+        self,
+        tolerance: float,
+        output_dir: str,
+        bend_results: List[Dict],
+        reference_mesh_path: str = None,
+        angle_tolerance: float = 2.0,
+    ) -> Dict[str, str]:
+        """Generate 3D snapshots with bend markers and deviation labels.
+
+        Args:
+            tolerance: Distance tolerance in mm
+            output_dir: Directory to save images
+            bend_results: List of bend result dicts
+            reference_mesh_path: Path to reference mesh PLY
+            angle_tolerance: Angle tolerance in degrees
+
+        Returns:
+            Dict mapping view name to file path
+        """
+        if self.aligned_scan is None or self.deviations is None:
+            return {}
+
+        if self.snapshot_renderer is None:
+            return {}
+
+        if not bend_results:
+            return {}
+
+        points = np.asarray(self.aligned_scan.points)
+        deviations = self.deviations
+        output_path = Path(output_dir)
+        output_path.mkdir(parents=True, exist_ok=True)
+
+        snapshot_paths = {}
+
+        try:
+            # Generate multi-view bend analysis
+            multi_bytes = self.snapshot_renderer.render_bend_multi_view(
+                points, deviations, tolerance, bend_results,
+                reference_mesh_path=reference_mesh_path,
+                angle_tolerance=angle_tolerance,
+            )
+            multi_path = output_path / "bend_analysis_multi_view.png"
+            with open(multi_path, "wb") as f:
+                f.write(multi_bytes)
+            snapshot_paths["bend_multi_view"] = str(multi_path)
+
+            # Generate individual bend analysis views
+            for view in ["iso", "top", "front"]:
+                view_bytes = self.snapshot_renderer.render_bend_analysis_snapshot(
+                    points, deviations, tolerance, bend_results,
+                    reference_mesh_path=reference_mesh_path,
+                    view=view,
+                    width=1600,
+                    height=1200,
+                    angle_tolerance=angle_tolerance,
+                )
+                view_path = output_path / f"bend_analysis_{view}.png"
+                with open(view_path, "wb") as f:
+                    f.write(view_bytes)
+                snapshot_paths[f"bend_{view}"] = str(view_path)
+
+            logger.info(f"Generated {len(snapshot_paths)} bend analysis images")
+
+        except Exception as e:
+            logger.error(f"Failed to generate bend snapshots: {e}")
+            import traceback
+            traceback.print_exc()
+
+        return snapshot_paths
+
     def analyze_regions(self, tolerance: float) -> List[RegionAnalysis]:
         """Analyze deviations by region using configurable thresholds"""
         self._update_progress("analyze", 88, "Analyzing regions...")
@@ -1263,18 +2031,40 @@ class ScanQCEngine:
             self.preprocess()
 
             # Align
-            fitness, rmse = self.align()
+            fitness, rmse = self.align(tolerance=tolerance)
             report.alignment_fitness = fitness
             report.alignment_rmse = rmse
 
-            # Compute deviations
+            # Alignment quality gate — reject clearly failed alignments
+            MIN_FITNESS_THRESHOLD = 0.3  # 30% overlap minimum
+            WARN_FITNESS_THRESHOLD = 0.6  # 60% overlap for warning
+            if fitness < MIN_FITNESS_THRESHOLD:
+                logger.error(f"Alignment quality too low: fitness={fitness:.2%} (minimum {MIN_FITNESS_THRESHOLD:.0%}). "
+                            f"Results would be unreliable. Check scan coverage and part orientation.")
+                report.overall_result = QCResult.FAIL
+                report.quality_score = 0.0
+                report.confidence = 0.0
+                report.ai_summary = (
+                    f"ALIGNMENT FAILED: ICP alignment fitness of {fitness:.1%} is below the "
+                    f"minimum threshold of {MIN_FITNESS_THRESHOLD:.0%}. The scan could not be "
+                    f"reliably registered to the reference model. This typically indicates: "
+                    f"(1) wrong reference file, (2) insufficient scan coverage, or "
+                    f"(3) the part is significantly different from the reference. "
+                    f"All deviation measurements are unreliable and should be discarded."
+                )
+                return report
+            elif fitness < WARN_FITNESS_THRESHOLD:
+                logger.warning(f"Alignment quality marginal: fitness={fitness:.2%}. "
+                              f"Results may have reduced accuracy.")
+
+            # Compute deviations (Trimesh BVH for exact point-to-mesh distance)
             deviations = self.compute_deviations()
             abs_devs = np.abs(deviations)
 
             # Statistics
             report.total_points = len(deviations)
             report.mean_deviation = float(np.mean(deviations))
-            report.max_deviation = float(np.max(deviations))
+            report.max_deviation = float(np.max(np.abs(deviations)))
             report.min_deviation = float(np.min(deviations))
             report.std_deviation = float(np.std(deviations))
 
@@ -1304,18 +2094,22 @@ class ScanQCEngine:
                         import trimesh
                         aligned_scan_path = Path(heatmap_dir) / "aligned_scan.ply"
                         points = np.asarray(self.aligned_scan.points).astype(np.float32)
-                        # Create point cloud with colors based on deviations
-                        colors = np.zeros((len(points), 4), dtype=np.uint8)
-                        for i, dev in enumerate(deviations):
-                            # Green (in tolerance) -> Yellow -> Red (out of tolerance)
-                            abs_dev = abs(dev)
-                            normalized = min(abs_dev / tolerance, 1.0)
-                            if normalized < 0.5:
-                                t = normalized * 2
-                                colors[i] = [int(t * 255), 255, 0, 255]  # Green to Yellow
-                            else:
-                                t = (normalized - 0.5) * 2
-                                colors[i] = [255, int((1 - t) * 255), 0, 255]  # Yellow to Red
+                        # Create point cloud with colors based on deviations (vectorized)
+                        abs_devs_color = np.abs(deviations)
+                        normalized = np.clip(abs_devs_color / tolerance, 0.0, 1.0)
+                        colors = np.full((len(points), 4), 255, dtype=np.uint8)
+                        # Green-to-Yellow (normalized < 0.5): R = t*255, G = 255
+                        # Yellow-to-Red (normalized >= 0.5): R = 255, G = (1-t)*255
+                        low = normalized < 0.5
+                        high = ~low
+                        t_low = normalized[low] * 2
+                        t_high = (normalized[high] - 0.5) * 2
+                        colors[low, 0] = (t_low * 255).astype(np.uint8)
+                        colors[low, 1] = 255
+                        colors[low, 2] = 0
+                        colors[high, 0] = 255
+                        colors[high, 1] = ((1 - t_high) * 255).astype(np.uint8)
+                        colors[high, 2] = 0
                         cloud = trimesh.PointCloud(points, colors=colors)
                         cloud.export(str(aligned_scan_path), file_type='ply')
                         logger.info(f"Exported aligned scan to {aligned_scan_path}")
@@ -1360,16 +2154,32 @@ class ScanQCEngine:
             self._update_progress("ai", 92, "Running AI interpretation...")
             self._run_ai_analysis(report, drawing_context, drawing_path)
 
-            # Enhanced Analysis (bend detection + multi-model)
+            # Enhanced Analysis (CAD mesh bend detection + multi-model)
             if enable_enhanced_analysis and ENHANCED_ANALYSIS_AVAILABLE:
                 self._update_progress("enhanced", 94, "Running enhanced bend detection...")
                 try:
-                    # Run bend detection
+                    # Run dual-approach bend detection (CAD mesh primary, point cloud fallback)
                     bend_result = self.detect_bends()
                     if bend_result:
                         report.bend_detection_result = bend_result
                         report.bend_results = bend_result.get("bends", [])
-                        logger.info(f"Detected {len(report.bend_results)} bends")
+                        detection_method = bend_result.get("detection_method", "unknown")
+                        logger.info(f"Detected {len(report.bend_results)} bends via {detection_method}")
+
+                        # Generate bend analysis snapshots with markers
+                        try:
+                            self._update_progress("enhanced", 95, "Generating bend analysis images...")
+                            bend_snapshot_paths = self.generate_bend_snapshots(
+                                tolerance=tolerance,
+                                output_dir=output_dir,
+                                bend_results=report.bend_results,
+                                reference_mesh_path=str(Path(output_dir) / "reference_mesh.ply"),
+                            )
+                            if bend_snapshot_paths:
+                                report.bend_snapshot_paths.update(bend_snapshot_paths)
+                                logger.info(f"Generated {len(bend_snapshot_paths)} bend analysis images")
+                        except Exception as e:
+                            logger.warning(f"Bend snapshot generation failed: {e}")
 
                     # Run multi-model enhanced analysis if API keys available
                     if AI_ENABLED:

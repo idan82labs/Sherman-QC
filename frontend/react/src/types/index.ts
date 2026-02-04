@@ -455,11 +455,14 @@ export interface DimensionComparison {
   type: string
   description: string
   expected: number
+  reference_source: 'XLSX' | 'CAD' | 'N/A'
+  xlsx_value: number | null
   cad_value: number | null
   scan_value: number | null
   unit: string
   tolerance: string
-  cad_deviation: number | null
+  xlsx_vs_cad_deviation: number | null
+  scan_vs_cad_deviation: number | null
   scan_deviation: number | null
   scan_deviation_percent: number | null
   status: 'pass' | 'fail' | 'warning' | 'not_measured' | 'pending'
@@ -528,4 +531,150 @@ export interface DimensionAnalysisResult {
   } | null
   failed_dimensions: DimensionComparison[]
   worst_deviations: DimensionComparison[]
+}
+
+// Part Catalog Types
+export interface Part {
+  id: string
+  part_number: string
+  part_name: string
+  customer: string | null
+  revision: string | null
+  cad_file_path: string | null
+  cad_file_hash: string | null
+  cad_uploaded_at: string | null
+  material: string | null
+  default_tolerance_angle: number
+  default_tolerance_linear: number
+  bend_count: number | null
+  has_embedding: boolean
+  embedding_version: string | null
+  embedding_computed_at: string | null
+  created_at: string
+  updated_at: string
+  erp_import_id: string | null
+  notes: string | null
+}
+
+export interface PartBendSpec {
+  id: string
+  part_id: string
+  bend_id: string
+  target_angle: number
+  target_radius: number | null
+  tolerance_angle: number | null
+  tolerance_radius: number | null
+  bend_line_start: [number, number, number] | null
+  bend_line_end: [number, number, number] | null
+  notes: string | null
+}
+
+export interface PartCatalogStats {
+  total: number
+  with_cad: number
+  with_embedding: number
+  ready: number
+  needs_cad: number
+  needs_embedding: number
+}
+
+export interface PartsListResponse {
+  parts: Part[]
+  total: number
+  counts: PartCatalogStats
+}
+
+export interface PartCreateRequest {
+  part_number: string
+  part_name: string
+  customer?: string
+  revision?: string
+  material?: string
+  default_tolerance_angle?: number
+  default_tolerance_linear?: number
+  notes?: string
+}
+
+export interface PartUpdateRequest {
+  part_name?: string
+  customer?: string
+  revision?: string
+  material?: string
+  default_tolerance_angle?: number
+  default_tolerance_linear?: number
+  notes?: string
+}
+
+export interface BendSpecCreateRequest {
+  bend_id: string
+  target_angle: number
+  target_radius?: number
+  tolerance_angle?: number
+  tolerance_radius?: number
+  notes?: string
+}
+
+// Live Scan Types
+export interface ScanData {
+  filename: string
+  size_bytes: number
+  received_at: string
+  points_count: number | null
+}
+
+export interface RecognitionCandidate {
+  part_id: string
+  part_number: string
+  part_name: string | null
+  customer: string | null
+  similarity: number
+  distance: number
+  has_cad: boolean
+  warning?: string
+}
+
+export interface RecognitionResult {
+  candidates: RecognitionCandidate[]
+  top_match: string | null
+  top_similarity: number
+  processing_time_ms: number
+  is_confident: boolean
+}
+
+export interface GapCluster {
+  center: [number, number, number]
+  size_voxels: number
+  size_mm3: number
+  diameter_mm: number
+  location_hint: string
+}
+
+export interface LiveScanSession {
+  id: string
+  state: 'idle' | 'identifying' | 'scanning' | 'analyzing' | 'complete' | 'abandoned' | 'error'
+  created_at: string
+  updated_at: string
+  part_id: string | null
+  part_number: string | null
+  recognition: RecognitionResult | null
+  scans: ScanData[]
+  total_points: number
+  coverage_percent: number
+  analysis_job_id: string | null
+  error_message: string | null
+  gap_clusters: GapCluster[]
+}
+
+export interface RecognitionStatus {
+  index_count: number
+  catalog_stats: {
+    total: number
+    with_cad: number
+    with_embedding: number
+    ready: number
+    needs_cad: number
+    needs_embedding: number
+  }
+  embedding_version: string
+  status: 'ready' | 'no_parts'
 }

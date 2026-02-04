@@ -425,19 +425,21 @@ class PDFReportGenerator:
                     textColor=Colors.TEXT_DARK, spaceBefore=4, spaceAfter=4
                 )))
 
-                dim_comp_header = ["Dim #", "Type", "Expected", "Measured", "Deviation", "Status"]
+                dim_comp_header = ["Dim #", "Type", "Expected (Ref)", "Measured", "Deviation", "Status"]
                 dim_comp_data = [dim_comp_header]
 
                 for dim in dimensions:
                     dim_id = str(dim.get("dim_id", "-"))
                     dim_type = dim.get("type", "-").capitalize()
                     expected = dim.get("expected", 0)
+                    ref_source = dim.get("reference_source", "XLSX")
                     unit = "°" if dim_type.lower() == "angle" else "mm"
                     scan_value = dim.get("scan_value")
                     scan_deviation = dim.get("scan_deviation")
                     status = dim.get("status", "pending").upper()
 
-                    expected_str = f"{expected:.2f}{unit}"
+                    # Show reference source (CAD or XLSX) alongside expected value
+                    expected_str = f"{expected:.2f}{unit} ({ref_source})"
                     measured_str = f"{scan_value:.2f}{unit}" if scan_value is not None else "N/A"
                     deviation_str = f"{scan_deviation:+.2f}{unit}" if scan_deviation is not None else "-"
 
@@ -497,24 +499,28 @@ class PDFReportGenerator:
                     )
                 ))
 
-                bend_match_header = ["Dim #", "Expected", "Measured", "Deviation", "Status"]
+                bend_match_header = ["Dim #", "Expected (CAD)", "XLSX Spec", "Measured", "Deviation", "Status"]
                 bend_match_data = [bend_match_header]
 
                 for match in bend_analysis.get("matches", []):
                     dim_id = str(match.get("dim_id", "-"))
-                    expected = match.get("expected", 0)
+                    cad_info = match.get("cad", {})
                     scan_info = match.get("scan", {})
+                    cad_angle = cad_info.get("angle") if cad_info else None
+                    xlsx_expected = match.get("expected", 0)
                     measured = scan_info.get("angle")
                     deviation = scan_info.get("deviation")
                     status = match.get("status", "pending").upper()
 
-                    expected_str = f"{expected:.1f}°"
+                    # CAD is the reference; show XLSX separately as spec guide
+                    cad_str = f"{cad_angle:.1f}°" if cad_angle is not None else "N/A"
+                    xlsx_str = f"{xlsx_expected:.1f}°"
                     measured_str = f"{measured:.1f}°" if measured is not None else "N/A"
                     deviation_str = f"{deviation:+.2f}°" if deviation is not None else "-"
 
-                    bend_match_data.append([dim_id, expected_str, measured_str, deviation_str, status])
+                    bend_match_data.append([dim_id, cad_str, xlsx_str, measured_str, deviation_str, status])
 
-                bend_match_col_widths = [25*mm, 40*mm, 40*mm, 40*mm, 35*mm]
+                bend_match_col_widths = [20*mm, 35*mm, 30*mm, 35*mm, 30*mm, 30*mm]
                 bend_match_tbl = Table(bend_match_data, repeatRows=1, colWidths=bend_match_col_widths)
 
                 bend_match_style = [
@@ -566,26 +572,28 @@ class PDFReportGenerator:
                     dim_id = dim.get("dim_id", "-")
                     dim_type = dim.get("type", "-").capitalize()
                     expected = dim.get("expected", 0)
+                    ref_source = dim.get("reference_source", "XLSX")
+                    cad_value = dim.get("cad_value")
+                    xlsx_value = dim.get("xlsx_value")
                     scan_value = dim.get("scan_value")
                     scan_deviation = dim.get("scan_deviation")
                     unit = "°" if dim_type.lower() == "angle" else "mm"
 
-                    fail_content = (
-                        f"<b>Dimension {dim_id}</b> ({dim_type})<br/>"
-                        f"<font color='#64748B'>Expected:</font> {expected:.2f}{unit}  |  "
-                        f"<font color='#64748B'>Measured:</font> {scan_value:.2f}{unit} if scan_value else 'N/A'  |  "
-                        f"<font color='#DC2626'>Deviation: {scan_deviation:+.2f}{unit}</font>" if scan_deviation else ""
-                    )
-
-                    # Build content properly
                     expected_str = f"{expected:.2f}{unit}"
                     measured_str = f"{scan_value:.2f}{unit}" if scan_value is not None else "N/A"
                     deviation_str = f"{scan_deviation:+.2f}{unit}" if scan_deviation is not None else "N/A"
 
+                    # Show reference source (CAD or XLSX)
+                    ref_label = f"Reference ({ref_source})"
                     fail_content = (
                         f"<b>Dimension {dim_id}</b> ({dim_type})<br/>"
-                        f"<font color='#64748B'>Expected:</font> {expected_str}  |  "
-                        f"<font color='#64748B'>Measured:</font> {measured_str}  |  "
+                        f"<font color='#64748B'>{ref_label}:</font> {expected_str}"
+                    )
+                    # Show XLSX spec alongside if CAD is reference and XLSX is available
+                    if ref_source == "CAD" and xlsx_value is not None:
+                        fail_content += f"  |  <font color='#94A3B8'>XLSX Spec: {xlsx_value:.2f}{unit}</font>"
+                    fail_content += (
+                        f"  |  <font color='#64748B'>Measured:</font> {measured_str}  |  "
                         f"<font color='#DC2626'>Deviation: {deviation_str}</font>"
                     )
 
@@ -827,10 +835,19 @@ class PDFReportGenerator:
         # === BEND ANALYSIS (Enhanced) ===
         bend_results = report_data.get("bend_results", [])
         if bend_results:
-            flow.append(Paragraph("Bend Analysis", self.H2))
+            # Compute summary counts
+            total_bends = len(bend_results)
+            measured_bends = sum(1 for b in bend_results if b.get("scan_measured", False) or b.get("bend", {}).get("scan_measured", False))
+            pass_bends = sum(1 for b in bend_results if (b.get("scan_measured", False) or b.get("bend", {}).get("scan_measured", False)) and abs(b.get("scan_deviation", 0) or b.get("angle_deviation_deg", 0) or 0) <= 3.0)
+
+            flow.append(Paragraph(
+                f"Bend Analysis "
+                f"<font size='9' color='#64748B'>({measured_bends} measured, {pass_bends} of {measured_bends} within ±3°)</font>",
+                self.H2
+            ))
             flow.append(Paragraph(
                 "Detailed analysis of each bend detected in the part. "
-                "Includes angle deviation, springback/overbend indicators, and recommendations.",
+                "Includes angle deviation, measurement method, and confidence level.",
                 self.SMALL
             ))
             flow.append(Spacer(1, 3*mm))
@@ -839,24 +856,72 @@ class PDFReportGenerator:
             bend_data = [bend_header]
 
             for br in bend_results:
+                # Support both nested format (bend_info inside "bend" key)
+                # and flat format (fields directly on br dict)
                 bend_info = br.get("bend", {})
-                bend_name = bend_info.get("bend_name", f"Bend {bend_info.get('bend_id', '?')}")
-                measured = f"{bend_info.get('angle_degrees', 0):.1f} deg"
-                nominal = br.get("nominal_angle")
+                if bend_info:
+                    bend_name = bend_info.get("bend_name", f"Bend {bend_info.get('bend_id', '?')}")
+                else:
+                    bend_name = br.get("bend_name", f"Bend {br.get('bend_id', '?')}")
+
+                # Scan measurement (flat: scan_angle / scan_measured, nested: angle_degrees)
+                scan_measured = br.get("scan_measured", False)
+                scan_angle = br.get("scan_angle", 0) or bend_info.get("angle_degrees", 0)
+                if scan_measured and scan_angle:
+                    measured = f"{scan_angle:.1f} deg"
+                elif not scan_measured:
+                    measured = "N/M"
+                else:
+                    measured = f"{scan_angle:.1f} deg"
+
+                # Nominal angle (flat: bend_angle, nested: nominal_angle)
+                nominal = br.get("bend_angle") or br.get("nominal_angle")
                 nominal_str = f"{nominal:.1f} deg" if nominal else "N/A"
-                deviation = br.get("angle_deviation_deg", 0)
+
+                # Deviation (flat: scan_deviation, nested: angle_deviation_deg)
+                deviation = br.get("scan_deviation") or br.get("angle_deviation_deg", 0) or 0
                 deviation_str = f"{deviation:+.2f} deg" if deviation != 0 else "0.00 deg"
-                status = br.get("status", "unknown").upper()
+
+                # Status: derive from scan_measured + deviation magnitude
+                explicit_status = br.get("status")
+                if explicit_status:
+                    status = explicit_status.upper()
+                elif not scan_measured:
+                    status = "N/M"
+                elif abs(deviation) <= 1.0:
+                    status = "PASS"
+                elif abs(deviation) <= 3.0:
+                    status = "WARNING"
+                else:
+                    status = "FAIL"
 
                 # Determine primary issue
                 springback = br.get("springback_indicator", 0)
                 overbend = br.get("over_bend_indicator", 0)
-                if springback > 0.3:
-                    issue = f"Springback ({springback*100:.0f}%)"
-                elif overbend > 0.3:
+                springback_diagnosis = br.get("springback_diagnosis")
+
+                if not scan_measured:
+                    issue = "No scan coverage"
+                elif springback and springback > 0.3:
+                    if springback_diagnosis:
+                        issue = f"Springback: {springback_diagnosis}"
+                    else:
+                        issue = f"Springback ({springback*100:.0f}%)"
+                elif overbend and overbend > 0.3:
                     issue = f"Overbend ({overbend*100:.0f}%)"
+                elif deviation > 3.0:
+                    issue = "Under-bend"
+                elif deviation < -3.0:
+                    issue = "Over-bend"
                 else:
                     issue = "None"
+
+                # Add method + confidence info
+                method = br.get("measurement_method", "")
+                conf = br.get("measurement_confidence", "")
+                if method and scan_measured:
+                    method_short = method.replace("signed_distance_gradient", "gradient").replace("surface_classification", "surface")
+                    issue = f"{issue} [{method_short}/{conf}]" if issue != "None" else f"[{method_short}/{conf}]"
 
                 bend_data.append([bend_name, measured, nominal_str, deviation_str, status, issue])
 
@@ -887,6 +952,10 @@ class PDFReportGenerator:
                     bend_style.append(("BACKGROUND", (4,r), (4,r), Colors.WARNING_BG))
                     bend_style.append(("TEXTCOLOR", (4,r), (4,r), Colors.WARNING_TEXT))
                     bend_style.append(("FONTNAME", (4,r), (4,r), "Helvetica-Bold"))
+                elif status == "N/M":
+                    bend_style.append(("BACKGROUND", (4,r), (4,r), colors.HexColor("#F0F0F0")))
+                    bend_style.append(("TEXTCOLOR", (4,r), (4,r), colors.HexColor("#888888")))
+                    bend_style.append(("FONTNAME", (4,r), (4,r), "Helvetica-Bold"))
                 else:
                     bend_style.append(("BACKGROUND", (4,r), (4,r), Colors.PASS_BG))
                     bend_style.append(("TEXTCOLOR", (4,r), (4,r), Colors.PASS_TEXT))
@@ -894,6 +963,17 @@ class PDFReportGenerator:
 
             bend_tbl.setStyle(TableStyle(bend_style))
             flow.append(bend_tbl)
+
+            # Add material-specific springback reference note if available
+            material = report_data.get("material", "")
+            if material and bend_results:
+                # Check if any bend has springback info
+                any_springback = any(br.get("springback_indicator", 0) > 0 for br in bend_results)
+                expected_range = bend_results[0].get("expected_springback_range") if bend_results else None
+                if any_springback and expected_range:
+                    springback_note = f"<i>Note: Expected springback for {material}: {expected_range}</i>"
+                    flow.append(Paragraph(springback_note, self.SMALL))
+
             flow.append(Spacer(1, 6*mm))
 
         # === 2D-3D CORRELATION (Enhanced) ===

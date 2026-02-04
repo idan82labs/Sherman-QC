@@ -1,8 +1,8 @@
 import { useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Upload as UploadIcon, X, AlertCircle, CheckCircle, Box, FileImage, Scan, FileSpreadsheet } from 'lucide-react'
-import { useMutation } from '@tanstack/react-query'
-import { jobsApi, getErrorMessage } from '../services/api'
+import { Upload as UploadIcon, X, AlertCircle, CheckCircle, Box, FileImage, Scan, FileSpreadsheet, Database, ChevronDown } from 'lucide-react'
+import { useMutation, useQuery } from '@tanstack/react-query'
+import { jobsApi, getErrorMessage, partsApi } from '../services/api'
 import { useNotification } from '../contexts/NotificationContext'
 import clsx from 'clsx'
 
@@ -10,6 +10,14 @@ interface UploadFile {
   file: File
   type: 'scan' | 'cad' | 'drawing' | 'dimension'
   preview?: string
+}
+
+interface CatalogPart {
+  id: number
+  part_number: string
+  name: string
+  customer: string
+  has_bend_specs: boolean
 }
 
 export default function Upload() {
@@ -25,6 +33,18 @@ export default function Upload() {
   const [tolerance, setTolerance] = useState('0.1')
   const [error, setError] = useState('')
   const [uploadProgress, setUploadProgress] = useState(0)
+
+  // Catalog picker state
+  const [useCatalog, setUseCatalog] = useState(false)
+  const [selectedCatalogPart, setSelectedCatalogPart] = useState<CatalogPart | null>(null)
+  const [catalogDropdownOpen, setCatalogDropdownOpen] = useState(false)
+
+  // Fetch parts with CAD from catalog
+  const { data: catalogParts } = useQuery({
+    queryKey: ['parts-with-cad'],
+    queryFn: partsApi.getPartsWithCad,
+    enabled: useCatalog,
+  })
 
   const uploadMutation = useMutation({
     mutationFn: async (formData: FormData) => {
@@ -96,6 +116,22 @@ export default function Upload() {
     }
   }
 
+  // Mutation for catalog-based analysis
+  const catalogAnalysisMutation = useMutation({
+    mutationFn: async ({ partId, scanFile }: { partId: number; scanFile: File }) => {
+      return partsApi.analyzeFromCatalog(partId, scanFile)
+    },
+    onSuccess: (data) => {
+      success('Analysis started successfully!')
+      navigate(`/bend-inspection/${data.job_id}`)
+    },
+    onError: (err: unknown) => {
+      const message = getErrorMessage(err)
+      setError(message)
+      showError(message)
+    },
+  })
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
@@ -105,6 +141,20 @@ export default function Upload() {
       return
     }
 
+    // If using catalog, use catalog-based analysis
+    if (useCatalog) {
+      if (!selectedCatalogPart) {
+        setError('Please select a part from the catalog')
+        return
+      }
+      catalogAnalysisMutation.mutate({
+        partId: selectedCatalogPart.id,
+        scanFile: scanFile.file,
+      })
+      return
+    }
+
+    // Otherwise, use traditional upload-based analysis
     if (!cadFile) {
       setError('Please upload a CAD reference file (STL, STEP, or IGES)')
       return
@@ -210,14 +260,126 @@ export default function Upload() {
 
           {/* CAD file - Reference geometry */}
           <div className="card p-6">
-            <div className="flex items-center mb-4">
-              <Box className="w-5 h-5 text-secondary-400 mr-2" />
-              <h3 className="font-semibold text-dark-100">CAD Reference *</h3>
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center">
+                <Box className="w-5 h-5 text-secondary-400 mr-2" />
+                <h3 className="font-semibold text-dark-100">CAD Reference *</h3>
+              </div>
+
+              {/* Toggle between upload and catalog */}
+              <div className="flex items-center gap-2 bg-dark-800 rounded-lg p-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setUseCatalog(false)
+                    setSelectedCatalogPart(null)
+                  }}
+                  className={clsx(
+                    'px-3 py-1.5 rounded-md text-sm font-medium transition-colors',
+                    !useCatalog
+                      ? 'bg-secondary-500 text-white'
+                      : 'text-dark-400 hover:text-dark-200'
+                  )}
+                >
+                  <UploadIcon className="w-4 h-4 inline mr-1" />
+                  Upload
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setUseCatalog(true)
+                    setCadFile(null)
+                  }}
+                  className={clsx(
+                    'px-3 py-1.5 rounded-md text-sm font-medium transition-colors',
+                    useCatalog
+                      ? 'bg-primary-500 text-white'
+                      : 'text-dark-400 hover:text-dark-200'
+                  )}
+                >
+                  <Database className="w-4 h-4 inline mr-1" />
+                  Catalog
+                </button>
+              </div>
             </div>
+
             <p className="text-sm text-dark-400 mb-4">
-              Nominal geometry from CAD (the designed/intended part)
+              {useCatalog
+                ? 'Select a part from the catalog (CAD already uploaded)'
+                : 'Nominal geometry from CAD (the designed/intended part)'}
             </p>
-            {cadFile ? (
+
+            {useCatalog ? (
+              /* Catalog Picker */
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setCatalogDropdownOpen(!catalogDropdownOpen)}
+                  className="w-full flex items-center justify-between px-4 py-3 bg-dark-800 border border-dark-600 rounded-lg hover:border-primary-500 transition-colors"
+                >
+                  {selectedCatalogPart ? (
+                    <div className="flex items-center">
+                      <Database className="w-5 h-5 text-primary-400 mr-3" />
+                      <div className="text-left">
+                        <p className="font-medium text-dark-100">{selectedCatalogPart.part_number}</p>
+                        <p className="text-sm text-dark-400">{selectedCatalogPart.name}</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <span className="text-dark-400">Select a part from catalog...</span>
+                  )}
+                  <ChevronDown className={clsx('w-5 h-5 text-dark-400 transition-transform', catalogDropdownOpen && 'rotate-180')} />
+                </button>
+
+                {catalogDropdownOpen && (
+                  <div className="absolute z-10 w-full mt-2 bg-dark-800 border border-dark-600 rounded-lg shadow-xl max-h-64 overflow-y-auto">
+                    {catalogParts?.parts?.length > 0 ? (
+                      catalogParts.parts.map((part: CatalogPart) => (
+                        <button
+                          key={part.id}
+                          type="button"
+                          onClick={() => {
+                            setSelectedCatalogPart(part)
+                            setPartId(part.part_number)
+                            setPartName(part.name)
+                            setCatalogDropdownOpen(false)
+                          }}
+                          className={clsx(
+                            'w-full flex items-center px-4 py-3 hover:bg-dark-700 transition-colors text-left',
+                            selectedCatalogPart?.id === part.id && 'bg-primary-500/10'
+                          )}
+                        >
+                          <div className="flex-1">
+                            <p className="font-medium text-dark-100">{part.part_number}</p>
+                            <p className="text-sm text-dark-400">{part.name} {part.customer && `• ${part.customer}`}</p>
+                          </div>
+                          {part.has_bend_specs && (
+                            <span className="text-xs bg-green-500/20 text-green-400 px-2 py-1 rounded">
+                              Bend Specs
+                            </span>
+                          )}
+                        </button>
+                      ))
+                    ) : (
+                      <div className="px-4 py-6 text-center text-dark-400">
+                        <Database className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                        <p>No parts with CAD files found</p>
+                        <p className="text-sm">Upload CAD files in Part Catalog first</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {selectedCatalogPart && (
+                  <div className="mt-3 p-3 bg-primary-500/10 border border-primary-500/30 rounded-lg">
+                    <div className="flex items-center text-primary-400 text-sm">
+                      <CheckCircle className="w-4 h-4 mr-2" />
+                      Using CAD from catalog: <span className="font-medium ml-1">{selectedCatalogPart.part_number}</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : cadFile ? (
               <div className="border border-dark-600 rounded-lg p-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
@@ -526,19 +688,19 @@ export default function Upload() {
             type="button"
             onClick={() => navigate('/')}
             className="btn btn-secondary"
-            disabled={uploadMutation.isPending}
+            disabled={uploadMutation.isPending || catalogAnalysisMutation.isPending}
           >
             Cancel
           </button>
           <button
             type="submit"
-            disabled={uploadMutation.isPending}
+            disabled={uploadMutation.isPending || catalogAnalysisMutation.isPending}
             className={clsx(
               'btn btn-primary flex items-center',
-              uploadMutation.isPending && 'opacity-50 cursor-not-allowed'
+              (uploadMutation.isPending || catalogAnalysisMutation.isPending) && 'opacity-50 cursor-not-allowed'
             )}
           >
-            {uploadMutation.isPending ? (
+            {uploadMutation.isPending || catalogAnalysisMutation.isPending ? (
               <>
                 <svg
                   className="animate-spin -ml-1 mr-2 h-5 w-5"
@@ -560,7 +722,11 @@ export default function Upload() {
                     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                   />
                 </svg>
-                {uploadProgress < 100 ? `Uploading ${uploadProgress}%...` : 'Starting Analysis...'}
+                {catalogAnalysisMutation.isPending
+                  ? 'Analyzing...'
+                  : uploadProgress < 100
+                  ? `Uploading ${uploadProgress}%...`
+                  : 'Starting Analysis...'}
               </>
             ) : (
               <>

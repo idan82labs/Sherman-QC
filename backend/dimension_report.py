@@ -23,65 +23,125 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class DimensionComparison:
-    """Comparison of a single dimension across XLSX, CAD, and scan."""
+    """Comparison of a single dimension across XLSX spec, CAD geometry, and scan measurement.
+
+    Reference priority:
+    1. XLSX spec is source of truth when available (it's the engineering spec)
+    2. CAD geometry is fallback when XLSX doesn't cover a dimension
+    3. Always cross-reference XLSX vs CAD to detect discrepancies
+    4. Works with or without XLSX (CAD-only mode)
+
+    Deviation is: scan_value - expected (XLSX preferred, CAD fallback)
+    """
     dim_id: int
     dim_type: str
     description: str
 
-    # Values
-    expected: float  # From XLSX
-    cad_value: Optional[float] = None
-    scan_value: Optional[float] = None
+    # Values from each source
+    xlsx_value: Optional[float] = None  # From XLSX spec (source of truth when present)
+    cad_value: Optional[float] = None   # From CAD geometry (always available, cross-reference)
+    scan_value: Optional[float] = None  # From scan measurement (actual)
+    measured_output: Optional[float] = None  # Raw output from measurement engine (before any adjustment)
     unit: str = "mm"
 
-    # Tolerances
+    # Tolerances (from XLSX/drawing, with defaults)
     tolerance_plus: float = 0.5
     tolerance_minus: float = 0.5
 
-    # Deviations
-    cad_deviation: Optional[float] = None
-    scan_deviation: Optional[float] = None
+    # Computed fields
+    scan_deviation: Optional[float] = None          # scan - expected
     scan_deviation_percent: Optional[float] = None
+    xlsx_vs_cad_deviation: Optional[float] = None   # Cross-reference discrepancy
+    scan_vs_cad_deviation: Optional[float] = None   # scan - CAD (always computed)
 
     # Status
     status: str = "pending"  # pass, fail, warning, not_measured
 
+    @property
+    def expected(self) -> float:
+        """The reference value: XLSX is source of truth, CAD is fallback."""
+        if self.xlsx_value is not None:
+            return self.xlsx_value
+        if self.cad_value is not None:
+            return self.cad_value
+        return 0.0
+
+    @property
+    def reference_source(self) -> str:
+        """Which source provides the 'expected' value."""
+        if self.xlsx_value is not None:
+            return "XLSX"
+        if self.cad_value is not None:
+            return "CAD"
+        return "N/A"
+
+    @property
+    def has_cross_reference(self) -> bool:
+        """Whether both XLSX and CAD values are available for cross-referencing."""
+        return self.xlsx_value is not None and self.cad_value is not None
+
     def compute_status(self):
-        """Compute status based on scan deviation and tolerance."""
+        """Compute deviation and pass/fail status.
+
+        Logic:
+        - Deviation = scan - expected (XLSX when available, else CAD)
+        - Also compute scan-vs-CAD for cross-reference
+        - Also compute XLSX-vs-CAD discrepancy
+        """
         if self.scan_value is None:
             self.status = "not_measured"
             return
 
-        self.scan_deviation = self.scan_value - self.expected
+        # Primary deviation: scan vs expected (XLSX preferred, CAD fallback)
+        reference = self.expected
+        self.scan_deviation = self.scan_value - reference
 
-        if self.expected != 0:
-            self.scan_deviation_percent = (self.scan_deviation / self.expected) * 100
+        if reference != 0:
+            self.scan_deviation_percent = (self.scan_deviation / reference) * 100
         else:
             self.scan_deviation_percent = 0
 
+        # Cross-reference: scan vs CAD (always useful even when XLSX is primary)
         if self.cad_value is not None:
-            self.cad_deviation = self.cad_value - self.expected
+            self.scan_vs_cad_deviation = self.scan_value - self.cad_value
 
-        # Check against tolerance
-        if abs(self.scan_deviation) <= self.tolerance_plus:
+        # Cross-reference: XLSX vs CAD discrepancy (flag if specs differ from design)
+        if self.xlsx_value is not None and self.cad_value is not None:
+            self.xlsx_vs_cad_deviation = self.xlsx_value - self.cad_value
+
+        # Check against tolerance (handle asymmetric tolerances)
+        if self.scan_deviation >= 0:
+            within_tolerance = self.scan_deviation <= self.tolerance_plus
+            within_warning = self.scan_deviation <= self.tolerance_plus * 2
+        else:
+            within_tolerance = abs(self.scan_deviation) <= self.tolerance_minus
+            within_warning = abs(self.scan_deviation) <= self.tolerance_minus * 2
+
+        if within_tolerance:
             self.status = "pass"
-        elif abs(self.scan_deviation) <= self.tolerance_plus * 2:
+        elif within_warning:
             self.status = "warning"
         else:
             self.status = "fail"
 
     def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary."""
+        """Convert to dictionary for JSON serialization."""
         return {
             "dim_id": self.dim_id,
             "type": self.dim_type,
             "description": self.description,
-            "expected": self.expected,
+            "expected": round(self.expected, 3),
+            "reference_source": self.reference_source,
+            "xlsx_value": round(self.xlsx_value, 3) if self.xlsx_value is not None else None,
             "cad_value": round(self.cad_value, 3) if self.cad_value is not None else None,
             "scan_value": round(self.scan_value, 3) if self.scan_value is not None else None,
+            "measured_output": round(self.measured_output, 3) if self.measured_output is not None else None,
             "unit": self.unit,
             "tolerance": f"+{self.tolerance_plus}/-{self.tolerance_minus}",
-            "cad_deviation": round(self.cad_deviation, 3) if self.cad_deviation is not None else None,
+            "tolerance_plus": self.tolerance_plus,
+            "tolerance_minus": self.tolerance_minus,
+            "xlsx_vs_cad_deviation": round(self.xlsx_vs_cad_deviation, 3) if self.xlsx_vs_cad_deviation is not None else None,
+            "scan_vs_cad_deviation": round(self.scan_vs_cad_deviation, 3) if self.scan_vs_cad_deviation is not None else None,
             "scan_deviation": round(self.scan_deviation, 3) if self.scan_deviation is not None else None,
             "scan_deviation_percent": round(self.scan_deviation_percent, 2) if self.scan_deviation_percent is not None else None,
             "status": self.status,
@@ -204,35 +264,53 @@ class DimensionReport:
             lines.append(f"Failed: {self.bend_fail_count}")
             lines.append("")
 
-        # Dimension table
+        # Dimension table (detailed format with tolerance)
         lines.append("DIMENSION DETAILS")
-        lines.append("-" * 100)
-        header = f"{'Dim#':<6} {'Type':<10} {'Expected':<12} {'CAD':<12} {'Scan':<12} {'Deviation':<12} {'Status':<8}"
+        lines.append("-" * 120)
+        header = f"{'ID':<4} {'Type':<8} {'XLSX Value':<14} {'Tolerance':<12} {'Measured':<12} {'Deviation':<12} {'Status':<8}"
         lines.append(header)
-        lines.append("-" * 100)
+        lines.append("-" * 120)
 
         for comp in self.comparisons:
-            expected_str = f"{comp.expected:.2f}{comp.unit}"
-            cad_str = f"{comp.cad_value:.2f}{comp.unit}" if comp.cad_value is not None else "N/A"
-            scan_str = f"{comp.scan_value:.2f}{comp.unit}" if comp.scan_value is not None else "N/A"
+            # XLSX value with unit
+            if comp.xlsx_value is not None:
+                xlsx_str = f"{comp.xlsx_value:.2f} {comp.unit}"
+            elif comp.cad_value is not None:
+                xlsx_str = f"{comp.cad_value:.2f} {comp.unit} (CAD)"
+            else:
+                xlsx_str = "N/A"
 
+            # Tolerance string
+            if comp.tolerance_plus == comp.tolerance_minus:
+                tol_str = f"±{comp.tolerance_plus}"
+            else:
+                tol_str = f"+{comp.tolerance_plus}/-{comp.tolerance_minus}"
+
+            # Measured value (prefer measured_output if available)
+            measured = comp.measured_output if comp.measured_output is not None else comp.scan_value
+            if measured is not None:
+                measured_str = f"{measured:.2f}"
+            else:
+                measured_str = "N/A"
+
+            # Deviation
             if comp.scan_deviation is not None:
-                dev_str = f"{comp.scan_deviation:+.2f}{comp.unit}"
+                dev_str = f"{comp.scan_deviation:+.3f}"
             else:
                 dev_str = "N/A"
 
             status_symbol = {
-                "pass": "✓ PASS",
-                "fail": "✗ FAIL",
-                "warning": "⚠ WARN",
-                "not_measured": "- N/A",
-                "pending": "? PEND",
+                "pass": "PASS",
+                "fail": "FAIL",
+                "warning": "WARN",
+                "not_measured": "N/A",
+                "pending": "PEND",
             }.get(comp.status, comp.status)
 
-            row = f"{comp.dim_id:<6} {comp.dim_type:<10} {expected_str:<12} {cad_str:<12} {scan_str:<12} {dev_str:<12} {status_symbol:<8}"
+            row = f"{comp.dim_id:<4} {comp.dim_type:<8} {xlsx_str:<14} {tol_str:<12} {measured_str:<12} {dev_str:<12} {status_symbol:<8}"
             lines.append(row)
 
-        lines.append("-" * 100)
+        lines.append("-" * 120)
 
         # Failed dimensions detail
         failed = self.get_failed_dimensions()
@@ -242,10 +320,12 @@ class DimensionReport:
             lines.append("-" * 60)
             for comp in failed:
                 lines.append(f"  Dim {comp.dim_id} ({comp.dim_type}):")
-                lines.append(f"    Expected: {comp.expected:.2f}{comp.unit}")
+                lines.append(f"    Reference ({comp.reference_source}): {comp.expected:.2f}{comp.unit}")
+                if comp.xlsx_value and comp.cad_value is not None:
+                    lines.append(f"    XLSX Spec: {comp.xlsx_value:.2f}{comp.unit}")
                 lines.append(f"    Actual:   {comp.scan_value:.2f}{comp.unit}")
                 lines.append(f"    Deviation: {comp.scan_deviation:+.2f}{comp.unit} ({comp.scan_deviation_percent:+.1f}%)")
-                lines.append(f"    Tolerance: ±{comp.tolerance_plus}{comp.unit}")
+                lines.append(f"    Tolerance: +{comp.tolerance_plus}/-{comp.tolerance_minus}{comp.unit}")
                 lines.append("")
 
         return "\n".join(lines)
@@ -292,9 +372,9 @@ class DimensionReportGenerator:
                     dim_id=match.dim_id,
                     dim_type="angle",
                     description=f"Bend {match.dim_id}",
-                    expected=match.dim_spec.value,
-                    cad_value=match.cad_angle,
-                    scan_value=match.scan_angle,
+                    xlsx_value=match.dim_spec.value,  # XLSX as guide
+                    cad_value=match.cad_angle,  # CAD as reference
+                    scan_value=match.scan_angle,  # Scan as actual
                     unit="°",
                     tolerance_plus=match.dim_spec.tolerance_plus,
                     tolerance_minus=match.dim_spec.tolerance_minus,
@@ -303,7 +383,6 @@ class DimensionReportGenerator:
                 report.comparisons.append(comp)
 
         # Add other dimensions (linear, radius, diameter) from XLSX
-        # Note: These would need separate measurement logic
         for dim in xlsx_result.dimensions:
             # Skip angles - already handled above
             if dim.dim_type == DimensionType.ANGLE:
@@ -313,12 +392,14 @@ class DimensionReportGenerator:
                 dim_id=dim.dim_id,
                 dim_type=dim.dim_type.value,
                 description=dim.description or f"Dimension {dim.dim_id}",
-                expected=dim.value,
+                xlsx_value=dim.value,  # XLSX as guide
+                # CAD value would come from CAD geometry measurement
+                # (not yet implemented for linear/radius dims)
                 unit="mm",
                 tolerance_plus=dim.tolerance_plus,
                 tolerance_minus=dim.tolerance_minus,
             )
-            # For now, these are not measured
+            # For now, these are not measured from scan
             comp.status = "not_measured"
             report.comparisons.append(comp)
 

@@ -6,39 +6,80 @@ interface BendAnalysisPanelProps {
   tolerance: number
 }
 
-// Helper to normalize bend data - handles both flat (BendFeature) and nested (BendResult) structures
+// Helper to normalize bend data - handles both flat (from backend bend_detector)
+// and nested (BendResult) structures.
+// Flat format fields: bend_id, bend_name, bend_angle (CAD nominal), scan_angle (measured),
+//   scan_deviation, scan_measured, measurement_method, measurement_confidence,
+//   bend_direction (array), bend_center, surface1_id, surface2_id
 function normalizeBendResult(item: any): BendResult {
   // If it already has the nested 'bend' property, return as-is
   if (item.bend && typeof item.bend === 'object' && item.bend.bend_id !== undefined) {
     return item as BendResult
   }
 
-  // Otherwise, it's a flat BendFeature - wrap it in BendResult structure
+  // Flat format from backend bend_detector
+  const scanMeasured = item.scan_measured ?? false
+  const scanAngle = item.scan_angle ?? 0
+  const cadAngle = item.bend_angle ?? 0
+  const scanDeviation = item.scan_deviation ?? 0
+  const confidence = item.measurement_confidence ?? ''
+  const method = item.measurement_method ?? ''
+
+  // Derive status from measurement data
+  let status: 'pass' | 'warning' | 'fail' | 'unknown' = 'unknown'
+  if (!scanMeasured) {
+    status = 'unknown'
+  } else if (Math.abs(scanDeviation) <= 1.0) {
+    status = 'pass'
+  } else if (Math.abs(scanDeviation) <= 3.0) {
+    status = 'warning'
+  } else {
+    status = 'fail'
+  }
+
+  // Derive springback/overbend from deviation direction
+  const springback = scanMeasured && scanDeviation > 1.0 ? Math.min(scanDeviation / 10, 1.0) : 0
+  const overbend = scanMeasured && scanDeviation < -1.0 ? Math.min(Math.abs(scanDeviation) / 10, 1.0) : 0
+
+  // Build direction string from array
+  const dirArray = item.bend_direction
+  const dirStr = Array.isArray(dirArray)
+    ? dirArray.map((v: number) => v.toFixed(3)).join('.')
+    : (dirArray ?? 'unknown')
+
+  // Confidence as 0-1 value
+  const confMap: Record<string, number> = { high: 0.9, medium: 0.6, low: 0.3, very_low: 0.1 }
+  const confValue = confMap[confidence] ?? 0
+
   return {
     bend: {
       bend_id: item.bend_id ?? 0,
       bend_name: item.bend_name ?? `Bend ${item.bend_id ?? 0}`,
-      angle_degrees: item.angle_degrees ?? 0,
+      angle_degrees: scanMeasured ? scanAngle : 0,
       radius_mm: item.radius_mm ?? 0,
       bend_line_start: item.bend_line_start ?? [0, 0, 0],
       bend_line_end: item.bend_line_end ?? [0, 0, 0],
-      bend_apex: item.bend_apex ?? [0, 0, 0],
+      bend_apex: item.bend_center ?? [0, 0, 0],
       region_point_count: item.region_point_count ?? 0,
-      adjacent_surfaces: item.adjacent_surfaces ?? [],
-      detection_confidence: item.detection_confidence ?? 0,
-      bend_direction: item.bend_direction ?? 'unknown',
+      adjacent_surfaces: [item.surface1_id, item.surface2_id].filter((x: any) => x != null),
+      detection_confidence: confValue,
+      bend_direction: dirStr,
     },
-    nominal_angle: item.nominal_angle ?? null,
-    angle_deviation_deg: item.angle_deviation_deg ?? 0,
-    springback_indicator: item.springback_indicator ?? 0,
-    over_bend_indicator: item.over_bend_indicator ?? 0,
+    nominal_angle: cadAngle || null,
+    angle_deviation_deg: scanMeasured ? scanDeviation : 0,
+    springback_indicator: springback,
+    over_bend_indicator: overbend,
     apex_deviation_mm: item.apex_deviation_mm ?? 0,
     radius_deviation_mm: item.radius_deviation_mm ?? 0,
     twist_angle_deg: item.twist_angle_deg ?? 0,
-    status: item.status ?? 'unknown',
+    status: status as any,
     recommendations: item.recommendations ?? [],
     root_causes: item.root_causes ?? [],
-  }
+    // Extra fields for display
+    _scan_measured: scanMeasured,
+    _measurement_method: method,
+    _measurement_confidence: confidence,
+  } as any
 }
 
 const getStatusColor = (status: string): string => {
@@ -90,6 +131,13 @@ const BendCard: React.FC<BendCardProps> = ({
   tolerance,
 }) => {
   const { bend, status, nominal_angle, angle_deviation_deg, springback_indicator, over_bend_indicator } = bendResult
+  const scanMeasured = (bendResult as any)._scan_measured ?? (bend.angle_degrees > 0)
+  const method = (bendResult as any)._measurement_method ?? ''
+  const confidence = (bendResult as any)._measurement_confidence ?? ''
+
+  const methodShort = method
+    .replace('signed_distance_gradient', 'gradient')
+    .replace('surface_classification', 'surface')
 
   return (
     <div
@@ -105,15 +153,25 @@ const BendCard: React.FC<BendCardProps> = ({
           <div className="text-left">
             <h4 className="font-semibold">{bend.bend_name}</h4>
             <p className="text-sm opacity-75">
-              {formatAngle(bend.angle_degrees)}
-              {nominal_angle && ` (nominal: ${formatAngle(nominal_angle)})`}
+              {scanMeasured
+                ? `${formatAngle(bend.angle_degrees)} (nominal: ${nominal_angle ? formatAngle(nominal_angle) : 'N/A'})`
+                : `Not measured (nominal: ${nominal_angle ? formatAngle(nominal_angle) : 'N/A'})`
+              }
             </p>
           </div>
         </div>
         <div className="flex items-center gap-4">
-          {angle_deviation_deg !== 0 && (
+          {scanMeasured && angle_deviation_deg !== 0 && (
             <span className={`text-sm font-mono ${Math.abs(angle_deviation_deg) > tolerance ? 'font-bold' : ''}`}>
               {formatDeviation(angle_deviation_deg)}
+            </span>
+          )}
+          {!scanMeasured && (
+            <span className="text-xs text-gray-500">No scan coverage</span>
+          )}
+          {methodShort && scanMeasured && (
+            <span className="text-xs px-1.5 py-0.5 bg-gray-200 rounded text-gray-600">
+              {methodShort}{confidence ? `/${confidence}` : ''}
             </span>
           )}
           <svg
@@ -134,7 +192,9 @@ const BendCard: React.FC<BendCardProps> = ({
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
             <div>
               <p className="text-xs uppercase opacity-60">Measured Angle</p>
-              <p className="font-mono font-semibold">{formatAngle(bend.angle_degrees)}</p>
+              <p className="font-mono font-semibold">
+                {scanMeasured ? formatAngle(bend.angle_degrees) : 'N/M'}
+              </p>
             </div>
             <div>
               <p className="text-xs uppercase opacity-60">Nominal Angle</p>
@@ -144,13 +204,15 @@ const BendCard: React.FC<BendCardProps> = ({
             </div>
             <div>
               <p className="text-xs uppercase opacity-60">Deviation</p>
-              <p className={`font-mono font-semibold ${Math.abs(angle_deviation_deg) > tolerance ? 'text-red-600' : ''}`}>
-                {formatDeviation(angle_deviation_deg)}
+              <p className={`font-mono font-semibold ${scanMeasured && Math.abs(angle_deviation_deg) > tolerance ? 'text-red-600' : ''}`}>
+                {scanMeasured ? formatDeviation(angle_deviation_deg) : 'N/A'}
               </p>
             </div>
             <div>
-              <p className="text-xs uppercase opacity-60">Bend Radius</p>
-              <p className="font-mono font-semibold">{bend.radius_mm.toFixed(1)} mm</p>
+              <p className="text-xs uppercase opacity-60">Method</p>
+              <p className="font-mono font-semibold text-sm">
+                {scanMeasured && methodShort ? `${methodShort} (${confidence})` : 'N/A'}
+              </p>
             </div>
           </div>
 
@@ -270,9 +332,11 @@ export const BendAnalysisPanel: React.FC<BendAnalysisPanelProps> = ({
   }
 
   // Calculate summary
+  const measuredCount = bends.filter((b) => (b as any)._scan_measured ?? b.bend.angle_degrees > 0).length
   const passCount = bends.filter((b) => b.status === 'pass').length
   const warnCount = bends.filter((b) => b.status === 'warning').length
   const failCount = bends.filter((b) => b.status === 'fail').length
+  void (bends.length - measuredCount) // unmeasured count available if needed
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
@@ -282,6 +346,7 @@ export const BendAnalysisPanel: React.FC<BendAnalysisPanelProps> = ({
           <h3 className="font-semibold text-gray-900">Bend Analysis</h3>
           <p className="text-sm text-gray-500">
             {bends.length} bend{bends.length !== 1 ? 's' : ''} detected
+            {measuredCount < bends.length && ` (${measuredCount} measured)`}
           </p>
         </div>
         <div className="flex items-center gap-4">

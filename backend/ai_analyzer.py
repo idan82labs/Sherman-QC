@@ -575,6 +575,319 @@ class Model3DSnapshotRenderer:
 
         return buf.getvalue()
 
+    def render_bend_analysis_snapshot(
+        self,
+        points: np.ndarray,
+        deviations: np.ndarray,
+        tolerance: float,
+        bend_results: List[Dict[str, Any]],
+        reference_mesh_path: Optional[str] = None,
+        view: str = "iso",
+        width: int = 1600,
+        height: int = 1200,
+        angle_tolerance: float = 2.0,
+    ) -> bytes:
+        """
+        Render a 3D snapshot with bend markers and deviation labels overlaid.
+
+        Shows the scan overlaid on CAD with:
+        - Colored spheres at each bend center (green=pass, yellow=warning, red=fail)
+        - Bend number labels
+        - Deviation text annotations
+        - Legend with bend summary
+
+        Args:
+            points: Nx3 array of scan point coordinates
+            deviations: N array of deviation values
+            tolerance: Distance tolerance for coloring
+            bend_results: List of bend result dicts (from bend_detection_result['bends'])
+            reference_mesh_path: Optional path to reference mesh PLY file
+            view: Camera view - "front", "side", "top", or "iso"
+            width: Image width
+            height: Image height
+            angle_tolerance: Angle tolerance in degrees for pass/fail
+
+        Returns:
+            PNG image as bytes
+        """
+        import matplotlib.pyplot as plt
+        from matplotlib.patches import Circle
+        from PIL import Image, ImageDraw, ImageFont
+
+        o3d = self.o3d
+
+        # Step 1: Create the base 3D scene with deviation colors
+        pcd = o3d.geometry.PointCloud()
+        pcd.points = o3d.utility.Vector3dVector(points.astype(np.float64))
+        colors = np.array([self._deviation_to_color(d, tolerance) for d in deviations])
+        pcd.colors = o3d.utility.Vector3dVector(colors)
+
+        # Step 2: Create visualizer and add geometries
+        vis = o3d.visualization.Visualizer()
+        vis.create_window(visible=False, width=width, height=height)
+        vis.add_geometry(pcd)
+
+        # Add reference mesh (semi-transparent)
+        if reference_mesh_path:
+            try:
+                mesh = o3d.io.read_triangle_mesh(reference_mesh_path)
+                if mesh.has_triangles():
+                    mesh.compute_vertex_normals()
+                    mesh.paint_uniform_color([0.85, 0.85, 0.85])
+                    vis.add_geometry(mesh)
+            except Exception:
+                pass
+
+        # Add bend marker spheres
+        bend_spheres = []
+        for bend in bend_results:
+            center = bend.get("bend_center")
+            if center is None:
+                continue
+
+            is_measured = bend.get("scan_measured", False)
+            dev = bend.get("scan_deviation")
+
+            # Color: green=pass, yellow=warning, red=fail, gray=not measured
+            if not is_measured:
+                color = [0.5, 0.5, 0.5]  # Gray
+            elif abs(dev) < angle_tolerance:
+                color = [0.1, 0.9, 0.1]  # Green
+            elif abs(dev) < angle_tolerance * 2:
+                color = [1.0, 0.8, 0.0]  # Yellow
+            else:
+                color = [1.0, 0.1, 0.1]  # Red
+
+            # Create sphere at bend center
+            sphere = o3d.geometry.TriangleMesh.create_sphere(radius=3.0)
+            sphere.translate(np.array(center, dtype=np.float64))
+            sphere.paint_uniform_color(color)
+            sphere.compute_vertex_normals()
+            vis.add_geometry(sphere)
+            bend_spheres.append((center, bend))
+
+        # Set render options
+        opt = vis.get_render_option()
+        opt.background_color = np.array([0.95, 0.95, 0.95])
+        opt.point_size = 1.5
+
+        # Set camera view
+        ctr = vis.get_view_control()
+        bbox = pcd.get_axis_aligned_bounding_box()
+        center_pt = bbox.get_center()
+
+        if view == "front":
+            ctr.set_front([0, -1, 0])
+            ctr.set_up([0, 0, 1])
+        elif view == "side":
+            ctr.set_front([-1, 0, 0])
+            ctr.set_up([0, 0, 1])
+        elif view == "top":
+            ctr.set_front([0, 0, -1])
+            ctr.set_up([0, 1, 0])
+        else:  # iso
+            ctr.set_front([-0.5, -0.5, -0.7])
+            ctr.set_up([0, 0, 1])
+
+        ctr.set_lookat(center_pt)
+        ctr.set_zoom(0.6)
+
+        # Render the 3D scene
+        vis.poll_events()
+        vis.update_renderer()
+        img = vis.capture_screen_float_buffer(do_render=True)
+
+        # Get view/projection matrices for 2D projection of bend centers
+        view_ctrl = vis.get_view_control()
+        params = view_ctrl.convert_to_pinhole_camera_parameters()
+        vis.destroy_window()
+
+        # Convert to array
+        img_array = (np.asarray(img) * 255).astype(np.uint8)
+        h, w = img_array.shape[:2]
+
+        # Step 3: Project 3D bend centers to 2D screen coordinates
+        intrinsic = params.intrinsic.intrinsic_matrix
+        extrinsic = params.extrinsic
+
+        def project_3d_to_2d(point_3d):
+            """Project a 3D point to 2D screen coordinates."""
+            p = np.array([point_3d[0], point_3d[1], point_3d[2], 1.0])
+            cam = extrinsic @ p
+            if cam[2] <= 0:
+                return None
+            px = intrinsic[0, 0] * cam[0] / cam[2] + intrinsic[0, 2]
+            py = intrinsic[1, 1] * cam[1] / cam[2] + intrinsic[1, 2]
+            return (int(px), int(py))
+
+        # Step 4: Overlay labels using matplotlib
+        fig, ax = plt.subplots(figsize=(width / 100, height / 100), dpi=100)
+        ax.imshow(img_array)
+        ax.axis('off')
+
+        for bend in bend_results:
+            center = bend.get("bend_center")
+            if center is None:
+                continue
+
+            pos_2d = project_3d_to_2d(center)
+            if pos_2d is None or pos_2d[0] < 0 or pos_2d[0] > w or pos_2d[1] < 0 or pos_2d[1] > h:
+                continue
+
+            bend_name = bend.get("bend_name", "?")
+            bend_id = bend.get("bend_id", "?")
+            is_measured = bend.get("scan_measured", False)
+            dev = bend.get("scan_deviation")
+            cad_angle = bend.get("bend_angle", 0)
+            scan_angle = bend.get("scan_angle")
+
+            # Label text
+            if is_measured:
+                if abs(dev) < angle_tolerance:
+                    status_color = '#22AA22'
+                    label = f"B{bend_id}: {dev:+.1f}°"
+                elif abs(dev) < angle_tolerance * 2:
+                    status_color = '#CC8800'
+                    label = f"B{bend_id}: {dev:+.1f}°"
+                else:
+                    status_color = '#CC0000'
+                    label = f"B{bend_id}: {dev:+.1f}°"
+            else:
+                status_color = '#888888'
+                label = f"B{bend_id}: N/A"
+
+            # Draw label with background
+            ax.annotate(
+                label,
+                xy=pos_2d,
+                fontsize=8,
+                fontweight='bold',
+                color='white',
+                ha='center',
+                va='bottom',
+                bbox=dict(
+                    boxstyle='round,pad=0.3',
+                    facecolor=status_color,
+                    alpha=0.85,
+                    edgecolor='white',
+                    linewidth=0.5,
+                ),
+                xytext=(0, -15),
+                textcoords='offset points',
+            )
+
+        # Add legend in bottom-right
+        legend_y = 0.08
+        legend_x = 0.82
+        legend_items = [
+            ("Pass (< {}°)".format(angle_tolerance), '#22AA22'),
+            ("Warning (< {}°)".format(angle_tolerance * 2), '#CC8800'),
+            ("Fail (> {}°)".format(angle_tolerance * 2), '#CC0000'),
+            ("Not measured", '#888888'),
+        ]
+        for i, (text, color) in enumerate(legend_items):
+            ax.annotate(
+                f"  {text}",
+                xy=(legend_x, legend_y + i * 0.035),
+                xycoords='axes fraction',
+                fontsize=7,
+                color=color,
+                fontweight='bold',
+                va='center',
+            )
+            ax.plot(
+                [legend_x - 0.02],
+                [legend_y + i * 0.035],
+                marker='o',
+                markersize=6,
+                color=color,
+                transform=ax.transAxes,
+            )
+
+        # Add title
+        measured_count = sum(1 for b in bend_results if b.get("scan_measured"))
+        total_count = len(bend_results)
+        pass_count = sum(1 for b in bend_results if b.get("scan_measured") and abs(b.get("scan_deviation", 99)) < angle_tolerance)
+        ax.set_title(
+            f"Bend Analysis — {pass_count}/{measured_count} pass, {total_count} detected "
+            f"({view.capitalize()} View)",
+            fontsize=12, fontweight='bold', color='#333', pad=10,
+        )
+
+        plt.tight_layout()
+        buf = BytesIO()
+        plt.savefig(buf, format='png', dpi=150, facecolor='white', edgecolor='none',
+                    bbox_inches='tight', pad_inches=0.1)
+        buf.seek(0)
+        plt.close(fig)
+
+        return buf.getvalue()
+
+    def render_bend_multi_view(
+        self,
+        points: np.ndarray,
+        deviations: np.ndarray,
+        tolerance: float,
+        bend_results: List[Dict[str, Any]],
+        reference_mesh_path: Optional[str] = None,
+        width: int = 1600,
+        height: int = 1200,
+        angle_tolerance: float = 2.0,
+    ) -> bytes:
+        """
+        Render 2-view bend analysis (isometric + top) with labels.
+
+        Returns a single image with 2 views side by side.
+        """
+        import matplotlib.pyplot as plt
+        from PIL import Image as PILImage
+
+        views = ["iso", "top"]
+        titles = ["Isometric View", "Top View"]
+
+        images = []
+        for v in views:
+            img_bytes = self.render_bend_analysis_snapshot(
+                points, deviations, tolerance, bend_results,
+                reference_mesh_path=reference_mesh_path,
+                view=v,
+                width=width // 2,
+                height=height,
+                angle_tolerance=angle_tolerance,
+            )
+            img = PILImage.open(BytesIO(img_bytes))
+            images.append(np.array(img))
+
+        # Combine side-by-side
+        fig, axes = plt.subplots(1, 2, figsize=(20, 10))
+        fig.patch.set_facecolor('white')
+
+        for ax, img in zip(axes, images):
+            ax.imshow(img)
+            ax.axis('off')
+
+        # Summary table at the bottom
+        measured = [b for b in bend_results if b.get("scan_measured")]
+        passed = sum(1 for b in measured if abs(b.get("scan_deviation", 99)) < angle_tolerance)
+        warned = sum(1 for b in measured if angle_tolerance <= abs(b.get("scan_deviation", 99)) < angle_tolerance * 2)
+        failed = sum(1 for b in measured if abs(b.get("scan_deviation", 99)) >= angle_tolerance * 2)
+        unmeasured = len(bend_results) - len(measured)
+
+        fig.suptitle(
+            f"Bend Deviation Analysis — {len(bend_results)} bends detected, "
+            f"{len(measured)} measured  |  "
+            f"Pass: {passed}  Warning: {warned}  Fail: {failed}  N/A: {unmeasured}",
+            fontsize=13, fontweight='bold', y=0.98, color='#333',
+        )
+
+        plt.tight_layout(rect=[0, 0.02, 1, 0.95])
+        buf = BytesIO()
+        plt.savefig(buf, format='png', dpi=150, facecolor='white', edgecolor='none')
+        buf.seek(0)
+        plt.close(fig)
+
+        return buf.getvalue()
+
 
 def retry_with_backoff(max_retries: int = 3, base_delay: float = 1.0, max_delay: float = 30.0):
     """

@@ -50,6 +50,12 @@ ENGLISH_TYPE_MAP = {
     "dia": DimensionType.DIAMETER,
 }
 
+# Tolerance column detection patterns
+TOLERANCE_PATTERNS = ["טולרנס", "tolerance", "tol", "±"]
+
+# Diameter symbol variants (including Unicode variants)
+DIAMETER_SYMBOLS = ["Ø", "∅", "⌀"]
+
 
 @dataclass
 class DimensionSpec:
@@ -62,6 +68,7 @@ class DimensionSpec:
     tolerance_minus: float = 0.5
     description: str = ""
     raw_value: str = ""  # Original string value
+    axis: Optional[str] = None  # Measurement axis: "X", "Y", "Z", or None
 
     def is_bend(self) -> bool:
         """Check if this dimension is a bend angle."""
@@ -83,6 +90,7 @@ class DimensionSpec:
             "description": self.description,
             "raw_value": self.raw_value,
             "is_bend": self.is_bend(),
+            "axis": self.axis,
         }
 
 
@@ -128,8 +136,11 @@ class DimensionParser:
 
     # Known column name patterns (Hebrew and English)
     ID_PATTERNS = ["מספר מידה", "dim_id", "id", "#", "מספר"]
-    VALUE_PATTERNS = ["ערך", "value", "ערך המידה", "mm", "deg"]
+    VALUE_PATTERNS = ["ערך", "value", "ערך המידה", "nominal", "mm", "deg"]
     TYPE_PATTERNS = ["סיווג", "type", "סוג", "classification"]
+    TOLERANCE_COL_PATTERNS = ["טולרנס", "tolerance", "tol"]
+    AXIS_PATTERNS = ["axis", "ציר", "direction", "כיוון"]
+    DESCRIPTION_PATTERNS = ["description", "תיאור", "desc", "notes", "הערות"]
 
     def __init__(self, default_tolerance: float = 0.5):
         """
@@ -254,6 +265,24 @@ class DimensionParser:
                         columns['type'] = col_idx
                         break
 
+                # Check for tolerance column
+                for pattern in self.TOLERANCE_COL_PATTERNS:
+                    if pattern.lower() in cell_str:
+                        columns['tolerance'] = col_idx
+                        break
+
+                # Check for axis column
+                for pattern in self.AXIS_PATTERNS:
+                    if pattern.lower() in cell_str:
+                        columns['axis'] = col_idx
+                        break
+
+                # Check for description column
+                for pattern in self.DESCRIPTION_PATTERNS:
+                    if pattern.lower() in cell_str:
+                        columns['description'] = col_idx
+                        break
+
             # Need at least ID and value columns
             if 'id' in columns and 'value' in columns:
                 return row_idx, columns
@@ -307,20 +336,48 @@ class DimensionParser:
             if dim_type == DimensionType.UNKNOWN:
                 dim_type = self._infer_type(raw_value, unit)
 
-            # Set default tolerance based on type
-            if dim_type == DimensionType.ANGLE:
-                tolerance = 0.5  # ±0.5° for angles
-            else:
-                tolerance = self.default_tolerance
+            # Parse tolerance from dedicated column if available
+            tolerance_plus = self.default_tolerance
+            tolerance_minus = self.default_tolerance
+
+            if 'tolerance' in columns:
+                tol_val = row.iloc[columns['tolerance']]
+                if not pd.isna(tol_val):
+                    parsed_tol = self._parse_tolerance(str(tol_val).strip())
+                    if parsed_tol:
+                        tolerance_plus, tolerance_minus = parsed_tol
+
+            # Fallback: Set default tolerance based on type if not specified
+            if tolerance_plus == self.default_tolerance and tolerance_minus == self.default_tolerance:
+                if dim_type == DimensionType.ANGLE:
+                    tolerance_plus = tolerance_minus = 0.5  # ±0.5° for angles
+
+            # Parse axis column if available
+            axis = None
+            if 'axis' in columns:
+                axis_val = row.iloc[columns['axis']]
+                if not pd.isna(axis_val):
+                    axis_str = str(axis_val).strip().upper()
+                    if axis_str in ['X', 'Y', 'Z']:
+                        axis = axis_str
+
+            # Parse description column if available
+            description = ""
+            if 'description' in columns:
+                desc_val = row.iloc[columns['description']]
+                if not pd.isna(desc_val):
+                    description = str(desc_val).strip()
 
             dim = DimensionSpec(
                 dim_id=dim_id,
                 dim_type=dim_type,
                 value=value,
                 unit=unit,
-                tolerance_plus=tolerance,
-                tolerance_minus=tolerance,
+                tolerance_plus=tolerance_plus,
+                tolerance_minus=tolerance_minus,
                 raw_value=raw_value,
+                axis=axis,
+                description=description,
             )
 
             dimensions.append(dim)
@@ -349,11 +406,13 @@ class DimensionParser:
             if match:
                 return float(match.group(1)), "mm"
 
-        # Handle diameter format (Ø12, ∅12, etc.)
-        if value_str.startswith('Ø') or value_str.startswith('∅'):
-            match = re.search(r'[Ø∅]\s*([\d.]+)', value_str)
-            if match:
-                return float(match.group(1)), "mm"
+        # Handle diameter format (Ø12, ∅12, ⌀12, etc.)
+        for sym in DIAMETER_SYMBOLS:
+            if value_str.startswith(sym):
+                match = re.search(r'[Ø∅⌀]\s*([\d.]+)', value_str)
+                if match:
+                    return float(match.group(1)), "mm"
+                break
 
         # Handle plain number with optional mm
         match = re.search(r'([\d.]+)\s*(mm)?', value_str)
@@ -361,6 +420,53 @@ class DimensionParser:
             return float(match.group(1)), "mm"
 
         return None, ""
+
+    def _parse_tolerance(self, tol_str: str) -> Optional[Tuple[float, float]]:
+        """
+        Parse tolerance strings like:
+        - "±0.25" → (0.25, 0.25)
+        - "±1°" or "±1◦" → (1.0, 1.0)
+        - "+0.1/-0.2" → (0.1, 0.2)
+        - "0.25" → (0.25, 0.25)
+
+        Returns:
+            Tuple of (tolerance_plus, tolerance_minus) or None if parsing fails
+        """
+        if not tol_str:
+            return None
+
+        tol_str = tol_str.strip()
+
+        # Remove degree symbols if present (tolerance value is still numeric)
+        tol_str = tol_str.replace('°', '').replace('◦', '')
+
+        # Pattern: ±value (symmetric tolerance)
+        match = re.match(r'[±]\s*([\d.]+)', tol_str)
+        if match:
+            val = float(match.group(1))
+            return (val, val)
+
+        # Pattern: +value/-value (asymmetric tolerance)
+        match = re.match(r'\+\s*([\d.]+)\s*/\s*-\s*([\d.]+)', tol_str)
+        if match:
+            plus = float(match.group(1))
+            minus = float(match.group(2))
+            return (plus, minus)
+
+        # Pattern: -value/+value (asymmetric tolerance, reversed order)
+        match = re.match(r'-\s*([\d.]+)\s*/\s*\+\s*([\d.]+)', tol_str)
+        if match:
+            minus = float(match.group(1))
+            plus = float(match.group(2))
+            return (plus, minus)
+
+        # Pattern: plain number (treat as symmetric)
+        match = re.match(r'^([\d.]+)$', tol_str)
+        if match:
+            val = float(match.group(1))
+            return (val, val)
+
+        return None
 
     def _parse_type(self, type_str: str) -> DimensionType:
         """
@@ -392,8 +498,9 @@ class DimensionParser:
         if raw_value.startswith('R'):
             return DimensionType.RADIUS
 
-        if raw_value.startswith('Ø') or raw_value.startswith('∅'):
-            return DimensionType.DIAMETER
+        for sym in DIAMETER_SYMBOLS:
+            if raw_value.startswith(sym):
+                return DimensionType.DIAMETER
 
         # Default to linear
         return DimensionType.LINEAR

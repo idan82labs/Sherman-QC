@@ -140,7 +140,7 @@ export default function DimensionAnalysisPanel({ dimensionAnalysis }: DimensionA
                 </div>
                 <div className="mt-2 grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
                   <div>
-                    <span className="text-dark-500">Expected:</span>
+                    <span className="text-dark-500">Reference ({dim.reference_source ?? 'XLSX'}):</span>
                     <span className="ml-1 text-dark-300">{dim.expected}{getUnit(dim.type)}</span>
                   </div>
                   <div>
@@ -216,7 +216,10 @@ function DimensionRow({ dimension }: { dimension: DimensionComparison }) {
     <tr className="border-b border-dark-700/50 hover:bg-dark-700/30">
       <td className="py-3 pr-4 text-dark-200 font-medium">{dimension.dim_id}</td>
       <td className="py-3 pr-4 text-dark-400 capitalize">{dimension.type}</td>
-      <td className="py-3 pr-4 text-dark-300">{dimension.expected.toFixed(2)}{unit}</td>
+      <td className="py-3 pr-4">
+        <span className="text-dark-300">{dimension.expected.toFixed(2)}{unit}</span>
+        <span className="text-dark-600 text-xs ml-1">({dimension.reference_source ?? 'XLSX'})</span>
+      </td>
       <td className="py-3 pr-4 text-dark-300">
         {dimension.scan_value !== null ? `${dimension.scan_value.toFixed(2)}${unit}` : 'N/A'}
       </td>
@@ -250,9 +253,13 @@ function BendRow({ match }: { match: BendMatchAnalysis }) {
   return (
     <tr className="border-b border-dark-700/50 hover:bg-dark-700/30">
       <td className="py-3 pr-4 text-dark-200 font-medium">{match.dim_id}</td>
-      <td className="py-3 pr-4 text-dark-300">{match.expected.toFixed(1)}°</td>
+      <td className="py-3 pr-4 text-dark-300">
+        {match.expected.toFixed(1)}°
+        <span className="text-dark-600 text-xs ml-1">(XLSX)</span>
+      </td>
       <td className="py-3 pr-4 text-dark-300">
         {detected != null ? `${detected.toFixed(1)}°` : 'N/A'}
+        {detected != null && <span className="text-dark-600 text-xs ml-1">(CAD)</span>}
       </td>
       <td className="py-3 pr-4 text-dark-300">
         {measured != null ? `${measured.toFixed(1)}°` : 'N/A'}
