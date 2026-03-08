@@ -20,6 +20,7 @@ from typing import List, Tuple, Optional, Dict, Any
 from scipy.spatial import KDTree
 from scipy.optimize import least_squares
 import logging
+import warnings
 
 logger = logging.getLogger(__name__)
 
@@ -105,6 +106,7 @@ class BendSpecification:
     # Flange dimensions for matching
     flange1_area: float = 0.0
     flange2_area: float = 0.0
+    bend_form: str = "FOLDED"   # FOLDED | ROLLED
 
     @property
     def bend_line_length(self) -> float:
@@ -123,6 +125,7 @@ class BendSpecification:
             "bend_line_length": round(self.bend_line_length, 2),
             "tolerance_angle": self.tolerance_angle,
             "tolerance_radius": self.tolerance_radius,
+            "bend_form": self.bend_form,
         }
 
 
@@ -139,20 +142,68 @@ class BendMatch:
     # Status
     status: str = "NOT_DETECTED"    # PASS, FAIL, WARNING, NOT_DETECTED
     match_confidence: float = 0.0
+    bend_form: str = "FOLDED"
+
+    # Linear/arc metrics in mm
+    expected_line_length_mm: Optional[float] = None
+    actual_line_length_mm: Optional[float] = None
+    line_length_deviation_mm: Optional[float] = None
+    line_start_deviation_mm: Optional[float] = None
+    line_end_deviation_mm: Optional[float] = None
+    line_center_deviation_mm: Optional[float] = None
+    expected_arc_length_mm: Optional[float] = None
+    actual_arc_length_mm: Optional[float] = None
+    arc_length_deviation_mm: Optional[float] = None
+
+    # Operator-focused targeting
+    issue_location: str = "none"
+    action_item: str = ""
+    observability_state: str = "UNOBSERVED"
+    observability_confidence: float = 0.0
+    observed_surface_count: int = 0
+    local_point_count: int = 0
+    local_evidence_score: float = 0.0
+    measurement_mode: str = "global_detection"
+    measurement_method: Optional[str] = None
+    measurement_context: Dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> Dict[str, Any]:
         return {
             "bend_id": self.cad_bend.bend_id,
+            "bend_form": self.bend_form,
             "target_angle": self.cad_bend.target_angle,
             "measured_angle": self.detected_bend.measured_angle if self.detected_bend else None,
             "angle_deviation": round(self.angle_deviation, 2) if self.detected_bend else None,
             "target_radius": self.cad_bend.target_radius,
             "measured_radius": self.detected_bend.measured_radius if self.detected_bend else None,
             "radius_deviation": round(self.radius_deviation, 3) if self.detected_bend else None,
+            "expected_line_length_mm": round(self.expected_line_length_mm, 3) if self.expected_line_length_mm is not None else None,
+            "actual_line_length_mm": round(self.actual_line_length_mm, 3) if self.actual_line_length_mm is not None else None,
+            "line_length_deviation_mm": round(self.line_length_deviation_mm, 3) if self.line_length_deviation_mm is not None else None,
+            "line_start_deviation_mm": round(self.line_start_deviation_mm, 3) if self.line_start_deviation_mm is not None else None,
+            "line_end_deviation_mm": round(self.line_end_deviation_mm, 3) if self.line_end_deviation_mm is not None else None,
+            "line_center_deviation_mm": round(self.line_center_deviation_mm, 3) if self.line_center_deviation_mm is not None else None,
+            "expected_arc_length_mm": round(self.expected_arc_length_mm, 3) if self.expected_arc_length_mm is not None else None,
+            "actual_arc_length_mm": round(self.actual_arc_length_mm, 3) if self.actual_arc_length_mm is not None else None,
+            "arc_length_deviation_mm": round(self.arc_length_deviation_mm, 3) if self.arc_length_deviation_mm is not None else None,
+            "cad_line_start": self.cad_bend.bend_line_start.tolist(),
+            "cad_line_end": self.cad_bend.bend_line_end.tolist(),
+            "detected_line_start": self.detected_bend.bend_line_start.tolist() if self.detected_bend else None,
+            "detected_line_end": self.detected_bend.bend_line_end.tolist() if self.detected_bend else None,
             "status": self.status,
             "confidence": round(self.match_confidence, 3),
             "tolerance_angle": self.cad_bend.tolerance_angle,
             "tolerance_radius": self.cad_bend.tolerance_radius,
+            "issue_location": self.issue_location,
+            "action_item": self.action_item,
+            "observability_state": self.observability_state,
+            "observability_confidence": round(float(self.observability_confidence or 0.0), 3),
+            "observed_surface_count": int(self.observed_surface_count or 0),
+            "local_point_count": int(self.local_point_count or 0),
+            "local_evidence_score": round(float(self.local_evidence_score or 0.0), 3),
+            "measurement_mode": self.measurement_mode,
+            "measurement_method": self.measurement_method,
+            "measurement_context": self.measurement_context,
         }
 
 
@@ -162,6 +213,7 @@ class BendInspectionReport:
     part_id: str
     matches: List[BendMatch]
     unmatched_detections: List[DetectedBend] = field(default_factory=list)
+    scan_quality: Dict[str, Any] = field(default_factory=dict)
 
     # Summary
     total_cad_bends: int = 0
@@ -169,6 +221,9 @@ class BendInspectionReport:
     pass_count: int = 0
     fail_count: int = 0
     warning_count: int = 0
+    observed_count: int = 0
+    partial_observed_count: int = 0
+    unobserved_count: int = 0
 
     # Timing
     processing_time_ms: float = 0.0
@@ -180,6 +235,19 @@ class BendInspectionReport:
         self.pass_count = sum(1 for m in self.matches if m.status == "PASS")
         self.fail_count = sum(1 for m in self.matches if m.status == "FAIL")
         self.warning_count = sum(1 for m in self.matches if m.status == "WARNING")
+        self.observed_count = sum(
+            1
+            for m in self.matches
+            if str(m.observability_state).upper() in {"OBSERVED_FORMED", "OBSERVED_NOT_FORMED"}
+            or (str(m.status).upper() in {"PASS", "FAIL", "WARNING"} and str(m.observability_state).upper() == "UNOBSERVED")
+        )
+        self.partial_observed_count = sum(1 for m in self.matches if str(m.observability_state).upper() == "PARTIALLY_OBSERVED")
+        self.unobserved_count = sum(
+            1
+            for m in self.matches
+            if str(m.observability_state).upper() == "UNOBSERVED"
+            and str(m.status).upper() == "NOT_DETECTED"
+        )
 
     @property
     def progress_percentage(self) -> float:
@@ -189,6 +257,17 @@ class BendInspectionReport:
 
     def to_dict(self) -> Dict[str, Any]:
         self.compute_summary()
+        concise_actions = []
+        for m in self.matches:
+            if m.status in {"FAIL", "WARNING", "NOT_DETECTED"} and m.action_item:
+                concise_actions.append(
+                    {
+                        "bend_id": m.cad_bend.bend_id,
+                        "status": m.status,
+                        "location": m.issue_location,
+                        "action": m.action_item,
+                    }
+                )
         return {
             "part_id": self.part_id,
             "summary": {
@@ -198,9 +277,18 @@ class BendInspectionReport:
                 "failed": self.fail_count,
                 "warnings": self.warning_count,
                 "progress_pct": round(self.progress_percentage, 1),
+                "completed_bends": self.detected_count,
+                "completed_in_spec": self.pass_count,
+                "completed_out_of_spec": max(0, self.detected_count - self.pass_count),
+                "remaining_bends": max(0, self.total_cad_bends - self.detected_count),
+                "observed_bends": self.observed_count,
+                "partially_observed_bends": self.partial_observed_count,
+                "unobserved_bends": self.unobserved_count,
             },
             "matches": [m.to_dict() for m in self.matches],
             "unmatched_detections": [d.to_dict() for d in self.unmatched_detections],
+            "scan_quality": self.scan_quality,
+            "operator_actions": concise_actions[:8],
             "processing_time_ms": round(self.processing_time_ms, 1),
         }
 
@@ -209,24 +297,51 @@ class BendInspectionReport:
         self.compute_summary()
 
         lines = []
-        lines.append("=" * 75)
+        lines.append("=" * 102)
         lines.append(f"  PROGRESSIVE BEND INSPECTION - {self.part_id}")
-        lines.append("=" * 75)
+        lines.append("=" * 102)
         lines.append("")
         lines.append(f"  Progress: {self.detected_count} of {self.total_cad_bends} bends complete ({self.progress_percentage:.0f}%)")
+        lines.append(
+            f"  In spec: {self.pass_count} | Out of spec: {max(0, self.detected_count - self.pass_count)} | Remaining: {max(0, self.total_cad_bends - self.detected_count)}"
+        )
+        lines.append(
+            f"  Observability: observed {self.observed_count} | partial {self.partial_observed_count} | unobserved {self.unobserved_count}"
+        )
+        if self.scan_quality:
+            status = str(self.scan_quality.get("status", "UNKNOWN"))
+            coverage = self.scan_quality.get("coverage_pct", None)
+            density = self.scan_quality.get("density_pts_per_cm2", None)
+            coverage_txt = f"{coverage:.1f}%" if isinstance(coverage, (int, float)) else "-"
+            density_txt = f"{density:.1f}" if isinstance(density, (int, float)) else "-"
+            lines.append(
+                f"  Scan quality: {status} | coverage {coverage_txt} | density {density_txt} pts/cm^2"
+            )
         lines.append("")
-        lines.append("  " + "-" * 71)
-        lines.append(f"  {'Bend':<6} {'Target':>8} {'Measured':>10} {'Deviation':>10} {'Status':>10}")
-        lines.append("  " + "-" * 71)
+        lines.append("  " + "-" * 98)
+        lines.append(
+            f"  {'Bend':<8} {'Form':<7} {'Target':>8} {'Measured':>10} {'ΔAngle':>9} {'ΔCenter':>10} {'ΔArc':>9} {'Status':>10}"
+        )
+        lines.append("  " + "-" * 98)
 
         for m in self.matches:
             target = f"{m.cad_bend.target_angle:.1f}°"
             if m.detected_bend:
                 measured = f"{m.detected_bend.measured_angle:.1f}°"
                 deviation = f"{m.angle_deviation:+.1f}°"
+                center_dev = (
+                    f"{m.line_center_deviation_mm:+.2f}"
+                    if m.line_center_deviation_mm is not None else "-"
+                )
+                arc_dev = (
+                    f"{m.arc_length_deviation_mm:+.2f}"
+                    if m.arc_length_deviation_mm is not None else "-"
+                )
             else:
                 measured = "-"
                 deviation = "-"
+                center_dev = "-"
+                arc_dev = "-"
 
             status_symbol = {
                 "PASS": "✓ OK",
@@ -235,25 +350,31 @@ class BendInspectionReport:
                 "NOT_DETECTED": "Not yet",
             }.get(m.status, m.status)
 
-            lines.append(f"  {m.cad_bend.bend_id:<6} {target:>8} {measured:>10} {deviation:>10} {status_symbol:>10}")
+            lines.append(
+                f"  {m.cad_bend.bend_id:<8} {m.bend_form:<7} {target:>8} {measured:>10} {deviation:>9} {center_dev:>10} {arc_dev:>9} {status_symbol:>10}"
+            )
 
-        lines.append("  " + "-" * 71)
+        lines.append("  " + "-" * 98)
 
         # Add warnings for failures
         failures = [m for m in self.matches if m.status == "FAIL"]
         if failures:
             lines.append("")
             for m in failures:
-                lines.append(f"  ✗ {m.cad_bend.bend_id}: {abs(m.angle_deviation):.1f}° deviation exceeds ±{m.cad_bend.tolerance_angle}° tolerance")
+                lines.append(
+                    f"  ✗ {m.cad_bend.bend_id}: {m.action_item}"
+                )
 
         warnings = [m for m in self.matches if m.status == "WARNING"]
         if warnings:
             lines.append("")
             for m in warnings:
-                lines.append(f"  ⚠ {m.cad_bend.bend_id}: {abs(m.angle_deviation):.1f}° deviation - approaching tolerance limit")
+                lines.append(
+                    f"  ⚠ {m.cad_bend.bend_id}: {m.action_item}"
+                )
 
         lines.append("")
-        lines.append("=" * 75)
+        lines.append("=" * 102)
 
         return "\n".join(lines)
 
@@ -281,6 +402,13 @@ class BendDetector:
         adaptive_threshold: bool = True,    # Adapt RANSAC threshold to point density
         ransac_confidence: float = 0.99,    # Target probability for RANSAC
         ransac_seed: Optional[int] = 42,    # Seed for reproducibility
+        merge_coplanar_planes: bool = True,
+        coplanar_angle_threshold: float = 4.0,     # degrees
+        coplanar_offset_threshold: float = 1.0,    # mm
+        coplanar_boundary_threshold: float = 3.0,  # mm
+        dedup_merge_threshold: float = 10.0,       # mm
+        dedup_angle_threshold: float = 10.0,       # degrees
+        dedup_direction_threshold: float = 0.96,   # cos(theta)
     ):
         self.ransac_iterations = ransac_iterations
         self.plane_threshold = plane_threshold
@@ -292,6 +420,13 @@ class BendDetector:
         self.adaptive_threshold = adaptive_threshold
         self.ransac_confidence = ransac_confidence
         self._rng = np.random.default_rng(ransac_seed)
+        self.merge_coplanar_planes = merge_coplanar_planes
+        self.coplanar_angle_threshold = coplanar_angle_threshold
+        self.coplanar_offset_threshold = coplanar_offset_threshold
+        self.coplanar_boundary_threshold = coplanar_boundary_threshold
+        self.dedup_merge_threshold = dedup_merge_threshold
+        self.dedup_angle_threshold = dedup_angle_threshold
+        self.dedup_direction_threshold = dedup_direction_threshold
 
     def detect_bends(
         self,
@@ -356,6 +491,11 @@ class BendDetector:
         # Step 1: Segment into planes
         logger.info("Segmenting point cloud into planes...")
         planes = self._segment_planes(points, normals)
+        if self.merge_coplanar_planes and len(planes) > 1:
+            before = len(planes)
+            planes = self._merge_coplanar_planes(planes)
+            if len(planes) != before:
+                logger.info("Merged coplanar planes: %d -> %d", before, len(planes))
         logger.info(f"Found {len(planes)} planar segments")
 
         if len(planes) < 2:
@@ -374,8 +514,15 @@ class BendDetector:
             if bend is not None:
                 bends.append(bend)
 
-        logger.info(f"Detected {len(bends)} bends")
-        return bends
+        merged_bends = self._merge_multiscale_bends(
+            bends,
+            merge_threshold=self.dedup_merge_threshold,
+            angle_threshold=self.dedup_angle_threshold,
+        )
+        logger.info(f"Detected {len(bends)} bends ({len(merged_bends)} after dedup)")
+        for i, bend in enumerate(merged_bends):
+            bend.bend_id = f"B{i+1}"
+        return merged_bends
 
     def _detect_bends_multiscale(
         self,
@@ -434,6 +581,7 @@ class BendDetector:
         self,
         bends: List[DetectedBend],
         merge_threshold: float = 10.0,
+        angle_threshold: float = 10.0,
     ) -> List[DetectedBend]:
         """
         Merge overlapping bends from multi-scale detection.
@@ -464,8 +612,14 @@ class BendDetector:
                 existing_midpoint = (existing.bend_line_start + existing.bend_line_end) / 2
                 distance = np.linalg.norm(midpoint - existing_midpoint)
                 angle_diff = abs(bend.measured_angle - existing.measured_angle)
-
-                if distance < merge_threshold and angle_diff < 10.0:
+                direction_similarity = abs(
+                    float(np.dot(bend.bend_line_direction, existing.bend_line_direction))
+                )
+                if (
+                    distance < merge_threshold
+                    and angle_diff < angle_threshold
+                    and direction_similarity >= self.dedup_direction_threshold
+                ):
                     is_duplicate = True
                     break
 
@@ -473,6 +627,118 @@ class BendDetector:
                 merged.append(bend)
 
         return merged
+
+    def _merge_coplanar_planes(self, planes: List[PlaneSegment]) -> List[PlaneSegment]:
+        """
+        Merge fragmented plane segments that belong to the same physical flange.
+        """
+        n = len(planes)
+        if n <= 1:
+            return planes
+
+        parent = list(range(n))
+
+        def find(i: int) -> int:
+            while parent[i] != i:
+                parent[i] = parent[parent[i]]
+                i = parent[i]
+            return i
+
+        def union(i: int, j: int):
+            ri = find(i)
+            rj = find(j)
+            if ri != rj:
+                parent[rj] = ri
+
+        for i in range(n):
+            for j in range(i + 1, n):
+                if self._planes_coplanar_and_adjacent(planes[i], planes[j]):
+                    union(i, j)
+
+        groups: Dict[int, List[PlaneSegment]] = {}
+        for i, plane in enumerate(planes):
+            groups.setdefault(find(i), []).append(plane)
+
+        merged: List[PlaneSegment] = []
+        next_id = 0
+        for _, group in groups.items():
+            if len(group) == 1:
+                plane = group[0]
+                merged.append(
+                    PlaneSegment(
+                        plane_id=next_id,
+                        normal=plane.normal,
+                        d=plane.d,
+                        centroid=plane.centroid,
+                        points=plane.points,
+                        boundary_points=plane.boundary_points,
+                        area=plane.area,
+                        inlier_count=plane.inlier_count,
+                    )
+                )
+                next_id += 1
+                continue
+            merged_plane = self._rebuild_plane_segment(group, next_id)
+            merged.append(merged_plane)
+            next_id += 1
+
+        return merged
+
+    def _planes_coplanar_and_adjacent(self, p1: PlaneSegment, p2: PlaneSegment) -> bool:
+        cos_angle = abs(float(np.dot(p1.normal, p2.normal)))
+        angle_deg = float(np.degrees(np.arccos(np.clip(cos_angle, -1.0, 1.0))))
+        if angle_deg > self.coplanar_angle_threshold:
+            return False
+
+        # Offset comparison in world coordinates using average absolute distance.
+        c1_to_p2 = abs(float(np.dot(p2.normal, p1.centroid) + p2.d))
+        c2_to_p1 = abs(float(np.dot(p1.normal, p2.centroid) + p1.d))
+        if max(c1_to_p2, c2_to_p1) > self.coplanar_offset_threshold:
+            return False
+
+        if len(p1.boundary_points) == 0 or len(p2.boundary_points) == 0:
+            return False
+
+        tree1 = KDTree(p1.boundary_points)
+        dist12, _ = tree1.query(p2.boundary_points)
+        if np.min(dist12) <= self.coplanar_boundary_threshold:
+            return True
+
+        tree2 = KDTree(p2.boundary_points)
+        dist21, _ = tree2.query(p1.boundary_points)
+        return bool(np.min(dist21) <= self.coplanar_boundary_threshold)
+
+    def _rebuild_plane_segment(self, group: List[PlaneSegment], plane_id: int) -> PlaneSegment:
+        points = np.vstack([p.points for p in group if len(p.points) > 0])
+        if len(points) < 3:
+            ref = group[0]
+            return PlaneSegment(
+                plane_id=plane_id,
+                normal=ref.normal,
+                d=ref.d,
+                centroid=ref.centroid,
+                points=ref.points,
+                boundary_points=ref.boundary_points,
+                area=ref.area,
+                inlier_count=ref.inlier_count,
+            )
+
+        normal, d = self._least_squares_plane(points)
+        centroid = np.mean(points, axis=0)
+        area = self._estimate_area(points)
+        boundary = self._extract_boundary(points)
+
+        inlier_count = int(sum(p.inlier_count for p in group))
+        return PlaneSegment(
+            plane_id=plane_id,
+            normal=normal,
+            d=d,
+            centroid=centroid,
+            points=points,
+            boundary_points=boundary,
+            area=area,
+            inlier_count=inlier_count,
+        )
 
     def _preprocess_point_cloud(
         self,
@@ -748,10 +1014,66 @@ class BendDetector:
 
         return normal, d
 
+    def _circle_from_3_points(
+        self,
+        p1: np.ndarray,
+        p2: np.ndarray,
+        p3: np.ndarray,
+    ) -> Tuple[Optional[np.ndarray], float]:
+        """
+        Compute circumcircle from 3 points in 2D.
+
+        Returns:
+            (center, radius). For collinear/degenerate points, returns (None, 0.0).
+        """
+        p1 = np.asarray(p1, dtype=np.float64).reshape(-1)[:2]
+        p2 = np.asarray(p2, dtype=np.float64).reshape(-1)[:2]
+        p3 = np.asarray(p3, dtype=np.float64).reshape(-1)[:2]
+
+        x1, y1 = p1
+        x2, y2 = p2
+        x3, y3 = p3
+
+        denom = 2.0 * (
+            x1 * (y2 - y3) +
+            x2 * (y3 - y1) +
+            x3 * (y1 - y2)
+        )
+        if abs(denom) < 1e-12:
+            return None, 0.0
+
+        x1_sq = x1 * x1 + y1 * y1
+        x2_sq = x2 * x2 + y2 * y2
+        x3_sq = x3 * x3 + y3 * y3
+
+        ux = (
+            x1_sq * (y2 - y3) +
+            x2_sq * (y3 - y1) +
+            x3_sq * (y1 - y2)
+        ) / denom
+        uy = (
+            x1_sq * (x3 - x2) +
+            x2_sq * (x1 - x3) +
+            x3_sq * (x2 - x1)
+        ) / denom
+
+        center = np.array([ux, uy], dtype=np.float64)
+        radius = float(np.linalg.norm(center - p1))
+
+        if not np.isfinite(radius):
+            return None, 0.0
+
+        return center, radius
+
     def _estimate_area(self, points: np.ndarray) -> float:
         """
         Estimate planar area using convex hull projection.
         """
+        points = np.asarray(points, dtype=np.float64)
+        if points.ndim != 2 or points.shape[1] != 3:
+            return 0.0
+        finite_mask = np.isfinite(points).all(axis=1)
+        points = points[finite_mask]
         if len(points) < 3:
             return 0.0
 
@@ -759,17 +1081,30 @@ class BendDetector:
             # Project to 2D using PCA
             centroid = np.mean(points, axis=0)
             centered = points - centroid
+            scale = np.max(np.abs(centered))
+            if not np.isfinite(scale) or scale < 1e-12:
+                return 0.0
+            normalized = centered / scale
 
-            _, _, Vt = np.linalg.svd(centered)
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore", RuntimeWarning)
+                _, _, Vt = np.linalg.svd(normalized)
+            if not np.isfinite(Vt).all():
+                raise ValueError("Non-finite PCA basis")
 
             # Project onto the two principal axes
-            proj_2d = centered @ Vt[:2].T
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore", RuntimeWarning)
+                with np.errstate(divide="ignore", over="ignore", invalid="ignore", under="ignore"):
+                    proj_2d = normalized @ Vt[:2].T
+            if not np.isfinite(proj_2d).all():
+                raise ValueError("Non-finite projected points")
 
             # Compute convex hull area
             from scipy.spatial import ConvexHull
             if len(proj_2d) >= 3:
                 hull = ConvexHull(proj_2d)
-                return hull.volume  # In 2D, "volume" is area
+                return float(hull.volume * (scale ** 2))  # In 2D, "volume" is area
         except Exception:
             pass
 
@@ -782,6 +1117,11 @@ class BendDetector:
         """
         Extract boundary points of a planar region using alpha shapes concept.
         """
+        points = np.asarray(points, dtype=np.float64)
+        if points.ndim != 2 or points.shape[1] != 3:
+            return np.empty((0, 3), dtype=np.float64)
+        finite_mask = np.isfinite(points).all(axis=1)
+        points = points[finite_mask]
         if len(points) < k:
             return points
 
@@ -789,9 +1129,22 @@ class BendDetector:
             # Project to 2D
             centroid = np.mean(points, axis=0)
             centered = points - centroid
+            scale = np.max(np.abs(centered))
+            if not np.isfinite(scale) or scale < 1e-12:
+                return points[:min(len(points), 50)]
+            normalized = centered / scale
 
-            _, _, Vt = np.linalg.svd(centered)
-            proj_2d = centered @ Vt[:2].T
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore", RuntimeWarning)
+                _, _, Vt = np.linalg.svd(normalized)
+            if not np.isfinite(Vt).all():
+                raise ValueError("Non-finite PCA basis")
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore", RuntimeWarning)
+                with np.errstate(divide="ignore", over="ignore", invalid="ignore", under="ignore"):
+                    proj_2d = normalized @ Vt[:2].T
+            if not np.isfinite(proj_2d).all():
+                raise ValueError("Non-finite projected boundary points")
 
             # Find boundary using convex hull
             from scipy.spatial import ConvexHull
@@ -1211,17 +1564,47 @@ class ProgressiveBendMatcher:
 
     def __init__(
         self,
-        angle_weight: float = 0.5,
-        radius_weight: float = 0.2,
-        length_weight: float = 0.2,
-        area_weight: float = 0.1,
+        angle_weight: float = 0.42,
+        radius_weight: float = 0.15,
+        length_weight: float = 0.14,
+        area_weight: float = 0.04,
+        position_weight: float = 0.25,
         max_angle_diff: float = 15.0,  # Maximum angle difference for matching
+        max_center_offset: float = 40.0,  # mm
+        position_mode: str = "auto",  # auto | enabled | disabled
+        max_match_cost: float = 1.0,
+        recovery_enabled: bool = True,
+        recovery_max_angle_diff: float = 32.0,
+        recovery_max_cost: float = 1.15,
+        recovery_min_confidence: float = 0.40,
+        rolled_radius_threshold: float = 8.0,
+        rolled_min_angle: float = 35.0,
+        line_position_warn_mm: float = 2.5,
+        line_position_fail_mm: float = 5.0,
+        arc_warn_mm: float = 2.5,
+        arc_fail_mm: float = 5.0,
     ):
         self.angle_weight = angle_weight
         self.radius_weight = radius_weight
         self.length_weight = length_weight
         self.area_weight = area_weight
+        self.position_weight = position_weight
         self.max_angle_diff = max_angle_diff
+        self.max_center_offset = max_center_offset
+        self.position_mode = str(position_mode).lower()
+        if self.position_mode not in {"auto", "enabled", "disabled"}:
+            self.position_mode = "auto"
+        self.max_match_cost = max_match_cost
+        self.recovery_enabled = recovery_enabled
+        self.recovery_max_angle_diff = recovery_max_angle_diff
+        self.recovery_max_cost = recovery_max_cost
+        self.recovery_min_confidence = recovery_min_confidence
+        self.rolled_radius_threshold = rolled_radius_threshold
+        self.rolled_min_angle = rolled_min_angle
+        self.line_position_warn_mm = line_position_warn_mm
+        self.line_position_fail_mm = line_position_fail_mm
+        self.arc_warn_mm = arc_warn_mm
+        self.arc_fail_mm = arc_fail_mm
 
     def match(
         self,
@@ -1235,66 +1618,242 @@ class ProgressiveBendMatcher:
         Uses greedy matching based on cost function.
         For more complex cases, could use Hungarian algorithm.
         """
-        matches = []
+        matches: List[Optional[BendMatch]] = [None] * len(cad_bends)
         used_detections = set()
+        use_position_cost = self._should_use_position_cost(detected_bends, cad_bends)
+        unresolved_indices: List[int] = []
 
         # For each CAD bend, find best matching detection
-        for cad_bend in cad_bends:
-            best_match = None
-            best_cost = float('inf')
-            best_detection = None
+        for cad_idx, cad_bend in enumerate(cad_bends):
+            strict = self._select_best_detection(
+                detected_bends=detected_bends,
+                cad_bend=cad_bend,
+                used_detections=used_detections,
+                use_position_cost=use_position_cost,
+                angle_limit=self.max_angle_diff,
+                max_cost=self.max_match_cost,
+                min_confidence=0.0,
+            )
 
-            for i, detected in enumerate(detected_bends):
-                if i in used_detections:
-                    continue
-
-                cost = self._compute_match_cost(detected, cad_bend)
-
-                if cost < best_cost and cost < 1.0:  # 1.0 = maximum acceptable cost
-                    best_cost = cost
-                    best_detection = detected
-                    best_match = i
-
-            if best_match is not None:
-                used_detections.add(best_match)
-
-                # Compute deviations
-                angle_dev = best_detection.measured_angle - cad_bend.target_angle
-                radius_dev = best_detection.measured_radius - cad_bend.target_radius
-
-                # Determine status
-                status = self._determine_status(cad_bend, best_detection)
-
-                matches.append(BendMatch(
+            if strict is not None:
+                det_idx, best_detection, best_cost = strict
+                used_detections.add(det_idx)
+                matches[cad_idx] = self._build_match(
                     cad_bend=cad_bend,
-                    detected_bend=best_detection,
-                    angle_deviation=angle_dev,
-                    radius_deviation=radius_dev,
-                    status=status,
-                    match_confidence=1.0 - best_cost,
-                ))
+                    detected=best_detection,
+                    cost=best_cost,
+                    use_position_cost=use_position_cost,
+                )
             else:
-                # No match found - bend not yet made
-                matches.append(BendMatch(
+                unresolved_indices.append(cad_idx)
+
+        # Recovery pass: allow larger angle deltas to classify severe
+        # out-of-spec bends as completed FAIL/WARNING instead of NOT_DETECTED.
+        if self.recovery_enabled and unresolved_indices:
+            for cad_idx in list(unresolved_indices):
+                cad_bend = cad_bends[cad_idx]
+                recovered = self._select_best_detection(
+                    detected_bends=detected_bends,
+                    cad_bend=cad_bend,
+                    used_detections=used_detections,
+                    use_position_cost=use_position_cost,
+                    angle_limit=self.recovery_max_angle_diff,
+                    max_cost=self.recovery_max_cost,
+                    min_confidence=self.recovery_min_confidence,
+                )
+                if recovered is None:
+                    continue
+                det_idx, best_detection, best_cost = recovered
+                used_detections.add(det_idx)
+                matches[cad_idx] = self._build_match(
+                    cad_bend=cad_bend,
+                    detected=best_detection,
+                    cost=best_cost,
+                    use_position_cost=use_position_cost,
+                )
+
+        for cad_idx, cad_bend in enumerate(cad_bends):
+            if matches[cad_idx] is None:
+                bend_form = self._classify_bend_form(cad_bend, None)
+                matches[cad_idx] = BendMatch(
                     cad_bend=cad_bend,
                     detected_bend=None,
                     status="NOT_DETECTED",
                     match_confidence=0.0,
-                ))
+                    bend_form=bend_form,
+                    expected_line_length_mm=cad_bend.bend_line_length,
+                    expected_arc_length_mm=self._compute_arc_length(cad_bend.target_angle, cad_bend.target_radius),
+                    issue_location="bend_line",
+                    action_item="No scan evidence at this bend location; capture additional coverage before release.",
+                )
 
         # Collect unmatched detections
         unmatched = [d for i, d in enumerate(detected_bends) if i not in used_detections]
 
         report = BendInspectionReport(
             part_id=part_id,
-            matches=matches,
+            matches=[m for m in matches if m is not None],
             unmatched_detections=unmatched,
         )
         report.compute_summary()
 
         return report
 
-    def _compute_match_cost(self, detected: DetectedBend, cad: BendSpecification) -> float:
+    def _select_best_detection(
+        self,
+        detected_bends: List[DetectedBend],
+        cad_bend: BendSpecification,
+        used_detections: set,
+        use_position_cost: bool,
+        angle_limit: float,
+        max_cost: float,
+        min_confidence: float = 0.0,
+    ) -> Optional[Tuple[int, DetectedBend, float]]:
+        best_idx: Optional[int] = None
+        best_det: Optional[DetectedBend] = None
+        best_cost = float("inf")
+        for i, detected in enumerate(detected_bends):
+            if i in used_detections:
+                continue
+            if detected.confidence < min_confidence:
+                continue
+
+            cost = self._compute_match_cost(
+                detected,
+                cad_bend,
+                use_position_cost=use_position_cost,
+                angle_limit=angle_limit,
+            )
+            if cost < best_cost and cost < max_cost:
+                best_cost = cost
+                best_idx = i
+                best_det = detected
+        if best_idx is None or best_det is None:
+            return None
+        return best_idx, best_det, best_cost
+
+    def _build_match(
+        self,
+        cad_bend: BendSpecification,
+        detected: DetectedBend,
+        cost: float,
+        use_position_cost: bool,
+    ) -> BendMatch:
+        angle_dev = detected.measured_angle - cad_bend.target_angle
+        radius_dev = detected.measured_radius - cad_bend.target_radius
+        bend_form = self._classify_bend_form(cad_bend, detected)
+        if use_position_cost:
+            line_metrics = self._compute_line_metrics(cad_bend, detected)
+        else:
+            line_metrics = {
+                "start_dev": None,
+                "end_dev": None,
+                "center_dev": None,
+            }
+        expected_arc_len = self._compute_arc_length(cad_bend.target_angle, cad_bend.target_radius)
+        measured_arc_len = self._compute_arc_length(
+            detected.measured_angle,
+            detected.measured_radius,
+        )
+        arc_dev = measured_arc_len - expected_arc_len
+
+        status = self._determine_status(
+            cad_bend,
+            detected,
+            bend_form=bend_form,
+            line_center_dev=line_metrics["center_dev"],
+            use_line_position=use_position_cost,
+            arc_dev=arc_dev,
+        )
+        issue_location, action_item = self._issue_and_action(
+            status=status,
+            bend_form=bend_form,
+            angle_dev=angle_dev,
+            radius_dev=radius_dev,
+            center_dev=line_metrics["center_dev"],
+            arc_dev=arc_dev,
+        )
+        return BendMatch(
+            cad_bend=cad_bend,
+            detected_bend=detected,
+            angle_deviation=angle_dev,
+            radius_deviation=radius_dev,
+            status=status,
+            match_confidence=max(0.0, min(1.0, 1.0 - cost)),
+            bend_form=bend_form,
+            expected_line_length_mm=cad_bend.bend_line_length,
+            actual_line_length_mm=detected.bend_line_length,
+            line_length_deviation_mm=detected.bend_line_length - cad_bend.bend_line_length,
+            line_start_deviation_mm=line_metrics["start_dev"],
+            line_end_deviation_mm=line_metrics["end_dev"],
+            line_center_deviation_mm=line_metrics["center_dev"],
+            expected_arc_length_mm=expected_arc_len,
+            actual_arc_length_mm=measured_arc_len,
+            arc_length_deviation_mm=arc_dev,
+            issue_location=issue_location,
+            action_item=action_item,
+            observability_state="OBSERVED_FORMED",
+            observability_confidence=max(0.4, min(1.0, detected.confidence)),
+            observed_surface_count=2,
+            local_point_count=max(0, int(getattr(detected, "inlier_count", 0) or 0)),
+            local_evidence_score=max(0.4, min(1.0, detected.confidence)),
+            measurement_mode="global_detection",
+            measurement_method="detected_bend_match",
+            measurement_context={},
+        )
+
+    def _should_use_position_cost(
+        self,
+        detected_bends: List[DetectedBend],
+        cad_bends: List[BendSpecification],
+    ) -> bool:
+        """
+        Decide whether absolute line-position cost is safe to use.
+
+        Many workflows compare non-aligned scans against CAD in arbitrary frames.
+        In those cases, midpoint distance is not physically meaningful and can
+        suppress all matches. `auto` mode only enables position cost when the
+        two sets appear to already share a frame.
+        """
+        if self.position_mode == "enabled":
+            return True
+        if self.position_mode == "disabled":
+            return False
+        if not detected_bends or not cad_bends:
+            return False
+
+        cad_mid = np.asarray(
+            [(b.bend_line_start + b.bend_line_end) / 2.0 for b in cad_bends],
+            dtype=np.float64,
+        )
+        det_mid = np.asarray(
+            [(b.bend_line_start + b.bend_line_end) / 2.0 for b in detected_bends],
+            dtype=np.float64,
+        )
+        if len(cad_mid) == 0 or len(det_mid) == 0:
+            return False
+
+        # Nearest-neighbor midpoint distance CAD<->scan.
+        dists = np.linalg.norm(det_mid[:, None, :] - cad_mid[None, :, :], axis=2)
+        nn = np.min(dists, axis=1)
+        median_nn = float(np.median(nn))
+
+        cad_diag = float(np.linalg.norm(np.max(cad_mid, axis=0) - np.min(cad_mid, axis=0)))
+        if cad_diag < 1e-6:
+            return bool(median_nn <= self.max_center_offset * 2.0)
+
+        # Enable only if midpoint sets are already close in absolute space.
+        return bool(
+            median_nn <= max(self.max_center_offset * 2.0, 0.20 * cad_diag)
+        )
+
+    def _compute_match_cost(
+        self,
+        detected: DetectedBend,
+        cad: BendSpecification,
+        use_position_cost: bool = True,
+        angle_limit: Optional[float] = None,
+    ) -> float:
         """
         Compute cost of matching a detection to a CAD specification.
 
@@ -1302,10 +1861,11 @@ class ProgressiveBendMatcher:
         """
         # Angle difference (normalized by max acceptable diff)
         angle_diff = abs(detected.measured_angle - cad.target_angle)
-        if angle_diff > self.max_angle_diff:
+        max_angle = self.max_angle_diff if angle_limit is None else angle_limit
+        if angle_diff > max_angle:
             return float('inf')  # Reject if angle too different
 
-        angle_cost = angle_diff / self.max_angle_diff
+        angle_cost = angle_diff / max(1e-6, max_angle)
 
         # Radius difference (normalized)
         radius_diff = abs(detected.measured_radius - cad.target_radius)
@@ -1322,27 +1882,183 @@ class ProgressiveBendMatcher:
             det_total = detected.flange1.area + detected.flange2.area
             area_cost = min(1.0, abs(cad_total - det_total) / cad_total)
 
+        # Position consistency (line midpoint distance). This is only valid when
+        # scan/CAD already share the same coordinate frame.
+        if use_position_cost:
+            cad_mid = (cad.bend_line_start + cad.bend_line_end) / 2.0
+            det_mid = (detected.bend_line_start + detected.bend_line_end) / 2.0
+            center_offset = float(np.linalg.norm(cad_mid - det_mid))
+            position_cost = min(1.0, center_offset / max(1.0, self.max_center_offset))
+        else:
+            position_cost = 0.0
+
         total_cost = (
             self.angle_weight * angle_cost +
             self.radius_weight * radius_cost +
             self.length_weight * length_cost +
-            self.area_weight * area_cost
+            self.area_weight * area_cost +
+            self.position_weight * position_cost
         )
 
         return total_cost
 
-    def _determine_status(self, cad: BendSpecification, detected: DetectedBend) -> str:
+    def _determine_status(
+        self,
+        cad: BendSpecification,
+        detected: DetectedBend,
+        bend_form: str,
+        line_center_dev: Optional[float],
+        use_line_position: bool,
+        arc_dev: float,
+    ) -> str:
         """
         Determine pass/fail/warning status.
         """
         angle_dev = abs(detected.measured_angle - cad.target_angle)
+        radius_dev = abs(detected.measured_radius - cad.target_radius)
+        angle_warn = cad.tolerance_angle * 2.0
+        radius_warn = cad.tolerance_radius * 2.0
+        radius_fail = cad.tolerance_radius
 
-        if angle_dev <= cad.tolerance_angle:
+        if bend_form == "ROLLED":
+            line_warn_ok = (not use_line_position) or (
+                line_center_dev is not None and line_center_dev <= self.line_position_warn_mm
+            )
+            line_fail_ok = (not use_line_position) or (
+                line_center_dev is not None and line_center_dev <= cad.tolerance_radius
+            )
+            if (
+                angle_dev <= angle_warn
+                and radius_dev <= radius_warn
+                and abs(arc_dev) <= self.arc_warn_mm
+                and line_warn_ok
+            ):
+                if (
+                    angle_dev <= cad.tolerance_angle
+                    and radius_dev <= radius_fail
+                    and abs(arc_dev) <= cad.tolerance_radius
+                    and line_fail_ok
+                ):
+                    return "PASS"
+                return "WARNING"
+            return "FAIL"
+
+        if angle_dev <= cad.tolerance_angle and (
+            (not use_line_position)
+            or (line_center_dev is not None and line_center_dev <= self.line_position_warn_mm)
+        ):
             return "PASS"
-        elif angle_dev <= cad.tolerance_angle * 2:
+        elif angle_dev <= cad.tolerance_angle * 2 and (
+            (not use_line_position)
+            or (line_center_dev is not None and line_center_dev <= self.line_position_fail_mm)
+        ):
             return "WARNING"
         else:
             return "FAIL"
+
+    def _classify_bend_form(
+        self,
+        cad: BendSpecification,
+        detected: Optional[DetectedBend],
+    ) -> str:
+        if cad.bend_form in {"FOLDED", "ROLLED"}:
+            return cad.bend_form
+        radius = abs(cad.target_radius)
+        angle = abs(cad.target_angle)
+        if detected is not None:
+            radius = max(radius, abs(detected.measured_radius))
+            angle = max(angle, abs(detected.measured_angle))
+        if radius >= self.rolled_radius_threshold and angle >= self.rolled_min_angle:
+            return "ROLLED"
+        return "FOLDED"
+
+    def _compute_arc_length(self, angle_deg: float, radius_mm: float) -> float:
+        if angle_deg <= 0 or radius_mm <= 0:
+            return 0.0
+        return float(np.deg2rad(angle_deg) * radius_mm)
+
+    def _compute_line_metrics(
+        self,
+        cad: BendSpecification,
+        detected: DetectedBend,
+    ) -> Dict[str, float]:
+        # Resolve start/end orientation ambiguity by taking the lower-cost pairing.
+        pair_direct = (
+            float(np.linalg.norm(cad.bend_line_start - detected.bend_line_start)),
+            float(np.linalg.norm(cad.bend_line_end - detected.bend_line_end)),
+        )
+        pair_swapped = (
+            float(np.linalg.norm(cad.bend_line_start - detected.bend_line_end)),
+            float(np.linalg.norm(cad.bend_line_end - detected.bend_line_start)),
+        )
+        if sum(pair_swapped) < sum(pair_direct):
+            start_dev, end_dev = pair_swapped
+        else:
+            start_dev, end_dev = pair_direct
+        cad_mid = (cad.bend_line_start + cad.bend_line_end) / 2.0
+        det_mid = (detected.bend_line_start + detected.bend_line_end) / 2.0
+        center_dev = float(np.linalg.norm(cad_mid - det_mid))
+        return {
+            "start_dev": start_dev,
+            "end_dev": end_dev,
+            "center_dev": center_dev,
+        }
+
+    def _issue_and_action(
+        self,
+        status: str,
+        bend_form: str,
+        angle_dev: float,
+        radius_dev: float,
+        center_dev: Optional[float],
+        arc_dev: float,
+    ) -> Tuple[str, str]:
+        if status == "NOT_DETECTED":
+            return (
+                "bend_line",
+                "No scan evidence at this bend location; acquire scan coverage and re-run inspection.",
+            )
+        if status == "PASS":
+            return ("none", "Within tolerance. No corrective action required.")
+
+        metric_map = {
+            "angle": abs(angle_dev),
+            "radius": abs(radius_dev),
+            "line_center": abs(center_dev) if center_dev is not None else 0.0,
+            "arc": abs(arc_dev),
+        }
+        dominant = max(metric_map, key=metric_map.get)
+
+        if bend_form == "ROLLED":
+            if dominant in {"arc", "radius"}:
+                return (
+                    "rolled_arc",
+                    "Adjust rolling radius setup (tooling pressure / pass count) and verify arc length in mm.",
+                )
+            if dominant == "line_center":
+                return (
+                    "bend_line_center",
+                    "Re-fixture before rolling; centerline offset is high relative to CAD.",
+                )
+            return (
+                "angle",
+                "Correct roll progression/over-rolling to bring angle back to nominal.",
+            )
+
+        if dominant == "line_center":
+            return (
+                "bend_line_center",
+                "Re-fixture and re-check datum alignment; bend location offset is out of tolerance.",
+            )
+        if dominant == "radius":
+            return (
+                "bend_radius",
+                "Adjust punch/die radius setup and re-measure radius deviation.",
+            )
+        return (
+            "bend_angle",
+            "Adjust bend angle compensation (springback/overbend) and re-run first-off check.",
+        )
 
 
 class CADBendExtractor:
@@ -1360,12 +2076,28 @@ class CADBendExtractor:
         default_tolerance_angle: float = 1.0,
         default_tolerance_radius: float = 0.5,
         default_bend_radius: float = 3.0,
+        rolled_radius_threshold: float = 8.0,
+        rolled_min_angle: float = 35.0,
+        rolled_merge_direction_similarity: float = 0.97,
+        rolled_merge_line_distance: float = 8.0,
+        rolled_merge_midpoint_distance: float = 22.0,
+        rolled_merge_angle_diff: float = 14.0,
+        detector_kwargs: Optional[Dict[str, Any]] = None,
+        detect_call_kwargs: Optional[Dict[str, Any]] = None,
     ):
         self.min_bend_angle = min_bend_angle
         self.max_bend_angle = max_bend_angle
         self.default_tolerance_angle = default_tolerance_angle
         self.default_tolerance_radius = default_tolerance_radius
         self.default_bend_radius = default_bend_radius
+        self.rolled_radius_threshold = rolled_radius_threshold
+        self.rolled_min_angle = rolled_min_angle
+        self.rolled_merge_direction_similarity = rolled_merge_direction_similarity
+        self.rolled_merge_line_distance = rolled_merge_line_distance
+        self.rolled_merge_midpoint_distance = rolled_merge_midpoint_distance
+        self.rolled_merge_angle_diff = rolled_merge_angle_diff
+        self.detector_kwargs = detector_kwargs or {}
+        self.detect_call_kwargs = detect_call_kwargs or {}
 
     def extract_from_mesh(self, vertices: np.ndarray, faces: np.ndarray) -> List[BendSpecification]:
         """
@@ -1374,22 +2106,28 @@ class CADBendExtractor:
         Uses similar approach to BendDetector but on dense mesh vertices.
         """
         # Use BendDetector on mesh vertices
-        detector = BendDetector(
-            min_plane_points=50,
-            min_plane_area=20.0,
-            min_bend_angle=self.min_bend_angle,
-            max_bend_angle=self.max_bend_angle,
-        )
+        detector_kwargs = {
+            "min_plane_points": 50,
+            "min_plane_area": 20.0,
+            "min_bend_angle": self.min_bend_angle,
+            "max_bend_angle": self.max_bend_angle,
+        }
+        detector_kwargs.update(self.detector_kwargs)
+        detector = BendDetector(**detector_kwargs)
 
-        detected = detector.detect_bends(vertices)
+        detect_call_kwargs = {"preprocess": True}
+        detect_call_kwargs.update(self.detect_call_kwargs)
+        detected = detector.detect_bends(vertices, **detect_call_kwargs)
 
         # Convert detected bends to specifications
         specs = []
         for i, d in enumerate(detected):
+            target_radius = d.measured_radius if d.measured_radius > 0.5 else self.default_bend_radius
+            bend_form = self._classify_form(d.measured_angle, target_radius)
             spec = BendSpecification(
                 bend_id=f"CAD_B{i+1}",
                 target_angle=d.measured_angle,
-                target_radius=d.measured_radius if d.measured_radius > 0.5 else self.default_bend_radius,
+                target_radius=target_radius,
                 bend_line_start=d.bend_line_start,
                 bend_line_end=d.bend_line_end,
                 tolerance_angle=self.default_tolerance_angle,
@@ -1398,8 +2136,13 @@ class CADBendExtractor:
                 flange2_normal=d.flange2.normal,
                 flange1_area=d.flange1.area,
                 flange2_area=d.flange2.area,
+                bend_form=bend_form,
             )
             specs.append(spec)
+
+        specs = self._merge_rolled_specs(specs)
+        for i, spec in enumerate(specs):
+            spec.bend_id = f"CAD_B{i+1}"
 
         return specs
 
@@ -1418,3 +2161,114 @@ class CADBendExtractor:
         faces = np.asarray(mesh.triangles)
 
         return self.extract_from_mesh(vertices, faces)
+
+    def _classify_form(self, angle_deg: float, radius_mm: float) -> str:
+        if (
+            abs(radius_mm) >= self.rolled_radius_threshold
+            and abs(angle_deg) >= self.rolled_min_angle
+        ):
+            return "ROLLED"
+        return "FOLDED"
+
+    def _line_distance(
+        self,
+        start_a: np.ndarray,
+        end_a: np.ndarray,
+        start_b: np.ndarray,
+        end_b: np.ndarray,
+    ) -> float:
+        # Approximate distance between bend lines using midpoint + endpoint proximity.
+        mid_a = (start_a + end_a) / 2.0
+        mid_b = (start_b + end_b) / 2.0
+        midpoint_dist = float(np.linalg.norm(mid_a - mid_b))
+        end_min = min(
+            float(np.linalg.norm(start_a - start_b)),
+            float(np.linalg.norm(start_a - end_b)),
+            float(np.linalg.norm(end_a - start_b)),
+            float(np.linalg.norm(end_a - end_b)),
+        )
+        return min(midpoint_dist, end_min)
+
+    def _merge_rolled_specs(self, specs: List[BendSpecification]) -> List[BendSpecification]:
+        if len(specs) <= 1:
+            return specs
+
+        remaining = list(specs)
+        merged: List[BendSpecification] = []
+
+        while remaining:
+            seed = remaining.pop(0)
+            if seed.bend_form != "ROLLED":
+                merged.append(seed)
+                continue
+
+            cluster = [seed]
+            keep: List[BendSpecification] = []
+            seed_dir = seed.bend_line_direction
+            seed_mid = (seed.bend_line_start + seed.bend_line_end) / 2.0
+
+            for cand in remaining:
+                if cand.bend_form != "ROLLED":
+                    keep.append(cand)
+                    continue
+                dir_sim = abs(float(np.dot(seed_dir, cand.bend_line_direction)))
+                if dir_sim < self.rolled_merge_direction_similarity:
+                    keep.append(cand)
+                    continue
+                if abs(cand.target_angle - seed.target_angle) > self.rolled_merge_angle_diff:
+                    keep.append(cand)
+                    continue
+
+                cand_mid = (cand.bend_line_start + cand.bend_line_end) / 2.0
+                midpoint_dist = float(np.linalg.norm(seed_mid - cand_mid))
+                if midpoint_dist > self.rolled_merge_midpoint_distance:
+                    keep.append(cand)
+                    continue
+
+                line_dist = self._line_distance(
+                    seed.bend_line_start,
+                    seed.bend_line_end,
+                    cand.bend_line_start,
+                    cand.bend_line_end,
+                )
+                if line_dist > self.rolled_merge_line_distance:
+                    keep.append(cand)
+                    continue
+
+                cluster.append(cand)
+
+            remaining = keep
+            if len(cluster) == 1:
+                merged.append(seed)
+                continue
+            merged.append(self._merge_spec_cluster(cluster))
+
+        return merged
+
+    def _merge_spec_cluster(self, cluster: List[BendSpecification]) -> BendSpecification:
+        ref = cluster[0]
+        direction = ref.bend_line_direction
+        points = np.array([p for s in cluster for p in (s.bend_line_start, s.bend_line_end)])
+        projections = np.dot(points, direction)
+        start = points[int(np.argmin(projections))]
+        end = points[int(np.argmax(projections))]
+
+        target_angle = float(np.mean([s.target_angle for s in cluster]))
+        target_radius = float(np.mean([s.target_radius for s in cluster]))
+        flange1_area = float(sum(s.flange1_area for s in cluster))
+        flange2_area = float(sum(s.flange2_area for s in cluster))
+
+        return BendSpecification(
+            bend_id=ref.bend_id,
+            target_angle=target_angle,
+            target_radius=target_radius,
+            bend_line_start=start,
+            bend_line_end=end,
+            tolerance_angle=ref.tolerance_angle,
+            tolerance_radius=ref.tolerance_radius,
+            flange1_normal=ref.flange1_normal,
+            flange2_normal=ref.flange2_normal,
+            flange1_area=flange1_area,
+            flange2_area=flange2_area,
+            bend_form="ROLLED",
+        )
