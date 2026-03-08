@@ -791,6 +791,109 @@ def test_run_progressive_bend_inspection_uses_dense_local_refinement(monkeypatch
     assert any("Dense-scan local refinement promoted over primary global detection" in w for w in details.warnings)
 
 
+def test_choose_mesh_cad_baseline_prefers_spec_hint_when_coverage_equal_but_count_gap_smaller():
+    detector_specs = [
+        _make_spec("B1", angle=90.0),
+        _make_spec("B2", angle=90.0),
+        _make_spec("B3", angle=90.0),
+        _make_spec("B4", angle=90.0),
+    ]
+    legacy_specs = [_make_spec("L1", angle=90.0)]
+
+    selected, strategy = pipeline._choose_mesh_cad_baseline_specs(
+        detector_specs=detector_specs,
+        legacy_specs=legacy_specs,
+        expected_bend_count_hint=None,
+        spec_bend_angles_hint=[90.0],
+        spec_schedule_type="complete_or_near_complete",
+    )
+
+    assert strategy == "legacy_mesh_spec_hint"
+    assert len(selected) == 1
+
+
+def test_choose_mesh_cad_baseline_prefers_spec_hint_when_matches_improve():
+    detector_specs = [
+        _make_spec("B1", angle=90.0),
+        _make_spec("B2", angle=125.0),
+    ]
+    legacy_specs = [_make_spec("L1", angle=90.0)]
+
+    selected, strategy = pipeline._choose_mesh_cad_baseline_specs(
+        detector_specs=detector_specs,
+        legacy_specs=legacy_specs,
+        expected_bend_count_hint=None,
+        spec_bend_angles_hint=[90.0, 125.0],
+        spec_schedule_type="complete_or_near_complete",
+    )
+
+    assert strategy == "detector_mesh_spec_hint"
+    assert len(selected) == 2
+
+
+def test_choose_mesh_cad_baseline_ignores_mixed_section_callouts_for_strong_spec_selection():
+    detector_specs = [
+        _make_spec("B1", angle=90.0),
+        _make_spec("B2", angle=125.0),
+    ]
+    legacy_specs = [_make_spec("L1", angle=90.0)]
+
+    selected, strategy = pipeline._choose_mesh_cad_baseline_specs(
+        detector_specs=detector_specs,
+        legacy_specs=legacy_specs,
+        expected_bend_count_hint=None,
+        spec_bend_angles_hint=[90.0],
+        spec_schedule_type="mixed_section_callouts",
+    )
+
+    assert strategy == "detector_mesh"
+    assert len(selected) == 2
+
+
+def test_choose_mesh_cad_baseline_uses_partial_schedule_only_as_compactness_hint():
+    detector_specs = [
+        _make_spec("B1", angle=90.0),
+        _make_spec("B2", angle=125.0),
+    ]
+    legacy_specs = [
+        _make_spec("L1", angle=90.0),
+        _make_spec("L2", angle=90.0),
+        _make_spec("L3", angle=90.0),
+        _make_spec("L4", angle=125.0),
+    ]
+
+    selected, strategy = pipeline._choose_mesh_cad_baseline_specs(
+        detector_specs=detector_specs,
+        legacy_specs=legacy_specs,
+        expected_bend_count_hint=None,
+        spec_bend_angles_hint=[90.0, 125.0],
+        spec_schedule_type="partial_angle_schedule",
+    )
+
+    assert strategy == "detector_mesh_partial_schedule_hint"
+    assert len(selected) == 2
+
+
+def test_choose_mesh_cad_baseline_prefers_rolled_profile_detector_when_legacy_explodes_profile():
+    detector_specs = [_make_spec("B1", angle=96.0, radius=12.0, bend_form="ROLLED")]
+    legacy_specs = [
+        _make_spec("L1", angle=90.0, bend_form="FOLDED"),
+        _make_spec("L2", angle=90.0, bend_form="FOLDED"),
+        _make_spec("L3", angle=90.0, bend_form="FOLDED"),
+        _make_spec("L4", angle=125.0, bend_form="FOLDED"),
+    ]
+
+    selected, strategy = pipeline._choose_mesh_cad_baseline_specs(
+        detector_specs=detector_specs,
+        legacy_specs=legacy_specs,
+        expected_bend_count_hint=None,
+        spec_bend_angles_hint=[90.0],
+    )
+
+    assert strategy == "detector_mesh_rolled_profile_hint"
+    assert len(selected) == 1
+
+
 def test_run_progressive_bend_inspection_merges_local_refinement_without_erasing_primary(monkeypatch):
     cad_bends = [_make_spec("B1"), _make_spec("B2"), _make_spec("B3")]
     primary_report = BendInspectionReport(
