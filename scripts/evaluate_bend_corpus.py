@@ -13,6 +13,7 @@ import argparse
 import gc
 import json
 import os
+import subprocess
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
@@ -35,7 +36,7 @@ import sys
 
 sys.path.insert(0, str(ROOT / "backend"))
 
-from bend_inspection_pipeline import load_bend_runtime_config, run_progressive_bend_inspection  # noqa: E402
+from dimension_parser import parse_dimension_file  # noqa: E402
 
 
 def _load_json(path: Path) -> Any:
@@ -94,6 +95,26 @@ def _scan_expectation(
     }
 
 
+def _spec_bend_angles(metadata: Dict[str, Any]) -> List[float]:
+    spec_files = metadata.get("spec_files") or []
+    for spec in spec_files:
+        try:
+            result = parse_dimension_file(spec["path"])
+        except Exception:
+            continue
+        if result.success and result.bend_angles:
+            return [float(dim.value) for dim in result.bend_angles if dim.value is not None]
+    return []
+
+
+def _spec_schedule_type(metadata: Dict[str, Any]) -> Optional[str]:
+    spec_analysis = metadata.get("spec_analysis")
+    if not isinstance(spec_analysis, dict):
+        return None
+    value = str(spec_analysis.get("schedule_type") or "").strip()
+    return value or None
+
+
 def _observability_breakdown(matches: List[Dict[str, Any]]) -> Dict[str, int]:
     counts: Dict[str, int] = {}
     for match in matches:
@@ -107,6 +128,7 @@ def _score_scan(
     expectation: Dict[str, Any],
 ) -> Dict[str, Any]:
     summary = report_dict.get("summary") or {}
+    details = report_dict.get("details") or {}
     completed = int(summary.get("completed_bends") or 0)
     expected_total = expectation.get("expected_total_bends")
     expected_completed = expectation.get("expected_completed_bends")
@@ -119,6 +141,8 @@ def _score_scan(
         "observability_breakdown": _observability_breakdown(report_dict.get("matches") or []),
         "expected_total_bends": expected_total,
         "expected_completed_bends": expected_completed,
+        "cad_strategy": details.get("cad_strategy"),
+        "expected_bend_count_used": details.get("expected_bend_count"),
     }
     if expected_total is not None:
         metrics["expected_total_error"] = completed - int(expected_total)
@@ -129,11 +153,66 @@ def _score_scan(
     return metrics
 
 
+CASE_RUNNER = ROOT / "scripts" / "evaluate_bend_case.py"
+
+
+def _run_case_subprocess(
+    *,
+    part_key: str,
+    cad_path: str,
+    scan_path: str,
+    output_json: Path,
+    expectation: Dict[str, Any],
+    spec_bend_angles: List[float],
+    spec_schedule_type: Optional[str],
+    timeout_sec: int,
+) -> Dict[str, Any]:
+    cmd = [
+        "/opt/homebrew/bin/python3.11",
+        str(CASE_RUNNER),
+        "--part-key",
+        part_key,
+        "--cad-path",
+        cad_path,
+        "--scan-path",
+        scan_path,
+        "--output-json",
+        str(output_json),
+        "--state",
+        str(expectation.get("state") or "unknown"),
+        "--expected-total",
+        str(expectation.get("expected_total_bends")),
+        "--expected-completed",
+        str(expectation.get("expected_completed_bends")),
+        "--spec-bend-angles-json",
+        json.dumps(spec_bend_angles),
+        "--spec-schedule-type",
+        str(spec_schedule_type or ""),
+    ]
+    completed = subprocess.run(
+        cmd,
+        capture_output=True,
+        text=True,
+        timeout=max(60, int(timeout_sec)),
+        env=os.environ.copy(),
+        check=False,
+    )
+    if completed.returncode != 0:
+        raise RuntimeError((completed.stderr or completed.stdout or f"case runner exited {completed.returncode}").strip())
+    if not output_json.exists():
+        raise RuntimeError("case runner finished without writing output json")
+    payload = _load_json(output_json)
+    if "summary" in payload and "metrics" not in payload:
+        payload["metrics"] = _score_scan(payload, expectation)
+        output_json.write_text(json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8")
+    return payload
+
+
 def evaluate_part(
     part_record: Dict[str, Any],
     output_dir: Path,
-    runtime_config: Any,
     skip_existing: bool,
+    timeout_sec: int,
 ) -> Tuple[List[Dict[str, Any]], List[str]]:
     metadata_path = Path(part_record["metadata_path"])
     labels_path = Path(part_record["labels_template_path"])
@@ -148,6 +227,8 @@ def evaluate_part(
     cad_path = _preferred_cad_file(metadata)
     if cad_path is None:
         return [], [f"{part_key}: no CAD file available"]
+    spec_bend_angles = _spec_bend_angles(metadata)
+    spec_schedule_type = _spec_schedule_type(metadata)
 
     part_out_dir = output_dir / part_key
     part_out_dir.mkdir(parents=True, exist_ok=True)
@@ -177,28 +258,16 @@ def evaluate_part(
             flush=True,
         )
         try:
-            report, details = run_progressive_bend_inspection(
+            item = _run_case_subprocess(
+                part_key=part_key,
                 cad_path=cad_path,
                 scan_path=scan_path,
-                part_id=part_key,
-                tolerance_angle=1.0,
-                tolerance_radius=0.5,
-                runtime_config=runtime_config,
+                output_json=result_path,
+                expectation=expectation,
+                spec_bend_angles=spec_bend_angles,
+                spec_schedule_type=spec_schedule_type,
+                timeout_sec=timeout_sec,
             )
-            report_dict = report.to_dict()
-            item = {
-                "part_key": part_key,
-                "cad_path": cad_path,
-                "scan_path": scan_path,
-                "scan_name": scan_name,
-                "expectation": expectation,
-                "summary": report_dict.get("summary") or {},
-                "metrics": _score_scan(report_dict, expectation),
-                "details": details.to_dict(),
-                "warnings": details.warnings,
-                "matches": report_dict.get("matches") or [],
-            }
-            result_path.write_text(json.dumps(item, indent=2, ensure_ascii=False), encoding="utf-8")
             scan_results.append(item)
             print(
                 json.dumps(
@@ -289,13 +358,13 @@ def _write_markdown(output_dir: Path, aggregate: Dict[str, Any], all_results: Li
         f"- MAE vs expected completed bends: `{aggregate['mae_vs_expected_completed']}`",
         f"- Full-scan exact completion rate: `{aggregate['full_scan_exact_completion_rate']}`",
         "",
-        "| Part | Scan | State | Completed | In spec | Remaining | Expected total | Expected completed | Observability | Error |",
-        "| --- | --- | --- | ---: | ---: | ---: | ---: | ---: | --- | --- |",
+        "| Part | Scan | State | CAD strategy | Completed | In spec | Remaining | Expected total | Expected completed | Observability | Error |",
+        "| --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | --- | --- |",
     ]
     for item in all_results:
         if "metrics" not in item:
             lines.append(
-                f"| {item['part_key']} | {item['scan_name']} | {item.get('expectation', {}).get('state', '-')} | - | - | - | - | - | - | {item.get('error', 'failed')} |"
+                f"| {item['part_key']} | {item['scan_name']} | {item.get('expectation', {}).get('state', '-')} | - | - | - | - | - | - | - | {item.get('error', 'failed')} |"
             )
             continue
         metrics = item["metrics"]
@@ -308,7 +377,7 @@ def _write_markdown(output_dir: Path, aggregate: Dict[str, Any], all_results: Li
             error_parts.append(f"Δcmp={metrics['expected_completed_error']:+}")
         lines.append(
             f"| {item['part_key']} | {item['scan_name']} | {item.get('expectation', {}).get('state', '-')} | "
-            f"{summary.get('completed_bends', 0)} | {summary.get('completed_in_spec', 0)} | {summary.get('remaining_bends', 0)} | "
+            f"{metrics.get('cad_strategy', '-') or '-'} | {summary.get('completed_bends', 0)} | {summary.get('completed_in_spec', 0)} | {summary.get('remaining_bends', 0)} | "
             f"{metrics.get('expected_total_bends', '-')} | {metrics.get('expected_completed_bends', '-')} | {observability or '-'} | {'; '.join(error_parts) or '-'} |"
         )
     if warnings_out:
@@ -324,6 +393,7 @@ def main() -> int:
     parser.add_argument("--output", default=None)
     parser.add_argument("--skip-existing", action="store_true")
     parser.add_argument("--part", action="append", default=[])
+    parser.add_argument("--timeout-sec", type=int, default=420)
     args = parser.parse_args()
 
     corpus_root = Path(args.corpus)
@@ -337,7 +407,6 @@ def main() -> int:
     output_dir = Path(args.output) if args.output else (corpus_root / "evaluation" / stamp)
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    runtime_config = load_bend_runtime_config(None)
     warnings_out: List[str] = []
     all_results: List[Dict[str, Any]] = []
 
@@ -345,8 +414,8 @@ def main() -> int:
         scan_results, part_warnings = evaluate_part(
             part_record=part,
             output_dir=output_dir,
-            runtime_config=runtime_config,
             skip_existing=args.skip_existing,
+            timeout_sec=args.timeout_sec,
         )
         all_results.extend(scan_results)
         warnings_out.extend(part_warnings)

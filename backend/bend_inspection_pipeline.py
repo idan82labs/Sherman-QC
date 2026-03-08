@@ -484,10 +484,141 @@ def _build_legacy_mesh_cad_specs(
     return specs
 
 
+def _angle_hint_distance(spec_angle: float, cad_angle: float) -> float:
+    return min(
+        abs(float(cad_angle) - float(spec_angle)),
+        abs((180.0 - float(cad_angle)) - float(spec_angle)),
+    )
+
+
+def _spec_angle_coverage_score(
+    cad_specs: List[BendSpecification],
+    spec_bend_angles_hint: List[float],
+    match_threshold_deg: float = 10.0,
+) -> Tuple[int, float, int]:
+    """
+    Score how well a CAD baseline explains the available spec bend angles.
+
+    Score order:
+    1. More matched spec angles is better.
+    2. Lower mean angle error on matched angles is better.
+    3. Smaller bend-count gap vs available spec hint is better.
+    """
+    hints = [float(v) for v in spec_bend_angles_hint if isinstance(v, (int, float))]
+    if not cad_specs or not hints:
+        return (0, float("inf"), len(cad_specs))
+
+    remaining = list(range(len(cad_specs)))
+    matched_errors: List[float] = []
+    for hint in hints:
+        best_idx: Optional[int] = None
+        best_err = float("inf")
+        for idx in remaining:
+            err = _angle_hint_distance(hint, cad_specs[idx].target_angle)
+            if err < best_err:
+                best_err = err
+                best_idx = idx
+        if best_idx is not None and best_err <= match_threshold_deg:
+            remaining.remove(best_idx)
+            matched_errors.append(best_err)
+
+    mean_err = float(np.mean(matched_errors)) if matched_errors else float("inf")
+    count_gap = abs(len(cad_specs) - len(hints))
+    return (len(matched_errors), mean_err, count_gap)
+
+
+def _spec_score_prefers(
+    candidate_score: Tuple[int, float, int],
+    incumbent_score: Tuple[int, float, int],
+) -> bool:
+    cand_matches, cand_err, cand_gap = candidate_score
+    inc_matches, inc_err, inc_gap = incumbent_score
+    if cand_matches > inc_matches:
+        return True
+    if cand_matches < inc_matches:
+        return False
+    if np.isfinite(cand_err) and np.isfinite(inc_err):
+        if cand_err + 1.0 < inc_err:
+            return True
+        if inc_err + 1.0 < cand_err:
+            return False
+    if cand_gap + 2 < inc_gap:
+        return True
+    return False
+
+
+def _normalize_spec_schedule_type(spec_schedule_type: Optional[str]) -> str:
+    value = str(spec_schedule_type or "").strip().lower()
+    if not value:
+        return "unknown"
+    return value
+
+
+def _spec_schedule_uses_strong_angle_matching(spec_schedule_type: Optional[str]) -> bool:
+    return _normalize_spec_schedule_type(spec_schedule_type) == "complete_or_near_complete"
+
+
+def _spec_schedule_uses_compactness_hint(spec_schedule_type: Optional[str]) -> bool:
+    return _normalize_spec_schedule_type(spec_schedule_type) == "partial_angle_schedule"
+
+
+def _rolled_profile_guard(
+    detector_specs: List[BendSpecification],
+    legacy_specs: List[BendSpecification],
+    spec_bend_angles_hint: Optional[List[float]] = None,
+) -> bool:
+    """
+    Prefer the detector baseline when it represents a rounded/rolled profile
+    and the legacy mesh path explodes that profile into many folded pseudo-bends.
+    """
+    if not detector_specs or not legacy_specs:
+        return False
+
+    detector_rolled_ratio = float(
+        sum(1 for s in detector_specs if str(s.bend_form).upper() == "ROLLED")
+    ) / max(1, len(detector_specs))
+    legacy_rolled_ratio = float(
+        sum(1 for s in legacy_specs if str(s.bend_form).upper() == "ROLLED")
+    ) / max(1, len(legacy_specs))
+
+    if detector_rolled_ratio < 0.80:
+        return False
+    if legacy_rolled_ratio > 0.25:
+        return False
+    if len(legacy_specs) < len(detector_specs) + 2:
+        return False
+
+    hint_angles = [float(v) for v in (spec_bend_angles_hint or []) if isinstance(v, (int, float))]
+    acute_hint_ratio = (
+        float(sum(1 for angle in hint_angles if angle < 90.0)) / len(hint_angles)
+        if hint_angles else 0.0
+    )
+    detector_score = _spec_angle_coverage_score(detector_specs, hint_angles) if hint_angles else (0, float("inf"), len(detector_specs))
+    legacy_score = _spec_angle_coverage_score(legacy_specs, hint_angles) if hint_angles else (0, float("inf"), len(legacy_specs))
+
+    # Rolled parts often have section/callout angles rather than full bend schedules.
+    # If the detector baseline is compact and rolled while the legacy path expands
+    # into many folded pseudo-bends, keep the detector unless the legacy path
+    # materially explains more of the spec angles.
+    detector_matches, _, _ = detector_score
+    legacy_matches, _, _ = legacy_score
+    if legacy_matches >= detector_matches + 2:
+        return False
+    if hint_angles and acute_hint_ratio >= 0.35:
+        return True
+    if len(detector_specs) <= 2 and len(legacy_specs) >= max(4, len(detector_specs) * 3):
+        return True
+    if len(legacy_specs) >= len(detector_specs) * 2:
+        return True
+    return False
+
+
 def _choose_mesh_cad_baseline_specs(
     detector_specs: List[BendSpecification],
     legacy_specs: List[BendSpecification],
     expected_bend_count_hint: Optional[int] = None,
+    spec_bend_angles_hint: Optional[List[float]] = None,
+    spec_schedule_type: Optional[str] = None,
 ) -> Tuple[List[BendSpecification], str]:
     """
     Choose the better CAD bend baseline for triangulated CAD meshes.
@@ -509,6 +640,23 @@ def _choose_mesh_cad_baseline_specs(
             return legacy_specs, "legacy_mesh_expected_hint"
         if detector_err + 1 < legacy_err:
             return detector_specs, "detector_mesh_expected_hint"
+
+    if _rolled_profile_guard(detector_specs, legacy_specs, spec_bend_angles_hint):
+        return detector_specs, "detector_mesh_rolled_profile_hint"
+
+    if spec_bend_angles_hint:
+        detector_score = _spec_angle_coverage_score(detector_specs, spec_bend_angles_hint)
+        legacy_score = _spec_angle_coverage_score(legacy_specs, spec_bend_angles_hint)
+        if _spec_schedule_uses_strong_angle_matching(spec_schedule_type):
+            if _spec_score_prefers(detector_score, legacy_score):
+                return detector_specs, "detector_mesh_spec_hint"
+            if _spec_score_prefers(legacy_score, detector_score):
+                return legacy_specs, "legacy_mesh_spec_hint"
+        elif _spec_schedule_uses_compactness_hint(spec_schedule_type):
+            detector_matches, _, _ = detector_score
+            legacy_matches, _, _ = legacy_score
+            if detector_matches >= legacy_matches and len(detector_specs) + 2 <= len(legacy_specs):
+                return detector_specs, "detector_mesh_partial_schedule_hint"
 
     detector_rolled_ratio = float(
         sum(1 for s in detector_specs if str(s.bend_form).upper() == "ROLLED")
@@ -549,6 +697,8 @@ def extract_cad_bend_specs_with_strategy(
     cad_detector_kwargs: Optional[Dict[str, Any]] = None,
     cad_detect_call_kwargs: Optional[Dict[str, Any]] = None,
     expected_bend_count_hint: Optional[int] = None,
+    spec_bend_angles_hint: Optional[List[float]] = None,
+    spec_schedule_type: Optional[str] = None,
 ) -> Tuple[List[BendSpecification], str]:
     """
     Extract CAD bend specs and return the selected strategy label.
@@ -580,6 +730,8 @@ def extract_cad_bend_specs_with_strategy(
         detector_specs=detector_specs,
         legacy_specs=legacy_specs,
         expected_bend_count_hint=expected_bend_count_hint,
+        spec_bend_angles_hint=spec_bend_angles_hint,
+        spec_schedule_type=spec_schedule_type,
     )
 
 
@@ -1661,6 +1813,8 @@ def run_progressive_bend_inspection(
     tolerance_angle: float,
     tolerance_radius: float,
     runtime_config: Optional[BendInspectionRuntimeConfig] = None,
+    spec_bend_angles_hint: Optional[List[float]] = None,
+    spec_schedule_type: Optional[str] = None,
 ) -> Tuple[BendInspectionReport, BendInspectionRunDetails]:
     """
     Run the full bend-inspection pipeline and return report + diagnostics.
@@ -1696,6 +1850,8 @@ def run_progressive_bend_inspection(
         cad_detector_kwargs=cfg.cad_detector_kwargs,
         cad_detect_call_kwargs=cfg.cad_detect_call_kwargs,
         expected_bend_count_hint=expected_bend_hint,
+        spec_bend_angles_hint=spec_bend_angles_hint,
+        spec_schedule_type=spec_schedule_type,
     )
     _emit_phase_log(
         f"run_progressive_bend_inspection[{part_id}] extract_cad_bend_specs end "
