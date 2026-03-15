@@ -57,6 +57,8 @@ def main() -> int:
         runtime_config=runtime_config,
         spec_bend_angles_hint=spec_bend_angles,
         spec_schedule_type=(args.spec_schedule_type or None),
+        expected_bend_override=expected_total,
+        scan_state=(args.state or None),
     )
     report_dict = report.to_dict()
     payload: Dict[str, Any] = {

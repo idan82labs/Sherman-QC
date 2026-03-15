@@ -158,8 +158,21 @@ class BendMatch:
     # Operator-focused targeting
     issue_location: str = "none"
     action_item: str = ""
+    physical_completion_state: str = "UNKNOWN"
     observability_state: str = "UNOBSERVED"
     observability_confidence: float = 0.0
+    visibility_score: float = 0.0
+    visibility_score_source: str = "heuristic_v0"
+    surface_visibility_ratio: float = 0.0
+    local_support_score: float = 0.0
+    side_balance_score: float = 0.0
+    assignment_source: str = "NONE"
+    assignment_confidence: float = 0.0
+    assignment_candidate_id: Optional[str] = None
+    assignment_candidate_kind: str = "NONE"
+    assignment_candidate_score: float = 0.0
+    assignment_null_score: float = 0.0
+    assignment_candidate_count: int = 0
     observed_surface_count: int = 0
     local_point_count: int = 0
     local_evidence_score: float = 0.0
@@ -196,8 +209,21 @@ class BendMatch:
             "tolerance_radius": self.cad_bend.tolerance_radius,
             "issue_location": self.issue_location,
             "action_item": self.action_item,
+            "physical_completion_state": self.physical_completion_state,
             "observability_state": self.observability_state,
             "observability_confidence": round(float(self.observability_confidence or 0.0), 3),
+            "visibility_score": round(float(self.visibility_score or 0.0), 3),
+            "visibility_score_source": self.visibility_score_source,
+            "surface_visibility_ratio": round(float(self.surface_visibility_ratio or 0.0), 3),
+            "local_support_score": round(float(self.local_support_score or 0.0), 3),
+            "side_balance_score": round(float(self.side_balance_score or 0.0), 3),
+            "assignment_source": self.assignment_source,
+            "assignment_confidence": round(float(self.assignment_confidence or 0.0), 3),
+            "assignment_candidate_id": self.assignment_candidate_id,
+            "assignment_candidate_kind": self.assignment_candidate_kind,
+            "assignment_candidate_score": round(float(self.assignment_candidate_score or 0.0), 3),
+            "assignment_null_score": round(float(self.assignment_null_score or 0.0), 3),
+            "assignment_candidate_count": int(self.assignment_candidate_count or 0),
             "observed_surface_count": int(self.observed_surface_count or 0),
             "local_point_count": int(self.local_point_count or 0),
             "local_evidence_score": round(float(self.local_evidence_score or 0.0), 3),
@@ -1685,6 +1711,13 @@ class ProgressiveBendMatcher:
                     expected_arc_length_mm=self._compute_arc_length(cad_bend.target_angle, cad_bend.target_radius),
                     issue_location="bend_line",
                     action_item="No scan evidence at this bend location; capture additional coverage before release.",
+                    physical_completion_state="UNKNOWN",
+                    assignment_source="NONE",
+                    assignment_confidence=0.0,
+                    assignment_candidate_kind="NONE",
+                    assignment_candidate_score=0.0,
+                    assignment_null_score=1.0,
+                    assignment_candidate_count=0,
                 )
 
         # Collect unmatched detections
@@ -1792,8 +1825,21 @@ class ProgressiveBendMatcher:
             arc_length_deviation_mm=arc_dev,
             issue_location=issue_location,
             action_item=action_item,
+            physical_completion_state="FORMED",
             observability_state="OBSERVED_FORMED",
             observability_confidence=max(0.4, min(1.0, detected.confidence)),
+            visibility_score=max(0.4, min(1.0, detected.confidence)),
+            visibility_score_source="global_detection_confidence_v0",
+            surface_visibility_ratio=1.0,
+            local_support_score=max(0.0, min(1.0, (max(0, int(getattr(detected, "inlier_count", 0) or 0)) / 160.0))),
+            side_balance_score=1.0,
+            assignment_source="GLOBAL_DETECTION",
+            assignment_confidence=max(0.4, min(1.0, detected.confidence)),
+            assignment_candidate_id=str(detected.bend_id),
+            assignment_candidate_kind="GLOBAL_DETECTION",
+            assignment_candidate_score=max(0.4, min(1.0, detected.confidence)),
+            assignment_null_score=max(0.0, min(1.0, 1.0 - max(0.4, min(1.0, detected.confidence)))),
+            assignment_candidate_count=1,
             observed_surface_count=2,
             local_point_count=max(0, int(getattr(detected, "inlier_count", 0) or 0)),
             local_evidence_score=max(0.4, min(1.0, detected.confidence)),

@@ -1,41 +1,124 @@
 {
-  "generated_at": "2026-03-07T23:43:33.089284",
+  "generated_at": "2026-03-10T18:05:37.579934",
   "source_dir": "/Users/idant/Downloads",
   "corpus_root": "/Users/idant/82Labs/Sherman QC/Full Project/data/bend_corpus",
   "counts": {
-    "parts": 14,
-    "cad_files": 15,
-    "scan_files": 26,
-    "drawing_files": 12,
+    "parts": 15,
+    "cad_files": 16,
+    "scan_files": 29,
+    "drawing_files": 22,
     "spec_files": 5,
-    "ready_regression_parts": 14,
-    "ready_partial_parts": 6,
-    "ready_full_parts": 10,
-    "needs_confirmation_parts": 9
+    "ready_regression_parts": 15,
+    "ready_partial_parts": 7,
+    "ready_full_parts": 11,
+    "needs_confirmation_parts": 12
   },
   "parts": [
     {
-      "part_key": "11979003",
-      "expected_bends_override": null,
-      "seed_notes": null,
-      "cad_count": 2,
+      "part_key": "10839000",
+      "expected_bends_override": 10,
+      "seed_notes": "User confirmed the STP is the CAD reference, scan_1 and scan_2 are intermediate bending stages, and full_scan is after all bends are completed. Technical drawing provided separately. Technical drawing provided separately.",
+      "cad_count": 1,
       "scan_count": 3,
-      "partial_scan_count": 1,
-      "full_scan_count": 2,
-      "drawing_count": 0,
+      "partial_scan_count": 2,
+      "full_scan_count": 1,
+      "drawing_count": 1,
       "spec_count": 0,
       "readiness": {
         "ready_regression": true,
         "ready_partial_regression": true,
         "ready_full_regression": true,
-        "has_drawings": false,
+        "has_drawings": true,
         "has_specs": false,
-        "known_expected_bends": false,
+        "known_expected_bends": true,
         "needs_confirmation": true,
         "reasons": [
-          "no drawing linked",
           "no spec sheet linked",
-          "unknown expected bend count"
+          "partial scan completed bend count unknown"
+        ]
+      },
+      "cad_files": [
+        {
+          "name": "10839000_01.stp",
+          "path": "/Users/idant/Downloads/10839000/10839000_01.stp",
+          "mtime": "2026-03-08T15:31:34",
+          "size_bytes": 216346
+        }
+      ],
+      "scan_files": [
+        {
+          "name": "10839000_01_full_scan.ply",
+          "path": "/Users/idant/Downloads/10839000/10839000_01_full_scan.ply",
+          "state": "full",
+          "kind": "full_or_final",
+          "sequence": 95,
+          "sequence_confident": true,
+          "mtime": "2026-03-08T15:27:48",
+          "size_bytes": 42834991
+        },
+        {
+          "name": "10839000_01_scan_1.ply",
+          "path": "/Users/idant/Downloads/10839000/10839000_01_scan_1.ply",
+          "state": "partial",
+          "kind": "partial",
+          "sequence": 1,
+          "sequence_confident": true,
+          "mtime": "2026-03-08T15:36:44",
+          "size_bytes": 41757123
+        },
+        {
+          "name": "10839000_01_scan_2.ply",
+          "path": "/Users/idant/Downloads/10839000/10839000_01_scan_2.ply",
+          "state": "partial",
+          "kind": "partial",
+          "sequence": 2,
+          "sequence_confident": true,
+          "mtime": "2026-03-08T16:04:24",
+          "size_bytes": 40735897
+        }
+      ],
+      "drawing_files": [
+        {
+          "name": "שרטוט 10839000.pdf",
+          "path": "/Users/idant/Downloads/שרטוט 10839000.pdf",
+          "mtime": "2026-03-09T09:44:24.128286",
+          "size_bytes": 159975
+        }
+      ],
+      "spec_files": [],
+      "user_truth": {
+        "source": "user_message_2026-03-09",
+        "expected_total_bends": 10,
+        "cad_model": "10839000_01.stp",
+        "technical_drawing": "שרטוט 10839000.pdf",
+        "scan_stages": {
+          "10839000_01_scan_1.ply": "partial_stage_1",
+          "10839000_01_scan_2.ply": "partial_stage_2",
+          "10839000_01_full_scan.ply": "full_complete"
+        }
+      }
+    },
+    {
+      "part_key": "11979003",
+      "expected_bends_override": 7,
+      "seed_notes": null,
+      "cad_count": 2,
+      "scan_count": 3,
+      "partial_scan_count": 1,
+      "full_scan_count": 2,
+      "drawing_count": 1,
+      "spec_count": 0,
+      "readiness": {
+        "ready_regression": true,
+        "ready_partial_regression": true,
+        "ready_full_regression": true,
+        "has_drawings": true,
+        "has_specs": false,
+        "known_expected_bends": true,
+        "needs_confirmation": true,
+        "reasons": [
+          "no spec sheet linked",
+          "partial scan completed bend count unknown"
         ]
       },
       "cad_files": [
@@ -84,8 +167,25 @@
           "size_bytes": 24491434
         }
       ],
-      "drawing_files": [],
-      "spec_files": []
+      "drawing_files": [
+        {
+          "name": "שרטוט  11979003.PDF",
+          "path": "/Users/idant/Downloads/שרטוט  11979003.PDF",
+          "mtime": "2026-03-08T14:42:52.365055",
+          "size_bytes": 402793
+        }
+      ],
+      "spec_files": [],
+      "mail_truth": {
+        "part_key": "11979003",
+        "mail_source_xlsx": "/Users/idant/Downloads/נתונים עבור חלקים.xlsx",
+        "expected_total_bends": 7,
+        "expected_bends_note": null,
+        "scan_type_note": "full",
+        "completed_bends_note": "v",
+        "drawing_available_note": "v",
+        "quality_or_comments": null
+      }
     },
     {
       "part_key": "15651004",
@@ -104,8 +204,10 @@
         "has_drawings": true,
         "has_specs": true,
         "known_expected_bends": true,
-        "needs_confirmation": false,
-        "reasons": []
+        "needs_confirmation": true,
+        "reasons": [
+          "partial scan completed bend count unknown"
+        ]
       },
       "cad_files": [
         {
@@ -162,17 +264,44 @@
           "mtime": "2026-02-08T03:16:51.715584",
           "size_bytes": 10297
         }
-      ]
+      ],
+      "spec_analysis": {
+        "spec_file": "/Users/idant/Downloads/15651004_01  מידות.xlsx",
+        "parse_success": true,
+        "dimension_count": 11,
+        "bend_angle_count": 1,
+        "bend_angles_deg": [
+          45.0
+        ],
+        "bend_radius": null,
+        "warnings": [],
+        "cad_strategy_with_spec_hint": "detector_mesh_expected_hint",
+        "cad_bend_count_with_spec_hint": 1,
+        "cad_bend_angles_deg": [
+          90.422
+        ],
+        "cad_spec_coverage": {
+          "matched_count": 0,
+          "unmatched_spec_count": 1,
+          "unmatched_cad_count": 1,
+          "matched": [],
+          "unmatched_spec_angles": [
+            45.0
+          ],
+          "mae_deg": null
+        },
+        "schedule_type": "complete_or_near_complete"
+      }
     },
     {
       "part_key": "37361005",
-      "expected_bends_override": null,
+      "expected_bends_override": 4,
       "seed_notes": null,
       "cad_count": 1,
       "scan_count": 1,
       "partial_scan_count": 0,
       "full_scan_count": 1,
-      "drawing_count": 1,
+      "drawing_count": 2,
       "spec_count": 0,
       "readiness": {
         "ready_regression": true,
@@ -180,11 +309,10 @@
         "ready_full_regression": true,
         "has_drawings": true,
         "has_specs": false,
-        "known_expected_bends": false,
+        "known_expected_bends": true,
         "needs_confirmation": true,
         "reasons": [
-          "no spec sheet linked",
-          "unknown expected bend count"
+          "no spec sheet linked"
         ]
       },
       "cad_files": [
@@ -213,9 +341,25 @@
           "path": "/Users/idant/Downloads/שרטוט  37361005.PDF",
           "mtime": "2026-01-29T21:46:41.606254",
           "size_bytes": 76321
+        },
+        {
+          "name": "שרטוט  37361005 1.PDF",
+          "path": "/Users/idant/Downloads/שרטוט  37361005 1.PDF",
+          "mtime": "2026-03-08T14:42:53.021335",
+          "size_bytes": 76321
         }
       ],
-      "spec_files": []
+      "spec_files": [],
+      "mail_truth": {
+        "part_key": "37361005",
+        "mail_source_xlsx": "/Users/idant/Downloads/נתונים עבור חלקים.xlsx",
+        "expected_total_bends": 4,
+        "expected_bends_note": null,
+        "scan_type_note": "full",
+        "completed_bends_note": "v",
+        "drawing_available_note": "v",
+        "quality_or_comments": null
+      }
     },
     {
       "part_key": "38172000",
@@ -234,10 +378,11 @@
         "has_drawings": false,
         "has_specs": false,
         "known_expected_bends": true,
-        "needs_confirmation": false,
+        "needs_confirmation": true,
         "reasons": [
           "no drawing linked",
-          "no spec sheet linked"
+          "no spec sheet linked",
+          "partial scan completed bend count unknown"
         ]
       },
       "cad_files": [
@@ -290,9 +435,10 @@
         "has_drawings": true,
         "has_specs": false,
         "known_expected_bends": true,
-        "needs_confirmation": false,
+        "needs_confirmation": true,
         "reasons": [
-          "no spec sheet linked"
+          "no spec sheet linked",
+          "partial scan completed bend count unknown"
         ]
       },
       "cad_files": [
@@ -337,26 +483,23 @@
     },
     {
       "part_key": "44211000",
-      "expected_bends_override": null,
+      "expected_bends_override": 1,
       "seed_notes": null,
       "cad_count": 1,
       "scan_count": 2,
       "partial_scan_count": 0,
       "full_scan_count": 2,
-      "drawing_count": 0,
+      "drawing_count": 1,
       "spec_count": 1,
       "readiness": {
         "ready_regression": true,
         "ready_partial_regression": false,
         "ready_full_regression": true,
-        "has_drawings": false,
+        "has_drawings": true,
         "has_specs": true,
-        "known_expected_bends": false,
-        "needs_confirmation": true,
-        "reasons": [
-          "no drawing linked",
-          "unknown expected bend count"
-        ]
+        "known_expected_bends": true,
+        "needs_confirmation": false,
+        "reasons": []
       },
       "cad_files": [
         {
@@ -388,7 +531,14 @@
           "size_bytes": 607784
         }
       ],
-      "drawing_files": [],
+      "drawing_files": [
+        {
+          "name": "שרטוט 44211000.pdf",
+          "path": "/Users/idant/Downloads/שרטוט 44211000.pdf",
+          "mtime": "2026-03-08T14:42:50.236949",
+          "size_bytes": 180047
+        }
+      ],
       "spec_files": [
         {
           "name": "44211000_A   מידות.xlsx",
@@ -396,17 +546,59 @@
           "mtime": "2026-01-29T12:11:07.013162",
           "size_bytes": 10143
         }
-      ]
+      ],
+      "spec_analysis": {
+        "spec_file": "/Users/idant/Downloads/44211000_A   מידות.xlsx",
+        "parse_success": true,
+        "dimension_count": 9,
+        "bend_angle_count": 1,
+        "bend_angles_deg": [
+          125.0
+        ],
+        "bend_radius": 3.0,
+        "warnings": [],
+        "cad_strategy_with_spec_hint": "detector_mesh_rolled_profile_hint",
+        "cad_bend_count_with_spec_hint": 2,
+        "cad_bend_angles_deg": [
+          125.454,
+          164.142
+        ],
+        "cad_spec_coverage": {
+          "matched_count": 1,
+          "unmatched_spec_count": 0,
+          "unmatched_cad_count": 1,
+          "matched": [
+            {
+              "spec_angle": 125.0,
+              "cad_angle": 125.454,
+              "error_deg": 0.454
+            }
+          ],
+          "unmatched_spec_angles": [],
+          "mae_deg": 0.454
+        },
+        "schedule_type": "complete_or_near_complete"
+      },
+      "mail_truth": {
+        "part_key": "44211000",
+        "mail_source_xlsx": "/Users/idant/Downloads/נתונים עבור חלקים.xlsx",
+        "expected_total_bends": 1,
+        "expected_bends_note": null,
+        "scan_type_note": "full",
+        "completed_bends_note": "v",
+        "drawing_available_note": "v",
+        "quality_or_comments": null
+      }
     },
     {
       "part_key": "47266000",
-      "expected_bends_override": null,
+      "expected_bends_override": 1,
       "seed_notes": null,
       "cad_count": 1,
       "scan_count": 2,
       "partial_scan_count": 0,
       "full_scan_count": 2,
-      "drawing_count": 1,
+      "drawing_count": 2,
       "spec_count": 1,
       "readiness": {
         "ready_regression": true,
@@ -414,11 +606,9 @@
         "ready_full_regression": true,
         "has_drawings": true,
         "has_specs": true,
-        "known_expected_bends": false,
-        "needs_confirmation": true,
-        "reasons": [
-          "unknown expected bend count"
-        ]
+        "known_expected_bends": true,
+        "needs_confirmation": false,
+        "reasons": []
       },
       "cad_files": [
         {
@@ -456,6 +646,12 @@
           "path": "/Users/idant/Downloads/שרטוט 47266000.pdf",
           "mtime": "2026-01-29T12:29:51.350776",
           "size_bytes": 276217
+        },
+        {
+          "name": "שרטוט 47266000 1.pdf",
+          "path": "/Users/idant/Downloads/שרטוט 47266000 1.pdf",
+          "mtime": "2026-03-08T14:42:48.971186",
+          "size_bytes": 276217
         }
       ],
       "spec_files": [
@@ -465,7 +661,48 @@
           "mtime": "2026-01-29T12:29:41.956146",
           "size_bytes": 10150
         }
-      ]
+      ],
+      "spec_analysis": {
+        "spec_file": "/Users/idant/Downloads/47266000_F  מידות.xlsx",
+        "parse_success": true,
+        "dimension_count": 9,
+        "bend_angle_count": 1,
+        "bend_angles_deg": [
+          90.0
+        ],
+        "bend_radius": null,
+        "warnings": [],
+        "cad_strategy_with_spec_hint": "detector_mesh_rolled_profile_hint",
+        "cad_bend_count_with_spec_hint": 1,
+        "cad_bend_angles_deg": [
+          96.895
+        ],
+        "cad_spec_coverage": {
+          "matched_count": 1,
+          "unmatched_spec_count": 0,
+          "unmatched_cad_count": 0,
+          "matched": [
+            {
+              "spec_angle": 90.0,
+              "cad_angle": 96.895,
+              "error_deg": 6.895
+            }
+          ],
+          "unmatched_spec_angles": [],
+          "mae_deg": 6.895
+        },
+        "schedule_type": "complete_or_near_complete"
+      },
+      "mail_truth": {
+        "part_key": "47266000",
+        "mail_source_xlsx": "/Users/idant/Downloads/נתונים עבור חלקים.xlsx",
+        "expected_total_bends": 1,
+        "expected_bends_note": null,
+        "scan_type_note": "full",
+        "completed_bends_note": "v",
+        "drawing_available_note": "v",
+        "quality_or_comments": null
+      }
     },
     {
       "part_key": "47479000",
@@ -475,7 +712,7 @@
       "scan_count": 1,
       "partial_scan_count": 0,
       "full_scan_count": 1,
-      "drawing_count": 3,
+      "drawing_count": 4,
       "spec_count": 1,
       "readiness": {
         "ready_regression": true,
@@ -486,7 +723,8 @@
         "known_expected_bends": false,
         "needs_confirmation": true,
         "reasons": [
-          "unknown expected bend count"
+          "unknown expected bend count",
+          "expected bends described qualitatively: חלק מעורגל"
         ]
       },
       "cad_files": [
@@ -527,6 +765,12 @@
           "path": "/Users/idant/Downloads/47479000_C_BALLOONS.PDF",
           "mtime": "2026-02-03T14:51:19.947245",
           "size_bytes": 278355
+        },
+        {
+          "name": "שרטוט 47479000.PDF",
+          "path": "/Users/idant/Downloads/שרטוט 47479000.PDF",
+          "mtime": "2026-03-08T14:42:47.742075",
+          "size_bytes": 252787
         }
       ],
       "spec_files": [
@@ -536,17 +780,108 @@
           "mtime": "2026-02-03T13:54:02.092320",
           "size_bytes": 10761
         }
-      ]
+      ],
+      "spec_analysis": {
+        "spec_file": "/Users/idant/Downloads/מידות   47479000.xlsx",
+        "parse_success": true,
+        "dimension_count": 31,
+        "bend_angle_count": 13,
+        "bend_angles_deg": [
+          178.0,
+          27.2,
+          76.0,
+          45.0,
+          32.0,
+          45.0,
+          32.0,
+          30.0,
+          30.0,
+          16.0,
+          11.5,
+          30.0,
+          16.0
+        ],
+        "bend_radius": null,
+        "warnings": [],
+        "cad_strategy_with_spec_hint": "detector_mesh_rolled_profile_hint",
+        "cad_bend_count_with_spec_hint": 6,
+        "cad_bend_angles_deg": [
+          149.666,
+          145.303,
+          155.144,
+          150.412,
+          156.861,
+          169.682
+        ],
+        "cad_spec_coverage": {
+          "matched_count": 6,
+          "unmatched_spec_count": 7,
+          "unmatched_cad_count": 0,
+          "matched": [
+            {
+              "spec_angle": 178.0,
+              "cad_angle": 169.682,
+              "error_deg": 8.318
+            },
+            {
+              "spec_angle": 27.2,
+              "cad_angle": 155.144,
+              "error_deg": 2.344
+            },
+            {
+              "spec_angle": 32.0,
+              "cad_angle": 149.666,
+              "error_deg": 1.666
+            },
+            {
+              "spec_angle": 32.0,
+              "cad_angle": 150.412,
+              "error_deg": 2.412
+            },
+            {
+              "spec_angle": 30.0,
+              "cad_angle": 145.303,
+              "error_deg": 4.697
+            },
+            {
+              "spec_angle": 30.0,
+              "cad_angle": 156.861,
+              "error_deg": 6.861
+            }
+          ],
+          "unmatched_spec_angles": [
+            76.0,
+            45.0,
+            45.0,
+            16.0,
+            11.5,
+            30.0,
+            16.0
+          ],
+          "mae_deg": 4.383
+        },
+        "schedule_type": "mixed_section_callouts"
+      },
+      "mail_truth": {
+        "part_key": "47479000",
+        "mail_source_xlsx": "/Users/idant/Downloads/נתונים עבור חלקים.xlsx",
+        "expected_total_bends": null,
+        "expected_bends_note": "חלק מעורגל",
+        "scan_type_note": "full",
+        "completed_bends_note": "v",
+        "drawing_available_note": "v",
+        "quality_or_comments": null
+      }
     },
     {
       "part_key": "47959001",
-      "expected_bends_override": null,
+      "expected_bends_override": 6,
       "seed_notes": null,
       "cad_count": 1,
       "scan_count": 1,
       "partial_scan_count": 1,
       "full_scan_count": 0,
-      "drawing_count": 1,
+      "drawing_count": 2,
       "spec_count": 0,
       "readiness": {
         "ready_regression": true,
@@ -554,11 +889,13 @@
         "ready_full_regression": false,
         "has_drawings": true,
         "has_specs": false,
-        "known_expected_bends": false,
+        "known_expected_bends": true,
         "needs_confirmation": true,
         "reasons": [
           "no spec sheet linked",
-          "unknown expected bend count"
+          "partial scan completed bend count unknown",
+          "mail data says full but corpus has no full scan",
+          "mail data indicates both partial and full scans but corpus has fewer than two scans"
         ]
       },
       "cad_files": [
@@ -587,32 +924,46 @@
           "path": "/Users/idant/Downloads/47959001_01PREL.pdf",
           "mtime": "2026-02-08T03:17:35.890457",
           "size_bytes": 85695
+        },
+        {
+          "name": "שרטוט 47959001.pdf",
+          "path": "/Users/idant/Downloads/שרטוט 47959001.pdf",
+          "mtime": "2026-03-08T14:42:45.191719",
+          "size_bytes": 85695
         }
       ],
-      "spec_files": []
+      "spec_files": [],
+      "mail_truth": {
+        "part_key": "47959001",
+        "mail_source_xlsx": "/Users/idant/Downloads/נתונים עבור חלקים.xlsx",
+        "expected_total_bends": 6,
+        "expected_bends_note": null,
+        "scan_type_note": "partial + full  (2 scan files)",
+        "completed_bends_note": "v",
+        "drawing_available_note": "v",
+        "quality_or_comments": null
+      }
     },
     {
       "part_key": "48963008",
-      "expected_bends_override": null,
+      "expected_bends_override": 3,
       "seed_notes": null,
       "cad_count": 1,
       "scan_count": 1,
       "partial_scan_count": 0,
       "full_scan_count": 1,
-      "drawing_count": 0,
+      "drawing_count": 1,
       "spec_count": 0,
       "readiness": {
         "ready_regression": true,
         "ready_partial_regression": false,
         "ready_full_regression": true,
-        "has_drawings": false,
+        "has_drawings": true,
         "has_specs": false,
-        "known_expected_bends": false,
+        "known_expected_bends": true,
         "needs_confirmation": true,
         "reasons": [
-          "no drawing linked",
-          "no spec sheet linked",
-          "unknown expected bend count"
+          "no spec sheet linked"
         ]
       },
       "cad_files": [
@@ -635,8 +986,25 @@
           "size_bytes": 22935195
         }
       ],
-      "drawing_files": [],
-      "spec_files": []
+      "drawing_files": [
+        {
+          "name": "שרטוט 48963008.pdf",
+          "path": "/Users/idant/Downloads/שרטוט 48963008.pdf",
+          "mtime": "2026-03-08T14:42:46.384613",
+          "size_bytes": 159318
+        }
+      ],
+      "spec_files": [],
+      "mail_truth": {
+        "part_key": "48963008",
+        "mail_source_xlsx": "/Users/idant/Downloads/נתונים עבור חלקים.xlsx",
+        "expected_total_bends": 3,
+        "expected_bends_note": null,
+        "scan_type_note": "full",
+        "completed_bends_note": "v",
+        "drawing_available_note": "v",
+        "quality_or_comments": null
+      }
     },
     {
       "part_key": "48991006",
@@ -699,17 +1067,62 @@
           "mtime": "2026-01-25T16:32:09.620682",
           "size_bytes": 9849
         }
-      ]
+      ],
+      "spec_analysis": {
+        "spec_file": "/Users/idant/Downloads/טבלת מידות 48991006.xlsx",
+        "parse_success": true,
+        "dimension_count": 9,
+        "bend_angle_count": 2,
+        "bend_angles_deg": [
+          163.9,
+          106.1
+        ],
+        "bend_radius": 3.0,
+        "warnings": [],
+        "cad_strategy_with_spec_hint": "detector_mesh_expected_hint",
+        "cad_bend_count_with_spec_hint": 9,
+        "cad_bend_angles_deg": [
+          113.313,
+          91.145,
+          91.095,
+          91.522,
+          90.57,
+          90.336,
+          90.045,
+          90.24,
+          156.394
+        ],
+        "cad_spec_coverage": {
+          "matched_count": 2,
+          "unmatched_spec_count": 0,
+          "unmatched_cad_count": 7,
+          "matched": [
+            {
+              "spec_angle": 163.9,
+              "cad_angle": 156.394,
+              "error_deg": 7.506
+            },
+            {
+              "spec_angle": 106.1,
+              "cad_angle": 113.313,
+              "error_deg": 7.213
+            }
+          ],
+          "unmatched_spec_angles": [],
+          "mae_deg": 7.36
+        },
+        "schedule_type": "partial_angle_schedule"
+      }
     },
     {
       "part_key": "49001000",
-      "expected_bends_override": null,
+      "expected_bends_override": 5,
       "seed_notes": null,
       "cad_count": 1,
       "scan_count": 2,
       "partial_scan_count": 2,
       "full_scan_count": 0,
-      "drawing_count": 1,
+      "drawing_count": 2,
       "spec_count": 0,
       "readiness": {
         "ready_regression": true,
@@ -717,11 +1130,12 @@
         "ready_full_regression": false,
         "has_drawings": true,
         "has_specs": false,
-        "known_expected_bends": false,
+        "known_expected_bends": true,
         "needs_confirmation": true,
         "reasons": [
           "no spec sheet linked",
-          "unknown expected bend count"
+          "partial scan completed bend count unknown",
+          "mail data says full but corpus has no full scan"
         ]
       },
       "cad_files": [
@@ -760,32 +1174,46 @@
           "path": "/Users/idant/Downloads/49001000_BALLOONS 1.pdf",
           "mtime": "2026-01-25T15:22:48.593522",
           "size_bytes": 79105
+        },
+        {
+          "name": "שרטוט 49001000.pdf",
+          "path": "/Users/idant/Downloads/שרטוט 49001000.pdf",
+          "mtime": "2026-03-08T14:42:44.046952",
+          "size_bytes": 170615
         }
       ],
-      "spec_files": []
+      "spec_files": [],
+      "mail_truth": {
+        "part_key": "49001000",
+        "mail_source_xlsx": "/Users/idant/Downloads/נתונים עבור חלקים.xlsx",
+        "expected_total_bends": 5,
+        "expected_bends_note": null,
+        "scan_type_note": "full",
+        "completed_bends_note": "v",
+        "drawing_available_note": "v",
+        "quality_or_comments": "חלק לא תקין - כופף בזווית לא נכונה"
+      }
     },
     {
       "part_key": "49024000",
-      "expected_bends_override": null,
+      "expected_bends_override": 4,
       "seed_notes": null,
       "cad_count": 1,
       "scan_count": 2,
       "partial_scan_count": 0,
       "full_scan_count": 2,
-      "drawing_count": 0,
+      "drawing_count": 1,
       "spec_count": 0,
       "readiness": {
         "ready_regression": true,
         "ready_partial_regression": false,
         "ready_full_regression": true,
-        "has_drawings": false,
+        "has_drawings": true,
         "has_specs": false,
-        "known_expected_bends": false,
+        "known_expected_bends": true,
         "needs_confirmation": true,
         "reasons": [
-          "no drawing linked",
-          "no spec sheet linked",
-          "unknown expected bend count"
+          "no spec sheet linked"
         ]
       },
       "cad_files": [
@@ -818,8 +1246,25 @@
           "size_bytes": 4649584
         }
       ],
-      "drawing_files": [],
-      "spec_files": []
+      "drawing_files": [
+        {
+          "name": "שרטוט 49024000.PDF",
+          "path": "/Users/idant/Downloads/שרטוט 49024000.PDF",
+          "mtime": "2026-03-08T14:42:42.312179",
+          "size_bytes": 346288
+        }
+      ],
+      "spec_files": [],
+      "mail_truth": {
+        "part_key": "49024000",
+        "mail_source_xlsx": "/Users/idant/Downloads/נתונים עבור חלקים.xlsx",
+        "expected_total_bends": 4,
+        "expected_bends_note": null,
+        "scan_type_note": "full",
+        "completed_bends_note": "v",
+        "drawing_available_note": "v",
+        "quality_or_comments": null
+      }
     },
     {
       "part_key": "49125000",
@@ -838,7 +1283,7 @@
         "has_drawings": true,
         "has_specs": false,
         "known_expected_bends": true,
-        "needs_confirmation": false,
+        "needs_confirmation": true,
         "reasons": [
           "no spec sheet linked"
         ]

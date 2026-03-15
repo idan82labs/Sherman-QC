@@ -599,8 +599,16 @@ class TestBendInspectionReport:
             cad_bend=cad,
             detected_bend=None,
             status="NOT_DETECTED",
+            physical_completion_state="UNKNOWN",
             observability_state="PARTIALLY_OBSERVED",
             observability_confidence=0.72,
+            visibility_score=0.48,
+            visibility_score_source="heuristic_local_visibility_v0",
+            surface_visibility_ratio=0.5,
+            local_support_score=0.27,
+            side_balance_score=0.18,
+            assignment_source="CAD_LOCAL_NEIGHBORHOOD",
+            assignment_confidence=0.61,
             observed_surface_count=1,
             local_point_count=28,
             local_evidence_score=0.54,
@@ -609,7 +617,12 @@ class TestBendInspectionReport:
             measurement_context={"search_radius_mm": 35.0},
         )
         payload = match.to_dict()
+        assert payload["physical_completion_state"] == "UNKNOWN"
         assert payload["observability_state"] == "PARTIALLY_OBSERVED"
+        assert payload["visibility_score"] == 0.48
+        assert payload["surface_visibility_ratio"] == 0.5
+        assert payload["assignment_source"] == "CAD_LOCAL_NEIGHBORHOOD"
+        assert payload["assignment_confidence"] == 0.61
         assert payload["observed_surface_count"] == 1
         assert payload["measurement_mode"] == "cad_local_neighborhood"
 

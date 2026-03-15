@@ -613,6 +613,86 @@ def _rolled_profile_guard(
     return False
 
 
+def _bend_midpoint(spec: BendSpecification) -> np.ndarray:
+    return 0.5 * (np.asarray(spec.bend_line_start, dtype=np.float64) + np.asarray(spec.bend_line_end, dtype=np.float64))
+
+
+def _bend_direction_alignment(a: BendSpecification, b: BendSpecification) -> float:
+    da = np.asarray(a.bend_line_direction, dtype=np.float64)
+    db = np.asarray(b.bend_line_direction, dtype=np.float64)
+    return float(abs(np.dot(da, db)))
+
+
+def _renumber_cad_specs(specs: List[BendSpecification]) -> List[BendSpecification]:
+    renumbered: List[BendSpecification] = []
+    for idx, spec in enumerate(specs, start=1):
+        clone = copy.deepcopy(spec)
+        clone.bend_id = f"CAD_B{idx}"
+        renumbered.append(clone)
+    return renumbered
+
+
+def _supplement_detector_with_legacy_specs(
+    detector_specs: List[BendSpecification],
+    legacy_specs: List[BendSpecification],
+    expected_bend_count_hint: int,
+) -> List[BendSpecification]:
+    """
+    Recover compact spatially-distinct bends from the legacy mesh path when the
+    detector baseline clearly undercounts against confirmed truth.
+
+    This is intentionally conservative: it only supplements the detector
+    baseline up to the expected count, never replaces it wholesale.
+    """
+    target = int(expected_bend_count_hint)
+    if target <= len(detector_specs) or not legacy_specs:
+        return list(detector_specs)
+
+    selected = [copy.deepcopy(spec) for spec in detector_specs]
+    selected_midpoints = [_bend_midpoint(spec) for spec in selected]
+
+    def _nearest_selected_distance(spec: BendSpecification) -> float:
+        midpoint = _bend_midpoint(spec)
+        if not selected_midpoints:
+            return float("inf")
+        return float(min(np.linalg.norm(midpoint - other) for other in selected_midpoints))
+
+    candidates: List[BendSpecification] = []
+    for spec in legacy_specs:
+        if _nearest_selected_distance(spec) < 28.0:
+            continue
+        if spec.bend_line_length < 14.0:
+            continue
+        candidates.append(copy.deepcopy(spec))
+
+    candidates.sort(
+        key=lambda spec: (
+            min(float(spec.flange1_area), float(spec.flange2_area)),
+            float(spec.bend_line_length),
+            _nearest_selected_distance(spec),
+            -abs(float(spec.target_angle) - 90.0),
+        ),
+        reverse=True,
+    )
+
+    for candidate in candidates:
+        midpoint = _bend_midpoint(candidate)
+        too_close = False
+        for existing in selected:
+            dist = float(np.linalg.norm(midpoint - _bend_midpoint(existing)))
+            if dist < 34.0 and _bend_direction_alignment(candidate, existing) >= 0.97:
+                too_close = True
+                break
+        if too_close:
+            continue
+        selected.append(copy.deepcopy(candidate))
+        selected_midpoints.append(midpoint)
+        if len(selected) >= target:
+            break
+
+    return _renumber_cad_specs(selected)
+
+
 def _choose_mesh_cad_baseline_specs(
     detector_specs: List[BendSpecification],
     legacy_specs: List[BendSpecification],
@@ -638,6 +718,18 @@ def _choose_mesh_cad_baseline_specs(
         legacy_err = abs(len(legacy_specs) - int(expected_bend_count_hint))
         if legacy_err + 1 < detector_err:
             return legacy_specs, "legacy_mesh_expected_hint"
+        if (
+            len(detector_specs) < int(expected_bend_count_hint)
+            and len(legacy_specs) >= int(expected_bend_count_hint)
+            and _rolled_profile_guard(detector_specs, legacy_specs, spec_bend_angles_hint)
+        ):
+            supplemented = _supplement_detector_with_legacy_specs(
+                detector_specs,
+                legacy_specs,
+                int(expected_bend_count_hint),
+            )
+            if len(supplemented) >= min(int(expected_bend_count_hint), len(detector_specs) + 1):
+                return supplemented, "detector_mesh_expected_supplement"
         if detector_err + 1 < legacy_err:
             return detector_specs, "detector_mesh_expected_hint"
 
@@ -1039,11 +1131,29 @@ def _scan_runtime_profile_name(point_count: int, fallback: bool = False) -> Opti
     return None
 
 
+def _scan_runtime_profile_name_for_state(
+    point_count: int,
+    scan_state: Optional[str],
+    *,
+    fallback: bool = False,
+) -> Optional[str]:
+    state = str(scan_state or "").strip().lower()
+    if state == "partial":
+        if point_count >= 650000:
+            return "partial_scan_dense_fallback" if fallback else "partial_scan_dense_primary"
+        if point_count >= 300000:
+            return "partial_scan_medium_fallback" if fallback else "partial_scan_medium_primary"
+        if point_count >= 150000:
+            return "partial_scan_light_fallback" if fallback else "partial_scan_light_primary"
+    return _scan_runtime_profile_name(point_count, fallback=fallback)
+
+
 def _apply_scan_runtime_profile(
     scan_detector_kwargs: Optional[Dict[str, Any]],
     scan_detect_call_kwargs: Optional[Dict[str, Any]],
     point_count: int,
     *,
+    scan_state: Optional[str] = None,
     fallback: bool = False,
 ) -> Tuple[Dict[str, Any], Dict[str, Any], Optional[str]]:
     """
@@ -1055,11 +1165,39 @@ def _apply_scan_runtime_profile(
     """
     ctor = copy.deepcopy(scan_detector_kwargs or {})
     call = copy.deepcopy(scan_detect_call_kwargs or {})
-    profile = _scan_runtime_profile_name(point_count, fallback=fallback)
+    profile = _scan_runtime_profile_name_for_state(point_count, scan_state, fallback=fallback)
     if profile is None:
         return ctor, call, None
 
     call["preprocess"] = True
+    state = str(scan_state or "").strip().lower()
+
+    if state == "partial" and point_count >= 650000:
+        ctor["min_plane_points"] = max(70, int(ctor.get("min_plane_points", 50)))
+        ctor["min_plane_area"] = max(40.0, float(ctor.get("min_plane_area", 30.0)))
+        call["voxel_size"] = max(2.4 if fallback else 2.6, float(call.get("voxel_size", 0.3)))
+        call["outlier_nb_neighbors"] = min(max(8, int(call.get("outlier_nb_neighbors", 20))), 10)
+        call["outlier_std_ratio"] = max(2.7, float(call.get("outlier_std_ratio", 2.0)))
+        call["multiscale"] = False
+        return ctor, call, profile
+
+    if state == "partial" and point_count >= 300000:
+        ctor["min_plane_points"] = max(68, int(ctor.get("min_plane_points", 50)))
+        ctor["min_plane_area"] = max(38.0, float(ctor.get("min_plane_area", 30.0)))
+        call["voxel_size"] = max(2.3 if fallback else 2.45, float(call.get("voxel_size", 0.3)))
+        call["outlier_nb_neighbors"] = min(max(8, int(call.get("outlier_nb_neighbors", 20))), 10)
+        call["outlier_std_ratio"] = max(2.6, float(call.get("outlier_std_ratio", 2.0)))
+        call["multiscale"] = False
+        return ctor, call, profile
+
+    if state == "partial" and point_count >= 150000:
+        ctor["min_plane_points"] = max(62, int(ctor.get("min_plane_points", 50)))
+        ctor["min_plane_area"] = max(35.0, float(ctor.get("min_plane_area", 30.0)))
+        call["voxel_size"] = max(2.1 if fallback else 2.25, float(call.get("voxel_size", 0.3)))
+        call["outlier_nb_neighbors"] = min(max(8, int(call.get("outlier_nb_neighbors", 20))), 10)
+        call["outlier_std_ratio"] = max(2.5, float(call.get("outlier_std_ratio", 2.0)))
+        call["multiscale"] = False
+        return ctor, call, profile
 
     if point_count >= 650000:
         ctor["min_plane_points"] = max(55, int(ctor.get("min_plane_points", 50)))
@@ -1166,7 +1304,11 @@ def _prefer_authoritative_local_absence(
     if local_alignment_fitness is None or float(local_alignment_fitness) < 0.80:
         return False
     candidate_observability = str(getattr(candidate, "observability_state", "")).upper()
-    if candidate_observability not in {"OBSERVED_NOT_FORMED", "PARTIALLY_OBSERVED", "UNOBSERVED"}:
+    # Local absence is only authoritative when the bend neighborhood was
+    # actually observed. An UNOBSERVED local result means lack of coverage,
+    # not proof that the bend is absent, and should not erase a plausible
+    # global detection on partial scans.
+    if candidate_observability not in {"OBSERVED_NOT_FORMED", "PARTIALLY_OBSERVED"}:
         return False
     if _match_has_position_verification(primary):
         return False
@@ -1222,12 +1364,27 @@ def _dense_scan_requires_local_refinement(
     scan_points: np.ndarray,
     report: BendInspectionReport,
     expected_bend_count: int,
+    scan_state: Optional[str] = None,
 ) -> bool:
     """Dense scans should prefer CAD-guided local verification over brute-force fallback."""
-    if len(scan_points) < 550000:
-        return False
+    point_count = int(len(scan_points))
+    state = str(scan_state or "").strip().lower()
     target = max(1, int(expected_bend_count))
-    return int(report.detected_count) < max(1, int(np.ceil(0.75 * target)))
+    detected = int(report.detected_count)
+    if point_count >= 550000 and detected < max(1, int(np.ceil(0.75 * target))):
+        return True
+    gap = max(0, target - detected)
+    if gap == 0:
+        return False
+    # Near-complete dense scans still benefit from local verification when they
+    # are only one or two bends short of the expected baseline.
+    if point_count >= 550000 and gap <= max(2, int(np.ceil(0.15 * target))):
+        return True
+    # Medium-size partial scans can also benefit from CAD-guided local
+    # verification when they materially under-recover bends.
+    if state == "partial" and point_count >= 300000 and detected < max(2, int(np.ceil(0.60 * target))):
+        return True
+    return False
 
 
 def _align_engine_with_retries(
@@ -1339,6 +1496,7 @@ def _local_measurement_observability(
     cad_angle: float,
 ) -> Dict[str, Any]:
     point_count = int(measurement.get("point_count") or 0)
+    nearby_points = int(measurement.get("nearby_points") or point_count)
     side1_points = int(measurement.get("side1_points") or 0)
     side2_points = int(measurement.get("side2_points") or 0)
     observed_surface_count = int(side1_points >= 12) + int(side2_points >= 12)
@@ -1350,13 +1508,32 @@ def _local_measurement_observability(
         if isinstance(value, (int, float))
     ]
     alignment_score = float(sum(alignments) / len(alignments)) if alignments else confidence
-    point_score = min(1.0, point_count / 140.0)
+    support_points = max(point_count, side1_points + side2_points)
+    support_point_count = max(support_points, nearby_points)
+    point_score = min(1.0, support_point_count / 220.0)
+    coverage_score = min(1.0, support_point_count / 90.0)
     surface_score = min(1.0, observed_surface_count / 2.0)
+    expected_surface_count = 2.0
+    surface_visibility_ratio = min(1.0, observed_surface_count / expected_surface_count)
+    side_balance_score = 0.0
+    if max(side1_points, side2_points) > 0:
+        side_balance_score = float(min(side1_points, side2_points) / max(side1_points, side2_points))
     evidence_score = max(
         0.0,
         min(
             1.0,
             0.35 * surface_score + 0.25 * point_score + 0.20 * confidence + 0.20 * alignment_score,
+        ),
+    )
+    visibility_score = max(
+        0.0,
+        min(
+            1.0,
+            0.40 * surface_visibility_ratio
+            + 0.15 * point_score
+            + 0.20 * coverage_score
+            + 0.20 * side_balance_score
+            + 0.15 * alignment_score,
         ),
     )
 
@@ -1374,14 +1551,214 @@ def _local_measurement_observability(
             state = "PARTIALLY_OBSERVED"
     elif observed_surface_count >= 2 or point_count >= 20:
         state = "PARTIALLY_OBSERVED"
+    elif support_point_count >= 40:
+        state = "PARTIALLY_OBSERVED"
 
     return {
         "state": state,
         "confidence": confidence,
         "observed_surface_count": observed_surface_count,
         "point_count": point_count,
+        "support_points": support_points,
+        "support_point_count": support_point_count,
         "evidence_score": evidence_score,
+        "visibility_score": visibility_score,
+        "surface_visibility_ratio": surface_visibility_ratio,
+        "local_support_score": point_score,
+        "side_balance_score": side_balance_score,
+        "visibility_score_source": "heuristic_local_visibility_v0",
     }
+
+
+def _physical_state_from_observability(observability_state: str, success: bool) -> str:
+    state = str(observability_state or "").upper()
+    if state == "OBSERVED_FORMED" and success:
+        return "FORMED"
+    if state == "OBSERVED_NOT_FORMED":
+        return "NOT_FORMED"
+    return "UNKNOWN"
+
+
+def _support_only_measurement(
+    scan_tree: cKDTree,
+    scan_points: np.ndarray,
+    cad_bend: BendSpecification,
+    *,
+    search_radius: float = 35.0,
+    probe_offset: float = 15.0,
+    probe_radius: float = 10.0,
+) -> Dict[str, Any]:
+    center = np.asarray((cad_bend.bend_line_start + cad_bend.bend_line_end) / 2.0, dtype=np.float64)
+    tangent = np.asarray(cad_bend.bend_line_direction, dtype=np.float64)
+    tangent_norm = float(np.linalg.norm(tangent))
+    if tangent_norm > 1e-9:
+        tangent = tangent / tangent_norm
+    n1 = np.asarray(
+        cad_bend.flange1_normal if cad_bend.flange1_normal is not None else np.array([0.0, 1.0, 0.0]),
+        dtype=np.float64,
+    )
+    n2 = np.asarray(
+        cad_bend.flange2_normal if cad_bend.flange2_normal is not None else np.array([0.0, 0.0, 1.0]),
+        dtype=np.float64,
+    )
+    tang1 = np.cross(tangent, n1)
+    tang2 = np.cross(tangent, n2)
+    if float(np.linalg.norm(tang1)) > 1e-9:
+        tang1 = tang1 / np.linalg.norm(tang1)
+    else:
+        tang1 = n1
+    if float(np.linalg.norm(tang2)) > 1e-9:
+        tang2 = tang2 / np.linalg.norm(tang2)
+    else:
+        tang2 = n2
+    if float(np.dot(tang1, tang2)) > 0.0:
+        tang2 = -tang2
+
+    nearby_idx = scan_tree.query_ball_point(center, search_radius)
+    probe1_idx = scan_tree.query_ball_point(center + tang1 * probe_offset, probe_radius)
+    probe2_idx = scan_tree.query_ball_point(center + tang2 * probe_offset, probe_radius)
+    point_count = int(len(nearby_idx))
+    return {
+        "success": False,
+        "measured_angle": None,
+        "measurement_method": "support_only_probe",
+        "measurement_confidence": "very_low",
+        "point_count": point_count,
+        "nearby_points": point_count,
+        "side1_points": int(len(probe1_idx)),
+        "side2_points": int(len(probe2_idx)),
+        "cad_alignment1": None,
+        "cad_alignment2": None,
+    }
+
+
+def _build_local_assignment_candidates(
+    cad_bend: BendSpecification,
+    measurement_entries: List[Dict[str, Any]],
+    *,
+    used_measurements: Optional[set[int]] = None,
+    preferred_idx: Optional[int] = None,
+    distance_limit_mm: float = 45.0,
+    angle_limit_deg: float = 35.0,
+) -> Tuple[List[Dict[str, Any]], Dict[str, Any]]:
+    """Materialize local candidate-or-null assignments for one CAD bend."""
+    used_measurements = used_measurements or set()
+    cad_mid = (cad_bend.bend_line_start + cad_bend.bend_line_end) / 2.0
+    cad_dir = np.asarray(cad_bend.bend_line_direction, dtype=np.float64)
+    candidates: List[Dict[str, Any]] = []
+    best_visibility = 0.0
+    best_evidence = 0.0
+
+    for idx, entry in enumerate(measurement_entries):
+        center = np.asarray(entry.get("center"), dtype=np.float64)
+        center_dist = float(np.linalg.norm(center - cad_mid))
+        cad_angle_gap = abs(float(entry.get("cad_angle") or 0.0) - float(cad_bend.target_angle))
+        if center_dist > distance_limit_mm or cad_angle_gap > angle_limit_deg:
+            continue
+
+        measurement = entry.get("measurement") or {}
+        observability = entry.get("observability") or _local_measurement_observability(
+            measurement,
+            cad_bend.target_angle,
+        )
+        measurement_frame = entry.get("measurement_frame") or _local_bend_frame(
+            entry.get("cad_bend_dict") or {},
+            cad_bend,
+        )
+        tangent = np.asarray(measurement_frame.get("tangent") or cad_dir, dtype=np.float64)
+        tangent_norm = float(np.linalg.norm(tangent))
+        if tangent_norm > 1e-9:
+            tangent = tangent / tangent_norm
+        else:
+            tangent = cad_dir
+        direction_alignment = abs(float(np.dot(cad_dir, tangent)))
+        confidence = _measurement_confidence_score(measurement.get("measurement_confidence"))
+        visibility = float(observability.get("visibility_score") or 0.0)
+        evidence = float(observability.get("evidence_score") or 0.0)
+        used_penalty = 0.18 if idx in used_measurements else 0.0
+        assignment_score = max(
+            0.0,
+            min(
+                1.0,
+                0.30 * max(0.0, 1.0 - (center_dist / max(distance_limit_mm, 1e-6)))
+                + 0.18 * max(0.0, 1.0 - (cad_angle_gap / max(angle_limit_deg, 1e-6)))
+                + 0.18 * visibility
+                + 0.16 * evidence
+                + 0.10 * confidence
+                + 0.08 * direction_alignment
+                - used_penalty,
+            ),
+        )
+        candidate = {
+            "candidate_id": f"local_candidate_{idx}",
+            "candidate_kind": "MEASUREMENT",
+            "measurement_index": idx,
+            "assignment_score": round(float(assignment_score), 4),
+            "center_distance_mm": round(center_dist, 4),
+            "cad_angle_gap_deg": round(cad_angle_gap, 4),
+            "direction_alignment": round(direction_alignment, 4),
+            "visibility_score": round(visibility, 4),
+            "evidence_score": round(evidence, 4),
+            "measurement_confidence_score": round(confidence, 4),
+            "observability_state": observability.get("state"),
+            "physical_completion_state": _physical_state_from_observability(
+                str(observability.get("state") or ""),
+                bool(measurement.get("success")),
+            ),
+            "measurement_success": bool(measurement.get("success")),
+            "measured_angle": (
+                round(float(measurement["measured_angle"]), 4)
+                if measurement.get("measured_angle") is not None
+                else None
+            ),
+            "used_by_other_bend": idx in used_measurements,
+            "measurement_method": measurement.get("measurement_method"),
+        }
+        candidates.append(candidate)
+        best_visibility = max(best_visibility, visibility)
+        best_evidence = max(best_evidence, evidence)
+
+    null_score = max(
+        0.05,
+        min(
+            1.0,
+            0.55 * (1.0 - best_visibility) + 0.45 * (1.0 - best_evidence),
+        ),
+    )
+    null_candidate = {
+        "candidate_id": "null_candidate",
+        "candidate_kind": "NULL",
+        "measurement_index": None,
+        "assignment_score": round(float(null_score), 4),
+        "center_distance_mm": None,
+        "cad_angle_gap_deg": None,
+        "direction_alignment": None,
+        "visibility_score": round(float(best_visibility), 4),
+        "evidence_score": round(float(best_evidence), 4),
+        "measurement_confidence_score": 0.0,
+        "observability_state": "UNOBSERVED" if best_visibility < 0.2 else "PARTIALLY_OBSERVED",
+        "physical_completion_state": "UNKNOWN",
+        "measurement_success": False,
+        "measured_angle": None,
+        "used_by_other_bend": False,
+        "measurement_method": None,
+    }
+    candidates.append(null_candidate)
+    candidates.sort(key=lambda item: (float(item.get("assignment_score") or 0.0), item.get("candidate_kind") != "NULL"), reverse=True)
+
+    selected = null_candidate
+    if preferred_idx is not None:
+        preferred = next(
+            (
+                item
+                for item in candidates
+                if item.get("candidate_kind") == "MEASUREMENT" and int(item.get("measurement_index")) == int(preferred_idx)
+            ),
+            None,
+        )
+        if preferred is not None:
+            selected = preferred
+    return candidates, copy.deepcopy(selected)
 
 
 def _placeholder_plane(
@@ -1416,8 +1793,21 @@ def _build_not_detected_match(
     matcher: ProgressiveBendMatcher,
     action_item: str,
     *,
+    physical_completion_state: str = "UNKNOWN",
     observability_state: str = "UNOBSERVED",
     observability_confidence: float = 0.0,
+    visibility_score: float = 0.0,
+    visibility_score_source: str = "heuristic_local_visibility_v0",
+    surface_visibility_ratio: float = 0.0,
+    local_support_score: float = 0.0,
+    side_balance_score: float = 0.0,
+    assignment_source: str = "NONE",
+    assignment_confidence: float = 0.0,
+    assignment_candidate_id: Optional[str] = None,
+    assignment_candidate_kind: str = "NONE",
+    assignment_candidate_score: float = 0.0,
+    assignment_null_score: float = 0.0,
+    assignment_candidate_count: int = 0,
     observed_surface_count: int = 0,
     local_point_count: int = 0,
     local_evidence_score: float = 0.0,
@@ -1435,8 +1825,21 @@ def _build_not_detected_match(
         expected_arc_length_mm=matcher._compute_arc_length(cad_bend.target_angle, cad_bend.target_radius),
         issue_location="bend_line",
         action_item=action_item,
+        physical_completion_state=physical_completion_state,
         observability_state=observability_state,
         observability_confidence=float(observability_confidence or 0.0),
+        visibility_score=float(visibility_score or 0.0),
+        visibility_score_source=str(visibility_score_source or "heuristic_local_visibility_v0"),
+        surface_visibility_ratio=float(surface_visibility_ratio or 0.0),
+        local_support_score=float(local_support_score or 0.0),
+        side_balance_score=float(side_balance_score or 0.0),
+        assignment_source=assignment_source,
+        assignment_confidence=float(assignment_confidence or 0.0),
+        assignment_candidate_id=assignment_candidate_id,
+        assignment_candidate_kind=assignment_candidate_kind,
+        assignment_candidate_score=float(assignment_candidate_score or 0.0),
+        assignment_null_score=float(assignment_null_score or 0.0),
+        assignment_candidate_count=int(assignment_candidate_count or 0),
         observed_surface_count=int(observed_surface_count or 0),
         local_point_count=int(local_point_count or 0),
         local_evidence_score=float(local_evidence_score or 0.0),
@@ -1557,8 +1960,10 @@ def refine_dense_scan_bends_via_alignment(
     matcher = ProgressiveBendMatcher(**matcher_ctor)
 
     measurement_entries = []
+    aligned_tree = cKDTree(aligned_points) if len(aligned_points) else None
     for cad_bend_dict, measurement in zip(cad_bend_dicts, measurements):
         center = np.asarray(cad_bend_dict["bend_center"], dtype=np.float64)
+        observability = _local_measurement_observability(measurement, float(cad_bend_dict["bend_angle"]))
         measurement_entries.append(
             {
                 "center": center,
@@ -1567,7 +1972,9 @@ def refine_dense_scan_bends_via_alignment(
                     np.asarray(cad_bend_dict["surface1_normal"], dtype=np.float64),
                     np.asarray(cad_bend_dict["surface2_normal"], dtype=np.float64),
                 ),
+                "cad_bend_dict": cad_bend_dict,
                 "measurement": measurement,
+                "observability": observability,
             }
         )
 
@@ -1590,20 +1997,80 @@ def refine_dense_scan_bends_via_alignment(
             if score < best_score:
                 best_score = score
                 best_idx = idx
-
         if best_idx is None:
+            assignment_candidates, selected_candidate = _build_local_assignment_candidates(
+                cad_bend,
+                measurement_entries,
+                used_measurements=used_measurements,
+                preferred_idx=None,
+            )
+            support_measurement = (
+                _support_only_measurement(aligned_tree, aligned_points, cad_bend)
+                if aligned_tree is not None
+                else {
+                    "success": False,
+                    "measured_angle": None,
+                    "measurement_method": "support_only_probe",
+                    "measurement_confidence": "very_low",
+                    "point_count": 0,
+                    "nearby_points": 0,
+                    "side1_points": 0,
+                    "side2_points": 0,
+                }
+            )
+            observability = _local_measurement_observability(support_measurement, cad_bend.target_angle)
+            null_assignment_score = float(
+                next(
+                    (item.get("assignment_score") for item in assignment_candidates if item.get("candidate_kind") == "NULL"),
+                    0.0,
+                )
+            )
             fallback_frame = {
                 "local_frame": {
                     "center": [round(float(x), 4) for x in cad_mid.tolist()],
                     "tangent": [round(float(x), 6) for x in np.asarray(cad_bend.bend_line_direction, dtype=np.float64).tolist()],
                 },
                 "search_radius_mm": 35.0,
+                "point_count": int(support_measurement.get("point_count") or 0),
+                "side1_points": int(support_measurement.get("side1_points") or 0),
+                "side2_points": int(support_measurement.get("side2_points") or 0),
+                "measurement_method": support_measurement.get("measurement_method"),
+                "observability_state": observability["state"],
+                "visibility_score": round(float(observability["visibility_score"]), 4),
+                "visibility_score_source": observability["visibility_score_source"],
+                "surface_visibility_ratio": round(float(observability["surface_visibility_ratio"]), 4),
+                "local_support_score": round(float(observability["local_support_score"]), 4),
+                "side_balance_score": round(float(observability["side_balance_score"]), 4),
+                "local_evidence_score": round(float(observability["evidence_score"]), 4),
+                "assignment_candidates": assignment_candidates,
+                "selected_assignment_candidate_id": selected_candidate.get("candidate_id"),
+                "selected_assignment_candidate_kind": selected_candidate.get("candidate_kind"),
+                "selected_assignment_candidate_score": selected_candidate.get("assignment_score"),
+                "null_assignment_candidate_score": round(null_assignment_score, 4),
             }
             matches.append(
                 _build_not_detected_match(
                     cad_bend,
                     matcher,
                     action_item="Dense-scan local verification found no evidence at this CAD bend location.",
+                    physical_completion_state="UNKNOWN",
+                    observability_state=observability["state"],
+                    observability_confidence=observability["confidence"],
+                    visibility_score=observability["visibility_score"],
+                    visibility_score_source=observability["visibility_score_source"],
+                    surface_visibility_ratio=observability["surface_visibility_ratio"],
+                    local_support_score=observability["local_support_score"],
+                    side_balance_score=observability["side_balance_score"],
+                    assignment_source="NONE",
+                    assignment_confidence=observability["confidence"],
+                    assignment_candidate_id=str(selected_candidate.get("candidate_id") or "null_candidate"),
+                    assignment_candidate_kind=str(selected_candidate.get("candidate_kind") or "NULL"),
+                    assignment_candidate_score=float(selected_candidate.get("assignment_score") or 0.0),
+                    assignment_null_score=null_assignment_score,
+                    assignment_candidate_count=len(assignment_candidates),
+                    observed_surface_count=observability["observed_surface_count"],
+                    local_point_count=observability["support_point_count"],
+                    local_evidence_score=observability["evidence_score"],
                     measurement_mode="cad_local_neighborhood",
                     measurement_context=fallback_frame,
                 )
@@ -1614,7 +2081,19 @@ def refine_dense_scan_bends_via_alignment(
         entry = measurement_entries[best_idx]
         measurement = entry["measurement"]
         measurement_frame = _local_bend_frame(cad_bend_dicts[best_idx], cad_bend)
-        observability = _local_measurement_observability(measurement, cad_bend.target_angle)
+        observability = entry.get("observability") or _local_measurement_observability(measurement, cad_bend.target_angle)
+        assignment_candidates, selected_candidate = _build_local_assignment_candidates(
+            cad_bend,
+            measurement_entries,
+            used_measurements=used_measurements,
+            preferred_idx=best_idx,
+        )
+        null_assignment_score = float(
+            next(
+                (item.get("assignment_score") for item in assignment_candidates if item.get("candidate_kind") == "NULL"),
+                0.0,
+            )
+        )
         measurement_context = {
             "local_frame": measurement_frame,
             "search_radius_mm": 35.0,
@@ -1628,7 +2107,17 @@ def refine_dense_scan_bends_via_alignment(
             "planarity1": measurement.get("planarity1"),
             "planarity2": measurement.get("planarity2"),
             "observability_state": observability["state"],
+            "visibility_score": round(float(observability["visibility_score"]), 4),
+            "visibility_score_source": observability["visibility_score_source"],
+            "surface_visibility_ratio": round(float(observability["surface_visibility_ratio"]), 4),
+            "local_support_score": round(float(observability["local_support_score"]), 4),
+            "side_balance_score": round(float(observability["side_balance_score"]), 4),
             "local_evidence_score": round(float(observability["evidence_score"]), 4),
+            "assignment_candidates": assignment_candidates,
+            "selected_assignment_candidate_id": selected_candidate.get("candidate_id"),
+            "selected_assignment_candidate_kind": selected_candidate.get("candidate_kind"),
+            "selected_assignment_candidate_score": selected_candidate.get("assignment_score"),
+            "null_assignment_candidate_score": round(null_assignment_score, 4),
         }
         if not measurement.get("success") or measurement.get("measured_angle") is None:
             matches.append(
@@ -1636,8 +2125,21 @@ def refine_dense_scan_bends_via_alignment(
                     cad_bend,
                     matcher,
                     action_item=f"Dense-scan local verification failed at this CAD bend location: {measurement.get('error', 'insufficient local evidence')}",
+                    physical_completion_state="UNKNOWN",
                     observability_state=observability["state"],
                     observability_confidence=observability["confidence"],
+                    visibility_score=observability["visibility_score"],
+                    visibility_score_source=observability["visibility_score_source"],
+                    surface_visibility_ratio=observability["surface_visibility_ratio"],
+                    local_support_score=observability["local_support_score"],
+                    side_balance_score=observability["side_balance_score"],
+                    assignment_source="CAD_LOCAL_NEIGHBORHOOD",
+                    assignment_confidence=observability["confidence"],
+                    assignment_candidate_id=str(selected_candidate.get("candidate_id") or f"local_candidate_{best_idx}"),
+                    assignment_candidate_kind=str(selected_candidate.get("candidate_kind") or "MEASUREMENT"),
+                    assignment_candidate_score=float(selected_candidate.get("assignment_score") or 0.0),
+                    assignment_null_score=null_assignment_score,
+                    assignment_candidate_count=len(assignment_candidates),
                     observed_surface_count=observability["observed_surface_count"],
                     local_point_count=observability["point_count"],
                     local_evidence_score=observability["evidence_score"],
@@ -1657,8 +2159,21 @@ def refine_dense_scan_bends_via_alignment(
                         "Scan coverage reaches this bend, but the local angle is still closer "
                         "to a flat/open state than the target bend angle."
                     ),
+                    physical_completion_state="NOT_FORMED",
                     observability_state=observability["state"],
                     observability_confidence=observability["confidence"],
+                    visibility_score=observability["visibility_score"],
+                    visibility_score_source=observability["visibility_score_source"],
+                    surface_visibility_ratio=observability["surface_visibility_ratio"],
+                    local_support_score=observability["local_support_score"],
+                    side_balance_score=observability["side_balance_score"],
+                    assignment_source="CAD_LOCAL_NEIGHBORHOOD",
+                    assignment_confidence=observability["confidence"],
+                    assignment_candidate_id=str(selected_candidate.get("candidate_id") or f"local_candidate_{best_idx}"),
+                    assignment_candidate_kind=str(selected_candidate.get("candidate_kind") or "MEASUREMENT"),
+                    assignment_candidate_score=float(selected_candidate.get("assignment_score") or 0.0),
+                    assignment_null_score=null_assignment_score,
+                    assignment_candidate_count=len(assignment_candidates),
                     observed_surface_count=observability["observed_surface_count"],
                     local_point_count=observability["point_count"],
                     local_evidence_score=observability["evidence_score"],
@@ -1708,6 +2223,19 @@ def refine_dense_scan_bends_via_alignment(
         )
         matches[-1].observability_state = observability["state"]
         matches[-1].observability_confidence = observability["confidence"]
+        matches[-1].physical_completion_state = "FORMED"
+        matches[-1].assignment_source = "CAD_LOCAL_NEIGHBORHOOD"
+        matches[-1].assignment_confidence = confidence
+        matches[-1].assignment_candidate_id = str(selected_candidate.get("candidate_id") or f"local_candidate_{best_idx}")
+        matches[-1].assignment_candidate_kind = str(selected_candidate.get("candidate_kind") or "MEASUREMENT")
+        matches[-1].assignment_candidate_score = float(selected_candidate.get("assignment_score") or 0.0)
+        matches[-1].assignment_null_score = null_assignment_score
+        matches[-1].assignment_candidate_count = len(assignment_candidates)
+        matches[-1].visibility_score = observability["visibility_score"]
+        matches[-1].visibility_score_source = observability["visibility_score_source"]
+        matches[-1].surface_visibility_ratio = observability["surface_visibility_ratio"]
+        matches[-1].local_support_score = observability["local_support_score"]
+        matches[-1].side_balance_score = observability["side_balance_score"]
         matches[-1].observed_surface_count = observability["observed_surface_count"]
         matches[-1].local_point_count = observability["point_count"]
         matches[-1].local_evidence_score = observability["evidence_score"]
@@ -1737,6 +2265,7 @@ def detect_and_match_with_fallback(
     part_id: str,
     runtime_config: BendInspectionRuntimeConfig,
     expected_bend_count: Optional[int] = None,
+    scan_state: Optional[str] = None,
 ) -> Tuple[BendInspectionReport, int, bool]:
     """
     Detect and match bends with selective high-recall fallback for weak scans.
@@ -1748,6 +2277,7 @@ def detect_and_match_with_fallback(
         runtime_config.scan_detector_kwargs,
         runtime_config.scan_detect_call_kwargs,
         len(scan_points),
+        scan_state=scan_state,
         fallback=False,
     )
     primary_detected = detect_scan_bends(
@@ -1769,6 +2299,7 @@ def detect_and_match_with_fallback(
         scan_points=scan_points,
         report=primary_report,
         expected_bend_count=target,
+        scan_state=scan_state,
     )
 
     # Trigger fallback only when recovery potential is meaningful.
@@ -1786,6 +2317,7 @@ def detect_and_match_with_fallback(
         fb_ctor,
         fb_call,
         len(scan_points),
+        scan_state=scan_state,
         fallback=True,
     )
     fallback_detected = detect_scan_bends(
@@ -1815,6 +2347,8 @@ def run_progressive_bend_inspection(
     runtime_config: Optional[BendInspectionRuntimeConfig] = None,
     spec_bend_angles_hint: Optional[List[float]] = None,
     spec_schedule_type: Optional[str] = None,
+    expected_bend_override: Optional[int] = None,
+    scan_state: Optional[str] = None,
 ) -> Tuple[BendInspectionReport, BendInspectionRunDetails]:
     """
     Run the full bend-inspection pipeline and return report + diagnostics.
@@ -1838,7 +2372,11 @@ def run_progressive_bend_inspection(
     cad_vertex_count = int(len(cad_vertices))
     cad_triangle_count = int(0 if cad_triangles is None else len(cad_triangles))
     overrides = load_expected_bend_overrides()
-    expected_bend_hint = overrides.get(part_id)
+    expected_bend_hint = (
+        int(expected_bend_override)
+        if expected_bend_override is not None and int(expected_bend_override) > 0
+        else overrides.get(part_id)
+    )
 
     _emit_phase_log(f"run_progressive_bend_inspection[{part_id}] extract_cad_bend_specs begin")
     cad_bends, cad_strategy = extract_cad_bend_specs_with_strategy(
@@ -1860,7 +2398,7 @@ def run_progressive_bend_inspection(
     cad_bend_count_extracted = len(cad_bends)
     if not cad_bends:
         warnings.append("No bends extracted from CAD")
-    expected_bend_count = int(overrides.get(part_id, len(cad_bends)))
+    expected_bend_count = int(expected_bend_hint if expected_bend_hint is not None else len(cad_bends))
     if expected_bend_count <= 0:
         expected_bend_count = int(len(cad_bends))
     if cad_strategy != "detector_point_cloud":
@@ -1885,7 +2423,7 @@ def run_progressive_bend_inspection(
     _emit_phase_log(
         f"run_progressive_bend_inspection[{part_id}] load_scan_points end scan_points={len(scan_points)}"
     )
-    primary_profile = _scan_runtime_profile_name(len(scan_points), fallback=False)
+    primary_profile = _scan_runtime_profile_name_for_state(len(scan_points), scan_state, fallback=False)
     if primary_profile:
         warnings.append(
             f"Large scan runtime profile applied: {primary_profile} ({len(scan_points)} scan points)"
@@ -1897,6 +2435,7 @@ def run_progressive_bend_inspection(
         part_id=part_id,
         runtime_config=cfg,
         expected_bend_count=expected_bend_count,
+        scan_state=scan_state,
     )
     _emit_phase_log(
         f"run_progressive_bend_inspection[{part_id}] detect_and_match_with_fallback end "
@@ -1906,6 +2445,7 @@ def run_progressive_bend_inspection(
         scan_points=scan_points,
         report=report,
         expected_bend_count=expected_bend_count,
+        scan_state=scan_state,
     ):
         _emit_phase_log(f"run_progressive_bend_inspection[{part_id}] dense local refinement begin")
         local_report, local_warnings = refine_dense_scan_bends_via_alignment(
@@ -1945,7 +2485,7 @@ def run_progressive_bend_inspection(
         warnings.append("No bends detected in scan")
     if fallback_used:
         warnings.append("Applied high-sensitivity scan fallback for under-recovered bends")
-        fallback_profile = _scan_runtime_profile_name(len(scan_points), fallback=True)
+        fallback_profile = _scan_runtime_profile_name_for_state(len(scan_points), scan_state, fallback=True)
         if fallback_profile:
             warnings.append(
                 f"Fallback scan runtime profile applied: {fallback_profile} ({len(scan_points)} scan points)"
