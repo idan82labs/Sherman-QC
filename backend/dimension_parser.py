@@ -13,14 +13,39 @@ Supports Hebrew column headers as used in manufacturing specs.
 import re
 import logging
 from pathlib import Path
-from typing import List, Optional, Dict, Any, Tuple
+from typing import List, Optional, Dict, Any, Tuple, Sequence
 from dataclasses import dataclass, field
 from enum import Enum
 
-import pandas as pd
 import numpy as np
+try:
+    import pandas as pd
+    HAS_PANDAS = True
+except ImportError:  # pragma: no cover - environment dependent
+    pd = None
+    HAS_PANDAS = False
+
+try:
+    from openpyxl import load_workbook
+    HAS_OPENPYXL = True
+except ImportError:  # pragma: no cover - environment dependent
+    load_workbook = None
+    HAS_OPENPYXL = False
 
 logger = logging.getLogger(__name__)
+
+
+def _is_na(value: Any) -> bool:
+    if value is None:
+        return True
+    if isinstance(value, float) and np.isnan(value):
+        return True
+    if HAS_PANDAS:
+        try:
+            return bool(pd.isna(value))
+        except Exception:
+            return False
+    return False
 
 
 class DimensionType(Enum):
@@ -176,11 +201,10 @@ class DimensionParser:
             )
 
         try:
-            # Read Excel file
-            df = pd.read_excel(file_path, header=None)
+            table = self._load_excel_table(file_path)
 
             # Find header row and data
-            header_row, columns = self._find_header_row(df)
+            header_row, columns = self._find_header_row(table)
 
             if header_row is None:
                 return DimensionParseResult(
@@ -189,7 +213,7 @@ class DimensionParser:
                 )
 
             # Parse dimensions
-            dimensions = self._parse_dimensions(df, header_row, columns)
+            dimensions = self._parse_dimensions(table, header_row, columns)
 
             # Categorize dimensions
             bend_angles = [d for d in dimensions if d.is_bend()]
@@ -229,20 +253,33 @@ class DimensionParser:
                 error=str(e)
             )
 
-    def _find_header_row(self, df: pd.DataFrame) -> Tuple[Optional[int], Dict[str, int]]:
+    def _load_excel_table(self, file_path: str) -> List[List[Any]]:
+        if HAS_PANDAS:
+            df = pd.read_excel(file_path, header=None)
+            return df.values.tolist()
+        if not HAS_OPENPYXL:
+            raise RuntimeError("Neither pandas nor openpyxl is available for XLSX parsing")
+        workbook = load_workbook(file_path, data_only=True, read_only=True)
+        try:
+            sheet = workbook.active
+            return [list(row) for row in sheet.iter_rows(values_only=True)]
+        finally:
+            workbook.close()
+
+    def _find_header_row(self, table: Sequence[Sequence[Any]]) -> Tuple[Optional[int], Dict[str, int]]:
         """
         Find the header row in the dataframe.
 
         Returns:
             Tuple of (header_row_index, column_mapping)
         """
-        for row_idx in range(min(10, len(df))):  # Check first 10 rows
-            row = df.iloc[row_idx]
+        for row_idx in range(min(10, len(table))):  # Check first 10 rows
+            row = list(table[row_idx])
 
             columns = {}
 
             for col_idx, cell in enumerate(row):
-                if pd.isna(cell):
+                if _is_na(cell):
                     continue
 
                 cell_str = str(cell).strip().lower()
@@ -291,7 +328,7 @@ class DimensionParser:
 
     def _parse_dimensions(
         self,
-        df: pd.DataFrame,
+        table: Sequence[Sequence[Any]],
         header_row: int,
         columns: Dict[str, int]
     ) -> List[DimensionSpec]:
@@ -301,12 +338,14 @@ class DimensionParser:
         dimensions = []
 
         # Start from row after header
-        for row_idx in range(header_row + 1, len(df)):
-            row = df.iloc[row_idx]
+        for row_idx in range(header_row + 1, len(table)):
+            row = list(table[row_idx])
 
             # Get dimension ID
-            id_val = row.iloc[columns['id']]
-            if pd.isna(id_val):
+            if columns['id'] >= len(row):
+                continue
+            id_val = row[columns['id']]
+            if _is_na(id_val):
                 continue
 
             try:
@@ -315,8 +354,10 @@ class DimensionParser:
                 continue
 
             # Get value
-            value_val = row.iloc[columns['value']]
-            if pd.isna(value_val):
+            if columns['value'] >= len(row):
+                continue
+            value_val = row[columns['value']]
+            if _is_na(value_val):
                 continue
 
             raw_value = str(value_val).strip()
@@ -328,8 +369,8 @@ class DimensionParser:
             # Get type
             dim_type = DimensionType.UNKNOWN
             if 'type' in columns:
-                type_val = row.iloc[columns['type']]
-                if not pd.isna(type_val):
+                type_val = row[columns['type']] if columns['type'] < len(row) else None
+                if not _is_na(type_val):
                     dim_type = self._parse_type(str(type_val).strip())
 
             # If type not specified, infer from value/unit
@@ -341,8 +382,8 @@ class DimensionParser:
             tolerance_minus = self.default_tolerance
 
             if 'tolerance' in columns:
-                tol_val = row.iloc[columns['tolerance']]
-                if not pd.isna(tol_val):
+                tol_val = row[columns['tolerance']] if columns['tolerance'] < len(row) else None
+                if not _is_na(tol_val):
                     parsed_tol = self._parse_tolerance(str(tol_val).strip())
                     if parsed_tol:
                         tolerance_plus, tolerance_minus = parsed_tol
@@ -355,8 +396,8 @@ class DimensionParser:
             # Parse axis column if available
             axis = None
             if 'axis' in columns:
-                axis_val = row.iloc[columns['axis']]
-                if not pd.isna(axis_val):
+                axis_val = row[columns['axis']] if columns['axis'] < len(row) else None
+                if not _is_na(axis_val):
                     axis_str = str(axis_val).strip().upper()
                     if axis_str in ['X', 'Y', 'Z']:
                         axis = axis_str
@@ -364,8 +405,8 @@ class DimensionParser:
             # Parse description column if available
             description = ""
             if 'description' in columns:
-                desc_val = row.iloc[columns['description']]
-                if not pd.isna(desc_val):
+                desc_val = row[columns['description']] if columns['description'] < len(row) else None
+                if not _is_na(desc_val):
                     description = str(desc_val).strip()
 
             dim = DimensionSpec(

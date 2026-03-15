@@ -1161,6 +1161,23 @@ def measure_scan_bend_via_surface_classification(
     # Step 4: Try multiple transition zone exclusion radii, pick best
     best_result = None
     best_quality = -1
+    best_partial = {
+        "side1_points": 0,
+        "side2_points": 0,
+        "point_count": 0,
+        "probe_offset_used": None,
+        "measurement_method": "probe_region",
+    }
+    best_partial = {
+        "nearby_points": len(nearby_idx),
+        "side1_points": 0,
+        "side2_points": 0,
+        "inlier_side1_points": 0,
+        "inlier_side2_points": 0,
+        "min_offset_used": None,
+        "max_face_dist": max_face_dist,
+        "measurement_method": "surface_classification",
+    }
 
     # Compute perpendicular distance from bend line (not from bend center)
     # This correctly excludes the transition zone for long bends
@@ -1199,6 +1216,8 @@ def measure_scan_bend_via_surface_classification(
         n1_pts = int(surf1_mask.sum())
         n2_pts = int(surf2_mask.sum())
 
+        best_partial["side1_points"] = max(int(best_partial["side1_points"]), n1_pts)
+        best_partial["side2_points"] = max(int(best_partial["side2_points"]), n2_pts)
         if n1_pts < 15 or n2_pts < 15:
             continue
 
@@ -1224,6 +1243,8 @@ def measure_scan_bend_via_surface_classification(
             thresh2 = np.percentile(np.abs(signed_dists2), 85)
             inlier1 = np.abs(signed_dists1) < max(0.5, thresh1)
             inlier2 = np.abs(signed_dists2) < max(0.5, thresh2)
+            best_partial["inlier_side1_points"] = max(int(best_partial["inlier_side1_points"]), int(inlier1.sum()))
+            best_partial["inlier_side2_points"] = max(int(best_partial["inlier_side2_points"]), int(inlier2.sum()))
             if inlier1.sum() < 12 or inlier2.sum() < 12:
                 continue
 
@@ -1231,6 +1252,8 @@ def measure_scan_bend_via_surface_classification(
         surf2_clean = surf2_points[inlier2]
         n1_pts = len(surf1_clean)
         n2_pts = len(surf2_clean)
+        best_partial["inlier_side1_points"] = max(int(best_partial["inlier_side1_points"]), n1_pts)
+        best_partial["inlier_side2_points"] = max(int(best_partial["inlier_side2_points"]), n2_pts)
 
         # Step 6: Fit planes to the clean scan points
         normal1, planarity1 = _fit_plane(surf1_clean)
@@ -1276,6 +1299,7 @@ def measure_scan_bend_via_surface_classification(
 
         if quality > best_quality:
             best_quality = quality
+            best_partial["min_offset_used"] = round(offset, 1)
             # Confidence based on point count and CAD alignment
             avg_align = (align1 + align2) / 2
             min_pts = min(n1_pts, n2_pts)
@@ -1306,7 +1330,18 @@ def measure_scan_bend_via_surface_classification(
             }
 
     if best_result is None:
-        return _fail("Could not classify enough scan points to both surfaces")
+        return _fail(
+            "Could not classify enough scan points to both surfaces",
+            measurement_method="surface_classification",
+            point_count=int(best_partial["nearby_points"]),
+            nearby_points=int(best_partial["nearby_points"]),
+            side1_points=int(best_partial["side1_points"]),
+            side2_points=int(best_partial["side2_points"]),
+            inlier_side1_points=int(best_partial["inlier_side1_points"]),
+            inlier_side2_points=int(best_partial["inlier_side2_points"]),
+            min_offset_used=best_partial["min_offset_used"],
+            max_face_dist=float(best_partial["max_face_dist"]),
+        )
 
     return best_result
 
@@ -1376,6 +1411,13 @@ def measure_scan_bend_at_cad_location(
     # Try multiple offsets to find good probe locations
     best_result = None
     best_quality = -1
+    best_partial = {
+        "side1_points": 0,
+        "side2_points": 0,
+        "point_count": 0,
+        "probe_offset_used": None,
+        "measurement_method": "probe_region",
+    }
 
     for offset_mult in [1.0, 1.5, 2.0, 0.7]:
         offset = probe_offset * offset_mult
@@ -1385,6 +1427,10 @@ def measure_scan_bend_at_cad_location(
         probe1_idx = tree.query_ball_point(probe1_center, probe_radius)
         probe2_idx = tree.query_ball_point(probe2_center, probe_radius)
 
+        best_partial["side1_points"] = max(int(best_partial["side1_points"]), len(probe1_idx))
+        best_partial["side2_points"] = max(int(best_partial["side2_points"]), len(probe2_idx))
+        best_partial["point_count"] = max(int(best_partial["point_count"]), len(probe1_idx) + len(probe2_idx))
+        best_partial["probe_offset_used"] = round(offset, 1)
         if len(probe1_idx) < 15 or len(probe2_idx) < 15:
             continue
 
@@ -1451,7 +1497,14 @@ def measure_scan_bend_at_cad_location(
             }
 
     if best_result is None:
-        return _fail("Could not find sufficient probe points at any offset")
+        return _fail(
+            "Could not find sufficient probe points at any offset",
+            measurement_method="probe_region",
+            point_count=int(best_partial["point_count"]),
+            side1_points=int(best_partial["side1_points"]),
+            side2_points=int(best_partial["side2_points"]),
+            probe_offset_used=best_partial["probe_offset_used"],
+        )
 
     return best_result
 
@@ -1470,14 +1523,17 @@ def _fit_plane(points: np.ndarray) -> Tuple[Optional[np.ndarray], float]:
         return None, 1.0
 
 
-def _fail(error: str) -> Dict[str, Any]:
+def _fail(error: str, **extra: Any) -> Dict[str, Any]:
     """Return a failure result."""
-    return {
+    result = {
         "measured_angle": None,
         "success": False,
         "error": error,
         "point_count": 0,
+        "measurement_confidence": "very_low",
     }
+    result.update(extra)
+    return result
 
 
 def measure_all_scan_bends(
@@ -1643,6 +1699,16 @@ def measure_all_scan_bends(
                 "abs_deviation": None,
                 "success": False,
                 "error": measurement.get("error", "Unknown error"),
+                "side1_points": measurement.get("side1_points", 0),
+                "side2_points": measurement.get("side2_points", 0),
+                "point_count": measurement.get("point_count", 0),
+                "measurement_method": measurement.get("measurement_method", "unknown"),
+                "measurement_confidence": measurement.get("measurement_confidence", "very_low"),
+                "probe_offset_used": measurement.get("probe_offset_used"),
+                "min_offset_used": measurement.get("min_offset_used"),
+                "inlier_side1_points": measurement.get("inlier_side1_points", 0),
+                "inlier_side2_points": measurement.get("inlier_side2_points", 0),
+                "nearby_points": measurement.get("nearby_points", measurement.get("point_count", 0)),
             })
 
         results.append(result)

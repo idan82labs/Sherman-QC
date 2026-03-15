@@ -13,10 +13,11 @@ interface UploadFile {
 }
 
 interface CatalogPart {
-  id: number
+  id: string
   part_number: string
-  name: string
-  customer: string
+  part_name?: string | null
+  name?: string | null
+  customer?: string | null
   has_bend_specs: boolean
 }
 
@@ -38,6 +39,8 @@ export default function Upload() {
   const [useCatalog, setUseCatalog] = useState(false)
   const [selectedCatalogPart, setSelectedCatalogPart] = useState<CatalogPart | null>(null)
   const [catalogDropdownOpen, setCatalogDropdownOpen] = useState(false)
+  const getCatalogPartName = (part: CatalogPart): string =>
+    part.part_name || part.name || part.part_number
 
   // Fetch parts with CAD from catalog
   const { data: catalogParts } = useQuery({
@@ -118,7 +121,7 @@ export default function Upload() {
 
   // Mutation for catalog-based analysis
   const catalogAnalysisMutation = useMutation({
-    mutationFn: async ({ partId, scanFile }: { partId: number; scanFile: File }) => {
+    mutationFn: async ({ partId, scanFile }: { partId: string; scanFile: File }) => {
       return partsApi.analyzeFromCatalog(partId, scanFile)
     },
     onSuccess: (data) => {
@@ -322,7 +325,7 @@ export default function Upload() {
                       <Database className="w-5 h-5 text-primary-400 mr-3" />
                       <div className="text-left">
                         <p className="font-medium text-dark-100">{selectedCatalogPart.part_number}</p>
-                        <p className="text-sm text-dark-400">{selectedCatalogPart.name}</p>
+                        <p className="text-sm text-dark-400">{getCatalogPartName(selectedCatalogPart)}</p>
                       </div>
                     </div>
                   ) : (
@@ -341,7 +344,7 @@ export default function Upload() {
                           onClick={() => {
                             setSelectedCatalogPart(part)
                             setPartId(part.part_number)
-                            setPartName(part.name)
+                            setPartName(getCatalogPartName(part))
                             setCatalogDropdownOpen(false)
                           }}
                           className={clsx(
@@ -351,7 +354,9 @@ export default function Upload() {
                         >
                           <div className="flex-1">
                             <p className="font-medium text-dark-100">{part.part_number}</p>
-                            <p className="text-sm text-dark-400">{part.name} {part.customer && `• ${part.customer}`}</p>
+                            <p className="text-sm text-dark-400">
+                              {getCatalogPartName(part)} {part.customer && `• ${part.customer}`}
+                            </p>
                           </div>
                           {part.has_bend_specs && (
                             <span className="text-xs bg-green-500/20 text-green-400 px-2 py-1 rounded">

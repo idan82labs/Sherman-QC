@@ -846,13 +846,12 @@ class PDFReportGenerator:
                 self.H2
             ))
             flow.append(Paragraph(
-                "Detailed analysis of each bend detected in the part. "
-                "Includes angle deviation, measurement method, and confidence level.",
+                "Expected vs actual values with mm-based deviation targeting for operator action.",
                 self.SMALL
             ))
             flow.append(Spacer(1, 3*mm))
 
-            bend_header = ["Bend", "Measured", "Nominal", "Deviation", "Status", "Issue"]
+            bend_header = ["Bend", "Form", "Angle (deg)", "Radius (mm)", "Edge/Arc (mm)", "Status", "Action"]
             bend_data = [bend_header]
 
             for br in bend_results:
@@ -864,23 +863,17 @@ class PDFReportGenerator:
                 else:
                     bend_name = br.get("bend_name", f"Bend {br.get('bend_id', '?')}")
 
+                bend_form = (br.get("bend_form") or br.get("form") or "FOLDED")
+
                 # Scan measurement (flat: scan_angle / scan_measured, nested: angle_degrees)
                 scan_measured = br.get("scan_measured", False)
                 scan_angle = br.get("scan_angle", 0) or bend_info.get("angle_degrees", 0)
-                if scan_measured and scan_angle:
-                    measured = f"{scan_angle:.1f} deg"
-                elif not scan_measured:
-                    measured = "N/M"
-                else:
-                    measured = f"{scan_angle:.1f} deg"
 
                 # Nominal angle (flat: bend_angle, nested: nominal_angle)
                 nominal = br.get("bend_angle") or br.get("nominal_angle")
-                nominal_str = f"{nominal:.1f} deg" if nominal else "N/A"
 
                 # Deviation (flat: scan_deviation, nested: angle_deviation_deg)
                 deviation = br.get("scan_deviation") or br.get("angle_deviation_deg", 0) or 0
-                deviation_str = f"{deviation:+.2f} deg" if deviation != 0 else "0.00 deg"
 
                 # Status: derive from scan_measured + deviation magnitude
                 explicit_status = br.get("status")
@@ -895,37 +888,54 @@ class PDFReportGenerator:
                 else:
                     status = "FAIL"
 
-                # Determine primary issue
-                springback = br.get("springback_indicator", 0)
-                overbend = br.get("over_bend_indicator", 0)
-                springback_diagnosis = br.get("springback_diagnosis")
+                target_radius = br.get("target_radius")
+                measured_radius = br.get("measured_radius")
+                radius_dev = br.get("radius_deviation")
 
-                if not scan_measured:
-                    issue = "No scan coverage"
-                elif springback and springback > 0.3:
-                    if springback_diagnosis:
-                        issue = f"Springback: {springback_diagnosis}"
-                    else:
-                        issue = f"Springback ({springback*100:.0f}%)"
-                elif overbend and overbend > 0.3:
-                    issue = f"Overbend ({overbend*100:.0f}%)"
-                elif deviation > 3.0:
-                    issue = "Under-bend"
-                elif deviation < -3.0:
-                    issue = "Over-bend"
+                line_len_dev = br.get("line_length_deviation_mm")
+                line_center_dev = br.get("line_center_deviation_mm")
+                arc_dev = br.get("arc_length_deviation_mm")
+                issue_location = br.get("issue_location")
+                action = br.get("action_item") or "No action required"
+
+                if scan_measured and scan_angle is not None:
+                    angle_cell = (
+                        f"Exp: {nominal:.2f}<br/>"
+                        f"Act: {scan_angle:.2f}<br/>"
+                        f"Delta: {deviation:+.2f}"
+                    ) if nominal is not None else (
+                        f"Act: {scan_angle:.2f}<br/>Delta: {deviation:+.2f}"
+                    )
+                elif nominal is not None:
+                    angle_cell = f"Exp: {nominal:.2f}<br/>Act: N/M<br/>Delta: N/M"
                 else:
-                    issue = "None"
+                    angle_cell = "N/A"
 
-                # Add method + confidence info
-                method = br.get("measurement_method", "")
-                conf = br.get("measurement_confidence", "")
-                if method and scan_measured:
-                    method_short = method.replace("signed_distance_gradient", "gradient").replace("surface_classification", "surface")
-                    issue = f"{issue} [{method_short}/{conf}]" if issue != "None" else f"[{method_short}/{conf}]"
+                if target_radius is not None:
+                    radius_cell = (
+                        f"Exp: {target_radius:.2f}<br/>"
+                        f"Act: {measured_radius:.2f}<br/>"
+                        f"Delta: {radius_dev:+.2f}"
+                    ) if measured_radius is not None and radius_dev is not None else (
+                        f"Exp: {target_radius:.2f}<br/>Act: N/M"
+                    )
+                else:
+                    radius_cell = "N/A"
 
-                bend_data.append([bend_name, measured, nominal_str, deviation_str, status, issue])
+                edge_parts = []
+                if line_len_dev is not None:
+                    edge_parts.append(f"Len Delta: {line_len_dev:+.2f}")
+                if line_center_dev is not None:
+                    edge_parts.append(f"Center Delta: {line_center_dev:+.2f}")
+                if arc_dev is not None:
+                    edge_parts.append(f"Arc Delta: {arc_dev:+.2f}")
+                if issue_location:
+                    edge_parts.append(f"Loc: {issue_location}")
+                edge_cell = "<br/>".join(edge_parts) if edge_parts else "N/A"
 
-            bend_col_widths = [28*mm, 30*mm, 30*mm, 30*mm, 25*mm, content_width-143*mm]
+                bend_data.append([bend_name, bend_form, angle_cell, radius_cell, edge_cell, status, action])
+
+            bend_col_widths = [20*mm, 15*mm, 31*mm, 31*mm, 31*mm, 16*mm, content_width-144*mm]
             bend_tbl = Table(bend_data, repeatRows=1, colWidths=bend_col_widths)
 
             bend_style = [
@@ -943,23 +953,23 @@ class PDFReportGenerator:
             ]
 
             for r in range(1, len(bend_data)):
-                status = bend_data[r][4]
+                status = bend_data[r][5]
                 if status == "FAIL":
-                    bend_style.append(("BACKGROUND", (4,r), (4,r), Colors.FAIL_BG))
-                    bend_style.append(("TEXTCOLOR", (4,r), (4,r), Colors.FAIL_DARK))
-                    bend_style.append(("FONTNAME", (4,r), (4,r), "Helvetica-Bold"))
+                    bend_style.append(("BACKGROUND", (5,r), (5,r), Colors.FAIL_BG))
+                    bend_style.append(("TEXTCOLOR", (5,r), (5,r), Colors.FAIL_DARK))
+                    bend_style.append(("FONTNAME", (5,r), (5,r), "Helvetica-Bold"))
                 elif status == "WARNING":
-                    bend_style.append(("BACKGROUND", (4,r), (4,r), Colors.WARNING_BG))
-                    bend_style.append(("TEXTCOLOR", (4,r), (4,r), Colors.WARNING_TEXT))
-                    bend_style.append(("FONTNAME", (4,r), (4,r), "Helvetica-Bold"))
+                    bend_style.append(("BACKGROUND", (5,r), (5,r), Colors.WARNING_BG))
+                    bend_style.append(("TEXTCOLOR", (5,r), (5,r), Colors.WARNING_TEXT))
+                    bend_style.append(("FONTNAME", (5,r), (5,r), "Helvetica-Bold"))
                 elif status == "N/M":
-                    bend_style.append(("BACKGROUND", (4,r), (4,r), colors.HexColor("#F0F0F0")))
-                    bend_style.append(("TEXTCOLOR", (4,r), (4,r), colors.HexColor("#888888")))
-                    bend_style.append(("FONTNAME", (4,r), (4,r), "Helvetica-Bold"))
+                    bend_style.append(("BACKGROUND", (5,r), (5,r), colors.HexColor("#F0F0F0")))
+                    bend_style.append(("TEXTCOLOR", (5,r), (5,r), colors.HexColor("#888888")))
+                    bend_style.append(("FONTNAME", (5,r), (5,r), "Helvetica-Bold"))
                 else:
-                    bend_style.append(("BACKGROUND", (4,r), (4,r), Colors.PASS_BG))
-                    bend_style.append(("TEXTCOLOR", (4,r), (4,r), Colors.PASS_TEXT))
-                    bend_style.append(("FONTNAME", (4,r), (4,r), "Helvetica-Bold"))
+                    bend_style.append(("BACKGROUND", (5,r), (5,r), Colors.PASS_BG))
+                    bend_style.append(("TEXTCOLOR", (5,r), (5,r), Colors.PASS_TEXT))
+                    bend_style.append(("FONTNAME", (5,r), (5,r), "Helvetica-Bold"))
 
             bend_tbl.setStyle(TableStyle(bend_style))
             flow.append(bend_tbl)

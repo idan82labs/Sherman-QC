@@ -15,11 +15,15 @@ import aiofiles
 import json
 import uuid
 import shutil
+import math
+import subprocess
+import sys
 from pathlib import Path
 from datetime import datetime
 from typing import Optional, List, Dict, Any
 import logging
 import os
+import re
 import fitz  # PyMuPDF for PDF text extraction
 from dataclasses import dataclass, field, asdict
 
@@ -154,6 +158,63 @@ db = init_db()
 job_progress = {}
 
 
+def _select_analysis_python() -> str:
+    """
+    Pick the Python runtime for analysis workers.
+
+    Priority:
+    1) ANALYSIS_PYTHON env override
+    2) Homebrew Python 3.11 on macOS (more stable Open3D on this machine class)
+    3) Current interpreter
+    """
+    override = os.environ.get("ANALYSIS_PYTHON", "").strip()
+    if override:
+        return override
+
+    def _supports_analysis(py_bin: str) -> bool:
+        try:
+            probe = [
+                py_bin,
+                "-c",
+                (
+                    "import open3d, numpy, scipy, trimesh, fitz, reportlab; "
+                    "print(open3d.__version__)"
+                ),
+            ]
+            proc = subprocess.run(
+                probe,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                timeout=10,
+            )
+            return proc.returncode == 0
+        except Exception:
+            return False
+
+    candidates = [
+        "/opt/homebrew/bin/python3.11",
+        "/usr/local/bin/python3.11",
+        shutil.which("python3.11") or "",
+        sys.executable,
+    ]
+    seen = set()
+    for candidate in candidates:
+        if not candidate:
+            continue
+        candidate = str(candidate)
+        if candidate in seen:
+            continue
+        seen.add(candidate)
+        if Path(candidate).exists() and _supports_analysis(candidate):
+            return candidate
+    return sys.executable
+
+
+ANALYSIS_PYTHON = _select_analysis_python()
+logger.info(f"Analysis worker interpreter: {ANALYSIS_PYTHON}")
+
+
 class JobProgressState:
     """Track real-time job progress in memory"""
     def __init__(self, job_id: str):
@@ -162,6 +223,52 @@ class JobProgressState:
         self.progress = 0
         self.stage = ""
         self.message = ""
+
+
+def _cleanup_stale_running_jobs(max_age_minutes: float = 20.0) -> int:
+    """
+    Mark stale `running` jobs as failed after server restart/interruption.
+
+    Prevents UI from showing jobs permanently stuck at old progress values
+    when their worker process no longer exists.
+    """
+    now = datetime.now()
+    recovered = 0
+    try:
+        running_jobs = db.list_jobs(status="running", limit=5000, offset=0)
+    except Exception as exc:
+        logger.warning(f"Failed to enumerate running jobs for stale cleanup: {exc}")
+        return 0
+
+    for job in running_jobs:
+        if job.job_id in job_progress:
+            # Active in-memory worker in this process.
+            continue
+        updated_at_raw = job.updated_at or job.created_at
+        try:
+            updated_at = datetime.fromisoformat(updated_at_raw)
+        except Exception:
+            updated_at = now
+        age_minutes = max(0.0, (now - updated_at).total_seconds() / 60.0)
+        if age_minutes < max_age_minutes:
+            continue
+        msg = (
+            "Analysis interrupted before completion. "
+            f"Auto-closed stale running job ({age_minutes:.1f} minutes old)."
+        )
+        try:
+            db.update_job_error(job.job_id, msg)
+            recovered += 1
+            logger.warning(f"Auto-closed stale running job {job.job_id} at {job.progress:.1f}%")
+        except Exception as exc:
+            logger.warning(f"Failed to auto-close stale running job {job.job_id}: {exc}")
+
+    if recovered:
+        logger.warning(f"Recovered {recovered} stale running jobs at startup")
+    return recovered
+
+
+_cleanup_stale_running_jobs()
 
 
 @dataclass
@@ -608,6 +715,9 @@ async def validate_file_size(file: UploadFile, max_size: int, file_type: str) ->
     await file.seek(0)  # Reset for later reading
     size = len(content)
 
+    if size <= 0:
+        raise HTTPException(400, f"{file_type} file is empty")
+
     if size > max_size:
         raise HTTPException(
             413,
@@ -615,6 +725,275 @@ async def validate_file_size(file: UploadFile, max_size: int, file_type: str) ->
             f"(got {size // (1024*1024)}MB)"
         )
     return size
+
+
+def _sanitize_error_message(message: Any) -> str:
+    """Remove ANSI escape codes and normalize whitespace for UI-safe errors."""
+    text = str(message) if message is not None else ""
+    text = re.sub(r"\x1B\[[0-9;]*[A-Za-z]", "", text)
+    text = " ".join(text.split())
+    return text.strip()
+
+
+def _json_safe(value: Any) -> Any:
+    """Recursively coerce values to strict JSON-safe primitives."""
+    if isinstance(value, dict):
+        return {k: _json_safe(v) for k, v in value.items()}
+    if isinstance(value, (list, tuple, set)):
+        return [_json_safe(v) for v in value]
+    if isinstance(value, np.ndarray):
+        return _json_safe(value.tolist())
+    if isinstance(value, np.integer):
+        return int(value)
+    if isinstance(value, np.floating):
+        num = float(value)
+        return num if math.isfinite(num) else None
+    if isinstance(value, float):
+        return value if math.isfinite(value) else None
+    return value
+
+
+def _run_analysis_worker_subprocess(
+    job_id: str,
+    ref_path: str,
+    scan_path: str,
+    part_id: str,
+    part_name: str,
+    material: str,
+    tolerance: float,
+    drawing_context: str,
+    output_dir: Path,
+    progress_callback,
+    drawing_path: Optional[str] = None,
+    dimension_path: Optional[str] = None,
+) -> Dict[str, Any]:
+    """
+    Run heavy analysis in an isolated subprocess.
+
+    This protects the API server from native crashes in geometry libraries.
+    """
+    worker_script = BASE_DIR / "backend" / "analysis_worker.py"
+    cmd = [
+        ANALYSIS_PYTHON,
+        str(worker_script),
+        "--job-id",
+        job_id,
+        "--ref-path",
+        ref_path,
+        "--scan-path",
+        scan_path,
+        "--part-id",
+        part_id,
+        "--part-name",
+        part_name,
+        "--material",
+        material,
+        "--tolerance",
+        str(tolerance),
+        "--drawing-context",
+        drawing_context or "",
+        "--output-dir",
+        str(output_dir),
+    ]
+    if drawing_path:
+        cmd.extend(["--drawing-path", drawing_path])
+    if dimension_path:
+        cmd.extend(["--dimension-path", dimension_path])
+
+    worker_env = os.environ.copy()
+    configured_threads = os.environ.get("ANALYSIS_WORKER_THREADS", "").strip()
+    if configured_threads.isdigit() and int(configured_threads) > 0:
+        default_threads = str(int(configured_threads))
+    else:
+        default_threads = str(max(4, min(16, (os.cpu_count() or 8))))
+    worker_env.setdefault("OMP_NUM_THREADS", default_threads)
+    worker_env.setdefault("OPENBLAS_NUM_THREADS", default_threads)
+    worker_env.setdefault("MKL_NUM_THREADS", default_threads)
+    worker_env.setdefault("NUMEXPR_NUM_THREADS", default_threads)
+    worker_env.setdefault("VECLIB_MAXIMUM_THREADS", default_threads)
+    logger.info(
+        "Launching analysis worker with %s (threads=%s)",
+        ANALYSIS_PYTHON,
+        default_threads,
+    )
+
+    proc = subprocess.Popen(
+        cmd,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        bufsize=1,
+        env=worker_env,
+    )
+
+    result_payload: Optional[Dict[str, Any]] = None
+    worker_error: Optional[str] = None
+    last_freeform_line = ""
+
+    assert proc.stdout is not None
+    for raw_line in proc.stdout:
+        line = raw_line.strip()
+        if not line:
+            continue
+        if "\t" not in line:
+            last_freeform_line = line
+            continue
+        tag, payload = line.split("\t", 1)
+        try:
+            data = json.loads(payload)
+        except Exception:
+            last_freeform_line = line
+            continue
+
+        if tag == "PROGRESS":
+            try:
+                progress_callback(
+                    ProgressUpdate(
+                        stage=str(data.get("stage", "")),
+                        progress=float(data.get("progress", 0)),
+                        message=str(data.get("message", "")),
+                    )
+                )
+            except Exception:
+                pass
+        elif tag == "RESULT":
+            result_payload = data
+        elif tag == "ERROR":
+            worker_error = _sanitize_error_message(data.get("error", "Analysis worker failed"))
+
+    exit_code = proc.wait()
+    if exit_code != 0:
+        error_msg = worker_error or _sanitize_error_message(last_freeform_line) or (
+            f"Analysis worker crashed (exit code {exit_code})"
+        )
+        return {"ok": False, "error": error_msg, "exit_code": exit_code}
+
+    if not result_payload:
+        return {
+            "ok": False,
+            "error": "Analysis worker finished without a result payload",
+            "exit_code": exit_code,
+        }
+
+    return {"ok": True, **result_payload}
+
+
+def _run_bend_worker_subprocess(
+    job_id: str,
+    cad_path: str,
+    scan_path: str,
+    part_id: str,
+    part_name: str,
+    tolerance_angle: float,
+    tolerance_radius: float,
+    output_dir: Path,
+    progress_callback,
+) -> Dict[str, Any]:
+    """
+    Run bend inspection in an isolated subprocess.
+
+    This keeps the API responsive while heavy geometry work is running and
+    applies conservative thread limits on macOS laptops.
+    """
+    worker_script = BASE_DIR / "backend" / "bend_analysis_worker.py"
+    cmd = [
+        ANALYSIS_PYTHON,
+        str(worker_script),
+        "--job-id",
+        job_id,
+        "--cad-path",
+        cad_path,
+        "--scan-path",
+        scan_path,
+        "--part-id",
+        part_id,
+        "--part-name",
+        part_name,
+        "--tolerance-angle",
+        str(tolerance_angle),
+        "--tolerance-radius",
+        str(tolerance_radius),
+        "--output-dir",
+        str(output_dir),
+    ]
+
+    worker_env = os.environ.copy()
+    configured_threads = os.environ.get("BEND_WORKER_THREADS", "").strip()
+    if configured_threads.isdigit() and int(configured_threads) > 0:
+        default_threads = str(int(configured_threads))
+    else:
+        default_threads = "1" if sys.platform == "darwin" else str(max(4, min(16, (os.cpu_count() or 8))))
+    worker_env.setdefault("OMP_NUM_THREADS", default_threads)
+    worker_env.setdefault("OPENBLAS_NUM_THREADS", default_threads)
+    worker_env.setdefault("MKL_NUM_THREADS", default_threads)
+    worker_env.setdefault("NUMEXPR_NUM_THREADS", default_threads)
+    worker_env.setdefault("VECLIB_MAXIMUM_THREADS", default_threads)
+    worker_env.setdefault("BEND_PHASE_LOG_PATH", str(output_dir / "bend_worker.phase.log"))
+    logger.info(
+        "Launching bend worker with %s (threads=%s)",
+        ANALYSIS_PYTHON,
+        default_threads,
+    )
+
+    proc = subprocess.Popen(
+        cmd,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        bufsize=1,
+        env=worker_env,
+    )
+
+    result_payload: Optional[Dict[str, Any]] = None
+    worker_error: Optional[str] = None
+    last_freeform_line = ""
+
+    assert proc.stdout is not None
+    for raw_line in proc.stdout:
+        line = raw_line.strip()
+        if not line:
+            continue
+        if "\t" not in line:
+            last_freeform_line = line
+            continue
+        tag, payload = line.split("\t", 1)
+        try:
+            data = json.loads(payload)
+        except Exception:
+            last_freeform_line = line
+            continue
+
+        if tag == "PROGRESS":
+            try:
+                progress_callback(
+                    ProgressUpdate(
+                        stage=str(data.get("stage", "")),
+                        progress=float(data.get("progress", 0)),
+                        message=str(data.get("message", "")),
+                    )
+                )
+            except Exception:
+                pass
+        elif tag == "RESULT":
+            result_payload = data
+        elif tag == "ERROR":
+            worker_error = _sanitize_error_message(data.get("error", "Bend worker failed"))
+
+    exit_code = proc.wait()
+    if exit_code != 0:
+        error_msg = worker_error or _sanitize_error_message(last_freeform_line) or (
+            f"Bend worker crashed (exit code {exit_code})"
+        )
+        return {"ok": False, "error": error_msg, "exit_code": exit_code}
+
+    if not result_payload:
+        return {
+            "ok": False,
+            "error": "Bend worker finished without a result payload",
+            "exit_code": exit_code,
+        }
+
+    return {"ok": True, **result_payload}
 
 
 @app.post("/api/analyze")
@@ -785,79 +1164,40 @@ async def run_analysis(
         # Create output directory for this job
         output_dir = OUTPUT_DIR / job_id
         output_dir.mkdir(exist_ok=True)
+        progress_state.stage = "worker"
+        progress_state.progress = max(progress_state.progress, 2)
+        progress_state.message = "Launching isolated analysis worker..."
+        db.update_job_progress(job_id, "running", progress_state.progress, "worker", progress_state.message)
 
-        # Initialize engine with output directory for heatmaps
-        engine = ScanQCEngine(
-            progress_callback=progress_callback,
-            output_dir=str(output_dir)
+        worker_result = await asyncio.to_thread(
+            _run_analysis_worker_subprocess,
+            job_id,
+            ref_path,
+            scan_path,
+            part_id,
+            part_name,
+            material,
+            tolerance,
+            drawing_context,
+            output_dir,
+            progress_callback,
+            drawing_path,
+            dimension_path,
         )
+        if not worker_result.get("ok"):
+            raise RuntimeError(worker_result.get("error") or "Analysis worker failed")
 
-        # Load files
-        engine.load_reference(ref_path)
-        engine.load_scan(scan_path)
-
-        # Run analysis (heatmaps will be saved to output_dir)
-        report = engine.run_analysis(
-            part_id=part_id,
-            part_name=part_name,
-            material=material,
-            tolerance=tolerance,
-            drawing_context=drawing_context,
-            drawing_path=drawing_path,
-            output_dir=str(output_dir)
-        )
-
-        # Run dimension analysis if XLSX provided, otherwise use CAD fallback
-        if dimension_path:
-            try:
-                dimension_analysis = engine.run_dimension_analysis(
-                    xlsx_path=dimension_path,
-                    part_id=part_id,
-                    part_name=part_name
-                )
-                report.dimension_analysis = dimension_analysis
-                logger.info(f"Dimension analysis completed for job {job_id}")
-            except Exception as e:
-                logger.error(f"Dimension analysis failed for job {job_id}: {e}")
-                # Continue without dimension analysis - don't fail the whole job
-                report.dimension_analysis = {"error": str(e)}
-        else:
-            # Fallback: Extract dimensions from CAD geometry when no XLSX provided
-            try:
-                dimension_analysis = engine.run_cad_dimension_analysis(
-                    part_id=part_id,
-                    part_name=part_name
-                )
-                if dimension_analysis:
-                    report.dimension_analysis = dimension_analysis
-                    logger.info(f"CAD dimension extraction completed for job {job_id}")
-            except Exception as e:
-                logger.error(f"CAD dimension extraction failed for job {job_id}: {e}")
-                # Continue without dimension analysis - don't fail the whole job
-
-        # Convert to dict
-        report_dict = report.to_dict()
-
-        # Update heatmap paths to be relative URLs
-        if report_dict.get("heatmaps"):
-            for key in report_dict["heatmaps"]:
-                if report_dict["heatmaps"][key]:
-                    # Convert absolute path to relative URL
-                    filename = Path(report_dict["heatmaps"][key]).name
-                    report_dict["heatmaps"][key] = f"/api/heatmap/{job_id}/{filename}"
-
-        # Save JSON report
-        report_path = output_dir / "report.json"
-        with open(report_path, "w") as f:
-            json.dump(report_dict, f, indent=2)
-
-        # Generate PDF
-        pdf_path = output_dir / f"QC_Report_{part_id}.pdf"
-        generate_pdf_report(report_dict, str(pdf_path))
+        report_path = Path(str(worker_result["report_path"]))
+        pdf_path = Path(str(worker_result["pdf_path"]))
+        if not report_path.exists():
+            raise FileNotFoundError(f"Analysis worker produced no report file: {report_path}")
+        with report_path.open("r", encoding="utf-8") as f:
+            report_dict = _json_safe(json.load(f))
 
         # Update in-memory state
         progress_state.status = "completed"
         progress_state.progress = 100
+        progress_state.stage = "complete"
         progress_state.message = "Analysis complete!"
 
         # Update database with result
@@ -870,13 +1210,14 @@ async def run_analysis(
 
     except Exception as e:
         import traceback
-        logger.error(f"Analysis failed: {e}")
+        clean_error = _sanitize_error_message(e)
+        logger.error(f"Analysis failed: {clean_error}")
         logger.error(f"Traceback: {traceback.format_exc()}")
         progress_state.status = "failed"
-        progress_state.message = f"Error: {str(e)}"
+        progress_state.message = f"Error: {clean_error}"
 
         # Update database with error
-        db.update_job_error(job_id, str(e))
+        db.update_job_error(job_id, clean_error)
 
 
 @app.get("/api/progress/{job_id}")
@@ -971,7 +1312,7 @@ async def get_result(job_id: str):
     if job.status == "running":
         progress_state = job_progress.get(job_id)
         progress = progress_state.progress if progress_state else job.progress
-        return {"status": "running", "progress": progress}
+        return _json_safe({"status": "running", "progress": progress})
 
     if job.status == "failed":
         raise HTTPException(500, f"Analysis failed: {job.error}")
@@ -984,11 +1325,11 @@ async def get_result(job_id: str):
         except json.JSONDecodeError:
             result = None
 
-    return {
+    return _json_safe({
         "status": "completed",
         "result": result,
         "pdf_available": job.pdf_path is not None
-    }
+    })
 
 
 @app.get("/api/download/{job_id}/pdf")
@@ -1113,11 +1454,11 @@ async def get_deviations(job_id: str):
 
     try:
         deviations = np.load(str(deviations_path))
-        return {
+        return _json_safe({
             "job_id": job_id,
             "count": len(deviations),
             "deviations": deviations.tolist()
-        }
+        })
     except Exception as e:
         raise HTTPException(500, f"Failed to load deviations: {str(e)}")
 
@@ -1182,7 +1523,7 @@ async def list_jobs(
     total_count = db.count_jobs(status=status, part_id=part_id)
 
     jobs_data = [
-        {
+        _json_safe({
             "job_id": j.job_id,
             "status": j.status,
             "part_id": j.part_id,
@@ -1192,18 +1533,18 @@ async def list_jobs(
             "created_at": j.created_at,
             "completed_at": j.completed_at,
             "progress": j.progress
-        }
+        })
         for j in jobs_list
     ]
 
-    return {
+    return _json_safe({
         "jobs": jobs_data,
         "total": total_count,
         "count": len(jobs_data),
         "offset": offset,
         "limit": limit,
         "has_more": offset + len(jobs_data) < total_count
-    }
+    })
 
 
 @app.get("/api/jobs/{job_id}")
@@ -1213,7 +1554,7 @@ async def get_job_details(job_id: str):
     if not job:
         raise HTTPException(404, "Job not found")
 
-    return job.to_dict()
+    return _json_safe(job.to_dict())
 
 
 @app.delete("/api/jobs/{job_id}")
@@ -1293,20 +1634,20 @@ async def get_job_dimensions(job_id: str):
         dimension_analysis = result_data.get("dimension_analysis")
 
         if not dimension_analysis:
-            return {
+            return _json_safe({
                 "job_id": job_id,
                 "dimension_analysis": None,
                 "message": "No dimension analysis available (XLSX file may not have been provided)"
-            }
+            })
 
-        return {
+        return _json_safe({
             "job_id": job_id,
             "dimension_analysis": dimension_analysis,
             "summary": dimension_analysis.get("summary", {}),
             "bend_summary": dimension_analysis.get("bend_summary", {}),
             "failed_dimensions": dimension_analysis.get("failed_dimensions", []),
             "worst_deviations": dimension_analysis.get("worst_deviations", [])
-        }
+        })
     except Exception as e:
         logger.error(f"Failed to load dimension data for {job_id}: {e}")
         return {"dimension_analysis": None, "error": str(e)}
@@ -1319,8 +1660,11 @@ async def get_job_bends(job_id: str):
     if not job:
         raise HTTPException(404, "Job not found")
 
-    # Get result data
-    result_path = OUTPUT_DIR / job_id / "result.json"
+    # Get result data (report.json is current, result.json for backward compatibility)
+    result_path = OUTPUT_DIR / job_id / "report.json"
+    if not result_path.exists():
+        legacy_path = OUTPUT_DIR / job_id / "result.json"
+        result_path = legacy_path
     if not result_path.exists():
         return {"bends": [], "message": "No bend data available"}
 
@@ -1331,12 +1675,12 @@ async def get_job_bends(job_id: str):
         bend_results = result_data.get("bend_results", [])
         bend_detection = result_data.get("bend_detection_result", {})
 
-        return {
+        return _json_safe({
             "job_id": job_id,
             "bends": bend_results,
             "detection_result": bend_detection,
             "total_bends": len(bend_results)
-        }
+        })
     except Exception as e:
         logger.error(f"Failed to load bend data for {job_id}: {e}")
         return {"bends": [], "error": str(e)}
@@ -1349,8 +1693,11 @@ async def get_job_correlations(job_id: str):
     if not job:
         raise HTTPException(404, "Job not found")
 
-    # Get result data
-    result_path = OUTPUT_DIR / job_id / "result.json"
+    # Get result data (report.json is current, result.json for backward compatibility)
+    result_path = OUTPUT_DIR / job_id / "report.json"
+    if not result_path.exists():
+        legacy_path = OUTPUT_DIR / job_id / "result.json"
+        result_path = legacy_path
     if not result_path.exists():
         return {"correlation": None, "message": "No correlation data available"}
 
@@ -1361,11 +1708,11 @@ async def get_job_correlations(job_id: str):
         correlation = result_data.get("correlation_2d_3d")
         pipeline_status = result_data.get("pipeline_status")
 
-        return {
+        return _json_safe({
             "job_id": job_id,
             "correlation": correlation,
             "pipeline_status": pipeline_status
-        }
+        })
     except Exception as e:
         logger.error(f"Failed to load correlation data for {job_id}: {e}")
         return {"correlation": None, "error": str(e)}
@@ -1378,8 +1725,11 @@ async def get_enhanced_analysis(job_id: str):
     if not job:
         raise HTTPException(404, "Job not found")
 
-    # Get result data
-    result_path = OUTPUT_DIR / job_id / "result.json"
+    # Get result data (report.json is current, result.json for backward compatibility)
+    result_path = OUTPUT_DIR / job_id / "report.json"
+    if not result_path.exists():
+        legacy_path = OUTPUT_DIR / job_id / "result.json"
+        result_path = legacy_path
     if not result_path.exists():
         return {"enhanced_analysis": None, "message": "No enhanced analysis available"}
 
@@ -1387,14 +1737,14 @@ async def get_enhanced_analysis(job_id: str):
         with open(result_path, 'r') as f:
             result_data = json.load(f)
 
-        return {
+        return _json_safe({
             "job_id": job_id,
             "enhanced_analysis": result_data.get("enhanced_analysis"),
             "bend_results": result_data.get("bend_results", []),
             "bend_detection_result": result_data.get("bend_detection_result"),
             "correlation_2d_3d": result_data.get("correlation_2d_3d"),
             "pipeline_status": result_data.get("pipeline_status")
-        }
+        })
     except Exception as e:
         logger.error(f"Failed to load enhanced analysis for {job_id}: {e}")
         return {"enhanced_analysis": None, "error": str(e)}
@@ -1415,7 +1765,7 @@ async def get_stats():
         "total_mb": round((uploads_size + output_size) / (1024 * 1024), 2)
     }
 
-    return stats
+    return _json_safe(stats)
 
 
 # =============================================================================
@@ -2381,12 +2731,11 @@ async def full_spc_analysis(request: SPCCapabilityRequest):
 # Progressive Bend Inspection API
 # =============================================================================
 
-from feature_detection import (
-    BendDetector,
-    ProgressiveBendMatcher,
-    CADBendExtractor,
-    BendSpecification,
-    BendInspectionReport,
+from bend_inspection_pipeline import (
+    load_bend_runtime_config,
+    load_expected_bend_overrides,
+    load_cad_geometry,
+    extract_cad_bend_specs,
 )
 
 
@@ -2405,6 +2754,115 @@ class CADBendExtractionRequest(BaseModel):
 
 # In-memory storage for bend inspection results
 bend_inspection_results: Dict[str, Dict[str, Any]] = {}
+
+
+def _resolve_bend_artifact_urls(artifacts: Optional[Dict[str, Any]], job_id: str) -> Dict[str, Any]:
+    if not isinstance(artifacts, dict):
+        return {}
+    resolved: Dict[str, Any] = {}
+    for key, value in artifacts.items():
+        if isinstance(value, str):
+            resolved[key] = value.replace("{job_id}", job_id)
+        elif isinstance(value, list):
+            resolved[key] = [
+                item.replace("{job_id}", job_id) if isinstance(item, str) else item
+                for item in value
+            ]
+        else:
+            resolved[key] = value
+    return resolved
+
+
+def _safe_read_json(path: Path) -> Optional[Dict[str, Any]]:
+    """Read a JSON object from disk, returning None on any parse/read failure."""
+    if not path.exists():
+        return None
+    try:
+        with open(path, "r") as f:
+            data = json.load(f)
+        return data if isinstance(data, dict) else None
+    except Exception:
+        return None
+
+
+def _parse_iso_datetime(value: Any) -> Optional[datetime]:
+    """Parse ISO datetime strings safely for sorting and fallback timestamps."""
+    if not isinstance(value, str):
+        return None
+    text = value.strip()
+    if not text:
+        return None
+    if text.endswith("Z"):
+        text = text[:-1] + "+00:00"
+    try:
+        return datetime.fromisoformat(text)
+    except ValueError:
+        return None
+
+
+def _build_persisted_bend_job(job_id: str, include_report: bool = False) -> Optional[Dict[str, Any]]:
+    """Load a bend-inspection job from output storage."""
+    output_dir = OUTPUT_DIR / job_id
+    report_path = output_dir / "bend_inspection_report.json"
+    if not report_path.exists():
+        return None
+
+    report = _safe_read_json(report_path) or {}
+    meta = _safe_read_json(output_dir / "bend_inspection_meta.json") or {}
+
+    report_part_id = str(report.get("part_id") or "").strip()
+    part_id = str(meta.get("part_id") or report_part_id or job_id).strip()
+    part_name = str(meta.get("part_name") or part_id).strip()
+
+    file_time = datetime.fromtimestamp(report_path.stat().st_mtime).isoformat()
+    created_at = (
+        meta.get("created_at")
+        or meta.get("started_at")
+        or file_time
+    )
+    completed_at = meta.get("completed_at") or file_time
+    processing_time_ms = meta.get("processing_time_ms")
+    if processing_time_ms is None and isinstance(report.get("processing_time_ms"), (int, float)):
+        processing_time_ms = report.get("processing_time_ms")
+
+    payload: Dict[str, Any] = {
+        "job_id": job_id,
+        "status": str(meta.get("status") or "completed"),
+        "progress": int(meta.get("progress") or 100),
+        "part_id": part_id,
+        "part_name": part_name,
+        "created_at": created_at,
+        "completed_at": completed_at,
+        "processing_time_ms": processing_time_ms,
+    }
+    if isinstance(meta.get("seed_case"), dict):
+        payload["seed_case"] = meta.get("seed_case")
+    artifacts = _resolve_bend_artifact_urls(meta.get("artifacts"), job_id)
+    ref_mesh = output_dir / "reference_mesh.ply"
+    if ref_mesh.exists() and "reference_mesh_url" not in artifacts:
+        artifacts["reference_mesh_url"] = f"/api/reference-mesh/{job_id}.ply"
+    if artifacts:
+        payload["artifacts"] = artifacts
+    if include_report:
+        payload["report"] = report
+    return payload
+
+
+def _list_persisted_bend_jobs(
+    status: Optional[str] = None,
+    include_report: bool = False,
+) -> List[Dict[str, Any]]:
+    """Enumerate persisted bend-inspection jobs from output directories."""
+    jobs: List[Dict[str, Any]] = []
+    for report_path in OUTPUT_DIR.glob("bend_*/bend_inspection_report.json"):
+        job_id = report_path.parent.name
+        job = _build_persisted_bend_job(job_id, include_report=include_report)
+        if not job:
+            continue
+        if status and job.get("status") != status:
+            continue
+        jobs.append(job)
+    return jobs
 
 
 @app.post("/api/bend-inspection/analyze", tags=["Bend Inspection"])
@@ -2431,8 +2889,6 @@ async def run_bend_inspection(
     Returns:
         job_id: ID for tracking/retrieving results
     """
-    import time
-
     # Validate file types
     cad_ext = Path(cad_file.filename).suffix.lower()
     scan_ext = Path(scan_file.filename).suffix.lower()
@@ -2506,7 +2962,6 @@ async def run_bend_inspection_task(
     tolerance_radius: float,
 ):
     """Background task for bend inspection."""
-    import open3d as o3d
     import time
 
     start_time = time.time()
@@ -2515,124 +2970,81 @@ async def run_bend_inspection_task(
         return
 
     try:
-        # Update progress
-        result_store["progress"] = 10
-        result_store["stage"] = "Loading CAD..."
-
-        # Load CAD - try mesh first, then point cloud
-        cad_mesh = o3d.io.read_triangle_mesh(cad_path)
-        cad_has_triangles = cad_mesh.has_vertices() and len(cad_mesh.triangles) > 0
-
-        if cad_has_triangles:
-            cad_vertices = np.asarray(cad_mesh.vertices)
-            cad_triangles = np.asarray(cad_mesh.triangles)
-        else:
-            # Try loading as point cloud
-            cad_pcd = o3d.io.read_point_cloud(cad_path)
-            if not cad_pcd.has_points():
-                raise ValueError("Failed to load CAD file (tried both mesh and point cloud)")
-            cad_vertices = np.asarray(cad_pcd.points)
-            cad_triangles = None  # No triangles for point cloud
-
-        result_store["progress"] = 20
-        result_store["stage"] = "Extracting CAD bends..."
-
-        # Extract bend specifications from CAD
-        cad_extractor = CADBendExtractor(
-            default_tolerance_angle=tolerance_angle,
-            default_tolerance_radius=tolerance_radius,
-        )
-        # Use detect_bends directly for point clouds (no triangles)
-        if cad_triangles is not None:
-            cad_bends = cad_extractor.extract_from_mesh(cad_vertices, cad_triangles)
-        else:
-            # For point clouds, use the detector directly
-            cad_detector = BendDetector(min_plane_points=50, min_plane_area=30.0)
-            detected_cad_bends = cad_detector.detect_bends(cad_vertices)
-            # Convert DetectedBend to BendSpecification
-            cad_bends = [
-                BendSpecification(
-                    bend_id=b.bend_id,
-                    target_angle=b.measured_angle,
-                    target_radius=b.measured_radius,
-                    bend_line_start=b.bend_line_start,
-                    bend_line_end=b.bend_line_end,
-                    tolerance_angle=tolerance_angle,
-                    tolerance_radius=tolerance_radius,
-                )
-                for b in detected_cad_bends
-            ]
-
-        logger.info(f"Extracted {len(cad_bends)} bends from CAD for job {job_id}")
-
-        result_store["progress"] = 40
-        result_store["stage"] = "Loading scan..."
-
-        # Load scan point cloud
-        scan_pcd = o3d.io.read_point_cloud(scan_path)
-        if not scan_pcd.has_points():
-            # Try as mesh
-            scan_mesh = o3d.io.read_triangle_mesh(scan_path)
-            if scan_mesh.has_vertices():
-                scan_points = np.asarray(scan_mesh.vertices)
-            else:
-                raise ValueError("Failed to load scan")
-        else:
-            scan_points = np.asarray(scan_pcd.points)
-
-        result_store["progress"] = 50
-        result_store["stage"] = "Detecting bends in scan..."
-
-        # Detect bends in scan
-        detector = BendDetector(
-            min_plane_points=50,
-            min_plane_area=30.0,
-        )
-        detected_bends = detector.detect_bends(scan_points)
-
-        logger.info(f"Detected {len(detected_bends)} bends in scan for job {job_id}")
-
-        result_store["progress"] = 70
-        result_store["stage"] = "Matching bends..."
-
-        # Match detected bends to CAD specifications
-        matcher = ProgressiveBendMatcher(max_angle_diff=15.0)
-        report = matcher.match(detected_bends, cad_bends, part_id=part_id)
-
-        # Set processing time
-        report.processing_time_ms = (time.time() - start_time) * 1000
-
-        result_store["progress"] = 90
-        result_store["stage"] = "Generating report..."
-
-        # Save results
         output_dir = OUTPUT_DIR / job_id
         output_dir.mkdir(exist_ok=True)
 
-        report_dict = report.to_dict()
+        def progress_callback(update: ProgressUpdate):
+            try:
+                result_store["progress"] = int(max(result_store.get("progress", 0), update.progress))
+                result_store["stage"] = update.message or update.stage
+            except Exception:
+                pass
 
-        # Save JSON report
-        report_path = output_dir / "bend_inspection_report.json"
-        with open(report_path, "w") as f:
-            json.dump(report_dict, f, indent=2)
+        result_store["progress"] = 2
+        result_store["stage"] = "Launching isolated bend worker..."
 
-        # Save ASCII table for display
-        table_path = output_dir / "bend_inspection_table.txt"
-        with open(table_path, "w") as f:
-            f.write(report.to_table_string())
+        worker_result = await asyncio.to_thread(
+            _run_bend_worker_subprocess,
+            job_id,
+            cad_path,
+            scan_path,
+            part_id,
+            part_name,
+            tolerance_angle,
+            tolerance_radius,
+            output_dir,
+            progress_callback,
+        )
+        if not worker_result.get("ok"):
+            raise RuntimeError(worker_result.get("error") or "Bend worker failed")
+
+        report_path = Path(str(worker_result["report_path"]))
+        table_path = Path(str(worker_result["table_path"]))
+        if not report_path.exists():
+            raise FileNotFoundError(f"Bend worker produced no report file: {report_path}")
+
+        with report_path.open("r", encoding="utf-8") as f:
+            report_dict = _json_safe(json.load(f))
+        table_text = table_path.read_text(encoding="utf-8") if table_path.exists() else ""
+        artifacts_payload = _resolve_bend_artifact_urls(worker_result.get("artifacts"), job_id)
+        processing_time_ms = float(worker_result.get("processing_time_ms") or ((time.time() - start_time) * 1000.0))
+        pipeline_details = _json_safe(worker_result.get("pipeline_details"))
+        runtime_config = _json_safe(worker_result.get("runtime_config"))
+
+        completed_at = datetime.now().isoformat()
+        metadata = {
+            "job_id": job_id,
+            "status": "completed",
+            "progress": 100,
+            "part_id": part_id,
+            "part_name": part_name,
+            "created_at": result_store.get("created_at"),
+            "completed_at": completed_at,
+            "processing_time_ms": processing_time_ms,
+            "cad_path": cad_path,
+            "scan_path": scan_path,
+            "artifacts": artifacts_payload,
+        }
+        meta_path = output_dir / "bend_inspection_meta.json"
+        with open(meta_path, "w") as f:
+            json.dump(metadata, f, indent=2)
 
         # Update result store
         result_store["status"] = "completed"
         result_store["progress"] = 100
         result_store["stage"] = "Complete"
         result_store["report"] = report_dict
-        result_store["table"] = report.to_table_string()
-        result_store["completed_at"] = datetime.now().isoformat()
-        result_store["processing_time_ms"] = report.processing_time_ms
+        result_store["table"] = table_text
+        result_store["completed_at"] = completed_at
+        result_store["processing_time_ms"] = processing_time_ms
+        result_store["pipeline_details"] = pipeline_details
+        result_store["runtime_config"] = runtime_config
+        if artifacts_payload:
+            result_store["artifacts"] = artifacts_payload
 
         logger.info(f"Bend inspection completed for job {job_id}: "
-                   f"{report.detected_count}/{report.total_cad_bends} bends detected, "
-                   f"{report.pass_count} passed, {report.fail_count} failed")
+                   f"{report_dict.get('summary', {}).get('completed_bends', report_dict.get('summary', {}).get('detected', '?'))}/"
+                   f"{report_dict.get('summary', {}).get('expected_bends', report_dict.get('summary', {}).get('total_bends', '?'))} bends detected")
 
     except Exception as e:
         import traceback
@@ -2648,11 +3060,13 @@ async def list_bend_inspection_jobs(
     limit: int = Query(20, ge=1, le=100),
 ):
     """List recent bend inspection jobs."""
-    jobs = []
+    jobs_by_id: Dict[str, Dict[str, Any]] = {}
+
+    # Live jobs from in-memory store (running/completed in current process).
     for job_id, result in bend_inspection_results.items():
         if status and result.get("status") != status:
             continue
-        jobs.append({
+        jobs_by_id[job_id] = {
             "job_id": job_id,
             "part_id": result.get("part_id"),
             "part_name": result.get("part_name"),
@@ -2660,10 +3074,34 @@ async def list_bend_inspection_jobs(
             "progress": result.get("progress"),
             "created_at": result.get("created_at"),
             "completed_at": result.get("completed_at"),
-        })
+            "processing_time_ms": result.get("processing_time_ms"),
+            "report": result.get("report"),
+            "artifacts": result.get("artifacts"),
+        }
 
-    # Sort by created_at descending
-    jobs.sort(key=lambda x: x.get("created_at", ""), reverse=True)
+    # Persisted jobs from disk (so history survives process restart).
+    persisted = _list_persisted_bend_jobs(status=status, include_report=True)
+    for job in persisted:
+        current = jobs_by_id.get(job["job_id"])
+        # Prefer live running state when available.
+        if current and current.get("status") == "running":
+            continue
+        if current and current.get("status") == "completed":
+            # Keep live payload but backfill missing report if needed.
+            if not isinstance(current.get("report"), dict) and isinstance(job.get("report"), dict):
+                current["report"] = job["report"]
+            continue
+        jobs_by_id[job["job_id"]] = job
+
+    jobs = list(jobs_by_id.values())
+
+    def _sort_key(job: Dict[str, Any]) -> datetime:
+        created = _parse_iso_datetime(job.get("created_at"))
+        completed = _parse_iso_datetime(job.get("completed_at"))
+        return created or completed or datetime.min
+
+    # Sort by timestamp descending.
+    jobs.sort(key=_sort_key, reverse=True)
 
     return {
         "jobs": jobs[:limit],
@@ -2684,16 +3122,14 @@ async def get_bend_inspection_result(job_id: str):
     """
     result = bend_inspection_results.get(job_id)
     if not result:
-        # Check if report exists on disk
-        report_path = OUTPUT_DIR / job_id / "bend_inspection_report.json"
-        if report_path.exists():
-            with open(report_path, "r") as f:
-                report = json.load(f)
-            return {
-                "job_id": job_id,
-                "status": "completed",
-                "report": report
-            }
+        # Fall back to persisted job on disk.
+        persisted = _build_persisted_bend_job(job_id, include_report=True)
+        if persisted:
+            table_path = OUTPUT_DIR / job_id / "bend_inspection_table.txt"
+            if table_path.exists():
+                with open(table_path, "r") as f:
+                    persisted["table"] = f.read()
+            return persisted
         raise HTTPException(404, "Bend inspection job not found")
 
     return {
@@ -2701,11 +3137,69 @@ async def get_bend_inspection_result(job_id: str):
         "status": result.get("status"),
         "progress": result.get("progress"),
         "stage": result.get("stage"),
+        "part_id": result.get("part_id"),
+        "part_name": result.get("part_name"),
+        "created_at": result.get("created_at"),
+        "completed_at": result.get("completed_at"),
         "report": result.get("report"),
         "table": result.get("table"),
+        "pipeline_details": result.get("pipeline_details"),
+        "runtime_config": result.get("runtime_config"),
+        "artifacts": result.get("artifacts"),
         "error": result.get("error"),
         "processing_time_ms": result.get("processing_time_ms"),
     }
+
+
+@app.get("/api/bend-inspection/{job_id}/pdf", tags=["Bend Inspection"])
+async def download_bend_inspection_pdf(job_id: str):
+    pdf_path = OUTPUT_DIR / job_id / "bend_inspection_report.pdf"
+    if not pdf_path.exists():
+        raise HTTPException(404, "Bend inspection PDF not available")
+    return FileResponse(
+        str(pdf_path),
+        media_type="application/pdf",
+        filename=f"Bend_Inspection_{job_id}.pdf",
+    )
+
+
+@app.get("/api/bend-inspection/{job_id}/overlay/manifest.json", tags=["Bend Inspection"])
+async def get_bend_overlay_manifest(job_id: str):
+    manifest_path = OUTPUT_DIR / job_id / "bend_overlay_manifest.json"
+    if not manifest_path.exists():
+        raise HTTPException(404, "Bend overlay manifest not available")
+    return FileResponse(
+        str(manifest_path),
+        media_type="application/json",
+        filename="bend_overlay_manifest.json",
+    )
+
+
+@app.get("/api/bend-inspection/{job_id}/overlay/overview.png", tags=["Bend Inspection"])
+async def get_bend_overlay_overview(job_id: str):
+    overview_path = OUTPUT_DIR / job_id / "bend_overlay_overview.png"
+    if not overview_path.exists():
+        raise HTTPException(404, "Bend overlay overview not available")
+    return FileResponse(
+        str(overview_path),
+        media_type="image/png",
+        filename="bend_overlay_overview.png",
+    )
+
+
+@app.get("/api/bend-inspection/{job_id}/overlay/issues/{filename}", tags=["Bend Inspection"])
+async def get_bend_overlay_issue(job_id: str, filename: str):
+    safe_name = Path(filename).name
+    if safe_name != filename:
+        raise HTTPException(400, "Invalid bend issue filename")
+    issue_path = OUTPUT_DIR / job_id / safe_name
+    if not issue_path.exists():
+        raise HTTPException(404, "Bend issue image not available")
+    return FileResponse(
+        str(issue_path),
+        media_type="image/png",
+        filename=safe_name,
+    )
 
 
 @app.get("/api/bend-inspection/{job_id}/table", tags=["Bend Inspection"])
@@ -2742,8 +3236,6 @@ async def extract_cad_bends(
     Use this to preview what bends the system detects in your CAD model
     before running a full inspection.
     """
-    import open3d as o3d
-
     # Validate file type
     cad_ext = Path(cad_file.filename).suffix.lower()
     valid_exts = ['.stl', '.ply', '.obj', '.step', '.stp']
@@ -2759,28 +3251,35 @@ async def extract_cad_bends(
     temp_dir.mkdir(exist_ok=True)
 
     try:
+        runtime_cfg = load_bend_runtime_config()
         cad_path = temp_dir / f"cad{cad_ext}"
         cad_content = await cad_file.read()
         async with aiofiles.open(cad_path, "wb") as f:
             await f.write(cad_content)
 
-        # Load and extract
-        cad_mesh = o3d.io.read_triangle_mesh(str(cad_path))
-        if not cad_mesh.has_vertices():
-            raise HTTPException(400, "Failed to load CAD mesh")
-
-        extractor = CADBendExtractor(
-            default_tolerance_angle=default_tolerance_angle,
-            default_tolerance_radius=default_tolerance_radius,
+        cad_vertices, cad_triangles, cad_source = load_cad_geometry(
+            str(cad_path),
+            cad_import_deflection=runtime_cfg.cad_import_deflection,
         )
-        bends = extractor.extract_from_mesh(
-            np.asarray(cad_mesh.vertices),
-            np.asarray(cad_mesh.triangles)
+        bends = extract_cad_bend_specs(
+            cad_vertices=cad_vertices,
+            cad_triangles=cad_triangles,
+            tolerance_angle=default_tolerance_angle,
+            tolerance_radius=default_tolerance_radius,
+            cad_extractor_kwargs=runtime_cfg.cad_extractor_kwargs,
+            cad_detector_kwargs=runtime_cfg.cad_detector_kwargs,
+            cad_detect_call_kwargs=runtime_cfg.cad_detect_call_kwargs,
         )
+        expected_overrides = load_expected_bend_overrides()
+        expected_bend_count = int(expected_overrides.get(part_id, len(bends)))
+        if expected_bend_count <= 0:
+            expected_bend_count = int(len(bends))
 
         return {
             "part_id": part_id,
+            "cad_source": cad_source,
             "total_bends": len(bends),
+            "expected_bend_count": expected_bend_count,
             "bends": [b.to_dict() for b in bends],
             "message": f"Extracted {len(bends)} bend specifications from CAD"
         }
@@ -2793,7 +3292,8 @@ async def extract_cad_bends(
 
 @app.post("/api/bend-inspection/analyze-from-catalog", tags=["Bend Inspection"])
 async def analyze_from_catalog(
-    part_id: int = Body(..., description="Part ID from catalog"),
+    background_tasks: BackgroundTasks,
+    part_id: str = Form(..., description="Part ID from catalog"),
     scan_file: UploadFile = File(..., description="Scan file to analyze"),
 ):
     """
@@ -2802,8 +3302,6 @@ async def analyze_from_catalog(
     Instead of uploading a CAD file, select a part from the catalog
     that already has a CAD file uploaded.
     """
-    import open3d as o3d
-
     # Get part from catalog
     catalog = get_catalog()
     part = catalog.get_part(part_id)
@@ -2833,61 +3331,35 @@ async def analyze_from_catalog(
         async with aiofiles.open(scan_path, "wb") as f:
             await f.write(scan_content)
 
-        # Use CAD from catalog
-        cad_path = Path(part.cad_file_path)
-
-        # Load meshes
-        cad_mesh = o3d.io.read_triangle_mesh(str(cad_path))
-        if not cad_mesh.has_vertices():
-            raise HTTPException(400, "Failed to load CAD mesh")
-
-        if scan_ext == '.pcd':
-            scan_pcd = o3d.io.read_point_cloud(str(scan_path))
-            scan_points = np.asarray(scan_pcd.points)
-        else:
-            scan_mesh = o3d.io.read_triangle_mesh(str(scan_path))
-            if not scan_mesh.has_vertices():
-                raise HTTPException(400, "Failed to load scan mesh")
-            scan_points = np.asarray(scan_mesh.vertices)
-
-        # Get bend specs from catalog
-        bend_specs = catalog.get_bend_specs(part_id)
-
-        # Run analysis using existing engine
-        from bend_detector import BendDetector
-        detector = BendDetector()
-
-        # Extract CAD bends
-        extractor = CADBendExtractor()
-        cad_bends = extractor.extract_from_mesh(
-            np.asarray(cad_mesh.vertices),
-            np.asarray(cad_mesh.triangles)
-        )
-
-        # Detect bends in scan
-        scan_bends = detector.detect_bends(scan_points)
-
-        # Match and analyze
-        from bend_matcher import match_bends
-        matched = match_bends(cad_bends, scan_bends, bend_specs if bend_specs else None)
-
-        # Store result
-        result = {
-            "job_id": job_id,
-            "part_id": part_id,
-            "part_number": part.part_number,
-            "part_name": part.name,
-            "status": "complete",
-            "cad_bends": len(cad_bends),
-            "scan_bends": len(scan_bends),
-            "matched_bends": len([m for m in matched if m.get("matched")]),
-            "results": matched,
+        # Initialize async job state
+        bend_inspection_results[job_id] = {
+            "status": "running",
+            "progress": 0,
+            "part_id": part.id,
+            "part_name": part.part_name or part.part_number,
             "created_at": datetime.now().isoformat(),
         }
 
-        bend_inspection_results[job_id] = result
+        # Reuse the same validated progressive inspection pipeline.
+        background_tasks.add_task(
+            run_bend_inspection_task,
+            job_id,
+            str(part.cad_file_path),
+            str(scan_path),
+            part.id,
+            part.part_name or part.part_number,
+            part.default_tolerance_angle,
+            0.5,
+        )
 
-        return result
+        return {
+            "job_id": job_id,
+            "status": "started",
+            "message": "Catalog-based bend inspection started",
+            "part_id": part.id,
+            "part_number": part.part_number,
+            "part_name": part.part_name,
+        }
 
     except HTTPException:
         raise
@@ -2895,6 +3367,7 @@ async def analyze_from_catalog(
         logger.error(f"Error in catalog analysis: {e}")
         if job_dir.exists():
             shutil.rmtree(job_dir)
+        bend_inspection_results.pop(job_id, None)
         raise HTTPException(500, f"Analysis failed: {str(e)}")
 
 
@@ -2908,12 +3381,14 @@ async def get_parts_with_cad():
     parts_with_cad = []
     for p in parts:
         if p.cad_file_path and Path(p.cad_file_path).exists():
+            bend_specs = catalog.get_bend_specs_for_part(p.id)
             parts_with_cad.append({
                 "id": p.id,
                 "part_number": p.part_number,
-                "name": p.name,
+                "part_name": p.part_name,
+                "name": p.part_name,  # Backward compatibility for older clients
                 "customer": p.customer,
-                "has_bend_specs": p.has_bend_specs,
+                "has_bend_specs": len(bend_specs) > 0,
             })
 
     return {"parts": parts_with_cad, "total": len(parts_with_cad)}
@@ -3162,39 +3637,41 @@ async def upload_part_cad(
     }
 
     # Optionally analyze bends
-    if analyze_bends and ext in {'.stl', '.ply', '.obj'}:
+    if analyze_bends:
         try:
-            import open3d as o3d
-            from feature_detection.bend_detector import CADBendExtractor
+            runtime_cfg = load_bend_runtime_config()
+            cad_vertices, cad_triangles, cad_source = load_cad_geometry(
+                str(cad_path),
+                cad_import_deflection=runtime_cfg.cad_import_deflection,
+            )
+            bends = extract_cad_bend_specs(
+                cad_vertices=cad_vertices,
+                cad_triangles=cad_triangles,
+                tolerance_angle=part.default_tolerance_angle,
+                tolerance_radius=0.5,
+                cad_extractor_kwargs=runtime_cfg.cad_extractor_kwargs,
+                cad_detector_kwargs=runtime_cfg.cad_detector_kwargs,
+                cad_detect_call_kwargs=runtime_cfg.cad_detect_call_kwargs,
+            )
 
-            mesh = o3d.io.read_triangle_mesh(str(cad_path))
-            if mesh.has_vertices():
-                extractor = CADBendExtractor(
-                    default_tolerance_angle=part.default_tolerance_angle,
-                    default_tolerance_radius=0.5,
+            # Clear existing bend specs and add new ones
+            catalog.delete_bend_specs_for_part(part_id)
+            for bend in bends:
+                catalog.add_bend_spec(
+                    part_id=part_id,
+                    bend_id=bend.bend_id,
+                    target_angle=bend.target_angle,
+                    target_radius=bend.target_radius,
+                    tolerance_angle=bend.tolerance_angle,
+                    tolerance_radius=bend.tolerance_radius,
                 )
-                bends = extractor.extract_from_mesh(
-                    np.asarray(mesh.vertices),
-                    np.asarray(mesh.triangles)
-                )
 
-                # Clear existing bend specs and add new ones
-                catalog.delete_bend_specs_for_part(part_id)
-                for bend in bends:
-                    catalog.add_bend_spec(
-                        part_id=part_id,
-                        bend_id=bend.bend_id,
-                        target_angle=bend.target_angle,
-                        target_radius=bend.target_radius,
-                        tolerance_angle=bend.tolerance_angle,
-                        tolerance_radius=bend.tolerance_radius,
-                    )
+            # Update bend count
+            catalog.update_part(part_id, bend_count=len(bends))
 
-                # Update bend count
-                catalog.update_part(part_id, bend_count=len(bends))
-
-                result["bends_detected"] = len(bends)
-                result["bends"] = [b.to_dict() for b in bends]
+            result["cad_source"] = cad_source
+            result["bends_detected"] = len(bends)
+            result["bends"] = [b.to_dict() for b in bends]
         except Exception as e:
             logger.warning(f"Bend analysis failed: {e}")
             result["bend_analysis_error"] = str(e)
@@ -3373,7 +3850,12 @@ async def recognize_part(
             mesh = o3d.io.read_triangle_mesh(tmp_path)
             if mesh.is_empty():
                 raise HTTPException(400, "Failed to read mesh file")
-            pcd = mesh.sample_points_uniformly(number_of_points=10000)
+            if len(mesh.triangles) > 0:
+                pcd = mesh.sample_points_uniformly(number_of_points=10000)
+            else:
+                pcd = o3d.io.read_point_cloud(tmp_path)
+                if pcd.is_empty():
+                    raise HTTPException(400, "Mesh contains no triangles and no point cloud data")
         else:
             pcd = o3d.io.read_point_cloud(tmp_path)
             if pcd.is_empty():
@@ -3501,7 +3983,12 @@ async def compare_embeddings(
         try:
             if suffix in ['.stl', '.obj']:
                 mesh = o3d.io.read_triangle_mesh(tmp_path)
-                pcd = mesh.sample_points_uniformly(number_of_points=10000)
+                if len(mesh.triangles) > 0:
+                    pcd = mesh.sample_points_uniformly(number_of_points=10000)
+                else:
+                    pcd = o3d.io.read_point_cloud(tmp_path)
+                    if pcd.is_empty():
+                        raise HTTPException(400, f"{filename} has no triangles and no point cloud data")
             else:
                 pcd = o3d.io.read_point_cloud(tmp_path)
 
@@ -3605,6 +4092,253 @@ def get_live_scan_manager():
     return _live_scan_manager
 
 
+LIVE_SCAN_DEMO_ASSETS: Dict[str, Dict[str, str]] = {
+    "47266000_F": {
+        "part_number": "47266000_F",
+        "part_name": "Demo Part 47266000_F",
+        "cad_mesh_relpath": "test_files/47266000_F/cad_mesh.stl",
+        "scan_mesh_relpath": "test_files/47266000_F/scan.stl",
+    },
+    "11979003_C": {
+        "part_number": "11979003_C",
+        "part_name": "Demo Part 11979003_C",
+        "cad_mesh_relpath": "test_files/11979003_C/cad_mesh.stl",
+        "scan_mesh_relpath": "test_files/11979003_C/scan.stl",
+    },
+}
+DEFAULT_LIVE_SCAN_DEMO_PART = "47266000_F"
+
+
+class LoadLiveScanDemoRequest(BaseModel):
+    """Request model for injecting a demo LiDAR scan."""
+    part_number: Optional[str] = Field(
+        default=DEFAULT_LIVE_SCAN_DEMO_PART,
+        description="Demo part number key (e.g., 47266000_F)",
+    )
+    point_count: int = Field(
+        default=14000,
+        ge=2000,
+        le=200000,
+        description="Number of LiDAR-like points to generate",
+    )
+    noise_sigma_mm: float = Field(
+        default=0.08,
+        ge=0.0,
+        le=2.0,
+        description="Gaussian noise level in mm",
+    )
+    reset_session: bool = Field(
+        default=True,
+        description="Reset current live-scan session before injecting demo scan",
+    )
+
+
+def _resolve_live_scan_demo_asset(part_number: Optional[str]) -> Dict[str, str]:
+    if part_number:
+        key = part_number.strip().upper()
+        if key in LIVE_SCAN_DEMO_ASSETS:
+            return LIVE_SCAN_DEMO_ASSETS[key]
+    return LIVE_SCAN_DEMO_ASSETS[DEFAULT_LIVE_SCAN_DEMO_PART]
+
+
+def _ensure_demo_part_in_catalog(asset: Dict[str, str]):
+    """Create/update demo part in catalog with a CAD mesh path."""
+    import hashlib
+
+    catalog = get_catalog()
+    part = catalog.get_part_by_number(asset["part_number"])
+    if part is None:
+        part = catalog.create_part(
+            part_number=asset["part_number"],
+            part_name=asset["part_name"],
+            customer="DEMO",
+            material="Aluminum",
+            notes="Auto-generated demo part for Live Scan test mode",
+        )
+
+    cad_source = (BASE_DIR / asset["cad_mesh_relpath"]).resolve()
+    if not cad_source.exists():
+        raise FileNotFoundError(f"Demo CAD mesh not found: {cad_source}")
+
+    cad_dir = UPLOAD_DIR / "parts_cad"
+    cad_dir.mkdir(parents=True, exist_ok=True)
+    cad_target = cad_dir / f"{asset['part_number'].replace('/', '_')}_demo.stl"
+    if not cad_target.exists() or cad_target.stat().st_size != cad_source.stat().st_size:
+        shutil.copy2(cad_source, cad_target)
+
+    cad_hash = hashlib.md5(cad_target.read_bytes()).hexdigest()
+    if (
+        part.cad_file_path != str(cad_target)
+        or part.cad_file_hash != cad_hash
+        or not part.cad_uploaded_at
+    ):
+        catalog.update_part(
+            part.id,
+            cad_file_path=str(cad_target),
+            cad_file_hash=cad_hash,
+            cad_uploaded_at=datetime.now().isoformat(),
+        )
+        part = catalog.get_part(part.id)
+
+    return part, cad_target
+
+
+def _ensure_demo_part_indexed(part):
+    """Ensure part embedding exists both in DB and in FAISS index."""
+    from embedding_worker import get_embedding_worker
+
+    catalog = get_catalog()
+    faiss_index = get_faiss_index()
+
+    if (not part.has_embedding) or (not faiss_index.has_part(part.id)):
+        worker = get_embedding_worker()
+        ok = worker.process_single(part.id)
+        if not ok:
+            raise RuntimeError(
+                f"Failed to compute demo embedding for {part.part_number}. "
+                "Ensure demo CAD mesh is valid."
+            )
+        faiss_index.save()
+
+    updated_part = catalog.get_part(part.id)
+    if updated_part is None:
+        raise RuntimeError("Part disappeared from catalog while indexing demo part")
+    return updated_part
+
+
+def _write_lidar_demo_scan(
+    source_scan_mesh: Path,
+    output_scan_path: Path,
+    point_count: int,
+    noise_sigma_mm: float,
+) -> Dict[str, Any]:
+    """Generate a LiDAR-like point cloud file from a demo mesh/point cloud source."""
+    import open3d as o3d
+
+    mesh = o3d.io.read_triangle_mesh(str(source_scan_mesh))
+    points: Optional[np.ndarray] = None
+
+    if mesh is not None and len(mesh.vertices) > 0 and len(mesh.triangles) > 0:
+        sampled = mesh.sample_points_uniformly(number_of_points=max(point_count * 2, 5000))
+        points = np.asarray(sampled.points)
+    else:
+        pcd = o3d.io.read_point_cloud(str(source_scan_mesh))
+        if pcd is not None and not pcd.is_empty():
+            points = np.asarray(pcd.points)
+
+    if points is None or len(points) < 200:
+        raise ValueError(
+            f"Demo source scan is not usable: {source_scan_mesh} "
+            "(needs mesh triangles or dense point cloud)"
+        )
+
+    rng = np.random.default_rng()
+
+    # Randomly subsample to requested point count.
+    if len(points) > point_count:
+        idx = rng.choice(len(points), size=point_count, replace=False)
+        points = points[idx]
+
+    # Add subtle Gaussian jitter to mimic LiDAR noise.
+    if noise_sigma_mm > 0:
+        points = points + rng.normal(0.0, noise_sigma_mm, size=points.shape)
+
+    # Add mild dropout pattern (scan shadowing) for realism.
+    if len(points) > 4000:
+        keep = rng.random(len(points)) > 0.06
+        points = points[keep]
+
+    pcd_out = o3d.geometry.PointCloud()
+    pcd_out.points = o3d.utility.Vector3dVector(points.astype(np.float64))
+    output_scan_path.parent.mkdir(parents=True, exist_ok=True)
+    ok = o3d.io.write_point_cloud(str(output_scan_path), pcd_out, write_ascii=False, compressed=False)
+    if not ok:
+        raise RuntimeError(f"Failed to write demo LiDAR scan: {output_scan_path}")
+
+    return {
+        "point_count": int(len(points)),
+        "noise_sigma_mm": float(noise_sigma_mm),
+    }
+
+
+@app.get("/api/live-scan/demo/options", tags=["Live Scan"])
+async def get_live_scan_demo_options():
+    """List built-in demo parts available for one-click Live Scan ingestion."""
+    options = []
+    for key, asset in LIVE_SCAN_DEMO_ASSETS.items():
+        cad_path = (BASE_DIR / asset["cad_mesh_relpath"]).resolve()
+        scan_path = (BASE_DIR / asset["scan_mesh_relpath"]).resolve()
+        options.append({
+            "part_number": key,
+            "part_name": asset.get("part_name"),
+            "cad_available": cad_path.exists(),
+            "scan_available": scan_path.exists(),
+        })
+    return {
+        "default_part_number": DEFAULT_LIVE_SCAN_DEMO_PART,
+        "options": options,
+    }
+
+
+@app.post("/api/live-scan/demo/load", tags=["Live Scan"])
+async def load_live_scan_demo_scan(request: LoadLiveScanDemoRequest):
+    """
+    Inject a demo LiDAR scan into Live Scan flow.
+
+    This endpoint is functional (not mock): it ensures the part is in catalog,
+    ensures embedding/index presence for recognition, creates a real point-cloud
+    scan file under the watch folder, and ingests it into the session pipeline.
+    """
+    try:
+        manager = get_live_scan_manager()
+        if not manager.is_running():
+            manager.start()
+        if request.reset_session:
+            manager.reset_session()
+
+        asset = _resolve_live_scan_demo_asset(request.part_number)
+        part, _ = _ensure_demo_part_in_catalog(asset)
+        part = _ensure_demo_part_indexed(part)
+
+        source_scan = (BASE_DIR / asset["scan_mesh_relpath"]).resolve()
+        if not source_scan.exists():
+            raise FileNotFoundError(f"Demo scan source not found: {source_scan}")
+
+        ts = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+        filename = f"{asset['part_number']}_LIDAR_DEMO_{ts}.ply"
+        output_scan = Path(manager.watch_path) / filename
+
+        lidar_meta = _write_lidar_demo_scan(
+            source_scan_mesh=source_scan,
+            output_scan_path=output_scan,
+            point_count=request.point_count,
+            noise_sigma_mm=request.noise_sigma_mm,
+        )
+
+        manager.ingest_scan_file(str(output_scan), filename=filename)
+        session = manager.get_current_session()
+
+        return {
+            "message": "Demo LiDAR scan loaded",
+            "watch_path": str(manager.watch_path),
+            "scan_file": str(output_scan),
+            "demo_part": {
+                "part_id": part.id,
+                "part_number": part.part_number,
+                "part_name": part.part_name,
+                "has_cad": bool(part.cad_file_path),
+                "has_embedding": bool(part.has_embedding),
+            },
+            "lidar": lidar_meta,
+            "session": session.to_dict() if session else None,
+        }
+    except HTTPException:
+        raise
+    except Exception as exc:
+        logger.error(f"Failed to load live scan demo: {exc}")
+        raise HTTPException(500, f"Failed to load live scan demo: {exc}")
+
+
 @app.get("/api/live-scan/session", tags=["Live Scan"])
 async def get_live_scan_session():
     """Get the current live scan session."""
@@ -3615,6 +4349,91 @@ async def get_live_scan_session():
         return None
 
     return session.to_dict()
+
+
+@app.get("/api/live-scan/session/points", tags=["Live Scan"])
+async def get_live_scan_session_points(
+    max_points: int = Query(15000, ge=1000, le=100000),
+    max_scans: int = Query(4, ge=1, le=12),
+):
+    """
+    Return merged point cloud samples for the current live-scan session.
+
+    Used by the Live Scan viewer to render actual scanned geometry instead of
+    synthetic placeholder particles.
+    """
+    manager = get_live_scan_manager()
+    session = manager.get_current_session()
+    if session is None or not session.scans:
+        return {
+            "session_id": None,
+            "scan_count": 0,
+            "point_count": 0,
+            "points": [],
+        }
+
+    try:
+        import open3d as o3d
+
+        scan_items = session.scans[-max_scans:]
+        arrays: List[np.ndarray] = []
+
+        for scan in scan_items:
+            path = Path(scan.file_path)
+            if not path.exists():
+                continue
+
+            ext = path.suffix.lower()
+            pts: Optional[np.ndarray] = None
+
+            if ext in {".ply", ".pcd"}:
+                pcd = o3d.io.read_point_cloud(str(path))
+                if pcd is not None and not pcd.is_empty():
+                    pts = np.asarray(pcd.points)
+            elif ext in {".stl", ".obj"}:
+                mesh = o3d.io.read_triangle_mesh(str(path))
+                if mesh is not None and len(mesh.vertices) > 0 and len(mesh.triangles) > 0:
+                    sampled = mesh.sample_points_uniformly(number_of_points=min(max_points, 15000))
+                    pts = np.asarray(sampled.points)
+                else:
+                    pcd = o3d.io.read_point_cloud(str(path))
+                    if pcd is not None and not pcd.is_empty():
+                        pts = np.asarray(pcd.points)
+
+            if pts is not None and len(pts) > 0:
+                arrays.append(pts.astype(np.float32, copy=False))
+
+        if not arrays:
+            return {
+                "session_id": session.id,
+                "scan_count": len(session.scans),
+                "point_count": 0,
+                "points": [],
+            }
+
+        merged = np.vstack(arrays)
+        if len(merged) > max_points:
+            idx = np.random.choice(len(merged), size=max_points, replace=False)
+            merged = merged[idx]
+
+        # Round for smaller payload without visible quality loss.
+        merged = np.round(merged, 3)
+
+        return {
+            "session_id": session.id,
+            "scan_count": len(session.scans),
+            "point_count": int(len(merged)),
+            "points": merged.tolist(),
+        }
+    except Exception as exc:
+        logger.warning(f"Failed to fetch live scan points: {exc}")
+        return {
+            "session_id": session.id,
+            "scan_count": len(session.scans),
+            "point_count": 0,
+            "points": [],
+            "warning": str(exc),
+        }
 
 
 @app.post("/api/live-scan/session/{session_id}/confirm", tags=["Live Scan"])
@@ -3678,8 +4497,10 @@ async def reset_live_scan_session():
 
 
 @app.post("/api/live-scan/start", tags=["Live Scan"])
-async def start_live_scan_manager(watch_path: str = Body(None)):
+async def start_live_scan_manager(watch_path: Optional[str] = Body(None, embed=True)):
     """Start the live scan session manager."""
+    if watch_path:
+        set_live_scan_watch_path(watch_path)
     manager = get_live_scan_manager()
 
     if manager.is_running():

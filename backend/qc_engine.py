@@ -5,6 +5,7 @@ Handles mesh loading, alignment, deviation computation, and AI analysis.
 
 import os
 import numpy as np
+import random
 from dataclasses import dataclass, field
 from typing import Optional, List, Dict, Any, Callable
 from enum import Enum
@@ -254,6 +255,7 @@ class ScanQCEngine:
     ):
         self.progress_callback = progress_callback or (lambda x: None)
         self.reference_mesh = None
+        self.reference_pcd = None
         self.scan_pcd = None
         self.aligned_scan = None
         self.deviations = None
@@ -769,35 +771,68 @@ class ScanQCEngine:
                 logger.info(f"Measured {len(scan_measurements)}/{cad_result.total_dimensions} "
                            "dimensions in scan")
 
-            # Build report in format expected by frontend
-            pass_count = sum(1 for m in scan_measurements if m["status"] == "PASS")
-            fail_count = sum(1 for m in scan_measurements if m["status"] == "FAIL")
-
-            # Convert measurements to DimensionComparison format expected by frontend
+            # Build report in the same schema as XLSX-based DimensionReport.to_dict()
+            status_map = {
+                "PASS": "pass",
+                "FAIL": "fail",
+                "WARNING": "warning",
+                "NOT_MEASURED": "not_measured",
+                "PENDING": "pending",
+            }
             dimension_comparisons = []
             for m in scan_measurements:
+                raw_status = str(m.get("status", "pending")).upper()
+                status = status_map.get(raw_status, raw_status.lower())
+                cad_value = m.get("cad_value")
+                scan_value = m.get("scan_value")
+                scan_deviation = m.get("deviation")
+
+                scan_dev_pct = None
+                if (
+                    cad_value is not None and cad_value != 0
+                    and scan_deviation is not None
+                ):
+                    scan_dev_pct = (scan_deviation / cad_value) * 100.0
+
+                tol = float(m.get("tolerance", 0.5))
                 dimension_comparisons.append({
-                    "id": m["dim_id"],
-                    "name": m["description"],
+                    "dim_id": m["dim_id"],
                     "type": m["type"],
-                    "nominal": m["cad_value"],
-                    "actual": m["scan_value"],
-                    "deviation": m["deviation"],
-                    "tolerance_plus": m["tolerance"],
-                    "tolerance_minus": -m["tolerance"],
-                    "status": m["status"],
+                    "description": m["description"],
+                    "expected": cad_value,
+                    "reference_source": "CAD",
+                    "xlsx_value": None,
+                    "cad_value": cad_value,
+                    "scan_value": scan_value,
+                    "measured_output": scan_value,
                     "unit": "mm",
+                    "tolerance": f"+{tol}/-{tol}",
+                    "tolerance_plus": tol,
+                    "tolerance_minus": tol,
+                    "xlsx_vs_cad_deviation": None,
+                    "scan_vs_cad_deviation": scan_deviation,
+                    "scan_deviation": scan_deviation,
+                    "scan_deviation_percent": scan_dev_pct,
+                    "status": status,
                     "measurement_axis": m.get("measurement_axis", ""),
                     "confidence": m.get("confidence", 1.0),
                 })
 
+            measured_count = sum(
+                1 for d in dimension_comparisons if d["status"] != "not_measured"
+            )
+            pass_count = sum(1 for d in dimension_comparisons if d["status"] == "pass")
+            fail_count = sum(1 for d in dimension_comparisons if d["status"] == "fail")
+            warning_count = sum(1 for d in dimension_comparisons if d["status"] == "warning")
+            pass_rate = (pass_count / measured_count * 100.0) if measured_count > 0 else 0.0
+
             # Get failed dimensions
-            failed_dimensions = [d for d in dimension_comparisons if d["status"] == "FAIL"]
+            failed_dimensions = [d for d in dimension_comparisons if d["status"] == "fail"]
 
             # Get worst deviations (sorted by absolute deviation)
             worst_deviations = sorted(
                 dimension_comparisons,
-                key=lambda d: abs(d["deviation"]) if d["deviation"] else 0,
+                key=lambda d: abs(d["scan_deviation"]) if d["scan_deviation"] is not None else 0,
                 reverse=True
             )[:10]
 
@@ -812,17 +847,16 @@ class ScanQCEngine:
                 },
                 "summary": {
                     "total_dimensions": cad_result.total_dimensions,
-                    "measured": len(scan_measurements),
+                    "measured": measured_count,
                     "passed": pass_count,
                     "failed": fail_count,
-                    "warnings": len(cad_result.warnings),
+                    "warnings": warning_count + len(cad_result.warnings),
+                    "pass_rate": round(pass_rate, 1),
                 },
                 "bend_summary": {
                     "total_bends": 0,
-                    "matched": 0,
                     "passed": 0,
                     "failed": 0,
-                    "warnings": 0,
                 },
                 "dimensions": dimension_comparisons,
                 "bend_analysis": None,
@@ -1096,6 +1130,8 @@ class ScanQCEngine:
         if not filepath.exists():
             raise FileNotFoundError(f"Reference not found: {filepath}")
 
+        self.reference_mesh = None
+        self.reference_pcd = None
         ext = filepath.suffix.lower()
 
         # Handle CAD formats (STEP/IGES) - convert to mesh first
@@ -1118,34 +1154,80 @@ class ScanQCEngine:
             self.reference_mesh.vertices = self.o3d.utility.Vector3dVector(result.mesh.vertices)
             self.reference_mesh.triangles = self.o3d.utility.Vector3iVector(result.mesh.faces)
             self.reference_mesh.compute_vertex_normals()
+            if len(self.reference_mesh.triangles) == 0:
+                raise ValueError(
+                    f"Converted CAD has no triangles: {filepath.name}. "
+                    "Check CAD export settings/tessellation."
+                )
 
             self._update_progress("load", 15,
                 f"Converted CAD: {result.num_faces} faces → {len(self.reference_mesh.vertices)} vertices")
         else:
             # Direct mesh formats (STL, OBJ, PLY)
-            self.reference_mesh = self.o3d.io.read_triangle_mesh(str(filepath))
-            if not self.reference_mesh.has_vertex_normals():
-                self.reference_mesh.compute_vertex_normals()
+            mesh = self.o3d.io.read_triangle_mesh(str(filepath))
+            mesh_vertices = len(mesh.vertices)
+            mesh_triangles = len(mesh.triangles)
 
-            self._update_progress("load", 15, f"Loaded {len(self.reference_mesh.vertices)} vertices")
+            if mesh_triangles > 0 and mesh_vertices > 0:
+                self.reference_mesh = mesh
+                if not self.reference_mesh.has_vertex_normals():
+                    self.reference_mesh.compute_vertex_normals()
+                self._update_progress(
+                    "load",
+                    15,
+                    f"Loaded reference mesh: {mesh_vertices} vertices, {mesh_triangles} triangles",
+                )
+            else:
+                # Fallback for point-cloud-like references (e.g. PLY without faces).
+                pcd = self.o3d.io.read_point_cloud(str(filepath))
+                pcd_points = len(pcd.points)
+                if pcd_points <= 0:
+                    raise ValueError(
+                        f"Unable to parse reference geometry: {filepath.name}. "
+                        f"Mesh vertices={mesh_vertices}, triangles={mesh_triangles}, point_cloud_points={pcd_points}. "
+                        "File may be empty/corrupt or extension/content mismatch."
+                    )
+                if not pcd.has_normals():
+                    pcd.estimate_normals()
+                self.reference_pcd = pcd
+                self._update_progress(
+                    "load",
+                    15,
+                    f"Loaded reference point cloud: {pcd_points} points (mesh triangles unavailable)",
+                )
 
         return True
-    
+
     def load_scan(self, filepath: str) -> bool:
         """Load scan file (STL, PLY, or converted STEP)"""
         self._update_progress("load", 20, f"Loading scan: {Path(filepath).name}")
         
         filepath = Path(filepath)
         ext = filepath.suffix.lower()
-        
+
         if ext in ['.ply', '.pcd']:
             self.scan_pcd = self.o3d.io.read_point_cloud(str(filepath))
         elif ext in ['.stl', '.obj']:
             mesh = self.o3d.io.read_triangle_mesh(str(filepath))
-            self.scan_pcd = mesh.sample_points_uniformly(number_of_points=200000)
+            mesh_vertices = len(mesh.vertices)
+            mesh_triangles = len(mesh.triangles)
+            if mesh_triangles > 0 and mesh_vertices > 0:
+                self.scan_pcd = mesh.sample_points_uniformly(number_of_points=200000)
+            else:
+                pcd = self.o3d.io.read_point_cloud(str(filepath))
+                if len(pcd.points) <= 0:
+                    raise ValueError(
+                        f"Unable to parse scan geometry: {filepath.name}. "
+                        f"Mesh vertices={mesh_vertices}, triangles={mesh_triangles}, point_cloud_points={len(pcd.points)}. "
+                        "File may be empty/corrupt or extension/content mismatch."
+                    )
+                self.scan_pcd = pcd
         else:
             raise ValueError(f"Unsupported format: {ext}")
-        
+
+        if len(self.scan_pcd.points) <= 0:
+            raise ValueError(f"Scan has zero points after loading: {filepath.name}")
+
         self._update_progress("load", 30, f"Loaded {len(self.scan_pcd.points)} points")
         return True
     
@@ -1188,7 +1270,25 @@ class ScanQCEngine:
 
         return eigenvectors.T  # Rotation matrix (3x3)
 
-    def align(self, auto_scale: bool = True, tolerance: float = 1.0) -> tuple:
+    def _set_alignment_random_seed(self, random_seed: Optional[int]) -> None:
+        """Seed numpy/Python/Open3D RNGs so alignment retries are reproducible."""
+        if random_seed is None:
+            return
+        try:
+            random.seed(int(random_seed))
+        except Exception:
+            pass
+        try:
+            np.random.seed(int(random_seed))
+        except Exception:
+            pass
+        try:
+            if hasattr(self.o3d.utility, "random") and hasattr(self.o3d.utility.random, "seed"):
+                self.o3d.utility.random.seed(int(random_seed))
+        except Exception:
+            logger.debug("Failed to seed Open3D RNG", exc_info=True)
+
+    def align(self, auto_scale: bool = True, tolerance: float = 1.0, random_seed: Optional[int] = None) -> tuple:
         """ISO 5459-compliant scan-to-CAD alignment pipeline.
 
         Pipeline:
@@ -1201,6 +1301,7 @@ class ScanQCEngine:
         """
         import copy
 
+        self._set_alignment_random_seed(random_seed)
         ref_pcd = self._prepare_reference()
         scan_working, ref_centered, scan_center, ref_center = self._center_clouds(ref_pcd)
         pca_rotation = self._pca_pre_align(scan_working, ref_centered)
@@ -1224,7 +1325,18 @@ class ScanQCEngine:
         """Sample reference mesh uniformly and estimate normals."""
         self._update_progress("align", 50, "Converting reference to point cloud...")
         n_points = max(100_000, len(self.scan_pcd.points))
-        ref_pcd = self.reference_mesh.sample_points_uniformly(number_of_points=n_points)
+        if self.reference_mesh is not None and len(self.reference_mesh.triangles) > 0:
+            ref_pcd = self.reference_mesh.sample_points_uniformly(number_of_points=n_points)
+        elif self.reference_pcd is not None and len(self.reference_pcd.points) > 0:
+            import copy
+            ref_pcd = copy.deepcopy(self.reference_pcd)
+        else:
+            raise ValueError(
+                "Reference geometry is unavailable for alignment. "
+                "Provide a valid mesh (with triangles) or point cloud (with points)."
+            )
+        if len(ref_pcd.points) <= 0:
+            raise ValueError("Reference point cloud is empty after preparation")
         ref_pcd.estimate_normals()
         return ref_pcd
 
@@ -1236,9 +1348,11 @@ class ScanQCEngine:
         ref_center = np.asarray(ref_pcd.get_center())
 
         scan_working = copy.deepcopy(self.scan_pcd)
-        scan_working.translate(-scan_center)
+        scan_points = np.asarray(scan_working.points)
+        scan_working.points = self.o3d.utility.Vector3dVector(scan_points - scan_center)
         ref_centered = copy.deepcopy(ref_pcd)
-        ref_centered.translate(-ref_center)
+        ref_points = np.asarray(ref_centered.points)
+        ref_centered.points = self.o3d.utility.Vector3dVector(ref_points - ref_center)
 
         return scan_working, ref_centered, scan_center, ref_center
 
@@ -1347,7 +1461,7 @@ class ScanQCEngine:
         matching the approach used by GOM ATOS and PolyWorks internally.
         """
         self._update_progress("align", 62, "Running fine alignment (ICP)...")
-
+        
         loss = self.o3d.pipelines.registration.TukeyLoss(k=2.0)
         estimation = self.o3d.pipelines.registration.TransformationEstimationPointToPlane(loss)
         criteria = self.o3d.pipelines.registration.ICPConvergenceCriteria(
@@ -1677,13 +1791,32 @@ class ScanQCEngine:
 
         self._update_progress("analyze", 76, "Sampling reference surface...")
 
-        # Sample dense points from reference mesh for KDTree
-        ref_sample = self.reference_mesh.sample_points_uniformly(
-            number_of_points=max(200000, n_points * 2)
-        )
-        ref_points = np.asarray(ref_sample.points)
-        ref_sample.estimate_normals()
-        ref_normals = np.asarray(ref_sample.normals)
+        # Sample dense points from reference geometry for KDTree.
+        if self.reference_mesh is not None and len(self.reference_mesh.triangles) > 0:
+            ref_sample = self.reference_mesh.sample_points_uniformly(
+                number_of_points=max(200000, n_points * 2)
+            )
+            ref_sample.estimate_normals()
+            ref_points = np.asarray(ref_sample.points)
+            ref_normals = np.asarray(ref_sample.normals)
+        elif self.reference_pcd is not None and len(self.reference_pcd.points) > 0:
+            ref_sample = self.reference_pcd
+            if not ref_sample.has_normals():
+                ref_sample.estimate_normals()
+            ref_points = np.asarray(ref_sample.points)
+            ref_normals = np.asarray(ref_sample.normals)
+            # Keep KDTree memory bounded for very dense scans.
+            target = max(200000, n_points * 2)
+            if len(ref_points) > target:
+                idx = np.random.choice(len(ref_points), size=target, replace=False)
+                ref_points = ref_points[idx]
+                if len(ref_normals) == len(self.reference_pcd.points):
+                    ref_normals = ref_normals[idx]
+        else:
+            raise ValueError(
+                "Reference geometry unavailable for deviation computation. "
+                "No mesh triangles and no reference point cloud."
+            )
 
         self._update_progress("analyze", 77, "Building spatial index...")
 
@@ -1718,6 +1851,8 @@ class ScanQCEngine:
 
     def _compute_deviations_trimesh(self, scan_points: np.ndarray, n_points: int, chunk_size: int) -> np.ndarray:
         """Original deviation computation using Trimesh BVH (more accurate, more memory)."""
+        if self.reference_mesh is None or len(self.reference_mesh.triangles) == 0:
+            return self._compute_deviations_kdtree(scan_points, n_points, chunk_size)
         mesh = self.trimesh.Trimesh(
             vertices=np.asarray(self.reference_mesh.vertices),
             faces=np.asarray(self.reference_mesh.triangles)

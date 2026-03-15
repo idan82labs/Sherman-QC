@@ -16,6 +16,7 @@ from pathlib import Path
 # Add backend to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+import feature_detection.bend_detector as bend_module
 from feature_detection.bend_detector import (
     PlaneSegment,
     DetectedBend,
@@ -176,6 +177,119 @@ class TestBendDetector:
         # Should detect 2 planes
         assert len(planes) >= 2
 
+    def test_merge_coplanar_planes(self):
+        """Coplanar fragmented planes should be merged into one flange."""
+        detector = BendDetector(
+            merge_coplanar_planes=True,
+            coplanar_angle_threshold=2.0,
+            coplanar_offset_threshold=0.2,
+            coplanar_boundary_threshold=0.5,
+        )
+
+        p1_points = np.array([
+            [0.0, 0.0, 0.0],
+            [1.0, 0.0, 0.0],
+            [0.0, 1.0, 0.0],
+            [1.0, 1.0, 0.0],
+        ])
+        p2_points = np.array([
+            [1.05, 0.0, 0.0],
+            [2.0, 0.0, 0.0],
+            [1.05, 1.0, 0.0],
+            [2.0, 1.0, 0.0],
+        ])
+
+        plane1 = PlaneSegment(
+            plane_id=0,
+            normal=np.array([0.0, 0.0, 1.0]),
+            d=0.0,
+            centroid=p1_points.mean(axis=0),
+            points=p1_points,
+            boundary_points=p1_points,
+            area=1.0,
+            inlier_count=len(p1_points),
+        )
+        plane2 = PlaneSegment(
+            plane_id=1,
+            normal=np.array([0.0, 0.0, 1.0]),
+            d=0.0,
+            centroid=p2_points.mean(axis=0),
+            points=p2_points,
+            boundary_points=p2_points,
+            area=1.0,
+            inlier_count=len(p2_points),
+        )
+
+        merged = detector._merge_coplanar_planes([plane1, plane2])
+        assert len(merged) == 1
+        assert merged[0].inlier_count == len(p1_points) + len(p2_points)
+
+    def test_dedup_overlapping_bends(self):
+        """Near-duplicate bends should collapse to one detection."""
+        detector = BendDetector(
+            dedup_merge_threshold=5.0,
+            dedup_angle_threshold=8.0,
+            dedup_direction_threshold=0.98,
+        )
+
+        flange1 = PlaneSegment(
+            plane_id=0,
+            normal=np.array([0.0, 0.0, 1.0]),
+            d=0.0,
+            centroid=np.array([0.0, 0.0, 0.0]),
+            points=np.random.rand(16, 3),
+            boundary_points=np.random.rand(8, 3),
+            area=20.0,
+            inlier_count=16,
+        )
+        flange2 = PlaneSegment(
+            plane_id=1,
+            normal=np.array([1.0, 0.0, 0.0]),
+            d=0.0,
+            centroid=np.array([0.0, 0.0, 0.0]),
+            points=np.random.rand(16, 3),
+            boundary_points=np.random.rand(8, 3),
+            area=20.0,
+            inlier_count=16,
+        )
+
+        duplicate_a = DetectedBend(
+            bend_id="B1",
+            measured_angle=90.0,
+            measured_radius=2.0,
+            bend_line_start=np.array([0.0, 0.0, 0.0]),
+            bend_line_end=np.array([0.0, 10.0, 0.0]),
+            bend_line_direction=np.array([0.0, 1.0, 0.0]),
+            confidence=0.95,
+            flange1=flange1,
+            flange2=flange2,
+        )
+        duplicate_b = DetectedBend(
+            bend_id="B2",
+            measured_angle=92.0,
+            measured_radius=2.1,
+            bend_line_start=np.array([1.0, 0.2, 0.0]),
+            bend_line_end=np.array([1.0, 10.2, 0.0]),
+            bend_line_direction=np.array([0.0, 1.0, 0.0]),
+            confidence=0.70,
+            flange1=flange1,
+            flange2=flange2,
+        )
+        distinct = DetectedBend(
+            bend_id="B3",
+            measured_angle=120.0,
+            measured_radius=3.0,
+            bend_line_start=np.array([20.0, 0.0, 0.0]),
+            bend_line_end=np.array([20.0, 10.0, 0.0]),
+            bend_line_direction=np.array([0.0, 1.0, 0.0]),
+            confidence=0.80,
+            flange1=flange1,
+            flange2=flange2,
+        )
+
+        merged = detector._merge_multiscale_bends([duplicate_a, duplicate_b, distinct], merge_threshold=5.0, angle_threshold=8.0)
+        assert len(merged) == 2
+
 
 class TestProgressiveBendMatcher:
     """Tests for ProgressiveBendMatcher class."""
@@ -314,6 +428,104 @@ class TestProgressiveBendMatcher:
         assert report.matches[0].status == "FAIL"
         assert abs(report.matches[0].angle_deviation - 3.0) < 0.01
 
+    def test_match_includes_mm_metrics_and_action(self):
+        cad_bends = [
+            BendSpecification(
+                bend_id="B1",
+                target_angle=90.0,
+                target_radius=3.0,
+                bend_line_start=np.array([0, 0, 0]),
+                bend_line_end=np.array([0, 10, 0]),
+                tolerance_angle=1.0,
+                tolerance_radius=0.5,
+            ),
+        ]
+        flange1 = PlaneSegment(
+            plane_id=0,
+            normal=np.array([0, 0, 1]),
+            d=0.0,
+            centroid=np.array([0, 0, 0]),
+            points=np.zeros((10, 3)),
+            boundary_points=np.zeros((5, 3)),
+            area=100.0,
+            inlier_count=100,
+        )
+        flange2 = PlaneSegment(
+            plane_id=1,
+            normal=np.array([1, 0, 0]),
+            d=0.0,
+            centroid=np.array([0, 0, 0]),
+            points=np.zeros((10, 3)),
+            boundary_points=np.zeros((5, 3)),
+            area=100.0,
+            inlier_count=100,
+        )
+        detected_bends = [
+            DetectedBend(
+                bend_id="D1",
+                measured_angle=92.0,
+                measured_radius=3.2,
+                bend_line_start=np.array([0.8, 0, 0]),
+                bend_line_end=np.array([0.8, 10, 0]),
+                bend_line_direction=np.array([0, 1, 0]),
+                confidence=0.9,
+                flange1=flange1,
+                flange2=flange2,
+            ),
+        ]
+        matcher = ProgressiveBendMatcher()
+        report = matcher.match(detected_bends, cad_bends, part_id="TEST")
+        row = report.matches[0]
+        assert row.line_center_deviation_mm is not None
+        assert row.expected_line_length_mm is not None
+        assert row.actual_line_length_mm is not None
+        assert row.issue_location != ""
+        assert row.action_item != ""
+        payload = report.to_dict()
+        assert "operator_actions" in payload
+        assert isinstance(payload["operator_actions"], list)
+
+    def test_rolled_status_uses_arc_and_center_metrics(self):
+        cad_bends = [
+            BendSpecification(
+                bend_id="R1",
+                target_angle=120.0,
+                target_radius=12.0,
+                bend_line_start=np.array([0, 0, 0]),
+                bend_line_end=np.array([0, 30, 0]),
+                tolerance_angle=1.0,
+                tolerance_radius=0.5,
+                bend_form="ROLLED",
+            ),
+        ]
+        flange = PlaneSegment(
+            plane_id=0,
+            normal=np.array([0, 0, 1]),
+            d=0.0,
+            centroid=np.array([0, 0, 0]),
+            points=np.zeros((10, 3)),
+            boundary_points=np.zeros((5, 3)),
+            area=100.0,
+            inlier_count=100,
+        )
+        detected_bends = [
+            DetectedBend(
+                bend_id="D1",
+                measured_angle=120.0,
+                measured_radius=17.0,
+                bend_line_start=np.array([8.0, 0, 0]),
+                bend_line_end=np.array([8.0, 30, 0]),
+                bend_line_direction=np.array([0, 1, 0]),
+                confidence=0.9,
+                flange1=flange,
+                flange2=flange,
+            ),
+        ]
+        matcher = ProgressiveBendMatcher()
+        report = matcher.match(detected_bends, cad_bends, part_id="TEST")
+        assert report.matches[0].status in {"WARNING", "FAIL"}
+        assert report.matches[0].bend_form == "ROLLED"
+
 
 class TestBendInspectionReport:
     """Tests for BendInspectionReport class."""
@@ -346,6 +558,14 @@ class TestBendInspectionReport:
 
         assert report.total_cad_bends == 2
         assert report.pass_count == 1
+        payload = report.to_dict()
+        summary = payload["summary"]
+        assert summary["completed_bends"] == 1
+        assert summary["completed_in_spec"] == 1
+        assert summary["completed_out_of_spec"] == 0
+        assert summary["remaining_bends"] == 1
+        assert summary["observed_bends"] == 1
+        assert summary["unobserved_bends"] == 1
 
     def test_to_table_string(self):
         """Test ASCII table generation."""
@@ -364,6 +584,47 @@ class TestBendInspectionReport:
         assert "TEST_PART" in table
         assert "B1" in table
         assert "90.0" in table
+        assert "In spec:" in table
+        assert "Observability:" in table
+
+    def test_match_serialization_includes_observability(self):
+        cad = BendSpecification(
+            bend_id="B1",
+            target_angle=90.0,
+            target_radius=3.0,
+            bend_line_start=np.zeros(3),
+            bend_line_end=np.array([0, 10, 0]),
+        )
+        match = BendMatch(
+            cad_bend=cad,
+            detected_bend=None,
+            status="NOT_DETECTED",
+            physical_completion_state="UNKNOWN",
+            observability_state="PARTIALLY_OBSERVED",
+            observability_confidence=0.72,
+            visibility_score=0.48,
+            visibility_score_source="heuristic_local_visibility_v0",
+            surface_visibility_ratio=0.5,
+            local_support_score=0.27,
+            side_balance_score=0.18,
+            assignment_source="CAD_LOCAL_NEIGHBORHOOD",
+            assignment_confidence=0.61,
+            observed_surface_count=1,
+            local_point_count=28,
+            local_evidence_score=0.54,
+            measurement_mode="cad_local_neighborhood",
+            measurement_method="surface_classification",
+            measurement_context={"search_radius_mm": 35.0},
+        )
+        payload = match.to_dict()
+        assert payload["physical_completion_state"] == "UNKNOWN"
+        assert payload["observability_state"] == "PARTIALLY_OBSERVED"
+        assert payload["visibility_score"] == 0.48
+        assert payload["surface_visibility_ratio"] == 0.5
+        assert payload["assignment_source"] == "CAD_LOCAL_NEIGHBORHOOD"
+        assert payload["assignment_confidence"] == 0.61
+        assert payload["observed_surface_count"] == 1
+        assert payload["measurement_mode"] == "cad_local_neighborhood"
 
 
 class TestMathematicalFoundations:
@@ -418,6 +679,98 @@ class TestMathematicalFoundations:
 
         # d should be -5 or +5 depending on normal direction
         assert abs(abs(d) - 5.0) < 0.01
+
+
+class TestCADBendExtractor:
+    """Tests CAD bend extraction wiring and configurability."""
+
+    def test_extractor_passes_detector_kwargs(self, monkeypatch):
+        captured = {}
+
+        class DummyDetector:
+            def __init__(self, **kwargs):
+                captured["ctor"] = kwargs
+
+            def detect_bends(self, vertices, **kwargs):
+                captured["call"] = kwargs
+                return []
+
+        monkeypatch.setattr(bend_module, "BendDetector", DummyDetector)
+
+        extractor = CADBendExtractor(
+            detector_kwargs={"dedup_merge_threshold": 13.0, "min_plane_points": 42},
+            detect_call_kwargs={"preprocess": False, "voxel_size": 1.2},
+        )
+        specs = extractor.extract_from_mesh(np.zeros((64, 3), dtype=np.float64), np.zeros((0, 3), dtype=np.int32))
+
+        assert specs == []
+        assert captured["ctor"]["dedup_merge_threshold"] == 13.0
+        assert captured["ctor"]["min_plane_points"] == 42
+        assert captured["call"]["preprocess"] is False
+        assert abs(captured["call"]["voxel_size"] - 1.2) < 1e-9
+
+    def test_extractor_merges_nearby_rolled_segments(self, monkeypatch):
+        flange = PlaneSegment(
+            plane_id=0,
+            normal=np.array([0, 0, 1]),
+            d=0.0,
+            centroid=np.array([0, 0, 0]),
+            points=np.random.rand(20, 3),
+            boundary_points=np.random.rand(10, 3),
+            area=100.0,
+            inlier_count=20,
+        )
+
+        class DummyDetector:
+            def __init__(self, **kwargs):
+                pass
+
+            def detect_bends(self, vertices, **kwargs):
+                return [
+                    DetectedBend(
+                        bend_id="B1",
+                        measured_angle=110.0,
+                        measured_radius=14.0,
+                        bend_line_start=np.array([0.0, 0.0, 0.0]),
+                        bend_line_end=np.array([0.0, 25.0, 0.0]),
+                        bend_line_direction=np.array([0.0, 1.0, 0.0]),
+                        confidence=0.8,
+                        flange1=flange,
+                        flange2=flange,
+                    ),
+                    DetectedBend(
+                        bend_id="B2",
+                        measured_angle=112.0,
+                        measured_radius=13.5,
+                        bend_line_start=np.array([1.2, 0.0, 0.0]),
+                        bend_line_end=np.array([1.2, 24.5, 0.0]),
+                        bend_line_direction=np.array([0.0, 1.0, 0.0]),
+                        confidence=0.7,
+                        flange1=flange,
+                        flange2=flange,
+                    ),
+                    DetectedBend(
+                        bend_id="B3",
+                        measured_angle=90.0,
+                        measured_radius=3.0,
+                        bend_line_start=np.array([40.0, 0.0, 0.0]),
+                        bend_line_end=np.array([40.0, 20.0, 0.0]),
+                        bend_line_direction=np.array([0.0, 1.0, 0.0]),
+                        confidence=0.9,
+                        flange1=flange,
+                        flange2=flange,
+                    ),
+                ]
+
+        monkeypatch.setattr(bend_module, "BendDetector", DummyDetector)
+
+        extractor = CADBendExtractor()
+        specs = extractor.extract_from_mesh(np.zeros((100, 3), dtype=np.float64), np.zeros((0, 3), dtype=np.int32))
+
+        # First two rolled segments should merge into one logical rolled bend.
+        assert len(specs) == 2
+        forms = sorted(s.bend_form for s in specs)
+        assert forms == ["FOLDED", "ROLLED"]
 
 
 if __name__ == "__main__":

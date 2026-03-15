@@ -16,7 +16,7 @@ import logging
 import time
 import threading
 from io import BytesIO
-from typing import Optional, Dict, List, Any, Tuple
+from typing import Optional, Dict, List, Any, Tuple, Sequence
 from dataclasses import dataclass, field
 from enum import Enum
 from functools import wraps
@@ -887,6 +887,291 @@ class Model3DSnapshotRenderer:
         plt.close(fig)
 
         return buf.getvalue()
+
+    def render_bend_status_overlay(
+        self,
+        bends: List[Dict[str, Any]],
+        reference_mesh_path: Optional[str],
+        view: str = "iso",
+        width: int = 1600,
+        height: int = 1200,
+        focused_bend_ids: Optional[List[str]] = None,
+        show_issue_callouts: bool = True,
+    ) -> bytes:
+        """
+        Render a CAD-first bend overlay image.
+
+        The scene is built from the reference mesh and canonical bend display geometry
+        produced by the bend inspection pipeline. Detected lines are LiDAR-derived.
+        """
+        import matplotlib.pyplot as plt
+        from PIL import Image
+
+        o3d = self.o3d
+        focused = {str(b) for b in (focused_bend_ids or [])}
+        status_rgb = {
+            "PASS": [0.21, 0.79, 0.46],
+            "WARNING": [0.98, 0.75, 0.14],
+            "FAIL": [0.97, 0.44, 0.44],
+            "NOT_DETECTED": [0.39, 0.45, 0.55],
+        }
+
+        vis = o3d.visualization.Visualizer()
+        vis.create_window(visible=False, width=width, height=height)
+
+        bbox = None
+        if reference_mesh_path:
+            try:
+                mesh = o3d.io.read_triangle_mesh(reference_mesh_path)
+                if mesh.has_triangles():
+                    mesh.compute_vertex_normals()
+                    mesh.paint_uniform_color([0.73, 0.76, 0.81])
+                    vis.add_geometry(mesh)
+                    wire = o3d.geometry.LineSet.create_from_triangle_mesh(mesh)
+                    wire.colors = o3d.utility.Vector3dVector(
+                        np.tile(np.array([[0.86, 0.89, 0.93]], dtype=np.float64), (len(wire.lines), 1))
+                    )
+                    vis.add_geometry(wire)
+                    bbox = mesh.get_axis_aligned_bounding_box()
+            except Exception as exc:
+                logger.warning("Could not load bend overlay reference mesh: %s", exc)
+
+        cad_line_points: List[List[float]] = []
+        cad_line_indices: List[List[int]] = []
+        cad_line_colors: List[List[float]] = []
+        detected_line_points: List[List[float]] = []
+        detected_line_indices: List[List[int]] = []
+        detected_line_colors: List[List[float]] = []
+
+        anchor_points: List[np.ndarray] = []
+        label_bends: List[Dict[str, Any]] = []
+
+        model_extent = float(max(5.0, bbox.get_max_extent() if bbox is not None else 100.0))
+        sphere_radius = max(0.9, model_extent * 0.018)
+
+        for bend in bends:
+            status = str(bend.get("status", "NOT_DETECTED")).upper()
+            color = status_rgb.get(status, status_rgb["NOT_DETECTED"])
+            cad_line = bend.get("cad_line", {}) if isinstance(bend, dict) else {}
+            detected_line = bend.get("detected_line", {}) if isinstance(bend, dict) else {}
+            cad_start = cad_line.get("display_start")
+            cad_end = cad_line.get("display_end")
+            det_start = detected_line.get("display_start")
+            det_end = detected_line.get("display_end")
+            anchor = bend.get("anchor")
+
+            if isinstance(cad_start, list) and isinstance(cad_end, list):
+                i0 = len(cad_line_points)
+                cad_line_points.extend([cad_start[:3], cad_end[:3]])
+                cad_line_indices.append([i0, i0 + 1])
+                cad_line_colors.append([0.80, 0.84, 0.90])
+
+            if isinstance(det_start, list) and isinstance(det_end, list):
+                i0 = len(detected_line_points)
+                detected_line_points.extend([det_start[:3], det_end[:3]])
+                detected_line_indices.append([i0, i0 + 1])
+                detected_line_colors.append(color)
+
+            if isinstance(anchor, list) and len(anchor) >= 3:
+                anchor_np = np.asarray(anchor[:3], dtype=np.float64)
+                sphere = o3d.geometry.TriangleMesh.create_sphere(
+                    radius=sphere_radius * (1.35 if str(bend.get("bend_id")) in focused else 1.0)
+                )
+                sphere.translate(anchor_np)
+                sphere.paint_uniform_color(color)
+                sphere.compute_vertex_normals()
+                vis.add_geometry(sphere)
+                anchor_points.append(anchor_np)
+                label_bends.append(bend)
+
+        if cad_line_indices:
+            cad_line_set = o3d.geometry.LineSet()
+            cad_line_set.points = o3d.utility.Vector3dVector(np.asarray(cad_line_points, dtype=np.float64))
+            cad_line_set.lines = o3d.utility.Vector2iVector(np.asarray(cad_line_indices, dtype=np.int32))
+            cad_line_set.colors = o3d.utility.Vector3dVector(np.asarray(cad_line_colors, dtype=np.float64))
+            vis.add_geometry(cad_line_set)
+
+        if detected_line_indices:
+            detected_line_set = o3d.geometry.LineSet()
+            detected_line_set.points = o3d.utility.Vector3dVector(np.asarray(detected_line_points, dtype=np.float64))
+            detected_line_set.lines = o3d.utility.Vector2iVector(np.asarray(detected_line_indices, dtype=np.int32))
+            detected_line_set.colors = o3d.utility.Vector3dVector(np.asarray(detected_line_colors, dtype=np.float64))
+            vis.add_geometry(detected_line_set)
+
+        opt = vis.get_render_option()
+        opt.background_color = np.array([0.95, 0.97, 0.99])
+        try:
+            opt.line_width = 2.0
+        except Exception:
+            pass
+        opt.mesh_show_back_face = True
+
+        ctr = vis.get_view_control()
+        if bbox is None:
+            if anchor_points:
+                bbox = o3d.geometry.AxisAlignedBoundingBox.create_from_points(
+                    o3d.utility.Vector3dVector(np.asarray(anchor_points, dtype=np.float64))
+                )
+            else:
+                bbox = o3d.geometry.AxisAlignedBoundingBox(np.array([-10, -10, -10]), np.array([10, 10, 10]))
+        center = bbox.get_center()
+        if view == "front":
+            ctr.set_front([0, -1, 0])
+            ctr.set_up([0, 0, 1])
+            ctr.set_zoom(0.72)
+        elif view == "side":
+            ctr.set_front([-1, 0, 0])
+            ctr.set_up([0, 0, 1])
+            ctr.set_zoom(0.72)
+        elif view == "top":
+            ctr.set_front([0, 0, -1])
+            ctr.set_up([0, 1, 0])
+            ctr.set_zoom(0.74)
+        else:
+            ctr.set_front([-0.52, -0.52, -0.67])
+            ctr.set_up([0, 0, 1])
+            ctr.set_zoom(0.66)
+        ctr.set_lookat(center)
+
+        vis.poll_events()
+        vis.update_renderer()
+        img = vis.capture_screen_float_buffer(do_render=True)
+        params = ctr.convert_to_pinhole_camera_parameters()
+        vis.destroy_window()
+
+        img_array = (np.asarray(img) * 255).astype(np.uint8)
+        fig, ax = plt.subplots(figsize=(width / 100, height / 100), dpi=100)
+        ax.imshow(img_array)
+        ax.axis("off")
+
+        intrinsic = params.intrinsic.intrinsic_matrix
+        extrinsic = params.extrinsic
+
+        def project(point_3d: Sequence[float]) -> Optional[Tuple[float, float]]:
+            p = np.array([point_3d[0], point_3d[1], point_3d[2], 1.0], dtype=np.float64)
+            cam = extrinsic @ p
+            if cam[2] <= 0:
+                return None
+            px = intrinsic[0, 0] * cam[0] / cam[2] + intrinsic[0, 2]
+            py = intrinsic[1, 1] * cam[1] / cam[2] + intrinsic[1, 2]
+            return float(px), float(py)
+
+        for idx, bend in enumerate(label_bends):
+            bend_id = str(bend.get("bend_id", "?"))
+            status = str(bend.get("status", "NOT_DETECTED")).upper()
+            if status not in status_rgb:
+                status = "NOT_DETECTED"
+            pos_2d = project(anchor_points[idx])
+            if pos_2d is None:
+                continue
+            x, y = pos_2d
+            label_color = "#FFFFFF"
+            badge_color = {
+                "PASS": "#16a34a",
+                "WARNING": "#d97706",
+                "FAIL": "#dc2626",
+                "NOT_DETECTED": "#475569",
+            }[status]
+            is_focus = bend_id in focused
+            show_callout = (show_issue_callouts and status in {"FAIL", "WARNING"}) or is_focus
+            delta = bend.get("delta", {}) if isinstance(bend, dict) else {}
+            delta_segments = []
+            angle = delta.get("angle_deg")
+            radius = delta.get("radius_mm")
+            center_delta = delta.get("center_mm")
+            if isinstance(angle, (int, float)):
+                delta_segments.append(f"ΔA {angle:+.1f}°")
+            if isinstance(radius, (int, float)):
+                delta_segments.append(f"ΔR {radius:+.2f}mm")
+            if isinstance(center_delta, (int, float)):
+                delta_segments.append(f"ΔC {center_delta:+.2f}mm")
+
+            ax.annotate(
+                bend_id,
+                xy=(x, y),
+                xytext=(0, -14),
+                textcoords="offset points",
+                ha="center",
+                va="bottom",
+                fontsize=8 if not is_focus else 9,
+                fontweight="bold",
+                color=label_color,
+                bbox=dict(
+                    boxstyle="round,pad=0.28",
+                    facecolor=badge_color,
+                    edgecolor="white",
+                    linewidth=0.6,
+                    alpha=0.94,
+                ),
+            )
+
+            if show_callout and delta_segments:
+                ax.annotate(
+                    "  |  ".join(delta_segments),
+                    xy=(x, y),
+                    xytext=(16 if idx % 2 == 0 else -16, 18 + (idx % 3) * 10),
+                    textcoords="offset points",
+                    ha="left" if idx % 2 == 0 else "right",
+                    va="bottom",
+                    fontsize=8,
+                    fontweight="bold",
+                    color="#0f172a",
+                    bbox=dict(
+                        boxstyle="round,pad=0.32",
+                        facecolor="#ffffff",
+                        edgecolor=badge_color,
+                        linewidth=1.1,
+                        alpha=0.94,
+                    ),
+                    arrowprops=dict(arrowstyle="-", color=badge_color, linewidth=1.0, alpha=0.9),
+                )
+
+        legend_lines = [
+            ("CAD bend reference", "#cbd5e1"),
+            ("Detected LiDAR bend", "#38bdf8"),
+            ("In spec", "#16a34a"),
+            ("Warning", "#d97706"),
+            ("Out of spec", "#dc2626"),
+            ("Not detected", "#475569"),
+        ]
+        base_x = 0.73
+        base_y = 0.06
+        for i, (text, color_hex) in enumerate(legend_lines):
+            ax.plot([base_x - 0.03], [base_y + i * 0.037], marker="o", markersize=6, color=color_hex, transform=ax.transAxes)
+            ax.annotate(
+                text,
+                xy=(base_x, base_y + i * 0.037),
+                xycoords="axes fraction",
+                fontsize=7.5,
+                color="#334155",
+                va="center",
+                fontweight="bold" if i >= 2 else "normal",
+            )
+
+        measured = sum(1 for bend in bends if str(bend.get("status", "NOT_DETECTED")).upper() != "NOT_DETECTED")
+        issue_count = sum(1 for bend in bends if str(bend.get("status", "NOT_DETECTED")).upper() in {"FAIL", "WARNING"})
+        ax.set_title(
+            f"Bend Overlay — {measured}/{len(bends)} completed, {issue_count} flagged ({view.capitalize()} view)",
+            fontsize=13,
+            fontweight="bold",
+            color="#0f172a",
+            pad=10,
+        )
+
+        buf = BytesIO()
+        plt.tight_layout()
+        plt.savefig(buf, format="png", dpi=150, facecolor="white", edgecolor="none", bbox_inches="tight", pad_inches=0.06)
+        buf.seek(0)
+        plt.close(fig)
+        try:
+            img = Image.open(buf)
+            optimized = BytesIO()
+            img.save(optimized, format="PNG")
+            optimized.seek(0)
+            return optimized.getvalue()
+        except Exception:
+            buf.seek(0)
+            return buf.getvalue()
 
 
 def retry_with_backoff(max_retries: int = 3, base_delay: float = 1.0, max_delay: float = 30.0):

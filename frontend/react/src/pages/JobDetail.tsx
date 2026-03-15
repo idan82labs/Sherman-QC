@@ -139,6 +139,7 @@ export default function JobDetail() {
   const qualityScore = job.quality_score ?? qcResult?.quality_score ?? null
   const material = job.material || 'Unknown'
   const tolerance = job.tolerance ?? 0.1
+  const operatorBrief = buildOperatorBrief(qcResult)
 
   return (
     <div className="space-y-6">
@@ -267,11 +268,16 @@ export default function JobDetail() {
         <>
           {/* Summary */}
           <div className="card p-6">
-            <h3 className="font-semibold text-dark-100 mb-4">Analysis Summary</h3>
-            <div className="prose prose-invert max-w-none">
-              <p className="text-dark-300 whitespace-pre-wrap">
-                {qcResult.ai_summary || qcResult.summary || 'Analysis completed. See statistics below for details.'}
-              </p>
+            <h3 className="font-semibold text-dark-100 mb-4">Operator Brief</h3>
+            <div className="space-y-2">
+              <p className="text-dark-200">{operatorBrief.headline}</p>
+              {!!operatorBrief.actions.length && (
+                <ul className="text-sm text-dark-300 space-y-1">
+                  {operatorBrief.actions.map((line, idx) => (
+                    <li key={idx}>{line}</li>
+                  ))}
+                </ul>
+              )}
             </div>
           </div>
 
@@ -762,5 +768,54 @@ function formatDuration(startStr: string | null | undefined, endStr: string | nu
     return `${seconds}s`
   } catch {
     return '-'
+  }
+}
+
+function buildOperatorBrief(qcResult: any): { headline: string; actions: string[] } {
+  if (!qcResult) {
+    return {
+      headline: 'Analysis complete.',
+      actions: [],
+    }
+  }
+
+  const overall = qcResult.overall_result || 'REVIEW'
+  const stats = qcResult.statistics || {}
+  const passRate = typeof stats.pass_rate === 'number'
+    ? stats.pass_rate
+    : stats.conformance_percentage
+  const maxDeviation = typeof stats.max_deviation_mm === 'number'
+    ? stats.max_deviation_mm
+    : stats.max_deviation
+  const headlineParts = [
+    `Result: ${overall}`,
+    passRate != null ? `Pass rate ${Number(passRate).toFixed(1)}%` : null,
+    maxDeviation != null ? `Max deviation ${Number(maxDeviation).toFixed(3)} mm` : null,
+  ].filter(Boolean)
+
+  const actions: string[] = []
+  const recs = Array.isArray(qcResult.recommendations) ? qcResult.recommendations : []
+  for (const rec of recs) {
+    if (typeof rec === 'string' && rec.trim()) {
+      actions.push(rec.trim())
+    } else if (rec && typeof rec === 'object' && typeof rec.action === 'string' && rec.action.trim()) {
+      actions.push(rec.action.trim())
+    }
+    if (actions.length >= 4) break
+  }
+
+  if (!actions.length) {
+    const rootCauses = Array.isArray(qcResult.root_causes) ? qcResult.root_causes : []
+    for (const rc of rootCauses) {
+      if (rc && typeof rc === 'object' && typeof rc.description === 'string' && rc.description.trim()) {
+        actions.push(`Investigate: ${rc.description.trim()}`)
+      }
+      if (actions.length >= 3) break
+    }
+  }
+
+  return {
+    headline: headlineParts.join(' | ') || 'Analysis complete.',
+    actions,
   }
 }

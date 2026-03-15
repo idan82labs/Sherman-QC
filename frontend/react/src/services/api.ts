@@ -222,23 +222,88 @@ export interface BendInspectionJob {
   created_at: string
   completed_at?: string
   processing_time_ms?: number
+  seed_case?: {
+    state?: 'full' | 'partial' | string
+    cad_file?: string
+    scan_file?: string
+  }
   report?: BendInspectionReport
   table?: string
+  artifacts?: {
+    reference_mesh_url?: string
+    bend_overlay_overview_url?: string
+    bend_overlay_issue_urls?: string[]
+    bend_overlay_manifest_url?: string
+    bend_report_pdf_url?: string
+  }
   error?: string
 }
 
 export interface BendMatch {
   bend_id: string
+  bend_form?: 'FOLDED' | 'ROLLED' | string
+  cad_line_start?: [number, number, number] | null
+  cad_line_end?: [number, number, number] | null
+  detected_line_start?: [number, number, number] | null
+  detected_line_end?: [number, number, number] | null
+  display_cad_line_start?: [number, number, number] | null
+  display_cad_line_end?: [number, number, number] | null
+  display_detected_line_start?: [number, number, number] | null
+  display_detected_line_end?: [number, number, number] | null
+  callout_anchor?: [number, number, number] | null
   target_angle: number
   measured_angle: number | null
   angle_deviation: number | null
   target_radius: number
   measured_radius: number | null
   radius_deviation: number | null
+  expected_line_length_mm?: number | null
+  actual_line_length_mm?: number | null
+  line_length_deviation_mm?: number | null
+  line_start_deviation_mm?: number | null
+  line_end_deviation_mm?: number | null
+  line_center_deviation_mm?: number | null
+  expected_arc_length_mm?: number | null
+  actual_arc_length_mm?: number | null
+  arc_length_deviation_mm?: number | null
+  issue_location?: string
+  action_item?: string
   status: 'PASS' | 'FAIL' | 'WARNING' | 'NOT_DETECTED'
   confidence: number
   tolerance_angle: number
   tolerance_radius: number
+  physical_completion_state?: 'FORMED' | 'NOT_FORMED' | 'UNKNOWN' | string
+  observability_state?: 'OBSERVED_FORMED' | 'OBSERVED_NOT_FORMED' | 'PARTIALLY_OBSERVED' | 'UNOBSERVED' | string
+  observability_confidence?: number
+  visibility_score?: number
+  visibility_score_source?: string
+  surface_visibility_ratio?: number
+  local_support_score?: number
+  side_balance_score?: number
+  assignment_source?: 'GLOBAL_DETECTION' | 'CAD_LOCAL_NEIGHBORHOOD' | 'SEQUENCE_CONTINUITY' | 'NONE' | string
+  assignment_confidence?: number
+  assignment_candidate_id?: string | null
+  assignment_candidate_kind?: 'MEASUREMENT' | 'GLOBAL_DETECTION' | 'NULL' | 'NONE' | string
+  assignment_candidate_score?: number
+  assignment_null_score?: number
+  assignment_candidate_count?: number
+  measurement_context?: Record<string, unknown>
+}
+
+export interface ScanQualitySummary {
+  status: 'GOOD' | 'FAIR' | 'POOR' | string
+  queue_label?: string
+  queue_color?: 'green' | 'yellow' | 'red' | string
+  score?: number
+  coverage_pct?: number
+  overlap_iou_pct?: number
+  density_pts_per_cm2?: number
+  median_spacing_mm?: number
+  p90_spacing_mm?: number
+  bend_evidence_pct?: number
+  in_spec_ratio_pct?: number
+  point_count?: number
+  notes?: string[]
 }
 
 export interface BendInspectionReport {
@@ -250,10 +315,100 @@ export interface BendInspectionReport {
     failed: number
     warnings: number
     progress_pct: number
+    completed_bends?: number
+    completed_in_spec?: number
+    completed_out_of_spec?: number
+    remaining_bends?: number
+    is_complete?: boolean
+    expected_bends?: number
+    expected_progress_pct?: number
+    overdetected_vs_expected?: number
+    rolled_bends?: number
+    folded_bends?: number
+    critical_actions?: number
+    scan_quality_status?: string
+    scan_coverage_pct?: number
+    scan_density_pts_per_cm2?: number
+    match_evidence_completed_bends?: number
+    match_evidence_remaining_bends?: number
+    structured_completed_bends?: number
+    structured_remaining_bends?: number
+    structured_count_source?: string
+    structured_count_mean?: number
+    structured_count_map?: number
+    structured_count_delta_vs_match?: number
+  }
+  operator_brief?: {
+    headline?: string
+    actions?: Array<{
+      bend_id: string
+      status: 'PASS' | 'FAIL' | 'WARNING' | 'NOT_DETECTED' | string
+      location?: string
+      action?: string
+    }>
+  }
+  operator_actions?: Array<{
+    bend_id: string
+    status: 'PASS' | 'FAIL' | 'WARNING' | 'NOT_DETECTED' | string
+    location?: string
+    action?: string
+  }>
+  scan_quality?: ScanQualitySummary
+  structured_context?: {
+    count_posterior?: {
+      count_distribution?: number[]
+      median_completed_bends?: number
+      map_completed_bends?: number
+      mean_completed_bends?: number
+    }
+    confusable_group_count?: number
+    joint_confusable_components?: string[][]
+    joint_exclusivity_rejections?: number
   }
   matches: BendMatch[]
   unmatched_detections: unknown[]
   processing_time_ms: number
+}
+
+export interface BendOverlayManifestEntry {
+  bend_id: string
+  status: 'PASS' | 'FAIL' | 'WARNING' | 'NOT_DETECTED' | string
+  cad_line?: {
+    raw_start?: [number, number, number] | null
+    raw_end?: [number, number, number] | null
+    display_start?: [number, number, number] | null
+    display_end?: [number, number, number] | null
+  }
+  detected_line?: {
+    raw_start?: [number, number, number] | null
+    raw_end?: [number, number, number] | null
+    display_start?: [number, number, number] | null
+    display_end?: [number, number, number] | null
+  }
+  delta?: {
+    angle_deg?: number | null
+    radius_mm?: number | null
+    center_mm?: number | null
+    tolerance_angle_deg?: number | null
+    tolerance_radius_mm?: number | null
+  }
+  anchor?: [number, number, number] | null
+  include_in_overview?: boolean
+  issue_tile?: string | null
+  action_item?: string
+  issue_location?: string
+}
+
+export interface BendOverlayManifest {
+  generated_at: string
+  overview_image: string
+  issue_tiles: Array<{
+    bend_id: string
+    status: string
+    image: string
+    title?: string
+  }>
+  bends: BendOverlayManifestEntry[]
 }
 
 export interface BendSpecification {
@@ -293,6 +448,11 @@ export const bendInspectionApi = {
   // Get ASCII table view of results
   getTable: async (jobId: string): Promise<{ table: string }> => {
     const response = await api.get(`/bend-inspection/${jobId}/table`)
+    return response.data
+  },
+
+  getOverlayManifest: async (jobId: string): Promise<BendOverlayManifest> => {
+    const response = await api.get(`/bend-inspection/${jobId}/overlay/manifest.json`)
     return response.data
   },
 
@@ -495,6 +655,45 @@ export const liveScanApi = {
     const response = await api.get('/live-scan/status')
     return response.data
   },
+
+  // Get sampled points for current live session (for 3D rendering)
+  getSessionPoints: async (params?: {
+    max_points?: number
+    max_scans?: number
+  }): Promise<{
+    session_id: string | null
+    scan_count: number
+    point_count: number
+    points: Array<[number, number, number]>
+    warning?: string
+  }> => {
+    const response = await api.get('/live-scan/session/points', { params })
+    return response.data
+  },
+
+  // List available built-in demo scans
+  getDemoOptions: async (): Promise<{
+    default_part_number: string
+    options: Array<{
+      part_number: string
+      part_name?: string
+      cad_available: boolean
+      scan_available: boolean
+    }>
+  }> => {
+    const response = await api.get('/live-scan/demo/options')
+    return response.data
+  },
+
+  // Load a functional demo LiDAR scan into live session flow
+  loadTestScan: async (payload?: {
+    part_number?: string
+    point_count?: number
+    noise_sigma_mm?: number
+  }) => {
+    const response = await api.post('/live-scan/demo/load', payload || {})
+    return response.data
+  },
 }
 
 // Parts with CAD API (for analysis picker)
@@ -506,7 +705,7 @@ export const partsApi = {
   },
 
   // Analyze scan using part from catalog
-  analyzeFromCatalog: async (partId: number, scanFile: File) => {
+  analyzeFromCatalog: async (partId: string, scanFile: File) => {
     const formData = new FormData()
     formData.append('part_id', partId.toString())
     formData.append('scan_file', scanFile)

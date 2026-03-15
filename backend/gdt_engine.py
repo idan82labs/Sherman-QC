@@ -554,37 +554,39 @@ class GDTEngine:
         surface_normal = vh[-1]
 
         # Normalize datum normal
-        datum_normal = np.array(datum_normal) / np.linalg.norm(datum_normal)
+        datum_normal = np.array(datum_normal, dtype=np.float64)
+        datum_norm = np.linalg.norm(datum_normal)
+        if datum_norm < 1e-10:
+            return GDTResult(
+                gdt_type=GDTType.PERPENDICULARITY,
+                measured_value=float('inf'),
+                tolerance=tolerance,
+                conformance=False,
+                confidence=0.0
+            )
+        datum_normal = datum_normal / datum_norm
 
-        # Calculate angle between surface normal and datum normal
-        dot_product = np.dot(surface_normal, datum_normal)
-        actual_angle = np.arccos(np.clip(abs(dot_product), 0.0, 1.0))
+        # Angle diagnostics (surface normal vs datum normal)
+        dot_product = np.clip(np.dot(surface_normal, datum_normal), -1.0, 1.0)
+        actual_angle = np.arccos(abs(dot_product))
         angle_from_perp = abs(actual_angle - np.pi / 2)
 
-        # ASME Y14.5 Perpendicularity: Zone between two parallel planes perpendicular to datum
-        # The surface must lie within this zone
-        #
-        # For perpendicularity, we measure how much the surface deviates from perfect perpendicular.
-        # This is done by projecting points onto the surface normal (the direction perpendicular
-        # to the ideal perpendicular surface) and measuring the range.
-        #
-        # For a perfectly perpendicular surface (surface normal ⊥ datum normal):
-        # - The flatness of the surface determines perpendicularity
-        # - We project onto the surface normal to get flatness
-        signed_distances = np.dot(surface_points - centroid, surface_normal)
+        # Ideal zone normal for perpendicularity:
+        # nearest direction to the measured surface normal that is perpendicular to datum.
+        ideal_normal = surface_normal - np.dot(surface_normal, datum_normal) * datum_normal
+        ideal_norm = np.linalg.norm(ideal_normal)
+        if ideal_norm < 1e-10:
+            # Surface normal is nearly parallel to datum; choose any stable orthogonal direction.
+            ref = np.array([1.0, 0.0, 0.0]) if abs(datum_normal[0]) < 0.9 else np.array([0.0, 1.0, 0.0])
+            ideal_normal = np.cross(datum_normal, ref)
+            ideal_norm = np.linalg.norm(ideal_normal)
+        ideal_normal = ideal_normal / ideal_norm
+
+        # Perpendicularity is zone width along the ideal zone normal.
+        signed_distances = np.dot(surface_points - centroid, ideal_normal)
         min_dist = np.min(signed_distances)
         max_dist = np.max(signed_distances)
-
-        # Base flatness of the surface
-        flatness = max_dist - min_dist
-
-        # Add contribution from angular deviation if surface is not perfectly perpendicular
-        # Calculate the surface span for angular contribution
-        surface_span = np.linalg.norm(np.max(surface_points, axis=0) - np.min(surface_points, axis=0))
-        angular_contribution = np.sin(angle_from_perp) * surface_span
-
-        # Perpendicularity is the larger of flatness or angular deviation projected to surface
-        perpendicularity = max(flatness, angular_contribution)
+        perpendicularity = max_dist - min_dist
 
         return GDTResult(
             gdt_type=GDTType.PERPENDICULARITY,
@@ -594,6 +596,7 @@ class GDTEngine:
             fit_parameters={
                 "surface_normal": surface_normal.tolist(),
                 "datum_normal": datum_normal.tolist(),
+                "ideal_zone_normal": ideal_normal.tolist(),
                 "angle_from_90_degrees": float(np.degrees(angle_from_perp)),
                 "min_distance": float(min_dist),
                 "max_distance": float(max_dist)
@@ -707,26 +710,45 @@ class GDTEngine:
         _, _, vh = np.linalg.svd(centered)
         surface_normal = vh[-1]
 
-        # Calculate actual angle
-        datum_normal = np.array(datum_normal) / np.linalg.norm(datum_normal)
+        # Normalize datum normal
+        datum_normal = np.array(datum_normal, dtype=np.float64)
+        datum_norm = np.linalg.norm(datum_normal)
+        if datum_norm < 1e-10:
+            return GDTResult(
+                gdt_type=GDTType.ANGULARITY,
+                measured_value=float('inf'),
+                tolerance=tolerance,
+                conformance=False,
+                confidence=0.0
+            )
+        datum_normal = datum_normal / datum_norm
+
+        # Angle diagnostics
         dot_product = np.clip(np.dot(surface_normal, datum_normal), -1.0, 1.0)
         actual_angle = np.degrees(np.arccos(abs(dot_product)))
-
-        # Calculate deviation from nominal angle
         angle_error = abs(actual_angle - nominal_angle)
 
-        # ASME Y14.5 Angularity: Zone between two parallel planes at nominal angle to datum
-        # Calculate ideal reference direction at nominal angle from datum normal
+        # Build an ideal zone normal at nominal angle, preserving measured azimuth.
         nominal_angle_rad = np.radians(nominal_angle)
+        lateral = surface_normal - np.dot(surface_normal, datum_normal) * datum_normal
+        lateral_norm = np.linalg.norm(lateral)
+        if lateral_norm < 1e-10:
+            ref = np.array([1.0, 0.0, 0.0]) if abs(datum_normal[0]) < 0.9 else np.array([0.0, 1.0, 0.0])
+            lateral = np.cross(datum_normal, ref)
+            lateral_norm = np.linalg.norm(lateral)
+        lateral = lateral / lateral_norm
 
-        # Create reference direction perpendicular to datum for projection
-        # The angularity zone is perpendicular to the ideal surface at nominal angle
-        # Project points onto this reference to get signed distances
-        signed_distances = np.dot(surface_points - centroid, datum_normal)
+        sign = 1.0 if np.dot(surface_normal, datum_normal) >= 0 else -1.0
+        ideal_normal = (
+            sign * np.cos(nominal_angle_rad) * datum_normal +
+            np.sin(nominal_angle_rad) * lateral
+        )
+        ideal_normal = ideal_normal / np.linalg.norm(ideal_normal)
+
+        # Angularity is zone width along the nominal orientation normal.
+        signed_distances = np.dot(surface_points - centroid, ideal_normal)
         min_dist = np.min(signed_distances)
         max_dist = np.max(signed_distances)
-
-        # Angularity = range of distances (zone width)
         angularity = max_dist - min_dist
 
         return GDTResult(
@@ -737,6 +759,7 @@ class GDTEngine:
             fit_parameters={
                 "surface_normal": surface_normal.tolist(),
                 "datum_normal": datum_normal.tolist(),
+                "ideal_zone_normal": ideal_normal.tolist(),
                 "nominal_angle_degrees": nominal_angle,
                 "actual_angle_degrees": float(actual_angle),
                 "angle_error_degrees": float(angle_error),

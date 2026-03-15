@@ -12,6 +12,7 @@ Usage:
 import os
 import json
 import sqlite3
+import math
 from datetime import datetime
 from pathlib import Path
 from typing import Optional, Dict, List, Any, Union
@@ -25,6 +26,17 @@ logger = logging.getLogger(__name__)
 # Database configuration
 DATABASE_URL = os.environ.get("DATABASE_URL", "")
 DATABASE_PATH = Path(__file__).parent.parent / "data" / "qc_jobs.db"
+
+
+def _json_storage_safe(value: Any) -> Any:
+    """Recursively sanitize values for strict JSON storage."""
+    if isinstance(value, dict):
+        return {k: _json_storage_safe(v) for k, v in value.items()}
+    if isinstance(value, (list, tuple, set)):
+        return [_json_storage_safe(v) for v in value]
+    if isinstance(value, float):
+        return value if math.isfinite(value) else None
+    return value
 
 
 @dataclass
@@ -257,6 +269,7 @@ class SQLiteDatabaseManager:
     ):
         """Update job with completed result"""
         now = datetime.now().isoformat()
+        safe_result = _json_storage_safe(result)
 
         with self.get_connection() as conn:
             conn.execute("""
@@ -270,7 +283,7 @@ class SQLiteDatabaseManager:
                     updated_at = ?,
                     completed_at = ?
                 WHERE job_id = ?
-            """, (json.dumps(result), report_path, pdf_path, now, now, job_id))
+            """, (json.dumps(safe_result, allow_nan=False), report_path, pdf_path, now, now, job_id))
 
     def update_job_error(self, job_id: str, error: str):
         """Mark job as failed with error"""
@@ -600,6 +613,7 @@ class PostgreSQLDatabaseManager:
     ):
         """Update job with completed result"""
         from psycopg2.extras import Json
+        safe_result = _json_storage_safe(result)
 
         with self.get_connection() as conn:
             with conn.cursor() as cur:
@@ -614,7 +628,7 @@ class PostgreSQLDatabaseManager:
                         updated_at = NOW(),
                         completed_at = NOW()
                     WHERE job_id = %s
-                """, (Json(result), report_path, pdf_path, job_id))
+                """, (Json(safe_result), report_path, pdf_path, job_id))
 
     def update_job_error(self, job_id: str, error: str):
         """Mark job as failed with error"""

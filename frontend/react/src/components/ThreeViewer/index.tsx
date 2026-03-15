@@ -1,6 +1,6 @@
 import { Suspense, useState, useRef, useEffect, useMemo } from 'react'
-import { Canvas } from '@react-three/fiber'
-import { OrbitControls, Grid, Environment, Html } from '@react-three/drei'
+import { Canvas, useFrame, useThree } from '@react-three/fiber'
+import { OrbitControls, Grid, Environment, Html, Line } from '@react-three/drei'
 import * as THREE from 'three'
 import { STLLoader } from 'three/examples/jsm/loaders/STLLoader.js'
 import { PLYLoader } from 'three/examples/jsm/loaders/PLYLoader.js'
@@ -8,16 +8,28 @@ import { Maximize2, Minimize2, RotateCcw, Box, Scan, Palette, Tag, TrendingDown,
 import clsx from 'clsx'
 
 // Types for 3D annotations
-interface BendAnnotation {
-  id: number
+export interface BendAnnotation {
+  id: number | string
+  label?: string
   position: [number, number, number]
+  calloutAnchor?: [number, number, number]
   expectedAngle: number
   measuredAngle: number | null
   deviation: number | null
   status: 'pass' | 'fail' | 'warning' | 'pending'
+  lineStart?: [number, number, number]
+  lineEnd?: [number, number, number]
+  detectedLineStart?: [number, number, number]
+  detectedLineEnd?: [number, number, number]
+  active?: boolean
+  displayGeometryCanonical?: boolean
+  radiusDeviation?: number | null
+  lineCenterDeviationMm?: number | null
+  toleranceAngle?: number | null
+  toleranceRadius?: number | null
 }
 
-interface DeviationStats {
+export interface DeviationStats {
   min: number
   max: number
   mean: number
@@ -37,6 +49,23 @@ interface ThreeViewerProps {
   bendAnnotations?: BendAnnotation[]
   deviationStats?: DeviationStats
   scanPositions?: Float32Array  // Point positions for finding extremes
+  focusPoint?: [number, number, number] | null
+  focusAnnotationId?: number | string | null
+}
+
+interface ScreenBendCallout {
+  id: number | string
+  label: string
+  status: BendAnnotation['status']
+  active: boolean
+  side: 'left' | 'right'
+  anchorX: number
+  anchorY: number
+  boxX: number
+  boxY: number
+  width: number
+  height: number
+  metricRows: string[]
 }
 
 export default function ThreeViewer({
@@ -48,6 +77,8 @@ export default function ThreeViewer({
   bendAnnotations,
   deviationStats,
   scanPositions,
+  focusPoint,
+  focusAnnotationId,
 }: ThreeViewerProps) {
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [showScan, setShowScan] = useState(true)
@@ -58,6 +89,8 @@ export default function ThreeViewer({
   const [isLoading, setIsLoading] = useState(false)
   const [transformData, setTransformData] = useState<{ center: THREE.Vector3; scale: number } | null>(null)
   const [extremePositions, setExtremePositions] = useState<{ minPosition?: [number, number, number]; maxPosition?: [number, number, number] } | null>(null)
+  const [referencePositions, setReferencePositions] = useState<Float32Array | null>(null)
+  const [screenCallouts, setScreenCallouts] = useState<ScreenBendCallout[]>([])
   const controlsRef = useRef<any>(null)
 
   const resetCamera = () => {
@@ -92,7 +125,7 @@ export default function ThreeViewer({
             onClick={() => setShowReference(!showReference)}
             className={clsx(
               'flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors',
-              showReference ? 'bg-purple-500/20 text-purple-400 border border-purple-500/30' : 'bg-dark-700 text-dark-400'
+              showReference ? 'bg-slate-500/20 text-slate-200 border border-slate-400/30' : 'bg-dark-700 text-dark-400'
             )}
             title={showReference ? 'Hide CAD reference' : 'Show CAD reference'}
           >
@@ -190,8 +223,8 @@ export default function ThreeViewer({
       {/* Legend */}
       <div className="absolute bottom-4 right-4 z-10 bg-dark-800/90 p-2 rounded-lg text-xs">
         <div className="flex items-center gap-4">
-          {showScan && <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-blue-400"></span> Scan</span>}
-          {showReference && <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-purple-400"></span> CAD</span>}
+          {modelUrl && showScan && <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-blue-400"></span> Scan</span>}
+          {referenceUrl && showReference && <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-slate-300"></span> CAD</span>}
         </div>
       </div>
 
@@ -202,11 +235,15 @@ export default function ThreeViewer({
         </div>
       )}
 
+      {!isLoading && showAnnotations && screenCallouts.length > 0 && (
+        <BendCalloutOverlay callouts={screenCallouts} />
+      )}
+
       {/* 3D Canvas */}
       <Canvas
         camera={{ position: [5, 5, 5], fov: 50 }}
         className={clsx(
-          isFullscreen ? 'fixed inset-0 z-50' : 'h-[400px]'
+          isFullscreen ? 'fixed inset-0 z-50' : 'h-full min-h-[400px]'
         )}
         gl={{ antialias: true, alpha: true }}
       >
@@ -228,13 +265,33 @@ export default function ThreeViewer({
             onLoadEnd={() => setIsLoading(false)}
             onTransformComputed={setTransformData}
             onExtremePositionsComputed={setExtremePositions}
+            onReferencePositionsComputed={setReferencePositions}
           />
 
           {/* 3D Annotations for bends */}
           {showAnnotations && hasBendAnnotations && transformData && (
-            <BendAnnotations3D
-              annotations={bendAnnotations!}
+            <>
+              <BendAnnotations3D
+                annotations={bendAnnotations!}
+                transform={transformData}
+                referencePositions={referencePositions}
+                focusAnnotationId={focusAnnotationId}
+              />
+              <BendCalloutLayoutBridge
+                annotations={bendAnnotations!}
+                transform={transformData}
+                focusAnnotationId={focusAnnotationId}
+                onChange={setScreenCallouts}
+              />
+            </>
+          )}
+
+          {transformData && focusPoint && (
+            <CameraFocusTarget
+              focusPoint={focusPoint}
+              focusAnnotation={bendAnnotations?.find((annotation) => annotation.id === focusAnnotationId) ?? null}
               transform={transformData}
+              controlsRef={controlsRef}
             />
           )}
 
@@ -290,6 +347,124 @@ export default function ThreeViewer({
   )
 }
 
+function formatBendMetric(label: string, value: number | null | undefined, digits: number, suffix = '') {
+  if (value == null || !Number.isFinite(value)) return `${label} -`
+  return `${label} ${value >= 0 ? '+' : ''}${value.toFixed(digits)}${suffix}`
+}
+
+function clamp(value: number, min: number, max: number) {
+  return Math.max(min, Math.min(max, value))
+}
+
+function distributeRailCards(
+  items: Array<ScreenBendCallout & { preferredTop: number }>,
+  minTop: number,
+  maxBottom: number,
+  gap: number,
+) {
+  if (!items.length) return items
+
+  const laidOut = items.map((item) => ({ ...item, boxY: clamp(item.preferredTop, minTop, maxBottom - item.height) }))
+  for (let index = 1; index < laidOut.length; index += 1) {
+    const previous = laidOut[index - 1]
+    const current = laidOut[index]
+    const minimum = previous.boxY + previous.height + gap
+    if (current.boxY < minimum) current.boxY = minimum
+  }
+
+  const overflow = laidOut[laidOut.length - 1].boxY + laidOut[laidOut.length - 1].height - maxBottom
+  if (overflow > 0) {
+    laidOut[laidOut.length - 1].boxY -= overflow
+    for (let index = laidOut.length - 2; index >= 0; index -= 1) {
+      const next = laidOut[index + 1]
+      const current = laidOut[index]
+      const maximum = next.boxY - current.height - gap
+      if (current.boxY > maximum) current.boxY = maximum
+    }
+    const topOverflow = minTop - laidOut[0].boxY
+    if (topOverflow > 0) {
+      for (const item of laidOut) item.boxY += topOverflow
+    }
+  }
+
+  return laidOut
+}
+
+function BendCalloutOverlay({ callouts }: { callouts: ScreenBendCallout[] }) {
+  const statusCardClasses: Record<BendAnnotation['status'], string> = {
+    pass: 'border-emerald-300/85 bg-emerald-900/92 text-emerald-50',
+    fail: 'border-red-300/90 bg-red-950/92 text-red-50',
+    warning: 'border-amber-300/90 bg-amber-950/92 text-amber-50',
+    pending: 'border-slate-300/70 bg-slate-900/92 text-slate-100',
+  }
+  const statusStroke: Record<BendAnnotation['status'], string> = {
+    pass: '#34d399',
+    fail: '#f87171',
+    warning: '#fbbf24',
+    pending: '#94a3b8',
+  }
+
+  return (
+    <div className="pointer-events-none absolute inset-0 z-10 overflow-hidden">
+      <svg className="absolute inset-0 h-full w-full" aria-hidden="true">
+        {callouts.map((callout) => {
+          const exitX = callout.side === 'left' ? callout.boxX + callout.width : callout.boxX
+          const exitY = callout.boxY + callout.height / 2
+          const elbowX = callout.side === 'left' ? exitX + 24 : exitX - 24
+          const path = `M ${callout.anchorX.toFixed(1)} ${callout.anchorY.toFixed(1)} L ${elbowX.toFixed(1)} ${callout.anchorY.toFixed(1)} L ${elbowX.toFixed(1)} ${exitY.toFixed(1)} L ${exitX.toFixed(1)} ${exitY.toFixed(1)}`
+          return (
+            <path
+              key={`${callout.id}-connector`}
+              d={path}
+              fill="none"
+              stroke={statusStroke[callout.status]}
+              strokeOpacity={callout.active ? 0.9 : 0.68}
+              strokeWidth={callout.active ? 2.3 : 1.5}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          )
+        })}
+      </svg>
+
+      {callouts.map((callout) => (
+        <div
+          key={callout.id}
+          className={clsx(
+            'absolute rounded-xl border shadow-2xl',
+            callout.active ? 'ring-2 ring-white/30' : 'ring-1 ring-white/10',
+            statusCardClasses[callout.status],
+          )}
+          style={{
+            left: `${callout.boxX}px`,
+            top: `${callout.boxY}px`,
+            width: `${callout.width}px`,
+            minHeight: `${callout.height}px`,
+          }}
+        >
+          <div className="px-3 py-2">
+            <div className="flex items-center justify-between gap-2">
+              <div className="text-[11px] font-semibold tracking-[0.12em] uppercase text-white/95">
+                {callout.label}
+              </div>
+              {callout.active && (
+                <span className="rounded-full border border-white/20 bg-white/10 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.14em] text-white/80">
+                  Focus
+                </span>
+              )}
+            </div>
+            <div className="mt-1 space-y-0.5 text-[11px] font-mono leading-tight text-white/90">
+              {callout.metricRows.map((row) => (
+                <div key={`${callout.id}-${row}`}>{row}</div>
+              ))}
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
 function LoadingFallback() {
   return (
     <Html center>
@@ -311,6 +486,7 @@ interface AlignedModelsProps {
   onLoadEnd?: () => void
   onTransformComputed?: (data: { center: THREE.Vector3; scale: number }) => void
   onExtremePositionsComputed?: (positions: { minPosition?: [number, number, number]; maxPosition?: [number, number, number] }) => void
+  onReferencePositionsComputed?: (positions: Float32Array | null) => void
 }
 
 function AlignedModels({
@@ -325,6 +501,7 @@ function AlignedModels({
   onLoadEnd,
   onTransformComputed,
   onExtremePositionsComputed,
+  onReferencePositionsComputed,
 }: AlignedModelsProps) {
   const [scanGeometry, setScanGeometry] = useState<THREE.BufferGeometry | null>(null)
   const [refGeometry, setRefGeometry] = useState<THREE.BufferGeometry | null>(null)
@@ -554,6 +731,20 @@ function AlignedModels({
     }
   }, [sharedCenter, sharedScale, scanGeometry, refGeometry])
 
+  useEffect(() => {
+    if (!onReferencePositionsComputed) return
+    if (!refGeometry) {
+      onReferencePositionsComputed(null)
+      return
+    }
+    const posAttr = refGeometry.getAttribute('position')
+    if (!posAttr) {
+      onReferencePositionsComputed(null)
+      return
+    }
+    onReferencePositionsComputed(new Float32Array(posAttr.array))
+  }, [onReferencePositionsComputed, refGeometry])
+
   // Apply/remove heatmap colors reactively based on deviations prop
   useEffect(() => {
     if (!scanGeometry) return
@@ -613,13 +804,17 @@ function AlignedModels({
                 side={THREE.DoubleSide}
                 metalness={0.1}
                 roughness={0.7}
+                transparent
+                opacity={0.74}
               />
             ) : (
               <meshStandardMaterial
-                color="#3b82f6"
+                color="#38bdf8"
                 side={THREE.DoubleSide}
                 metalness={0.2}
                 roughness={0.6}
+                transparent
+                opacity={0.34}
               />
             )}
           </mesh>
@@ -628,15 +823,19 @@ function AlignedModels({
           <points geometry={scanGeometry}>
             {deviations && deviations.length > 0 ? (
               <pointsMaterial
-                size={2}
+                size={1.65}
                 sizeAttenuation={false}
                 vertexColors={true}
+                transparent
+                opacity={0.78}
               />
             ) : (
               <pointsMaterial
-                size={2}
+                size={1.7}
                 sizeAttenuation={false}
-                color="#3b82f6"
+                color="#38bdf8"
+                transparent
+                opacity={0.72}
               />
             )}
           </points>
@@ -646,16 +845,26 @@ function AlignedModels({
       {/* Reference CAD model - render as mesh or points based on type */}
       {showReference && refGeometry && !refError && (
         refIsMesh ? (
-          // Mesh rendering with wireframe overlay
-          <mesh geometry={refGeometry}>
-            <meshStandardMaterial
-              color="#a855f7"
-              transparent
-              opacity={0.4}
-              side={THREE.DoubleSide}
-              wireframe
-            />
-          </mesh>
+          <group>
+            <mesh geometry={refGeometry}>
+              <meshStandardMaterial
+                color="#94a3b8"
+                transparent
+                opacity={0.18}
+                side={THREE.DoubleSide}
+                metalness={0.08}
+                roughness={0.92}
+              />
+            </mesh>
+            <mesh geometry={refGeometry}>
+              <meshBasicMaterial
+                color="#cbd5e1"
+                transparent
+                opacity={0.14}
+                wireframe
+              />
+            </mesh>
+          </group>
         ) : (
           // Point cloud rendering for reference
           <points geometry={refGeometry}>
@@ -710,20 +919,132 @@ function deviationToColor(deviation: number, tolerance: number): THREE.Color {
 interface BendAnnotations3DProps {
   annotations: BendAnnotation[]
   transform: { center: THREE.Vector3; scale: number }
+  referencePositions?: Float32Array | null
+  focusAnnotationId?: number | string | null
 }
 
-function BendAnnotations3D({ annotations, transform }: BendAnnotations3DProps) {
+function percentile(values: number[], q: number): number {
+  if (!values.length) return 0
+  const sorted = [...values].sort((a, b) => a - b)
+  const idx = Math.min(sorted.length - 1, Math.max(0, (sorted.length - 1) * q))
+  const lo = Math.floor(idx)
+  const hi = Math.ceil(idx)
+  if (lo === hi) return sorted[lo]
+  const t = idx - lo
+  return sorted[lo] * (1 - t) + sorted[hi] * t
+}
+
+function computeModelMaxDim(points?: Float32Array | null): number {
+  if (!points || points.length < 3) return 4
+  let minX = Infinity
+  let minY = Infinity
+  let minZ = Infinity
+  let maxX = -Infinity
+  let maxY = -Infinity
+  let maxZ = -Infinity
+  for (let i = 0; i < points.length; i += 3) {
+    const x = points[i]
+    const y = points[i + 1]
+    const z = points[i + 2]
+    if (x < minX) minX = x
+    if (y < minY) minY = y
+    if (z < minZ) minZ = z
+    if (x > maxX) maxX = x
+    if (y > maxY) maxY = y
+    if (z > maxZ) maxZ = z
+  }
+  return Math.max(1, maxX - minX, maxY - minY, maxZ - minZ)
+}
+
+function clipLineToReference(
+  midpoint: THREE.Vector3,
+  start: THREE.Vector3,
+  end: THREE.Vector3,
+  referencePositions?: Float32Array | null,
+): { start: THREE.Vector3; end: THREE.Vector3 } {
+  const direction = end.clone().sub(start)
+  const originalLength = direction.length()
+  if (originalLength < 1e-6) {
+    return { start, end }
+  }
+  const dir = direction.normalize()
+  const modelMaxDim = computeModelMaxDim(referencePositions)
+  const maxHalfSpan = Math.max(0.25, modelMaxDim * 0.42)
+
+  if (!referencePositions || referencePositions.length < 12) {
+    const half = Math.min(originalLength / 2, maxHalfSpan)
+    return {
+      start: midpoint.clone().addScaledVector(dir, -half),
+      end: midpoint.clone().addScaledVector(dir, half),
+    }
+  }
+
+  const nearDistance = Math.max(0.08, modelMaxDim * 0.045)
+  const samples: number[] = []
+  const offset = new THREE.Vector3()
+  const perp = new THREE.Vector3()
+
+  for (let i = 0; i < referencePositions.length; i += 3) {
+    offset.set(
+      referencePositions[i] - midpoint.x,
+      referencePositions[i + 1] - midpoint.y,
+      referencePositions[i + 2] - midpoint.z
+    )
+    const axial = offset.dot(dir)
+    if (Math.abs(axial) > maxHalfSpan * 1.35) continue
+    perp.copy(offset).addScaledVector(dir, -axial)
+    if (perp.length() <= nearDistance) {
+      samples.push(axial)
+    }
+  }
+
+  if (samples.length < 12) {
+    const half = Math.min(originalLength / 2, maxHalfSpan)
+    return {
+      start: midpoint.clone().addScaledVector(dir, -half),
+      end: midpoint.clone().addScaledVector(dir, half),
+    }
+  }
+
+  const lo = percentile(samples, 0.08)
+  const hi = percentile(samples, 0.92)
+  const pad = Math.max(0.04, modelMaxDim * 0.02)
+  const half = Math.min(maxHalfSpan, Math.max(0.18, ((hi - lo) / 2) + pad))
+  return {
+    start: midpoint.clone().addScaledVector(dir, -half),
+    end: midpoint.clone().addScaledVector(dir, half),
+  }
+}
+
+function BendAnnotations3D({ annotations, transform, referencePositions, focusAnnotationId }: BendAnnotations3DProps) {
   return (
     <>
-      {annotations.map((annotation) => {
+      {annotations.map((annotation, index) => {
         if (!annotation.position) return null
 
-        // Transform the position to match the model
-        const pos = new THREE.Vector3(
-          (annotation.position[0] - transform.center.x) * transform.scale,
-          (annotation.position[1] - transform.center.y) * transform.scale,
-          (annotation.position[2] - transform.center.z) * transform.scale
+        const toViewerPoint = (source: [number, number, number]) => new THREE.Vector3(
+          (source[0] - transform.center.x) * transform.scale,
+          (source[1] - transform.center.y) * transform.scale,
+          (source[2] - transform.center.z) * transform.scale
         )
+
+        const anchorSource = annotation.calloutAnchor ?? annotation.position
+        const pos = toViewerPoint(anchorSource)
+        const rawCadLineStart = annotation.lineStart ? toViewerPoint(annotation.lineStart) : null
+        const rawCadLineEnd = annotation.lineEnd ? toViewerPoint(annotation.lineEnd) : null
+        const clippedCadLine = rawCadLineStart && rawCadLineEnd && !annotation.displayGeometryCanonical
+          ? clipLineToReference(pos, rawCadLineStart, rawCadLineEnd, referencePositions)
+          : null
+        const cadLineStart = clippedCadLine?.start ?? rawCadLineStart
+        const cadLineEnd = clippedCadLine?.end ?? rawCadLineEnd
+        const rawDetectedLineStart = annotation.detectedLineStart ? toViewerPoint(annotation.detectedLineStart) : null
+        const rawDetectedLineEnd = annotation.detectedLineEnd ? toViewerPoint(annotation.detectedLineEnd) : null
+        const clippedDetectedLine = rawDetectedLineStart && rawDetectedLineEnd && !annotation.displayGeometryCanonical
+          ? clipLineToReference(pos, rawDetectedLineStart, rawDetectedLineEnd, referencePositions)
+          : null
+        const detectedLineStart = clippedDetectedLine?.start ?? rawDetectedLineStart
+        const detectedLineEnd = clippedDetectedLine?.end ?? rawDetectedLineEnd
+        const label = annotation.label ?? `Bend ${annotation.id}`
 
         const statusColors = {
           pass: { bg: 'bg-emerald-500/90', border: 'border-emerald-400', text: 'text-emerald-100' },
@@ -733,67 +1054,298 @@ function BendAnnotations3D({ annotations, transform }: BendAnnotations3DProps) {
         }
 
         const colors = statusColors[annotation.status] || statusColors.pending
+        const statusColor = {
+          pass: '#22c55e',
+          fail: '#ef4444',
+          warning: '#f59e0b',
+          pending: '#94a3b8',
+        }[annotation.status] || '#94a3b8'
+        const isActive = !!annotation.active || focusAnnotationId === annotation.id
+        const lineWidth = isActive ? 5.4 : 2.2
+        const lineOpacity = isActive ? 1 : 0.82
+        const isIssue = annotation.status === 'fail' || annotation.status === 'warning'
+        const showReferenceLine = isIssue || isActive || index === 0
+        const showDetectedLine = isIssue || isActive
+        const showLabelBubble = isActive
 
         return (
           <group key={annotation.id} position={[pos.x, pos.y, pos.z]}>
-            {/* Marker sphere */}
-            <mesh>
-              <sphereGeometry args={[0.08, 16, 16]} />
-              <meshStandardMaterial
-                color={annotation.status === 'pass' ? '#22c55e' : annotation.status === 'fail' ? '#ef4444' : '#f59e0b'}
-                emissive={annotation.status === 'pass' ? '#22c55e' : annotation.status === 'fail' ? '#ef4444' : '#f59e0b'}
-                emissiveIntensity={0.3}
-              />
-            </mesh>
-
-            {/* Connecting line going up */}
-            <line>
-              <bufferGeometry>
-                <bufferAttribute
-                  attach="attributes-position"
-                  count={2}
-                  array={new Float32Array([0, 0, 0, 0, 0.5, 0])}
-                  itemSize={3}
+            {cadLineStart && cadLineEnd && showReferenceLine && (
+              <>
+                <Line
+                  points={[
+                    [cadLineStart.x - pos.x, cadLineStart.y - pos.y, cadLineStart.z - pos.z],
+                    [cadLineEnd.x - pos.x, cadLineEnd.y - pos.y, cadLineEnd.z - pos.z],
+                  ]}
+                  color="#cbd5e1"
+                  lineWidth={isActive ? 4.2 : isIssue ? 2.4 : 1.2}
+                  transparent
+                  opacity={isActive ? 0.98 : isIssue ? 0.72 : 0.18}
                 />
-              </bufferGeometry>
-              <lineBasicMaterial color="#ffffff" opacity={0.5} transparent />
-            </line>
+                {showDetectedLine && detectedLineStart && detectedLineEnd && (
+                  <Line
+                    points={[
+                      [detectedLineStart.x - pos.x, detectedLineStart.y - pos.y, detectedLineStart.z - pos.z],
+                      [detectedLineEnd.x - pos.x, detectedLineEnd.y - pos.y, detectedLineEnd.z - pos.z],
+                    ]}
+                    color={statusColor}
+                    lineWidth={lineWidth}
+                    transparent
+                    opacity={lineOpacity}
+                  />
+                )}
+                {isActive && (
+                  <Line
+                    points={[
+                      [
+                        (detectedLineStart ?? cadLineStart).x - pos.x,
+                        (detectedLineStart ?? cadLineStart).y - pos.y,
+                        (detectedLineStart ?? cadLineStart).z - pos.z,
+                      ],
+                      [
+                        (detectedLineEnd ?? cadLineEnd).x - pos.x,
+                        (detectedLineEnd ?? cadLineEnd).y - pos.y,
+                        (detectedLineEnd ?? cadLineEnd).z - pos.z,
+                      ],
+                    ]}
+                    color={annotation.status === 'pass' ? '#86efac' : annotation.status === 'warning' ? '#fde68a' : '#fca5a5'}
+                    lineWidth={7.5}
+                    transparent
+                    opacity={0.24}
+                  />
+                )}
+              </>
+            )}
 
-            {/* HTML Label */}
-            <Html
-              position={[0, 0.6, 0]}
-              center
-              distanceFactor={8}
-              style={{ pointerEvents: 'none' }}
-            >
-              <div className={clsx(
-                'px-2 py-1 rounded-lg border shadow-lg backdrop-blur-sm whitespace-nowrap',
-                colors.bg, colors.border
-              )}>
-                <div className="text-xs font-bold text-white">
-                  Bend {annotation.id}
+            {(isIssue || isActive) && (
+              <mesh scale={isActive ? 1.35 : 1}>
+                <sphereGeometry args={[0.08, 16, 16]} />
+                <meshStandardMaterial
+                  color={statusColor}
+                  emissive={statusColor}
+                  emissiveIntensity={isActive ? 0.5 : 0.32}
+                />
+              </mesh>
+            )}
+
+            {showLabelBubble && (
+              <line>
+                <bufferGeometry>
+                  <bufferAttribute
+                    attach="attributes-position"
+                    count={2}
+                    array={new Float32Array([0, 0, 0, 0, 0.32, 0])}
+                    itemSize={3}
+                  />
+                </bufferGeometry>
+                <lineBasicMaterial color="#ffffff" opacity={0.34} transparent />
+              </line>
+            )}
+
+            {showLabelBubble && (
+              <Html
+                position={[0, 0.42, 0]}
+                center
+                distanceFactor={9}
+                style={{ pointerEvents: 'none' }}
+              >
+                <div className={clsx(
+                  'px-2 py-1 rounded-full border shadow-lg backdrop-blur-sm whitespace-nowrap',
+                  colors.bg, colors.border
+                )} title={
+                  annotation.measuredAngle != null
+                    ? `${label} | expected ${annotation.expectedAngle.toFixed(1)}°, measured ${annotation.measuredAngle.toFixed(1)}°, delta ${(annotation.deviation ?? 0) > 0 ? '+' : ''}${(annotation.deviation ?? 0).toFixed(1)}°`
+                    : `${label} | expected ${annotation.expectedAngle.toFixed(1)}°`
+                }>
+                  <div className="text-[11px] font-semibold text-white">
+                    {label}
+                  </div>
                 </div>
-                <div className={clsx('text-xs', colors.text)}>
-                  {annotation.measuredAngle != null ? (
-                    <>
-                      <span className="font-mono">{annotation.measuredAngle.toFixed(1)}°</span>
-                      {annotation.deviation != null && (
-                        <span className="ml-1 opacity-80">
-                          ({annotation.deviation > 0 ? '+' : ''}{annotation.deviation.toFixed(1)}°)
-                        </span>
-                      )}
-                    </>
-                  ) : (
-                    <span className="opacity-60">Expected: {annotation.expectedAngle.toFixed(1)}°</span>
-                  )}
-                </div>
-              </div>
-            </Html>
+              </Html>
+            )}
           </group>
         )
       })}
     </>
   )
+}
+
+function BendCalloutLayoutBridge({
+  annotations,
+  transform,
+  focusAnnotationId,
+  onChange,
+}: {
+  annotations: BendAnnotation[]
+  transform: { center: THREE.Vector3; scale: number }
+  focusAnnotationId?: number | string | null
+  onChange: (callouts: ScreenBendCallout[]) => void
+}) {
+  const { camera, size } = useThree()
+  const lastSerializedRef = useRef('')
+
+  useEffect(() => () => onChange([]), [onChange])
+
+  useFrame(() => {
+    const issueAnnotations = annotations.filter((annotation) => annotation.status === 'fail' || annotation.status === 'warning')
+    const activeAnnotation = annotations.find((annotation) => annotation.id === focusAnnotationId)
+    const candidateAnnotations = [
+      ...issueAnnotations,
+      ...(activeAnnotation && !issueAnnotations.some((annotation) => annotation.id === activeAnnotation.id)
+        ? [activeAnnotation]
+        : []),
+    ]
+
+    if (!candidateAnnotations.length) {
+      if (lastSerializedRef.current !== '[]') {
+        lastSerializedRef.current = '[]'
+        onChange([])
+      }
+      return
+    }
+
+    const toViewerPoint = (source: [number, number, number]) => new THREE.Vector3(
+      (source[0] - transform.center.x) * transform.scale,
+      (source[1] - transform.center.y) * transform.scale,
+      (source[2] - transform.center.z) * transform.scale,
+    )
+
+    const projected = candidateAnnotations
+      .map((annotation) => {
+        const anchorSource = annotation.calloutAnchor ?? annotation.position
+        const anchor = toViewerPoint(anchorSource)
+        const normalized = anchor.clone().project(camera)
+        if (!Number.isFinite(normalized.x) || !Number.isFinite(normalized.y) || normalized.z > 1.05) {
+          return null
+        }
+        const anchorX = ((normalized.x + 1) / 2) * size.width
+        const anchorY = ((1 - normalized.y) / 2) * size.height
+        const active = annotation.id === focusAnnotationId || !!annotation.active
+        return {
+          id: annotation.id,
+          label: annotation.label ?? `Bend ${annotation.id}`,
+          status: annotation.status,
+          active,
+          side: (normalized.x >= 0 ? 'left' : 'right') as 'left' | 'right',
+          anchorX,
+          anchorY,
+          width: active ? 208 : 176,
+          height: active ? 108 : 94,
+          metricRows: annotation.measuredAngle == null
+            ? ['Pending measurement']
+            : [
+                formatBendMetric('ΔA', annotation.deviation, 1, '°'),
+                formatBendMetric('ΔR', annotation.radiusDeviation, 2, 'mm'),
+                formatBendMetric('ΔC', annotation.lineCenterDeviationMm, 2, 'mm'),
+              ],
+        }
+      })
+      .filter((value): value is Omit<ScreenBendCallout, 'boxX' | 'boxY'> => value !== null)
+
+    const marginLeft = 22
+    const marginRight = 22
+    const marginTop = 76
+    const marginBottom = 28
+    const cardGap = 10
+    const rails = {
+      left: projected.filter((item) => item.side === 'left').sort((a, b) => a.anchorY - b.anchorY),
+      right: projected.filter((item) => item.side === 'right').sort((a, b) => a.anchorY - b.anchorY),
+    }
+
+    const layoutSide = (items: Array<Omit<ScreenBendCallout, 'boxX' | 'boxY'>>) => {
+      const preferred = items.map((item) => ({
+        ...item,
+        preferredTop: clamp(item.anchorY - item.height / 2, marginTop, size.height - item.height - marginBottom),
+        boxX: item.side === 'left' ? marginLeft : size.width - item.width - marginRight,
+        boxY: 0,
+      }))
+      return distributeRailCards(preferred, marginTop, size.height - marginBottom, cardGap)
+        .map(({ preferredTop, ...item }) => item)
+    }
+
+    const callouts = [...layoutSide(rails.left), ...layoutSide(rails.right)]
+      .sort((a, b) => (a.active === b.active ? 0 : a.active ? -1 : 1))
+      .map((item) => ({
+        ...item,
+        anchorX: Math.round(item.anchorX),
+        anchorY: Math.round(item.anchorY),
+        boxX: Math.round(item.boxX),
+        boxY: Math.round(item.boxY),
+      }))
+
+    const serialized = JSON.stringify(callouts)
+    if (serialized !== lastSerializedRef.current) {
+      lastSerializedRef.current = serialized
+      onChange(callouts)
+    }
+  })
+
+  return null
+}
+
+function CameraFocusTarget({
+  focusPoint,
+  focusAnnotation,
+  transform,
+  controlsRef,
+}: {
+  focusPoint: [number, number, number]
+  focusAnnotation?: BendAnnotation | null
+  transform: { center: THREE.Vector3; scale: number }
+  controlsRef: any
+}) {
+  const { camera } = useThree()
+  const focusKey = focusPoint.join('|')
+
+  useEffect(() => {
+    const controls = controlsRef.current
+    if (!controls) return
+
+    const target = new THREE.Vector3(
+      (focusPoint[0] - transform.center.x) * transform.scale,
+      (focusPoint[1] - transform.center.y) * transform.scale,
+      (focusPoint[2] - transform.center.z) * transform.scale,
+    )
+
+    const worldUp = new THREE.Vector3(0, 1, 0)
+    let inspectionDirection = new THREE.Vector3(1, 0.55, 1).normalize()
+    if (focusAnnotation?.lineStart && focusAnnotation?.lineEnd) {
+      const start = new THREE.Vector3(
+        (focusAnnotation.lineStart[0] - transform.center.x) * transform.scale,
+        (focusAnnotation.lineStart[1] - transform.center.y) * transform.scale,
+        (focusAnnotation.lineStart[2] - transform.center.z) * transform.scale,
+      )
+      const end = new THREE.Vector3(
+        (focusAnnotation.lineEnd[0] - transform.center.x) * transform.scale,
+        (focusAnnotation.lineEnd[1] - transform.center.y) * transform.scale,
+        (focusAnnotation.lineEnd[2] - transform.center.z) * transform.scale,
+      )
+      const lineDirection = end.clone().sub(start).normalize()
+      const lateral = new THREE.Vector3().crossVectors(lineDirection, worldUp)
+      if (lateral.lengthSq() < 1e-4) {
+        lateral.set(1, 0, 0)
+      } else {
+        lateral.normalize()
+      }
+      inspectionDirection = lateral.multiplyScalar(0.88).add(worldUp.clone().multiplyScalar(0.58)).normalize()
+    }
+
+    const lineLength = focusAnnotation?.lineStart && focusAnnotation?.lineEnd
+      ? new THREE.Vector3(
+          (focusAnnotation.lineStart[0] - focusAnnotation.lineEnd[0]) * transform.scale,
+          (focusAnnotation.lineStart[1] - focusAnnotation.lineEnd[1]) * transform.scale,
+          (focusAnnotation.lineStart[2] - focusAnnotation.lineEnd[2]) * transform.scale,
+        ).length()
+      : 0
+    const desiredDistance = clamp(Math.max(2.3, lineLength * 3.8), 2.3, 7.4)
+    const nextPosition = target.clone().addScaledVector(inspectionDirection, desiredDistance)
+    controls.target.copy(target)
+    camera.position.copy(nextPosition)
+    camera.updateProjectionMatrix()
+    controls.update()
+  }, [camera, controlsRef, focusAnnotation, focusKey, focusPoint, transform.center.x, transform.center.y, transform.center.z, transform.scale])
+
+  return null
 }
 
 // Extreme deviation markers component
@@ -927,6 +1479,3 @@ function ExtremeMarkers3D({ stats, transform, deviations, scanPositions }: Extre
     </>
   )
 }
-
-// Export types for use in other components
-export type { BendAnnotation, DeviationStats }
