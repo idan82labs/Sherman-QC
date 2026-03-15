@@ -90,6 +90,10 @@ function CandidateCard({
   isSelected: boolean
   onSelect: () => void
 }) {
+  const confidence = candidate.match_confidence ?? candidate.similarity
+  const confidencePct = confidence * 100
+  const rawSimilarityPct = candidate.similarity * 100
+
   return (
     <button
       onClick={onSelect}
@@ -105,18 +109,23 @@ function CandidateCard({
         <span
           className={clsx(
             'text-sm px-2 py-0.5 rounded',
-            candidate.similarity >= 0.95
+            confidence >= 0.9
               ? 'bg-green-500/20 text-green-400'
-              : candidate.similarity >= 0.85
+              : confidence >= 0.75
               ? 'bg-yellow-500/20 text-yellow-400'
               : 'bg-red-500/20 text-red-400'
           )}
         >
-          {(candidate.similarity * 100).toFixed(1)}%
+          {confidencePct.toFixed(1)}%
         </span>
       </div>
       {candidate.part_name && (
         <p className="text-sm text-dark-400 truncate">{candidate.part_name}</p>
+      )}
+      {candidate.match_confidence !== undefined && (
+        <p className="text-xs text-dark-500 mt-1">
+          raw similarity {rawSimilarityPct.toFixed(1)}%
+        </p>
       )}
       {candidate.warning && (
         <p className="text-xs text-yellow-500 mt-1">{candidate.warning}</p>
@@ -153,6 +162,8 @@ export default function LiveScan() {
   const [isConnected, setIsConnected] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
   const [watchPathInput, setWatchPathInput] = useState('')
+  const [demoPartNumber, setDemoPartNumber] = useState('')
+  const [demoMessage, setDemoMessage] = useState<string | null>(null)
 
   const queryClient = useQueryClient()
 
@@ -170,12 +181,25 @@ export default function LiveScan() {
     refetchInterval: 5000,
   })
 
+  // Fetch demo scan options
+  const { data: demoOptions } = useQuery({
+    queryKey: ['live-scan-demo-options'],
+    queryFn: liveScanApi.getDemoOptions,
+    staleTime: 60000,
+  })
+
   // Update watch path when config loads
   useEffect(() => {
     if (config?.watch_path && !watchPathInput) {
       setWatchPathInput(config.watch_path)
     }
   }, [config?.watch_path])
+
+  useEffect(() => {
+    if (!demoPartNumber && demoOptions?.default_part_number) {
+      setDemoPartNumber(demoOptions.default_part_number)
+    }
+  }, [demoOptions?.default_part_number, demoPartNumber])
 
   // Mutation to update watch path
   const updateWatchPath = useMutation({
@@ -199,6 +223,25 @@ export default function LiveScan() {
     mutationFn: () => liveScanApi.stopManager(),
     onSuccess: () => {
       refetchStatus()
+    },
+  })
+
+  // Mutation to inject a demo LiDAR scan
+  const loadTestScan = useMutation({
+    mutationFn: () =>
+      liveScanApi.loadTestScan({
+        part_number: demoPartNumber || undefined,
+      }),
+    onSuccess: (data) => {
+      setDemoMessage(
+        `${data?.message || 'Demo loaded'}: ${data?.demo_part?.part_number || demoPartNumber}`
+      )
+      queryClient.invalidateQueries({ queryKey: ['recognition-status'] })
+      queryClient.invalidateQueries({ queryKey: ['live-scan-status'] })
+      queryClient.invalidateQueries({ queryKey: ['live-scan-demo-options'] })
+    },
+    onError: (error) => {
+      setDemoMessage(`Failed to load demo scan: ${(error as Error).message}`)
     },
   })
 
@@ -256,11 +299,24 @@ export default function LiveScan() {
     refetchInterval: 30000,
   })
 
+  // Fetch actual scan points for viewer
+  const { data: scanPointsData } = useQuery({
+    queryKey: ['live-scan-points', session?.id, session?.scans?.length || 0, session?.state || 'idle'],
+    queryFn: () =>
+      liveScanApi.getSessionPoints({
+        max_points: 18000,
+        max_scans: 4,
+      }),
+    enabled: !!session && (session.scans?.length || 0) > 0,
+    refetchInterval: (session?.state === 'idle' || session?.state === 'complete') ? 10000 : 2500,
+  })
+
   // Auto-select top candidate when recognition completes
   useEffect(() => {
     if (session?.recognition?.candidates?.length && !selectedCandidate) {
       const topCandidate = session.recognition.candidates[0]
-      if (topCandidate.similarity >= 0.85) {
+      const confidence = topCandidate.match_confidence ?? topCandidate.similarity
+      if (confidence >= 0.75) {
         setSelectedCandidate(topCandidate.part_id)
       }
     }
@@ -321,6 +377,8 @@ export default function LiveScan() {
   const coverage = session?.coverage_percent || 0
   const candidates: RecognitionCandidate[] = session?.recognition?.candidates || []
   const gaps: GapCluster[] = session?.gap_clusters || []
+  const scanPoints = scanPointsData?.points || []
+  const renderedPointCount = scanPointsData?.point_count || 0
 
   return (
     <div className="h-full flex flex-col">
@@ -461,6 +519,55 @@ export default function LiveScan() {
               Error: {(updateWatchPath.error as Error)?.message || (startWatcher.error as Error)?.message}
             </div>
           )}
+
+          {/* Demo tools */}
+          <div className="mt-4 pt-4 border-t border-dark-700">
+            <h4 className="text-sm font-medium text-dark-200 mb-2">Demo Tools</h4>
+            <p className="text-xs text-dark-400 mb-3">
+              Load a LiDAR-like test scan. This also ensures the part is in catalog and indexed for recognition.
+            </p>
+            <div className="flex flex-wrap items-end gap-3">
+              <div className="min-w-[220px]">
+                <label className="block text-xs text-dark-400 mb-1">Demo Part</label>
+                <select
+                  value={demoPartNumber}
+                  onChange={(e) => setDemoPartNumber(e.target.value)}
+                  className="w-full px-3 py-2 bg-dark-800 border border-dark-600 rounded-lg focus:border-primary-500 focus:outline-none"
+                >
+                  {(demoOptions?.options || []).map((opt) => (
+                    <option
+                      key={opt.part_number}
+                      value={opt.part_number}
+                      disabled={!opt.cad_available || !opt.scan_available}
+                    >
+                      {opt.part_number}
+                      {opt.part_name ? ` - ${opt.part_name}` : ''}
+                      {!opt.cad_available || !opt.scan_available ? ' (missing files)' : ''}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <button
+                onClick={() => loadTestScan.mutate()}
+                disabled={loadTestScan.isPending || !demoPartNumber}
+                className="btn btn-secondary flex items-center gap-2"
+              >
+                {loadTestScan.isPending ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Play className="w-4 h-4" />
+                )}
+                Load Test Scan
+              </button>
+            </div>
+
+            {demoMessage && (
+              <div className="mt-3 p-2 bg-primary-500/10 border border-primary-500/30 rounded text-sm text-primary-300">
+                {demoMessage}
+              </div>
+            )}
+          </div>
         </div>
       )}
 
@@ -502,6 +609,23 @@ export default function LiveScan() {
           {/* Coverage Card */}
           <div className="card p-4">
             <CoverageBar percent={coverage} />
+
+            <div className="mt-3 text-xs text-dark-400 space-y-1">
+              <div className="flex justify-between">
+                <span>Viewer points</span>
+                <span>{renderedPointCount.toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Gap clusters</span>
+                <span>{gaps.length}</span>
+              </div>
+            </div>
+
+            {!session?.part_id && candidates.length > 0 && (
+              <div className="mt-3 p-2 bg-amber-500/10 border border-amber-500/30 rounded text-xs text-amber-300">
+                Confirm a part to start CAD coverage tracking.
+              </div>
+            )}
 
             {gaps.length > 0 && (
               <div className="mt-4">
@@ -584,6 +708,7 @@ export default function LiveScan() {
                 gaps={gaps}
                 totalPoints={session?.total_points || 0}
                 state={state}
+                scanPoints={scanPoints}
               />
             </Suspense>
           </div>

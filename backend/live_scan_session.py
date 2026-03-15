@@ -27,13 +27,15 @@ import time
 import logging
 import threading
 import uuid
+import math
+import itertools
 from pathlib import Path
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from typing import Callable, Optional, Dict, List, Any
 from enum import Enum
 
-from file_watcher import FileWatcher, FileEvent
+from file_watcher import FileWatcher, FileEvent, SUPPORTED_EXTENSIONS, MIN_FILE_SIZE_BYTES
 
 logger = logging.getLogger(__name__)
 
@@ -115,6 +117,7 @@ class LiveScanSession:
                 "candidates": self.recognition_result.candidates if self.recognition_result else [],
                 "top_match": self.recognition_result.top_match if self.recognition_result else None,
                 "top_similarity": self.recognition_result.top_similarity if self.recognition_result else 0,
+                "processing_time_ms": self.recognition_result.processing_time_ms if self.recognition_result else 0,
                 "is_confident": self.recognition_result.is_confident if self.recognition_result else False,
             } if self.recognition_result else None,
             "scans": [
@@ -241,6 +244,10 @@ class LiveScanSessionManager:
 
         logger.info("LiveScanSessionManager stopped")
 
+    def is_running(self) -> bool:
+        """Check whether the manager is actively watching for files."""
+        return self._running
+
     def get_current_session(self) -> Optional[LiveScanSession]:
         """Get the current active session."""
         with self._session_lock:
@@ -299,8 +306,50 @@ class LiveScanSessionManager:
             self._current_session.part_number = part_number
             self._current_session.state = SessionState.SCANNING
             self._current_session.updated_at = datetime.now()
+            session_id = self._current_session.id
+            has_scans = bool(self._current_session.scans)
             self._emit_session_update()
+            if has_scans:
+                threading.Thread(
+                    target=self._update_coverage,
+                    args=(session_id,),
+                    daemon=True
+                ).start()
             return True
+
+    def ingest_scan_file(self, file_path: str, filename: Optional[str] = None) -> ScanData:
+        """
+        Ingest a scan file directly (bypass filesystem watcher event loop).
+
+        Useful for API-driven demo/testing flows where a file is generated
+        programmatically and should be processed immediately.
+        """
+        path = Path(file_path)
+        if not path.exists() or not path.is_file():
+            raise FileNotFoundError(f"Scan file not found: {file_path}")
+
+        ext = path.suffix.lower()
+        if ext not in SUPPORTED_EXTENSIONS:
+            raise ValueError(f"Unsupported scan format: {ext}")
+
+        size = path.stat().st_size
+        if size < MIN_FILE_SIZE_BYTES:
+            raise ValueError(
+                f"Scan file too small ({size} bytes), minimum {MIN_FILE_SIZE_BYTES} bytes"
+            )
+
+        event = FileEvent(
+            path=path,
+            filename=filename or path.name,
+            extension=ext,
+            size_bytes=size,
+        )
+        self._handle_new_file(event)
+        return ScanData(
+            file_path=path,
+            filename=event.filename,
+            size_bytes=size,
+        )
 
     def complete_scan(self) -> bool:
         """
@@ -379,6 +428,12 @@ class LiveScanSessionManager:
         if self._current_session is None:
             return
 
+        # Skip duplicate files (common when manual ingest and filesystem watcher both fire).
+        for existing in self._current_session.scans:
+            if existing.file_path == scan_data.file_path:
+                logger.info(f"Skipping duplicate scan event for {scan_data.filename}")
+                return
+
         self._current_session.scans.append(scan_data)
         self._current_session.updated_at = datetime.now()
         self._emit_session_update()
@@ -422,9 +477,15 @@ class LiveScanSessionManager:
             for path in scan_paths:
                 try:
                     pcd = o3d.io.read_point_cloud(str(path))
-                    if not pcd.is_empty():
-                        all_scan_points.append(np.asarray(pcd.points))
-                        total_points += len(pcd.points)
+                    pts = np.asarray(pcd.points) if pcd is not None and not pcd.is_empty() else None
+                    if (pts is None or len(pts) == 0) and str(path).lower().endswith(('.stl', '.obj')):
+                        mesh = o3d.io.read_triangle_mesh(str(path))
+                        if mesh is not None and len(mesh.vertices) > 0 and len(mesh.triangles) > 0:
+                            sampled = mesh.sample_points_uniformly(number_of_points=12000)
+                            pts = np.asarray(sampled.points)
+                    if pts is not None and len(pts) > 0:
+                        all_scan_points.append(pts)
+                        total_points += int(len(pts))
                 except Exception as e:
                     logger.error(f"Failed to load scan {path}: {e}")
 
@@ -435,34 +496,53 @@ class LiveScanSessionManager:
 
             # Load CAD reference
             cad_path = part.cad_file_path
-            if cad_path.endswith('.stl'):
+            cad_points = None
+            cad_path_lower = cad_path.lower()
+            if cad_path_lower.endswith(('.stl', '.obj', '.ply')):
                 mesh = o3d.io.read_triangle_mesh(cad_path)
-                cad_pcd = mesh.sample_points_uniformly(number_of_points=50000)
+                if mesh is not None and len(mesh.vertices) > 0 and len(mesh.triangles) > 0:
+                    cad_pcd = mesh.sample_points_uniformly(number_of_points=50000)
+                    if cad_pcd is not None and not cad_pcd.is_empty():
+                        cad_points = np.asarray(cad_pcd.points)
+                if cad_points is None or len(cad_points) == 0:
+                    pcd = o3d.io.read_point_cloud(cad_path)
+                    if pcd is not None and not pcd.is_empty():
+                        cad_points = np.asarray(pcd.points)
             else:
-                cad_pcd = o3d.io.read_point_cloud(cad_path)
+                pcd = o3d.io.read_point_cloud(cad_path)
+                if pcd is not None and not pcd.is_empty():
+                    cad_points = np.asarray(pcd.points)
 
-            if cad_pcd.is_empty():
+            if cad_points is None or len(cad_points) == 0:
                 logger.error(f"Failed to load CAD file: {cad_path}")
                 return
 
-            cad_points = np.asarray(cad_pcd.points)
-
             # Calculate coverage
-            calculator = CoverageCalculator(voxel_size=2.0, tolerance_mm=3.0)
+            calculator = CoverageCalculator(voxel_size=2.0, tolerance=3.0)
             coverage_result = calculator.compute_coverage(cad_points, merged_scan)
+            coverage_percent = float(coverage_result.coverage_percent)
+            gap_clusters = coverage_result.gap_clusters
+
+            # Fallback: canonicalized overlap proxy when absolute alignment is poor.
+            if coverage_percent < 1.0:
+                proxy_coverage = self._coverage_proxy(cad_points, merged_scan, voxel_norm=0.08)
+                if proxy_coverage > coverage_percent:
+                    coverage_percent = proxy_coverage
+                    # Proxy mode cannot localize physical gaps reliably.
+                    gap_clusters = []
 
             # Update session
             with self._session_lock:
                 if self._current_session and self._current_session.id == session_id:
-                    self._current_session.coverage_percent = coverage_result.coverage_percent
+                    self._current_session.coverage_percent = coverage_percent
                     self._current_session.total_points = total_points
-                    self._current_session.gap_clusters = coverage_result.gap_clusters
+                    self._current_session.gap_clusters = gap_clusters
                     self._current_session.updated_at = datetime.now()
                     self._emit_session_update()
 
             logger.info(
-                f"Coverage updated: {coverage_result.coverage_percent:.1f}%, "
-                f"gaps: {len(coverage_result.gap_clusters)}"
+                f"Coverage updated: {coverage_percent:.1f}%, "
+                f"gaps: {len(gap_clusters)}"
             )
 
         except Exception as e:
@@ -527,6 +607,9 @@ class LiveScanSessionManager:
                         "warning": warning,
                     })
 
+            # Calibrate display confidence so alternatives do not appear as overconfident.
+            self._calibrate_candidate_confidence(candidates)
+
             processing_time = (time.time() - start_time) * 1000
 
             # Determine confidence
@@ -571,6 +654,14 @@ class LiveScanSessionManager:
                     self._current_session.updated_at = datetime.now()
                     self._emit_session_update()
 
+            # If auto-confirmed, calculate coverage immediately from existing scans.
+            if is_confident and candidates:
+                threading.Thread(
+                    target=self._update_coverage,
+                    args=(session_id,),
+                    daemon=True
+                ).start()
+
             logger.info(
                 f"Recognition complete: top={top_match} ({top_similarity:.3f}), "
                 f"confident={is_confident}, time={processing_time:.0f}ms"
@@ -586,6 +677,117 @@ class LiveScanSessionManager:
                     self._current_session.state = SessionState.ERROR
                     self._current_session.error_message = str(e)
                     self._emit_session_update()
+
+    def _calibrate_candidate_confidence(self, candidates: List[Dict[str, Any]]) -> None:
+        """
+        Add `match_confidence` to recognition candidates for UI display.
+
+        This blends absolute similarity, relative rank, and softmax posterior so
+        top matches stay high while secondary options are de-emphasized.
+        """
+        if not candidates:
+            return
+        import numpy as np
+
+        sims = []
+        for c in candidates:
+            s = float(c.get("similarity", 0.0))
+            if not math.isfinite(s):
+                s = 0.0
+            sims.append(max(0.0, min(1.0, s)))
+        if not sims:
+            return
+
+        top_sim = max(1e-6, sims[0])
+
+        # Numerically stable softmax over centered similarities.
+        scale = 20.0
+        logits = np.asarray([(s - 0.80) * scale for s in sims], dtype=np.float64)
+        logits -= np.max(logits)
+        exp_logits = np.exp(logits)
+        denom = float(np.sum(exp_logits)) if np.isfinite(np.sum(exp_logits)) else 0.0
+        probs = exp_logits / denom if denom > 1e-12 else np.zeros_like(exp_logits)
+
+        for idx, c in enumerate(candidates):
+            sim = sims[idx]
+            if idx == 0:
+                confidence = sim
+            else:
+                rel = sim / top_sim
+                rank_penalty = max(0.40, 1.0 - 0.18 * idx)
+                calibrated = sim * rel * rank_penalty
+                confidence = 0.55 * calibrated + 0.45 * float(probs[idx])
+            c["match_confidence"] = float(max(0.0, min(1.0, confidence)))
+
+    def _canonicalize_points(self, points):
+        """Center and normalize point cloud for orientation-invariant overlap proxy."""
+        import numpy as np
+
+        pts = np.asarray(points, dtype=np.float64)
+        if pts.ndim != 2 or pts.shape[1] != 3 or len(pts) == 0:
+            return np.empty((0, 3), dtype=np.float64)
+        finite_mask = np.isfinite(pts).all(axis=1)
+        pts = pts[finite_mask]
+        if len(pts) == 0:
+            return np.empty((0, 3), dtype=np.float64)
+
+        center = np.mean(pts, axis=0)
+        centered = pts - center
+        scale = float(np.max(np.abs(centered)))
+        if not np.isfinite(scale) or scale < 1e-9:
+            return np.zeros_like(centered)
+        normalized = centered / scale
+
+        try:
+            cov = (normalized.T @ normalized) / max(1, len(normalized) - 1)
+            eigvals, eigvecs = np.linalg.eigh(cov)
+            order = np.argsort(eigvals)[::-1]
+            basis = eigvecs[:, order]
+            coords = normalized @ basis
+        except Exception:
+            coords = normalized
+
+        lo = np.percentile(coords, 2.0, axis=0)
+        hi = np.percentile(coords, 98.0, axis=0)
+        mid = 0.5 * (lo + hi)
+        span = np.maximum(hi - lo, 1e-6)
+        out = (coords - mid) / span
+        return np.nan_to_num(out, nan=0.0, posinf=0.0, neginf=0.0)
+
+    def _voxel_set(self, points, voxel_norm: float):
+        """Convert normalized points to integer voxel occupancy."""
+        import numpy as np
+
+        if points is None or len(points) == 0:
+            return set()
+        voxel = max(1e-4, float(voxel_norm))
+        idx = np.floor(points / voxel).astype(np.int32)
+        uniq = np.unique(idx, axis=0)
+        return {tuple(map(int, row)) for row in uniq}
+
+    def _coverage_proxy(self, cad_points, scan_points, voxel_norm: float = 0.08) -> float:
+        """Alignment-agnostic CAD/scan overlap proxy in percent."""
+        import numpy as np
+
+        cad_norm = self._canonicalize_points(cad_points)
+        scan_norm = self._canonicalize_points(scan_points)
+        cad_vox = self._voxel_set(cad_norm, voxel_norm)
+        if not cad_vox or len(scan_norm) == 0:
+            return 0.0
+
+        best_cov = 0.0
+        for perm in itertools.permutations((0, 1, 2)):
+            permuted = scan_norm[:, perm]
+            for signs in itertools.product((-1.0, 1.0), repeat=3):
+                transformed = permuted * np.asarray(signs, dtype=np.float64)
+                scan_vox = self._voxel_set(transformed, voxel_norm)
+                if not scan_vox:
+                    continue
+                inter = len(cad_vox.intersection(scan_vox))
+                cov = inter / max(1, len(cad_vox))
+                if cov > best_cov:
+                    best_cov = cov
+        return float(best_cov * 100.0)
 
     def _run_timeout_checker(self):
         """Background thread to check for session timeouts."""

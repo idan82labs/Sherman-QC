@@ -135,12 +135,17 @@ class CADDimensionExtractor:
         edge_angle_threshold: float = 30.0,  # Degrees to consider an edge
         min_dimension: float = 1.0,  # Minimum dimension to report (mm)
         max_dimensions: int = 100,  # Maximum number of dimensions to extract
+        # Backward-compatible args kept for older tests/callers.
+        coplanar_threshold: Optional[float] = None,
+        parallel_threshold: Optional[float] = None,
     ):
         self.min_surface_area_pct = min_surface_area_pct
         self.num_slices = num_slices
         self.edge_angle_threshold = edge_angle_threshold
         self.min_dimension = min_dimension
         self.max_dimensions = max_dimensions
+        self.coplanar_threshold = coplanar_threshold
+        self.parallel_threshold = parallel_threshold
 
     def extract_from_mesh(self, mesh: Any) -> CADDimensionExtractionResult:
         """

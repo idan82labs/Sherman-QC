@@ -11,10 +11,31 @@ Usage:
 import sys
 import os
 import argparse
+import shutil
 from pathlib import Path
 
 # Add backend to path
 sys.path.insert(0, str(Path(__file__).parent / "backend"))
+
+
+def maybe_reexec_with_python311():
+    """Prefer Python 3.11+ for Open3D stability on macOS."""
+    if sys.platform != "darwin":
+        return
+    if sys.version_info >= (3, 11):
+        return
+
+    candidates = [
+        os.environ.get("BACKEND_PYTHON", "").strip(),
+        "/opt/homebrew/bin/python3.11",
+        "/usr/local/bin/python3.11",
+        shutil.which("python3.11") or "",
+    ]
+    for candidate in candidates:
+        if not candidate:
+            continue
+        if Path(candidate).exists():
+            os.execv(candidate, [candidate, str(Path(__file__).resolve()), *sys.argv[1:]])
 
 
 def install_dependencies():
@@ -107,6 +128,7 @@ To test:
 
 
 def main():
+    maybe_reexec_with_python311()
     parser = argparse.ArgumentParser(description="Scan QC System")
     parser.add_argument("--port", type=int, default=8080, help="Server port")
     parser.add_argument("--demo", action="store_true", help="Create demo files")

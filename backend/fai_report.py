@@ -640,7 +640,6 @@ class FAIReportGenerator:
 
 
 # PPAP-specific report generator
-@dataclass
 class PPAPLevel(Enum):
     """PPAP submission levels"""
     LEVEL_1 = 1  # Part Submission Warrant only

@@ -628,6 +628,7 @@ export interface RecognitionCandidate {
   part_name: string | null
   customer: string | null
   similarity: number
+  match_confidence?: number
   distance: number
   has_cad: boolean
   warning?: string

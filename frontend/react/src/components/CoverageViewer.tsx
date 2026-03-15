@@ -9,6 +9,7 @@ interface CoverageViewerProps {
   gaps: GapCluster[]
   totalPoints: number
   state: string
+  scanPoints?: Array<[number, number, number]>
 }
 
 // Gap cluster visualization
@@ -145,6 +146,75 @@ function ScanParticles({ totalPoints }: { totalPoints: number }) {
   )
 }
 
+function ScanPointCloud({ scanPoints }: { scanPoints: Array<[number, number, number]> }) {
+  const pointsRef = useRef<THREE.Points>(null)
+
+  const positions = useMemo(() => {
+    if (!scanPoints || scanPoints.length === 0) {
+      return new Float32Array(0)
+    }
+
+    let minX = Infinity
+    let minY = Infinity
+    let minZ = Infinity
+    let maxX = -Infinity
+    let maxY = -Infinity
+    let maxZ = -Infinity
+
+    for (let i = 0; i < scanPoints.length; i++) {
+      const [x, y, z] = scanPoints[i]
+      if (x < minX) minX = x
+      if (y < minY) minY = y
+      if (z < minZ) minZ = z
+      if (x > maxX) maxX = x
+      if (y > maxY) maxY = y
+      if (z > maxZ) maxZ = z
+    }
+
+    const cx = (minX + maxX) * 0.5
+    const cy = (minY + maxY) * 0.5
+    const cz = (minZ + maxZ) * 0.5
+    const sx = Math.max(1e-6, maxX - minX)
+    const sy = Math.max(1e-6, maxY - minY)
+    const sz = Math.max(1e-6, maxZ - minZ)
+    const maxSpan = Math.max(sx, sy, sz)
+    const scale = 14 / maxSpan
+
+    const arr = new Float32Array(scanPoints.length * 3)
+    for (let i = 0; i < scanPoints.length; i++) {
+      const [x, y, z] = scanPoints[i]
+      arr[i * 3] = (x - cx) * scale
+      arr[i * 3 + 1] = (z - cz) * scale
+      arr[i * 3 + 2] = (y - cy) * scale
+    }
+    return arr
+  }, [scanPoints])
+
+  useFrame(() => {
+    if (pointsRef.current) {
+      pointsRef.current.rotation.y += 0.0007
+    }
+  })
+
+  if (!positions.length) {
+    return null
+  }
+
+  return (
+    <points ref={pointsRef}>
+      <bufferGeometry>
+        <bufferAttribute
+          attach="attributes-position"
+          count={positions.length / 3}
+          array={positions}
+          itemSize={3}
+        />
+      </bufferGeometry>
+      <pointsMaterial size={0.045} color="#7dd3fc" transparent opacity={0.95} />
+    </points>
+  )
+}
+
 // Idle state animation
 function IdleIndicator() {
   const meshRef = useRef<THREE.Mesh>(null)
@@ -165,7 +235,9 @@ function IdleIndicator() {
 }
 
 // Scene content
-function Scene({ coverage, gaps, totalPoints, state }: CoverageViewerProps) {
+function Scene({ coverage, gaps, totalPoints, state, scanPoints = [] }: CoverageViewerProps) {
+  const hasRealPoints = scanPoints.length > 0
+
   return (
     <>
       {/* Lights */}
@@ -188,8 +260,12 @@ function Scene({ coverage, gaps, totalPoints, state }: CoverageViewerProps) {
 
       {(state === 'scanning' || state === 'identifying' || state === 'analyzing') && (
         <>
-          {/* Scan particles */}
-          <ScanParticles totalPoints={totalPoints} />
+          {/* Actual scan point cloud (fallback to synthetic particles if unavailable) */}
+          {hasRealPoints ? (
+            <ScanPointCloud scanPoints={scanPoints} />
+          ) : (
+            <ScanParticles totalPoints={totalPoints} />
+          )}
 
           {/* Coverage ring */}
           <CoverageRing coverage={coverage} />
@@ -203,7 +279,11 @@ function Scene({ coverage, gaps, totalPoints, state }: CoverageViewerProps) {
 
       {state === 'complete' && (
         <>
-          <ScanParticles totalPoints={totalPoints} />
+          {hasRealPoints ? (
+            <ScanPointCloud scanPoints={scanPoints} />
+          ) : (
+            <ScanParticles totalPoints={totalPoints} />
+          )}
           <CoverageRing coverage={coverage} />
           <Text
             position={[0, 3, 0]}
