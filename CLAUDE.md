@@ -74,3 +74,16 @@ Available via `/critique`:
 - Anthropic Claude API
 - Google Gemini API
 - OpenAI GPT API
+
+## Machine Constraints
+
+**Development machine:** MacBook Air M4, 16 GB RAM — MEMORY IS TIGHT
+- **NEVER run more than 1 bend inspection at a time** — each worker loads 30-40 MB point clouds + Open3D meshes, easily consuming 4-8 GB RAM per worker
+- Running 5 workers in parallel caused 65 GB virtual memory usage and heavy swap — DO NOT DO THIS
+- Always run inspections sequentially: submit one, wait for completion, then submit next
+- Set `OMP_NUM_THREADS=1` on macOS (Open3D threading stability)
+- Use `python3.11` (not system python) for Open3D compatibility
+- Backend venv: `.venv/` in project root
+- Backend start: `".venv/bin/python3.11" run.py --port 9000`
+- Frontend: `cd frontend/react && npm run dev`
+- Port 8080 may be taken by other projects — use 9000 for Sherman QC
