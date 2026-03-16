@@ -163,6 +163,11 @@ class BendInspectionRunDetails:
     scan_quality_status: str = "UNKNOWN"
     scan_coverage_pct: float = 0.0
     scan_density_pts_per_cm2: float = 0.0
+    # CAD geometry from the pipeline run (same vertices used for bend detection).
+    # Used to export the reference mesh PLY in the SAME coordinate system as
+    # the bend line coordinates, avoiding dual-import coordinate mismatches.
+    cad_vertices: Optional[np.ndarray] = field(default=None, repr=False)
+    cad_triangles: Optional[np.ndarray] = field(default=None, repr=False)
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -359,6 +364,35 @@ def export_bend_reference_visualization(
         cad_path,
         cad_import_deflection=cad_import_deflection,
     )
+    ref_path = out_dir / "reference_mesh.ply"
+
+    verts32 = np.asarray(vertices, dtype=np.float32)
+    if triangles is not None and len(triangles) > 0:
+        faces = np.asarray(triangles, dtype=np.int32)
+        mesh = trimesh.Trimesh(vertices=verts32, faces=faces, process=False)
+        mesh.export(str(ref_path), file_type="ply")
+    else:
+        cloud = trimesh.PointCloud(verts32)
+        cloud.export(str(ref_path), file_type="ply")
+
+    return {"reference_mesh_path": str(ref_path)}
+
+
+def export_reference_mesh_from_vertices(
+    vertices: np.ndarray,
+    triangles: Optional[np.ndarray],
+    output_dir: str | Path,
+) -> Dict[str, str]:
+    """
+    Export reference mesh PLY from pre-loaded CAD vertices/triangles.
+
+    This avoids re-importing the CAD file, guaranteeing that the reference
+    mesh PLY is in the SAME coordinate system as the bend detection coordinates.
+    """
+    import trimesh
+
+    out_dir = Path(output_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
     ref_path = out_dir / "reference_mesh.ply"
 
     verts32 = np.asarray(vertices, dtype=np.float32)
@@ -2414,6 +2448,10 @@ def run_progressive_bend_inspection(
         max_points=max(5000, int(cfg.scan_quality_kwargs.get("sample_points", 30000))),
         seed=5,
     )
+    # Preserve CAD geometry for reference mesh export (same coordinate system
+    # as bend detection coordinates). Stored in BendInspectionRunDetails.
+    _saved_cad_vertices = cad_vertices
+    _saved_cad_triangles = cad_triangles
     del cad_vertices
     del cad_triangles
     gc.collect()
@@ -2547,6 +2585,8 @@ def run_progressive_bend_inspection(
         scan_quality_status=str(scan_quality.get("status", "UNKNOWN")),
         scan_coverage_pct=float(scan_quality.get("coverage_pct", 0.0)),
         scan_density_pts_per_cm2=float(scan_quality.get("density_pts_per_cm2", 0.0)),
+        cad_vertices=_saved_cad_vertices,
+        cad_triangles=_saved_cad_triangles,
     )
     _emit_phase_log(
         f"run_progressive_bend_inspection[{part_id}] complete "

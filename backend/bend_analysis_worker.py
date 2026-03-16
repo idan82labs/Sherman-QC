@@ -26,6 +26,7 @@ from bend_unary_model import load_unary_models, score_case_payload
 from qc_engine import ScanQCEngine
 from bend_inspection_pipeline import (
     export_bend_reference_visualization,
+    export_reference_mesh_from_vertices,
     load_bend_runtime_config,
     run_progressive_bend_inspection,
 )
@@ -242,11 +243,27 @@ def run_worker(args: argparse.Namespace) -> int:
         reference_mesh_path: Optional[Path] = None
         artifacts_payload: Dict[str, Any] = {}
         try:
-            export_bend_reference_visualization(
-                cad_path=args.cad_path,
-                output_dir=output_dir,
-                cad_import_deflection=runtime_cfg.cad_import_deflection,
-            )
+            # Use the SAME CAD vertices that the pipeline used for bend detection.
+            # This guarantees the reference mesh PLY and bend line coordinates
+            # are in the exact same coordinate system (no dual-import mismatch).
+            if details.cad_vertices is not None:
+                export_reference_mesh_from_vertices(
+                    vertices=details.cad_vertices,
+                    triangles=details.cad_triangles,
+                    output_dir=output_dir,
+                )
+            else:
+                # Fallback: re-import CAD file (legacy path)
+                export_bend_reference_visualization(
+                    cad_path=args.cad_path,
+                    output_dir=output_dir,
+                    cad_import_deflection=runtime_cfg.cad_import_deflection,
+                )
+            # Free large arrays now that PLY is written — avoids holding
+            # full CAD geometry in memory during artifact/aligned-scan phases.
+            details.cad_vertices = None
+            details.cad_triangles = None
+
             candidate = output_dir / "reference_mesh.ply"
             if candidate.exists():
                 reference_mesh_path = candidate

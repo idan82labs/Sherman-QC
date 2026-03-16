@@ -68,6 +68,197 @@ interface ScreenBendCallout {
   metricRows: string[]
 }
 
+/**
+ * Compute a remapping function that maps bend annotation coordinates
+ * (which may be in a completely different coordinate space) into the
+ * reference mesh coordinate space using bbox-to-bbox affine mapping.
+ *
+ * Returns remapped annotations with corrected lineStart/lineEnd/position.
+ */
+function useRemappedAnnotations(
+  annotations: BendAnnotation[],
+  referencePositions: Float32Array | null | undefined,
+  transform: { center: THREE.Vector3; scale: number },
+): BendAnnotation[] {
+  return useMemo(() => {
+    // Collect all raw annotation line endpoints
+    const rawPts: number[][] = []
+    for (const a of annotations) {
+      if (a.lineStart) rawPts.push([...a.lineStart])
+      if (a.lineEnd) rawPts.push([...a.lineEnd])
+      if (a.position) rawPts.push([...a.position])
+    }
+    if (rawPts.length < 2) return annotations
+
+    // Compute annotation bbox
+    let aMinX = Infinity, aMinY = Infinity, aMinZ = Infinity
+    let aMaxX = -Infinity, aMaxY = -Infinity, aMaxZ = -Infinity
+    for (const p of rawPts) {
+      if (p[0] < aMinX) aMinX = p[0]; if (p[0] > aMaxX) aMaxX = p[0]
+      if (p[1] < aMinY) aMinY = p[1]; if (p[1] > aMaxY) aMaxY = p[1]
+      if (p[2] < aMinZ) aMinZ = p[2]; if (p[2] > aMaxZ) aMaxZ = p[2]
+    }
+    const aSpanX = Math.max(1e-6, aMaxX - aMinX)
+    const aSpanY = Math.max(1e-6, aMaxY - aMinY)
+    const aSpanZ = Math.max(1e-6, aMaxZ - aMinZ)
+    const aCenterX = (aMinX + aMaxX) / 2
+    const aCenterY = (aMinY + aMaxY) / 2
+    const aCenterZ = (aMinZ + aMaxZ) / 2
+
+    // Compute reference mesh bbox (in raw/pre-transform space)
+    // transform.center IS the bbox center of the reference mesh
+    // We need the full bbox — get it from referencePositions (which are post-transform)
+    // or estimate from transform.center and scale
+    let mMinX: number, mMinY: number, mMinZ: number
+    let mMaxX: number, mMaxY: number, mMaxZ: number
+
+    if (referencePositions && referencePositions.length >= 9) {
+      // referencePositions are ALREADY transformed: (v - center) * scale
+      // Convert back to raw space: v = pos / scale + center
+      const invScale = 1 / transform.scale
+      mMinX = Infinity; mMinY = Infinity; mMinZ = Infinity
+      mMaxX = -Infinity; mMaxY = -Infinity; mMaxZ = -Infinity
+      for (let i = 0; i < referencePositions.length; i += 3) {
+        const rx = referencePositions[i] * invScale + transform.center.x
+        const ry = referencePositions[i + 1] * invScale + transform.center.y
+        const rz = referencePositions[i + 2] * invScale + transform.center.z
+        if (rx < mMinX) mMinX = rx; if (rx > mMaxX) mMaxX = rx
+        if (ry < mMinY) mMinY = ry; if (ry > mMaxY) mMaxY = ry
+        if (rz < mMinZ) mMinZ = rz; if (rz > mMaxZ) mMaxZ = rz
+      }
+    } else {
+      // No reference positions — can't remap, just use offset
+      const offset = new THREE.Vector3(
+        aCenterX - transform.center.x,
+        aCenterY - transform.center.y,
+        aCenterZ - transform.center.z,
+      )
+      if (offset.length() < 1.0) return annotations
+
+      const remapPt = (p: [number, number, number]): [number, number, number] =>
+        [p[0] - offset.x, p[1] - offset.y, p[2] - offset.z]
+
+      return annotations.map(a => ({
+        ...a,
+        position: remapPt(a.position),
+        calloutAnchor: a.calloutAnchor ? remapPt(a.calloutAnchor) : undefined,
+        lineStart: a.lineStart ? remapPt(a.lineStart) : undefined,
+        lineEnd: a.lineEnd ? remapPt(a.lineEnd) : undefined,
+        detectedLineStart: a.detectedLineStart ? remapPt(a.detectedLineStart) : undefined,
+        detectedLineEnd: a.detectedLineEnd ? remapPt(a.detectedLineEnd) : undefined,
+      }))
+    }
+
+    const mSpanX = Math.max(1e-6, mMaxX - mMinX)
+    const mSpanY = Math.max(1e-6, mMaxY - mMinY)
+    const mSpanZ = Math.max(1e-6, mMaxZ - mMinZ)
+    const mCenterX = (mMinX + mMaxX) / 2
+    const mCenterY = (mMinY + mMaxY) / 2
+    const mCenterZ = (mMinZ + mMaxZ) / 2
+
+    // Check if annotation points actually fall within or near the mesh bbox.
+    // If most points are within ~2x the mesh extent, the coordinate systems match
+    // and no remapping is needed (lines naturally extend beyond mesh edges).
+    let insideCount = 0
+    const margin = Math.max(mSpanX, mSpanY, mSpanZ) * 0.5
+    for (const p of rawPts) {
+      const inX = p[0] >= mMinX - margin && p[0] <= mMaxX + margin
+      const inY = p[1] >= mMinY - margin && p[1] <= mMaxY + margin
+      const inZ = p[2] >= mMinZ - margin && p[2] <= mMaxZ + margin
+      if (inX && inY && inZ) insideCount++
+    }
+    const insideRatio = insideCount / rawPts.length
+    if (insideRatio >= 0.3) return annotations // Coordinate systems match
+
+    // Genuine coordinate system mismatch — remap with uniform scale + offset
+    const mMaxSpan = Math.max(mSpanX, mSpanY, mSpanZ)
+    const aMaxSpan = Math.max(aSpanX, aSpanY, aSpanZ)
+    const uniScale = mMaxSpan / aMaxSpan
+
+    const remapPt = (p: [number, number, number]): [number, number, number] => [
+      mCenterX + (p[0] - aCenterX) * uniScale,
+      mCenterY + (p[1] - aCenterY) * uniScale,
+      mCenterZ + (p[2] - aCenterZ) * uniScale,
+    ]
+
+    return annotations.map(a => ({
+      ...a,
+      position: remapPt(a.position),
+      calloutAnchor: a.calloutAnchor ? remapPt(a.calloutAnchor) : undefined,
+      lineStart: a.lineStart ? remapPt(a.lineStart) : undefined,
+      lineEnd: a.lineEnd ? remapPt(a.lineEnd) : undefined,
+      detectedLineStart: a.detectedLineStart ? remapPt(a.detectedLineStart) : undefined,
+      detectedLineEnd: a.detectedLineEnd ? remapPt(a.detectedLineEnd) : undefined,
+    }))
+  }, [annotations, referencePositions, transform.center, transform.scale])
+}
+
+/**
+ * Wrapper that remaps annotations to the reference mesh coordinate space
+ * and passes corrected data to all bend annotation sub-components.
+ */
+function BendAnnotationGroup({
+  annotations,
+  transform,
+  referencePositions,
+  focusAnnotationId,
+  focusPoint,
+  controlsRef,
+  onCalloutsChange,
+}: {
+  annotations: BendAnnotation[]
+  transform: { center: THREE.Vector3; scale: number }
+  referencePositions?: Float32Array | null
+  focusAnnotationId?: number | string | null
+  focusPoint?: [number, number, number] | null
+  controlsRef: React.RefObject<any>
+  onCalloutsChange: (callouts: ScreenBendCallout[]) => void
+}) {
+  const remappedAnnotations = useRemappedAnnotations(annotations, referencePositions, transform)
+
+  // Recompute focusPoint from remapped annotations
+  const remappedFocusPoint = useMemo<[number, number, number] | null>(() => {
+    if (!referencePositions || referencePositions.length < 9) return null
+    if (!focusPoint) return null
+    const focused = remappedAnnotations.find(a => a.id === focusAnnotationId)
+    if (focused) return focused.calloutAnchor ?? focused.position
+    return focusPoint
+  }, [focusPoint, focusAnnotationId, remappedAnnotations, referencePositions])
+
+  const focusAnnotation = remappedAnnotations.find((a) => a.id === focusAnnotationId) ?? null
+
+  // Don't render annotations until reference mesh positions are loaded —
+  // without them, clipLineToReference can't clip lines to the mesh edges
+  if (!referencePositions || referencePositions.length < 9) {
+    return null
+  }
+
+  return (
+    <>
+      <BendAnnotations3D
+        annotations={remappedAnnotations}
+        transform={transform}
+        referencePositions={referencePositions}
+        focusAnnotationId={focusAnnotationId}
+      />
+      <BendCalloutLayoutBridge
+        annotations={remappedAnnotations}
+        transform={transform}
+        focusAnnotationId={focusAnnotationId}
+        onChange={onCalloutsChange}
+      />
+      {remappedFocusPoint && (
+        <CameraFocusTarget
+          focusPoint={remappedFocusPoint}
+          focusAnnotation={focusAnnotation}
+          transform={transform}
+          controlsRef={controlsRef}
+        />
+      )}
+    </>
+  )
+}
+
 export default function ThreeViewer({
   modelUrl,
   referenceUrl,
@@ -270,26 +461,21 @@ export default function ThreeViewer({
 
           {/* 3D Annotations for bends */}
           {showAnnotations && hasBendAnnotations && transformData && (
-            <>
-              <BendAnnotations3D
-                annotations={bendAnnotations!}
-                transform={transformData}
-                referencePositions={referencePositions}
-                focusAnnotationId={focusAnnotationId}
-              />
-              <BendCalloutLayoutBridge
-                annotations={bendAnnotations!}
-                transform={transformData}
-                focusAnnotationId={focusAnnotationId}
-                onChange={setScreenCallouts}
-              />
-            </>
+            <BendAnnotationGroup
+              annotations={bendAnnotations!}
+              transform={transformData}
+              referencePositions={referencePositions}
+              focusAnnotationId={focusAnnotationId}
+              focusPoint={focusPoint}
+              controlsRef={controlsRef}
+              onCalloutsChange={setScreenCallouts}
+            />
           )}
 
-          {transformData && focusPoint && (
+          {!hasBendAnnotations && transformData && focusPoint && (
             <CameraFocusTarget
               focusPoint={focusPoint}
-              focusAnnotation={bendAnnotations?.find((annotation) => annotation.id === focusAnnotationId) ?? null}
+              focusAnnotation={null}
               transform={transformData}
               controlsRef={controlsRef}
             />
@@ -579,6 +765,12 @@ function AlignedModels({
 
     const loadBoth = async () => {
       onLoadStart?.()
+
+      // Reset transform state so stale center/scale from a previous job
+      // never contaminates the new geometry.
+      setSharedCenter(null)
+      setSharedScale(1)
+
       const geometries: { scan?: THREE.BufferGeometry; ref?: THREE.BufferGeometry } = {}
 
       // Load scan
@@ -631,62 +823,55 @@ function AlignedModels({
       if (centerBox && !centerBox.isEmpty()) {
         const center = new THREE.Vector3()
         centerBox.getCenter(center)
-        setSharedCenter(center)
 
         const size = new THREE.Vector3()
         scaleBox.getSize(size)
         const maxDim = Math.max(size.x, size.y, size.z)
         const targetSize = 4
         const scale = maxDim > 0 ? targetSize / maxDim : 1
-        setSharedScale(scale)
 
-        // Notify parent of transform data for annotations
+        // Apply transforms immediately to fresh geometries (no stale state)
+        if (geometries.scan) {
+          geometries.scan.translate(-center.x, -center.y, -center.z)
+          geometries.scan.scale(scale, scale, scale)
+          if (!geometries.scan.attributes.normal) {
+            geometries.scan.computeVertexNormals()
+          }
+          if (deviations && deviations.length > 0) {
+            const colors = new Float32Array(geometries.scan.attributes.position.count * 3)
+            for (let i = 0; i < geometries.scan.attributes.position.count; i++) {
+              const deviation = i < deviations.length ? deviations[i] : 0
+              const color = deviationToColor(deviation, tolerance)
+              colors[i * 3] = color.r
+              colors[i * 3 + 1] = color.g
+              colors[i * 3 + 2] = color.b
+            }
+            geometries.scan.setAttribute('color', new THREE.BufferAttribute(colors, 3))
+          }
+          geometries.scan.userData.transformed = true
+        }
+        if (geometries.ref) {
+          geometries.ref.translate(-center.x, -center.y, -center.z)
+          geometries.ref.scale(scale, scale, scale)
+          if (!geometries.ref.attributes.normal) {
+            geometries.ref.computeVertexNormals()
+          }
+          geometries.ref.userData.transformed = true
+        }
+
+        // Now set state — all using the same local center/scale
+        setSharedCenter(center)
+        setSharedScale(scale)
         onTransformComputed?.({ center, scale })
       }
 
-      // Apply transformations and store
-      if (geometries.scan && sharedCenter) {
-        geometries.scan.translate(-sharedCenter.x, -sharedCenter.y, -sharedCenter.z)
-        geometries.scan.scale(sharedScale, sharedScale, sharedScale)
-        if (!geometries.scan.attributes.normal) {
-          geometries.scan.computeVertexNormals()
-        }
-        // Apply heatmap colors if deviations provided
-        if (deviations && deviations.length > 0) {
-          const colors = new Float32Array(geometries.scan.attributes.position.count * 3)
-          for (let i = 0; i < geometries.scan.attributes.position.count; i++) {
-            const deviation = i < deviations.length ? deviations[i] : 0
-            const color = deviationToColor(deviation, tolerance)
-            colors[i * 3] = color.r
-            colors[i * 3 + 1] = color.g
-            colors[i * 3 + 2] = color.b
-          }
-          geometries.scan.setAttribute('color', new THREE.BufferAttribute(colors, 3))
-        }
-        // Dispose previous geometry before setting new one
-        scanGeometryRef.current?.dispose()
-        scanGeometryRef.current = geometries.scan
-        setScanGeometry(geometries.scan)
-      } else if (geometries.scan) {
-        // First load - store raw geometry, will transform on next render
-        // Dispose previous geometry before setting new one
+      // Store geometries (already transformed if center was computed)
+      if (geometries.scan) {
         scanGeometryRef.current?.dispose()
         scanGeometryRef.current = geometries.scan
         setScanGeometry(geometries.scan)
       }
-
-      if (geometries.ref && sharedCenter) {
-        geometries.ref.translate(-sharedCenter.x, -sharedCenter.y, -sharedCenter.z)
-        geometries.ref.scale(sharedScale, sharedScale, sharedScale)
-        if (!geometries.ref.attributes.normal) {
-          geometries.ref.computeVertexNormals()
-        }
-        // Dispose previous geometry before setting new one
-        refGeometryRef.current?.dispose()
-        refGeometryRef.current = geometries.ref
-        setRefGeometry(geometries.ref)
-      } else if (geometries.ref) {
-        // Dispose previous geometry before setting new one
+      if (geometries.ref) {
         refGeometryRef.current?.dispose()
         refGeometryRef.current = geometries.ref
         setRefGeometry(geometries.ref)
@@ -972,7 +1157,8 @@ function clipLineToReference(
   const maxHalfSpan = Math.max(0.25, modelMaxDim * 0.42)
 
   if (!referencePositions || referencePositions.length < 12) {
-    const half = Math.min(originalLength / 2, maxHalfSpan)
+    // No reference mesh data — clamp to model-proportional length
+    const half = Math.min(originalLength / 2, maxHalfSpan * 0.5)
     return {
       start: midpoint.clone().addScaledVector(dir, -half),
       end: midpoint.clone().addScaledVector(dir, half),
@@ -999,17 +1185,17 @@ function clipLineToReference(
   }
 
   if (samples.length < 12) {
-    const half = Math.min(originalLength / 2, maxHalfSpan)
+    const half = Math.min(originalLength / 2, maxHalfSpan * 0.5)
     return {
       start: midpoint.clone().addScaledVector(dir, -half),
       end: midpoint.clone().addScaledVector(dir, half),
     }
   }
 
-  const lo = percentile(samples, 0.08)
-  const hi = percentile(samples, 0.92)
-  const pad = Math.max(0.04, modelMaxDim * 0.02)
-  const half = Math.min(maxHalfSpan, Math.max(0.18, ((hi - lo) / 2) + pad))
+  const lo = percentile(samples, 0.02)
+  const hi = percentile(samples, 0.98)
+  const pad = Math.max(0.02, modelMaxDim * 0.01)
+  const half = Math.min(maxHalfSpan * 0.5, Math.max(0.12, ((hi - lo) / 2) + pad))
   return {
     start: midpoint.clone().addScaledVector(dir, -half),
     end: midpoint.clone().addScaledVector(dir, half),
@@ -1017,9 +1203,10 @@ function clipLineToReference(
 }
 
 function BendAnnotations3D({ annotations, transform, referencePositions, focusAnnotationId }: BendAnnotations3DProps) {
+
   return (
     <>
-      {annotations.map((annotation, index) => {
+      {annotations.map((annotation) => {
         if (!annotation.position) return null
 
         const toViewerPoint = (source: [number, number, number]) => new THREE.Vector3(
@@ -1028,15 +1215,21 @@ function BendAnnotations3D({ annotations, transform, referencePositions, focusAn
           (source[2] - transform.center.z) * transform.scale
         )
 
-        const anchorSource = annotation.calloutAnchor ?? annotation.position
-        const pos = toViewerPoint(anchorSource)
         const rawCadLineStart = annotation.lineStart ? toViewerPoint(annotation.lineStart) : null
         const rawCadLineEnd = annotation.lineEnd ? toViewerPoint(annotation.lineEnd) : null
+        // Compute raw midpoint from line endpoints (or fallback to annotation anchor)
+        const rawMid = rawCadLineStart && rawCadLineEnd
+          ? new THREE.Vector3().addVectors(rawCadLineStart, rawCadLineEnd).multiplyScalar(0.5)
+          : toViewerPoint(annotation.calloutAnchor ?? annotation.position)
         const clippedCadLine = rawCadLineStart && rawCadLineEnd && !annotation.displayGeometryCanonical
-          ? clipLineToReference(pos, rawCadLineStart, rawCadLineEnd, referencePositions)
+          ? clipLineToReference(rawMid, rawCadLineStart, rawCadLineEnd, referencePositions)
           : null
         const cadLineStart = clippedCadLine?.start ?? rawCadLineStart
         const cadLineEnd = clippedCadLine?.end ?? rawCadLineEnd
+        // Position the annotation group at the clipped midpoint so it sits on the mesh
+        const pos = cadLineStart && cadLineEnd
+          ? new THREE.Vector3().addVectors(cadLineStart, cadLineEnd).multiplyScalar(0.5)
+          : rawMid
         const rawDetectedLineStart = annotation.detectedLineStart ? toViewerPoint(annotation.detectedLineStart) : null
         const rawDetectedLineEnd = annotation.detectedLineEnd ? toViewerPoint(annotation.detectedLineEnd) : null
         const clippedDetectedLine = rawDetectedLineStart && rawDetectedLineEnd && !annotation.displayGeometryCanonical
@@ -1064,7 +1257,8 @@ function BendAnnotations3D({ annotations, transform, referencePositions, focusAn
         const lineWidth = isActive ? 5.4 : 2.2
         const lineOpacity = isActive ? 1 : 0.82
         const isIssue = annotation.status === 'fail' || annotation.status === 'warning'
-        const showReferenceLine = isIssue || isActive || index === 0
+        // Show ALL bends (not just issues) so every bend is visible in the viewer
+        const showReferenceLine = true
         const showDetectedLine = isIssue || isActive
         const showLabelBubble = isActive
 
@@ -1077,10 +1271,10 @@ function BendAnnotations3D({ annotations, transform, referencePositions, focusAn
                     [cadLineStart.x - pos.x, cadLineStart.y - pos.y, cadLineStart.z - pos.z],
                     [cadLineEnd.x - pos.x, cadLineEnd.y - pos.y, cadLineEnd.z - pos.z],
                   ]}
-                  color="#cbd5e1"
-                  lineWidth={isActive ? 4.2 : isIssue ? 2.4 : 1.2}
+                  color={isIssue ? '#cbd5e1' : '#22c55e'}
+                  lineWidth={isActive ? 4.2 : isIssue ? 2.8 : 2.0}
                   transparent
-                  opacity={isActive ? 0.98 : isIssue ? 0.72 : 0.18}
+                  opacity={isActive ? 0.98 : isIssue ? 0.72 : 0.55}
                 />
                 {showDetectedLine && detectedLineStart && detectedLineEnd && (
                   <Line
@@ -1117,7 +1311,7 @@ function BendAnnotations3D({ annotations, transform, referencePositions, focusAn
               </>
             )}
 
-            {(isIssue || isActive) && (
+            {(
               <mesh scale={isActive ? 1.35 : 1}>
                 <sphereGeometry args={[0.08, 16, 16]} />
                 <meshStandardMaterial
@@ -1187,14 +1381,10 @@ function BendCalloutLayoutBridge({
   useEffect(() => () => onChange([]), [onChange])
 
   useFrame(() => {
-    const issueAnnotations = annotations.filter((annotation) => annotation.status === 'fail' || annotation.status === 'warning')
-    const activeAnnotation = annotations.find((annotation) => annotation.id === focusAnnotationId)
-    const candidateAnnotations = [
-      ...issueAnnotations,
-      ...(activeAnnotation && !issueAnnotations.some((annotation) => annotation.id === activeAnnotation.id)
-        ? [activeAnnotation]
-        : []),
-    ]
+    // Show callout labels for ALL bends that have line geometry, not just fail/warning
+    const candidateAnnotations = annotations.filter(
+      (annotation) => annotation.lineStart && annotation.lineEnd,
+    )
 
     if (!candidateAnnotations.length) {
       if (lastSerializedRef.current !== '[]') {

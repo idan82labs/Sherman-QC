@@ -886,17 +886,19 @@ function BendCadOverlay3D({
   const bendAnnotations = useMemo<BendAnnotation[]>(() => {
     const overlays: BendAnnotation[] = []
     for (const match of matches) {
-      const lineStart = parseLinePoint(match.display_cad_line_start ?? match.cad_line_start)
-      const lineEnd = parseLinePoint(match.display_cad_line_end ?? match.cad_line_end)
+      const lineStart = parseLinePoint(match.cad_line_start)
+      const lineEnd = parseLinePoint(match.cad_line_end)
       if (!lineStart || !lineEnd) continue
-      const detectedLineStart = parseLinePoint(match.display_detected_line_start ?? match.detected_line_start)
-      const detectedLineEnd = parseLinePoint(match.display_detected_line_end ?? match.detected_line_end)
-      const calloutAnchor = parseLinePoint(match.callout_anchor) ?? midpoint3D(lineStart, lineEnd)
+      const detectedLineStart = parseLinePoint(match.detected_line_start)
+      const detectedLineEnd = parseLinePoint(match.detected_line_end)
+      // Always compute anchor from raw line coords (backend callout_anchor may be
+      // in a mismatched coordinate space due to dual CAD import)
+      const rawMidpoint = midpoint3D(lineStart, lineEnd)
       overlays.push({
         id: match.bend_id,
         label: match.bend_id,
-        position: midpoint3D(lineStart, lineEnd),
-        calloutAnchor,
+        position: rawMidpoint,
+        calloutAnchor: rawMidpoint,
         lineStart,
         lineEnd,
         detectedLineStart: detectedLineStart ?? undefined,
@@ -906,7 +908,7 @@ function BendCadOverlay3D({
         deviation: match.angle_deviation,
         status: toViewerStatus(match.status),
         active: focusedBendId === match.bend_id,
-        displayGeometryCanonical: !!(match.display_cad_line_start || match.display_detected_line_start),
+        displayGeometryCanonical: false, // clip lines to reference mesh edges
         radiusDeviation: match.radius_deviation,
         lineCenterDeviationMm: match.line_center_deviation_mm,
         toleranceAngle: match.tolerance_angle,
@@ -1064,11 +1066,11 @@ function FocusedMetricCard({
 }
 
 function midpointFromMatch(match: BendMatch): [number, number, number] | null {
-  const a = parseLinePoint(match.display_detected_line_start ?? match.detected_line_start)
-  const b = parseLinePoint(match.display_detected_line_end ?? match.detected_line_end)
+  const a = parseLinePoint(match.detected_line_start)
+  const b = parseLinePoint(match.detected_line_end)
   if (a && b) return midpoint3D(a, b)
-  const c = parseLinePoint(match.display_cad_line_start ?? match.cad_line_start)
-  const d = parseLinePoint(match.display_cad_line_end ?? match.cad_line_end)
+  const c = parseLinePoint(match.cad_line_start)
+  const d = parseLinePoint(match.cad_line_end)
   if (c && d) return midpoint3D(c, d)
   return null
 }
