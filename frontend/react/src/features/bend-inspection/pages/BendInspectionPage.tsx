@@ -31,7 +31,7 @@ import {
   parseLinePoint,
   preferredFocusedBendId,
 } from '../model/annotationMapper'
-import BenderView from '../../../components/BenderView'
+import { Link } from 'react-router-dom'
 
 const ThreeViewer = lazy(() => import('../../../shared/3d/ThreeViewer'))
 
@@ -575,7 +575,6 @@ function BendInspectionResults({
   const rolledProcessCount = Math.max(0, matches.length - countableMatches.length)
   const preferredBend = useMemo(() => preferredFocusedBendId(matches, report.operator_actions), [matches, report.operator_actions])
   const [focusedBendId, setFocusedBendId] = useState<string | null>(preferredBend)
-  const [activeTab, setActiveTab] = useState<'inspector' | 'bender'>('inspector')
 
   useEffect(() => {
     setFocusedBendId(preferredBend)
@@ -583,41 +582,6 @@ function BendInspectionResults({
 
   return (
     <div className={clsx('space-y-4', compact && 'space-y-2')}>
-      {/* Tab bar */}
-      <div className="flex border-b border-dark-700 print:hidden">
-        <button
-          className={clsx(
-            'px-4 py-2 text-sm font-medium border-b-2 transition-colors',
-            activeTab === 'inspector'
-              ? 'border-primary-400 text-primary-300'
-              : 'border-transparent text-dark-400 hover:text-dark-200',
-          )}
-          onClick={() => setActiveTab('inspector')}
-        >
-          Inspector View
-        </button>
-        <button
-          className={clsx(
-            'px-4 py-2 text-sm font-medium border-b-2 transition-colors',
-            activeTab === 'bender'
-              ? 'border-primary-400 text-primary-300'
-              : 'border-transparent text-dark-400 hover:text-dark-200',
-          )}
-          onClick={() => setActiveTab('bender')}
-        >
-          Bender's View
-        </button>
-      </div>
-
-      {activeTab === 'bender' ? (
-        <BenderView
-          artifacts={artifacts}
-          matches={matches}
-          focusedBendId={focusedBendId}
-          onFocusBend={setFocusedBendId}
-        />
-      ) : (
-      <>
       {/* Operator brief */}
       {!!report.operator_actions?.length && (
         <div className="bg-dark-700/40 border border-dark-600 rounded-lg p-3">
@@ -689,7 +653,7 @@ function BendInspectionResults({
       )}
 
       {!compact && !!artifacts && (
-        <BendArtifactsPanel artifacts={artifacts} />
+        <BendArtifactsPanel artifacts={artifacts} jobId={jobId} />
       )}
 
       <BendProgressStrip
@@ -798,8 +762,6 @@ function BendInspectionResults({
           </tbody>
         </table>
       </div>
-      </>
-      )}
     </div>
   )
 }
@@ -1065,8 +1027,10 @@ function FocusedMetricCard({
 
 function BendArtifactsPanel({
   artifacts,
+  jobId,
 }: {
   artifacts?: BendInspectionJob['artifacts']
+  jobId?: string
 }) {
   if (!artifacts?.bend_overlay_overview_url && !artifacts?.bend_report_pdf_url) return null
 
@@ -1080,6 +1044,14 @@ function BendArtifactsPanel({
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
+          {jobId && artifacts?.bender_view_front_url && (
+            <Link
+              to={`/bender-view/${jobId}`}
+              className="inline-flex items-center gap-2 rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-xs font-medium text-emerald-300 hover:bg-emerald-500/15"
+            >
+              Bender's View
+            </Link>
+          )}
           {artifacts.bend_report_pdf_url && (
             <a
               href={artifacts.bend_report_pdf_url}

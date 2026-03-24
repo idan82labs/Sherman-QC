@@ -947,7 +947,7 @@ class Model3DSnapshotRenderer:
         label_bends: List[Dict[str, Any]] = []
 
         model_extent = float(max(5.0, bbox.get_max_extent() if bbox is not None else 100.0))
-        sphere_radius = max(0.9, model_extent * 0.018)
+        sphere_radius = max(0.5, model_extent * 0.008)
 
         def _make_dashed_segments(start_pt, end_pt, dash_len=None, gap_len=None):
             """Break a line into dash segments for Open3D LineSet (simulates dashed lines)."""
@@ -1047,19 +1047,19 @@ class Model3DSnapshotRenderer:
         if view == "front":
             ctr.set_front([0, -1, 0])
             ctr.set_up([0, 0, 1])
-            ctr.set_zoom(0.72)
+            ctr.set_zoom(0.30)
         elif view == "side":
             ctr.set_front([-1, 0, 0])
             ctr.set_up([0, 0, 1])
-            ctr.set_zoom(0.72)
+            ctr.set_zoom(0.30)
         elif view == "top":
             ctr.set_front([0, 0, -1])
             ctr.set_up([0, 1, 0])
-            ctr.set_zoom(0.74)
+            ctr.set_zoom(0.30)
         else:
             ctr.set_front([-0.52, -0.52, -0.67])
             ctr.set_up([0, 0, 1])
-            ctr.set_zoom(0.66)
+            ctr.set_zoom(0.28)
         ctr.set_lookat(center)
 
         vis.poll_events()
@@ -1163,50 +1163,56 @@ class Model3DSnapshotRenderer:
             if tip1 and tip2 and edge_dist:
                 p1 = project(tip1)
                 p2 = project(tip2)
-                if p1 and p2:
+                # Only draw if both tips project to valid screen positions within canvas
+                if (p1 and p2
+                    and 0 < p1[0] < width and 0 < p1[1] < height
+                    and 0 < p2[0] < width and 0 < p2[1] < height):
                     ax.annotate(
                         "", xy=p2, xytext=p1,
-                        arrowprops=dict(arrowstyle="<->", color="#60a5fa", lw=1.2, shrinkA=2, shrinkB=2),
+                        arrowprops=dict(arrowstyle="<->", color="#60a5fa", lw=1.0, shrinkA=3, shrinkB=3),
                     )
                     mid_x = (p1[0] + p2[0]) / 2
                     mid_y = (p1[1] + p2[1]) / 2
                     ax.text(
-                        mid_x, mid_y - 8,
+                        mid_x, mid_y - 6,
                         f"{edge_dist:.1f}mm",
-                        fontsize=7, color="#60a5fa", ha="center", va="bottom",
-                        bbox=dict(boxstyle="round,pad=0.2", fc="white", ec="#60a5fa", alpha=0.85, lw=0.5),
+                        fontsize=6.5, color="#60a5fa", ha="center", va="bottom",
+                        bbox=dict(boxstyle="round,pad=0.15", fc="white", ec="#60a5fa", alpha=0.85, lw=0.4),
                     )
 
         legend_lines = [
-            ("CAD bend reference", "#cbd5e1"),
-            ("Detected LiDAR bend", "#38bdf8"),
-            ("In spec", "#16a34a"),
-            ("Warning", "#d97706"),
-            ("Out of spec", "#dc2626"),
-            ("Not detected", "#475569"),
+            ("CAD ref", "#cbd5e1"),
+            ("LiDAR", "#38bdf8"),
+            ("Pass", "#16a34a"),
+            ("Warn", "#d97706"),
+            ("Fail", "#dc2626"),
+            ("N/D", "#475569"),
         ]
-        base_x = 0.73
-        base_y = 0.06
+        base_x = 0.82
+        base_y = 0.03
         for i, (text, color_hex) in enumerate(legend_lines):
-            ax.plot([base_x - 0.03], [base_y + i * 0.037], marker="o", markersize=6, color=color_hex, transform=ax.transAxes)
+            ax.plot([base_x - 0.02], [base_y + i * 0.028], marker="o", markersize=4, color=color_hex, transform=ax.transAxes)
             ax.annotate(
                 text,
-                xy=(base_x, base_y + i * 0.037),
+                xy=(base_x, base_y + i * 0.028),
                 xycoords="axes fraction",
-                fontsize=7.5,
-                color="#334155",
+                fontsize=6,
+                color="#64748b",
                 va="center",
-                fontweight="bold" if i >= 2 else "normal",
             )
 
         measured = sum(1 for bend in bends if str(bend.get("status", "NOT_DETECTED")).upper() != "NOT_DETECTED")
         issue_count = sum(1 for bend in bends if str(bend.get("status", "NOT_DETECTED")).upper() in {"FAIL", "WARNING"})
-        ax.set_title(
-            f"Bend Overlay — {measured}/{len(bends)} completed, {issue_count} flagged ({view.capitalize()} view)",
-            fontsize=13,
+        ax.text(
+            0.02, 0.97,
+            f"{view.capitalize()} — {measured}/{len(bends)} bends, {issue_count} flagged",
+            transform=ax.transAxes,
+            fontsize=8,
             fontweight="bold",
-            color="#0f172a",
-            pad=10,
+            color="#475569",
+            va="top",
+            ha="left",
+            bbox=dict(boxstyle="round,pad=0.3", fc="white", ec="#e2e8f0", alpha=0.85, lw=0.5),
         )
 
         buf = BytesIO()

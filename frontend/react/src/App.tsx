@@ -8,6 +8,7 @@ import Batch from './pages/Batch'
 import BendInspection from './pages/BendInspection'
 import PartCatalog from './pages/PartCatalog'
 import LiveScan from './pages/LiveScan'
+import BenderViewPage from './pages/BenderViewPage'
 import Login from './pages/Login'
 import { useAuth } from './hooks/useAuth'
 
@@ -29,6 +30,10 @@ export default function App() {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
+      {/* Bender's View — standalone full-screen, no sidebar */}
+      <Route path="/bender-view/:jobId" element={
+        <PrivateRoute><BenderViewPage /></PrivateRoute>
+      } />
       <Route
         path="/"
         element={
