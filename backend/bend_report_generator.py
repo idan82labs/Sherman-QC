@@ -115,7 +115,7 @@ def _clip_line_to_reference(
 
     dir_vec = direction / original_length
     model_max_dim = _compute_model_max_dim(reference_positions)
-    max_half_span = max(0.25, model_max_dim * 0.42)
+    max_half_span = max(0.25, model_max_dim * 0.35)
 
     if reference_positions.size < 12:
         half = min(original_length / 2.0, max_half_span)
@@ -137,9 +137,9 @@ def _clip_line_to_reference(
         half = min(original_length / 2.0, max_half_span)
         return midpoint - dir_vec * half, midpoint + dir_vec * half
 
-    lo = _percentile(samples, 0.08)
-    hi = _percentile(samples, 0.92)
-    pad = max(0.04, model_max_dim * 0.02)
+    lo = _percentile(samples, 0.04)
+    hi = _percentile(samples, 0.96)
+    pad = max(0.03, model_max_dim * 0.012)
     half = min(max_half_span, max(0.18, ((hi - lo) / 2.0) + pad))
     return midpoint - dir_vec * half, midpoint + dir_vec * half
 

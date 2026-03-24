@@ -947,7 +947,7 @@ class Model3DSnapshotRenderer:
         label_bends: List[Dict[str, Any]] = []
 
         model_extent = float(max(5.0, bbox.get_max_extent() if bbox is not None else 100.0))
-        sphere_radius = max(0.5, model_extent * 0.008)
+        sphere_radius = max(0.3, model_extent * 0.005)
 
         def _make_dashed_segments(start_pt, end_pt, dash_len=None, gap_len=None):
             """Break a line into dash segments for Open3D LineSet (simulates dashed lines)."""

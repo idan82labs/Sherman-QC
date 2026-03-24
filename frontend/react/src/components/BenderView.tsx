@@ -2,6 +2,7 @@ import { useState } from 'react'
 import clsx from 'clsx'
 import { Printer } from 'lucide-react'
 import type { BendMatch } from '../services/api'
+import BendMapDiagram from './BendMapDiagram'
 
 interface BenderViewProps {
   artifacts?: {
@@ -103,6 +104,13 @@ export default function BenderView({ artifacts, matches, focusedBendId, onFocusB
           </button>
         ))}
       </div>
+
+      {/* Bend-map diagram — shows physical bend locations */}
+      <BendMapDiagram
+        matches={matches}
+        focusedBendId={focusedBendId}
+        onFocusBend={onFocusBend}
+      />
 
       {/* Main layout: snapshots + table */}
       <div className="flex gap-4">
