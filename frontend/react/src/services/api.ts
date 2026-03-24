@@ -235,6 +235,11 @@ export interface BendInspectionJob {
     bend_overlay_issue_urls?: string[]
     bend_overlay_manifest_url?: string
     bend_report_pdf_url?: string
+    // Bender's View orthographic snapshots
+    bender_view_front_url?: string
+    bender_view_profile_url?: string
+    bender_view_top_url?: string
+    bender_view_overall_url?: string
   }
   error?: string
 }
@@ -242,6 +247,8 @@ export interface BendInspectionJob {
 export interface BendMatch {
   bend_id: string
   bend_form?: 'FOLDED' | 'ROLLED' | string
+  feature_type?: string
+  countable_in_regression?: boolean
   cad_line_start?: [number, number, number] | null
   cad_line_end?: [number, number, number] | null
   detected_line_start?: [number, number, number] | null
@@ -266,6 +273,10 @@ export interface BendMatch {
   expected_arc_length_mm?: number | null
   actual_arc_length_mm?: number | null
   arc_length_deviation_mm?: number | null
+  // Edge-to-edge flange distance (Bender's View)
+  expected_edge_distance_mm?: number | null
+  measured_edge_distance_mm?: number | null
+  edge_distance_deviation_mm?: number | null
   issue_location?: string
   action_item?: string
   status: 'PASS' | 'FAIL' | 'WARNING' | 'NOT_DETECTED'

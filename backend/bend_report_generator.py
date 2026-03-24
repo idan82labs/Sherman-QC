@@ -155,6 +155,21 @@ def _load_reference_positions(reference_mesh_path: str | Path) -> np.ndarray:
     return np.zeros((0, 3), dtype=np.float64)
 
 
+def _detected_line_is_plausibly_aligned(
+    cad_start: Optional[np.ndarray],
+    cad_end: Optional[np.ndarray],
+    detected_start: Optional[np.ndarray],
+    detected_end: Optional[np.ndarray],
+) -> bool:
+    if cad_start is None or cad_end is None or detected_start is None or detected_end is None:
+        return False
+    cad_mid = (cad_start + cad_end) / 2.0
+    detected_mid = (detected_start + detected_end) / 2.0
+    cad_len = float(np.linalg.norm(cad_end - cad_start))
+    separation = float(np.linalg.norm(detected_mid - cad_mid))
+    return separation <= max(cad_len, 0.12) * 2.5
+
+
 def augment_report_with_overlay_geometry(
     report_dict: Dict[str, Any],
     reference_mesh_path: str | Path,
@@ -187,6 +202,11 @@ def augment_report_with_overlay_geometry(
         display_cad_start = display_cad_end = None
         display_detected_start = display_detected_end = None
         anchor = None
+        match.pop("display_cad_line_start", None)
+        match.pop("display_cad_line_end", None)
+        match.pop("display_detected_line_start", None)
+        match.pop("display_detected_line_end", None)
+        match.pop("callout_anchor", None)
 
         if cad_start is not None and cad_end is not None:
             cad_mid = (cad_start + cad_end) / 2.0
@@ -202,10 +222,16 @@ def augment_report_with_overlay_geometry(
             display_detected_start, display_detected_end = _clip_line_to_reference(
                 detected_mid, detected_start, detected_end, reference_positions
             )
-            match["display_detected_line_start"] = _round_point(display_detected_start)
-            match["display_detected_line_end"] = _round_point(display_detected_end)
-            if status != "NOT_DETECTED":
-                anchor = (display_detected_start + display_detected_end) / 2.0
+            if _detected_line_is_plausibly_aligned(
+                display_cad_start,
+                display_cad_end,
+                display_detected_start,
+                display_detected_end,
+            ):
+                match["display_detected_line_start"] = _round_point(display_detected_start)
+                match["display_detected_line_end"] = _round_point(display_detected_end)
+                if status != "NOT_DETECTED":
+                    anchor = (display_detected_start + display_detected_end) / 2.0
 
         if anchor is not None:
             match["callout_anchor"] = _round_point(anchor)
@@ -253,6 +279,11 @@ def augment_report_with_overlay_geometry(
                 "issue_tile": issue_filename,
                 "action_item": match.get("action_item"),
                 "issue_location": match.get("issue_location"),
+                # Edge-to-edge flange distance for Bender's View dimension arrows
+                "measured_edge_distance_mm": match.get("measured_edge_distance_mm"),
+                "expected_edge_distance_mm": match.get("expected_edge_distance_mm"),
+                "measured_edge_tip1": match.get("measured_edge_tip1"),
+                "measured_edge_tip2": match.get("measured_edge_tip2"),
             }
         )
 
@@ -315,10 +346,36 @@ def render_bend_overlay_artifacts(
         issue_path.write_bytes(issue_bytes)
         issue_paths.append(str(issue_path))
 
+    # Generate 4 orthographic bender view PNGs
+    BENDER_VIEWS = [
+        ("front", "bender_view_front.png"),
+        ("side", "bender_view_profile.png"),
+        ("top", "bender_view_top.png"),
+        ("iso", "bender_view_overall.png"),
+    ]
+    bender_view_paths: Dict[str, str] = {}
+    for view_name, filename in BENDER_VIEWS:
+        view_path = out_dir / filename
+        try:
+            view_bytes = renderer.render_bend_status_overlay(
+                bends=bends,
+                reference_mesh_path=str(reference_mesh_path),
+                view=view_name,
+                width=1200,
+                height=900,
+                focused_bend_ids=None,
+                show_issue_callouts=True,
+            )
+            view_path.write_bytes(view_bytes)
+            bender_view_paths[view_name] = str(view_path)
+        except Exception:
+            pass
+
     return {
         "overview_path": str(overview_path),
         "issue_paths": issue_paths,
         "manifest_path": str(manifest_path),
+        "bender_view_paths": bender_view_paths,
     }
 
 
@@ -588,5 +645,10 @@ def build_bend_artifact_bundle(
         "bend_overlay_issue_urls": issue_urls,
         "bend_overlay_manifest_url": f"/api/bend-inspection/{{job_id}}/overlay/manifest.json",
         "bend_report_pdf_url": f"/api/bend-inspection/{{job_id}}/pdf",
+        # Bender's View orthographic snapshots
+        "bender_view_front_url": f"/api/bend-inspection/{{job_id}}/overlay/bender_view_front.png",
+        "bender_view_profile_url": f"/api/bend-inspection/{{job_id}}/overlay/bender_view_profile.png",
+        "bender_view_top_url": f"/api/bend-inspection/{{job_id}}/overlay/bender_view_top.png",
+        "bender_view_overall_url": f"/api/bend-inspection/{{job_id}}/overlay/bender_view_overall.png",
     }
     return BendArtifactBundle(manifest=manifest, artifacts=artifacts, pdf_path=str(pdf_path))

@@ -949,6 +949,26 @@ class Model3DSnapshotRenderer:
         model_extent = float(max(5.0, bbox.get_max_extent() if bbox is not None else 100.0))
         sphere_radius = max(0.9, model_extent * 0.018)
 
+        def _make_dashed_segments(start_pt, end_pt, dash_len=None, gap_len=None):
+            """Break a line into dash segments for Open3D LineSet (simulates dashed lines)."""
+            dl = dash_len or max(1.5, model_extent * 0.015)
+            gl = gap_len or max(1.0, model_extent * 0.010)
+            direction = np.asarray(end_pt, dtype=np.float64) - np.asarray(start_pt, dtype=np.float64)
+            total = np.linalg.norm(direction)
+            if total < 1e-6:
+                return [list(start_pt[:3]), list(end_pt[:3])], [[0, 1]]
+            unit = direction / total
+            pts, idxs = [], []
+            t = 0.0
+            while t < total:
+                p0 = np.asarray(start_pt, dtype=np.float64) + unit * t
+                p1 = np.asarray(start_pt, dtype=np.float64) + unit * min(t + dl, total)
+                i0 = len(pts)
+                pts.extend([p0.tolist(), p1.tolist()])
+                idxs.append([i0, i0 + 1])
+                t += dl + gl
+            return pts, idxs
+
         for bend in bends:
             status = str(bend.get("status", "NOT_DETECTED")).upper()
             color = status_rgb.get(status, status_rgb["NOT_DETECTED"])
@@ -961,10 +981,19 @@ class Model3DSnapshotRenderer:
             anchor = bend.get("anchor")
 
             if isinstance(cad_start, list) and isinstance(cad_end, list):
-                i0 = len(cad_line_points)
-                cad_line_points.extend([cad_start[:3], cad_end[:3]])
-                cad_line_indices.append([i0, i0 + 1])
-                cad_line_colors.append([0.80, 0.84, 0.90])
+                if status == "NOT_DETECTED":
+                    # Dashed gray lines for unmade bends
+                    dash_pts, dash_idx = _make_dashed_segments(cad_start[:3], cad_end[:3])
+                    base = len(cad_line_points)
+                    cad_line_points.extend(dash_pts)
+                    for idx_pair in dash_idx:
+                        cad_line_indices.append([idx_pair[0] + base, idx_pair[1] + base])
+                        cad_line_colors.append([0.55, 0.58, 0.63])
+                else:
+                    i0 = len(cad_line_points)
+                    cad_line_points.extend([cad_start[:3], cad_end[:3]])
+                    cad_line_indices.append([i0, i0 + 1])
+                    cad_line_colors.append([0.80, 0.84, 0.90])
 
             if isinstance(det_start, list) and isinstance(det_end, list):
                 i0 = len(detected_line_points)
@@ -1125,6 +1154,28 @@ class Model3DSnapshotRenderer:
                     ),
                     arrowprops=dict(arrowstyle="-", color=badge_color, linewidth=1.0, alpha=0.9),
                 )
+
+        # Draw edge-to-edge dimension arrows for Bender's View
+        for idx, bend in enumerate(label_bends):
+            tip1 = bend.get("measured_edge_tip1")
+            tip2 = bend.get("measured_edge_tip2")
+            edge_dist = bend.get("measured_edge_distance_mm")
+            if tip1 and tip2 and edge_dist:
+                p1 = project(tip1)
+                p2 = project(tip2)
+                if p1 and p2:
+                    ax.annotate(
+                        "", xy=p2, xytext=p1,
+                        arrowprops=dict(arrowstyle="<->", color="#60a5fa", lw=1.2, shrinkA=2, shrinkB=2),
+                    )
+                    mid_x = (p1[0] + p2[0]) / 2
+                    mid_y = (p1[1] + p2[1]) / 2
+                    ax.text(
+                        mid_x, mid_y - 8,
+                        f"{edge_dist:.1f}mm",
+                        fontsize=7, color="#60a5fa", ha="center", va="bottom",
+                        bbox=dict(boxstyle="round,pad=0.2", fc="white", ec="#60a5fa", alpha=0.85, lw=0.5),
+                    )
 
         legend_lines = [
             ("CAD bend reference", "#cbd5e1"),
