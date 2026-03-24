@@ -58,7 +58,7 @@ export default function BenderView({ artifacts, matches, focusedBendId, onFocusB
     }
   } else if (failed.length > 0) {
     verdictBg = 'bg-red-600'
-    const failIds = failed.map(m => m.bend_id).join(', ')
+    const failIds = failed.map(m => m.bend_id.replace('CAD_', '')).join(', ')
     verdictText = `FAIL — ${failed.length} bend${failed.length > 1 ? 's' : ''} out of tolerance (${failIds})`
   } else if (warned.length > 0) {
     verdictBg = 'bg-amber-600'
@@ -218,7 +218,11 @@ export default function BenderView({ artifacts, matches, focusedBendId, onFocusB
                               {m.measured_edge_distance_mm?.toFixed(1) ?? '-'} mm
                             </span>
                             {m.edge_distance_deviation_mm != null && (
-                              <span className="text-[11px] text-dark-400">
+                              <span className={clsx(
+                                'text-[11px] font-semibold',
+                                Math.abs(m.edge_distance_deviation_mm) <= 1.0
+                                  ? 'text-emerald-400' : 'text-amber-400',
+                              )}>
                                 {m.edge_distance_deviation_mm >= 0 ? '+' : ''}
                                 {m.edge_distance_deviation_mm.toFixed(1)}
                               </span>
@@ -233,10 +237,19 @@ export default function BenderView({ artifacts, matches, focusedBendId, onFocusB
 
                         {/* Correction hint for failed bends */}
                         {isIssue && m.angle_deviation != null && (
-                          <div className="col-span-2 mt-1 text-[11px] text-amber-300/80 bg-amber-500/10 rounded px-2 py-1">
-                            {m.angle_deviation > 0
-                              ? `Over-bent by ${Math.abs(m.angle_deviation).toFixed(1)}° — reduce bend angle`
-                              : `Under-bent by ${Math.abs(m.angle_deviation).toFixed(1)}° — increase bend angle`}
+                          <div className="col-span-2 mt-1.5 text-xs text-amber-200 bg-amber-500/15 border border-amber-500/20 rounded px-2.5 py-1.5 flex items-start gap-1.5">
+                            <span className="text-amber-400 mt-px">⚠</span>
+                            <div>
+                              {m.angle_deviation > 0
+                                ? `Over-bent by ${Math.abs(m.angle_deviation).toFixed(1)}° — reduce bend angle`
+                                : `Under-bent by ${Math.abs(m.angle_deviation).toFixed(1)}° — increase bend angle`}
+                              {m.edge_distance_deviation_mm != null && Math.abs(m.edge_distance_deviation_mm) > 1.0 && (
+                                <span className="block mt-0.5 text-amber-300/70">
+                                  Edge gap off by {m.edge_distance_deviation_mm > 0 ? '+' : ''}{m.edge_distance_deviation_mm.toFixed(1)}mm
+                                  {' — '}adjust back stop accordingly
+                                </span>
+                              )}
+                            </div>
                           </div>
                         )}
                       </div>
