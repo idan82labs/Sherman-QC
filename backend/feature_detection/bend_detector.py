@@ -1453,18 +1453,34 @@ class BendDetector:
     ) -> Tuple[np.ndarray, np.ndarray]:
         """
         Find the start and end points of the bend line.
+
+        Only uses boundary points that are close to the bend line
+        (within a reasonable perpendicular distance) to avoid
+        extending the line far beyond the actual bend region.
         """
-        # Project all boundary points onto the bend line
         all_boundary = np.vstack([plane1.boundary_points, plane2.boundary_points])
 
-        # Project onto bend line: t = (p - bend_point) · direction
-        projections = np.dot(all_boundary - bend_point, bend_direction)
+        # Compute perpendicular distance of each point to the bend line
+        offsets = all_boundary - bend_point
+        axial = np.dot(offsets, bend_direction).reshape(-1, 1) * bend_direction
+        perp = offsets - axial
+        perp_dists = np.linalg.norm(perp, axis=1)
 
-        t_min, t_max = np.min(projections), np.max(projections)
+        # Only use points within a reasonable distance of the bend line.
+        # Use the median perpendicular distance as a reference — points
+        # close to the bend line define its extent, not distant flange edges.
+        median_perp = float(np.median(perp_dists)) if len(perp_dists) > 0 else 10.0
+        max_perp = max(5.0, median_perp * 2.5)
+        near_mask = perp_dists <= max_perp
 
-        # Add small margin
+        if np.sum(near_mask) < 4:
+            # Fallback: use all points if too few are near the line
+            near_mask = np.ones(len(all_boundary), dtype=bool)
+
+        projections = np.dot(offsets[near_mask], bend_direction)
+        t_min, t_max = float(np.min(projections)), float(np.max(projections))
+
         margin = 0.05 * (t_max - t_min)
-
         bend_start = bend_point + (t_min - margin) * bend_direction
         bend_end = bend_point + (t_max + margin) * bend_direction
 

@@ -89,46 +89,43 @@ export default function BenderView({ artifacts, matches, jobId, focusedBendId, o
   return (
     <div className="bender-view-container space-y-4">
       {/* Verdict Banner */}
-      <div className={clsx('rounded-lg px-5 py-3 flex items-center justify-between', verdictBg)}>
-        <div>
-          <p className="text-white font-bold text-lg">{verdictText}</p>
-          <p className="text-white/70 text-xs mt-0.5">
-            {scanned.length}/{matches.length} bends scanned
-            {scannedAt && ` · ${new Date(scannedAt).toLocaleString()}`}
-          </p>
-        </div>
-        <div className="flex gap-2 print:hidden">
-          {jobId && (
-            <a
-              href={`/bend-inspection`}
-              onClick={(e) => {
-                e.preventDefault()
-                // Open 3D viewer in the inspector page
-                window.open(`/bend-inspection#job=${jobId}`, '_blank')
-              }}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-white/20 text-white hover:bg-white/30 transition-colors"
-            >
-              <Box className="w-3.5 h-3.5" />
-              3D View
-            </a>
-          )}
-          {artifacts?.bend_overlay_overview_url && (
-            <button
-              onClick={() => setExpandedImage(artifacts.bend_overlay_overview_url!)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-white/20 text-white hover:bg-white/30 transition-colors"
-            >
-              <BarChart3 className="w-3.5 h-3.5" />
-              Heatmap
-            </button>
-          )}
-          <button
-            onClick={() => window.print()}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-white/20 text-white hover:bg-white/30 transition-colors"
+      <div className={clsx('rounded-lg px-5 py-3', verdictBg)}>
+        <p className="text-white font-bold text-lg">{verdictText}</p>
+        <p className="text-white/70 text-xs mt-0.5">
+          {scanned.length}/{matches.length} bends scanned
+          {scannedAt && ` · ${new Date(scannedAt).toLocaleString()}`}
+        </p>
+      </div>
+
+      {/* Action bar */}
+      <div className="flex items-center gap-2 print:hidden">
+        {jobId && (
+          <a
+            href={`/bend-inspection`}
+            target="_blank"
+            rel="noreferrer"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-dark-600 bg-dark-800 text-dark-300 hover:bg-dark-700 transition-colors"
           >
-            <Printer className="w-3.5 h-3.5" />
-            Print
+            <Box className="w-3.5 h-3.5" />
+            3D View
+          </a>
+        )}
+        {artifacts?.bend_overlay_overview_url && (
+          <button
+            onClick={() => setExpandedImage(artifacts.bend_overlay_overview_url!)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-dark-600 bg-dark-800 text-dark-300 hover:bg-dark-700 transition-colors"
+          >
+            <BarChart3 className="w-3.5 h-3.5" />
+            Heatmap
           </button>
-        </div>
+        )}
+        <button
+          onClick={() => window.print()}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-dark-600 bg-dark-800 text-dark-300 hover:bg-dark-700 transition-colors"
+        >
+          <Printer className="w-3.5 h-3.5" />
+          Print
+        </button>
       </div>
 
       {/* Bend Progress Dots */}
