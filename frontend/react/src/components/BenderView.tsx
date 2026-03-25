@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import clsx from 'clsx'
 import { Printer } from 'lucide-react'
 import type { BendMatch } from '../services/api'
@@ -14,6 +14,7 @@ interface BenderViewProps {
   matches: BendMatch[]
   focusedBendId?: string | null
   onFocusBend?: (bendId: string) => void
+  scannedAt?: string | null
 }
 
 const STATUS_BG: Record<string, string> = {
@@ -30,8 +31,24 @@ const STATUS_TEXT: Record<string, string> = {
   NOT_DETECTED: 'text-dark-500',
 }
 
-export default function BenderView({ artifacts, matches, focusedBendId, onFocusBend }: BenderViewProps) {
+export default function BenderView({ artifacts, matches, focusedBendId, onFocusBend, scannedAt }: BenderViewProps) {
   const [expandedImage, setExpandedImage] = useState<string | null>(null)
+
+  // Keyboard navigation: arrows cycle bends, Esc closes lightbox
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setExpandedImage(null)
+      if ((e.key === 'ArrowRight' || e.key === 'ArrowLeft') && matches.length > 0) {
+        const idx = matches.findIndex(m => m.bend_id === focusedBendId)
+        const next = e.key === 'ArrowRight'
+          ? (idx + 1) % matches.length
+          : (idx - 1 + matches.length) % matches.length
+        onFocusBend?.(matches[next].bend_id)
+      }
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [focusedBendId, matches, onFocusBend])
 
   const views = [
     { label: 'Overall', url: artifacts?.bender_view_overall_url },
@@ -74,6 +91,7 @@ export default function BenderView({ artifacts, matches, focusedBendId, onFocusB
           <p className="text-white font-bold text-lg">{verdictText}</p>
           <p className="text-white/70 text-xs mt-0.5">
             {scanned.length}/{matches.length} bends scanned
+            {scannedAt && ` · ${new Date(scannedAt).toLocaleString()}`}
           </p>
         </div>
         <button

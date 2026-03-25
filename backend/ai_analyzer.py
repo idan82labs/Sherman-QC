@@ -897,6 +897,7 @@ class Model3DSnapshotRenderer:
         height: int = 1200,
         focused_bend_ids: Optional[List[str]] = None,
         show_issue_callouts: bool = True,
+        show_detected_lines: bool = True,
     ) -> bytes:
         """
         Render a CAD-first bend overlay image.
@@ -995,11 +996,13 @@ class Model3DSnapshotRenderer:
                     cad_line_indices.append([i0, i0 + 1])
                     cad_line_colors.append([0.80, 0.84, 0.90])
 
-            if isinstance(det_start, list) and isinstance(det_end, list):
-                i0 = len(detected_line_points)
-                detected_line_points.extend([det_start[:3], det_end[:3]])
-                detected_line_indices.append([i0, i0 + 1])
-                detected_line_colors.append(color)
+            if show_detected_lines and isinstance(det_start, list) and isinstance(det_end, list):
+                dash_pts, dash_idx = _make_dashed_segments(det_start[:3], det_end[:3])
+                base = len(detected_line_points)
+                detected_line_points.extend(dash_pts)
+                for idx_pair in dash_idx:
+                    detected_line_indices.append([idx_pair[0] + base, idx_pair[1] + base])
+                    detected_line_colors.append(color)
 
             if isinstance(anchor, list) and len(anchor) >= 3:
                 anchor_np = np.asarray(anchor[:3], dtype=np.float64)
@@ -1030,7 +1033,7 @@ class Model3DSnapshotRenderer:
         opt = vis.get_render_option()
         opt.background_color = np.array([0.95, 0.97, 0.99])
         try:
-            opt.line_width = 2.0
+            opt.line_width = 1.5
         except Exception:
             pass
         opt.mesh_show_back_face = True

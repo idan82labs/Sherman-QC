@@ -57,6 +57,7 @@ export default function BenderViewPage() {
         <BenderView
           artifacts={job.artifacts}
           matches={matches}
+          scannedAt={job.completed_at ?? job.created_at}
         />
       </div>
     </div>

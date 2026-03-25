@@ -22,10 +22,11 @@ function parsePoint(v: Point3 | null | undefined): Point3 | null {
   return v as Point3
 }
 
-/** Top-down projection: X → right, Z → up */
-function projectXZ(p: Point3): [number, number] {
-  return [p[0], p[2]]
-}
+const PROJECTIONS: Array<{ axis: string; project: (p: Point3) => [number, number] }> = [
+  { axis: 'XZ', project: p => [p[0], p[2]] },
+  { axis: 'XY', project: p => [p[0], p[1]] },
+  { axis: 'YZ', project: p => [p[1], p[2]] },
+]
 
 export default function BendMapDiagram({ matches, focusedBendId, onFocusBend }: BendMapDiagramProps) {
   const WIDTH = 800
@@ -34,30 +35,38 @@ export default function BendMapDiagram({ matches, focusedBendId, onFocusBend }: 
   const DOT_R = 8
 
   const bendData = useMemo(() => {
-    const items: Array<{
-      id: string
-      label: string
-      mid2d: [number, number]
-      start2d: [number, number]
-      end2d: [number, number]
-      status: string
-    }> = []
-
+    // Collect midpoints to pick best projection
+    const midpoints: Point3[] = []
+    const rawItems: Array<{ id: string; label: string; status: string; s: Point3; e: Point3; mid: Point3 }> = []
     for (const m of matches) {
       const s = parsePoint(m.cad_line_start)
       const e = parsePoint(m.cad_line_end)
       if (!s || !e) continue
       const mid: Point3 = [(s[0] + e[0]) / 2, (s[1] + e[1]) / 2, (s[2] + e[2]) / 2]
-      items.push({
-        id: m.bend_id,
-        label: m.bend_id.replace('CAD_', ''),
-        mid2d: projectXZ(mid),
-        start2d: projectXZ(s),
-        end2d: projectXZ(e),
-        status: m.status,
-      })
+      midpoints.push(mid)
+      rawItems.push({ id: m.bend_id, label: m.bend_id.replace('CAD_', ''), status: m.status, s, e, mid })
     }
-    return items
+
+    // Auto-pick the projection that maximizes spread of bend midpoints
+    let bestProj = PROJECTIONS[0]
+    let bestArea = 0
+    for (const proj of PROJECTIONS) {
+      const pts = midpoints.map(proj.project)
+      if (pts.length < 2) continue
+      const xs = pts.map(p => p[0])
+      const ys = pts.map(p => p[1])
+      const area = (Math.max(...xs) - Math.min(...xs)) * (Math.max(...ys) - Math.min(...ys))
+      if (area > bestArea) { bestArea = area; bestProj = proj }
+    }
+
+    return rawItems.map(item => ({
+      id: item.id,
+      label: item.label,
+      mid2d: bestProj.project(item.mid),
+      start2d: bestProj.project(item.s),
+      end2d: bestProj.project(item.e),
+      status: item.status,
+    }))
   }, [matches])
 
   const { normalized, hullPoints } = useMemo(() => {
