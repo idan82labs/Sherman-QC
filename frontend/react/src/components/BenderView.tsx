@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import clsx from 'clsx'
-import { Printer } from 'lucide-react'
+import { Printer, Box, BarChart3 } from 'lucide-react'
 import type { BendMatch } from '../services/api'
 import BendMapDiagram from './BendMapDiagram'
 
@@ -10,8 +10,11 @@ interface BenderViewProps {
     bender_view_profile_url?: string
     bender_view_top_url?: string
     bender_view_overall_url?: string
+    reference_mesh_url?: string
+    bend_overlay_overview_url?: string
   }
   matches: BendMatch[]
+  jobId?: string
   focusedBendId?: string | null
   onFocusBend?: (bendId: string) => void
   scannedAt?: string | null
@@ -31,7 +34,7 @@ const STATUS_TEXT: Record<string, string> = {
   NOT_DETECTED: 'text-dark-500',
 }
 
-export default function BenderView({ artifacts, matches, focusedBendId, onFocusBend, scannedAt }: BenderViewProps) {
+export default function BenderView({ artifacts, matches, jobId, focusedBendId, onFocusBend, scannedAt }: BenderViewProps) {
   const [expandedImage, setExpandedImage] = useState<string | null>(null)
 
   // Keyboard navigation: arrows cycle bends, Esc closes lightbox
@@ -94,13 +97,38 @@ export default function BenderView({ artifacts, matches, focusedBendId, onFocusB
             {scannedAt && ` · ${new Date(scannedAt).toLocaleString()}`}
           </p>
         </div>
-        <button
-          onClick={() => window.print()}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-white/20 text-white hover:bg-white/30 transition-colors print:hidden"
-        >
-          <Printer className="w-3.5 h-3.5" />
-          Print
-        </button>
+        <div className="flex gap-2 print:hidden">
+          {jobId && (
+            <a
+              href={`/bend-inspection`}
+              onClick={(e) => {
+                e.preventDefault()
+                // Open 3D viewer in the inspector page
+                window.open(`/bend-inspection#job=${jobId}`, '_blank')
+              }}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-white/20 text-white hover:bg-white/30 transition-colors"
+            >
+              <Box className="w-3.5 h-3.5" />
+              3D View
+            </a>
+          )}
+          {artifacts?.bend_overlay_overview_url && (
+            <button
+              onClick={() => setExpandedImage(artifacts.bend_overlay_overview_url!)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-white/20 text-white hover:bg-white/30 transition-colors"
+            >
+              <BarChart3 className="w-3.5 h-3.5" />
+              Heatmap
+            </button>
+          )}
+          <button
+            onClick={() => window.print()}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-white/20 text-white hover:bg-white/30 transition-colors"
+          >
+            <Printer className="w-3.5 h-3.5" />
+            Print
+          </button>
+        </div>
       </div>
 
       {/* Bend Progress Dots */}

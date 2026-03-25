@@ -365,7 +365,9 @@ def render_bend_overlay_artifacts(
                 height=900,
                 focused_bend_ids=None,
                 show_issue_callouts=True,
-                show_detected_lines=False,  # Clean bender view without colored line bands
+                show_detected_lines=False,
+                show_3d_markers=False,
+                show_cad_lines=False,  # Clean bender view — mesh + 2D labels only
             )
             view_path.write_bytes(view_bytes)
             bender_view_paths[view_name] = str(view_path)

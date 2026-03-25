@@ -898,6 +898,8 @@ class Model3DSnapshotRenderer:
         focused_bend_ids: Optional[List[str]] = None,
         show_issue_callouts: bool = True,
         show_detected_lines: bool = True,
+        show_3d_markers: bool = True,
+        show_cad_lines: bool = True,
     ) -> bytes:
         """
         Render a CAD-first bend overlay image.
@@ -981,7 +983,7 @@ class Model3DSnapshotRenderer:
             det_end = detected_line.get("display_end")
             anchor = bend.get("anchor")
 
-            if isinstance(cad_start, list) and isinstance(cad_end, list):
+            if show_cad_lines and isinstance(cad_start, list) and isinstance(cad_end, list):
                 if status == "NOT_DETECTED":
                     # Dashed gray lines for unmade bends
                     dash_pts, dash_idx = _make_dashed_segments(cad_start[:3], cad_end[:3])
@@ -1006,13 +1008,14 @@ class Model3DSnapshotRenderer:
 
             if isinstance(anchor, list) and len(anchor) >= 3:
                 anchor_np = np.asarray(anchor[:3], dtype=np.float64)
-                sphere = o3d.geometry.TriangleMesh.create_sphere(
-                    radius=sphere_radius * (1.35 if str(bend.get("bend_id")) in focused else 1.0)
-                )
-                sphere.translate(anchor_np)
-                sphere.paint_uniform_color(color)
-                sphere.compute_vertex_normals()
-                vis.add_geometry(sphere)
+                if show_3d_markers:
+                    sphere = o3d.geometry.TriangleMesh.create_sphere(
+                        radius=sphere_radius * (1.35 if str(bend.get("bend_id")) in focused else 1.0)
+                    )
+                    sphere.translate(anchor_np)
+                    sphere.paint_uniform_color(color)
+                    sphere.compute_vertex_normals()
+                    vis.add_geometry(sphere)
                 anchor_points.append(anchor_np)
                 label_bends.append(bend)
 
@@ -1050,19 +1053,19 @@ class Model3DSnapshotRenderer:
         if view == "front":
             ctr.set_front([0, -1, 0])
             ctr.set_up([0, 0, 1])
-            ctr.set_zoom(0.30)
+            ctr.set_zoom(0.52)
         elif view == "side":
             ctr.set_front([-1, 0, 0])
             ctr.set_up([0, 0, 1])
-            ctr.set_zoom(0.30)
+            ctr.set_zoom(0.52)
         elif view == "top":
             ctr.set_front([0, 0, -1])
             ctr.set_up([0, 1, 0])
-            ctr.set_zoom(0.30)
+            ctr.set_zoom(0.52)
         else:
             ctr.set_front([-0.52, -0.52, -0.67])
             ctr.set_up([0, 0, 1])
-            ctr.set_zoom(0.28)
+            ctr.set_zoom(0.48)
         ctr.set_lookat(center)
 
         vis.poll_events()
