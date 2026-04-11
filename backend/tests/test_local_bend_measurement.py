@@ -697,6 +697,7 @@ def test_measure_all_scan_bends_retries_short_obtuse_surface_classification_with
         calls.append(
             {
                 "search_radius": float(kwargs["search_radius"]),
+                "min_offset_mm": float(kwargs["min_offset_mm"]),
                 "allow_line_locality": bool(kwargs["allow_line_locality"]),
                 "surf1_size": int(kwargs["surf1_face_indices"].size),
             }
@@ -783,6 +784,95 @@ def test_measure_all_scan_bends_retries_short_obtuse_surface_classification_with
 
     assert len(calls) >= 3
     assert any(call["search_radius"] <= 30.0 for call in calls[2:])
+    assert any(abs(call["min_offset_mm"] - 2.5) < 1e-6 for call in calls[2:])
     assert results[0]["success"] is True
     assert results[0]["measurement_method"] == "surface_classification"
     assert abs(results[0]["measured_angle"] - 119.99) < 1e-6
+
+
+def test_measure_all_scan_bends_retries_short_obtuse_surface_classification_for_low_balance_mid_gap(monkeypatch):
+    calls = []
+
+    def _fake_surface(*args, **kwargs):
+        calls.append(
+            {
+                "search_radius": float(kwargs["search_radius"]),
+                "min_offset_mm": float(kwargs["min_offset_mm"]),
+                "allow_line_locality": bool(kwargs["allow_line_locality"]),
+            }
+        )
+        if len(calls) <= 2:
+            return {
+                "success": True,
+                "measured_angle": 117.87,
+                "measurement_method": "surface_classification",
+                "measurement_confidence": "high",
+                "side1_points": 536,
+                "side2_points": 164,
+                "cad_alignment1": 0.998,
+                "cad_alignment2": 1.0,
+                "point_count": 700,
+                "side_balance_score": 0.306,
+            }
+        return {
+            "success": True,
+            "measured_angle": 120.45,
+            "measurement_method": "surface_classification",
+            "measurement_confidence": "high",
+            "side1_points": 531,
+            "side2_points": 148,
+            "cad_alignment1": 0.998,
+            "cad_alignment2": 1.0,
+            "point_count": 679,
+            "side_balance_score": 0.279,
+        }
+
+    def _fake_profile(*args, **kwargs):
+        return {
+            "success": True,
+            "measured_angle": 150.43,
+            "measurement_method": "profile_section",
+            "measurement_confidence": "medium",
+            "side1_points": 400,
+            "side2_points": 200,
+            "point_count": 764,
+        }
+
+    monkeypatch.setattr(local_bend_detector, "measure_scan_bend_via_surface_classification", _fake_surface)
+    monkeypatch.setattr(local_bend_detector, "measure_scan_bend_via_profile_section", _fake_profile)
+
+    results = local_bend_detector.measure_all_scan_bends(
+        scan_points=np.zeros((100, 3), dtype=np.float64),
+        cad_bends=[
+            {
+                "bend_id": "CAD_B14",
+                "bend_name": "CAD_B14",
+                "bend_center": [0.0, 0.0, 0.0],
+                "surface1_normal": [0.5, 0.0, 0.8660254],
+                "surface2_normal": [0.5, 0.0, -0.8660254],
+                "bend_direction": [0.0, 1.0, 0.0],
+                "bend_angle": 120.0,
+                "surface1_id": -9,
+                "surface2_id": -10,
+                "bend_line_start": [0.0, -26.9, 0.0],
+                "bend_line_end": [0.0, 26.9, 0.0],
+                "selected_baseline_direct": True,
+                "countable_in_regression": True,
+                "feature_type": "DISCRETE_BEND",
+            }
+        ],
+        search_radius=35.0,
+        cad_vertices=np.asarray(
+            [[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [0.0, 1.0, 0.0]],
+            dtype=np.float64,
+        ),
+        cad_triangles=np.asarray([[0, 1, 2]], dtype=np.int32),
+        surface_face_map={-9: np.asarray([0], dtype=np.int32), -10: np.asarray([0], dtype=np.int32)},
+        scan_state="full",
+    )
+
+    assert len(calls) >= 3
+    assert any(call["search_radius"] <= 30.0 for call in calls[2:])
+    assert any(abs(call["min_offset_mm"] - 2.5) < 1e-6 for call in calls[2:])
+    assert results[0]["success"] is True
+    assert abs(results[0]["measured_angle"] - 120.45) < 1e-6
