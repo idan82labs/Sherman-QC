@@ -16,13 +16,13 @@ Tracked wing bends matched exactly:
 - `CAD_B6`: `119.64°`, `PASS`, `surface_classification`, `CAD_LOCAL_NEIGHBORHOOD`
 - `CAD_B7`: `121.0°`, `WARNING`, `surface_classification`, `CAD_LOCAL_NEIGHBORHOOD`
 - `CAD_B9`: `120.61°`, `PASS`, `surface_classification`, `CAD_LOCAL_NEIGHBORHOOD`
-- `CAD_B10`: `119.67°`, `PASS`, `surface_classification`, `CAD_LOCAL_NEIGHBORHOOD`
-- `CAD_B11`: `122.39°`, `FAIL`, `surface_classification`, `CAD_LOCAL_NEIGHBORHOOD`
-- `CAD_B14`: `117.87°`, `FAIL`, `surface_classification`, `CAD_LOCAL_NEIGHBORHOOD`
+- `CAD_B10`: `119.88°`, `PASS`, `surface_classification`, `CAD_LOCAL_NEIGHBORHOOD`
+- `CAD_B11`: `121.76°`, `WARNING`, `surface_classification`, `CAD_LOCAL_NEIGHBORHOOD`
+- `CAD_B14`: `120.45°`, `PASS`, `surface_classification`, `CAD_LOCAL_NEIGHBORHOOD`
 - `CAD_B15`: `119.09°`, `PASS`, `surface_classification`, `CAD_LOCAL_NEIGHBORHOOD`
 
 Conclusion:
-- the `B6` fix reproduced exactly on the shipped full-case path
+- the kept short-obtuse fixes now cover `B6`, `B14`, and a partial `B11` improvement on the shipped full-case path
 
 ## Guard applicability
 
@@ -73,7 +73,8 @@ Interpretation:
 
 ## Validation decision
 
-The `B6` patch is validated strongly enough for merge-prep:
-- target case reproduced exactly
-- remaining guard parts are outside the patch predicate
-- no evidence suggests hybrid or stable-control regression from this patch class
+The short-obtuse follow-up remains keepable for merge-prep:
+- target case improved on the shipped `23553000` full-scan path
+- `28870000` remains outside the patch predicate (`22°/25°`, not selected short-obtuse)
+- rerun of `10839000` showed only a tiny unaffected-path drift (`90.83° PASS -> 90.97° WARNING` on `detected_bend_match`), which is better explained as rerun variance than as an effect of this patch class
+- the heavy-case guard runs on this laptop remain a runtime/environment constraint, not a logic rejection

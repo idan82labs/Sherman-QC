@@ -876,3 +876,102 @@ def test_measure_all_scan_bends_retries_short_obtuse_surface_classification_for_
     assert any(abs(call["min_offset_mm"] - 2.5) < 1e-6 for call in calls[2:])
     assert results[0]["success"] is True
     assert abs(results[0]["measured_angle"] - 120.45) < 1e-6
+
+
+def test_measure_all_scan_bends_retries_short_obtuse_surface_classification_for_moderate_gap_balanced_case(monkeypatch):
+    calls = []
+
+    def _fake_surface(*args, **kwargs):
+        call = {
+            "search_radius": float(kwargs["search_radius"]),
+            "min_offset_mm": float(kwargs["min_offset_mm"]),
+            "allow_line_locality": bool(kwargs["allow_line_locality"]),
+        }
+        calls.append(call)
+        if len(calls) <= 2:
+            return {
+                "success": True,
+                "measured_angle": 122.39,
+                "measurement_method": "surface_classification",
+                "measurement_confidence": "high",
+                "side1_points": 907,
+                "side2_points": 380,
+                "cad_alignment1": 1.0,
+                "cad_alignment2": 0.999,
+                "point_count": 1287,
+            }
+        if abs(call["search_radius"] - 14.0) < 1e-6 and not call["allow_line_locality"]:
+            return {
+                "success": True,
+                "measured_angle": 121.35,
+                "measurement_method": "surface_classification",
+                "measurement_confidence": "medium",
+                "side1_points": 92,
+                "side2_points": 129,
+                "cad_alignment1": 1.0,
+                "cad_alignment2": 1.0,
+                "point_count": 221,
+            }
+        return {
+            "success": True,
+            "measured_angle": 121.96,
+            "measurement_method": "surface_classification",
+            "measurement_confidence": "high",
+            "side1_points": 350,
+            "side2_points": 252,
+            "cad_alignment1": 1.0,
+            "cad_alignment2": 1.0,
+            "point_count": 602,
+        }
+
+    def _fake_profile(*args, **kwargs):
+        return {
+            "success": True,
+            "measured_angle": 150.43,
+            "measurement_method": "profile_section",
+            "measurement_confidence": "medium",
+            "side1_points": 400,
+            "side2_points": 200,
+            "point_count": 764,
+        }
+
+    monkeypatch.setattr(local_bend_detector, "measure_scan_bend_via_surface_classification", _fake_surface)
+    monkeypatch.setattr(local_bend_detector, "measure_scan_bend_via_profile_section", _fake_profile)
+
+    results = local_bend_detector.measure_all_scan_bends(
+        scan_points=np.zeros((100, 3), dtype=np.float64),
+        cad_bends=[
+            {
+                "bend_id": "CAD_B11",
+                "bend_name": "CAD_B11",
+                "bend_center": [0.0, 0.0, 0.0],
+                "surface1_normal": [1.0, 0.0, 0.0],
+                "surface2_normal": [-0.5, 0.0, 0.8660254],
+                "bend_direction": [0.0, 1.0, 0.0],
+                "bend_angle": 120.0,
+                "surface1_id": -9,
+                "surface2_id": -10,
+                "bend_line_start": [0.0, -26.4, 0.0],
+                "bend_line_end": [0.0, 26.4, 0.0],
+                "selected_baseline_direct": True,
+                "countable_in_regression": True,
+                "feature_type": "DISCRETE_BEND",
+            }
+        ],
+        search_radius=35.0,
+        cad_vertices=np.asarray(
+            [[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [0.0, 1.0, 0.0]],
+            dtype=np.float64,
+        ),
+        cad_triangles=np.asarray([[0, 1, 2]], dtype=np.int32),
+        surface_face_map={-9: np.asarray([0], dtype=np.int32), -10: np.asarray([0], dtype=np.int32)},
+        scan_state="full",
+    )
+
+    assert any(abs(call["search_radius"] - 14.0) < 1e-6 for call in calls[2:])
+    assert any(
+        abs(call["search_radius"] - 14.0) < 1e-6 and not call["allow_line_locality"]
+        for call in calls[2:]
+    )
+    assert results[0]["success"] is True
+    assert abs(results[0]["measured_angle"] - 121.35) < 1e-6

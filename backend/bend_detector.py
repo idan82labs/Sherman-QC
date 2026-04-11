@@ -2986,12 +2986,24 @@ def measure_all_scan_bends(
                         sc_gap > 1.5
                         and sc_side_balance < 0.35
                     )
+                    or (
+                        sc_gap > 2.0
+                        and sc_side_balance < 0.5
+                    )
                 )
             else:
                 should_retry_short_obtuse = False
             if should_retry_short_obtuse:
                 narrow_search_candidates = []
-                for radius in (min(float(adaptive["search_radius"]), 30.0), min(float(adaptive["search_radius"]), 26.0)):
+                for radius in (
+                    min(float(adaptive["search_radius"]), 30.0),
+                    min(float(adaptive["search_radius"]), 26.0),
+                    22.0 if sc_gap > 2.0 and sc_side_balance < 0.5 else None,
+                    18.0 if sc_gap > 2.0 and sc_side_balance < 0.5 else None,
+                    14.0 if sc_gap > 2.0 and sc_side_balance < 0.5 else None,
+                ):
+                    if radius is None:
+                        continue
                     if radius >= 14.0 and not any(abs(radius - existing) < 1e-6 for existing in narrow_search_candidates):
                         narrow_search_candidates.append(radius)
                 narrow_min_offsets = []

@@ -34,6 +34,7 @@ Tests:
 Essential research:
 - `/Users/idant/82Labs/Sherman QC/Full Project-qc-clean/docs/research/23553000_B6_ROOT_CAUSE_20260406.md`
 - `/Users/idant/82Labs/Sherman QC/Full Project-qc-clean/docs/research/23553000_B14_ROOT_CAUSE_20260411.md`
+- `/Users/idant/82Labs/Sherman QC/Full Project-qc-clean/docs/research/23553000_B11_FOLLOWUP_20260411.md`
 - `/Users/idant/82Labs/Sherman QC/Full Project-qc-clean/docs/research/GUARD_PACK_VALIDATION_20260411.md`
 - `/Users/idant/82Labs/Sherman QC/Full Project-qc-clean/docs/research/QC_MERGE_CANDIDATE_MANIFEST_20260411.md`
 
@@ -53,5 +54,5 @@ Ready for merge-prep:
 - stable completed controls are structurally unaffected
 
 Still deferred after merge-prep:
-- `CAD_B11`
+- final `CAD_B11` correction from warning to pass
 - wider runtime work on the heavy SVD path
