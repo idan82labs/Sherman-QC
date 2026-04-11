@@ -2971,39 +2971,66 @@ def measure_all_scan_bends(
                 and sc_result
                 and sc_result.get("success")
                 and sc_result.get("measured_angle") is not None
-                and abs(float(sc_result["measured_angle"]) - float(cad_angle)) > 4.0
             ):
+                sc_gap = abs(float(sc_result["measured_angle"]) - float(cad_angle))
+                sc_side_balance = sc_result.get("side_balance_score")
+                if sc_side_balance is None:
+                    side1_count = int(sc_result.get("side1_points") or 0)
+                    side2_count = int(sc_result.get("side2_points") or 0)
+                    if side1_count > 0 and side2_count > 0:
+                        sc_side_balance = min(side1_count, side2_count) / max(side1_count, side2_count)
+                sc_side_balance = float(sc_side_balance if sc_side_balance is not None else 1.0)
+                should_retry_short_obtuse = (
+                    sc_gap > 4.0
+                    or (
+                        sc_gap > 1.5
+                        and sc_side_balance < 0.35
+                    )
+                )
+            else:
+                should_retry_short_obtuse = False
+            if should_retry_short_obtuse:
                 narrow_search_candidates = []
                 for radius in (min(float(adaptive["search_radius"]), 30.0), min(float(adaptive["search_radius"]), 26.0)):
                     if radius >= 14.0 and not any(abs(radius - existing) < 1e-6 for existing in narrow_search_candidates):
                         narrow_search_candidates.append(radius)
+                narrow_min_offsets = []
+                for offset in (
+                    float(adaptive["surface_offset_candidates"][0]),
+                    2.5,
+                    5.0,
+                    7.5,
+                ):
+                    if offset >= 2.5 and not any(abs(offset - existing) < 1e-6 for existing in narrow_min_offsets):
+                        narrow_min_offsets.append(offset)
                 for narrow_radius in narrow_search_candidates:
-                    for narrow_line_locality in (True, False):
-                        narrow_sc_result = measure_scan_bend_via_surface_classification(
-                            scan_points=scan_points,
-                            cad_vertices=cad_vertices,
-                            cad_triangles=cad_triangles,
-                            surf1_face_indices=np.empty((0,), dtype=np.int32),
-                            surf2_face_indices=np.empty((0,), dtype=np.int32),
-                            cad_bend_center=bend_center,
-                            cad_surf1_normal=surf1_normal,
-                            cad_surf2_normal=surf2_normal,
-                            cad_bend_angle=cad_angle,
-                            search_radius=float(narrow_radius),
-                            min_offset_mm=max(5.0, float(adaptive["surface_offset_candidates"][0])),
-                            cad_bend_direction=bend_direction,
-                            cad_bend_line_start=np.asarray(cad_bend.get("bend_line_start", bend_center), dtype=np.float64),
-                            cad_bend_line_end=np.asarray(cad_bend.get("bend_line_end", bend_center), dtype=np.float64),
-                            allow_line_locality=narrow_line_locality,
-                            allow_face_recovery=True,
-                            all_face_centers=all_face_centers,
-                            all_face_normals=all_face_normals,
-                        )
-                        sc_result = _prefer_surface_measurement_result(
-                            sc_result,
-                            narrow_sc_result,
-                            cad_angle=float(cad_angle),
-                        )
+                    for narrow_min_offset in narrow_min_offsets:
+                        for narrow_line_locality in (True, False):
+                            narrow_sc_result = measure_scan_bend_via_surface_classification(
+                                scan_points=scan_points,
+                                cad_vertices=cad_vertices,
+                                cad_triangles=cad_triangles,
+                                surf1_face_indices=np.empty((0,), dtype=np.int32),
+                                surf2_face_indices=np.empty((0,), dtype=np.int32),
+                                cad_bend_center=bend_center,
+                                cad_surf1_normal=surf1_normal,
+                                cad_surf2_normal=surf2_normal,
+                                cad_bend_angle=cad_angle,
+                                search_radius=float(narrow_radius),
+                                min_offset_mm=float(narrow_min_offset),
+                                cad_bend_direction=bend_direction,
+                                cad_bend_line_start=np.asarray(cad_bend.get("bend_line_start", bend_center), dtype=np.float64),
+                                cad_bend_line_end=np.asarray(cad_bend.get("bend_line_end", bend_center), dtype=np.float64),
+                                allow_line_locality=narrow_line_locality,
+                                allow_face_recovery=True,
+                                all_face_centers=all_face_centers,
+                                all_face_normals=all_face_normals,
+                            )
+                            sc_result = _prefer_surface_measurement_result(
+                                sc_result,
+                                narrow_sc_result,
+                                cad_angle=float(cad_angle),
+                            )
             if sc_result and sc_result.get("success"):
                 candidates.append(sc_result)
             elif sc_result and not sc_result.get("success"):
