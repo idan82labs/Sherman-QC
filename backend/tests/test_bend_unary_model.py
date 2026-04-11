@@ -3,7 +3,13 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from bend_unary_model import build_examples, extract_match_features, train_unary_models, score_case_payload
+from bend_unary_model import (
+    _count_posterior_summary,
+    build_examples,
+    extract_match_features,
+    score_case_payload,
+    train_unary_models,
+)
 
 
 def _case_payload(scan_state='full', bend_id='CAD_B1', status='PASS', observability_state='OBSERVED_FORMED', extra=None):
@@ -301,3 +307,71 @@ def test_joint_candidate_exclusivity_rejects_lower_scoring_competitor():
     assert by_bend['CAD_A']['structured_predictions']['joint_exclusive_formed_probability'] > 0.0
     assert by_bend['CAD_B']['structured_predictions']['joint_exclusive_formed_probability'] == 0.0
     assert by_bend['CAD_B']['structured_predictions']['joint_exclusive_rejected'] is True
+
+
+def test_partial_count_posterior_abstains_on_unobserved_not_detected_bends():
+    payload = _case_payload(scan_state='partial', status='PASS')
+    payload['matches'] = [
+        payload['matches'][0],
+        {
+            **payload['matches'][0],
+            'bend_id': 'CAD_U1',
+            'status': 'NOT_DETECTED',
+            'observability_state': 'UNOBSERVED',
+            'assignment_candidate_id': 'null_candidate',
+            'assignment_candidate_kind': 'NULL',
+            'assignment_candidate_score': 0.0,
+            'assignment_null_score': 1.0,
+            'measurement_context': {'assignment_candidates': [{'candidate_id': 'null_candidate', 'candidate_kind': 'NULL', 'assignment_score': 1.0}]},
+        },
+    ]
+
+    negatives = []
+    for idx in range(6):
+        neg = _case_payload(
+            scan_state='partial',
+            bend_id=f'CAD_NEGC{idx}',
+            status='NOT_DETECTED',
+            observability_state='UNOBSERVED',
+            extra={
+                'assignment_candidate_id': 'null_candidate',
+                'assignment_candidate_kind': 'NULL',
+                'assignment_candidate_score': 0.8,
+                'assignment_null_score': 0.8,
+                'visibility_score': 0.0,
+                'measurement_context': {'assignment_candidates': [{'candidate_id': 'null_candidate', 'candidate_kind': 'NULL', 'assignment_score': 0.8}]},
+            },
+        )
+        neg['part_key'] = f'PART_NEGC_{idx}'
+        negatives.append(neg)
+    positives = []
+    for idx in range(6):
+        pos = _case_payload(scan_state='full', bend_id=f'CAD_POSC{idx}', status='PASS')
+        pos['part_key'] = f'PART_POSC_{idx}'
+        positives.append(pos)
+
+    bundle, _summary = train_unary_models([payload, *negatives, *positives])
+    annotated = score_case_payload(payload, bundle)
+    count_posterior = annotated['structured_context']['count_posterior']
+    assert count_posterior['median_completed_bends'] == 1
+
+
+def test_count_posterior_ignores_non_counting_process_features():
+    summary = _count_posterior_summary(
+        [
+            {
+                'bend_id': 'R1',
+                'countable_in_regression': False,
+                'structured_predictions': {'joint_exclusive_formed_probability': 0.95},
+            },
+            {
+                'bend_id': 'B1',
+                'countable_in_regression': True,
+                'structured_predictions': {'joint_exclusive_formed_probability': 0.8},
+            },
+        ],
+        scan_state='full',
+    )
+
+    assert summary['median_completed_bends'] == 1
+    assert len(summary['count_distribution']) == 2

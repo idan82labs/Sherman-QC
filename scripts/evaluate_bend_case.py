@@ -21,10 +21,11 @@ for env_name in (
 ):
     os.environ.setdefault(env_name, "1")
 
-ROOT = Path("/Users/idant/82Labs/Sherman QC/Full Project")
+ROOT = Path(__file__).resolve().parents[1]
 
 import sys
 
+sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "backend"))
 
 from bend_inspection_pipeline import load_bend_runtime_config, run_progressive_bend_inspection  # noqa: E402
