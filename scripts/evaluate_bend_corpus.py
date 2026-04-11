@@ -12,8 +12,10 @@ from __future__ import annotations
 import argparse
 import copy
 import gc
+import hashlib
 import json
 import os
+import re
 import subprocess
 from datetime import datetime
 from pathlib import Path
@@ -35,14 +37,28 @@ CORPUS_ROOT = ROOT / "data" / "bend_corpus"
 
 import sys
 
+sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "backend"))
 
 from bend_unary_model import load_unary_models, score_case_payload  # noqa: E402
 from dimension_parser import parse_dimension_file  # noqa: E402
+from domains.bend.services.runtime_semantics import (  # noqa: E402
+    is_explicit_observability_evidence,
+    normalize_observability_state,
+)
 
 
 def _load_json(path: Path) -> Any:
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+def _stable_scan_output_name(scan_name: str) -> str:
+    raw_name = Path(str(scan_name)).name
+    safe_name = re.sub(r"[^A-Za-z0-9._-]+", "_", raw_name).strip("._")
+    if not safe_name:
+        safe_name = "scan"
+    digest = hashlib.sha1(raw_name.encode("utf-8")).hexdigest()[:8]
+    return f"{safe_name}--{digest}.json"
 
 
 def _preferred_cad_file(metadata: Dict[str, Any]) -> Optional[str]:
@@ -120,13 +136,21 @@ def _spec_schedule_type(metadata: Dict[str, Any]) -> Optional[str]:
 def _observability_breakdown(matches: List[Dict[str, Any]]) -> Dict[str, int]:
     counts: Dict[str, int] = {}
     for match in matches:
-        key = str(match.get("observability_state") or "UNKNOWN").upper()
+        key = normalize_observability_state(
+            match.get("observability_state"),
+            physical_completion_state=match.get("physical_completion_state"),
+            status=match.get("status"),
+        )
         counts[key] = counts.get(key, 0) + 1
     return counts
 
 
 def _continuity_inferred_count(matches: List[Dict[str, Any]]) -> int:
     return sum(1 for match in matches if bool(match.get("continuity_inferred")))
+
+
+def _retained_from_previous_partial_count(matches: List[Dict[str, Any]]) -> int:
+    return sum(1 for match in matches if bool(match.get("retained_from_previous_partial")))
 
 
 def _status_priority(status: Optional[str]) -> int:
@@ -147,19 +171,30 @@ def _recompute_summary(matches: List[Dict[str, Any]]) -> Dict[str, Any]:
     observed = sum(
         1
         for match in matches
-        if str(match.get("observability_state") or "").upper() in {"OBSERVED_FORMED", "OBSERVED_NOT_FORMED"}
-        or (
-            str(match.get("status") or "").upper() in {"PASS", "FAIL", "WARNING"}
-            and str(match.get("observability_state") or "").upper() == "UNOBSERVED"
+        if is_explicit_observability_evidence(
+            match.get("observability_state"),
+            physical_completion_state=match.get("physical_completion_state"),
+            status=match.get("status"),
         )
     )
     partial_observed = sum(
-        1 for match in matches if str(match.get("observability_state") or "").upper() == "PARTIALLY_OBSERVED"
+        1
+        for match in matches
+        if normalize_observability_state(
+            match.get("observability_state"),
+            physical_completion_state=match.get("physical_completion_state"),
+            status=match.get("status"),
+        ) == "UNKNOWN"
+        and str(match.get("status") or "").upper() != "NOT_DETECTED"
     )
     unobserved = sum(
         1
         for match in matches
-        if str(match.get("observability_state") or "").upper() == "UNOBSERVED"
+        if normalize_observability_state(
+            match.get("observability_state"),
+            physical_completion_state=match.get("physical_completion_state"),
+            status=match.get("status"),
+        ) == "UNKNOWN"
         and str(match.get("status") or "").upper() == "NOT_DETECTED"
     )
     return {
@@ -191,15 +226,43 @@ def _should_apply_sequence_continuity(
         return False
     if str(previous_item.get("expectation", {}).get("state") or "").lower() != "partial":
         return False
-    if not bool(previous_scan_record.get("sequence_confident")):
-        return False
-    if not bool(current_scan_record.get("sequence_confident")):
-        return False
     prev_sequence = previous_scan_record.get("sequence")
     curr_sequence = current_scan_record.get("sequence")
-    if prev_sequence is None or curr_sequence is None:
+    if (
+        bool(previous_scan_record.get("sequence_confident"))
+        and bool(current_scan_record.get("sequence_confident"))
+        and prev_sequence is not None
+        and curr_sequence is not None
+    ):
+        return float(curr_sequence) > float(prev_sequence)
+
+    previous_expected_total = previous_item.get("expectation", {}).get("expected_total_bends")
+    previous_completed = previous_item.get("metrics", {}).get("completed_bends")
+    current_completed = current_item.get("metrics", {}).get("completed_bends")
+    if previous_expected_total is None or previous_completed is None or current_completed is None:
         return False
-    return float(curr_sequence) > float(prev_sequence)
+    if int(previous_completed) != int(previous_expected_total):
+        return False
+    if int(current_completed) >= int(previous_completed):
+        return False
+
+    previous_scan_name = str(previous_item.get("scan_name") or previous_scan_record.get("name") or "")
+    current_scan_name = str(current_item.get("scan_name") or current_scan_record.get("name") or "")
+    previous_scan_index = _scan_index_from_name(previous_scan_name)
+    current_scan_index = _scan_index_from_name(current_scan_name)
+    if previous_scan_index is None or current_scan_index is None:
+        return False
+    return current_scan_index > previous_scan_index
+
+
+def _scan_index_from_name(scan_name: str) -> Optional[int]:
+    match = re.search(r"SCAN\s*([0-9]+)", str(scan_name).replace("_", " "), re.IGNORECASE)
+    if not match:
+        return None
+    try:
+        return int(match.group(1))
+    except (TypeError, ValueError):
+        return None
 
 
 def _carry_forward_previous_match(
@@ -225,7 +288,8 @@ def _carry_forward_previous_match(
     carried["assignment_candidate_score"] = round(float(current_match.get("assignment_candidate_score") or 0.0), 3)
     carried["assignment_null_score"] = round(float(current_match.get("assignment_null_score") or 0.0), 3)
     carried["assignment_candidate_count"] = int(current_match.get("assignment_candidate_count") or 0)
-    carried["observability_state"] = current_match.get("observability_state") or "UNOBSERVED"
+    carried["observability_state"] = current_match.get("observability_state") or "UNKNOWN"
+    carried["observability_detail_state"] = current_match.get("observability_detail_state") or "UNOBSERVED"
     carried["observability_confidence"] = round(
         max(float(current_match.get("observability_confidence") or 0.0), min(0.75, max(prev_conf, prev_evidence) * 0.7)),
         3,
@@ -242,6 +306,53 @@ def _carry_forward_previous_match(
         {
             "continuity_inferred": True,
             "carried_from_scan": previous_scan_name,
+            "current_scan": current_scan_name,
+            "current_observability_state": current_match.get("observability_state"),
+            "current_local_evidence_score": current_match.get("local_evidence_score"),
+        }
+    )
+    carried["measurement_context"] = context
+    return carried
+
+
+def _retain_previous_partial_match_for_full(
+    previous_match: Dict[str, Any],
+    current_match: Dict[str, Any],
+    previous_scan_name: str,
+    current_scan_name: str,
+) -> Dict[str, Any]:
+    carried = copy.deepcopy(previous_match)
+    prev_conf = float(previous_match.get("confidence") or 0.0)
+    prev_evidence = float(previous_match.get("local_evidence_score") or 0.0)
+    current_evidence = float(current_match.get("local_evidence_score") or 0.0)
+    carried["retained_from_previous_partial"] = True
+    carried["retention_source_scan"] = previous_scan_name
+    carried["retention_target_scan"] = current_scan_name
+    carried["physical_completion_state"] = previous_match.get("physical_completion_state") or "FORMED"
+    carried["measurement_mode"] = "partial_to_full_retention"
+    carried["measurement_method"] = "retain_explicit_previous_partial_into_full"
+    carried["assignment_source"] = "PREVIOUS_PARTIAL_RETENTION"
+    carried["assignment_confidence"] = round(min(0.9, max(prev_conf, prev_evidence)), 3)
+    carried["assignment_candidate_id"] = current_match.get("assignment_candidate_id") or "null_candidate"
+    carried["assignment_candidate_kind"] = current_match.get("assignment_candidate_kind") or "NULL"
+    carried["assignment_candidate_score"] = round(float(current_match.get("assignment_candidate_score") or 0.0), 3)
+    carried["assignment_null_score"] = round(float(current_match.get("assignment_null_score") or 0.0), 3)
+    carried["assignment_candidate_count"] = int(current_match.get("assignment_candidate_count") or 0)
+    carried["observability_state"] = "FORMED"
+    carried["observability_detail_state"] = "RETAINED_FROM_PREVIOUS_PARTIAL"
+    carried["observability_confidence"] = round(max(float(current_match.get("observability_confidence") or 0.0), min(0.8, max(prev_conf, prev_evidence) * 0.75)), 3)
+    carried["visibility_score"] = round(max(float(current_match.get("visibility_score") or 0.0), 0.0), 3)
+    carried["visibility_score_source"] = current_match.get("visibility_score_source") or "heuristic_local_visibility_v0"
+    carried["surface_visibility_ratio"] = round(float(current_match.get("surface_visibility_ratio") or 0.0), 3)
+    carried["local_support_score"] = round(float(current_match.get("local_support_score") or 0.0), 3)
+    carried["side_balance_score"] = round(float(current_match.get("side_balance_score") or 0.0), 3)
+    carried["local_point_count"] = int(current_match.get("local_point_count") or 0)
+    carried["local_evidence_score"] = round(max(current_evidence, min(0.85, prev_evidence * 0.8)), 3)
+    context = dict(previous_match.get("measurement_context") or {})
+    context.update(
+        {
+            "retained_from_previous_partial": True,
+            "retained_from_scan": previous_scan_name,
             "current_scan": current_scan_name,
             "current_observability_state": current_match.get("observability_state"),
             "current_local_evidence_score": current_match.get("local_evidence_score"),
@@ -273,7 +384,11 @@ def _apply_sequence_continuity_prior(
             continue
         previous_status = str(previous_match.get("status") or "").upper()
         current_status = str(current_match.get("status") or "").upper()
-        current_observability = str(current_match.get("observability_state") or "").upper()
+        current_observability = normalize_observability_state(
+            current_match.get("observability_state"),
+            physical_completion_state=current_match.get("physical_completion_state"),
+            status=current_status,
+        )
         current_evidence = float(current_match.get("local_evidence_score") or 0.0)
         previous_confidence = float(previous_match.get("confidence") or 0.0)
         previous_evidence = float(previous_match.get("local_evidence_score") or 0.0)
@@ -281,7 +396,7 @@ def _apply_sequence_continuity_prior(
         should_carry = (
             _status_priority(previous_status) > 0
             and current_status == "NOT_DETECTED"
-            and current_observability in {"UNOBSERVED", "PARTIALLY_OBSERVED"}
+            and current_observability == "UNKNOWN"
             and current_evidence <= 0.25
             and max(previous_confidence, previous_evidence) >= 0.5
         )
@@ -306,6 +421,92 @@ def _apply_sequence_continuity_prior(
         f"Sequence continuity prior carried forward bends from {previous_scan_name}: {', '.join(carried_ids)}"
     ]
     return updated_item, carried_ids
+
+
+def _should_apply_partial_to_full_retention(
+    previous_item: Optional[Dict[str, Any]],
+    current_item: Dict[str, Any],
+) -> bool:
+    if not previous_item or "matches" not in previous_item or "metrics" not in previous_item:
+        return False
+    if str(previous_item.get("expectation", {}).get("state") or "").lower() != "partial":
+        return False
+    if str(current_item.get("expectation", {}).get("state") or "").lower() != "full":
+        return False
+    previous_completed = previous_item.get("metrics", {}).get("completed_bends")
+    current_completed = current_item.get("metrics", {}).get("completed_bends")
+    if previous_completed is None or current_completed is None:
+        return False
+    return int(previous_completed) <= int(current_completed)
+
+
+def _apply_partial_to_full_retention(
+    previous_item: Dict[str, Any],
+    current_item: Dict[str, Any],
+) -> Tuple[Dict[str, Any], List[str]]:
+    previous_matches = {
+        str(match.get("bend_id")): match
+        for match in (previous_item.get("matches") or [])
+        if match.get("bend_id")
+    }
+    updated_matches: List[Dict[str, Any]] = []
+    retained_ids: List[str] = []
+    previous_scan_name = str(previous_item.get("scan_name") or "")
+    current_scan_name = str(current_item.get("scan_name") or "")
+
+    for current_match in current_item.get("matches") or []:
+        bend_id = str(current_match.get("bend_id") or "")
+        previous_match = previous_matches.get(bend_id)
+        if previous_match is None:
+            updated_matches.append(current_match)
+            continue
+        previous_status = str(previous_match.get("status") or "").upper()
+        current_status = str(current_match.get("status") or "").upper()
+        previous_observability = normalize_observability_state(
+            previous_match.get("observability_state"),
+            physical_completion_state=previous_match.get("physical_completion_state"),
+            status=previous_status,
+        )
+        current_observability = normalize_observability_state(
+            current_match.get("observability_state"),
+            physical_completion_state=current_match.get("physical_completion_state"),
+            status=current_status,
+        )
+        current_evidence = float(current_match.get("local_evidence_score") or 0.0)
+        previous_confidence = float(previous_match.get("confidence") or 0.0)
+        previous_evidence = float(previous_match.get("local_evidence_score") or 0.0)
+
+        should_retain = (
+            _status_priority(previous_status) > 0
+            and not bool(previous_match.get("continuity_inferred"))
+            and not bool(previous_match.get("retained_from_previous_partial"))
+            and previous_observability == "FORMED"
+            and current_status == "NOT_DETECTED"
+            and current_observability == "UNKNOWN"
+            and current_evidence <= 0.2
+            and max(previous_confidence, previous_evidence) >= 0.5
+        )
+        if should_retain:
+            updated_matches.append(
+                _retain_previous_partial_match_for_full(previous_match, current_match, previous_scan_name, current_scan_name)
+            )
+            retained_ids.append(bend_id)
+        else:
+            updated_matches.append(current_match)
+
+    if not retained_ids:
+        return current_item, []
+
+    updated_item = copy.deepcopy(current_item)
+    updated_item["matches"] = updated_matches
+    updated_item["summary"] = _recompute_summary(updated_matches)
+    updated_item["metrics"] = _score_scan(updated_item, updated_item.get("expectation") or {})
+    updated_item["metrics"]["retained_from_previous_partial_bends"] = len(retained_ids)
+    updated_item.setdefault("warnings", [])
+    updated_item["warnings"] = list(updated_item["warnings"]) + [
+        f"Retained explicit bends from {previous_scan_name} into {current_scan_name}: {', '.join(retained_ids)}"
+    ]
+    return updated_item, retained_ids
 
 
 def _ordered_scan_records(metadata: Dict[str, Any]) -> List[Dict[str, Any]]:
@@ -344,6 +545,7 @@ def _score_scan(
         "remaining_bends": int(summary.get("remaining_bends") or 0),
         "observability_breakdown": _observability_breakdown(report_dict.get("matches") or []),
         "continuity_inferred_bends": _continuity_inferred_count(report_dict.get("matches") or []),
+        "retained_from_previous_partial_bends": _retained_from_previous_partial_count(report_dict.get("matches") or []),
         "expected_total_bends": expected_total,
         "expected_completed_bends": expected_completed,
         "cad_strategy": details.get("cad_strategy"),
@@ -383,6 +585,82 @@ def _structured_score_scan(
         metrics["expected_completed_error_median"] = median_completed - int(expected_completed)
         metrics["completed_matches_expected_median"] = median_completed == int(expected_completed)
     return metrics
+
+
+def _heatmap_consistency_metrics(report_dict: Dict[str, Any], expectation: Dict[str, Any]) -> Dict[str, Any]:
+    matches = report_dict.get("matches") or []
+    countable_matches = [
+        match for match in matches
+        if bool(match.get("countable_in_regression", True))
+        and str(match.get("feature_type") or "").upper() not in {"ROLLED_SECTION", "PROCESS_FEATURE"}
+    ]
+    counts = {
+        "SUPPORTED": 0,
+        "CONTRADICTED": 0,
+        "INSUFFICIENT_EVIDENCE": 0,
+        "NOT_APPLICABLE": 0,
+    }
+    by_method: Dict[str, Dict[str, int]] = {}
+    for match in countable_matches:
+        consistency = match.get("heatmap_consistency") or {}
+        status = str(consistency.get("status") or "NOT_APPLICABLE").upper()
+        counts[status] = counts.get(status, 0) + 1
+        method = str(match.get("measurement_method") or "unknown")
+        method_counts = by_method.setdefault(method, {"SUPPORTED": 0, "CONTRADICTED": 0, "INSUFFICIENT_EVIDENCE": 0, "NOT_APPLICABLE": 0})
+        method_counts[status] = method_counts.get(status, 0) + 1
+    summary = (report_dict.get("summary") or {}).get("heatmap_consistency_summary") or {}
+    return {
+        "scan_state": expectation.get("state"),
+        "countable_bends": len(countable_matches),
+        "supported_bends": counts.get("SUPPORTED", 0),
+        "contradicted_bends": counts.get("CONTRADICTED", 0),
+        "insufficient_evidence_bends": counts.get("INSUFFICIENT_EVIDENCE", 0),
+        "not_applicable_bends": counts.get("NOT_APPLICABLE", 0),
+        "measurement_method_breakdown": by_method,
+        "summary_status": summary.get("status"),
+        "summary_inconsistent_bend_count": summary.get("inconsistent_bend_count"),
+        "summary_insufficient_evidence_bend_count": summary.get("insufficient_evidence_bend_count"),
+        "summary_bend_roi_energy_share": summary.get("bend_roi_energy_share"),
+        "summary_global_in_tolerance_rate": summary.get("global_in_tolerance_rate"),
+    }
+
+
+def _heatmap_bend_rows(all_results: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    rows: List[Dict[str, Any]] = []
+    for item in all_results:
+        if "metrics" not in item:
+            continue
+        state = str(item.get("expectation", {}).get("state") or "unknown")
+        part_key = str(item.get("part_key") or "")
+        scan_name = str(item.get("scan_name") or "")
+        for match in item.get("matches") or []:
+            if not bool(match.get("countable_in_regression", True)):
+                continue
+            if str(match.get("feature_type") or "").upper() in {"ROLLED_SECTION", "PROCESS_FEATURE"}:
+                continue
+            consistency = match.get("heatmap_consistency") or {}
+            rows.append(
+                {
+                    "part_key": part_key,
+                    "scan_name": scan_name,
+                    "scan_state": state,
+                    "bend_id": str(match.get("bend_id") or ""),
+                    "bend_status": str(match.get("status") or "UNKNOWN").upper(),
+                    "measurement_method": str(match.get("measurement_method") or "unknown"),
+                    "independence_class": str(consistency.get("independence_class") or "UNKNOWN").upper(),
+                    "consistency_status": str(consistency.get("status") or "NOT_APPLICABLE").upper(),
+                    "consistency_score": consistency.get("consistency_score"),
+                    "roi_mode": consistency.get("roi_mode"),
+                    "roi_point_count": consistency.get("roi_point_count"),
+                    "roi_coverage_ratio": consistency.get("roi_coverage_ratio"),
+                    "axial_half_window_mm": consistency.get("axial_half_window_mm"),
+                    "radial_radius_mm": consistency.get("radial_radius_mm"),
+                    "local_abs_p95_mm": consistency.get("local_abs_p95_mm"),
+                    "local_out_of_tol_ratio": consistency.get("local_out_of_tol_ratio"),
+                    "side_asymmetry_score": consistency.get("side_asymmetry_score"),
+                }
+            )
+    return rows
 
 
 def _detected_bend_ids(item: Dict[str, Any]) -> set[str]:
@@ -447,6 +725,8 @@ def _run_case_subprocess(
     spec_bend_angles: List[float],
     spec_schedule_type: Optional[str],
     timeout_sec: int,
+    skip_heatmap_consistency: bool,
+    heatmap_cache_dir: Optional[Path],
 ) -> Dict[str, Any]:
     cmd = [
         "/opt/homebrew/bin/python3.11",
@@ -470,6 +750,10 @@ def _run_case_subprocess(
         "--spec-schedule-type",
         str(spec_schedule_type or ""),
     ]
+    if skip_heatmap_consistency:
+        cmd.append("--skip-heatmap-consistency")
+    if heatmap_cache_dir is not None:
+        cmd.extend(["--heatmap-cache-dir", str(heatmap_cache_dir)])
     completed = subprocess.run(
         cmd,
         capture_output=True,
@@ -515,10 +799,13 @@ def _annotate_structured_predictions(
     expectation: Dict[str, Any],
     unary_bundle: Optional[Dict[str, Any]],
 ) -> Dict[str, Any]:
-    if unary_bundle is None or "matches" not in item:
+    if "matches" not in item:
         return item
-    annotated = score_case_payload(copy.deepcopy(item), unary_bundle)
-    annotated["structured_metrics"] = _structured_score_scan(annotated, expectation)
+    annotated = copy.deepcopy(item)
+    if unary_bundle is not None:
+        annotated = score_case_payload(annotated, unary_bundle)
+        annotated["structured_metrics"] = _structured_score_scan(annotated, expectation)
+    annotated["heatmap_consistency_metrics"] = _heatmap_consistency_metrics(annotated, expectation)
     return annotated
 
 
@@ -528,7 +815,9 @@ def evaluate_part(
     skip_existing: bool,
     timeout_sec: int,
     unary_bundle: Optional[Dict[str, Any]],
-) -> Tuple[List[Dict[str, Any]], List[str]]:
+    skip_heatmap_consistency: bool,
+    heatmap_cache_dir: Optional[Path],
+) -> Tuple[List[Dict[str, Any]], List[str], List[Dict[str, Any]]]:
     metadata_path = Path(part_record["metadata_path"])
     labels_path = Path(part_record["labels_template_path"])
     metadata = _load_json(metadata_path)
@@ -541,7 +830,7 @@ def evaluate_part(
 
     cad_path = _preferred_cad_file(metadata)
     if cad_path is None:
-        return [], [f"{part_key}: no CAD file available"]
+        return [], [f"{part_key}: no CAD file available"], []
     spec_bend_angles = _spec_bend_angles(metadata)
     spec_schedule_type = _spec_schedule_type(metadata)
 
@@ -549,14 +838,27 @@ def evaluate_part(
     part_out_dir.mkdir(parents=True, exist_ok=True)
     warnings_out: List[str] = []
     scan_results: List[Dict[str, Any]] = []
+    manifest_entries: List[Dict[str, Any]] = []
     previous_sequence_item: Optional[Dict[str, Any]] = None
     previous_sequence_scan_record: Optional[Dict[str, Any]] = None
 
     for scan_record in _ordered_scan_records(metadata):
         scan_name = str(scan_record.get("name"))
         scan_path = str(scan_record.get("path"))
-        result_path = part_out_dir / f"{Path(scan_name).stem}.json"
         expectation = _scan_expectation(scan_record, labels_map, expected_total_bends)
+        result_path = part_out_dir / _stable_scan_output_name(scan_name)
+        entry: Dict[str, Any] = {
+            "part_key": part_key,
+            "scan_name": scan_name,
+            "scan_path": scan_path,
+            "scan_state": expectation.get("state"),
+            "expected_total_bends": expectation.get("expected_total_bends"),
+            "expected_completed_bends": expectation.get("expected_completed_bends"),
+            "output_json": str(result_path),
+            "status": "pending",
+            "sequence": scan_record.get("sequence"),
+            "sequence_confident": bool(scan_record.get("sequence_confident")),
+        }
         if skip_existing and result_path.exists():
             existing = _load_json(result_path)
             if "metrics" in existing:
@@ -564,6 +866,11 @@ def evaluate_part(
                 existing = _annotate_structured_predictions(existing, expectation, unary_bundle)
                 result_path.write_text(json.dumps(existing, indent=2, ensure_ascii=False), encoding="utf-8")
             scan_results.append(existing)
+            entry["status"] = "skipped_existing"
+            if str(expectation.get("state") or "").lower() == "partial":
+                previous_sequence_item = existing
+                previous_sequence_scan_record = scan_record
+            manifest_entries.append(entry)
             continue
 
         print(
@@ -589,6 +896,8 @@ def evaluate_part(
                 spec_bend_angles=spec_bend_angles,
                 spec_schedule_type=spec_schedule_type,
                 timeout_sec=timeout_sec,
+                skip_heatmap_consistency=skip_heatmap_consistency,
+                heatmap_cache_dir=heatmap_cache_dir,
             )
             if _should_apply_sequence_continuity(
                 previous_sequence_item,
@@ -599,11 +908,18 @@ def evaluate_part(
                 item, carried_ids = _apply_sequence_continuity_prior(previous_sequence_item, item)
                 if carried_ids:
                     result_path.write_text(json.dumps(item, indent=2, ensure_ascii=False), encoding="utf-8")
+            if _should_apply_partial_to_full_retention(previous_sequence_item, item):
+                item, retained_ids = _apply_partial_to_full_retention(previous_sequence_item, item)
+                if retained_ids:
+                    result_path.write_text(json.dumps(item, indent=2, ensure_ascii=False), encoding="utf-8")
             item = _annotate_structured_predictions(item, expectation, unary_bundle)
             result_path.write_text(json.dumps(item, indent=2, ensure_ascii=False), encoding="utf-8")
             item["scan_sequence"] = scan_record.get("sequence")
             item["sequence_confident"] = bool(scan_record.get("sequence_confident"))
             scan_results.append(item)
+            entry["status"] = "success"
+            if isinstance(item.get("timing"), dict):
+                entry["timing"] = item["timing"]
             print(
                 json.dumps(
                     {
@@ -619,7 +935,7 @@ def evaluate_part(
                 ),
                 flush=True,
             )
-            if str(expectation.get("state") or "").lower() == "partial" and bool(scan_record.get("sequence_confident")):
+            if str(expectation.get("state") or "").lower() == "partial":
                 previous_sequence_item = item
                 previous_sequence_scan_record = scan_record
         except Exception as exc:
@@ -632,6 +948,8 @@ def evaluate_part(
             }
             result_path.write_text(json.dumps(failure, indent=2, ensure_ascii=False), encoding="utf-8")
             scan_results.append(failure)
+            entry["status"] = "failed"
+            entry["error"] = str(exc)
             warnings_out.append(f"{part_key}/{scan_name}: {exc}")
             print(
                 json.dumps(
@@ -646,9 +964,39 @@ def evaluate_part(
                 flush=True,
             )
         finally:
+            manifest_entries.append(entry)
             gc.collect()
 
-    return scan_results, warnings_out
+    return scan_results, warnings_out, manifest_entries
+
+
+def _load_results_from_manifest(manifest: Dict[str, Any]) -> Tuple[List[Dict[str, Any]], List[str]]:
+    all_results: List[Dict[str, Any]] = []
+    warnings_out: List[str] = list(manifest.get("warnings") or [])
+    for entry in manifest.get("entries") or []:
+        output_json = Path(str(entry.get("output_json") or ""))
+        if output_json.exists():
+            try:
+                all_results.append(_load_json(output_json))
+                continue
+            except Exception as exc:
+                warnings_out.append(
+                    f"{entry.get('part_key')}/{entry.get('scan_name')}: failed to load output json: {exc}"
+                )
+        all_results.append(
+            {
+                "part_key": entry.get("part_key"),
+                "scan_name": entry.get("scan_name"),
+                "scan_path": entry.get("scan_path"),
+                "error": entry.get("error") or "missing output json",
+                "expectation": {
+                    "state": entry.get("scan_state"),
+                    "expected_total_bends": entry.get("expected_total_bends"),
+                    "expected_completed_bends": entry.get("expected_completed_bends"),
+                },
+            }
+        )
+    return all_results, warnings_out
 
 
 def _aggregate(all_results: List[Dict[str, Any]]) -> Dict[str, Any]:
@@ -674,6 +1022,47 @@ def _aggregate(all_results: List[Dict[str, Any]]) -> Dict[str, Any]:
             return None
         return round(sum(values) / len(values), 3)
 
+    heatmap_rows = [r for r in completed_metric_results if r.get("heatmap_consistency_metrics")]
+    full_heatmap_rows = [r for r in heatmap_rows if str(r.get("expectation", {}).get("state")) == "full"]
+    partial_heatmap_rows = [r for r in heatmap_rows if str(r.get("expectation", {}).get("state")) == "partial"]
+
+    def _sum_heatmap(rows: List[Dict[str, Any]], key: str) -> int:
+        return int(sum(int((r.get("heatmap_consistency_metrics") or {}).get(key) or 0) for r in rows))
+
+    def _ratio(numerator: int, denominator: int) -> Optional[float]:
+        if denominator <= 0:
+            return None
+        return round(numerator / denominator, 3)
+
+    heatmap_bend_rows = _heatmap_bend_rows(completed_metric_results)
+
+    def _count_bend_rows(
+        *,
+        bend_status: Optional[Any] = None,
+        consistency_status: Optional[str] = None,
+        scan_state: Optional[str] = None,
+        independence_class: Optional[str] = None,
+        measurement_method: Optional[str] = None,
+    ) -> int:
+        total = 0
+        for row in heatmap_bend_rows:
+            if bend_status is not None:
+                if isinstance(bend_status, (list, tuple, set, frozenset)):
+                    if row["bend_status"] not in bend_status:
+                        continue
+                elif row["bend_status"] != bend_status:
+                    continue
+            if consistency_status is not None and row["consistency_status"] != consistency_status:
+                continue
+            if scan_state is not None and row["scan_state"] != scan_state:
+                continue
+            if independence_class is not None and row["independence_class"] != independence_class:
+                continue
+            if measurement_method is not None and row["measurement_method"] != measurement_method:
+                continue
+            total += 1
+        return total
+
     staged = _staged_progression_metrics(completed_metric_results)
     structured_rows = [r for r in completed_metric_results if r.get("structured_metrics")]
     structured_with_total = [
@@ -683,6 +1072,9 @@ def _aggregate(all_results: List[Dict[str, Any]]) -> Dict[str, Any]:
         r for r in structured_rows if (r.get("structured_metrics") or {}).get("expected_completed_error_median") is not None
     ]
     structured_full_scans = [r for r in full_scans if (r.get("structured_metrics") or {}).get("completed_bends_median") is not None]
+    heatmap_total_bends = sum(int((r.get("heatmap_consistency_metrics") or {}).get("countable_bends") or 0) for r in heatmap_rows)
+    heatmap_total_full_bends = sum(int((r.get("heatmap_consistency_metrics") or {}).get("countable_bends") or 0) for r in full_heatmap_rows)
+    heatmap_total_partial_bends = sum(int((r.get("heatmap_consistency_metrics") or {}).get("countable_bends") or 0) for r in partial_heatmap_rows)
     return {
         "scans_processed": len(all_results),
         "successful_scans": len(completed_metric_results),
@@ -725,6 +1117,43 @@ def _aggregate(all_results: List[Dict[str, Any]]) -> Dict[str, Any]:
             if structured_full_scans
             else None
         ),
+        "heatmap_consistency_scans": len(heatmap_rows),
+        "heatmap_supported_bends": _sum_heatmap(heatmap_rows, "supported_bends"),
+        "heatmap_contradicted_bends": _sum_heatmap(heatmap_rows, "contradicted_bends"),
+        "heatmap_insufficient_evidence_bends": _sum_heatmap(heatmap_rows, "insufficient_evidence_bends"),
+        "heatmap_supported_rate": _ratio(
+            _sum_heatmap(heatmap_rows, "supported_bends"),
+            heatmap_total_bends,
+        ),
+        "heatmap_contradicted_rate": _ratio(
+            _sum_heatmap(heatmap_rows, "contradicted_bends"),
+            heatmap_total_bends,
+        ),
+        "heatmap_full_scan_supported_rate": _ratio(
+            _sum_heatmap(full_heatmap_rows, "supported_bends"),
+            heatmap_total_full_bends,
+        ),
+        "heatmap_partial_scan_supported_rate": _ratio(
+            _sum_heatmap(partial_heatmap_rows, "supported_bends"),
+            heatmap_total_partial_bends,
+        ),
+        "heatmap_pass_contradicted": _count_bend_rows(bend_status="PASS", consistency_status="CONTRADICTED"),
+        "heatmap_fail_warning_supported": _count_bend_rows(
+            bend_status=("FAIL", "WARNING"),
+            consistency_status="SUPPORTED",
+        ),
+        "heatmap_fail_supported": _count_bend_rows(bend_status="FAIL", consistency_status="SUPPORTED"),
+        "heatmap_warning_supported": _count_bend_rows(bend_status="WARNING", consistency_status="SUPPORTED"),
+        "heatmap_full_pass_contradicted": _count_bend_rows(
+            bend_status="PASS",
+            consistency_status="CONTRADICTED",
+            scan_state="full",
+        ),
+        "heatmap_partial_pass_contradicted": _count_bend_rows(
+            bend_status="PASS",
+            consistency_status="CONTRADICTED",
+            scan_state="partial",
+        ),
         "continuity_inferred_scan_count": sum(
             1 for r in completed_metric_results if int(r["metrics"].get("continuity_inferred_bends") or 0) > 0
         ),
@@ -751,6 +1180,20 @@ def _write_markdown(output_dir: Path, aggregate: Dict[str, Any], all_results: Li
         f"- Structured MAE vs expected completed bends: `{aggregate['structured_mae_vs_expected_completed']}`",
         f"- Structured partial MAE vs expected total completed bends: `{aggregate['structured_partial_mae_vs_expected_total_completed']}`",
         f"- Structured partial MAE vs expected completed bends: `{aggregate['structured_partial_mae_vs_expected_completed']}`",
+        f"- Heatmap consistency scans: `{aggregate['heatmap_consistency_scans']}`",
+        f"- Heatmap supported bends: `{aggregate['heatmap_supported_bends']}`",
+        f"- Heatmap contradicted bends: `{aggregate['heatmap_contradicted_bends']}`",
+        f"- Heatmap insufficient-evidence bends: `{aggregate['heatmap_insufficient_evidence_bends']}`",
+        f"- Heatmap supported rate: `{aggregate['heatmap_supported_rate']}`",
+        f"- Heatmap contradicted rate: `{aggregate['heatmap_contradicted_rate']}`",
+        f"- Heatmap full-scan supported rate: `{aggregate['heatmap_full_scan_supported_rate']}`",
+        f"- Heatmap partial-scan supported rate: `{aggregate['heatmap_partial_scan_supported_rate']}`",
+        f"- Heatmap PASS contradicted: `{aggregate['heatmap_pass_contradicted']}`",
+        f"- Heatmap FAIL/WARNING supported: `{aggregate['heatmap_fail_warning_supported']}`",
+        f"- Heatmap FAIL supported: `{aggregate['heatmap_fail_supported']}`",
+        f"- Heatmap WARNING supported: `{aggregate['heatmap_warning_supported']}`",
+        f"- Heatmap full-scan PASS contradicted: `{aggregate['heatmap_full_pass_contradicted']}`",
+        f"- Heatmap partial-scan PASS contradicted: `{aggregate['heatmap_partial_pass_contradicted']}`",
         f"- Full-scan exact completion rate: `{aggregate['full_scan_exact_completion_rate']}`",
         f"- Structured full-scan exact completion rate: `{aggregate['structured_full_scan_exact_completion_rate']}`",
         f"- Continuity-inferred scans: `{aggregate['continuity_inferred_scan_count']}`",
@@ -789,6 +1232,21 @@ def _write_markdown(output_dir: Path, aggregate: Dict[str, Any], all_results: Li
     (output_dir / "summary.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
+def _write_heatmap_debug(output_dir: Path, all_results: List[Dict[str, Any]]) -> None:
+    rows = [row for row in _heatmap_bend_rows(all_results) if row["consistency_status"] == "CONTRADICTED"]
+    rows.sort(
+        key=lambda row: (
+            -(float(row.get("consistency_score") or 0.0)),
+            -(float(row.get("local_out_of_tol_ratio") or 0.0)),
+            -(float(row.get("local_abs_p95_mm") or 0.0)),
+        )
+    )
+    (output_dir / "heatmap_consistency_debug_top_contradictions.json").write_text(
+        json.dumps(rows[:50], indent=2, ensure_ascii=False),
+        encoding="utf-8",
+    )
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Evaluate the bend corpus with the progressive inspection pipeline.")
     parser.add_argument("--corpus", default=str(CORPUS_ROOT))
@@ -797,6 +1255,8 @@ def main() -> int:
     parser.add_argument("--part", action="append", default=[])
     parser.add_argument("--timeout-sec", type=int, default=420)
     parser.add_argument("--unary-model", default=None)
+    parser.add_argument("--skip-heatmap-consistency", action="store_true")
+    parser.add_argument("--heatmap-cache-dir", default=None)
     args = parser.parse_args()
 
     corpus_root = Path(args.corpus)
@@ -809,31 +1269,68 @@ def main() -> int:
     stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     output_dir = Path(args.output) if args.output else (corpus_root / "evaluation" / stamp)
     output_dir.mkdir(parents=True, exist_ok=True)
+    heatmap_cache_dir = None
+    if not args.skip_heatmap_consistency:
+        heatmap_cache_dir = (
+            Path(args.heatmap_cache_dir)
+            if args.heatmap_cache_dir
+            else (corpus_root / "cache" / "heatmap_evidence")
+        )
+        heatmap_cache_dir.mkdir(parents=True, exist_ok=True)
 
     warnings_out: List[str] = []
     all_results: List[Dict[str, Any]] = []
+    manifest_entries: List[Dict[str, Any]] = []
     unary_model_path = Path(args.unary_model) if args.unary_model else _latest_unary_model_path()
     unary_bundle = None
     if unary_model_path and unary_model_path.exists():
         unary_bundle = load_unary_models(unary_model_path)
 
     for part in ready_parts:
-        scan_results, part_warnings = evaluate_part(
+        scan_results, part_warnings, part_manifest_entries = evaluate_part(
             part_record=part,
             output_dir=output_dir,
             skip_existing=args.skip_existing,
             timeout_sec=args.timeout_sec,
             unary_bundle=unary_bundle,
+            skip_heatmap_consistency=bool(args.skip_heatmap_consistency),
+            heatmap_cache_dir=heatmap_cache_dir,
         )
         all_results.extend(scan_results)
         warnings_out.extend(part_warnings)
+        manifest_entries.extend(part_manifest_entries)
 
+    manifest = {
+        "generated_at": datetime.now().isoformat(timespec="seconds"),
+        "output_dir": str(output_dir),
+        "timeout_sec": args.timeout_sec,
+        "skip_heatmap_consistency": bool(args.skip_heatmap_consistency),
+        "heatmap_cache_dir": str(heatmap_cache_dir) if heatmap_cache_dir is not None else None,
+        "skip_existing": bool(args.skip_existing),
+        "parts": [str(part.get("part_key")) for part in ready_parts],
+        "entries": manifest_entries,
+        "warnings": warnings_out,
+    }
+    manifest_path = output_dir / "manifest.json"
+    manifest_path.write_text(json.dumps(manifest, indent=2, ensure_ascii=False), encoding="utf-8")
+
+    all_results, warnings_out = _load_results_from_manifest(manifest)
     aggregate = _aggregate(all_results)
     (output_dir / "summary.json").write_text(
-        json.dumps({"aggregate": aggregate, "results": all_results, "warnings": warnings_out}, indent=2, ensure_ascii=False),
+        json.dumps(
+            {
+                "aggregate": aggregate,
+                "results": all_results,
+                "warnings": warnings_out,
+                "manifest_path": str(manifest_path),
+            },
+            indent=2,
+            ensure_ascii=False,
+        ),
         encoding="utf-8",
     )
     _write_markdown(output_dir, aggregate, all_results, warnings_out)
+    _write_heatmap_debug(output_dir, all_results)
     latest = corpus_root / "evaluation" / "latest.json"
     latest.write_text(json.dumps({"path": str(output_dir / 'summary.json')}, indent=2), encoding="utf-8")
     print(json.dumps({"output_dir": str(output_dir), "aggregate": aggregate}, indent=2))

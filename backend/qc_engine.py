@@ -44,6 +44,25 @@ class QCResult(Enum):
 
 
 @dataclass
+class AlignmentMetadata:
+    """Traceable alignment provenance for downstream metrology."""
+    source: str = "GLOBAL_ICP"
+    parent_island_id: str = "NONE"
+    confidence: float = 0.0
+    abstained: bool = False
+    conditioning: Dict[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "alignment_source": self.source,
+            "parent_island_id": self.parent_island_id,
+            "alignment_confidence": round(float(self.confidence or 0.0), 4),
+            "alignment_abstained": bool(self.abstained),
+            "alignment_conditioning": dict(self.conditioning or {}),
+        }
+
+
+@dataclass
 class ProgressUpdate:
     """Progress update for UI"""
     stage: str
@@ -257,7 +276,10 @@ class ScanQCEngine:
         self.reference_mesh = None
         self.reference_pcd = None
         self.scan_pcd = None
+        self.raw_scan_pcd = None
+        self.alignment_metadata = AlignmentMetadata()
         self.aligned_scan = None
+        self.aligned_scan_raw = None
         self.deviations = None
         self.output_dir = output_dir  # For saving heatmaps
         self.region_config = region_config or RegionConfig.default()
@@ -1228,6 +1250,9 @@ class ScanQCEngine:
         if len(self.scan_pcd.points) <= 0:
             raise ValueError(f"Scan has zero points after loading: {filepath.name}")
 
+        import copy
+        self.raw_scan_pcd = copy.deepcopy(self.scan_pcd)
+
         self._update_progress("load", 30, f"Loaded {len(self.scan_pcd.points)} points")
         return True
     
@@ -1302,6 +1327,7 @@ class ScanQCEngine:
         import copy
 
         self._set_alignment_random_seed(random_seed)
+        self.alignment_metadata = AlignmentMetadata()
         ref_pcd = self._prepare_reference()
         scan_working, ref_centered, scan_center, ref_center = self._center_clouds(ref_pcd)
         pca_rotation = self._pca_pre_align(scan_working, ref_centered)
@@ -1491,6 +1517,16 @@ class ScanQCEngine:
         best_transform = reg_fine.transformation.copy()
         best_fitness = reg_fine.fitness
         best_rmse = reg_fine.inlier_rmse
+        self.alignment_metadata = AlignmentMetadata(
+            source="GLOBAL_ICP",
+            parent_island_id="NONE",
+            confidence=float(best_fitness or 0.0),
+            abstained=False,
+            conditioning={
+                "global_fitness": round(float(best_fitness or 0.0), 4),
+                "global_rmse_mm": round(float(best_rmse or 0.0), 4),
+            },
+        )
 
         try:
             from scipy.spatial import cKDTree
@@ -1507,16 +1543,69 @@ class ScanQCEngine:
             datum_transform, datum_fitness, datum_rmse = self._datum_icp(
                 datum_scan_pts, datum_ref_pts, best_transform)
 
-            use_datum = self._evaluate_datum_vs_global(
+            use_datum, datum_stats = self._evaluate_datum_vs_global(
                 scan_working, primary, best_transform, datum_transform, tolerance)
 
             if use_datum:
+                self.alignment_metadata = AlignmentMetadata(
+                    source="PLANE_DATUM_REFINEMENT",
+                    parent_island_id="PRIMARY_PLANE",
+                    confidence=float(
+                        min(
+                            1.0,
+                            max(
+                                datum_fitness,
+                                1.0 / (1.0 + max(float(datum_stats.get("median_datum", 999.0)), 0.0)),
+                            ),
+                        )
+                    ),
+                    abstained=False,
+                    conditioning={
+                        "primary_plane_area": round(float(primary.get("bbox_area") or 0.0), 3),
+                        "secondary_plane_present": bool(secondary is not None),
+                        "datum_scan_point_count": int(datum_stats.get("datum_scan_point_count") or 0),
+                        "median_primary_datum_residual_mm": round(float(datum_stats.get("median_datum") or 0.0), 4),
+                        "p90_primary_datum_residual_mm": round(float(datum_stats.get("p90_datum") or 0.0), 4),
+                        "global_median_primary_datum_residual_mm": round(float(datum_stats.get("median_global") or 0.0), 4),
+                        "global_p90_primary_datum_residual_mm": round(float(datum_stats.get("p90_global") or 0.0), 4),
+                        "global_fitness": round(float(best_fitness or 0.0), 4),
+                        "datum_fitness": round(float(datum_fitness or 0.0), 4),
+                    },
+                )
                 return datum_transform, datum_fitness, datum_rmse
+            self.alignment_metadata = AlignmentMetadata(
+                source="GLOBAL_ICP",
+                parent_island_id="NONE",
+                confidence=float(best_fitness or 0.0),
+                abstained=False,
+                conditioning={
+                    "primary_plane_area": round(float(primary.get("bbox_area") or 0.0), 3),
+                    "secondary_plane_present": bool(secondary is not None),
+                    "datum_scan_point_count": int(datum_stats.get("datum_scan_point_count") or 0),
+                    "median_primary_datum_residual_mm": round(float(datum_stats.get("median_datum") or 0.0), 4),
+                    "p90_primary_datum_residual_mm": round(float(datum_stats.get("p90_datum") or 0.0), 4),
+                    "global_median_primary_datum_residual_mm": round(float(datum_stats.get("median_global") or 0.0), 4),
+                    "global_p90_primary_datum_residual_mm": round(float(datum_stats.get("p90_global") or 0.0), 4),
+                    "global_fitness": round(float(best_fitness or 0.0), 4),
+                    "datum_candidate_fitness": round(float(datum_fitness or 0.0), 4),
+                },
+            )
 
         except Exception as e:
             logger.warning(f"RANSAC datum alignment failed: {e}, using initial ICP")
             import traceback
             logger.debug(traceback.format_exc())
+            self.alignment_metadata = AlignmentMetadata(
+                source="GLOBAL_ICP",
+                parent_island_id="NONE",
+                confidence=float(best_fitness or 0.0),
+                abstained=True,
+                conditioning={
+                    "global_fitness": round(float(best_fitness or 0.0), 4),
+                    "global_rmse_mm": round(float(best_rmse or 0.0), 4),
+                    "reason": str(e),
+                },
+            )
 
         return best_transform, best_fitness, best_rmse
 
@@ -1592,7 +1681,7 @@ class ScanQCEngine:
         proj_1 = centered @ eigvecs[:, 0]
         proj_2 = centered @ eigvecs[:, 1]
 
-        return float(proj_1.ptp() * proj_2.ptp())
+        return float(np.ptp(proj_1) * np.ptp(proj_2))
 
     def _select_datums(self, planes):
         """Select primary and secondary datums per ISO 5459.
@@ -1687,7 +1776,7 @@ class ScanQCEngine:
         """Compare datum vs global alignment quality on primary datum surface.
 
         Uses numpy transforms (no deep copies) for memory efficiency.
-        Returns True if datum alignment should be used.
+        Returns (should_use_datum, stats).
 
         Criterion: datum alignment must be within 20% of global median AND
         below 3x tolerance on the primary datum surface.
@@ -1732,7 +1821,15 @@ class ScanQCEngine:
         else:
             logger.info(f"  → Keeping ORIGINAL ICP (datum alignment not sufficiently better)")
 
-        return use_datum
+        return use_datum, {
+            "median_global": float(median_global),
+            "p90_global": float(p90_global),
+            "median_datum": float(median_datum),
+            "p90_datum": float(p90_datum),
+            "mean_global": float(mean_global),
+            "mean_datum": float(mean_datum),
+            "datum_scan_point_count": int(near_d.sum()),
+        }
 
     def _apply_final_transform(self, scan_center, ref_center, pca_rotation,
                                flip, icp_transform, auto_scale):
@@ -1759,6 +1856,13 @@ class ScanQCEngine:
         t_combined = -scale * (R_composed @ scan_center) + t_icp + ref_center
         transformed = scale * (points @ R_composed.T) + t_combined
         self.aligned_scan.points = self.o3d.utility.Vector3dVector(transformed)
+
+        self.aligned_scan_raw = None
+        if self.raw_scan_pcd is not None and len(self.raw_scan_pcd.points) > 0:
+            self.aligned_scan_raw = copy.deepcopy(self.raw_scan_pcd)
+            raw_points = np.asarray(self.aligned_scan_raw.points)
+            raw_transformed = scale * (raw_points @ R_composed.T) + t_combined
+            self.aligned_scan_raw.points = self.o3d.utility.Vector3dVector(raw_transformed)
     
     def compute_deviations(self, chunk_size: int = 10000, use_trimesh: bool = True) -> np.ndarray:
         """Compute point-to-mesh distances with chunked processing for memory efficiency.

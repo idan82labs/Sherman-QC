@@ -90,6 +90,100 @@ def get_springback_range(material: str = "unknown") -> Tuple[float, float]:
     return (MATERIAL_SPRINGBACK["unknown"][0], MATERIAL_SPRINGBACK["unknown"][1])
 
 
+def _point_to_segment_distances(
+    points: np.ndarray,
+    seg_start: np.ndarray,
+    seg_end: np.ndarray,
+) -> Tuple[np.ndarray, np.ndarray]:
+    """Return point-to-segment distances and normalized segment parameters."""
+    pts = np.asarray(points, dtype=np.float64)
+    start = np.asarray(seg_start, dtype=np.float64)
+    end = np.asarray(seg_end, dtype=np.float64)
+    seg = end - start
+    seg_len_sq = float(np.dot(seg, seg))
+    if pts.size == 0:
+        return np.zeros((0,), dtype=np.float64), np.zeros((0,), dtype=np.float64)
+    if seg_len_sq <= 1e-12:
+        return np.linalg.norm(pts - start[None, :], axis=1), np.zeros((len(pts),), dtype=np.float64)
+    rel = pts - start[None, :]
+    t = np.clip((rel @ seg) / seg_len_sq, 0.0, 1.0)
+    closest = start[None, :] + t[:, None] * seg[None, :]
+    return np.linalg.norm(pts - closest, axis=1), t
+
+
+def _locality_mask_along_bend(
+    points: np.ndarray,
+    cad_bend_center: np.ndarray,
+    radius: float,
+    *,
+    cad_bend_line_start: Optional[np.ndarray] = None,
+    cad_bend_line_end: Optional[np.ndarray] = None,
+    longitudinal_margin_mm: float = 0.0,
+) -> np.ndarray:
+    """Select points near a bend line segment, falling back to bend-center sphere."""
+    pts = np.asarray(points, dtype=np.float64)
+    center = np.asarray(cad_bend_center, dtype=np.float64)
+    if pts.size == 0:
+        return np.zeros((0,), dtype=bool)
+    if cad_bend_line_start is None or cad_bend_line_end is None:
+        return np.linalg.norm(pts - center[None, :], axis=1) <= radius
+
+    start = np.asarray(cad_bend_line_start, dtype=np.float64)
+    end = np.asarray(cad_bend_line_end, dtype=np.float64)
+    seg = end - start
+    seg_len = float(np.linalg.norm(seg))
+    if seg_len <= 1e-6:
+        return np.linalg.norm(pts - center[None, :], axis=1) <= radius
+
+    expanded_radius = float(np.hypot(radius, (0.5 * seg_len) + max(0.0, longitudinal_margin_mm)))
+    pre_mask = np.linalg.norm(pts - center[None, :], axis=1) <= expanded_radius
+    if not np.any(pre_mask):
+        return pre_mask
+
+    pre_pts = pts[pre_mask]
+    dists, t = _point_to_segment_distances(pre_pts, start, end)
+    along_mm = t * seg_len
+    local_mask = (
+        (dists <= radius)
+        & (along_mm >= -max(0.0, longitudinal_margin_mm))
+        & (along_mm <= seg_len + max(0.0, longitudinal_margin_mm))
+    )
+    mask = np.zeros((len(pts),), dtype=bool)
+    mask[np.flatnonzero(pre_mask)] = local_mask
+    return mask
+
+
+def _station_centers_along_bend(
+    cad_bend_center: np.ndarray,
+    *,
+    cad_bend_line_start: Optional[np.ndarray] = None,
+    cad_bend_line_end: Optional[np.ndarray] = None,
+    minimum_span_mm: float = 18.0,
+) -> List[np.ndarray]:
+    """Generate stable section/probe stations along a bend line."""
+    center = np.asarray(cad_bend_center, dtype=np.float64)
+    stations = [center]
+    if cad_bend_line_start is None or cad_bend_line_end is None:
+        return stations
+
+    start = np.asarray(cad_bend_line_start, dtype=np.float64)
+    end = np.asarray(cad_bend_line_end, dtype=np.float64)
+    seg = end - start
+    seg_len = float(np.linalg.norm(seg))
+    if seg_len < minimum_span_mm:
+        return stations
+
+    seen = {tuple(np.round(center, 4))}
+    for t in (0.2, 0.35, 0.5, 0.65, 0.8):
+        station = start + t * seg
+        key = tuple(np.round(station, 4))
+        if key in seen:
+            continue
+        seen.add(key)
+        stations.append(station)
+    return stations
+
+
 @dataclass
 class SurfaceSegment:
     """A planar surface segment detected in the point cloud."""
@@ -1086,6 +1180,12 @@ def measure_scan_bend_via_surface_classification(
     search_radius: float = 30.0,
     min_offset_mm: float = 5.0,
     cad_bend_direction: np.ndarray = None,
+    cad_bend_line_start: np.ndarray = None,
+    cad_bend_line_end: np.ndarray = None,
+    allow_line_locality: bool = True,
+    allow_face_recovery: bool = False,
+    all_face_centers: Optional[np.ndarray] = None,
+    all_face_normals: Optional[np.ndarray] = None,
 ) -> Dict[str, Any]:
     """
     Measure bend angle deviation using the aligned scan overlaid on the CAD.
@@ -1121,9 +1221,42 @@ def measure_scan_bend_via_surface_classification(
     Returns:
         Dictionary with measured angle, deviation, and quality metrics
     """
+    adaptive = _adaptive_shallow_bend_settings(
+        cad_bend_angle,
+        search_radius=search_radius,
+        min_offset_mm=min_offset_mm,
+        bend_line_length=(
+            float(
+                np.linalg.norm(
+                    np.asarray(cad_bend_line_end, dtype=np.float64)
+                    - np.asarray(cad_bend_line_start, dtype=np.float64)
+                )
+            )
+            if cad_bend_line_start is not None and cad_bend_line_end is not None
+            else None
+        ),
+    )
+    search_radius = adaptive["search_radius"]
+    min_side_points = int(adaptive["min_side_points"])
+    min_inlier_points = int(adaptive["min_inlier_points"])
+    max_face_dist = float(adaptive["max_face_dist"])
+    alignment_floor = float(adaptive["alignment_floor"])
+    offset_candidates = adaptive["surface_offset_candidates"]
+
     # Step 1: Find scan points near bend center
-    scan_tree = KDTree(scan_points)
-    nearby_idx = scan_tree.query_ball_point(cad_bend_center, search_radius)
+    if allow_line_locality:
+        nearby_mask = _locality_mask_along_bend(
+            scan_points,
+            cad_bend_center,
+            search_radius,
+            cad_bend_line_start=cad_bend_line_start,
+            cad_bend_line_end=cad_bend_line_end,
+            longitudinal_margin_mm=max(search_radius * 0.25, 4.0),
+        )
+    else:
+        center = np.asarray(cad_bend_center, dtype=np.float64)
+        nearby_mask = np.linalg.norm(np.asarray(scan_points, dtype=np.float64) - center[None, :], axis=1) <= search_radius
+    nearby_idx = np.flatnonzero(nearby_mask).tolist()
     if len(nearby_idx) < 30:
         return _fail(f"Only {len(nearby_idx)} scan points within {search_radius}mm of bend")
 
@@ -1136,13 +1269,58 @@ def measure_scan_bend_via_surface_classification(
     face_centers_2_all = cad_vertices[cad_triangles[surf2_face_indices]].mean(axis=1)
 
     local_radius = search_radius * 2.0
-    dist1 = np.linalg.norm(face_centers_1_all - cad_bend_center, axis=1)
-    dist2 = np.linalg.norm(face_centers_2_all - cad_bend_center, axis=1)
-    local1_mask = dist1 < local_radius
-    local2_mask = dist2 < local_radius
+    if allow_line_locality:
+        local1_mask = _locality_mask_along_bend(
+            face_centers_1_all,
+            cad_bend_center,
+            local_radius,
+            cad_bend_line_start=cad_bend_line_start,
+            cad_bend_line_end=cad_bend_line_end,
+            longitudinal_margin_mm=max(local_radius * 0.5, 6.0),
+        )
+        local2_mask = _locality_mask_along_bend(
+            face_centers_2_all,
+            cad_bend_center,
+            local_radius,
+            cad_bend_line_start=cad_bend_line_start,
+            cad_bend_line_end=cad_bend_line_end,
+            longitudinal_margin_mm=max(local_radius * 0.5, 6.0),
+        )
+    else:
+        center = np.asarray(cad_bend_center, dtype=np.float64)
+        local1_mask = np.linalg.norm(face_centers_1_all - center[None, :], axis=1) <= local_radius
+        local2_mask = np.linalg.norm(face_centers_2_all - center[None, :], axis=1) <= local_radius
 
     face_centers_1 = face_centers_1_all[local1_mask]
     face_centers_2 = face_centers_2_all[local2_mask]
+
+    if allow_face_recovery and (len(face_centers_1) < 3 or len(face_centers_2) < 3):
+        if all_face_centers is None or all_face_normals is None:
+            all_face_centers, all_face_normals = _compute_triangle_centers_and_normals(cad_vertices, cad_triangles)
+        if len(face_centers_1) < 3:
+            recovered_1 = _recover_local_surface_face_centers(
+                all_face_centers=all_face_centers,
+                all_face_normals=all_face_normals,
+                cad_bend_center=np.asarray(cad_bend_center, dtype=np.float64),
+                cad_surface_normal=np.asarray(cad_surf1_normal, dtype=np.float64),
+                search_radius=float(search_radius),
+                cad_bend_line_start=np.asarray(cad_bend_line_start, dtype=np.float64) if cad_bend_line_start is not None else None,
+                cad_bend_line_end=np.asarray(cad_bend_line_end, dtype=np.float64) if cad_bend_line_end is not None else None,
+            )
+            if len(recovered_1) >= 3:
+                face_centers_1 = recovered_1
+        if len(face_centers_2) < 3:
+            recovered_2 = _recover_local_surface_face_centers(
+                all_face_centers=all_face_centers,
+                all_face_normals=all_face_normals,
+                cad_bend_center=np.asarray(cad_bend_center, dtype=np.float64),
+                cad_surface_normal=np.asarray(cad_surf2_normal, dtype=np.float64),
+                search_radius=float(search_radius),
+                cad_bend_line_start=np.asarray(cad_bend_line_start, dtype=np.float64) if cad_bend_line_start is not None else None,
+                cad_bend_line_end=np.asarray(cad_bend_line_end, dtype=np.float64) if cad_bend_line_end is not None else None,
+            )
+            if len(recovered_2) >= 3:
+                face_centers_2 = recovered_2
 
     if len(face_centers_1) < 3 or len(face_centers_2) < 3:
         return _fail(f"Not enough local CAD faces near bend (S1: {len(face_centers_1)}, S2: {len(face_centers_2)})")
@@ -1155,12 +1333,12 @@ def measure_scan_bend_via_surface_classification(
     point_labels = labels[nearest_face_idx]
 
     # Filter: only use scan points close to a CAD face (reject noise/transition)
-    max_face_dist = 5.0
     close_to_face = dists_to_face < max_face_dist
 
     # Step 4: Try multiple transition zone exclusion radii, pick best
     best_result = None
     best_quality = -1
+    candidate_results: List[Dict[str, Any]] = []
     best_partial = {
         "side1_points": 0,
         "side2_points": 0,
@@ -1207,7 +1385,7 @@ def measure_scan_bend_via_surface_classification(
         dist_strategies.append(("euclidean", euclidean_dists))
 
     for _strategy_name, dists_for_offset in dist_strategies:
-      for offset in [min_offset_mm, min_offset_mm * 0.5, min_offset_mm * 1.5, min_offset_mm * 2.0]:
+      for offset in offset_candidates:
         far_enough = dists_for_offset > offset
 
         surf1_mask = (point_labels == 1) & far_enough & close_to_face
@@ -1218,7 +1396,7 @@ def measure_scan_bend_via_surface_classification(
 
         best_partial["side1_points"] = max(int(best_partial["side1_points"]), n1_pts)
         best_partial["side2_points"] = max(int(best_partial["side2_points"]), n2_pts)
-        if n1_pts < 15 or n2_pts < 15:
+        if n1_pts < min_side_points or n2_pts < min_side_points:
             continue
 
         surf1_points = nearby_points[surf1_mask]
@@ -1237,7 +1415,7 @@ def measure_scan_bend_via_surface_classification(
         inlier1 = np.abs(signed_dists1) < 2.0
         inlier2 = np.abs(signed_dists2) < 2.0
 
-        if inlier1.sum() < 12 or inlier2.sum() < 12:
+        if inlier1.sum() < min_inlier_points or inlier2.sum() < min_inlier_points:
             # Fall back to percentile-based outlier removal
             thresh1 = np.percentile(np.abs(signed_dists1), 85)
             thresh2 = np.percentile(np.abs(signed_dists2), 85)
@@ -1245,7 +1423,7 @@ def measure_scan_bend_via_surface_classification(
             inlier2 = np.abs(signed_dists2) < max(0.5, thresh2)
             best_partial["inlier_side1_points"] = max(int(best_partial["inlier_side1_points"]), int(inlier1.sum()))
             best_partial["inlier_side2_points"] = max(int(best_partial["inlier_side2_points"]), int(inlier2.sum()))
-            if inlier1.sum() < 12 or inlier2.sum() < 12:
+            if inlier1.sum() < min_inlier_points or inlier2.sum() < min_inlier_points:
                 continue
 
         surf1_clean = surf1_points[inlier1]
@@ -1273,7 +1451,7 @@ def measure_scan_bend_via_surface_classification(
         align2 = abs(np.dot(normal2, cad_surf2_normal))
 
         # Reject if normals deviate too much from CAD (> ~25°)
-        if align1 < 0.9 or align2 < 0.9:
+        if align1 < alignment_floor or align2 < alignment_floor:
             continue
 
         # Step 7: Compute measured bend angle from scan normals
@@ -1297,19 +1475,19 @@ def measure_scan_bend_via_surface_classification(
         mean_dev1 = float(np.mean(signed_dists1[inlier1]))
         mean_dev2 = float(np.mean(signed_dists2[inlier2]))
 
-        if quality > best_quality:
-            best_quality = quality
-            best_partial["min_offset_used"] = round(offset, 1)
-            # Confidence based on point count and CAD alignment
-            avg_align = (align1 + align2) / 2
-            min_pts = min(n1_pts, n2_pts)
-            if min_pts >= 100 and avg_align >= 0.98:
-                sc_confidence = "high"
-            elif min_pts >= 30 and avg_align >= 0.95:
-                sc_confidence = "medium"
-            else:
-                sc_confidence = "low"
-            best_result = {
+        best_quality = max(best_quality, float(quality))
+        best_partial["min_offset_used"] = round(offset, 1)
+        # Confidence based on point count and CAD alignment
+        avg_align = (align1 + align2) / 2
+        min_pts = min(n1_pts, n2_pts)
+        if min_pts >= 100 and avg_align >= 0.98:
+            sc_confidence = "high"
+        elif min_pts >= 30 and avg_align >= 0.95:
+            sc_confidence = "medium"
+        else:
+            sc_confidence = "low"
+        candidate_results.append(
+            {
                 "measured_angle": round(float(measured_angle), 2),
                 "angle_between_normals": round(float(180 - measured_angle), 2),
                 "scan_normal1": normal1.tolist(),
@@ -1327,9 +1505,13 @@ def measure_scan_bend_via_surface_classification(
                 "measurement_confidence": sc_confidence,
                 "success": True,
                 "point_count": n1_pts + n2_pts,
+                "_quality_score": float(quality),
+                "_angle_gap": abs(float(measured_angle) - float(cad_bend_angle)),
+                "_min_side_points": int(min_pts),
             }
+        )
 
-    if best_result is None:
+    if not candidate_results:
         return _fail(
             "Could not classify enough scan points to both surfaces",
             measurement_method="surface_classification",
@@ -1343,7 +1525,321 @@ def measure_scan_bend_via_surface_classification(
             max_face_dist=float(best_partial["max_face_dist"]),
         )
 
+    bend_line_length = None
+    if cad_bend_line_start is not None and cad_bend_line_end is not None:
+        bend_line_length = float(
+            np.linalg.norm(
+                np.asarray(cad_bend_line_end, dtype=np.float64)
+                - np.asarray(cad_bend_line_start, dtype=np.float64)
+            )
+        )
+    best_result = _choose_surface_classification_candidate(
+        candidate_results,
+        best_quality,
+        cad_bend_angle=float(cad_bend_angle),
+        bend_line_length=bend_line_length,
+    )
+    best_result.pop("_quality_score", None)
+    best_result.pop("_angle_gap", None)
+    best_result.pop("_min_side_points", None)
+
     return best_result
+
+
+def _choose_surface_classification_candidate(
+    candidate_results: List[Dict[str, Any]],
+    best_quality: float,
+    *,
+    cad_bend_angle: Optional[float] = None,
+    bend_line_length: Optional[float] = None,
+) -> Dict[str, Any]:
+    quality_floor = max(float(best_quality) * 0.94, float(best_quality) - 0.12)
+    is_short_obtuse = (
+        cad_bend_angle is not None
+        and 110.0 <= float(cad_bend_angle) <= 130.0
+        and bend_line_length is not None
+        and float(bend_line_length) <= 60.0
+    )
+    if is_short_obtuse:
+        has_close_supported_candidate = any(
+            float(result.get("_angle_gap") or 0.0) <= 1.0
+            and int(result.get("_min_side_points") or 0) >= 80
+            and int(result.get("point_count") or 0) >= 300
+            for result in candidate_results
+        )
+        if has_close_supported_candidate:
+            quality_floor = min(
+                quality_floor,
+                max(float(best_quality) * 0.25, float(best_quality) - 5.5),
+            )
+    eligible_results = [
+        result
+        for result in candidate_results
+        if float(result.get("_quality_score") or 0.0) >= quality_floor
+    ]
+    if not eligible_results:
+        eligible_results = list(candidate_results)
+    eligible_results.sort(
+        key=lambda result: (
+            float(result.get("_angle_gap") or 0.0),
+            -float(result.get("_quality_score") or 0.0),
+            -int(result.get("_min_side_points") or 0),
+        )
+    )
+    return dict(eligible_results[0])
+
+
+def measure_scan_bend_via_profile_section(
+    scan_points: np.ndarray,
+    cad_bend_center: np.ndarray,
+    cad_surf1_normal: np.ndarray,
+    cad_surf2_normal: np.ndarray,
+    cad_bend_direction: np.ndarray,
+    cad_bend_angle: float = 90.0,
+    search_radius: float = 30.0,
+    section_half_width: float = 8.0,
+    cad_bend_line_start: np.ndarray = None,
+    cad_bend_line_end: np.ndarray = None,
+    allow_station_retries: bool = True,
+) -> Dict[str, Any]:
+    """
+    Measure a bend from a thin cross-section slice around the bend line.
+
+    This is more stable for short flange bends than large probe spheres because
+    it uses the entire local profile instead of two discrete probe locations.
+    """
+    bend_line_length = None
+    if cad_bend_line_start is not None and cad_bend_line_end is not None:
+        bend_line_length = float(
+            np.linalg.norm(
+                np.asarray(cad_bend_line_end, dtype=np.float64)
+                - np.asarray(cad_bend_line_start, dtype=np.float64)
+            )
+        )
+    adaptive = _adaptive_shallow_bend_settings(
+        cad_bend_angle,
+        search_radius=search_radius,
+        probe_offset=6.0,
+        probe_radius=10.0,
+        bend_line_length=bend_line_length,
+    )
+    tangent = np.asarray(cad_bend_direction, dtype=np.float64)
+    tangent_norm = float(np.linalg.norm(tangent))
+    if tangent_norm < 1e-9:
+        return _fail("Bend direction unavailable", measurement_method="profile_section")
+    tangent = tangent / tangent_norm
+
+    n1 = np.asarray(cad_surf1_normal, dtype=np.float64)
+    n2 = np.asarray(cad_surf2_normal, dtype=np.float64)
+    n1 = n1 / (np.linalg.norm(n1) + 1e-12)
+    n2 = n2 / (np.linalg.norm(n2) + 1e-12)
+
+    line1 = np.cross(tangent, n1)
+    line2 = np.cross(tangent, n2)
+    if np.linalg.norm(line1) < 1e-9 or np.linalg.norm(line2) < 1e-9:
+        return _fail("Could not derive section tangents", measurement_method="profile_section")
+    line1 = line1 / (np.linalg.norm(line1) + 1e-12)
+    line2 = line2 / (np.linalg.norm(line2) + 1e-12)
+    if float(np.dot(line1, line2)) > 0.0:
+        line2 = -line2
+
+    axis_u = line1
+    axis_v = np.cross(tangent, axis_u)
+    axis_v = axis_v / (np.linalg.norm(axis_v) + 1e-12)
+
+    line1_2d = np.array([1.0, 0.0], dtype=np.float64)
+    line2_3d_proj = np.array([float(np.dot(line2, axis_u)), float(np.dot(line2, axis_v))], dtype=np.float64)
+    if np.linalg.norm(line2_3d_proj) < 1e-9:
+        return _fail("Could not project second line into section", measurement_method="profile_section")
+    line2_2d = line2_3d_proj / (np.linalg.norm(line2_3d_proj) + 1e-12)
+    if float(np.dot(line1_2d, line2_2d)) > 0.0:
+        line2_2d = -line2_2d
+
+    offset_min = 2.5 if adaptive["shallow"] else 4.0
+    offset_max = max(16.0, adaptive["search_radius"] * 0.75)
+    band_tol = 2.0 if adaptive["shallow"] else 1.8
+    min_side_points = max(6, adaptive["min_side_points"])
+
+    def _measure_at_station(station_center: np.ndarray) -> Dict[str, Any]:
+        diffs = np.asarray(scan_points, dtype=np.float64) - np.asarray(station_center, dtype=np.float64)
+        longitudinal = diffs @ tangent
+        perp_vecs = diffs - longitudinal[:, None] * tangent[None, :]
+        radial = np.linalg.norm(perp_vecs, axis=1)
+        in_slab = (np.abs(longitudinal) <= max(section_half_width, 4.0)) & (radial <= adaptive["search_radius"])
+        section_points = scan_points[in_slab]
+        if len(section_points) < 30:
+            return _fail(
+                f"Only {len(section_points)} points in section slice",
+                measurement_method="profile_section",
+                point_count=int(len(section_points)),
+            )
+
+        section_diffs = np.asarray(section_points, dtype=np.float64) - np.asarray(station_center, dtype=np.float64)
+        qx = section_diffs @ axis_u
+        qy = section_diffs @ axis_v
+        q = np.column_stack([qx, qy])
+
+        pts1 = _select_profile_strip_points(
+            q,
+            line1_2d,
+            offset_min=offset_min,
+            offset_max=offset_max,
+            band_tol=band_tol,
+        )
+        pts2 = _select_profile_strip_points(
+            q,
+            line2_2d,
+            offset_min=offset_min,
+            offset_max=offset_max,
+            band_tol=band_tol,
+        )
+
+        fit_kind = "line_line"
+        fallback1 = None
+        fallback2 = None
+        if len(pts1) < min_side_points and len(pts2) >= min_side_points:
+            fallback1 = _attempt_line_arc_fallback(
+                q,
+                line1_2d,
+                offset_min=offset_min,
+                offset_max=offset_max,
+                band_tol=band_tol,
+                min_side_points=min_side_points,
+            )
+            if fallback1 is not None:
+                pts1 = fallback1["points"]
+                fit_kind = "line_arc_fallback"
+        if len(pts2) < min_side_points and len(pts1) >= min_side_points:
+            fallback2 = _attempt_line_arc_fallback(
+                q,
+                line2_2d,
+                offset_min=offset_min,
+                offset_max=offset_max,
+                band_tol=band_tol,
+                min_side_points=min_side_points,
+            )
+            if fallback2 is not None:
+                pts2 = fallback2["points"]
+                fit_kind = "line_arc_fallback"
+        if len(pts1) < min_side_points or len(pts2) < min_side_points:
+            return _fail(
+                "Could not isolate enough profile points on both bend sides",
+                measurement_method="profile_section",
+                point_count=int(len(section_points)),
+                side1_points=int(len(pts1)),
+                side2_points=int(len(pts2)),
+            )
+
+        if fallback1 is not None:
+            fit1, residual1 = fallback1["fit"], float(fallback1["residual"])
+        else:
+            fit1, residual1 = _fit_line_2d(pts1)
+        if fallback2 is not None:
+            fit2, residual2 = fallback2["fit"], float(fallback2["residual"])
+        else:
+            fit2, residual2 = _fit_line_2d(pts2)
+        if fit1 is None or fit2 is None:
+            return _fail("Profile line fit failed", measurement_method="profile_section")
+
+        if float(np.dot(fit1, line1_2d)) < 0.0:
+            fit1 = -fit1
+        if float(np.dot(fit2, line2_2d)) < 0.0:
+            fit2 = -fit2
+
+        dot = np.clip(abs(float(np.dot(fit1, fit2))), -1.0, 1.0)
+        angle_between_abs = float(np.degrees(np.arccos(dot)))
+        candidate1 = 180.0 - angle_between_abs
+        candidate2 = angle_between_abs
+        measured_angle = candidate1 if abs(candidate1 - cad_bend_angle) <= abs(candidate2 - cad_bend_angle) else candidate2
+
+        fit1_3d = fit1[0] * axis_u + fit1[1] * axis_v
+        fit2_3d = fit2[0] * axis_u + fit2[1] * axis_v
+        scan_n1 = np.cross(tangent, fit1_3d)
+        scan_n2 = np.cross(tangent, fit2_3d)
+        scan_n1 = scan_n1 / (np.linalg.norm(scan_n1) + 1e-12)
+        scan_n2 = scan_n2 / (np.linalg.norm(scan_n2) + 1e-12)
+        if float(np.dot(scan_n1, n1)) < 0.0:
+            scan_n1 = -scan_n1
+        if float(np.dot(scan_n2, n2)) < 0.0:
+            scan_n2 = -scan_n2
+        align1 = abs(float(np.dot(scan_n1, n1)))
+        align2 = abs(float(np.dot(scan_n2, n2)))
+
+        residual = max(residual1, residual2)
+        min_pts = min(len(pts1), len(pts2))
+        side_balance_score = float(min(len(pts1), len(pts2)) / max(len(pts1), len(pts2)))
+        if fit_kind == "line_arc_fallback":
+            if min_pts >= 10 and residual <= 0.9 and min(align1, align2) >= 0.82:
+                confidence = "medium"
+            else:
+                confidence = "low"
+        elif min_pts >= 20 and residual <= 0.6 and min(align1, align2) >= 0.9:
+            confidence = "high"
+        elif min_pts >= 10 and residual <= 1.0 and min(align1, align2) >= 0.82:
+            confidence = "medium"
+        else:
+            confidence = "low"
+
+        return {
+            "measured_angle": round(float(measured_angle), 2),
+            "angle_between_normals": round(float(180.0 - measured_angle), 2),
+            "scan_normal1": scan_n1.tolist(),
+            "scan_normal2": scan_n2.tolist(),
+            "side1_points": int(len(pts1)),
+            "side2_points": int(len(pts2)),
+            "planarity1": round(float(residual1), 4),
+            "planarity2": round(float(residual2), 4),
+            "cad_alignment1": round(float(align1), 3),
+            "cad_alignment2": round(float(align2), 3),
+            "measurement_method": "profile_section",
+            "measurement_confidence": confidence,
+            "success": True,
+            "point_count": int(len(section_points)),
+            "section_half_width": float(max(section_half_width, 4.0)),
+            "slice_fit_kind": fit_kind,
+            "side_balance_score": round(float(side_balance_score), 4),
+            "line_residual_max": round(float(residual), 4),
+            "arc_support_points": int((fallback1 or fallback2 or {}).get("arc_support_points") or 0),
+            "station_center": np.asarray(station_center, dtype=np.float64).tolist(),
+        }
+
+    best_success = None
+    best_failure = None
+    station_centers = (
+        _station_centers_along_bend(
+            np.asarray(cad_bend_center, dtype=np.float64),
+            cad_bend_line_start=cad_bend_line_start,
+            cad_bend_line_end=cad_bend_line_end,
+            minimum_span_mm=max(18.0, 2.0 * max(section_half_width, 4.0)),
+        )
+        if allow_station_retries
+        else [np.asarray(cad_bend_center, dtype=np.float64)]
+    )
+
+    for station_center in station_centers:
+        result = _measure_at_station(station_center)
+        if result.get("success"):
+            score = (
+                {"high": 3, "medium": 2, "low": 1}.get(result.get("measurement_confidence"), 0),
+                float(result.get("side_balance_score") or 0.0),
+                int(min(result.get("side1_points") or 0, result.get("side2_points") or 0)),
+                -float(result.get("line_residual_max") or 0.0),
+            )
+            if best_success is None or score > best_success[0]:
+                best_success = (score, result)
+        else:
+            score = (
+                int(min(result.get("side1_points") or 0, result.get("side2_points") or 0)),
+                int(result.get("point_count") or 0),
+            )
+            if best_failure is None or score > best_failure[0]:
+                best_failure = (score, result)
+
+    if best_success is not None:
+        return best_success[1]
+    if best_failure is not None:
+        return best_failure[1]
+    return _fail("Profile section yielded no usable stations", measurement_method="profile_section")
 
 
 def measure_scan_bend_at_cad_location(
@@ -1356,6 +1852,9 @@ def measure_scan_bend_at_cad_location(
     probe_offset: float = 15.0,
     probe_radius: float = 10.0,
     cad_bend_angle: float = 90.0,
+    cad_bend_line_start: np.ndarray = None,
+    cad_bend_line_end: np.ndarray = None,
+    allow_station_retries: bool = True,
 ) -> Dict[str, Any]:
     """
     Fallback: Measure bend angle using probe-region approach (CMM-like).
@@ -1382,6 +1881,27 @@ def measure_scan_bend_at_cad_location(
     Returns:
         Dictionary with measured angle, deviation, and quality metrics
     """
+    adaptive = _adaptive_shallow_bend_settings(
+        cad_bend_angle,
+        search_radius=search_radius,
+        probe_offset=probe_offset,
+        probe_radius=probe_radius,
+        bend_line_length=(
+            float(
+                np.linalg.norm(
+                    np.asarray(cad_bend_line_end, dtype=np.float64)
+                    - np.asarray(cad_bend_line_start, dtype=np.float64)
+                )
+            )
+            if cad_bend_line_start is not None and cad_bend_line_end is not None
+            else None
+        ),
+    )
+    search_radius = adaptive["search_radius"]
+    probe_radius = adaptive["probe_radius"]
+    min_side_points = int(adaptive["min_side_points"])
+    offset_candidates = adaptive["offset_candidates"]
+
     tree = KDTree(scan_points)
 
     # Compute tangent directions for each surface (direction away from bend line
@@ -1419,10 +1939,21 @@ def measure_scan_bend_at_cad_location(
         "measurement_method": "probe_region",
     }
 
-    for offset_mult in [1.0, 1.5, 2.0, 0.7]:
-        offset = probe_offset * offset_mult
-        probe1_center = cad_bend_center + tang1 * offset
-        probe2_center = cad_bend_center + tang2 * offset
+    station_centers = (
+        _station_centers_along_bend(
+            np.asarray(cad_bend_center, dtype=np.float64),
+            cad_bend_line_start=cad_bend_line_start,
+            cad_bend_line_end=cad_bend_line_end,
+            minimum_span_mm=max(18.0, probe_radius * 2.0),
+        )
+        if allow_station_retries
+        else [np.asarray(cad_bend_center, dtype=np.float64)]
+    )
+
+    for station_center in station_centers:
+      for offset in offset_candidates:
+        probe1_center = station_center + tang1 * offset
+        probe2_center = station_center + tang2 * offset
 
         probe1_idx = tree.query_ball_point(probe1_center, probe_radius)
         probe2_idx = tree.query_ball_point(probe2_center, probe_radius)
@@ -1431,7 +1962,7 @@ def measure_scan_bend_at_cad_location(
         best_partial["side2_points"] = max(int(best_partial["side2_points"]), len(probe2_idx))
         best_partial["point_count"] = max(int(best_partial["point_count"]), len(probe1_idx) + len(probe2_idx))
         best_partial["probe_offset_used"] = round(offset, 1)
-        if len(probe1_idx) < 15 or len(probe2_idx) < 15:
+        if len(probe1_idx) < min_side_points or len(probe2_idx) < min_side_points:
             continue
 
         probe1_points = scan_points[probe1_idx]
@@ -1494,6 +2025,7 @@ def measure_scan_bend_at_cad_location(
                 "measurement_confidence": "low",
                 "success": True,
                 "point_count": len(probe1_idx) + len(probe2_idx),
+                "station_center": np.asarray(station_center, dtype=np.float64).tolist(),
             }
 
     if best_result is None:
@@ -1536,6 +2068,712 @@ def _fail(error: str, **extra: Any) -> Dict[str, Any]:
     return result
 
 
+def _adaptive_shallow_bend_settings(
+    cad_bend_angle: float,
+    *,
+    search_radius: float,
+    probe_offset: float = 15.0,
+    probe_radius: float = 10.0,
+    min_offset_mm: float = 5.0,
+    bend_line_length: Optional[float] = None,
+) -> Dict[str, Any]:
+    """
+    Adapt local measurement settings for shallow bends.
+
+    Small flange returns on rolled-shell parts do not behave like 90° folds:
+    large probe offsets overshoot the short flange leg, and fixed point-count
+    thresholds make the local measurement path classify them as unobserved.
+    """
+    bend_angle = abs(float(cad_bend_angle))
+    shallow = bend_angle <= 35.0
+    if not shallow:
+        return {
+            "shallow": False,
+            "search_radius": float(search_radius),
+            "probe_radius": float(probe_radius),
+            "offset_candidates": [
+                float(probe_offset),
+                float(probe_offset * 1.5),
+                float(probe_offset * 2.0),
+                float(probe_offset * 0.7),
+            ],
+            "surface_offset_candidates": [
+                float(min_offset_mm),
+                float(min_offset_mm * 0.5),
+                float(min_offset_mm * 1.5),
+                float(min_offset_mm * 2.0),
+            ],
+            "min_side_points": 15,
+            "min_inlier_points": 12,
+            "max_face_dist": 5.0,
+            "alignment_floor": 0.9,
+        }
+
+    tuned_probe_radius = max(float(probe_radius), 14.0)
+    tuned_search_radius = max(float(search_radius), 40.0)
+    return {
+        "shallow": True,
+        "search_radius": tuned_search_radius,
+        "probe_radius": tuned_probe_radius,
+        "offset_candidates": [3.0, 5.0, 7.5, 10.0, 12.0, float(probe_offset)],
+        "surface_offset_candidates": [2.5, 4.0, 6.0, 8.0, 10.0],
+        "min_side_points": 6,
+        "min_inlier_points": 5,
+        "max_face_dist": 8.0,
+        "alignment_floor": 0.82,
+    }
+
+
+def _trusted_parent_frame_alignment(
+    alignment_metadata: Optional[Dict[str, Any]],
+    *,
+    min_confidence: float = 0.55,
+) -> bool:
+    if not isinstance(alignment_metadata, dict):
+        return False
+    if bool(alignment_metadata.get("alignment_abstained")):
+        return False
+    if str(alignment_metadata.get("alignment_source") or "").upper() != "PLANE_DATUM_REFINEMENT":
+        return False
+    try:
+        confidence = float(alignment_metadata.get("alignment_confidence") or 0.0)
+    except Exception:
+        confidence = 0.0
+    return confidence >= float(min_confidence)
+
+
+def _weighted_median(values: List[float], weights: List[float]) -> Optional[float]:
+    if not values or not weights or len(values) != len(weights):
+        return None
+    pairs = sorted(
+        (float(v), max(0.0, float(w)))
+        for v, w in zip(values, weights)
+        if np.isfinite(v) and np.isfinite(w) and float(w) > 0.0
+    )
+    if not pairs:
+        return None
+    total = sum(weight for _, weight in pairs)
+    threshold = total * 0.5
+    cumulative = 0.0
+    for value, weight in pairs:
+        cumulative += weight
+        if cumulative >= threshold:
+            return float(value)
+    return float(pairs[-1][0])
+
+
+def _measurement_confidence_value(label: Optional[str]) -> float:
+    mapping = {
+        "high": 0.9,
+        "medium": 0.72,
+        "low": 0.5,
+        "very_low": 0.25,
+    }
+    return float(mapping.get(str(label or "").strip().lower(), 0.4))
+
+
+def _weighted_effective_count(weights: List[float]) -> float:
+    finite = [max(0.0, float(w)) for w in weights if np.isfinite(w) and float(w) > 0.0]
+    if not finite:
+        return 0.0
+    numerator = float(sum(finite)) ** 2
+    denominator = float(sum(w * w for w in finite))
+    if denominator <= 1e-12:
+        return 0.0
+    return numerator / denominator
+
+
+def _is_selected_short_obtuse_bend(cad_bend: Dict[str, Any]) -> bool:
+    try:
+        bend_angle = abs(float(cad_bend.get("bend_angle") or 0.0))
+    except Exception:
+        return False
+    if not (105.0 <= bend_angle <= 140.0):
+        return False
+    if not bool(cad_bend.get("selected_baseline_direct")):
+        return False
+    try:
+        start = np.asarray(cad_bend.get("bend_line_start"), dtype=np.float64)
+        end = np.asarray(cad_bend.get("bend_line_end"), dtype=np.float64)
+    except Exception:
+        return False
+    if start.shape != (3,) or end.shape != (3,):
+        return False
+    return float(np.linalg.norm(end - start)) <= 70.0
+
+
+def _prefer_surface_measurement_result(
+    primary: Optional[Dict[str, Any]],
+    alternate: Optional[Dict[str, Any]],
+    *,
+    cad_angle: float,
+) -> Optional[Dict[str, Any]]:
+    if not alternate:
+        return primary
+    if not primary:
+        return alternate
+    if bool(alternate.get("success")) and not bool(primary.get("success")):
+        return alternate
+    if bool(primary.get("success")) and not bool(alternate.get("success")):
+        return primary
+    if not bool(primary.get("success")) and not bool(alternate.get("success")):
+        return primary
+    primary_gap = abs(float(primary.get("measured_angle") or 0.0) - float(cad_angle))
+    alternate_gap = abs(float(alternate.get("measured_angle") or 0.0) - float(cad_angle))
+    if alternate_gap + 0.5 < primary_gap:
+        return alternate
+    return primary
+
+
+def _median_abs_deviation(values: List[float], center: float) -> float:
+    finite = [abs(float(v) - float(center)) for v in values if np.isfinite(v)]
+    if not finite:
+        return 0.0
+    return float(np.median(np.asarray(finite, dtype=np.float64)))
+
+
+def _fit_line_2d(points_2d: np.ndarray, weights: Optional[np.ndarray] = None) -> Tuple[Optional[np.ndarray], float]:
+    if points_2d is None or len(points_2d) < 2:
+        return None, float("inf")
+    weights_arr: Optional[np.ndarray] = None
+    if weights is not None:
+        weights_arr = np.asarray(weights, dtype=np.float64).reshape(-1)
+        if len(weights_arr) != len(points_2d):
+            weights_arr = None
+        else:
+            finite = np.isfinite(weights_arr) & (weights_arr > 0.0)
+            if not np.any(finite):
+                weights_arr = None
+            else:
+                points_2d = points_2d[finite]
+                weights_arr = weights_arr[finite]
+    if len(points_2d) < 2:
+        return None, float("inf")
+    if weights_arr is None:
+        center = points_2d.mean(axis=0)
+        centered = points_2d - center
+    else:
+        norm = float(np.sum(weights_arr))
+        if norm <= 1e-12:
+            center = points_2d.mean(axis=0)
+            centered = points_2d - center
+            weights_arr = None
+        else:
+            weights_arr = weights_arr / norm
+            center = np.sum(points_2d * weights_arr[:, None], axis=0)
+            centered = points_2d - center
+    try:
+        fit_input = centered if weights_arr is None else centered * np.sqrt(weights_arr)[:, None]
+        _, _, vh = np.linalg.svd(fit_input, full_matrices=False)
+    except np.linalg.LinAlgError:
+        return None, float("inf")
+    direction = vh[0]
+    normal = np.array([-direction[1], direction[0]], dtype=np.float64)
+    residuals = np.abs(centered @ normal)
+    residual = float(np.mean(residuals)) if weights_arr is None else float(np.sum(residuals * weights_arr))
+    return direction / (np.linalg.norm(direction) + 1e-12), residual
+
+
+def _compute_triangle_centers_and_normals(
+    cad_vertices: np.ndarray,
+    cad_triangles: np.ndarray,
+) -> Tuple[np.ndarray, np.ndarray]:
+    tri_points = np.asarray(cad_vertices, dtype=np.float64)[np.asarray(cad_triangles, dtype=np.int32)]
+    centers = tri_points.mean(axis=1)
+    normals = np.cross(tri_points[:, 1] - tri_points[:, 0], tri_points[:, 2] - tri_points[:, 0])
+    norms = np.linalg.norm(normals, axis=1, keepdims=True)
+    valid = norms[:, 0] > 1e-9
+    normals[valid] = normals[valid] / norms[valid]
+    normals[~valid] = np.array([0.0, 0.0, 1.0], dtype=np.float64)
+    return centers, normals
+
+
+def _recover_local_surface_face_centers(
+    *,
+    all_face_centers: np.ndarray,
+    all_face_normals: np.ndarray,
+    cad_bend_center: np.ndarray,
+    cad_surface_normal: np.ndarray,
+    search_radius: float,
+    cad_bend_line_start: Optional[np.ndarray] = None,
+    cad_bend_line_end: Optional[np.ndarray] = None,
+    min_faces: int = 3,
+) -> np.ndarray:
+    target_normal = np.asarray(cad_surface_normal, dtype=np.float64)
+    target_norm = float(np.linalg.norm(target_normal))
+    if target_norm < 1e-9:
+        return np.empty((0, 3), dtype=np.float64)
+    target_normal = target_normal / target_norm
+    centers = np.asarray(all_face_centers, dtype=np.float64)
+    normals = np.asarray(all_face_normals, dtype=np.float64)
+    local_radius = max(float(search_radius) * 2.0, 12.0)
+
+    def _candidate_mask(radius: float, normal_floor: float) -> np.ndarray:
+        locality = _locality_mask_along_bend(
+            centers,
+            cad_bend_center,
+            radius,
+            cad_bend_line_start=cad_bend_line_start,
+            cad_bend_line_end=cad_bend_line_end,
+            longitudinal_margin_mm=max(radius * 0.5, 6.0),
+        )
+        alignment = np.abs(normals @ target_normal)
+        return locality & (alignment >= normal_floor)
+
+    for radius, normal_floor in (
+        (local_radius, 0.94),
+        (local_radius, 0.88),
+        (local_radius * 1.5, 0.88),
+        (local_radius * 2.0, 0.82),
+    ):
+        mask = _candidate_mask(radius, normal_floor)
+        if int(mask.sum()) >= int(min_faces):
+            return centers[mask]
+
+    return np.empty((0, 3), dtype=np.float64)
+
+
+def _select_profile_strip_points(
+    q: np.ndarray,
+    line_dir: np.ndarray,
+    *,
+    offset_min: float,
+    offset_max: float,
+    band_tol: float,
+) -> np.ndarray:
+    line_dir = line_dir / (np.linalg.norm(line_dir) + 1e-12)
+    line_norm = np.array([-line_dir[1], line_dir[0]], dtype=np.float64)
+    along = q @ line_dir
+    perp = np.abs(q @ line_norm)
+    pos_mask = (along >= offset_min) & (along <= offset_max) & (perp <= band_tol)
+    neg_mask = (along <= -offset_min) & (along >= -offset_max) & (perp <= band_tol)
+    if int(pos_mask.sum()) >= int(neg_mask.sum()):
+        return q[pos_mask]
+    return q[neg_mask]
+
+
+def _attempt_line_arc_fallback(
+    q: np.ndarray,
+    expected_dir: np.ndarray,
+    *,
+    offset_min: float,
+    offset_max: float,
+    band_tol: float,
+    min_side_points: int,
+) -> Optional[Dict[str, Any]]:
+    relaxed_strip = _select_profile_strip_points(
+        q,
+        expected_dir,
+        offset_min=max(1.0, offset_min * 0.45),
+        offset_max=offset_max,
+        band_tol=band_tol * 1.7,
+    )
+    min_relaxed = max(4, min_side_points - 2)
+    if len(relaxed_strip) < min_relaxed:
+        return None
+
+    expected_dir = expected_dir / (np.linalg.norm(expected_dir) + 1e-12)
+    expected_norm = np.array([-expected_dir[1], expected_dir[0]], dtype=np.float64)
+    along = q @ expected_dir
+    perp = np.abs(q @ expected_norm)
+    arc_mask = (
+        (np.abs(along) <= max(offset_min * 1.5, 4.0))
+        & (perp <= band_tol * 2.2)
+        & (np.linalg.norm(q, axis=1) <= max(offset_min * 2.5, 6.0))
+    )
+    arc_points = q[arc_mask]
+    fit_input = relaxed_strip if len(arc_points) < 4 else np.vstack([relaxed_strip, arc_points])
+    fit, residual = _fit_line_2d(fit_input)
+    if fit is None:
+        return None
+    if float(np.dot(fit, expected_dir)) < 0.0:
+        fit = -fit
+    expected_alignment = abs(float(np.dot(fit, expected_dir)))
+    if expected_alignment < 0.72:
+        return None
+    return {
+        "points": fit_input,
+        "fit": fit,
+        "residual": residual,
+        "arc_support_points": int(len(arc_points)),
+        "strip_points": int(len(relaxed_strip)),
+        "expected_alignment": expected_alignment,
+    }
+
+
+def _longest_true_run(mask: np.ndarray) -> Optional[Tuple[int, int]]:
+    best: Optional[Tuple[int, int]] = None
+    start: Optional[int] = None
+    for idx, flag in enumerate(mask.tolist()):
+        if flag and start is None:
+            start = idx
+        elif not flag and start is not None:
+            end = idx - 1
+            if best is None or (end - start) > (best[1] - best[0]):
+                best = (start, end)
+            start = None
+    if start is not None:
+        end = len(mask) - 1
+        if best is None or (end - start) > (best[1] - best[0]):
+            best = (start, end)
+    return best
+
+
+def _estimate_visible_support_interval(
+    scan_points: np.ndarray,
+    *,
+    line_start: np.ndarray,
+    tangent: np.ndarray,
+    line_length: float,
+    search_radius: float,
+    slice_spacing: float,
+    min_valid_slices: int,
+) -> Dict[str, Any]:
+    diffs = np.asarray(scan_points, dtype=np.float64) - np.asarray(line_start, dtype=np.float64)
+    longitudinal = diffs @ tangent
+    perp_vecs = diffs - longitudinal[:, None] * tangent[None, :]
+    radial = np.linalg.norm(perp_vecs, axis=1)
+    in_tube = (longitudinal >= 0.0) & (longitudinal <= line_length) & (radial <= search_radius)
+    support_positions = longitudinal[in_tube]
+    if len(support_positions) < max(24, min_valid_slices * 6):
+        return {
+            "success": False,
+            "error": f"Only {len(support_positions)} points support the parent-frame bend tube",
+            "support_point_count": int(len(support_positions)),
+            "visible_span_mm": 0.0,
+            "visible_span_ratio": 0.0,
+        }
+
+    bin_size = max(3.0, slice_spacing * 0.85)
+    bin_count = max(min_valid_slices * 2, min(24, int(np.ceil(line_length / bin_size))))
+    hist, edges = np.histogram(support_positions, bins=bin_count, range=(0.0, line_length))
+    positive = hist[hist > 0]
+    threshold = max(6, int(np.ceil(float(np.median(positive)) * 0.5))) if len(positive) else 6
+    support_mask = hist >= threshold
+    relaxed_threshold = max(4, int(np.ceil(threshold * 0.6)))
+    for idx in range(1, len(support_mask) - 1):
+        if not support_mask[idx] and hist[idx] >= relaxed_threshold and support_mask[idx - 1] and support_mask[idx + 1]:
+            support_mask[idx] = True
+
+    run = _longest_true_run(support_mask)
+    if run is None:
+        return {
+            "success": False,
+            "error": "No contiguous visible support span along the bend line",
+            "support_point_count": int(len(support_positions)),
+            "visible_span_mm": 0.0,
+            "visible_span_ratio": 0.0,
+        }
+
+    start_idx, end_idx = run
+    visible_start = float(edges[start_idx])
+    visible_end = float(edges[end_idx + 1])
+    visible_span = max(0.0, visible_end - visible_start)
+    visible_ratio = visible_span / max(line_length, 1e-9)
+    min_required_span = max(slice_spacing * max(min_valid_slices - 1, 3) * 0.5, 10.0)
+    if visible_span < min_required_span:
+        return {
+            "success": False,
+            "error": (
+                f"Visible bend support span {visible_span:.1f}mm is too short for "
+                f"{min_valid_slices} section slices"
+            ),
+            "support_point_count": int(len(support_positions)),
+            "visible_span_mm": round(float(visible_span), 4),
+            "visible_span_ratio": round(float(visible_ratio), 4),
+            "supported_span_start_mm": round(float(visible_start), 4),
+            "supported_span_end_mm": round(float(visible_end), 4),
+            "slice_support_bins": hist.tolist(),
+        }
+
+    planned_slice_count = max(
+        min_valid_slices,
+        min(11, int(np.floor(visible_span / max(slice_spacing, 3.0))) + 1),
+    )
+    margin = min(slice_spacing * 0.4, visible_span * 0.15)
+    if visible_span <= margin * 2.0:
+        margin = 0.0
+    slice_positions = np.linspace(
+        visible_start + margin,
+        visible_end - margin,
+        planned_slice_count,
+    )
+    return {
+        "success": True,
+        "support_point_count": int(len(support_positions)),
+        "visible_span_mm": round(float(visible_span), 4),
+        "visible_span_ratio": round(float(visible_ratio), 4),
+        "supported_span_start_mm": round(float(visible_start), 4),
+        "supported_span_end_mm": round(float(visible_end), 4),
+        "slice_support_bins": hist.tolist(),
+        "planned_slice_count": int(planned_slice_count),
+        "slice_positions_mm": [round(float(v), 4) for v in slice_positions.tolist()],
+    }
+
+
+def _parent_frame_slice_validity(
+    slice_result: Dict[str, Any],
+    *,
+    provisional_angle: Optional[float] = None,
+    provisional_mad: Optional[float] = None,
+) -> Tuple[bool, str, float]:
+    if not slice_result.get("success") or slice_result.get("measured_angle") is None:
+        return False, "measurement_failed", 0.0
+    side1 = int(slice_result.get("side1_points") or 0)
+    side2 = int(slice_result.get("side2_points") or 0)
+    if min(side1, side2) < 4:
+        return False, "too_few_side_points", 0.0
+    balance = float(slice_result.get("side_balance_score") or 0.0)
+    max_residual = float(
+        slice_result.get("line_residual_max")
+        or max(float(slice_result.get("planarity1") or 0.0), float(slice_result.get("planarity2") or 0.0))
+    )
+    alignments = [
+        float(value)
+        for value in (slice_result.get("cad_alignment1"), slice_result.get("cad_alignment2"))
+        if isinstance(value, (int, float))
+    ]
+    min_alignment = min(alignments) if alignments else 0.0
+    fit_kind = str(slice_result.get("slice_fit_kind") or "line_line").strip().lower()
+    arc_support = int(slice_result.get("arc_support_points") or 0)
+
+    if fit_kind == "line_arc_fallback":
+        if arc_support < 4:
+            return False, "insufficient_arc_support", 0.0
+        if balance < 0.10:
+            return False, "unbalanced_line_arc_slice", 0.0
+        if max_residual > 1.5 or min_alignment < 0.72:
+            return False, "weak_line_arc_fit", 0.0
+    else:
+        if balance < 0.18:
+            return False, "unbalanced_slice", 0.0
+        if max_residual > 1.25 or min_alignment < 0.78:
+            return False, "weak_line_fit", 0.0
+
+    measured_angle = float(slice_result["measured_angle"])
+    if provisional_angle is not None:
+        tol = max(8.0, 2.0 * float(provisional_mad or 0.0) + 4.0)
+        if abs(measured_angle - float(provisional_angle)) > tol:
+            return False, "angle_outlier", 0.0
+
+    confidence = _measurement_confidence_value(slice_result.get("measurement_confidence"))
+    weight = max(1.0, float(min(side1, side2))) * max(confidence, 0.25) / (1.0 + max_residual)
+    if fit_kind == "line_arc_fallback":
+        weight *= 0.85
+    return True, "valid", weight
+
+
+def measure_scan_bend_via_parent_frame_profile_section(
+    scan_points: np.ndarray,
+    cad_bend_line_start: np.ndarray,
+    cad_bend_line_end: np.ndarray,
+    cad_surf1_normal: np.ndarray,
+    cad_surf2_normal: np.ndarray,
+    cad_bend_direction: np.ndarray,
+    *,
+    cad_bend_angle: float = 90.0,
+    search_radius: float = 30.0,
+    section_half_width: float = 8.0,
+    alignment_metadata: Optional[Dict[str, Any]] = None,
+    min_valid_slices: int = 5,
+) -> Dict[str, Any]:
+    measurement_method = "parent_frame_profile_section"
+    if not _trusted_parent_frame_alignment(alignment_metadata):
+        return _fail(
+            "Parent-frame alignment is not trusted for local section metrology",
+            measurement_method=measurement_method,
+            alignment_source=(alignment_metadata or {}).get("alignment_source"),
+            alignment_confidence=(alignment_metadata or {}).get("alignment_confidence"),
+        )
+
+    line_start = np.asarray(cad_bend_line_start, dtype=np.float64)
+    line_end = np.asarray(cad_bend_line_end, dtype=np.float64)
+    line_vec = line_end - line_start
+    line_length = float(np.linalg.norm(line_vec))
+    if line_length < 1e-9:
+        return _fail("Bend line unavailable for parent-frame section metrology", measurement_method=measurement_method)
+
+    tangent = np.asarray(cad_bend_direction, dtype=np.float64)
+    tangent_norm = float(np.linalg.norm(tangent))
+    if tangent_norm < 1e-9:
+        tangent = line_vec / line_length
+    else:
+        tangent = tangent / tangent_norm
+
+    slice_half_width = max(4.0, min(float(section_half_width), 6.0))
+    slice_spacing = max(slice_half_width * 1.1, 3.5)
+    support = _estimate_visible_support_interval(
+        scan_points,
+        line_start=line_start,
+        tangent=tangent,
+        line_length=line_length,
+        search_radius=max(float(search_radius), 10.0),
+        slice_spacing=slice_spacing,
+        min_valid_slices=min_valid_slices,
+    )
+    if not support.get("success"):
+        return _fail(
+            str(support.get("error") or "Visible bend support span unavailable"),
+            measurement_method=measurement_method,
+            parent_frame_trusted=True,
+            support_point_count=int(support.get("support_point_count") or 0),
+            visible_span_mm=float(support.get("visible_span_mm") or 0.0),
+            visible_span_ratio=float(support.get("visible_span_ratio") or 0.0),
+            supported_span_start_mm=support.get("supported_span_start_mm"),
+            supported_span_end_mm=support.get("supported_span_end_mm"),
+            slice_support_bins=support.get("slice_support_bins"),
+            section_method="visible_span_multi_slice_weighted_median_v2",
+        )
+    planned_slice_count = int(support["planned_slice_count"])
+    slice_positions_mm = [float(v) for v in support["slice_positions_mm"]]
+    fractions = np.asarray([pos / max(line_length, 1e-9) for pos in slice_positions_mm], dtype=np.float64)
+    required_valid_slices = int(min_valid_slices)
+    if planned_slice_count <= min_valid_slices and float(support["visible_span_ratio"]) >= 0.5:
+        required_valid_slices = max(4, int(min_valid_slices) - 1)
+
+    slice_results: List[Dict[str, Any]] = []
+    total_points = 0
+
+    for index, fraction in enumerate(fractions):
+        center = line_start + float(fraction) * line_vec
+        slice_result = measure_scan_bend_via_profile_section(
+            scan_points=scan_points,
+            cad_bend_center=center,
+            cad_surf1_normal=cad_surf1_normal,
+            cad_surf2_normal=cad_surf2_normal,
+            cad_bend_direction=tangent,
+            cad_bend_angle=cad_bend_angle,
+            search_radius=search_radius,
+            section_half_width=slice_half_width,
+        )
+        slice_result = dict(slice_result)
+        slice_result["slice_index"] = int(index)
+        slice_result["slice_fraction"] = round(float(fraction), 4)
+        slice_result["slice_position_mm"] = round(float(slice_positions_mm[index]), 4)
+        slice_result["slice_center"] = [round(float(x), 4) for x in center.tolist()]
+        slice_results.append(slice_result)
+        total_points += int(slice_result.get("point_count") or 0)
+
+    base_angles = [
+        float(result["measured_angle"])
+        for result in slice_results
+        if result.get("success") and result.get("measured_angle") is not None
+    ]
+    provisional_angle = float(np.median(np.asarray(base_angles, dtype=np.float64))) if base_angles else None
+    provisional_mad = _median_abs_deviation(base_angles, provisional_angle) if base_angles and provisional_angle is not None else None
+
+    slice_angles: List[float] = []
+    weights: List[float] = []
+    total_side1 = 0
+    total_side2 = 0
+    for slice_result in slice_results:
+        valid, reason, weight = _parent_frame_slice_validity(
+            slice_result,
+            provisional_angle=provisional_angle,
+            provisional_mad=provisional_mad,
+        )
+        slice_result["slice_valid"] = bool(valid)
+        slice_result["slice_invalid_reason"] = reason
+        slice_result["slice_weight"] = round(float(weight), 4)
+        if not valid:
+            continue
+        angle = float(slice_result["measured_angle"])
+        slice_angles.append(angle)
+        weights.append(weight)
+        total_side1 += int(slice_result.get("side1_points") or 0)
+        total_side2 += int(slice_result.get("side2_points") or 0)
+
+    if len(slice_angles) < required_valid_slices:
+        return _fail(
+            f"Only {len(slice_angles)} valid section slices",
+            measurement_method=measurement_method,
+            slice_count=int(len(slice_angles)),
+            planned_slice_count=int(planned_slice_count),
+            slice_angle_samples_deg=[round(float(v), 4) for v in slice_angles],
+            visible_span_mm=float(support["visible_span_mm"]),
+            visible_span_ratio=float(support["visible_span_ratio"]),
+            supported_span_start_mm=support["supported_span_start_mm"],
+            supported_span_end_mm=support["supported_span_end_mm"],
+            slice_support_bins=support["slice_support_bins"],
+            section_method="visible_span_multi_slice_weighted_median_v2",
+            parent_frame_trusted=True,
+            expected_zone_visible=bool(
+                float(support["visible_span_ratio"]) >= 0.4
+                and len(slice_angles) >= max(3, int(np.ceil(0.5 * planned_slice_count)))
+            ),
+            slice_results=slice_results,
+        )
+
+    aggregate_angle = _weighted_median(slice_angles, weights)
+    if aggregate_angle is None:
+        return _fail(
+            "Could not aggregate valid section slices",
+            measurement_method=measurement_method,
+            slice_count=int(len(slice_angles)),
+            planned_slice_count=int(planned_slice_count),
+            visible_span_mm=float(support["visible_span_mm"]),
+            visible_span_ratio=float(support["visible_span_ratio"]),
+            supported_span_start_mm=support["supported_span_start_mm"],
+            supported_span_end_mm=support["supported_span_end_mm"],
+            slice_support_bins=support["slice_support_bins"],
+            section_method="visible_span_multi_slice_weighted_median_v2",
+            parent_frame_trusted=True,
+            slice_results=slice_results,
+        )
+
+    angle_dispersion = _median_abs_deviation(slice_angles, aggregate_angle)
+    effective_slice_count = _weighted_effective_count(weights)
+    confidence_label = "low"
+    if effective_slice_count >= 6.0 and angle_dispersion <= 2.0:
+        confidence_label = "high"
+    elif effective_slice_count >= 4.5 and angle_dispersion <= 4.0:
+        confidence_label = "medium"
+
+    alignment_values = [
+        float(value)
+        for result in slice_results
+        for value in (result.get("cad_alignment1"), result.get("cad_alignment2"))
+        if result.get("success") and isinstance(value, (int, float))
+    ]
+    min_alignment = min(alignment_values) if alignment_values else None
+
+    return {
+        "measured_angle": round(float(aggregate_angle), 2),
+        "aggregate_angle_deg": round(float(aggregate_angle), 4),
+        "aggregate_radius_mm": None,
+        "angle_dispersion_deg": round(float(angle_dispersion), 4),
+        "slice_count": int(len(slice_angles)),
+        "planned_slice_count": int(planned_slice_count),
+        "effective_slice_count": round(float(effective_slice_count), 4),
+        "slice_angle_samples_deg": [round(float(v), 4) for v in slice_angles],
+        "slice_results": slice_results,
+        "section_method": "visible_span_multi_slice_weighted_median_v2",
+        "measurement_method": measurement_method,
+        "measurement_confidence": confidence_label,
+        "success": bool(
+            effective_slice_count >= max(3.5, float(required_valid_slices) - 0.5)
+            and angle_dispersion <= 6.0
+            and float(support["visible_span_ratio"]) >= 0.35
+        ),
+        "point_count": int(total_points),
+        "side1_points": int(total_side1),
+        "side2_points": int(total_side2),
+        "cad_alignment1": round(float(np.median(alignment_values[0::2])), 3) if len(alignment_values) >= 2 else min_alignment,
+        "cad_alignment2": round(float(np.median(alignment_values[1::2])), 3) if len(alignment_values) >= 2 else min_alignment,
+        "parent_frame_trusted": True,
+        "expected_zone_visible": bool(
+            float(support["visible_span_ratio"]) >= 0.4
+            and len(slice_angles) >= max(3, int(np.ceil(0.5 * planned_slice_count)))
+        ),
+        "section_half_width": float(slice_half_width),
+        "visible_span_mm": float(support["visible_span_mm"]),
+        "visible_span_ratio": float(support["visible_span_ratio"]),
+        "supported_span_start_mm": support["supported_span_start_mm"],
+        "supported_span_end_mm": support["supported_span_end_mm"],
+        "slice_support_bins": support["slice_support_bins"],
+    }
+
+
 def measure_all_scan_bends(
     scan_points: np.ndarray,
     cad_bends: List[Dict[str, Any]],
@@ -1544,6 +2782,8 @@ def measure_all_scan_bends(
     cad_triangles: np.ndarray = None,
     surface_face_map: Dict[int, np.ndarray] = None,
     deviations: np.ndarray = None,
+    alignment_metadata: Optional[Dict[str, Any]] = None,
+    scan_state: Optional[str] = None,
 ) -> List[Dict[str, Any]]:
     """
     Measure all bend angles in the scan using CAD bend locations as guide.
@@ -1573,7 +2813,17 @@ def measure_all_scan_bends(
         and cad_triangles is not None
         and surface_face_map is not None
     )
+    all_face_centers = None
+    all_face_normals = None
+    if has_mesh_data:
+        all_face_centers, all_face_normals = _compute_triangle_centers_and_normals(cad_vertices, cad_triangles)
     has_deviations = deviations is not None and len(deviations) == len(scan_points)
+    use_parent_frame_sections = (
+        str(scan_state or "").strip().lower() == "partial"
+        and _trusted_parent_frame_alignment(alignment_metadata)
+    )
+    enable_generic_station_retries = str(scan_state or "").strip().lower() != "partial"
+    enable_generic_line_locality = str(scan_state or "").strip().lower() != "partial"
 
     results = []
 
@@ -1585,12 +2835,31 @@ def measure_all_scan_bends(
         cad_angle = cad_bend["bend_angle"]
         surf1_id = cad_bend["surface1_id"]
         surf2_id = cad_bend["surface2_id"]
+        feature_type = str(cad_bend.get("feature_type") or "DISCRETE_BEND").upper()
+        countable_in_regression = bool(cad_bend.get("countable_in_regression", True))
 
         measurement = None
         candidates = []
 
         # Method 1: Signed distance gradient (measures deviation from distance field)
         gradient_result = None
+        adaptive = _adaptive_shallow_bend_settings(
+            cad_angle,
+            search_radius=search_radius,
+            probe_offset=15.0,
+            probe_radius=10.0,
+            min_offset_mm=5.0,
+            bend_line_length=(
+                float(
+                    np.linalg.norm(
+                        np.asarray(cad_bend.get("bend_line_end", bend_center), dtype=np.float64)
+                        - np.asarray(cad_bend.get("bend_line_start", bend_center), dtype=np.float64)
+                    )
+                )
+                if cad_bend.get("bend_line_start") is not None and cad_bend.get("bend_line_end") is not None
+                else None
+            ),
+        )
         if has_deviations:
             gradient_result = measure_scan_bend_via_signed_distance_gradient(
                 scan_points=scan_points,
@@ -1600,45 +2869,191 @@ def measure_all_scan_bends(
                 cad_surf2_normal=surf2_normal,
                 cad_bend_direction=bend_direction,
                 cad_bend_angle=cad_angle,
-                search_radius=search_radius,
+                search_radius=adaptive["search_radius"],
             )
             if gradient_result and gradient_result.get("success"):
                 candidates.append(gradient_result)
             elif gradient_result and not gradient_result.get("success"):
                 logger.info(f"  {cad_bend['bend_name']}: gradient failed: {gradient_result.get('error', '?')}")
 
+        parent_frame_result = None
+        if use_parent_frame_sections and countable_in_regression and feature_type == "DISCRETE_BEND":
+            line_start = np.asarray(
+                cad_bend.get("bend_line_start", cad_bend.get("bend_line_point1", bend_center)),
+                dtype=np.float64,
+            )
+            line_end = np.asarray(
+                cad_bend.get("bend_line_end", cad_bend.get("bend_line_point2", bend_center)),
+                dtype=np.float64,
+            )
+            section_half_width = max(5.0, min(10.0, 0.12 * float(np.linalg.norm(line_end - line_start))))
+            parent_frame_result = measure_scan_bend_via_parent_frame_profile_section(
+                scan_points=scan_points,
+                cad_bend_line_start=line_start,
+                cad_bend_line_end=line_end,
+                cad_surf1_normal=surf1_normal,
+                cad_surf2_normal=surf2_normal,
+                cad_bend_direction=bend_direction,
+                cad_bend_angle=cad_angle,
+                search_radius=adaptive["search_radius"],
+                section_half_width=section_half_width,
+                alignment_metadata=alignment_metadata,
+            )
+            if parent_frame_result and parent_frame_result.get("success"):
+                candidates.append(parent_frame_result)
+            elif parent_frame_result and not parent_frame_result.get("success"):
+                logger.info(
+                    f"  {cad_bend['bend_name']}: parent_frame_profile_section failed: "
+                    f"{parent_frame_result.get('error', '?')}"
+                )
+
         # Method 2: Surface classification (requires mesh data)
         sc_result = None
-        if has_mesh_data and surf1_id in surface_face_map and surf2_id in surface_face_map:
+        has_explicit_surface_ids = has_mesh_data and surf1_id in surface_face_map and surf2_id in surface_face_map
+        allow_recovered_surface_classification = bool(cad_bend.get("selected_baseline_direct")) and has_mesh_data
+        if has_mesh_data and (has_explicit_surface_ids or allow_recovered_surface_classification):
             sc_result = measure_scan_bend_via_surface_classification(
                 scan_points=scan_points,
                 cad_vertices=cad_vertices,
                 cad_triangles=cad_triangles,
-                surf1_face_indices=surface_face_map[surf1_id],
-                surf2_face_indices=surface_face_map[surf2_id],
+                surf1_face_indices=(
+                    surface_face_map[surf1_id]
+                    if has_explicit_surface_ids
+                    else np.empty((0,), dtype=np.int32)
+                ),
+                surf2_face_indices=(
+                    surface_face_map[surf2_id]
+                    if has_explicit_surface_ids
+                    else np.empty((0,), dtype=np.int32)
+                ),
                 cad_bend_center=bend_center,
                 cad_surf1_normal=surf1_normal,
                 cad_surf2_normal=surf2_normal,
                 cad_bend_angle=cad_angle,
-                search_radius=search_radius,
+                search_radius=adaptive["search_radius"],
+                min_offset_mm=adaptive["surface_offset_candidates"][0],
                 cad_bend_direction=bend_direction,
+                cad_bend_line_start=np.asarray(cad_bend.get("bend_line_start", bend_center), dtype=np.float64),
+                cad_bend_line_end=np.asarray(cad_bend.get("bend_line_end", bend_center), dtype=np.float64),
+                allow_line_locality=enable_generic_line_locality,
+                allow_face_recovery=bool(cad_bend.get("selected_baseline_direct")),
+                all_face_centers=all_face_centers,
+                all_face_normals=all_face_normals,
             )
+            if has_explicit_surface_ids and _is_selected_short_obtuse_bend(cad_bend):
+                recovered_sc_result = measure_scan_bend_via_surface_classification(
+                    scan_points=scan_points,
+                    cad_vertices=cad_vertices,
+                    cad_triangles=cad_triangles,
+                    surf1_face_indices=np.empty((0,), dtype=np.int32),
+                    surf2_face_indices=np.empty((0,), dtype=np.int32),
+                    cad_bend_center=bend_center,
+                    cad_surf1_normal=surf1_normal,
+                    cad_surf2_normal=surf2_normal,
+                    cad_bend_angle=cad_angle,
+                    search_radius=adaptive["search_radius"],
+                    min_offset_mm=adaptive["surface_offset_candidates"][0],
+                    cad_bend_direction=bend_direction,
+                    cad_bend_line_start=np.asarray(cad_bend.get("bend_line_start", bend_center), dtype=np.float64),
+                    cad_bend_line_end=np.asarray(cad_bend.get("bend_line_end", bend_center), dtype=np.float64),
+                    allow_line_locality=enable_generic_line_locality,
+                    allow_face_recovery=True,
+                    all_face_centers=all_face_centers,
+                    all_face_normals=all_face_normals,
+                )
+                sc_result = _prefer_surface_measurement_result(
+                    sc_result,
+                    recovered_sc_result,
+                    cad_angle=float(cad_angle),
+                )
+            if (
+                _is_selected_short_obtuse_bend(cad_bend)
+                and sc_result
+                and sc_result.get("success")
+                and sc_result.get("measured_angle") is not None
+                and abs(float(sc_result["measured_angle"]) - float(cad_angle)) > 4.0
+            ):
+                narrow_search_candidates = []
+                for radius in (min(float(adaptive["search_radius"]), 30.0), min(float(adaptive["search_radius"]), 26.0)):
+                    if radius >= 14.0 and not any(abs(radius - existing) < 1e-6 for existing in narrow_search_candidates):
+                        narrow_search_candidates.append(radius)
+                for narrow_radius in narrow_search_candidates:
+                    for narrow_line_locality in (True, False):
+                        narrow_sc_result = measure_scan_bend_via_surface_classification(
+                            scan_points=scan_points,
+                            cad_vertices=cad_vertices,
+                            cad_triangles=cad_triangles,
+                            surf1_face_indices=np.empty((0,), dtype=np.int32),
+                            surf2_face_indices=np.empty((0,), dtype=np.int32),
+                            cad_bend_center=bend_center,
+                            cad_surf1_normal=surf1_normal,
+                            cad_surf2_normal=surf2_normal,
+                            cad_bend_angle=cad_angle,
+                            search_radius=float(narrow_radius),
+                            min_offset_mm=max(5.0, float(adaptive["surface_offset_candidates"][0])),
+                            cad_bend_direction=bend_direction,
+                            cad_bend_line_start=np.asarray(cad_bend.get("bend_line_start", bend_center), dtype=np.float64),
+                            cad_bend_line_end=np.asarray(cad_bend.get("bend_line_end", bend_center), dtype=np.float64),
+                            allow_line_locality=narrow_line_locality,
+                            allow_face_recovery=True,
+                            all_face_centers=all_face_centers,
+                            all_face_normals=all_face_normals,
+                        )
+                        sc_result = _prefer_surface_measurement_result(
+                            sc_result,
+                            narrow_sc_result,
+                            cad_angle=float(cad_angle),
+                        )
             if sc_result and sc_result.get("success"):
                 candidates.append(sc_result)
             elif sc_result and not sc_result.get("success"):
                 logger.info(f"  {cad_bend['bend_name']}: surface_classification failed: {sc_result.get('error', '?')}")
 
-        # Choose best candidate: prefer high-confidence gradient, then high-confidence SC
+        # Method 3: profile cross-section fit
+        profile_result = None
+        if bend_direction is not None:
+            section_half_width = max(5.0, min(10.0, 0.12 * float(np.linalg.norm(np.asarray(cad_bend.get("bend_line_end", bend_center)) - np.asarray(cad_bend.get("bend_line_start", bend_center))))))
+            profile_result = measure_scan_bend_via_profile_section(
+                scan_points=scan_points,
+                cad_bend_center=bend_center,
+                cad_surf1_normal=surf1_normal,
+                cad_surf2_normal=surf2_normal,
+                cad_bend_direction=bend_direction,
+                cad_bend_angle=cad_angle,
+                search_radius=adaptive["search_radius"],
+                section_half_width=section_half_width,
+                cad_bend_line_start=np.asarray(cad_bend.get("bend_line_start", bend_center), dtype=np.float64),
+                cad_bend_line_end=np.asarray(cad_bend.get("bend_line_end", bend_center), dtype=np.float64),
+                allow_station_retries=enable_generic_station_retries,
+            )
+            if profile_result and profile_result.get("success"):
+                candidates.append(profile_result)
+            elif profile_result and not profile_result.get("success"):
+                logger.info(f"  {cad_bend['bend_name']}: profile_section failed: {profile_result.get('error', '?')}")
+
+        # Choose best candidate: prefer high-confidence gradient, then surface classification, then profile
         if candidates:
             _conf_rank = {"high": 3, "medium": 2, "low": 1, "very_low": 0}
-            # Sort: prefer gradient method at same confidence, prefer higher confidence
-            candidates.sort(key=lambda c: (
-                _conf_rank.get(c.get("measurement_confidence", "low"), 0),
-                1 if c.get("measurement_method") == "signed_distance_gradient" else 0,
-            ), reverse=True)
+            _method_rank = {
+                "parent_frame_profile_section": 4,
+                "signed_distance_gradient": 3,
+                "surface_classification": 2,
+                "profile_section": 1,
+                "probe_region": 0,
+            }
+            if use_parent_frame_sections:
+                candidates.sort(key=lambda c: (
+                    _method_rank.get(c.get("measurement_method"), -1),
+                    _conf_rank.get(c.get("measurement_confidence", "low"), 0),
+                ), reverse=True)
+            else:
+                candidates.sort(key=lambda c: (
+                    _conf_rank.get(c.get("measurement_confidence", "low"), 0),
+                    _method_rank.get(c.get("measurement_method"), -1),
+                ), reverse=True)
             measurement = candidates[0]
 
-        # Fallback: probe-region method (only if both methods failed)
+        # Fallback: probe-region method
         if measurement is None:
             measurement = measure_scan_bend_at_cad_location(
                 scan_points=scan_points,
@@ -1646,8 +3061,13 @@ def measure_all_scan_bends(
                 cad_surf1_normal=surf1_normal,
                 cad_surf2_normal=surf2_normal,
                 cad_bend_direction=bend_direction,
-                search_radius=search_radius,
+                search_radius=adaptive["search_radius"],
+                probe_offset=adaptive["offset_candidates"][2] if adaptive["shallow"] else 15.0,
+                probe_radius=adaptive["probe_radius"],
                 cad_bend_angle=cad_angle,
+                cad_bend_line_start=np.asarray(cad_bend.get("bend_line_start", bend_center), dtype=np.float64),
+                cad_bend_line_end=np.asarray(cad_bend.get("bend_line_end", bend_center), dtype=np.float64),
+                allow_station_retries=enable_generic_station_retries,
             )
 
         result = {

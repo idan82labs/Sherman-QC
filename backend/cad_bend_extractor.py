@@ -468,8 +468,8 @@ class CADBendExtractor:
                 # Compute bounding box overlap
                 overlap_u = max(0, min(proj1_u.max(), proj2_u.max()) - max(proj1_u.min(), proj2_u.min()))
                 overlap_v = max(0, min(proj1_v.max(), proj2_v.max()) - max(proj1_v.min(), proj2_v.min()))
-                extent1_u = proj1_u.ptp()
-                extent1_v = proj1_v.ptp()
+                extent1_u = np.ptp(proj1_u)
+                extent1_v = np.ptp(proj1_v)
 
                 if extent1_u > 0 and extent1_v > 0:
                     overlap_ratio = (overlap_u * overlap_v) / (extent1_u * extent1_v)
