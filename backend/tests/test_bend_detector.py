@@ -600,7 +600,8 @@ class TestBendInspectionReport:
             detected_bend=None,
             status="NOT_DETECTED",
             physical_completion_state="UNKNOWN",
-            observability_state="PARTIALLY_OBSERVED",
+            observability_state="UNKNOWN",
+            observability_detail_state="PARTIALLY_OBSERVED",
             observability_confidence=0.72,
             visibility_score=0.48,
             visibility_score_source="heuristic_local_visibility_v0",
@@ -618,13 +619,53 @@ class TestBendInspectionReport:
         )
         payload = match.to_dict()
         assert payload["physical_completion_state"] == "UNKNOWN"
-        assert payload["observability_state"] == "PARTIALLY_OBSERVED"
+        assert payload["observability_state"] == "UNKNOWN"
+        assert payload["observability_detail_state"] == "PARTIALLY_OBSERVED"
         assert payload["visibility_score"] == 0.48
         assert payload["surface_visibility_ratio"] == 0.5
         assert payload["assignment_source"] == "CAD_LOCAL_NEIGHBORHOOD"
         assert payload["assignment_confidence"] == 0.61
         assert payload["observed_surface_count"] == 1
+        assert payload["feature_family"] == "COUNTABLE_DISCRETE_BEND"
+        assert payload["measurement_primitive"] == "ANGLE_RADIUS"
         assert payload["measurement_mode"] == "cad_local_neighborhood"
+
+    def test_summary_counts_only_countable_bends_but_keeps_process_features(self):
+        countable = BendSpecification(
+            bend_id="B1",
+            target_angle=90.0,
+            target_radius=3.0,
+            bend_line_start=np.zeros(3),
+            bend_line_end=np.array([0, 10, 0]),
+        )
+        rolled = BendSpecification(
+            bend_id="R1",
+            target_angle=140.0,
+            target_radius=25.0,
+            bend_line_start=np.zeros(3),
+            bend_line_end=np.array([0, 10, 0]),
+            bend_form="ROLLED",
+            feature_type="ROLLED_SECTION",
+            countable_in_regression=False,
+        )
+        report = BendInspectionReport(
+            part_id="TEST",
+            matches=[
+                BendMatch(cad_bend=countable, detected_bend=None, status="PASS"),
+                BendMatch(cad_bend=rolled, detected_bend=None, status="PASS"),
+            ],
+        )
+
+        payload = report.to_dict()
+        summary = payload["summary"]
+        assert summary["total_bends"] == 1
+        assert summary["completed_bends"] == 1
+        assert summary["total_features"] == 2
+        assert summary["detected_features"] == 2
+        assert summary["process_features"] == 1
+        assert summary["detected_process_features"] == 1
+        assert payload["matches"][1]["feature_type"] == "ROLLED_SECTION"
+        assert payload["matches"][1]["countable_in_regression"] is False
 
 
 class TestMathematicalFoundations:

@@ -1,5 +1,7 @@
 import importlib.util
+import json
 from pathlib import Path
+from types import SimpleNamespace
 
 
 MODULE_PATH = Path("/Users/idant/82Labs/Sherman QC/Full Project/scripts/evaluate_bend_corpus.py")
@@ -24,6 +26,82 @@ def _item(scan_name, state, matches):
     }
     payload["metrics"] = evaluate_bend_corpus._score_scan(payload, payload["expectation"])
     return payload
+
+
+def test_stable_scan_output_name_distinguishes_extension_collisions():
+    ply_name = evaluate_bend_corpus._stable_scan_output_name("44211000_A.ply")
+    stl_name = evaluate_bend_corpus._stable_scan_output_name("44211000_A.stl")
+    assert ply_name != stl_name
+    assert ply_name.endswith(".json")
+    assert stl_name.endswith(".json")
+
+
+def test_load_results_from_manifest_preserves_failed_entries(tmp_path):
+    success_path = tmp_path / "scan_a.json"
+    success_payload = {"part_key": "P1", "scan_name": "a.ply", "metrics": {"completed_bends": 1}}
+    success_path.write_text(json.dumps(success_payload), encoding="utf-8")
+
+    manifest = {
+        "warnings": ["P1/b.ply: timed out"],
+        "entries": [
+            {
+                "part_key": "P1",
+                "scan_name": "a.ply",
+                "scan_path": "/tmp/a.ply",
+                "scan_state": "full",
+                "expected_total_bends": 1,
+                "expected_completed_bends": 1,
+                "output_json": str(success_path),
+                "status": "success",
+            },
+            {
+                "part_key": "P1",
+                "scan_name": "b.ply",
+                "scan_path": "/tmp/b.ply",
+                "scan_state": "full",
+                "expected_total_bends": 1,
+                "expected_completed_bends": 1,
+                "output_json": str(tmp_path / "missing.json"),
+                "status": "failed",
+                "error": "timed out",
+            },
+        ],
+    }
+
+    results, warnings = evaluate_bend_corpus._load_results_from_manifest(manifest)
+
+    assert len(results) == 2
+    assert results[0]["scan_name"] == "a.ply"
+    assert results[1]["scan_name"] == "b.ply"
+    assert results[1]["error"] == "timed out"
+    assert warnings == ["P1/b.ply: timed out"]
+
+
+def test_run_case_subprocess_appends_skip_heatmap_flag(monkeypatch, tmp_path):
+    output_json = tmp_path / "case.json"
+    captured = {}
+
+    def fake_run(cmd, capture_output, text, timeout, env, check):
+        captured["cmd"] = cmd
+        output_json.write_text(json.dumps({"summary": {}, "matches": []}), encoding="utf-8")
+        return SimpleNamespace(returncode=0, stderr="", stdout="")
+
+    monkeypatch.setattr(evaluate_bend_corpus.subprocess, "run", fake_run)
+
+    evaluate_bend_corpus._run_case_subprocess(
+        part_key="P1",
+        cad_path="/tmp/cad.stp",
+        scan_path="/tmp/scan.stl",
+        output_json=output_json,
+        expectation={"state": "full", "expected_total_bends": 1, "expected_completed_bends": 1},
+        spec_bend_angles=[90.0],
+        spec_schedule_type="complete",
+        timeout_sec=120,
+        skip_heatmap_consistency=True,
+        heatmap_cache_dir=None,
+    )
+
+    assert "--skip-heatmap-consistency" in captured["cmd"]
 
 
 def test_ordered_scan_records_prioritizes_partial_sequence_before_full():
@@ -156,6 +234,273 @@ def test_should_apply_sequence_continuity_requires_confident_forward_partial_seq
     ) is False
 
 
+def test_should_apply_sequence_continuity_uses_scan_name_fallback_when_previous_partial_is_complete():
+    previous_matches = [
+        {
+            "bend_id": f"CAD_B{i}",
+            "status": "PASS",
+            "confidence": 0.85,
+            "local_evidence_score": 0.8,
+            "physical_completion_state": "FORMED",
+            "observability_state": "FORMED",
+            "measurement_context": {},
+        }
+        for i in range(1, 9)
+    ]
+    current_matches = previous_matches[:4] + [
+        {
+            "bend_id": f"CAD_B{i}",
+            "status": "NOT_DETECTED",
+            "confidence": 0.0,
+            "local_evidence_score": 0.0,
+            "physical_completion_state": "UNKNOWN",
+            "observability_state": "UNKNOWN",
+            "measurement_context": {},
+        }
+        for i in range(5, 9)
+    ]
+    previous_item = _item("40500000_0_SCAN1 1.ply", "partial", previous_matches)
+    current_item = _item("40500000_0_SCAN2 1.ply", "partial", current_matches)
+    previous_item["expectation"]["expected_total_bends"] = 8
+    current_item["expectation"]["expected_total_bends"] = 8
+    previous_item["metrics"] = evaluate_bend_corpus._score_scan(previous_item, previous_item["expectation"])
+    current_item["metrics"] = evaluate_bend_corpus._score_scan(current_item, current_item["expectation"])
+
+    assert evaluate_bend_corpus._should_apply_sequence_continuity(
+        previous_item,
+        current_item,
+        {"sequence": 10, "sequence_confident": False, "name": "40500000_0_SCAN1 1.ply"},
+        {"sequence": 10, "sequence_confident": False, "name": "40500000_0_SCAN2 1.ply"},
+    ) is True
+
+
+def test_should_apply_sequence_continuity_scan_name_fallback_requires_complete_previous_partial():
+    previous_matches = [
+        {
+            "bend_id": f"CAD_B{i}",
+            "status": "PASS",
+            "confidence": 0.85,
+            "local_evidence_score": 0.8,
+            "physical_completion_state": "FORMED",
+            "observability_state": "FORMED",
+            "measurement_context": {},
+        }
+        for i in range(1, 6)
+    ]
+    current_matches = previous_matches[:4]
+    previous_item = _item("23553000_B_SCAN_1.ply", "partial", previous_matches)
+    current_item = _item("23553000_B_SCAN_2.ply", "partial", current_matches)
+    previous_item["expectation"]["expected_total_bends"] = 16
+    current_item["expectation"]["expected_total_bends"] = 16
+    previous_item["metrics"] = evaluate_bend_corpus._score_scan(previous_item, previous_item["expectation"])
+    current_item["metrics"] = evaluate_bend_corpus._score_scan(current_item, current_item["expectation"])
+
+    assert evaluate_bend_corpus._should_apply_sequence_continuity(
+        previous_item,
+        current_item,
+        {"sequence": 1, "sequence_confident": False, "name": "23553000_B_SCAN_1.ply"},
+        {"sequence": 2, "sequence_confident": False, "name": "23553000_B_SCAN_2.ply"},
+    ) is False
+
+
+def test_partial_to_full_retention_carries_explicit_previous_partial_bend():
+    previous_matches = [
+        {
+            "bend_id": "CAD_B13",
+            "status": "FAIL",
+            "confidence": 0.5,
+            "local_evidence_score": 0.899,
+            "physical_completion_state": "FORMED",
+            "observability_state": "FORMED",
+            "measurement_method": "surface_classification",
+            "measurement_context": {},
+        }
+    ]
+    current_matches = [
+        {
+            "bend_id": f"CAD_B{i}",
+            "status": "PASS",
+            "confidence": 0.7,
+            "local_evidence_score": 0.7,
+            "physical_completion_state": "FORMED",
+            "observability_state": "FORMED",
+            "measurement_context": {},
+        }
+        for i in range(1, 10)
+        if i != 13
+    ] + [
+        {
+            "bend_id": "CAD_B13",
+            "status": "NOT_DETECTED",
+            "confidence": 0.0,
+            "local_evidence_score": 0.0,
+            "physical_completion_state": "UNKNOWN",
+            "observability_state": "UNKNOWN",
+            "measurement_context": {},
+        },
+    ]
+    previous_item = _item("23553000_B_SCAN_2.ply", "partial", previous_matches)
+    current_item = _item("23553000_B_FULL_SCAN 1.ply", "full", current_matches)
+
+    assert evaluate_bend_corpus._should_apply_partial_to_full_retention(previous_item, current_item) is True
+
+    updated, retained = evaluate_bend_corpus._apply_partial_to_full_retention(previous_item, current_item)
+    retained_match = next(match for match in updated["matches"] if match["bend_id"] == "CAD_B13")
+
+    assert retained == ["CAD_B13"]
+    assert updated["summary"]["completed_bends"] == 10
+    assert updated["metrics"]["retained_from_previous_partial_bends"] == 1
+    assert retained_match["status"] == "FAIL"
+    assert retained_match["physical_completion_state"] == "FORMED"
+    assert retained_match["measurement_method"] == "retain_explicit_previous_partial_into_full"
+    assert retained_match["retained_from_previous_partial"] is True
+
+
+def test_partial_to_full_retention_does_not_carry_sequence_inferred_partial_bend():
+    previous_matches = [
+        {
+            "bend_id": "CAD_B13",
+            "status": "PASS",
+            "confidence": 0.9,
+            "local_evidence_score": 0.8,
+            "physical_completion_state": "FORMED",
+            "observability_state": "FORMED",
+            "continuity_inferred": True,
+            "measurement_method": "carry_forward_previous_partial",
+            "measurement_context": {},
+        }
+    ]
+    current_matches = [
+        {
+            "bend_id": f"CAD_B{i}",
+            "status": "PASS",
+            "confidence": 0.7,
+            "local_evidence_score": 0.7,
+            "physical_completion_state": "FORMED",
+            "observability_state": "FORMED",
+            "measurement_context": {},
+        }
+        for i in range(1, 4)
+        if i != 13
+    ] + [
+        {
+            "bend_id": "CAD_B13",
+            "status": "NOT_DETECTED",
+            "confidence": 0.0,
+            "local_evidence_score": 0.0,
+            "physical_completion_state": "UNKNOWN",
+            "observability_state": "UNKNOWN",
+            "measurement_context": {},
+        },
+    ]
+    previous_item = _item("scan_2.ply", "partial", previous_matches)
+    current_item = _item("full_scan.ply", "full", current_matches)
+
+    assert evaluate_bend_corpus._should_apply_partial_to_full_retention(previous_item, current_item) is True
+    updated, retained = evaluate_bend_corpus._apply_partial_to_full_retention(previous_item, current_item)
+
+    assert retained == []
+    assert updated["summary"]["completed_bends"] == 3
+
+
+def test_evaluate_part_skip_existing_preserves_previous_partial_for_sequence_continuity(tmp_path, monkeypatch):
+    metadata = {
+        "part_key": "38172000",
+        "expected_bends_override": 10,
+        "scan_files": [
+            {
+                "name": "38172000_01_SCAN_1.ply",
+                "path": "/tmp/38172000_01_SCAN_1.ply",
+                "state": "partial",
+                "sequence": 1,
+                "sequence_confident": True,
+            },
+            {
+                "name": "38172000_01_SCAN_2 1.ply",
+                "path": "/tmp/38172000_01_SCAN_2_1.ply",
+                "state": "partial",
+                "sequence": 2,
+                "sequence_confident": True,
+            },
+        ],
+    }
+    labels = {"expected_total_bends": 10, "scans": []}
+    metadata_path = tmp_path / "metadata.json"
+    labels_path = tmp_path / "labels.template.json"
+    metadata_path.write_text(json.dumps(metadata), encoding="utf-8")
+    labels_path.write_text(json.dumps(labels), encoding="utf-8")
+
+    previous_item = _item(
+        "38172000_01_SCAN_1.ply",
+        "partial",
+        [
+            {
+                "bend_id": "CAD_B2",
+                "status": "PASS",
+                "confidence": 0.753,
+                "local_evidence_score": 0.875,
+                "physical_completion_state": "FORMED",
+                "observability_state": "FORMED",
+                "measurement_method": "detected_bend_match",
+                "measurement_context": {},
+            }
+        ],
+    )
+    current_item = _item(
+        "38172000_01_SCAN_2 1.ply",
+        "partial",
+        [
+            {
+                "bend_id": "CAD_B2",
+                "status": "NOT_DETECTED",
+                "confidence": 0.0,
+                "local_evidence_score": 0.0,
+                "physical_completion_state": "UNKNOWN",
+                "observability_state": "UNKNOWN",
+                "measurement_context": {},
+            }
+        ],
+    )
+
+    part_record = {
+        "part_key": "38172000",
+        "metadata_path": str(metadata_path),
+        "labels_template_path": str(labels_path),
+    }
+    output_dir = tmp_path / "evaluation"
+    part_out_dir = output_dir / "38172000"
+    part_out_dir.mkdir(parents=True, exist_ok=True)
+    existing_path = part_out_dir / evaluate_bend_corpus._stable_scan_output_name("38172000_01_SCAN_1.ply")
+    existing_path.write_text(json.dumps(previous_item), encoding="utf-8")
+
+    def fake_run_case_subprocess(**kwargs):
+        return json.loads(json.dumps(current_item))
+
+    monkeypatch.setattr(evaluate_bend_corpus, "_run_case_subprocess", fake_run_case_subprocess)
+    monkeypatch.setattr(evaluate_bend_corpus, "_annotate_structured_predictions", lambda item, expectation, unary_bundle: item)
+    monkeypatch.setattr(evaluate_bend_corpus, "_preferred_cad_file", lambda metadata: "/tmp/38172000_01.stp")
+    monkeypatch.setattr(evaluate_bend_corpus, "_spec_bend_angles", lambda metadata: [])
+    monkeypatch.setattr(evaluate_bend_corpus, "_spec_schedule_type", lambda metadata: None)
+
+    results, warnings, manifest_entries = evaluate_bend_corpus.evaluate_part(
+        part_record=part_record,
+        output_dir=output_dir,
+        skip_existing=True,
+        timeout_sec=1,
+        unary_bundle=None,
+        skip_heatmap_consistency=True,
+        heatmap_cache_dir=None,
+    )
+
+    assert warnings == []
+    assert [entry["status"] for entry in manifest_entries] == ["skipped_existing", "success"]
+    carried = next(match for match in results[1]["matches"] if match["bend_id"] == "CAD_B2")
+    assert carried["measurement_method"] == "carry_forward_previous_partial"
+    assert carried["assignment_source"] == "SEQUENCE_CONTINUITY"
+    assert carried["continuity_inferred"] is True
+    assert results[1]["metrics"]["continuity_inferred_bends"] == 1
+
+
 def test_aggregate_reports_staged_monotonicity_and_retention():
     first = _item(
         "scan_1.ply",
@@ -266,3 +611,126 @@ def test_aggregate_includes_partial_mae_metrics():
     assert aggregate["partial_mae_vs_expected_completed"] == 1.0
     assert aggregate["structured_partial_mae_vs_expected_total_completed"] == 2.0
     assert aggregate["structured_partial_mae_vs_expected_completed"] == 0.0
+
+
+def test_heatmap_consistency_metrics_ignore_rolled_features():
+    item = _item(
+        "full_scan.ply",
+        "full",
+        [
+            {
+                "bend_id": "CAD_B1",
+                "status": "PASS",
+                "observability_state": "OBSERVED_FORMED",
+                "feature_type": "ROLLED_SECTION",
+                "countable_in_regression": False,
+                "heatmap_consistency": {"status": "NOT_APPLICABLE"},
+            },
+            {
+                "bend_id": "CAD_B4",
+                "status": "FAIL",
+                "observability_state": "OBSERVED_FORMED",
+                "feature_type": "DISCRETE_BEND",
+                "countable_in_regression": True,
+                "measurement_method": "profile_section",
+                "heatmap_consistency": {"status": "CONTRADICTED"},
+            },
+        ],
+    )
+    metrics = evaluate_bend_corpus._heatmap_consistency_metrics(item, item["expectation"])
+    assert metrics["countable_bends"] == 1
+    assert metrics["contradicted_bends"] == 1
+    assert "profile_section" in metrics["measurement_method_breakdown"]
+
+
+def test_aggregate_includes_heatmap_consistency_counts():
+    item = _item(
+        "full_scan.ply",
+        "full",
+        [
+            {
+                "bend_id": "CAD_B4",
+                "status": "PASS",
+                "observability_state": "OBSERVED_FORMED",
+                "feature_type": "DISCRETE_BEND",
+                "countable_in_regression": True,
+                "measurement_method": "probe_region",
+                "heatmap_consistency": {"status": "SUPPORTED"},
+            },
+            {
+                "bend_id": "CAD_B5",
+                "status": "FAIL",
+                "observability_state": "OBSERVED_FORMED",
+                "feature_type": "DISCRETE_BEND",
+                "countable_in_regression": True,
+                "measurement_method": "profile_section",
+                "heatmap_consistency": {"status": "CONTRADICTED"},
+            },
+        ],
+    )
+    item["heatmap_consistency_metrics"] = evaluate_bend_corpus._heatmap_consistency_metrics(item, item["expectation"])
+
+    aggregate = evaluate_bend_corpus._aggregate([item])
+
+    assert aggregate["heatmap_consistency_scans"] == 1
+    assert aggregate["heatmap_supported_bends"] == 1
+    assert aggregate["heatmap_contradicted_bends"] == 1
+    assert aggregate["heatmap_supported_rate"] == 0.5
+    assert aggregate["heatmap_pass_contradicted"] == 0
+    assert aggregate["heatmap_fail_warning_supported"] == 0
+    assert aggregate["heatmap_fail_supported"] == 0
+    assert aggregate["heatmap_warning_supported"] == 0
+
+
+def test_aggregate_includes_heatmap_status_slices():
+    item = _item(
+        "partial_scan.ply",
+        "partial",
+        [
+            {
+                "bend_id": "CAD_B1",
+                "status": "PASS",
+                "observability_state": "OBSERVED_FORMED",
+                "feature_type": "DISCRETE_BEND",
+                "countable_in_regression": True,
+                "measurement_method": "probe_region",
+                "heatmap_consistency": {"status": "CONTRADICTED", "independence_class": "INDEPENDENT"},
+            },
+            {
+                "bend_id": "CAD_B2",
+                "status": "FAIL",
+                "observability_state": "OBSERVED_FORMED",
+                "feature_type": "DISCRETE_BEND",
+                "countable_in_regression": True,
+                "measurement_method": "profile_section",
+                "heatmap_consistency": {"status": "SUPPORTED", "independence_class": "PARTIAL"},
+            },
+            {
+                "bend_id": "CAD_B3",
+                "status": "WARNING",
+                "observability_state": "OBSERVED_FORMED",
+                "feature_type": "DISCRETE_BEND",
+                "countable_in_regression": True,
+                "measurement_method": "surface_classification",
+                "heatmap_consistency": {"status": "SUPPORTED", "independence_class": "PARTIAL"},
+            },
+            {
+                "bend_id": "CAD_B4",
+                "status": "NOT_DETECTED",
+                "observability_state": "UNOBSERVED",
+                "feature_type": "DISCRETE_BEND",
+                "countable_in_regression": True,
+                "measurement_method": "unknown",
+                "heatmap_consistency": {"status": "INSUFFICIENT_EVIDENCE", "independence_class": "INDEPENDENT"},
+            },
+        ],
+    )
+    item["heatmap_consistency_metrics"] = evaluate_bend_corpus._heatmap_consistency_metrics(item, item["expectation"])
+
+    aggregate = evaluate_bend_corpus._aggregate([item])
+
+    assert aggregate["heatmap_pass_contradicted"] == 1
+    assert aggregate["heatmap_fail_supported"] == 1
+    assert aggregate["heatmap_warning_supported"] == 1
+    assert aggregate["heatmap_fail_warning_supported"] == 2
+    assert aggregate["heatmap_partial_pass_contradicted"] == 1

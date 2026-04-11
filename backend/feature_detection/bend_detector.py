@@ -22,6 +22,14 @@ from scipy.optimize import least_squares
 import logging
 import warnings
 
+from domains.bend.services.runtime_semantics import (
+    feature_family_for_target,
+    is_explicit_observability_evidence,
+    legacy_observability_detail_state,
+    measurement_primitive_for_feature_family,
+    normalize_observability_state,
+)
+
 logger = logging.getLogger(__name__)
 
 
@@ -103,10 +111,18 @@ class BendSpecification:
     flange1_normal: Optional[np.ndarray] = None
     flange2_normal: Optional[np.ndarray] = None
 
+    # Flange geometry for Bender's View edge-to-edge computation
+    flange1_boundary: Optional[np.ndarray] = None  # (N,3) boundary points
+    flange2_boundary: Optional[np.ndarray] = None
+    flange1_centroid: Optional[np.ndarray] = None
+    flange2_centroid: Optional[np.ndarray] = None
+
     # Flange dimensions for matching
     flange1_area: float = 0.0
     flange2_area: float = 0.0
     bend_form: str = "FOLDED"   # FOLDED | ROLLED
+    feature_type: str = "DISCRETE_BEND"  # DISCRETE_BEND | ROLLED_SECTION | PROCESS_FEATURE
+    countable_in_regression: bool = True
 
     @property
     def bend_line_length(self) -> float:
@@ -126,6 +142,8 @@ class BendSpecification:
             "tolerance_angle": self.tolerance_angle,
             "tolerance_radius": self.tolerance_radius,
             "bend_form": self.bend_form,
+            "feature_type": self.feature_type,
+            "countable_in_regression": self.countable_in_regression,
         }
 
 
@@ -144,6 +162,15 @@ class BendMatch:
     match_confidence: float = 0.0
     bend_form: str = "FOLDED"
 
+    # Edge-to-edge flange distance (Bender's View)
+    expected_edge_distance_mm: Optional[float] = None
+    measured_edge_distance_mm: Optional[float] = None
+    edge_distance_deviation_mm: Optional[float] = None
+    measured_edge_tip1: Optional[np.ndarray] = field(default=None, repr=False)
+    measured_edge_tip2: Optional[np.ndarray] = field(default=None, repr=False)
+    expected_edge_tip1: Optional[np.ndarray] = field(default=None, repr=False)
+    expected_edge_tip2: Optional[np.ndarray] = field(default=None, repr=False)
+
     # Linear/arc metrics in mm
     expected_line_length_mm: Optional[float] = None
     actual_line_length_mm: Optional[float] = None
@@ -159,7 +186,8 @@ class BendMatch:
     issue_location: str = "none"
     action_item: str = ""
     physical_completion_state: str = "UNKNOWN"
-    observability_state: str = "UNOBSERVED"
+    observability_state: str = "UNKNOWN"
+    observability_detail_state: str = "UNOBSERVED"
     observability_confidence: float = 0.0
     visibility_score: float = 0.0
     visibility_score_source: str = "heuristic_v0"
@@ -180,7 +208,27 @@ class BendMatch:
     measurement_method: Optional[str] = None
     measurement_context: Dict[str, Any] = field(default_factory=dict)
 
+    def __post_init__(self):
+        if self.cad_bend is not None and str(self.bend_form).upper() == "FOLDED" and str(self.cad_bend.bend_form).upper() == "ROLLED":
+            self.bend_form = "ROLLED"
+        self.observability_state = normalize_observability_state(
+            self.observability_state,
+            physical_completion_state=self.physical_completion_state,
+            status=self.status,
+        )
+        self.observability_detail_state = legacy_observability_detail_state(
+            self.observability_detail_state or self.observability_state,
+            physical_completion_state=self.physical_completion_state,
+            status=self.status,
+        )
+
     def to_dict(self) -> Dict[str, Any]:
+        feature_family = feature_family_for_target(
+            feature_type=self.cad_bend.feature_type,
+            bend_form=self.bend_form,
+            countable_in_regression=bool(self.cad_bend.countable_in_regression),
+        )
+        measurement_primitive = measurement_primitive_for_feature_family(feature_family)
         return {
             "bend_id": self.cad_bend.bend_id,
             "bend_form": self.bend_form,
@@ -207,10 +255,15 @@ class BendMatch:
             "confidence": round(self.match_confidence, 3),
             "tolerance_angle": self.cad_bend.tolerance_angle,
             "tolerance_radius": self.cad_bend.tolerance_radius,
+            "feature_type": self.cad_bend.feature_type,
+            "feature_family": feature_family,
+            "measurement_primitive": measurement_primitive,
+            "countable_in_regression": bool(self.cad_bend.countable_in_regression),
             "issue_location": self.issue_location,
             "action_item": self.action_item,
             "physical_completion_state": self.physical_completion_state,
             "observability_state": self.observability_state,
+            "observability_detail_state": self.observability_detail_state,
             "observability_confidence": round(float(self.observability_confidence or 0.0), 3),
             "visibility_score": round(float(self.visibility_score or 0.0), 3),
             "visibility_score_source": self.visibility_score_source,
@@ -230,7 +283,53 @@ class BendMatch:
             "measurement_mode": self.measurement_mode,
             "measurement_method": self.measurement_method,
             "measurement_context": self.measurement_context,
+            # Edge-to-edge flange distance (Bender's View)
+            "expected_edge_distance_mm": round(self.expected_edge_distance_mm, 3) if self.expected_edge_distance_mm is not None else None,
+            "measured_edge_distance_mm": round(self.measured_edge_distance_mm, 3) if self.measured_edge_distance_mm is not None else None,
+            "edge_distance_deviation_mm": round(self.edge_distance_deviation_mm, 3) if self.edge_distance_deviation_mm is not None else None,
+            "measured_edge_tip1": self.measured_edge_tip1.tolist() if self.measured_edge_tip1 is not None else None,
+            "measured_edge_tip2": self.measured_edge_tip2.tolist() if self.measured_edge_tip2 is not None else None,
+            "expected_edge_tip1": self.expected_edge_tip1.tolist() if self.expected_edge_tip1 is not None else None,
+            "expected_edge_tip2": self.expected_edge_tip2.tolist() if self.expected_edge_tip2 is not None else None,
         }
+
+
+def compute_edge_to_edge_distance(
+    bend_line_start: np.ndarray,
+    bend_line_end: np.ndarray,
+    flange1_boundary: np.ndarray,
+    flange2_boundary: np.ndarray,
+) -> Tuple[float, np.ndarray, np.ndarray]:
+    """
+    Compute straight-line distance between the outermost tips of two flanges.
+
+    For each flange, finds the boundary point farthest from the bend line
+    (perpendicular distance). Returns the Euclidean distance between
+    these two tip points — the measurement benders check with calipers.
+
+    Returns:
+        (distance_mm, tip1_point, tip2_point)
+    """
+    bend_dir = bend_line_end - bend_line_start
+    bend_len = np.linalg.norm(bend_dir)
+    if bend_len < 1e-9:
+        bend_dir = np.array([1.0, 0.0, 0.0])
+    else:
+        bend_dir = bend_dir / bend_len
+
+    bend_mid = (bend_line_start + bend_line_end) / 2.0
+
+    def _farthest_from_line(boundary: np.ndarray) -> np.ndarray:
+        offsets = boundary - bend_mid
+        axial = np.dot(offsets, bend_dir).reshape(-1, 1) * bend_dir
+        perp = offsets - axial
+        perp_dists = np.linalg.norm(perp, axis=1)
+        return boundary[np.argmax(perp_dists)]
+
+    tip1 = _farthest_from_line(flange1_boundary)
+    tip2 = _farthest_from_line(flange2_boundary)
+    distance = float(np.linalg.norm(tip2 - tip1))
+    return distance, tip1, tip2
 
 
 @dataclass
@@ -247,6 +346,10 @@ class BendInspectionReport:
     pass_count: int = 0
     fail_count: int = 0
     warning_count: int = 0
+    total_feature_count: int = 0
+    detected_feature_count: int = 0
+    process_feature_count: int = 0
+    detected_process_feature_count: int = 0
     observed_count: int = 0
     partial_observed_count: int = 0
     unobserved_count: int = 0
@@ -256,22 +359,45 @@ class BendInspectionReport:
 
     def compute_summary(self):
         """Compute summary statistics."""
-        self.total_cad_bends = len(self.matches)
-        self.detected_count = sum(1 for m in self.matches if m.status != "NOT_DETECTED")
-        self.pass_count = sum(1 for m in self.matches if m.status == "PASS")
-        self.fail_count = sum(1 for m in self.matches if m.status == "FAIL")
-        self.warning_count = sum(1 for m in self.matches if m.status == "WARNING")
+        countable_matches = [m for m in self.matches if bool(m.cad_bend.countable_in_regression)]
+        self.total_feature_count = len(self.matches)
+        self.detected_feature_count = sum(1 for m in self.matches if m.status != "NOT_DETECTED")
+        self.process_feature_count = sum(1 for m in self.matches if not bool(m.cad_bend.countable_in_regression))
+        self.detected_process_feature_count = sum(
+            1 for m in self.matches if not bool(m.cad_bend.countable_in_regression) and m.status != "NOT_DETECTED"
+        )
+        self.total_cad_bends = len(countable_matches)
+        self.detected_count = sum(1 for m in countable_matches if m.status != "NOT_DETECTED")
+        self.pass_count = sum(1 for m in countable_matches if m.status == "PASS")
+        self.fail_count = sum(1 for m in countable_matches if m.status == "FAIL")
+        self.warning_count = sum(1 for m in countable_matches if m.status == "WARNING")
         self.observed_count = sum(
             1
-            for m in self.matches
-            if str(m.observability_state).upper() in {"OBSERVED_FORMED", "OBSERVED_NOT_FORMED"}
-            or (str(m.status).upper() in {"PASS", "FAIL", "WARNING"} and str(m.observability_state).upper() == "UNOBSERVED")
+            for m in countable_matches
+            if is_explicit_observability_evidence(
+                m.observability_state,
+                physical_completion_state=m.physical_completion_state,
+                status=m.status,
+            )
         )
-        self.partial_observed_count = sum(1 for m in self.matches if str(m.observability_state).upper() == "PARTIALLY_OBSERVED")
+        self.partial_observed_count = sum(
+            1
+            for m in countable_matches
+            if normalize_observability_state(
+                m.observability_state,
+                physical_completion_state=m.physical_completion_state,
+                status=m.status,
+            ) == "UNKNOWN"
+            and str(m.status).upper() != "NOT_DETECTED"
+        )
         self.unobserved_count = sum(
             1
-            for m in self.matches
-            if str(m.observability_state).upper() == "UNOBSERVED"
+            for m in countable_matches
+            if normalize_observability_state(
+                m.observability_state,
+                physical_completion_state=m.physical_completion_state,
+                status=m.status,
+            ) == "UNKNOWN"
             and str(m.status).upper() == "NOT_DETECTED"
         )
 
@@ -298,7 +424,9 @@ class BendInspectionReport:
             "part_id": self.part_id,
             "summary": {
                 "total_bends": self.total_cad_bends,
+                "countable_total_bends": self.total_cad_bends,
                 "detected": self.detected_count,
+                "countable_completed_bends": self.detected_count,
                 "passed": self.pass_count,
                 "failed": self.fail_count,
                 "warnings": self.warning_count,
@@ -310,10 +438,15 @@ class BendInspectionReport:
                 "observed_bends": self.observed_count,
                 "partially_observed_bends": self.partial_observed_count,
                 "unobserved_bends": self.unobserved_count,
+                "total_features": self.total_feature_count,
+                "detected_features": self.detected_feature_count,
+                "process_features": self.process_feature_count,
+                "detected_process_features": self.detected_process_feature_count,
             },
             "matches": [m.to_dict() for m in self.matches],
             "unmatched_detections": [d.to_dict() for d in self.unmatched_detections],
             "scan_quality": self.scan_quality,
+            "alignment": getattr(self, "alignment_metadata", None) or {},
             "operator_actions": concise_actions[:8],
             "processing_time_ms": round(self.processing_time_ms, 1),
         }
@@ -1363,18 +1496,34 @@ class BendDetector:
     ) -> Tuple[np.ndarray, np.ndarray]:
         """
         Find the start and end points of the bend line.
+
+        Only uses boundary points that are close to the bend line
+        (within a reasonable perpendicular distance) to avoid
+        extending the line far beyond the actual bend region.
         """
-        # Project all boundary points onto the bend line
         all_boundary = np.vstack([plane1.boundary_points, plane2.boundary_points])
 
-        # Project onto bend line: t = (p - bend_point) · direction
-        projections = np.dot(all_boundary - bend_point, bend_direction)
+        # Compute perpendicular distance of each point to the bend line
+        offsets = all_boundary - bend_point
+        axial = np.dot(offsets, bend_direction).reshape(-1, 1) * bend_direction
+        perp = offsets - axial
+        perp_dists = np.linalg.norm(perp, axis=1)
 
-        t_min, t_max = np.min(projections), np.max(projections)
+        # Only use points within a reasonable distance of the bend line.
+        # Use the median perpendicular distance as a reference — points
+        # close to the bend line define its extent, not distant flange edges.
+        median_perp = float(np.median(perp_dists)) if len(perp_dists) > 0 else 10.0
+        max_perp = max(5.0, median_perp * 2.5)
+        near_mask = perp_dists <= max_perp
 
-        # Add small margin
+        if np.sum(near_mask) < 4:
+            # Fallback: use all points if too few are near the line
+            near_mask = np.ones(len(all_boundary), dtype=bool)
+
+        projections = np.dot(offsets[near_mask], bend_direction)
+        t_min, t_max = float(np.min(projections)), float(np.max(projections))
+
         margin = 0.05 * (t_max - t_min)
-
         bend_start = bend_point + (t_min - margin) * bend_direction
         bend_end = bend_point + (t_max + margin) * bend_direction
 
@@ -1806,6 +1955,32 @@ class ProgressiveBendMatcher:
             center_dev=line_metrics["center_dev"],
             arc_dev=arc_dev,
         )
+
+        # Edge-to-edge flange distance for Bender's View
+        meas_edge_dist = meas_tip1 = meas_tip2 = None
+        exp_edge_dist = exp_tip1 = exp_tip2 = None
+        edge_dist_dev = None
+        try:
+            if (detected.flange1.boundary_points is not None and len(detected.flange1.boundary_points) >= 3 and
+                detected.flange2.boundary_points is not None and len(detected.flange2.boundary_points) >= 3):
+                meas_edge_dist, meas_tip1, meas_tip2 = compute_edge_to_edge_distance(
+                    detected.bend_line_start, detected.bend_line_end,
+                    detected.flange1.boundary_points, detected.flange2.boundary_points,
+                )
+        except Exception:
+            pass
+        try:
+            if (cad_bend.flange1_boundary is not None and len(cad_bend.flange1_boundary) >= 3 and
+                cad_bend.flange2_boundary is not None and len(cad_bend.flange2_boundary) >= 3):
+                exp_edge_dist, exp_tip1, exp_tip2 = compute_edge_to_edge_distance(
+                    cad_bend.bend_line_start, cad_bend.bend_line_end,
+                    cad_bend.flange1_boundary, cad_bend.flange2_boundary,
+                )
+        except Exception:
+            pass
+        if meas_edge_dist is not None and exp_edge_dist is not None:
+            edge_dist_dev = meas_edge_dist - exp_edge_dist
+
         return BendMatch(
             cad_bend=cad_bend,
             detected_bend=detected,
@@ -1846,6 +2021,13 @@ class ProgressiveBendMatcher:
             measurement_mode="global_detection",
             measurement_method="detected_bend_match",
             measurement_context={},
+            expected_edge_distance_mm=exp_edge_dist,
+            measured_edge_distance_mm=meas_edge_dist,
+            edge_distance_deviation_mm=edge_dist_dev,
+            measured_edge_tip1=meas_tip1,
+            measured_edge_tip2=meas_tip2,
+            expected_edge_tip1=exp_tip1,
+            expected_edge_tip2=exp_tip2,
         )
 
     def _should_use_position_cost(
@@ -2180,6 +2362,10 @@ class CADBendExtractor:
                 tolerance_radius=self.default_tolerance_radius,
                 flange1_normal=d.flange1.normal,
                 flange2_normal=d.flange2.normal,
+                flange1_boundary=d.flange1.boundary_points if len(d.flange1.boundary_points) > 0 else None,
+                flange2_boundary=d.flange2.boundary_points if len(d.flange2.boundary_points) > 0 else None,
+                flange1_centroid=d.flange1.centroid,
+                flange2_centroid=d.flange2.centroid,
                 flange1_area=d.flange1.area,
                 flange2_area=d.flange2.area,
                 bend_form=bend_form,

@@ -48,7 +48,8 @@ def test_build_not_detected_match_supports_observability_fields():
         matcher=matcher,
         action_item="Observed but still flat",
         physical_completion_state="NOT_FORMED",
-        observability_state="OBSERVED_NOT_FORMED",
+        observability_state="UNFORMED",
+        observability_detail_state="OBSERVED_NOT_FORMED",
         observability_confidence=0.72,
         visibility_score=0.58,
         visibility_score_source="heuristic_local_visibility_v0",
@@ -65,7 +66,8 @@ def test_build_not_detected_match_supports_observability_fields():
         measurement_context={"search_radius_mm": 35.0},
     )
 
-    assert match.observability_state == "OBSERVED_NOT_FORMED"
+    assert match.observability_state == "UNFORMED"
+    assert match.observability_detail_state == "OBSERVED_NOT_FORMED"
     assert match.physical_completion_state == "NOT_FORMED"
     assert match.visibility_score == 0.58
     assert match.surface_visibility_ratio == 1.0
@@ -86,10 +88,147 @@ def test_local_measurement_observability_classifies_flat_state():
         "cad_alignment2": 0.98,
     }
     obs = pipeline._local_measurement_observability(measurement, cad_angle=90.0)
-    assert obs["state"] == "OBSERVED_NOT_FORMED"
+    assert obs["state"] == "UNFORMED"
+    assert obs["detail_state"] == "OBSERVED_NOT_FORMED"
     assert obs["observed_surface_count"] == 2
     assert 0.0 <= obs["visibility_score"] <= 1.0
     assert obs["surface_visibility_ratio"] == 1.0
+
+
+def test_local_measurement_observability_requires_trusted_parent_frame_for_partial_section_formed():
+    measurement = {
+        "success": True,
+        "measured_angle": 92.0,
+        "aggregate_angle_deg": 92.0,
+        "measurement_method": "parent_frame_profile_section",
+        "measurement_confidence": "medium",
+        "slice_count": 6,
+        "planned_slice_count": 7,
+        "effective_slice_count": 5.2,
+        "angle_dispersion_deg": 1.8,
+        "side1_points": 72,
+        "side2_points": 70,
+        "expected_zone_visible": True,
+        "visible_span_ratio": 0.62,
+    }
+
+    unknown_obs = pipeline._local_measurement_observability(
+        measurement,
+        cad_angle=90.0,
+        scan_state="partial",
+        alignment_metadata={
+            "alignment_source": "GLOBAL_ICP",
+            "alignment_confidence": 0.95,
+            "alignment_abstained": False,
+        },
+    )
+    assert unknown_obs["state"] == "UNKNOWN"
+
+    formed_obs = pipeline._local_measurement_observability(
+        measurement,
+        cad_angle=90.0,
+        scan_state="partial",
+        alignment_metadata={
+            "alignment_source": "PLANE_DATUM_REFINEMENT",
+            "alignment_confidence": 0.9,
+            "alignment_abstained": False,
+        },
+    )
+    assert formed_obs["state"] == "FORMED"
+    assert formed_obs["detail_state"] == "OBSERVED_FORMED"
+    assert formed_obs["visibility_score_source"] == "parent_frame_profile_section_v2"
+
+
+def test_local_measurement_observability_uses_parent_frame_slices_for_unformed_partial():
+    measurement = {
+        "success": True,
+        "measured_angle": 178.5,
+        "aggregate_angle_deg": 178.5,
+        "measurement_method": "parent_frame_profile_section",
+        "measurement_confidence": "medium",
+        "slice_count": 6,
+        "planned_slice_count": 7,
+        "effective_slice_count": 5.0,
+        "angle_dispersion_deg": 1.2,
+        "side1_points": 64,
+        "side2_points": 63,
+        "expected_zone_visible": True,
+        "visible_span_ratio": 0.71,
+    }
+
+    obs = pipeline._local_measurement_observability(
+        measurement,
+        cad_angle=90.0,
+        scan_state="partial",
+        alignment_metadata={
+            "alignment_source": "PLANE_DATUM_REFINEMENT",
+            "alignment_confidence": 0.88,
+            "alignment_abstained": False,
+        },
+    )
+
+    assert obs["state"] == "UNFORMED"
+    assert obs["detail_state"] == "OBSERVED_NOT_FORMED"
+
+
+def test_local_measurement_observability_keeps_partial_section_unknown_when_visible_span_is_weak():
+    measurement = {
+        "success": True,
+        "measured_angle": 92.0,
+        "aggregate_angle_deg": 92.0,
+        "measurement_method": "parent_frame_profile_section",
+        "measurement_confidence": "medium",
+        "slice_count": 6,
+        "planned_slice_count": 7,
+        "effective_slice_count": 5.1,
+        "angle_dispersion_deg": 1.5,
+        "side1_points": 68,
+        "side2_points": 66,
+        "expected_zone_visible": False,
+        "visible_span_ratio": 0.22,
+    }
+
+    obs = pipeline._local_measurement_observability(
+        measurement,
+        cad_angle=90.0,
+        scan_state="partial",
+        alignment_metadata={
+            "alignment_source": "PLANE_DATUM_REFINEMENT",
+            "alignment_confidence": 0.88,
+            "alignment_abstained": False,
+        },
+    )
+
+    assert obs["state"] == "UNKNOWN"
+    assert obs["detail_state"] == "PARTIALLY_OBSERVED"
+
+
+def test_local_measurement_observability_blocks_weak_profile_section_promotion_on_partial_without_parent_frame():
+    measurement = {
+        "success": True,
+        "measured_angle": 11.8,
+        "measurement_method": "profile_section",
+        "measurement_confidence": "medium",
+        "point_count": 0,
+        "side1_points": 4279,
+        "side2_points": 292,
+        "cad_alignment1": 0.997,
+        "cad_alignment2": 1.0,
+    }
+
+    obs = pipeline._local_measurement_observability(
+        measurement,
+        cad_angle=12.0,
+        scan_state="partial",
+        alignment_metadata={
+            "alignment_source": "GLOBAL_ICP",
+            "alignment_confidence": 0.87,
+            "alignment_abstained": False,
+        },
+    )
+
+    assert obs["state"] == "UNKNOWN"
+    assert obs["detail_state"] == "PARTIALLY_OBSERVED"
 
 
 def test_build_local_assignment_candidates_includes_null_and_preferred_measurement():
@@ -138,6 +277,173 @@ def test_build_local_assignment_candidates_includes_null_and_preferred_measureme
     assert selected["assignment_score"] > 0.0
 
 
+def test_build_local_assignment_candidates_prefers_candidate_measured_angle_over_source_cad_angle():
+    cad_bend = BendSpecification(
+        bend_id="B1",
+        target_angle=120.0,
+        target_radius=2.0,
+        bend_line_start=np.array([0.0, 0.0, 0.0]),
+        bend_line_end=np.array([20.0, 0.0, 0.0]),
+        flange1_normal=np.array([0.0, 1.0, 0.0]),
+        flange2_normal=np.array([0.0, 0.0, 1.0]),
+    )
+    base_entry = {
+        "cad_angle": 120.0,
+        "cad_bend_dict": {
+            "bend_center": np.array([10.0, 0.0, 0.0]),
+            "bend_direction": np.array([1.0, 0.0, 0.0]),
+            "surface1_normal": np.array([0.0, 1.0, 0.0]),
+            "surface2_normal": np.array([0.0, 0.0, 1.0]),
+        },
+    }
+    near_target = {
+        **base_entry,
+        "center": np.array([10.0, 1.0, 0.0]),
+        "measurement": {
+            "success": True,
+            "measured_angle": 119.2,
+            "measurement_confidence": "high",
+            "point_count": 48,
+            "side1_points": 24,
+            "side2_points": 24,
+            "cad_alignment1": 0.98,
+            "cad_alignment2": 0.98,
+            "measurement_method": "surface_classification",
+        },
+        "observability": {
+            "state": "FORMED",
+            "visibility_score": 0.9,
+            "evidence_score": 0.9,
+        },
+    }
+    farther_angle = {
+        **base_entry,
+        "center": np.array([10.0, 0.2, 0.0]),
+        "measurement": {
+            "success": True,
+            "measured_angle": 127.9,
+            "measurement_confidence": "high",
+            "point_count": 48,
+            "side1_points": 24,
+            "side2_points": 24,
+            "cad_alignment1": 0.98,
+            "cad_alignment2": 0.98,
+            "measurement_method": "surface_classification",
+        },
+        "observability": {
+            "state": "FORMED",
+            "visibility_score": 0.9,
+            "evidence_score": 0.9,
+        },
+    }
+
+    candidates, selected = pipeline._build_local_assignment_candidates(
+        cad_bend,
+        [farther_angle, near_target],
+    )
+
+    measured_candidates = [c for c in candidates if c["candidate_kind"] == "MEASUREMENT"]
+    assert len(measured_candidates) == 2
+    by_index = {c["measurement_index"]: c for c in measured_candidates}
+    assert by_index[0]["cad_angle_gap_deg"] > by_index[1]["cad_angle_gap_deg"]
+    assert by_index[0]["assignment_score"] < by_index[1]["assignment_score"]
+    assert selected["candidate_kind"] == "NULL"
+
+
+def test_local_assignment_entry_angle_prefers_measured_angle_then_cad_angle():
+    assert pipeline._local_assignment_entry_angle(
+        {
+            "cad_angle": 120.0,
+            "measurement": {
+                "aggregate_angle_deg": 119.4,
+                "measured_angle": 122.0,
+            },
+        }
+    ) == 119.4
+    assert pipeline._local_assignment_entry_angle(
+        {
+            "cad_angle": 120.0,
+            "measurement": {
+                "measured_angle": 121.2,
+            },
+        }
+    ) == 121.2
+    assert pipeline._local_assignment_entry_angle(
+        {
+            "cad_angle": 120.0,
+            "measurement": {},
+        }
+    ) == 120.0
+
+
+def test_allow_probe_region_implausible_completion_accepts_strong_partial_probe_support():
+    cad_bend = BendSpecification(
+        bend_id="CAD_B12",
+        target_angle=90.0,
+        target_radius=2.0,
+        bend_line_start=np.array([0.0, 0.0, 0.0]),
+        bend_line_end=np.array([10.0, 0.0, 0.0]),
+    )
+    allowed = pipeline._allow_probe_region_implausible_completion(
+        measurement={
+            "success": True,
+            "measured_angle": 179.8,
+            "measurement_method": "probe_region",
+        },
+        cad_bend=cad_bend,
+        observability={
+            "observed_surface_count": 2,
+            "surface_visibility_ratio": 1.0,
+            "local_support_score": 1.0,
+            "side_balance_score": 0.149,
+        },
+        selected_candidate={"assignment_score": 0.6791},
+        null_assignment_score=0.1916,
+        scan_state="partial",
+        alignment_metadata={
+            "alignment_source": "GLOBAL_ICP",
+            "alignment_confidence": 0.72,
+            "alignment_abstained": False,
+        },
+    )
+
+    assert allowed is True
+
+
+def test_allow_probe_region_implausible_completion_rejects_unbalanced_probe_support():
+    cad_bend = BendSpecification(
+        bend_id="CAD_B4",
+        target_angle=90.0,
+        target_radius=2.0,
+        bend_line_start=np.array([0.0, 0.0, 0.0]),
+        bend_line_end=np.array([10.0, 0.0, 0.0]),
+    )
+    allowed = pipeline._allow_probe_region_implausible_completion(
+        measurement={
+            "success": True,
+            "measured_angle": 179.8,
+            "measurement_method": "probe_region",
+        },
+        cad_bend=cad_bend,
+        observability={
+            "observed_surface_count": 2,
+            "surface_visibility_ratio": 1.0,
+            "local_support_score": 1.0,
+            "side_balance_score": 0.078,
+        },
+        selected_candidate={"assignment_score": 0.6797},
+        null_assignment_score=0.05,
+        scan_state="partial",
+        alignment_metadata={
+            "alignment_source": "GLOBAL_ICP",
+            "alignment_confidence": 0.72,
+            "alignment_abstained": False,
+        },
+    )
+
+    assert allowed is False
+
+
 def test_build_not_detected_match_supports_assignment_candidate_fields():
     cad_bend = BendSpecification(
         bend_id="B1",
@@ -164,6 +470,73 @@ def test_build_not_detected_match_supports_assignment_candidate_fields():
     assert match.assignment_candidate_score == 0.77
     assert match.assignment_null_score == 0.77
     assert match.assignment_candidate_count == 3
+
+
+def test_cad_spec_to_measurement_dict_uses_selected_bend_geometry():
+    cad_bend = BendSpecification(
+        bend_id="CAD_B4",
+        target_angle=120.0,
+        target_radius=3.0,
+        bend_line_start=np.array([1.0, 2.0, 3.0]),
+        bend_line_end=np.array([5.0, 2.0, 3.0]),
+        flange1_normal=np.array([0.0, 1.0, 0.0]),
+        flange2_normal=np.array([0.0, 0.0, 1.0]),
+    )
+
+    payload = pipeline._cad_spec_to_measurement_dict(cad_bend, ordinal=4)
+
+    assert payload["bend_id"] == "CAD_B4"
+    assert payload["bend_name"] == "CAD_B4"
+    assert payload["bend_angle"] == 120.0
+    assert np.allclose(payload["bend_center"], np.array([3.0, 2.0, 3.0]))
+    assert np.allclose(payload["bend_direction"], np.array([1.0, 0.0, 0.0]))
+    assert payload["surface1_id"] == -9
+    assert payload["surface2_id"] == -10
+
+
+def test_build_selected_measurement_dicts_preserves_real_surface_ids_when_matched():
+    cad_bend = BendSpecification(
+        bend_id="CAD_B4",
+        target_angle=90.0,
+        target_radius=2.5,
+        bend_line_start=np.array([0.0, 0.0, 0.0]),
+        bend_line_end=np.array([20.0, 0.0, 0.0]),
+        flange1_normal=np.array([0.0, 1.0, 0.0]),
+        flange2_normal=np.array([0.0, 0.0, 1.0]),
+    )
+
+    class _DummyExtractedBend:
+        bend_center = np.array([10.5, 0.0, 0.0], dtype=np.float64)
+        bend_direction = np.array([1.0, 0.0, 0.0], dtype=np.float64)
+        bend_angle = 88.0
+
+        def to_dict(self):
+            return {
+                "bend_id": 1,
+                "bend_name": "B1",
+                "bend_angle": 88.0,
+                "bend_center": [10.5, 0.0, 0.0],
+                "bend_direction": [1.0, 0.0, 0.0],
+                "bend_line_start": [0.0, 0.0, 0.0],
+                "bend_line_end": [20.0, 0.0, 0.0],
+                "surface1_id": 17,
+                "surface2_id": 18,
+                "surface1_normal": [1.0, 0.0, 0.0],
+                "surface2_normal": [0.0, 1.0, 0.0],
+            }
+
+    payloads, matched_count = pipeline._build_selected_measurement_dicts(
+        [cad_bend],
+        [_DummyExtractedBend()],
+    )
+
+    assert matched_count == 1
+    assert len(payloads) == 1
+    assert payloads[0]["bend_id"] == "CAD_B4"
+    assert payloads[0]["bend_angle"] == 90.0
+    assert payloads[0]["surface1_id"] == 17
+    assert payloads[0]["surface2_id"] == 18
+    assert np.allclose(np.asarray(payloads[0]["bend_center"], dtype=np.float64), np.array([10.0, 0.0, 0.0]))
 
 
 def test_load_cad_geometry_step_uses_cad_import(monkeypatch, tmp_path):
@@ -257,6 +630,44 @@ def test_apply_scan_runtime_profile_uses_partial_light_profile_for_mid_size_part
     assert ctor["min_plane_points"] >= 62
     assert ctor["min_plane_area"] >= 35.0
     assert call["voxel_size"] >= 2.25
+    assert call["multiscale"] is False
+
+
+def test_apply_scan_runtime_profile_preserves_medium_partial_fallback_recall():
+    runtime_cfg = pipeline.BendInspectionRuntimeConfig()
+    fallback_ctor, fallback_call = pipeline._fallback_scan_detection_config(runtime_cfg)
+
+    ctor, call, profile = pipeline._apply_scan_runtime_profile(
+        fallback_ctor,
+        fallback_call,
+        368_352,
+        scan_state="partial",
+        fallback=True,
+    )
+
+    assert profile == "partial_scan_medium_fallback"
+    assert ctor["min_plane_points"] <= 36
+    assert ctor["min_plane_area"] <= 20.0
+    assert call["voxel_size"] <= 2.0
+    assert call["multiscale"] is False
+
+
+def test_apply_scan_runtime_profile_preserves_light_partial_fallback_recall_without_multiscale():
+    runtime_cfg = pipeline.BendInspectionRuntimeConfig()
+    fallback_ctor, fallback_call = pipeline._fallback_scan_detection_config(runtime_cfg)
+
+    ctor, call, profile = pipeline._apply_scan_runtime_profile(
+        fallback_ctor,
+        fallback_call,
+        225_000,
+        scan_state="partial",
+        fallback=True,
+    )
+
+    assert profile == "partial_scan_light_fallback"
+    assert ctor["min_plane_points"] <= 35
+    assert ctor["min_plane_area"] <= 20.0
+    assert call["voxel_size"] <= 1.85
     assert call["multiscale"] is False
 
 
@@ -560,7 +971,7 @@ def test_merge_bend_reports_prefers_authoritative_local_absence_for_weak_global_
     )
     primary.compute_summary()
     local_match = _make_match(b1, "NOT_DETECTED")
-    local_match.observability_state = "PARTIALLY_OBSERVED"
+    local_match.observability_state = "UNFORMED"
     local = BendInspectionReport(part_id="PART", matches=[local_match])
     local.compute_summary()
 
@@ -583,6 +994,47 @@ def test_merge_bend_reports_prefers_authoritative_local_absence_for_weak_global_
     assert merged_low_fit.matches[0].status == "PASS"
 
 
+def test_merge_bend_reports_requires_trusted_parent_frame_for_authoritative_local_absence():
+    b1 = _make_spec("B1")
+    primary = BendInspectionReport(
+        part_id="PART",
+        matches=[_make_match(b1, "PASS", angle_deviation=0.4, confidence=0.78)],
+    )
+    primary.compute_summary()
+    local_match = _make_match(b1, "NOT_DETECTED")
+    local_match.observability_state = "UNFORMED"
+    local = BendInspectionReport(part_id="PART", matches=[local_match])
+    local.compute_summary()
+
+    merged_global_only = pipeline.merge_bend_reports(
+        primary,
+        local,
+        part_id="PART",
+        local_alignment_fitness=0.87,
+        local_alignment_metadata={
+            "alignment_source": "GLOBAL_ICP",
+            "alignment_confidence": 0.92,
+            "alignment_abstained": False,
+        },
+    )
+    assert merged_global_only.detected_count == 1
+    assert merged_global_only.matches[0].status == "PASS"
+
+    merged_plane = pipeline.merge_bend_reports(
+        primary,
+        local,
+        part_id="PART",
+        local_alignment_fitness=0.87,
+        local_alignment_metadata={
+            "alignment_source": "PLANE_DATUM_REFINEMENT",
+            "alignment_confidence": 0.92,
+            "alignment_abstained": False,
+        },
+    )
+    assert merged_plane.detected_count == 0
+    assert merged_plane.matches[0].status == "NOT_DETECTED"
+
+
 def test_merge_bend_reports_does_not_treat_unobserved_local_absence_as_authoritative():
     b1 = _make_spec("B1")
     primary = BendInspectionReport(
@@ -591,7 +1043,7 @@ def test_merge_bend_reports_does_not_treat_unobserved_local_absence_as_authorita
     )
     primary.compute_summary()
     local_match = _make_match(b1, "NOT_DETECTED")
-    local_match.observability_state = "UNOBSERVED"
+    local_match.observability_state = "UNKNOWN"
     local = BendInspectionReport(part_id="PART", matches=[local_match])
     local.compute_summary()
 
@@ -604,6 +1056,96 @@ def test_merge_bend_reports_does_not_treat_unobserved_local_absence_as_authorita
 
     assert merged.detected_count == 1
     assert merged.matches[0].status == "PASS"
+
+
+def test_merge_bend_reports_prefers_local_hybrid_verification_over_global_detection():
+    b1 = _make_spec("B1")
+    b1.countable_in_regression = True
+
+    primary_match = _make_match(b1, "FAIL", angle_deviation=13.5, confidence=0.92)
+    primary_match.assignment_source = "GLOBAL_DETECTION"
+    primary_match.measurement_mode = "global_detection"
+    primary = BendInspectionReport(part_id="PART", matches=[primary_match])
+    primary.compute_summary()
+
+    local_match = _make_match(b1, "NOT_DETECTED", confidence=0.2)
+    local_match.assignment_source = "CAD_LOCAL_NEIGHBORHOOD"
+    local_match.measurement_mode = "cad_local_neighborhood"
+    local_match.observability_state = "UNKNOWN"
+    local = BendInspectionReport(part_id="PART", matches=[local_match])
+    local.compute_summary()
+
+    merged = pipeline.merge_bend_reports(
+        primary,
+        local,
+        part_id="PART",
+        feature_policy={"countable_source": "legacy_folded_hybrid"},
+    )
+
+    assert merged.detected_count == 0
+    assert merged.matches[0].status == "NOT_DETECTED"
+
+
+def test_report_short_obtuse_geometry_penalty_prefers_plausible_line_geometry():
+    b1 = _make_spec("B6", angle=120.0)
+    b1.bend_line_end = np.array([53.0, 0.0, 0.0])
+
+    bad_match = _make_match(b1, "FAIL", angle_deviation=7.88, confidence=0.75)
+    bad_match.line_length_deviation_mm = 79.951
+    bad_report = BendInspectionReport(part_id="PART", matches=[bad_match])
+    bad_report.compute_summary()
+
+    good_match = _make_match(b1, "FAIL", angle_deviation=8.58, confidence=0.9)
+    good_match.line_length_deviation_mm = 0.0
+    good_report = BendInspectionReport(part_id="PART", matches=[good_match])
+    good_report.compute_summary()
+
+    assert pipeline._report_short_obtuse_geometry_penalty(good_report) < pipeline._report_short_obtuse_geometry_penalty(bad_report)
+
+
+def test_merge_bend_reports_prefers_local_short_obtuse_geometry_over_bad_global_line_match():
+    b1 = _make_spec("B6", angle=120.0)
+    b1.bend_line_end = np.array([53.0, 0.0, 0.0])
+
+    primary_match = _make_match(b1, "FAIL", angle_deviation=7.88, confidence=0.75)
+    primary_match.assignment_source = "GLOBAL_DETECTION"
+    primary_match.measurement_mode = "global_detection"
+    primary_match.feature_family = "COUNTABLE_DISCRETE_BEND"
+    primary_match.line_length_deviation_mm = 79.951
+
+    local_match = _make_match(b1, "FAIL", angle_deviation=8.58, confidence=0.9)
+    local_match.assignment_source = "CAD_LOCAL_NEIGHBORHOOD"
+    local_match.measurement_mode = "cad_local_neighborhood"
+    local_match.measurement_method = "surface_classification"
+    local_match.feature_family = "COUNTABLE_DISCRETE_BEND"
+    local_match.line_length_deviation_mm = 0.0
+
+    primary = BendInspectionReport(part_id="PART", matches=[primary_match])
+    primary.compute_summary()
+    local = BendInspectionReport(part_id="PART", matches=[local_match])
+    local.compute_summary()
+
+    merged = pipeline.merge_bend_reports(primary, local, part_id="PART")
+
+    assert merged.matches[0].assignment_source == "CAD_LOCAL_NEIGHBORHOOD"
+    assert merged.matches[0].line_length_deviation_mm == 0.0
+
+
+def test_feature_policy_hybrid_parts_always_require_local_refinement():
+    countable = _make_spec("B1")
+    rolled = _make_spec("R1", bend_form="ROLLED")
+    rolled.countable_in_regression = False
+    report = BendInspectionReport(
+        part_id="PART",
+        matches=[_make_match(countable, "PASS"), _make_match(rolled, "PASS")],
+    )
+    report.compute_summary()
+
+    assert pipeline._feature_policy_requires_local_refinement(
+        cad_bends=[rolled, countable],
+        report=report,
+        feature_policy={"countable_source": "legacy_folded_hybrid"},
+    ) is True
 
 
 def test_align_engine_with_retries_keeps_first_good_alignment():
@@ -752,6 +1294,59 @@ def test_choose_mesh_cad_baseline_keeps_detector_without_clear_legacy_advantage(
     assert strategy == "detector_mesh"
 
 
+def test_recover_legacy_mesh_cad_specs_for_expected_only_promotes_material_improvement(monkeypatch):
+    baseline_specs = [_make_spec(f"B{i}") for i in range(9)]
+    improved_specs = [_make_spec(f"R{i}") for i in range(16)]
+    weak_specs = [_make_spec(f"W{i}") for i in range(11)]
+    calls = []
+
+    def _fake_build(*, extractor_overrides=None, **kwargs):
+        calls.append(extractor_overrides)
+        if extractor_overrides == {"min_area_pct": 0.15, "max_bend_gap": 20.0, "dedup_distance": 6.0}:
+            return improved_specs
+        return weak_specs
+
+    monkeypatch.setattr(pipeline, "_build_legacy_mesh_cad_specs", _fake_build)
+
+    recovered, strategy = pipeline._recover_legacy_mesh_cad_specs_for_expected(
+        cad_vertices=np.zeros((10, 3)),
+        cad_triangles=np.zeros((3, 3), dtype=np.int32),
+        tolerance_angle=1.0,
+        tolerance_radius=0.5,
+        expected_bend_count_hint=16,
+        baseline_specs=baseline_specs,
+    )
+
+    assert recovered == improved_specs
+    assert strategy == "legacy_mesh_expected_recovery"
+    assert calls
+
+
+def test_extract_cad_bend_specs_with_strategy_uses_expected_recovery(monkeypatch):
+    detector_specs = [_make_spec(f"D{i}") for i in range(4)]
+    legacy_specs = [_make_spec(f"L{i}") for i in range(9)]
+    recovered_specs = [_make_spec(f"R{i}") for i in range(16)]
+
+    monkeypatch.setattr(pipeline, "_build_detector_cad_specs", lambda **kwargs: detector_specs)
+    monkeypatch.setattr(pipeline, "_build_legacy_mesh_cad_specs", lambda **kwargs: legacy_specs)
+    monkeypatch.setattr(
+        pipeline,
+        "_recover_legacy_mesh_cad_specs_for_expected",
+        lambda **kwargs: (recovered_specs, "legacy_mesh_expected_recovery"),
+    )
+
+    selected, strategy = pipeline.extract_cad_bend_specs_with_strategy(
+        cad_vertices=np.zeros((10, 3)),
+        cad_triangles=np.zeros((3, 3), dtype=np.int32),
+        tolerance_angle=1.0,
+        tolerance_radius=0.5,
+        expected_bend_count_hint=16,
+    )
+
+    assert selected == recovered_specs
+    assert strategy == "legacy_mesh_expected_recovery"
+
+
 def test_run_progressive_bend_inspection_passes_expected_hint_to_strategy(monkeypatch, tmp_path):
     override_path = tmp_path / "overrides.json"
     override_path.write_text(
@@ -880,6 +1475,41 @@ def test_detect_and_match_with_fallback_skips_dense_global_fallback(monkeypatch)
     assert seen_calls[0]["voxel_size"] >= 2.0
 
 
+def test_detect_and_match_with_fallback_skips_zero_detection_partial_fallback(monkeypatch):
+    seen_calls = []
+    cad_bends = [_make_spec("B1"), _make_spec("B2")]
+
+    def _fake_detect_scan_bends(**kwargs):
+        seen_calls.append(kwargs["scan_detect_call_kwargs"])
+        return []
+
+    monkeypatch.setattr(pipeline, "detect_scan_bends", _fake_detect_scan_bends)
+    monkeypatch.setattr(
+        pipeline,
+        "match_detected_bends",
+        lambda **kwargs: BendInspectionReport(
+            part_id="PART",
+            matches=[
+                BendMatch(cad_bend=cad_bends[0], detected_bend=None, status="NOT_DETECTED"),
+                BendMatch(cad_bend=cad_bends[1], detected_bend=None, status="NOT_DETECTED"),
+            ],
+        ),
+    )
+
+    runtime_cfg = pipeline.BendInspectionRuntimeConfig()
+    _, _, fallback_used = pipeline.detect_and_match_with_fallback(
+        scan_points=np.zeros((224_829, 3)),
+        cad_bends=cad_bends,
+        part_id="PART",
+        runtime_config=runtime_cfg,
+        expected_bend_count=7,
+        scan_state="partial",
+    )
+
+    assert fallback_used is False
+    assert len(seen_calls) == 1
+
+
 def test_run_progressive_bend_inspection_uses_dense_local_refinement(monkeypatch):
     cad_bends = [_make_spec("B1"), _make_spec("B2")]
     weak_report = BendInspectionReport(
@@ -931,6 +1561,87 @@ def test_run_progressive_bend_inspection_uses_dense_local_refinement(monkeypatch
     assert details.scan_bend_count == 2
     assert any("Dense-scan local refinement used CAD-guided ICP alignment" in w for w in details.warnings)
     assert any("Dense-scan local refinement promoted over primary global detection" in w for w in details.warnings)
+
+
+def test_run_progressive_bend_inspection_accepts_tied_merge_when_short_obtuse_geometry_improves(monkeypatch):
+    cad_bends = [_make_spec("B6", angle=120.0)]
+    cad_bends[0].bend_line_end = np.array([53.0, 0.0, 0.0])
+
+    primary_match = _make_match(cad_bends[0], "FAIL", angle_deviation=7.88, confidence=0.75)
+    primary_match.assignment_source = "GLOBAL_DETECTION"
+    primary_match.measurement_mode = "global_detection"
+    primary_match.feature_family = "COUNTABLE_DISCRETE_BEND"
+    primary_match.line_length_deviation_mm = 79.951
+    primary_report = BendInspectionReport(part_id="PART", matches=[primary_match])
+    primary_report.compute_summary()
+
+    local_match = _make_match(cad_bends[0], "FAIL", angle_deviation=8.58, confidence=0.9)
+    local_match.assignment_source = "CAD_LOCAL_NEIGHBORHOOD"
+    local_match.measurement_mode = "cad_local_neighborhood"
+    local_match.measurement_method = "surface_classification"
+    local_match.feature_family = "COUNTABLE_DISCRETE_BEND"
+    local_match.line_length_deviation_mm = 0.0
+    local_report = BendInspectionReport(part_id="PART", matches=[local_match])
+    local_report.compute_summary()
+
+    merged_match = _make_match(cad_bends[0], "FAIL", angle_deviation=8.58, confidence=0.9)
+    merged_match.assignment_source = "CAD_LOCAL_NEIGHBORHOOD"
+    merged_match.measurement_mode = "cad_local_neighborhood"
+    merged_match.measurement_method = "surface_classification"
+    merged_match.feature_family = "COUNTABLE_DISCRETE_BEND"
+    merged_match.line_length_deviation_mm = 0.0
+    merged_report = BendInspectionReport(part_id="PART", matches=[merged_match])
+    merged_report.compute_summary()
+
+    monkeypatch.setattr(
+        pipeline,
+        "load_cad_geometry",
+        lambda cad_path, cad_import_deflection=0.05: (np.zeros((20, 3)), np.array([[0, 1, 2]]), "mock"),
+    )
+    monkeypatch.setattr(
+        pipeline,
+        "extract_cad_bend_specs_with_strategy",
+        lambda **kwargs: (cad_bends, "legacy_mesh_expected_hint"),
+    )
+    monkeypatch.setattr(
+        pipeline,
+        "load_scan_points",
+        lambda scan_path: np.zeros((600_000, 3)),
+    )
+    monkeypatch.setattr(
+        pipeline,
+        "detect_and_match_with_fallback",
+        lambda **kwargs: (primary_report, 1, False),
+    )
+    monkeypatch.setattr(
+        pipeline,
+        "_dense_scan_requires_local_refinement",
+        lambda **kwargs: True,
+    )
+    monkeypatch.setattr(
+        pipeline,
+        "refine_dense_scan_bends_via_alignment",
+        lambda **kwargs: (local_report, ["Dense-scan local refinement used CAD-guided ICP alignment (voxel=1.50mm, fitness=90.00%, rmse=1.000mm)"]),
+    )
+    monkeypatch.setattr(
+        pipeline,
+        "merge_bend_reports",
+        lambda *args, **kwargs: merged_report,
+    )
+
+    report, details = pipeline.run_progressive_bend_inspection(
+        cad_path="/tmp/cad.stp",
+        scan_path="/tmp/scan.ply",
+        part_id="PART",
+        tolerance_angle=1.0,
+        tolerance_radius=0.5,
+        expected_bend_override=1,
+        scan_state="full",
+    )
+
+    assert report.matches[0].assignment_source == "CAD_LOCAL_NEIGHBORHOOD"
+    assert report.matches[0].line_length_deviation_mm == 0.0
+    assert any("short-obtuse geometry plausibility" in w for w in details.warnings)
 
 
 def test_run_progressive_bend_inspection_applies_explicit_expected_bend_override(monkeypatch):
@@ -990,6 +1701,74 @@ def test_run_progressive_bend_inspection_applies_explicit_expected_bend_override
     assert any("Expected bend override applied for PART: CAD=3 expected=2" in w for w in details.warnings)
 
 
+def test_run_progressive_bend_inspection_applies_part_feature_policy(monkeypatch):
+    cad_bends = [
+        _make_spec("R1", angle=140.0),
+        _make_spec("R2", angle=141.0),
+    ]
+    for bend in cad_bends:
+        bend.bend_form = "ROLLED"
+
+    monkeypatch.setattr(
+        pipeline,
+        "load_cad_geometry",
+        lambda cad_path, cad_import_deflection=0.05: (np.zeros((20, 3)), np.array([[0, 1, 2]]), "mock"),
+    )
+    monkeypatch.setattr(pipeline, "load_expected_bend_overrides", lambda: {})
+    monkeypatch.setattr(
+        pipeline,
+        "load_part_feature_policies",
+        lambda: {
+            "PART": {
+                "non_counting_feature_forms": ["ROLLED"],
+                "rolled_feature_type": "ROLLED_SECTION",
+            }
+        },
+    )
+    monkeypatch.setattr(
+        pipeline,
+        "extract_cad_bend_specs_with_strategy",
+        lambda **kwargs: (cad_bends, "detector_mesh"),
+    )
+    monkeypatch.setattr(pipeline, "load_scan_points", lambda scan_path: np.zeros((5_000, 3)))
+
+    def _fake_detect_and_match_with_fallback(**kwargs):
+        report = BendInspectionReport(
+            part_id="PART",
+            matches=[
+                BendMatch(cad_bend=kwargs["cad_bends"][0], detected_bend=None, status="PASS"),
+                BendMatch(cad_bend=kwargs["cad_bends"][1], detected_bend=None, status="PASS"),
+            ],
+        )
+        report.compute_summary()
+        return report, 2, False
+
+    monkeypatch.setattr(pipeline, "detect_and_match_with_fallback", _fake_detect_and_match_with_fallback)
+    monkeypatch.setattr(pipeline, "_dense_scan_requires_local_refinement", lambda *args, **kwargs: False)
+    monkeypatch.setattr(
+        pipeline,
+        "estimate_scan_quality",
+        lambda **kwargs: {"status": "GOOD", "coverage_pct": 80.0, "density_pts_per_cm2": 10.0},
+    )
+
+    report, details = pipeline.run_progressive_bend_inspection(
+        cad_path="/tmp/cad.stp",
+        scan_path="/tmp/scan.ply",
+        part_id="PART",
+        tolerance_angle=1.0,
+        tolerance_radius=0.5,
+        expected_bend_override=2,
+        scan_state="partial",
+    )
+
+    assert report.detected_count == 0
+    assert report.total_cad_bends == 0
+    assert report.to_dict()["summary"]["detected_process_features"] == 2
+    assert all(match.cad_bend.countable_in_regression is False for match in report.matches)
+    assert all(match.cad_bend.feature_type == "ROLLED_SECTION" for match in report.matches)
+    assert any("Applied part feature policy for PART" in w for w in details.warnings)
+
+
 def test_dense_scan_requires_local_refinement_for_near_complete_gap():
     cad_bends = [_make_spec("B1"), _make_spec("B2"), _make_spec("B3"), _make_spec("B4"), _make_spec("B5"), _make_spec("B6"), _make_spec("B7")]
     report = BendInspectionReport(
@@ -1009,7 +1788,7 @@ def test_dense_scan_requires_local_refinement_for_near_complete_gap():
     assert pipeline._dense_scan_requires_local_refinement(np.zeros((600_000, 3)), report, 7) is True
 
 
-def test_dense_scan_requires_local_refinement_for_medium_partial_under_recovery():
+def test_dense_scan_skips_local_refinement_for_medium_partial_under_recovery():
     cad_bends = [_make_spec(f"B{i}") for i in range(1, 9)]
     matches = []
     for idx, bend in enumerate(cad_bends):
@@ -1023,7 +1802,43 @@ def test_dense_scan_requires_local_refinement_for_medium_partial_under_recovery(
         report,
         8,
         scan_state="partial",
+    ) is False
+
+
+def test_dense_scan_requires_local_refinement_for_large_partial_severe_under_recovery():
+    cad_bends = [_make_spec(f"B{i}") for i in range(1, 17)]
+    matches = []
+    for idx, bend in enumerate(cad_bends):
+        status = "FAIL" if idx < 3 else "NOT_DETECTED"
+        matches.append(BendMatch(cad_bend=bend, detected_bend=None, status=status))
+    report = BendInspectionReport(part_id="PART", matches=matches)
+    report.compute_summary()
+
+    assert pipeline._dense_scan_requires_local_refinement(
+        np.zeros((391_613, 3)),
+        report,
+        16,
+        scan_state="partial",
     ) is True
+
+
+def test_dense_scan_requires_local_refinement_for_medium_full_severe_under_recovery():
+    cad_bends = [_make_spec(f"B{i}") for i in range(1, 17)]
+    matches = []
+    for idx, bend in enumerate(cad_bends):
+        status = "PASS" if idx < 10 else "NOT_DETECTED"
+        matches.append(BendMatch(cad_bend=bend, detected_bend=None, status=status))
+    report = BendInspectionReport(part_id="PART", matches=matches)
+    report.compute_summary()
+
+    assert pipeline._dense_scan_requires_local_refinement(
+        np.zeros((473_764, 3)),
+        report,
+        16,
+        scan_state="full",
+    ) is True
+
+
 
 
 def test_choose_mesh_cad_baseline_prefers_spec_hint_when_coverage_equal_but_count_gap_smaller():
@@ -1064,6 +1879,332 @@ def test_choose_mesh_cad_baseline_prefers_spec_hint_when_matches_improve():
 
     assert strategy == "detector_mesh_spec_hint"
     assert len(selected) == 2
+
+
+def test_choose_mesh_cad_baseline_builds_hybrid_for_rolled_shell_policy():
+    rolled_1 = _make_spec("R1", angle=140.0)
+    rolled_1.bend_form = "ROLLED"
+    rolled_2 = _make_spec("R2", angle=142.0)
+    rolled_2.bend_form = "ROLLED"
+
+    folded_a = _make_spec("L1", angle=88.0)
+    folded_a.flange1_area = 80.0
+    folded_a.flange2_area = 1200.0
+    folded_a.bend_line_end = np.array([0.0, 30.0, 0.0])
+
+    folded_b = _make_spec("L2", angle=92.0)
+    folded_b.flange1_area = 90.0
+    folded_b.flange2_area = 1100.0
+    folded_b.bend_line_start = np.array([25.0, 0.0, 0.0])
+    folded_b.bend_line_end = np.array([25.0, 30.0, 0.0])
+
+    pseudo = _make_spec("L3", angle=40.0)
+    pseudo.flange1_area = 800.0
+    pseudo.flange2_area = 900.0
+    pseudo.bend_line_end = np.array([0.0, 8.0, 0.0])
+
+    selected, strategy = pipeline._choose_mesh_cad_baseline_specs(
+        detector_specs=[rolled_1, rolled_2],
+        legacy_specs=[folded_a, folded_b, pseudo],
+        expected_bend_count_hint=2,
+        feature_policy={
+            "non_counting_feature_forms": ["ROLLED"],
+            "rolled_feature_type": "ROLLED_SECTION",
+            "countable_source": "legacy_folded_hybrid",
+        },
+    )
+
+    assert strategy == "feature_policy_rolled_hybrid"
+    assert len(selected) == 4
+    assert sum(1 for spec in selected if spec.countable_in_regression) == 2
+    assert sum(1 for spec in selected if not spec.countable_in_regression) == 2
+    assert all(spec.feature_type == "ROLLED_SECTION" for spec in selected[:2])
+    assert all(spec.feature_type == "DISCRETE_BEND" for spec in selected[2:])
+
+
+def test_choose_mesh_cad_baseline_hybrid_uses_angle_hints_instead_of_default_90_bias():
+    rolled_1 = _make_spec("R1", angle=140.0)
+    rolled_1.bend_form = "ROLLED"
+    rolled_2 = _make_spec("R2", angle=142.0)
+    rolled_2.bend_form = "ROLLED"
+
+    folded_90_a = _make_spec("L1", angle=88.0)
+    folded_90_a.flange1_area = 80.0
+    folded_90_a.flange2_area = 1200.0
+    folded_90_a.bend_line_end = np.array([0.0, 30.0, 0.0])
+
+    folded_90_b = _make_spec("L2", angle=92.0)
+    folded_90_b.flange1_area = 90.0
+    folded_90_b.flange2_area = 1100.0
+    folded_90_b.bend_line_start = np.array([25.0, 0.0, 0.0])
+    folded_90_b.bend_line_end = np.array([25.0, 30.0, 0.0])
+
+    hinted_a = _make_spec("L3", angle=155.0)
+    hinted_a.flange1_area = 82.0
+    hinted_a.flange2_area = 1110.0
+    hinted_a.bend_line_start = np.array([0.0, 0.0, 0.0])
+    hinted_a.bend_line_end = np.array([0.0, 30.0, 0.0])
+
+    hinted_b = _make_spec("L4", angle=157.55)
+    hinted_b.flange1_area = 84.0
+    hinted_b.flange2_area = 1090.0
+    hinted_b.bend_line_start = np.array([25.0, 0.0, 0.0])
+    hinted_b.bend_line_end = np.array([25.0, 30.0, 0.0])
+
+    selected, strategy = pipeline._choose_mesh_cad_baseline_specs(
+        detector_specs=[rolled_1, rolled_2],
+        legacy_specs=[folded_90_a, folded_90_b, hinted_a, hinted_b],
+        expected_bend_count_hint=2,
+        spec_bend_angles_hint=[25.0, 22.45],
+        feature_policy={
+            "non_counting_feature_forms": ["ROLLED"],
+            "rolled_feature_type": "ROLLED_SECTION",
+            "countable_source": "legacy_folded_hybrid",
+        },
+    )
+
+    assert strategy == "feature_policy_rolled_hybrid"
+    countable = [spec for spec in selected if spec.countable_in_regression]
+    assert len(countable) == 2
+    assert sorted(round(float(spec.target_angle), 2) for spec in countable) == [155.0, 157.55]
+
+
+def test_choose_mesh_cad_baseline_hybrid_uses_family_selector_for_rolled_shell_with_two_flange_bends():
+    rolled_1 = _make_spec("R1", angle=140.0, bend_form="ROLLED")
+    rolled_1.bend_line_start = np.array([0.0, 0.0, -40.0])
+    rolled_1.bend_line_end = np.array([0.0, 0.0, 40.0])
+    rolled_2 = _make_spec("R2", angle=142.0, bend_form="ROLLED")
+    rolled_2.bend_line_start = np.array([10.0, 0.0, -40.0])
+    rolled_2.bend_line_end = np.array([10.0, 0.0, 40.0])
+
+    upper_short = _make_spec("L_upper", angle=90.0)
+    upper_short.bend_line_start = np.array([-20.0, 54.0, -8.0])
+    upper_short.bend_line_end = np.array([-34.0, 16.0, -8.0])
+    upper_short.flange1_area = 36.0
+    upper_short.flange2_area = 50.0
+    upper_short.flange1_normal = np.array([0.0, 0.0, 1.0])
+    upper_short.flange2_normal = np.array([1.0, 0.0, 0.0])
+
+    upper_wrong_deep = _make_spec("L_wrong_short", angle=90.0)
+    upper_wrong_deep.bend_line_start = np.array([-25.0, 26.0, -97.0])
+    upper_wrong_deep.bend_line_end = np.array([-25.0, 26.0, -57.0])
+    upper_wrong_deep.flange1_area = 140.0
+    upper_wrong_deep.flange2_area = 775.0
+    upper_wrong_deep.flange1_normal = np.array([0.0, 0.0, 1.0])
+    upper_wrong_deep.flange2_normal = np.array([1.0, 0.0, 0.0])
+
+    upper_wrong_long = _make_spec("L_wrong_long", angle=90.0)
+    upper_wrong_long.bend_line_start = np.array([-20.3, 35.3, -102.0])
+    upper_wrong_long.bend_line_end = np.array([-20.3, 35.3, -58.0])
+    upper_wrong_long.flange1_area = 36.0
+    upper_wrong_long.flange2_area = 775.0
+    upper_wrong_long.flange1_normal = np.array([1.0, 0.0, 0.0])
+    upper_wrong_long.flange2_normal = np.array([0.0, 1.0, 0.0])
+
+    lower_wide = _make_spec("L_lower", angle=161.82)
+    lower_wide.bend_line_start = np.array([-25.8, 26.0, -76.0])
+    lower_wide.bend_line_end = np.array([-25.8, 26.0, 60.0])
+    lower_wide.flange1_area = 775.0
+    lower_wide.flange2_area = 1884.0
+    lower_wide.flange1_normal = np.array([1.0, 0.0, 0.0])
+    lower_wide.flange2_normal = np.array([0.0, 1.0, 0.0])
+
+    selected, strategy = pipeline._choose_mesh_cad_baseline_specs(
+        detector_specs=[rolled_1, rolled_2],
+        legacy_specs=[upper_wrong_long, upper_wrong_deep, lower_wide, upper_short],
+        expected_bend_count_hint=2,
+        spec_bend_angles_hint=[25.0, 22.45],
+        feature_policy={
+            "non_counting_feature_forms": ["ROLLED"],
+            "rolled_feature_type": "ROLLED_SECTION",
+            "countable_source": "legacy_folded_hybrid",
+            "part_family": "rolled_shell_with_two_flange_bends",
+        },
+    )
+
+    assert strategy == "feature_policy_rolled_hybrid_flange_pair"
+    countable = [spec for spec in selected if spec.countable_in_regression]
+    assert len(countable) == 2
+    mids = [0.5 * (np.asarray(spec.bend_line_start) + np.asarray(spec.bend_line_end)) for spec in countable]
+    ys = sorted(round(float(mid[1]), 1) for mid in mids)
+    zs = sorted(round(float(mid[2]), 1) for mid in mids)
+    assert ys == [26.0, 35.0]
+    assert zs == [-8.0, -8.0]
+    assert any(round(float(spec.bend_line_length), 1) < 70.0 for spec in countable)
+    assert any(round(float(spec.bend_line_length), 1) > 100.0 for spec in countable)
+
+
+def test_apply_part_feature_policy_uses_metadata_truth_angle_overrides(monkeypatch, tmp_path):
+    metadata_root = tmp_path / "data" / "bend_corpus" / "parts" / "28870000"
+    metadata_root.mkdir(parents=True)
+    (metadata_root / "metadata.json").write_text(
+        json.dumps(
+            {
+                "user_truth": {
+                    "countable_bend_target_angles_deg": {
+                        "CAD_B4": 25.0,
+                        "CAD_B5": 22.45,
+                    }
+                }
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    fake_pipeline = tmp_path / "backend" / "bend_inspection_pipeline.py"
+    fake_pipeline.parent.mkdir(parents=True)
+    fake_pipeline.write_text("# stub", encoding="utf-8")
+    monkeypatch.setattr(pipeline, "__file__", str(fake_pipeline))
+
+    policy = pipeline._augment_feature_policy_from_part_truth(
+        {"countable_source": "legacy_folded_hybrid"},
+        "28870000",
+    )
+
+    assert policy["countable_bend_angle_overrides"] == {"CAD_B4": 25.0, "CAD_B5": 22.45}
+
+
+def test_augment_feature_policy_from_part_truth_preserves_part_family(monkeypatch, tmp_path):
+    metadata_root = tmp_path / "data" / "bend_corpus" / "parts" / "28870000"
+    metadata_root.mkdir(parents=True)
+    (metadata_root / "metadata.json").write_text(
+        json.dumps(
+            {
+                "user_truth": {
+                    "part_family": "rolled_shell_with_two_flange_bends",
+                }
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    fake_pipeline = tmp_path / "backend" / "bend_inspection_pipeline.py"
+    fake_pipeline.parent.mkdir(parents=True)
+    fake_pipeline.write_text("# stub", encoding="utf-8")
+    monkeypatch.setattr(pipeline, "__file__", str(fake_pipeline))
+
+    policy = pipeline._augment_feature_policy_from_part_truth(
+        {"countable_source": "legacy_folded_hybrid"},
+        "28870000",
+    )
+
+    assert policy["part_family"] == "rolled_shell_with_two_flange_bends"
+
+
+def test_refine_dense_scan_uses_aligned_raw_cloud_for_hybrid_parts(monkeypatch):
+    import cad_bend_extractor
+    import qc_engine
+    import bend_detector
+
+    cad_bends = [_make_spec("CAD_B4", angle=25.0), _make_spec("CAD_B5", angle=22.45)]
+    for idx, bend in enumerate(cad_bends):
+        bend.countable_in_regression = True
+        bend.bend_line_start = np.array([float(idx), 0.0, 0.0])
+        bend.bend_line_end = np.array([float(idx), 30.0, 0.0])
+        bend.flange1_normal = np.array([1.0, 0.0, 0.0], dtype=np.float64)
+        bend.flange2_normal = np.array([0.0, 1.0, 0.0], dtype=np.float64)
+
+    raw_points = np.zeros((100, 3), dtype=np.float64)
+    processed_points = np.zeros((12, 3), dtype=np.float64)
+    captured = {}
+
+    class _DummyCloud:
+        def __init__(self, pts):
+            self.points = pts
+
+    class _DummyMesh:
+        def __init__(self):
+            self.vertices = np.zeros((4, 3), dtype=np.float64)
+            self.triangles = np.array([[0, 1, 2]], dtype=np.int32)
+
+    class _DummyEngine:
+        def __init__(self, progress_callback=None):
+            self.progress_callback = progress_callback
+            self.scan_pcd = _DummyCloud(raw_points)
+            self.aligned_scan = _DummyCloud(processed_points)
+            self.aligned_scan_raw = _DummyCloud(raw_points)
+            self.reference_mesh = _DummyMesh()
+
+        def load_reference(self, cad_path):
+            return True
+
+        def load_scan(self, scan_path):
+            return True
+
+        def preprocess(self, voxel_size=1.0):
+            return True
+
+        def align(self, auto_scale=True, tolerance=1.0, random_seed=None):
+            return 0.99, 0.1
+
+    class _DummyExtract:
+        def __init__(self):
+            self.total_bends = 1
+            self.bends = [cad_bends[0]]
+            self.surfaces = []
+
+    monkeypatch.setattr(qc_engine, "ScanQCEngine", _DummyEngine)
+    monkeypatch.setattr(
+        pipeline,
+        "_align_engine_with_retries",
+        lambda **kwargs: (processed_points.copy(), 0.99, 0.1, 17, []),
+    )
+    monkeypatch.setattr(
+        cad_bend_extractor,
+        "CADBendExtractor",
+        lambda: type("_Extractor", (), {"extract_from_mesh": lambda self, mesh: _DummyExtract()})(),
+    )
+    monkeypatch.setattr(
+        pipeline,
+        "_build_selected_measurement_dicts",
+        lambda selected_bends, extracted_bends: (
+            [
+                {
+                    "bend_id": bend.bend_id,
+                    "bend_angle": float(bend.target_angle),
+                    "bend_center": ((np.asarray(bend.bend_line_start) + np.asarray(bend.bend_line_end)) / 2.0).tolist(),
+                    "bend_line_point1": np.asarray(bend.bend_line_start).tolist(),
+                    "bend_line_point2": np.asarray(bend.bend_line_end).tolist(),
+                    "surface1_normal": np.asarray(bend.flange1_normal).tolist(),
+                    "surface2_normal": np.asarray(bend.flange2_normal).tolist(),
+                }
+                for bend in selected_bends
+            ],
+            0,
+        ),
+    )
+
+    def _fake_measure_all_scan_bends(points, cad_bend_dicts, **kwargs):
+        captured["points"] = len(points)
+        return [
+            {
+                "success": False,
+                "measured_angle": None,
+                "measurement_method": "probe_region",
+                "measurement_confidence": "low",
+                "point_count": 0,
+                "side1_points": 0,
+                "side2_points": 0,
+                "error": "stub",
+            }
+            for _ in cad_bend_dicts
+        ]
+
+    monkeypatch.setattr(bend_detector, "measure_all_scan_bends", _fake_measure_all_scan_bends)
+
+    report, warnings = pipeline.refine_dense_scan_bends_via_alignment(
+        cad_path="/tmp/cad.stp",
+        scan_path="/tmp/scan.ply",
+        cad_bends=cad_bends,
+        part_id="28870000",
+        tolerance_angle=1.0,
+        feature_policy={
+            "countable_source": "legacy_folded_hybrid",
+        },
+    )
+
+    assert report is not None
+    assert captured["points"] == len(raw_points)
 
 
 def test_choose_mesh_cad_baseline_can_supplement_detector_with_spatially_distinct_legacy_specs():
