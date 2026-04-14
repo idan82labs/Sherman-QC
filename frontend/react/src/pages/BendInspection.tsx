@@ -560,6 +560,12 @@ function BendInspectionResults({
   const completedOutOfSpec = summary.completed_out_of_spec ?? (completedBends - completedInSpec)
   const remainingBends = summary.remaining_bends ?? Math.max(0, summary.total_bends - completedBends)
   const structuredRemainingBends = summary.structured_remaining_bends
+  const releaseDecision = report.release_decision ?? summary.release_decision ?? (
+    summary.overall_result === 'FAIL' ? 'AUTO_FAIL' : summary.overall_result === 'PASS' ? 'AUTO_PASS' : 'HOLD'
+  )
+  const releaseReasons = summary.release_blocked_by?.length
+    ? summary.release_blocked_by
+    : summary.release_hold_reasons ?? []
   const scanQuality = report.scan_quality
   const preferredFocusedBendId = useMemo(() => {
     const issueMatches = matches.filter((match) => match.status === 'FAIL' || match.status === 'WARNING')
@@ -642,6 +648,31 @@ function BendInspectionResults({
         <ScanQualityQueue quality={scanQuality} compact={compact} />
       )}
 
+      <div className="rounded-lg border border-dark-600 bg-dark-800/40 p-3">
+        <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <p className="text-xs text-dark-400 uppercase tracking-wide">Release decision</p>
+            <p className="mt-1 text-sm text-dark-100">
+              {releaseDecision}
+              {summary.overall_result ? ` (legacy verdict ${summary.overall_result})` : ''}
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2 text-xs">
+            <span className="rounded-full border border-dark-600 px-2 py-1 text-dark-200">
+              Alignment {summary.trusted_alignment_for_release ? 'trusted' : 'untrusted'}
+            </span>
+            <span className="rounded-full border border-dark-600 px-2 py-1 text-dark-200">
+              Position evidence {summary.trusted_position_evidence ? 'trusted' : 'untrusted'}
+            </span>
+            {!!releaseReasons.length && (
+              <span className="rounded-full border border-amber-500/30 bg-amber-500/10 px-2 py-1 text-amber-200">
+                {releaseReasons.join(', ')}
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+
       {!compact && !!jobId && (
         <BendCadOverlay3D
           jobId={jobId}
@@ -670,8 +701,14 @@ function BendInspectionResults({
       {/* Summary */}
       <div className={clsx(
         'grid gap-3',
-        compact ? 'grid-cols-4' : 'grid-cols-2 md:grid-cols-7'
+        compact ? 'grid-cols-4' : 'grid-cols-2 md:grid-cols-8'
       )}>
+        <SummaryCard
+          label="Release"
+          value={releaseDecision}
+          color={releaseDecision === 'AUTO_PASS' ? 'emerald' : releaseDecision === 'AUTO_FAIL' ? 'red' : 'amber'}
+          compact={compact}
+        />
         <SummaryCard
           label="Completed"
           value={`${displayedCompletedBends}/${summary.expected_bends ?? summary.total_bends}`}
@@ -966,6 +1003,12 @@ function BendCadOverlay3D({
                 <div className="text-xl font-semibold text-dark-100">{focusedMatch.bend_id}</div>
                 <div className="text-sm text-dark-400">
                   {focusedMatch.bend_form === 'ROLLED' ? 'Rolled bend' : 'Folded bend'}
+                </div>
+                <div className="text-xs text-dark-300">
+                  {focusedMatch.completion_state ?? '-'} / {focusedMatch.metrology_state ?? '-'} / {focusedMatch.positional_state ?? '-'}
+                </div>
+                <div className="text-xs text-dark-400">
+                  correspondence {focusedMatch.correspondence_state ?? '-'}
                 </div>
                 {focusedMatch.action_item && (
                   <div className="text-sm text-dark-300">

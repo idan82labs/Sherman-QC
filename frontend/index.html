@@ -902,12 +902,14 @@
             document.getElementById('resultsContainer').classList.add('active');
 
             // Verdict
+            const legacyVerdict = result.overall_result || 'WARNING';
+            const releaseDecision = result.release_decision || (legacyVerdict === 'PASS' ? 'AUTO_PASS' : legacyVerdict === 'FAIL' ? 'AUTO_FAIL' : 'HOLD');
             const verdictCard = document.getElementById('verdictCard');
-            verdictCard.className = 'verdict-card ' + result.overall_result.toLowerCase();
+            verdictCard.className = 'verdict-card ' + legacyVerdict.toLowerCase();
 
             const icons = { PASS: '✓', FAIL: '✗', WARNING: '⚠' };
-            document.getElementById('verdictIcon').textContent = icons[result.overall_result] || '?';
-            document.getElementById('verdictText').textContent = result.overall_result;
+            document.getElementById('verdictIcon').textContent = icons[legacyVerdict] || '?';
+            document.getElementById('verdictText').textContent = `${legacyVerdict} (${releaseDecision})`;
 
             // Build verdict score with optional AI model badge
             let scoreText = `Quality Score: ${result.quality_score}/100 | Confidence: ${result.confidence}%`;

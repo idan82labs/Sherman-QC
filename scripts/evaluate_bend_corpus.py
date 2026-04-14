@@ -31,8 +31,10 @@ for env_name in (
 ):
     os.environ.setdefault(env_name, "1")
 
+POSITIONAL_WARN_MM = 2.5
 
-ROOT = Path("/Users/idant/82Labs/Sherman QC/Full Project")
+
+ROOT = Path("/Users/idant/82Labs/Sherman QC/Full Project-qc-clean")
 CORPUS_ROOT = ROOT / "data" / "bend_corpus"
 
 import sys
@@ -145,6 +147,85 @@ def _observability_breakdown(matches: List[Dict[str, Any]]) -> Dict[str, int]:
     return counts
 
 
+def _countable_primary_match(match: Dict[str, Any]) -> bool:
+    return bool(match.get("countable_in_regression", True)) and str(match.get("feature_type") or "").upper() not in {
+        "ROLLED_SECTION",
+        "PROCESS_FEATURE",
+    }
+
+
+def _guard_process_match(match: Dict[str, Any]) -> bool:
+    return not _countable_primary_match(match)
+
+
+def _completion_state(match: Dict[str, Any]) -> str:
+    if match.get("completion_state"):
+        return str(match.get("completion_state"))
+    return normalize_observability_state(
+        match.get("observability_state"),
+        physical_completion_state=match.get("physical_completion_state"),
+        status=match.get("status"),
+    )
+
+
+def _metrology_state(match: Dict[str, Any]) -> str:
+    if match.get("metrology_state"):
+        return str(match.get("metrology_state"))
+    status = str(match.get("status") or "").upper()
+    if status == "PASS":
+        return "IN_TOL"
+    if status in {"FAIL", "WARNING"}:
+        return "OUT_OF_TOL"
+    return "UNMEASURABLE"
+
+
+def _position_state(match: Dict[str, Any]) -> str:
+    if match.get("positional_state"):
+        return str(match.get("positional_state"))
+    consistency = str(((match.get("heatmap_consistency") or {}).get("status") or "")).upper()
+    if consistency == "CONTRADICTED":
+        return "MISLOCATED"
+    if consistency == "SUPPORTED":
+        return "ON_POSITION"
+    center_dev = match.get("line_center_deviation_mm")
+    if center_dev is not None:
+        return "MISLOCATED" if abs(float(center_dev)) > 2.5 else "ON_POSITION"
+    return "UNKNOWN_POSITION"
+
+
+def _correspondence_state(match: Dict[str, Any]) -> str:
+    if match.get("correspondence_state"):
+        return str(match.get("correspondence_state"))
+    status = str(match.get("status") or "").upper()
+    candidate_count = int(match.get("correspondence_candidate_count") or match.get("assignment_candidate_count") or 0)
+    confidence = float(match.get("correspondence_confidence") or match.get("assignment_confidence") or 0.0)
+    raw_margin = match.get("correspondence_margin")
+    if raw_margin is None:
+        raw_margin = float(match.get("assignment_candidate_score") or 0.0) - float(match.get("assignment_null_score") or 0.0)
+    margin = float(raw_margin or 0.0)
+    source = str(match.get("correspondence_source") or match.get("assignment_source") or "").upper()
+    if status == "NOT_DETECTED" and candidate_count <= 0:
+        return "UNRESOLVED"
+    if candidate_count <= 0:
+        return "AMBIGUOUS" if source not in {"", "NONE"} and confidence > 0.0 else "UNRESOLVED"
+    if candidate_count == 1 and confidence >= 0.65 and margin >= 0.15:
+        return "CONFIDENT"
+    return "AMBIGUOUS"
+
+
+def _observability_state_internal(match: Dict[str, Any]) -> str:
+    if match.get("observability_state_internal"):
+        return str(match.get("observability_state_internal"))
+    completion = _completion_state(match) != "UNKNOWN"
+    metrology = _metrology_state(match) != "UNMEASURABLE"
+    position = _position_state(match) != "UNKNOWN_POSITION"
+    if completion and metrology and position:
+        return "SUFFICIENT"
+    if completion or metrology or position:
+        return "PARTIAL"
+    return "INSUFFICIENT"
+
+
 def _continuity_inferred_count(matches: List[Dict[str, Any]]) -> int:
     return sum(1 for match in matches if bool(match.get("continuity_inferred")))
 
@@ -163,14 +244,15 @@ def _status_priority(status: Optional[str]) -> int:
 
 
 def _recompute_summary(matches: List[Dict[str, Any]]) -> Dict[str, Any]:
-    total = len(matches)
-    detected = sum(1 for match in matches if str(match.get("status") or "").upper() != "NOT_DETECTED")
-    passed = sum(1 for match in matches if str(match.get("status") or "").upper() == "PASS")
-    failed = sum(1 for match in matches if str(match.get("status") or "").upper() == "FAIL")
-    warnings = sum(1 for match in matches if str(match.get("status") or "").upper() == "WARNING")
+    countable_matches = [match for match in matches if _countable_primary_match(match)]
+    total = len(countable_matches)
+    detected = sum(1 for match in countable_matches if str(match.get("status") or "").upper() != "NOT_DETECTED")
+    passed = sum(1 for match in countable_matches if str(match.get("status") or "").upper() == "PASS")
+    failed = sum(1 for match in countable_matches if str(match.get("status") or "").upper() == "FAIL")
+    warnings = sum(1 for match in countable_matches if str(match.get("status") or "").upper() == "WARNING")
     observed = sum(
         1
-        for match in matches
+        for match in countable_matches
         if is_explicit_observability_evidence(
             match.get("observability_state"),
             physical_completion_state=match.get("physical_completion_state"),
@@ -179,7 +261,7 @@ def _recompute_summary(matches: List[Dict[str, Any]]) -> Dict[str, Any]:
     )
     partial_observed = sum(
         1
-        for match in matches
+        for match in countable_matches
         if normalize_observability_state(
             match.get("observability_state"),
             physical_completion_state=match.get("physical_completion_state"),
@@ -189,7 +271,7 @@ def _recompute_summary(matches: List[Dict[str, Any]]) -> Dict[str, Any]:
     )
     unobserved = sum(
         1
-        for match in matches
+        for match in countable_matches
         if normalize_observability_state(
             match.get("observability_state"),
             physical_completion_state=match.get("physical_completion_state"),
@@ -197,8 +279,22 @@ def _recompute_summary(matches: List[Dict[str, Any]]) -> Dict[str, Any]:
         ) == "UNKNOWN"
         and str(match.get("status") or "").upper() == "NOT_DETECTED"
     )
+    formed = sum(1 for match in countable_matches if _completion_state(match) == "FORMED")
+    unformed = sum(1 for match in countable_matches if _completion_state(match) == "UNFORMED")
+    unknown_completion = sum(1 for match in countable_matches if _completion_state(match) == "UNKNOWN")
+    in_tolerance = sum(1 for match in countable_matches if _metrology_state(match) == "IN_TOL")
+    out_of_tolerance = sum(1 for match in countable_matches if _metrology_state(match) == "OUT_OF_TOL")
+    unmeasurable = sum(1 for match in countable_matches if _metrology_state(match) == "UNMEASURABLE")
+    on_position = sum(1 for match in countable_matches if _position_state(match) == "ON_POSITION")
+    mislocated = sum(1 for match in countable_matches if _position_state(match) == "MISLOCATED")
+    unknown_position = sum(1 for match in countable_matches if _position_state(match) == "UNKNOWN_POSITION")
+    overall_result = "FAIL" if (mislocated > 0 or unformed > 0) else "WARNING" if (
+        out_of_tolerance > 0 or unmeasurable > 0 or unknown_completion > 0 or unknown_position > 0
+    ) else "PASS"
+    release_decision = "AUTO_FAIL" if overall_result == "FAIL" else "HOLD" if overall_result == "WARNING" else "AUTO_PASS"
     return {
         "total_bends": total,
+        "countable_total_bends": total,
         "detected": detected,
         "passed": passed,
         "failed": failed,
@@ -211,6 +307,17 @@ def _recompute_summary(matches: List[Dict[str, Any]]) -> Dict[str, Any]:
         "observed_bends": observed,
         "partially_observed_bends": partial_observed,
         "unobserved_bends": unobserved,
+        "formed_bends": formed,
+        "unformed_bends": unformed,
+        "unknown_completion_bends": unknown_completion,
+        "in_tolerance_bends": in_tolerance,
+        "out_of_tolerance_bends": out_of_tolerance,
+        "unmeasurable_bends": unmeasurable,
+        "on_position_bends": on_position,
+        "mislocated_bends": mislocated,
+        "unknown_position_bends": unknown_position,
+        "overall_result": overall_result,
+        "release_decision": release_decision,
     }
 
 
@@ -534,9 +641,18 @@ def _score_scan(
 ) -> Dict[str, Any]:
     summary = report_dict.get("summary") or {}
     details = report_dict.get("details") or {}
+    countable_matches = [match for match in (report_dict.get("matches") or []) if _countable_primary_match(match)]
     completed = int(summary.get("completed_bends") or 0)
     expected_total = expectation.get("expected_total_bends")
     expected_completed = expectation.get("expected_completed_bends")
+    abstained_bends = sum(
+        1
+        for match in countable_matches
+        if _completion_state(match) == "UNKNOWN"
+        or _metrology_state(match) == "UNMEASURABLE"
+        or _position_state(match) == "UNKNOWN_POSITION"
+    )
+    accepted_bends = max(0, len(countable_matches) - abstained_bends)
 
     metrics: Dict[str, Any] = {
         "completed_bends": completed,
@@ -550,6 +666,25 @@ def _score_scan(
         "expected_completed_bends": expected_completed,
         "cad_strategy": details.get("cad_strategy"),
         "expected_bend_count_used": details.get("expected_bend_count"),
+        "countable_bends": len(countable_matches),
+        "formed_bends": sum(1 for match in countable_matches if _completion_state(match) == "FORMED"),
+        "unformed_bends": sum(1 for match in countable_matches if _completion_state(match) == "UNFORMED"),
+        "unknown_completion_bends": sum(1 for match in countable_matches if _completion_state(match) == "UNKNOWN"),
+        "in_tolerance_bends": sum(1 for match in countable_matches if _metrology_state(match) == "IN_TOL"),
+        "out_of_tolerance_bends": sum(1 for match in countable_matches if _metrology_state(match) == "OUT_OF_TOL"),
+        "unmeasurable_bends": sum(1 for match in countable_matches if _metrology_state(match) == "UNMEASURABLE"),
+        "on_position_bends": sum(1 for match in countable_matches if _position_state(match) == "ON_POSITION"),
+        "mislocated_bends": sum(1 for match in countable_matches if _position_state(match) == "MISLOCATED"),
+        "unknown_position_bends": sum(1 for match in countable_matches if _position_state(match) == "UNKNOWN_POSITION"),
+        "correspondence_confident_bends": sum(1 for match in countable_matches if _correspondence_state(match) == "CONFIDENT"),
+        "correspondence_ambiguous_bends": sum(1 for match in countable_matches if _correspondence_state(match) == "AMBIGUOUS"),
+        "correspondence_unresolved_bends": sum(1 for match in countable_matches if _correspondence_state(match) == "UNRESOLVED"),
+        "observability_sufficient_bends": sum(1 for match in countable_matches if _observability_state_internal(match) == "SUFFICIENT"),
+        "observability_partial_bends": sum(1 for match in countable_matches if _observability_state_internal(match) == "PARTIAL"),
+        "observability_insufficient_bends": sum(1 for match in countable_matches if _observability_state_internal(match) == "INSUFFICIENT"),
+        "abstained_bends": abstained_bends,
+        "accepted_bends": accepted_bends,
+        "accepted_coverage_rate": round(accepted_bends / len(countable_matches), 3) if countable_matches else None,
     }
     if expected_total is not None:
         metrics["expected_total_error"] = completed - int(expected_total)
@@ -1075,7 +1210,92 @@ def _aggregate(all_results: List[Dict[str, Any]]) -> Dict[str, Any]:
     heatmap_total_bends = sum(int((r.get("heatmap_consistency_metrics") or {}).get("countable_bends") or 0) for r in heatmap_rows)
     heatmap_total_full_bends = sum(int((r.get("heatmap_consistency_metrics") or {}).get("countable_bends") or 0) for r in full_heatmap_rows)
     heatmap_total_partial_bends = sum(int((r.get("heatmap_consistency_metrics") or {}).get("countable_bends") or 0) for r in partial_heatmap_rows)
-    return {
+    total_countable_bends = sum(int((r.get("metrics") or {}).get("countable_bends") or 0) for r in completed_metric_results)
+    total_guard_features = sum(
+        sum(1 for match in (r.get("matches") or []) if _guard_process_match(match))
+        for r in completed_metric_results
+    )
+
+    def _sum_metric(rows: List[Dict[str, Any]], key: str) -> int:
+        return int(sum(int((r.get("metrics") or {}).get(key) or 0) for r in rows))
+
+    def _rate(numerator: int, denominator: int) -> Optional[float]:
+        if denominator <= 0:
+            return None
+        return round(numerator / denominator, 3)
+
+    angle_errors = [
+        abs(float(match.get("angle_deviation") or 0.0))
+        for row in completed_metric_results
+        for match in (row.get("matches") or [])
+        if _countable_primary_match(match) and match.get("measured_angle") is not None
+    ]
+    radius_errors = [
+        abs(float(match.get("radius_deviation") or 0.0))
+        for row in completed_metric_results
+        for match in (row.get("matches") or [])
+        if _countable_primary_match(match) and match.get("measured_radius") is not None
+    ]
+    line_center_errors = [
+        abs(float(match.get("line_center_deviation_mm") or 0.0))
+        for row in completed_metric_results
+        for match in (row.get("matches") or [])
+        if _countable_primary_match(match) and match.get("line_center_deviation_mm") is not None
+    ]
+    process_detected = sum(
+        1
+        for row in completed_metric_results
+        for match in (row.get("matches") or [])
+        if _guard_process_match(match) and str(match.get("status") or "").upper() != "NOT_DETECTED"
+    )
+    decision_complete_scans = [
+        r for r in completed_metric_results
+        if int((r.get("metrics") or {}).get("abstained_bends") or 0) == 0
+    ]
+    decision_complete_partial_scans = [
+        r for r in partial_scans
+        if int((r.get("metrics") or {}).get("abstained_bends") or 0) == 0
+    ]
+    contradiction_cases = []
+    for row in completed_metric_results:
+        for match in (row.get("matches") or []):
+            if not _countable_primary_match(match):
+                continue
+            angle = match.get("measured_angle")
+            target = match.get("target_angle")
+            line_center = match.get("line_center_deviation_mm")
+            if isinstance(angle, (int, float)) and isinstance(target, (int, float)) and isinstance(line_center, (int, float)):
+                if abs(angle - target) <= 1.5 and abs(line_center) >= POSITIONAL_WARN_MM:
+                    contradiction_cases.append(
+                        {
+                            "part_key": row.get("part_key"),
+                            "scan_name": row.get("scan_name"),
+                            "bend_id": match.get("bend_id"),
+                            "status": match.get("status"),
+                            "measured_angle": angle,
+                            "target_angle": target,
+                            "line_center_deviation_mm": line_center,
+                            "assignment_source": match.get("assignment_source"),
+                            "measurement_method": match.get("measurement_method"),
+                            "correspondence_state": _correspondence_state(match),
+                        }
+                    )
+            if str(match.get("status") or "").upper() != "NOT_DETECTED" and _correspondence_state(match) != "CONFIDENT":
+                contradiction_cases.append(
+                    {
+                        "part_key": row.get("part_key"),
+                        "scan_name": row.get("scan_name"),
+                        "bend_id": match.get("bend_id"),
+                        "status": match.get("status"),
+                        "measured_angle": angle,
+                        "target_angle": target,
+                        "line_center_deviation_mm": line_center,
+                        "assignment_source": match.get("assignment_source"),
+                        "measurement_method": match.get("measurement_method"),
+                        "correspondence_state": _correspondence_state(match),
+                    }
+                )
+    aggregate = {
         "scans_processed": len(all_results),
         "successful_scans": len(completed_metric_results),
         "failed_scans": sum(1 for r in all_results if "metrics" not in r),
@@ -1162,9 +1382,72 @@ def _aggregate(all_results: List[Dict[str, Any]]) -> Dict[str, Any]:
         ),
         **staged,
     }
+    aggregate["scoreboards"] = {
+        "completion": {
+            "countable_bends": total_countable_bends,
+            "formed_bends": _sum_metric(completed_metric_results, "formed_bends"),
+            "unformed_bends": _sum_metric(completed_metric_results, "unformed_bends"),
+            "unknown_completion_bends": _sum_metric(completed_metric_results, "unknown_completion_bends"),
+            "false_positive_completion_rate": _rate(
+                sum(max(0, int((r.get("metrics") or {}).get("expected_completed_error") or 0)) for r in with_completed),
+                sum(int((r.get("metrics") or {}).get("expected_completed_bends") or 0) for r in with_completed),
+            ),
+            "false_negative_completion_rate": _rate(
+                sum(max(0, -int((r.get("metrics") or {}).get("expected_completed_error") or 0)) for r in with_completed),
+                sum(int((r.get("metrics") or {}).get("expected_completed_bends") or 0) for r in with_completed),
+            ),
+            "scan_level_mae_expected_completed": aggregate["mae_vs_expected_completed"],
+            "scan_level_mae_expected_total": aggregate["mae_vs_expected_total_completed"],
+        },
+        "metrology": {
+            "angle_mae_deg": round(sum(angle_errors) / len(angle_errors), 3) if angle_errors else None,
+            "radius_mae_mm": round(sum(radius_errors) / len(radius_errors), 3) if radius_errors else None,
+            "in_tolerance_rate": _rate(_sum_metric(completed_metric_results, "in_tolerance_bends"), total_countable_bends),
+            "out_of_tolerance_rate": _rate(_sum_metric(completed_metric_results, "out_of_tolerance_bends"), total_countable_bends),
+            "unmeasurable_rate": _rate(_sum_metric(completed_metric_results, "unmeasurable_bends"), total_countable_bends),
+        },
+        "position": {
+            "line_center_mae_mm": round(sum(line_center_errors) / len(line_center_errors), 3) if line_center_errors else None,
+            "mislocated_rate": _rate(_sum_metric(completed_metric_results, "mislocated_bends"), total_countable_bends),
+            "unknown_position_rate": _rate(_sum_metric(completed_metric_results, "unknown_position_bends"), total_countable_bends),
+            "heatmap_supported_rate": aggregate["heatmap_supported_rate"],
+            "heatmap_contradicted_rate": aggregate["heatmap_contradicted_rate"],
+        },
+        "abstention": {
+            "abstention_rate": _rate(_sum_metric(completed_metric_results, "abstained_bends"), total_countable_bends),
+            "accepted_coverage_rate": _rate(_sum_metric(completed_metric_results, "accepted_bends"), total_countable_bends),
+            "decision_complete_scan_count": len(decision_complete_scans),
+            "decision_complete_scan_exact_rate": (
+                round(sum(1 for r in decision_complete_scans if (r.get("metrics") or {}).get("completed_matches_expected")) / len(decision_complete_scans), 3)
+                if decision_complete_scans else None
+            ),
+            "partial_selective_risk": (
+                round(
+                    1.0 - (
+                        sum(1 for r in decision_complete_partial_scans if (r.get("metrics") or {}).get("completed_matches_expected"))
+                        / len(decision_complete_partial_scans)
+                    ),
+                    3,
+                )
+                if decision_complete_partial_scans else None
+            ),
+        },
+        "guard_metrics": {
+            "process_feature_total": total_guard_features,
+            "process_feature_detected": process_detected,
+        },
+    }
+    aggregate["contradiction_case_count"] = len(contradiction_cases)
+    aggregate["_contradiction_cases"] = contradiction_cases[:100]
+    return aggregate
 
 
 def _write_markdown(output_dir: Path, aggregate: Dict[str, Any], all_results: List[Dict[str, Any]], warnings_out: List[str]) -> None:
+    scoreboards = aggregate.get("scoreboards") or {}
+    completion = scoreboards.get("completion") or {}
+    metrology = scoreboards.get("metrology") or {}
+    position = scoreboards.get("position") or {}
+    abstention = scoreboards.get("abstention") or {}
     lines = [
         "# Bend Corpus Regression",
         "",
@@ -1201,6 +1484,17 @@ def _write_markdown(output_dir: Path, aggregate: Dict[str, Any], all_results: Li
         f"- Staged monotonic pair rate: `{aggregate['staged_monotonic_pair_rate']}`",
         f"- Staged retained bend rate: `{aggregate['staged_retained_bend_rate']}`",
         "",
+        "## Scoreboards",
+        "",
+        f"- Completion false-positive rate: `{completion.get('false_positive_completion_rate')}`",
+        f"- Completion false-negative rate: `{completion.get('false_negative_completion_rate')}`",
+        f"- Metrology angle MAE: `{metrology.get('angle_mae_deg')}`",
+        f"- Position line-center MAE: `{position.get('line_center_mae_mm')}`",
+        f"- Abstention rate: `{abstention.get('abstention_rate')}`",
+        f"- Accepted coverage rate: `{abstention.get('accepted_coverage_rate')}`",
+        f"- Partial selective risk: `{abstention.get('partial_selective_risk')}`",
+        f"- Contradiction case count: `{aggregate.get('contradiction_case_count')}`",
+        "",
         "| Part | Scan | State | CAD strategy | Completed | Structured K~ | In spec | Remaining | Continuity | Expected total | Expected completed | Observability | Error |",
         "| --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- | --- |",
     ]
@@ -1232,6 +1526,19 @@ def _write_markdown(output_dir: Path, aggregate: Dict[str, Any], all_results: Li
     (output_dir / "summary.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
+def _write_scoreboards(output_dir: Path, aggregate: Dict[str, Any]) -> None:
+    payload = {
+        "scoreboards": aggregate.get("scoreboards") or {},
+        "contradiction_case_count": aggregate.get("contradiction_case_count"),
+        "heatmap_supported_rate": aggregate.get("heatmap_supported_rate"),
+        "heatmap_contradicted_rate": aggregate.get("heatmap_contradicted_rate"),
+    }
+    (output_dir / "scoreboards.json").write_text(
+        json.dumps(payload, indent=2, ensure_ascii=False),
+        encoding="utf-8",
+    )
+
+
 def _write_heatmap_debug(output_dir: Path, all_results: List[Dict[str, Any]]) -> None:
     rows = [row for row in _heatmap_bend_rows(all_results) if row["consistency_status"] == "CONTRADICTED"]
     rows.sort(
@@ -1243,6 +1550,32 @@ def _write_heatmap_debug(output_dir: Path, all_results: List[Dict[str, Any]]) ->
     )
     (output_dir / "heatmap_consistency_debug_top_contradictions.json").write_text(
         json.dumps(rows[:50], indent=2, ensure_ascii=False),
+        encoding="utf-8",
+    )
+
+
+def _write_contradiction_debug(output_dir: Path, aggregate: Dict[str, Any]) -> None:
+    rows = list(aggregate.get("_contradiction_cases") or [])
+    (output_dir / "decision_contradiction_cases.json").write_text(
+        json.dumps(rows, indent=2, ensure_ascii=False),
+        encoding="utf-8",
+    )
+    lines = [
+        "# Decision Contradiction Cases",
+        "",
+        f"- Count: `{len(rows)}`",
+        "",
+        "| Part | Scan | Bend | Status | Angle | Target | Center Δmm | Correspondence |",
+        "| --- | --- | --- | --- | ---: | ---: | ---: | --- |",
+    ]
+    for row in rows:
+        lines.append(
+            f"| {row.get('part_key', '-')} | {row.get('scan_name', '-')} | {row.get('bend_id', '-')} | "
+            f"{row.get('status', '-')} | {row.get('measured_angle', '-')} | {row.get('target_angle', '-')} | "
+            f"{row.get('line_center_deviation_mm', '-')} | {row.get('correspondence_state', '-')} |"
+        )
+    (output_dir / "decision_contradiction_cases.md").write_text(
+        "\n".join(lines) + "\n",
         encoding="utf-8",
     )
 
@@ -1330,7 +1663,9 @@ def main() -> int:
         encoding="utf-8",
     )
     _write_markdown(output_dir, aggregate, all_results, warnings_out)
+    _write_scoreboards(output_dir, aggregate)
     _write_heatmap_debug(output_dir, all_results)
+    _write_contradiction_debug(output_dir, aggregate)
     latest = corpus_root / "evaluation" / "latest.json"
     latest.write_text(json.dumps({"path": str(output_dir / 'summary.json')}, indent=2), encoding="utf-8")
     print(json.dumps({"output_dir": str(output_dir), "aggregate": aggregate}, indent=2))

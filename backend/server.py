@@ -1968,7 +1968,7 @@ async def run_batch_sequential(batch_id: str, material: str, tolerance: float):
                     if updated_job.result_json:
                         try:
                             result_data = json.loads(updated_job.result_json)
-                            part_result.result = result_data.get("overall_result", "UNKNOWN")
+                            part_result.result = result_data.get("release_decision") or result_data.get("overall_result", "UNKNOWN")
                             part_result.quality_score = result_data.get("quality_score")
                         except json.JSONDecodeError:
                             pass
@@ -2062,7 +2062,7 @@ async def run_single_part(
             if updated_job.result_json:
                 try:
                     result_data = json.loads(updated_job.result_json)
-                    part_result.result = result_data.get("overall_result", "UNKNOWN")
+                    part_result.result = result_data.get("release_decision") or result_data.get("overall_result", "UNKNOWN")
                     part_result.quality_score = result_data.get("quality_score")
                 except json.JSONDecodeError:
                     pass

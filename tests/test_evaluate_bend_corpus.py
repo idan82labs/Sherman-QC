@@ -4,7 +4,7 @@ from pathlib import Path
 from types import SimpleNamespace
 
 
-MODULE_PATH = Path("/Users/idant/82Labs/Sherman QC/Full Project/scripts/evaluate_bend_corpus.py")
+MODULE_PATH = Path("/Users/idant/82Labs/Sherman QC/Full Project-qc-clean/scripts/evaluate_bend_corpus.py")
 spec = importlib.util.spec_from_file_location("evaluate_bend_corpus", MODULE_PATH)
 evaluate_bend_corpus = importlib.util.module_from_spec(spec)
 assert spec is not None and spec.loader is not None
@@ -585,6 +585,8 @@ def test_aggregate_includes_structured_count_metrics():
     assert aggregate["partial_mae_vs_expected_total_completed"] is None
     assert aggregate["structured_partial_mae_vs_expected_total_completed"] is None
     assert aggregate["structured_full_scan_exact_completion_rate"] == 1.0
+    assert aggregate["scoreboards"]["completion"]["scan_level_mae_expected_completed"] == 1.0
+    assert aggregate["scoreboards"]["abstention"]["abstention_rate"] == 1.0
 
 
 def test_aggregate_includes_partial_mae_metrics():
@@ -611,6 +613,7 @@ def test_aggregate_includes_partial_mae_metrics():
     assert aggregate["partial_mae_vs_expected_completed"] == 1.0
     assert aggregate["structured_partial_mae_vs_expected_total_completed"] == 2.0
     assert aggregate["structured_partial_mae_vs_expected_completed"] == 0.0
+    assert aggregate["scoreboards"]["completion"]["false_negative_completion_rate"] == 0.5
 
 
 def test_heatmap_consistency_metrics_ignore_rolled_features():
@@ -734,3 +737,92 @@ def test_aggregate_includes_heatmap_status_slices():
     assert aggregate["heatmap_warning_supported"] == 1
     assert aggregate["heatmap_fail_warning_supported"] == 2
     assert aggregate["heatmap_partial_pass_contradicted"] == 1
+    assert aggregate["scoreboards"]["position"]["heatmap_contradicted_rate"] == 0.25
+
+
+def test_aggregate_includes_contradiction_case_listing():
+    item = _item(
+        "full_scan.ply",
+        "full",
+        [
+            {
+                "bend_id": "CAD_B2",
+                "status": "FAIL",
+                "observability_state": "OBSERVED_FORMED",
+                "physical_completion_state": "FORMED",
+                "feature_type": "DISCRETE_BEND",
+                "countable_in_regression": True,
+                "measurement_method": "detected_bend_match",
+                "assignment_source": "GLOBAL_DETECTION",
+                "measured_angle": 135.3,
+                "target_angle": 134.7,
+                "line_center_deviation_mm": 3.94,
+                "assignment_candidate_count": 1,
+                "assignment_confidence": 0.9,
+                "assignment_candidate_score": 0.8,
+                "assignment_null_score": 0.1,
+            },
+        ],
+    )
+    item["metrics"] = evaluate_bend_corpus._score_scan(item, item["expectation"])
+    aggregate = evaluate_bend_corpus._aggregate([item])
+    assert aggregate["contradiction_case_count"] == 1
+    case = aggregate["_contradiction_cases"][0]
+    assert case["bend_id"] == "CAD_B2"
+    assert case["correspondence_state"] == "CONFIDENT"
+
+
+def test_write_scoreboards_outputs_json(tmp_path):
+    item = _item(
+        "full_scan.ply",
+        "full",
+        [
+            {
+                "bend_id": "CAD_B1",
+                "status": "PASS",
+                "observability_state": "OBSERVED_FORMED",
+                "physical_completion_state": "FORMED",
+                "feature_type": "DISCRETE_BEND",
+                "countable_in_regression": True,
+                "measured_angle": 90.2,
+                "target_angle": 90.0,
+                "angle_deviation": 0.2,
+                "line_center_deviation_mm": 0.4,
+                "assignment_candidate_count": 1,
+                "assignment_confidence": 0.92,
+                "assignment_candidate_score": 0.8,
+                "assignment_null_score": 0.1,
+            },
+        ],
+    )
+    aggregate = evaluate_bend_corpus._aggregate([item])
+    evaluate_bend_corpus._write_scoreboards(tmp_path, aggregate)
+
+    payload = json.loads((tmp_path / "scoreboards.json").read_text(encoding="utf-8"))
+    assert payload["scoreboards"]["completion"]["countable_bends"] == 1
+    assert payload["scoreboards"]["metrology"]["angle_mae_deg"] == 0.2
+
+
+def test_write_contradiction_debug_outputs_markdown_and_json(tmp_path):
+    aggregate = {
+        "_contradiction_cases": [
+            {
+                "part_key": "49125000",
+                "scan_name": "49125000_A00.ply",
+                "bend_id": "CAD_B2",
+                "status": "FAIL",
+                "measured_angle": 135.33,
+                "target_angle": 134.72,
+                "line_center_deviation_mm": 3.94,
+                "correspondence_state": "CONFIDENT",
+            }
+        ]
+    }
+
+    evaluate_bend_corpus._write_contradiction_debug(tmp_path, aggregate)
+
+    json_payload = json.loads((tmp_path / "decision_contradiction_cases.json").read_text(encoding="utf-8"))
+    markdown = (tmp_path / "decision_contradiction_cases.md").read_text(encoding="utf-8")
+    assert json_payload[0]["bend_id"] == "CAD_B2"
+    assert "49125000" in markdown
+    assert "CAD_B2" in markdown

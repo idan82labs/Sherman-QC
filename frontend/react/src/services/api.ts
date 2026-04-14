@@ -273,6 +273,18 @@ export interface BendMatch {
   tolerance_angle: number
   tolerance_radius: number
   physical_completion_state?: 'FORMED' | 'NOT_FORMED' | 'UNKNOWN' | string
+  completion_state?: 'FORMED' | 'UNFORMED' | 'UNKNOWN' | string
+  metrology_state?: 'IN_TOL' | 'OUT_OF_TOL' | 'UNMEASURABLE' | string
+  positional_state?: 'ON_POSITION' | 'MISLOCATED' | 'UNKNOWN_POSITION' | string
+  correspondence_state?: 'CONFIDENT' | 'AMBIGUOUS' | 'UNRESOLVED' | string
+  correspondence_confidence?: number
+  correspondence_margin?: number
+  correspondence_candidate_count?: number
+  correspondence_source?: string
+  observability_state_internal?: 'SUFFICIENT' | 'PARTIAL' | 'INSUFFICIENT' | string
+  completion_observable?: boolean
+  metrology_observable?: boolean
+  position_observable?: boolean
   observability_state?: 'OBSERVED_FORMED' | 'OBSERVED_NOT_FORMED' | 'PARTIALLY_OBSERVED' | 'UNOBSERVED' | string
   observability_confidence?: number
   visibility_score?: number
@@ -288,6 +300,12 @@ export interface BendMatch {
   assignment_null_score?: number
   assignment_candidate_count?: number
   measurement_context?: Record<string, unknown>
+  position_evidence?: {
+    status?: 'SUPPORTED' | 'CONTRADICTED' | 'INCONCLUSIVE' | string
+    source?: 'HEATMAP' | 'GEOMETRIC_PROXY' | 'BOTH' | string
+    trusted_frame?: boolean
+    reason?: string
+  }
 }
 
 export interface ScanQualitySummary {
@@ -337,6 +355,27 @@ export interface BendInspectionReport {
     structured_count_mean?: number
     structured_count_map?: number
     structured_count_delta_vs_match?: number
+    formed_bends?: number
+    unformed_bends?: number
+    unknown_completion_bends?: number
+    in_tolerance_bends?: number
+    out_of_tolerance_bends?: number
+    unmeasurable_bends?: number
+    on_position_bends?: number
+    mislocated_bends?: number
+    unknown_position_bends?: number
+    overall_result?: string
+    release_decision?: 'AUTO_PASS' | 'HOLD' | 'AUTO_FAIL' | string
+    release_blocked_by?: string[]
+    release_hold_reasons?: string[]
+    trusted_alignment_for_release?: boolean
+    trusted_position_evidence?: boolean
+    correspondence_confident_bends?: number
+    correspondence_ambiguous_bends?: number
+    correspondence_unresolved_bends?: number
+    observability_sufficient_bends?: number
+    observability_partial_bends?: number
+    observability_insufficient_bends?: number
   }
   operator_brief?: {
     headline?: string
@@ -368,6 +407,8 @@ export interface BendInspectionReport {
   matches: BendMatch[]
   unmatched_detections: unknown[]
   processing_time_ms: number
+  overall_result?: string
+  release_decision?: 'AUTO_PASS' | 'HOLD' | 'AUTO_FAIL' | string
 }
 
 export interface BendOverlayManifestEntry {

@@ -91,12 +91,27 @@ npm run dev
 Frontend default URL:
 - `http://localhost:5173`
 
+Canonical frontend runtime:
+- Node `20.x` from `/Users/idant/82Labs/Sherman QC/Full Project-qc-clean/.nvmrc`
+- CI is pinned to Node `20.x`; local preflight accepts supported newer Node versions in the repo engine range, but `20.x` remains the canonical baseline
+
+First-time or recovery validation:
+
+```bash
+./scripts/check_frontend_toolchain.sh
+```
+
 Production build check:
 
 ```bash
 cd frontend/react
+npm run typecheck
 npm run build
 ```
+
+Failure mode to know about:
+- if `frontend/react/node_modules` is missing, `npm run build` can fail with `tsc: command not found` even though `typescript` is correctly declared in `devDependencies`
+- the supported fix is `cd frontend/react && npm ci` or the one-command preflight above
 
 ## Core Workflows
 
@@ -174,8 +189,7 @@ pytest -q \
 ### Frontend validation
 
 ```bash
-cd frontend/react
-npm run build
+./scripts/check_frontend_toolchain.sh
 ```
 
 ## Data and Artifact Policy

@@ -91,7 +91,8 @@ export interface JobProgress {
 
 // QC Result types
 export interface QCResult {
-  overall_result: 'PASS' | 'FAIL' | 'REVIEW'
+  overall_result: 'PASS' | 'FAIL' | 'WARNING' | 'REVIEW'
+  release_decision?: 'AUTO_PASS' | 'HOLD' | 'AUTO_FAIL' | string
   quality_score: number
   part_id: string
   part_name: string

@@ -162,6 +162,11 @@ class PDFReportGenerator:
         timestamp = report_data.get("timestamp", datetime.now().isoformat())
 
         verdict = report_data.get("overall_result", "FAIL").upper()
+        release_decision = sanitize_text(str(report_data.get("release_decision") or "")) or "LEGACY_ONLY"
+        release_blocked_by = report_data.get("release_blocked_by", []) or []
+        release_hold_reasons = report_data.get("release_hold_reasons", []) or []
+        trusted_alignment_for_release = report_data.get("trusted_alignment_for_release")
+        trusted_position_evidence = report_data.get("trusted_position_evidence")
         quality_score = report_data.get("quality_score", 0)
         confidence = report_data.get("confidence", 0)
 
@@ -301,6 +306,20 @@ class PDFReportGenerator:
         flow.append(verdict_tbl)
         flow.append(Spacer(1, 4*mm))
         flow.append(Paragraph(f"Quality Score: {quality_score:.1f}/100 | Confidence: {confidence:.0f}%", self.SMALL))
+        release_bits = [f"Release Decision: {release_decision}"]
+        if trusted_alignment_for_release is not None:
+            release_bits.append(f"Trusted Alignment: {'Yes' if trusted_alignment_for_release else 'No'}")
+        if trusted_position_evidence is not None:
+            release_bits.append(f"Trusted Position Evidence: {'Yes' if trusted_position_evidence else 'No'}")
+        if release_blocked_by:
+            release_bits.append(
+                "Blocked By: " + ", ".join(sanitize_text(str(item)) for item in release_blocked_by)
+            )
+        if release_hold_reasons:
+            release_bits.append(
+                "Hold Reasons: " + ", ".join(sanitize_text(str(item)) for item in release_hold_reasons)
+            )
+        flow.append(Paragraph(" | ".join(release_bits), self.SMALL))
         flow.append(Spacer(1, 10*mm))
 
         # === KPI CARDS ===

@@ -566,6 +566,14 @@ class TestBendInspectionReport:
         assert summary["remaining_bends"] == 1
         assert summary["observed_bends"] == 1
         assert summary["unobserved_bends"] == 1
+        assert summary["overall_result"] == "WARNING"
+        assert summary["release_decision"] == "HOLD"
+        assert summary["formed_bends"] == 1
+        assert summary["unknown_completion_bends"] == 1
+        assert summary["in_tolerance_bends"] == 1
+        assert summary["unmeasurable_bends"] == 1
+        assert summary["unknown_position_bends"] == 2
+        assert summary["release_hold_reasons"] == ["completion", "correspondence", "metrology", "observability", "position"]
 
     def test_to_table_string(self):
         """Test ASCII table generation."""
@@ -629,6 +637,47 @@ class TestBendInspectionReport:
         assert payload["feature_family"] == "COUNTABLE_DISCRETE_BEND"
         assert payload["measurement_primitive"] == "ANGLE_RADIUS"
         assert payload["measurement_mode"] == "cad_local_neighborhood"
+        assert payload["completion_state"] == "UNKNOWN"
+        assert payload["metrology_state"] == "UNMEASURABLE"
+        assert payload["positional_state"] == "UNKNOWN_POSITION"
+        assert payload["correspondence_state"] == "UNRESOLVED"
+        assert payload["observability_state_internal"] == "PARTIAL"
+
+    def test_match_serialization_includes_positional_and_metrology_states(self):
+        cad = BendSpecification(
+            bend_id="B1",
+            target_angle=120.0,
+            target_radius=3.0,
+            bend_line_start=np.zeros(3),
+            bend_line_end=np.array([0, 10, 0]),
+        )
+        flange1 = PlaneSegment(0, np.array([1, 0, 0]), 0.0, np.zeros(3), np.zeros((3, 3)), np.zeros((3, 3)), 10.0, 3)
+        flange2 = PlaneSegment(1, np.array([0, 0, 1]), 0.0, np.zeros(3), np.zeros((3, 3)), np.zeros((3, 3)), 10.0, 3)
+        detected = DetectedBend(
+            bend_id="D1",
+            measured_angle=117.5,
+            measured_radius=3.2,
+            bend_line_start=np.zeros(3),
+            bend_line_end=np.array([0, 10, 0]),
+            bend_line_direction=np.array([0, 1, 0]),
+            confidence=0.9,
+            flange1=flange1,
+            flange2=flange2,
+        )
+        match = BendMatch(
+            cad_bend=cad,
+            detected_bend=detected,
+            status="FAIL",
+            physical_completion_state="FORMED",
+            observability_state="FORMED",
+            line_center_deviation_mm=3.1,
+            measurement_context={"heatmap_consistency": {"status": "CONTRADICTED"}},
+        )
+        payload = match.to_dict()
+        assert payload["completion_state"] == "FORMED"
+        assert payload["metrology_state"] == "OUT_OF_TOL"
+        assert payload["positional_state"] == "MISLOCATED"
+        assert payload["position_evidence"]["status"] == "CONTRADICTED"
 
     def test_summary_counts_only_countable_bends_but_keeps_process_features(self):
         countable = BendSpecification(
@@ -666,6 +715,199 @@ class TestBendInspectionReport:
         assert summary["detected_process_features"] == 1
         assert payload["matches"][1]["feature_type"] == "ROLLED_SECTION"
         assert payload["matches"][1]["countable_in_regression"] is False
+
+    def test_summary_fails_release_on_mislocated_or_unformed_bends(self):
+        cad1 = BendSpecification(
+            bend_id="B1",
+            target_angle=90.0,
+            target_radius=3.0,
+            bend_line_start=np.zeros(3),
+            bend_line_end=np.array([0, 10, 0]),
+        )
+        cad2 = BendSpecification(
+            bend_id="B2",
+            target_angle=90.0,
+            target_radius=3.0,
+            bend_line_start=np.zeros(3),
+            bend_line_end=np.array([0, 10, 0]),
+        )
+        flange1 = PlaneSegment(0, np.array([1, 0, 0]), 0.0, np.zeros(3), np.zeros((3, 3)), np.zeros((3, 3)), 10.0, 3)
+        flange2 = PlaneSegment(1, np.array([0, 0, 1]), 0.0, np.zeros(3), np.zeros((3, 3)), np.zeros((3, 3)), 10.0, 3)
+        detected = DetectedBend(
+            bend_id="D1",
+            measured_angle=90.2,
+            measured_radius=3.0,
+            bend_line_start=np.zeros(3),
+            bend_line_end=np.array([0, 10, 0]),
+            bend_line_direction=np.array([0, 1, 0]),
+            confidence=0.9,
+            flange1=flange1,
+            flange2=flange2,
+        )
+        report = BendInspectionReport(
+            part_id="TEST",
+            matches=[
+                BendMatch(
+                    cad_bend=cad1,
+                    detected_bend=detected,
+                    status="PASS",
+                    physical_completion_state="FORMED",
+                    observability_state="FORMED",
+                    line_center_deviation_mm=3.2,
+                ),
+                BendMatch(
+                    cad_bend=cad2,
+                    detected_bend=None,
+                    status="NOT_DETECTED",
+                    physical_completion_state="UNFORMED",
+                    observability_state="UNFORMED",
+                ),
+            ],
+        )
+        summary = report.to_dict()["summary"]
+        assert summary["mislocated_bends"] == 1
+        assert summary["unformed_bends"] == 1
+        assert summary["overall_result"] == "FAIL"
+        assert summary["release_decision"] == "AUTO_FAIL"
+        assert sorted(summary["release_blocked_by"]) == ["completion", "position"]
+
+    def test_summary_warns_for_out_of_tolerance_without_release_blockers(self):
+        cad = BendSpecification(
+            bend_id="B1",
+            target_angle=90.0,
+            target_radius=3.0,
+            bend_line_start=np.zeros(3),
+            bend_line_end=np.array([0, 10, 0]),
+        )
+        flange1 = PlaneSegment(0, np.array([1, 0, 0]), 0.0, np.zeros(3), np.zeros((3, 3)), np.zeros((3, 3)), 10.0, 3)
+        flange2 = PlaneSegment(1, np.array([0, 0, 1]), 0.0, np.zeros(3), np.zeros((3, 3)), np.zeros((3, 3)), 10.0, 3)
+        detected = DetectedBend(
+            bend_id="D1",
+            measured_angle=92.2,
+            measured_radius=3.0,
+            bend_line_start=np.zeros(3),
+            bend_line_end=np.array([0, 10, 0]),
+            bend_line_direction=np.array([0, 1, 0]),
+            confidence=0.9,
+            flange1=flange1,
+            flange2=flange2,
+        )
+        report = BendInspectionReport(
+            part_id="TEST",
+            matches=[
+                BendMatch(
+                    cad_bend=cad,
+                    detected_bend=detected,
+                    status="WARNING",
+                    physical_completion_state="FORMED",
+                    observability_state="FORMED",
+                    line_center_deviation_mm=0.5,
+                )
+            ],
+        )
+        summary = report.to_dict()["summary"]
+        assert summary["out_of_tolerance_bends"] == 1
+        assert summary["on_position_bends"] == 1
+        assert summary["overall_result"] == "WARNING"
+        assert summary["release_decision"] == "HOLD"
+        assert summary["release_blocked_by"] == []
+
+    def test_summary_auto_pass_requires_confident_correspondence_and_trusted_alignment(self):
+        cad = BendSpecification(
+            bend_id="B1",
+            target_angle=90.0,
+            target_radius=3.0,
+            bend_line_start=np.zeros(3),
+            bend_line_end=np.array([0, 10, 0]),
+        )
+        flange1 = PlaneSegment(0, np.array([1, 0, 0]), 0.0, np.zeros(3), np.zeros((3, 3)), np.zeros((3, 3)), 10.0, 3)
+        flange2 = PlaneSegment(1, np.array([0, 0, 1]), 0.0, np.zeros(3), np.zeros((3, 3)), np.zeros((3, 3)), 10.0, 3)
+        detected = DetectedBend(
+            bend_id="D1",
+            measured_angle=90.1,
+            measured_radius=3.0,
+            bend_line_start=np.zeros(3),
+            bend_line_end=np.array([0, 10, 0]),
+            bend_line_direction=np.array([0, 1, 0]),
+            confidence=0.9,
+            flange1=flange1,
+            flange2=flange2,
+        )
+        report = BendInspectionReport(
+            part_id="TEST",
+            matches=[
+                BendMatch(
+                    cad_bend=cad,
+                    detected_bend=detected,
+                    status="PASS",
+                    physical_completion_state="FORMED",
+                    observability_state="FORMED",
+                    line_center_deviation_mm=0.2,
+                    assignment_confidence=0.91,
+                    assignment_candidate_score=0.9,
+                    assignment_null_score=0.1,
+                    assignment_candidate_count=1,
+                )
+            ],
+        )
+        report.alignment_metadata = {
+            "alignment_source": "PLANE_DATUM_REFINEMENT",
+            "alignment_confidence": 0.84,
+            "alignment_abstained": False,
+        }
+        summary = report.to_dict()["summary"]
+        assert summary["overall_result"] == "PASS"
+        assert summary["release_decision"] == "AUTO_PASS"
+        assert summary["trusted_alignment_for_release"] is True
+
+    def test_summary_holds_when_alignment_untrusted_even_if_local_metrics_pass(self):
+        cad = BendSpecification(
+            bend_id="B1",
+            target_angle=90.0,
+            target_radius=3.0,
+            bend_line_start=np.zeros(3),
+            bend_line_end=np.array([0, 10, 0]),
+        )
+        flange1 = PlaneSegment(0, np.array([1, 0, 0]), 0.0, np.zeros(3), np.zeros((3, 3)), np.zeros((3, 3)), 10.0, 3)
+        flange2 = PlaneSegment(1, np.array([0, 0, 1]), 0.0, np.zeros(3), np.zeros((3, 3)), np.zeros((3, 3)), 10.0, 3)
+        detected = DetectedBend(
+            bend_id="D1",
+            measured_angle=90.0,
+            measured_radius=3.0,
+            bend_line_start=np.zeros(3),
+            bend_line_end=np.array([0, 10, 0]),
+            bend_line_direction=np.array([0, 1, 0]),
+            confidence=0.9,
+            flange1=flange1,
+            flange2=flange2,
+        )
+        report = BendInspectionReport(
+            part_id="TEST",
+            matches=[
+                BendMatch(
+                    cad_bend=cad,
+                    detected_bend=detected,
+                    status="PASS",
+                    physical_completion_state="FORMED",
+                    observability_state="FORMED",
+                    line_center_deviation_mm=0.1,
+                    assignment_confidence=0.91,
+                    assignment_candidate_score=0.9,
+                    assignment_null_score=0.1,
+                    assignment_candidate_count=1,
+                    measurement_context={"heatmap_consistency": {"status": "CONTRADICTED"}},
+                )
+            ],
+        )
+        report.alignment_metadata = {
+            "alignment_source": "PLANE_DATUM_REFINEMENT",
+            "alignment_confidence": 0.2,
+            "alignment_abstained": True,
+        }
+        summary = report.to_dict()["summary"]
+        assert summary["overall_result"] == "WARNING"
+        assert summary["release_decision"] == "HOLD"
+        assert "alignment" in summary["release_hold_reasons"]
 
 
 class TestMathematicalFoundations:

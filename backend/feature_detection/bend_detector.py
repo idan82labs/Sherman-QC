@@ -32,6 +32,32 @@ from domains.bend.services.runtime_semantics import (
 
 logger = logging.getLogger(__name__)
 
+POSITIONAL_WARN_MM = 2.5
+ALIGNMENT_CONFIDENCE_WARN = 0.55
+
+
+def _heatmap_consistency_status(payload: Optional[Dict[str, Any]]) -> Optional[str]:
+    if not payload or not isinstance(payload, dict):
+        return None
+    status = str(payload.get("status") or "").strip().upper()
+    return status or None
+
+
+def _trusted_alignment_for_release(alignment_metadata: Optional[Dict[str, Any]]) -> bool:
+    if alignment_metadata is None:
+        return True
+    if not isinstance(alignment_metadata, dict):
+        return False
+    if bool(alignment_metadata.get("alignment_abstained")):
+        return False
+    source = str(alignment_metadata.get("alignment_source") or "").strip().upper()
+    confidence = float(alignment_metadata.get("alignment_confidence") or 0.0)
+    if source == "PLANE_DATUM_REFINEMENT":
+        return confidence >= ALIGNMENT_CONFIDENCE_WARN
+    if source in {"GLOBAL_ICP", "INITIAL_ICP"}:
+        return confidence >= 0.3
+    return confidence > 0.0
+
 
 @dataclass
 class PlaneSegment:
@@ -208,14 +234,111 @@ class BendMatch:
     measurement_method: Optional[str] = None
     measurement_context: Dict[str, Any] = field(default_factory=dict)
 
-    def __post_init__(self):
-        if self.cad_bend is not None and str(self.bend_form).upper() == "FOLDED" and str(self.cad_bend.bend_form).upper() == "ROLLED":
-            self.bend_form = "ROLLED"
-        self.observability_state = normalize_observability_state(
+    def correspondence_margin(self) -> float:
+        return float(self.assignment_candidate_score or 0.0) - float(self.assignment_null_score or 0.0)
+
+    def correspondence_state(self) -> str:
+        if self.detected_bend is None and str(self.status).upper() == "NOT_DETECTED":
+            return "UNRESOLVED"
+        candidate_count = int(self.assignment_candidate_count or 0)
+        margin = self.correspondence_margin()
+        confidence = float(self.assignment_confidence or self.match_confidence or 0.0)
+        if candidate_count <= 0:
+            if str(self.assignment_source or "").upper() not in {"", "NONE"} and confidence > 0.0:
+                return "AMBIGUOUS"
+            return "UNRESOLVED"
+        if candidate_count == 1 and confidence >= 0.65 and margin >= 0.15:
+            return "CONFIDENT"
+        if candidate_count >= 1 and (confidence > 0.0 or self.assignment_candidate_id):
+            return "AMBIGUOUS"
+        return "UNRESOLVED"
+
+    def observability_state_internal(self) -> str:
+        completion = self.completion_observable()
+        metrology = self.metrology_observable()
+        position = self.position_observable()
+        if completion and metrology and position:
+            return "SUFFICIENT"
+        if (
+            completion
+            or metrology
+            or position
+            or int(self.observed_surface_count or 0) > 0
+            or int(self.local_point_count or 0) > 0
+            or float(self.local_support_score or 0.0) > 0.0
+            or float(self.visibility_score or 0.0) > 0.0
+        ):
+            return "PARTIAL"
+        return "INSUFFICIENT"
+
+    def completion_observable(self) -> bool:
+        return self.completion_state() != "UNKNOWN"
+
+    def metrology_observable(self) -> bool:
+        return self.detected_bend is not None and self.metrology_state() != "UNMEASURABLE"
+
+    def position_observable(self) -> bool:
+        return self.positional_state() != "UNKNOWN_POSITION"
+
+    def completion_state(self) -> str:
+        return normalize_observability_state(
             self.observability_state,
             physical_completion_state=self.physical_completion_state,
             status=self.status,
         )
+
+    def metrology_state(self) -> str:
+        if str(self.status).upper() == "PASS":
+            return "IN_TOL"
+        if str(self.status).upper() in {"FAIL", "WARNING"}:
+            return "OUT_OF_TOL"
+        return "UNMEASURABLE"
+
+    def positional_state(self) -> str:
+        trusted_frame = bool(self.measurement_context.get("trusted_alignment_for_release", True))
+        evidence = self.position_evidence(trusted_frame=trusted_frame)
+        if evidence["status"] == "CONTRADICTED":
+            return "MISLOCATED"
+        if evidence["status"] == "SUPPORTED":
+            return "ON_POSITION"
+        return "UNKNOWN_POSITION"
+
+    def position_evidence(self, trusted_frame: bool) -> Dict[str, Any]:
+        consistency = _heatmap_consistency_status(self.measurement_context.get("heatmap_consistency"))
+        center_dev = self.line_center_deviation_mm
+        if consistency == "CONTRADICTED":
+            return {
+                "status": "CONTRADICTED" if trusted_frame else "INCONCLUSIVE",
+                "source": "HEATMAP" if trusted_frame else "BOTH",
+                "trusted_frame": bool(trusted_frame),
+                "reason": "heatmap_contradiction" if trusted_frame else "heatmap_contradiction_untrusted_frame",
+            }
+        if consistency == "SUPPORTED":
+            return {
+                "status": "SUPPORTED" if trusted_frame else "INCONCLUSIVE",
+                "source": "HEATMAP" if trusted_frame else "BOTH",
+                "trusted_frame": bool(trusted_frame),
+                "reason": "heatmap_supported" if trusted_frame else "heatmap_supported_untrusted_frame",
+            }
+        if center_dev is not None:
+            mislocated = abs(float(center_dev)) > POSITIONAL_WARN_MM
+            return {
+                "status": "CONTRADICTED" if (mislocated and trusted_frame) else "SUPPORTED" if trusted_frame else "INCONCLUSIVE",
+                "source": "GEOMETRIC_PROXY",
+                "trusted_frame": bool(trusted_frame),
+                "reason": "centerline_offset_out_of_tolerance" if mislocated else "centerline_offset_within_tolerance",
+            }
+        return {
+            "status": "INCONCLUSIVE",
+            "source": "GEOMETRIC_PROXY",
+            "trusted_frame": bool(trusted_frame),
+            "reason": "no_position_signal",
+        }
+
+    def __post_init__(self):
+        if self.cad_bend is not None and str(self.bend_form).upper() == "FOLDED" and str(self.cad_bend.bend_form).upper() == "ROLLED":
+            self.bend_form = "ROLLED"
+        self.observability_state = self.completion_state()
         self.observability_detail_state = legacy_observability_detail_state(
             self.observability_detail_state or self.observability_state,
             physical_completion_state=self.physical_completion_state,
@@ -262,6 +385,18 @@ class BendMatch:
             "issue_location": self.issue_location,
             "action_item": self.action_item,
             "physical_completion_state": self.physical_completion_state,
+            "completion_state": self.completion_state(),
+            "metrology_state": self.metrology_state(),
+            "positional_state": self.positional_state(),
+            "correspondence_state": self.correspondence_state(),
+            "correspondence_confidence": round(float(self.assignment_confidence or self.match_confidence or 0.0), 3),
+            "correspondence_margin": round(self.correspondence_margin(), 3),
+            "correspondence_candidate_count": int(self.assignment_candidate_count or 0),
+            "correspondence_source": self.assignment_source,
+            "observability_state_internal": self.observability_state_internal(),
+            "completion_observable": self.completion_observable(),
+            "metrology_observable": self.metrology_observable(),
+            "position_observable": self.position_observable(),
             "observability_state": self.observability_state,
             "observability_detail_state": self.observability_detail_state,
             "observability_confidence": round(float(self.observability_confidence or 0.0), 3),
@@ -283,6 +418,9 @@ class BendMatch:
             "measurement_mode": self.measurement_mode,
             "measurement_method": self.measurement_method,
             "measurement_context": self.measurement_context,
+            "position_evidence": self.position_evidence(
+                trusted_frame=bool(self.measurement_context.get("trusted_alignment_for_release", True))
+            ),
             # Edge-to-edge flange distance (Bender's View)
             "expected_edge_distance_mm": round(self.expected_edge_distance_mm, 3) if self.expected_edge_distance_mm is not None else None,
             "measured_edge_distance_mm": round(self.measured_edge_distance_mm, 3) if self.measured_edge_distance_mm is not None else None,
@@ -353,6 +491,21 @@ class BendInspectionReport:
     observed_count: int = 0
     partial_observed_count: int = 0
     unobserved_count: int = 0
+    formed_count: int = 0
+    unformed_count: int = 0
+    unknown_completion_count: int = 0
+    in_tolerance_count: int = 0
+    out_of_tolerance_count: int = 0
+    unmeasurable_count: int = 0
+    on_position_count: int = 0
+    mislocated_count: int = 0
+    unknown_position_count: int = 0
+    overall_result: str = "WARNING"
+    release_decision: str = "HOLD"
+    release_blockers: List[str] = field(default_factory=list)
+    release_hold_reasons: List[str] = field(default_factory=list)
+    trusted_alignment_for_release: bool = True
+    trusted_position_evidence: bool = True
 
     # Timing
     processing_time_ms: float = 0.0
@@ -360,6 +513,11 @@ class BendInspectionReport:
     def compute_summary(self):
         """Compute summary statistics."""
         countable_matches = [m for m in self.matches if bool(m.cad_bend.countable_in_regression)]
+        alignment_metadata = getattr(self, "alignment_metadata", None)
+        self.trusted_alignment_for_release = _trusted_alignment_for_release(alignment_metadata)
+        self.trusted_position_evidence = self.trusted_alignment_for_release
+        for match in self.matches:
+            match.measurement_context.setdefault("trusted_alignment_for_release", self.trusted_alignment_for_release)
         self.total_feature_count = len(self.matches)
         self.detected_feature_count = sum(1 for m in self.matches if m.status != "NOT_DETECTED")
         self.process_feature_count = sum(1 for m in self.matches if not bool(m.cad_bend.countable_in_regression))
@@ -371,6 +529,21 @@ class BendInspectionReport:
         self.pass_count = sum(1 for m in countable_matches if m.status == "PASS")
         self.fail_count = sum(1 for m in countable_matches if m.status == "FAIL")
         self.warning_count = sum(1 for m in countable_matches if m.status == "WARNING")
+        self.formed_count = sum(1 for m in countable_matches if m.completion_state() == "FORMED")
+        self.unformed_count = sum(1 for m in countable_matches if m.completion_state() == "UNFORMED")
+        self.unknown_completion_count = sum(1 for m in countable_matches if m.completion_state() == "UNKNOWN")
+        self.in_tolerance_count = sum(1 for m in countable_matches if m.metrology_state() == "IN_TOL")
+        self.out_of_tolerance_count = sum(1 for m in countable_matches if m.metrology_state() == "OUT_OF_TOL")
+        self.unmeasurable_count = sum(1 for m in countable_matches if m.metrology_state() == "UNMEASURABLE")
+        self.on_position_count = sum(1 for m in countable_matches if m.positional_state() == "ON_POSITION")
+        self.mislocated_count = sum(1 for m in countable_matches if m.positional_state() == "MISLOCATED")
+        self.unknown_position_count = sum(1 for m in countable_matches if m.positional_state() == "UNKNOWN_POSITION")
+        confident_correspondence_count = sum(1 for m in countable_matches if m.correspondence_state() == "CONFIDENT")
+        ambiguous_correspondence_count = sum(1 for m in countable_matches if m.correspondence_state() == "AMBIGUOUS")
+        unresolved_correspondence_count = sum(1 for m in countable_matches if m.correspondence_state() == "UNRESOLVED")
+        sufficient_observability_count = sum(1 for m in countable_matches if m.observability_state_internal() == "SUFFICIENT")
+        partial_observability_count = sum(1 for m in countable_matches if m.observability_state_internal() == "PARTIAL")
+        insufficient_observability_count = sum(1 for m in countable_matches if m.observability_state_internal() == "INSUFFICIENT")
         self.observed_count = sum(
             1
             for m in countable_matches
@@ -400,6 +573,53 @@ class BendInspectionReport:
             ) == "UNKNOWN"
             and str(m.status).upper() == "NOT_DETECTED"
         )
+        blockers: List[str] = []
+        holds: List[str] = []
+        if self.mislocated_count > 0:
+            blockers.append("position")
+        if self.unformed_count > 0:
+            blockers.append("completion")
+        if not self.trusted_alignment_for_release:
+            holds.append("alignment")
+        if unresolved_correspondence_count > 0 or ambiguous_correspondence_count > 0:
+            holds.append("correspondence")
+        if insufficient_observability_count > 0 or partial_observability_count > 0:
+            holds.append("observability")
+        if self.unmeasurable_count > 0:
+            holds.append("metrology")
+        if self.unknown_completion_count > 0:
+            holds.append("completion")
+        if self.unknown_position_count > 0:
+            holds.append("position")
+        self.release_blockers = blockers
+        self.release_hold_reasons = sorted(set(holds))
+        if blockers:
+            self.overall_result = "FAIL"
+            self.release_decision = "AUTO_FAIL"
+        elif (
+            self.out_of_tolerance_count > 0
+            or self.unmeasurable_count > 0
+            or self.unknown_completion_count > 0
+            or self.unknown_position_count > 0
+            or self.release_hold_reasons
+            or confident_correspondence_count != len(countable_matches)
+            or sufficient_observability_count != len(countable_matches)
+        ):
+            self.overall_result = "WARNING"
+            self.release_decision = "HOLD"
+        else:
+            self.overall_result = "PASS"
+            self.release_decision = "AUTO_PASS"
+        self._correspondence_summary = {
+            "confident_bends": confident_correspondence_count,
+            "ambiguous_bends": ambiguous_correspondence_count,
+            "unresolved_bends": unresolved_correspondence_count,
+        }
+        self._observability_internal_summary = {
+            "sufficient_bends": sufficient_observability_count,
+            "partial_bends": partial_observability_count,
+            "insufficient_bends": insufficient_observability_count,
+        }
 
     @property
     def progress_percentage(self) -> float:
@@ -438,6 +658,27 @@ class BendInspectionReport:
                 "observed_bends": self.observed_count,
                 "partially_observed_bends": self.partial_observed_count,
                 "unobserved_bends": self.unobserved_count,
+                "formed_bends": self.formed_count,
+                "unformed_bends": self.unformed_count,
+                "unknown_completion_bends": self.unknown_completion_count,
+                "in_tolerance_bends": self.in_tolerance_count,
+                "out_of_tolerance_bends": self.out_of_tolerance_count,
+                "unmeasurable_bends": self.unmeasurable_count,
+                "on_position_bends": self.on_position_count,
+                "mislocated_bends": self.mislocated_count,
+                "unknown_position_bends": self.unknown_position_count,
+                "overall_result": self.overall_result,
+                "release_decision": self.release_decision,
+                "release_blocked_by": list(self.release_blockers),
+                "release_hold_reasons": list(self.release_hold_reasons),
+                "trusted_alignment_for_release": self.trusted_alignment_for_release,
+                "trusted_position_evidence": self.trusted_position_evidence,
+                "correspondence_confident_bends": self._correspondence_summary["confident_bends"],
+                "correspondence_ambiguous_bends": self._correspondence_summary["ambiguous_bends"],
+                "correspondence_unresolved_bends": self._correspondence_summary["unresolved_bends"],
+                "observability_sufficient_bends": self._observability_internal_summary["sufficient_bends"],
+                "observability_partial_bends": self._observability_internal_summary["partial_bends"],
+                "observability_insufficient_bends": self._observability_internal_summary["insufficient_bends"],
                 "total_features": self.total_feature_count,
                 "detected_features": self.detected_feature_count,
                 "process_features": self.process_feature_count,
@@ -448,6 +689,8 @@ class BendInspectionReport:
             "scan_quality": self.scan_quality,
             "alignment": getattr(self, "alignment_metadata", None) or {},
             "operator_actions": concise_actions[:8],
+            "overall_result": self.overall_result,
+            "release_decision": self.release_decision,
             "processing_time_ms": round(self.processing_time_ms, 1),
         }
 
@@ -463,6 +706,9 @@ class BendInspectionReport:
         lines.append(f"  Progress: {self.detected_count} of {self.total_cad_bends} bends complete ({self.progress_percentage:.0f}%)")
         lines.append(
             f"  In spec: {self.pass_count} | Out of spec: {max(0, self.detected_count - self.pass_count)} | Remaining: {max(0, self.total_cad_bends - self.detected_count)}"
+        )
+        lines.append(
+            f"  Release: {self.overall_result} ({self.release_decision}) | formed {self.formed_count} | out_of_tol {self.out_of_tolerance_count} | mislocated {self.mislocated_count}"
         )
         lines.append(
             f"  Observability: observed {self.observed_count} | partial {self.partial_observed_count} | unobserved {self.unobserved_count}"

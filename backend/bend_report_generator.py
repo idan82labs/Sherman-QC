@@ -384,6 +384,11 @@ class _BendPDF:
         operator_brief = report_dict.get("operator_brief", {})
         scan_quality = report_dict.get("scan_quality", {})
         matches = report_dict.get("matches", [])
+        release_decision = str(report_dict.get("release_decision") or summary.get("release_decision") or "LEGACY_ONLY")
+        release_blocked_by = list(summary.get("release_blocked_by") or [])
+        release_hold_reasons = list(summary.get("release_hold_reasons") or [])
+        trusted_alignment = summary.get("trusted_alignment_for_release")
+        trusted_position = summary.get("trusted_position_evidence")
 
         story.append(Paragraph("Bend Inspection Report", self.title))
         story.append(Spacer(1, 3 * mm))
@@ -394,6 +399,20 @@ class _BendPDF:
             self.body,
         ))
         story.append(Spacer(1, 5 * mm))
+
+        release_bits = [f"Release <b>{release_decision}</b>"]
+        if summary.get("overall_result"):
+            release_bits.append(f"Legacy verdict {summary.get('overall_result')}")
+        if trusted_alignment is not None:
+            release_bits.append(f"Alignment {'trusted' if trusted_alignment else 'untrusted'}")
+        if trusted_position is not None:
+            release_bits.append(f"Position evidence {'trusted' if trusted_position else 'untrusted'}")
+        if release_blocked_by:
+            release_bits.append("Blocked by " + ", ".join(str(item) for item in release_blocked_by))
+        if release_hold_reasons:
+            release_bits.append("Hold reasons " + ", ".join(str(item) for item in release_hold_reasons))
+        story.append(self._box(" | ".join(release_bits), bg="#FEF3C7" if release_decision == "HOLD" else "#F8FAFC", border="#F59E0B" if release_decision == "HOLD" else "#CBD5E1"))
+        story.append(Spacer(1, 4 * mm))
 
         kpi_cells = [
             self._kpi("In Spec", str(summary.get("completed_in_spec", summary.get("passed", 0))), "#059669"),
@@ -503,15 +522,28 @@ class _BendPDF:
 
     def _bend_table(self, matches: Iterable[Dict[str, Any]], content_width: float):
         rows: List[List[str]] = [[
-            "Bend", "Status", "Exp/Act Angle", "ΔA", "ΔR", "ΔC", "Action",
+            "Bend", "Status", "States", "Position", "Exp/Act Angle", "ΔA", "ΔR", "ΔC", "Action",
         ]]
         for match in matches:
             exp = match.get("target_angle")
             act = match.get("measured_angle")
             action = str(match.get("action_item") or "-")
+            states = "/".join(
+                str(match.get(key) or "-")
+                for key in ("completion_state", "metrology_state", "positional_state")
+            )
+            position_evidence = match.get("position_evidence") or {}
+            position_summary = "/".join(
+                [
+                    str(position_evidence.get("status") or "-"),
+                    str(position_evidence.get("reason") or "-"),
+                ]
+            )
             rows.append([
                 str(match.get("bend_id", "-")),
                 str(match.get("status", "-")),
+                states,
+                position_summary,
                 f"{exp:.1f} / {act:.1f}" if isinstance(exp, (int, float)) and isinstance(act, (int, float)) else f"{exp if exp is not None else '-'} / -",
                 self._fmt_num(match.get("angle_deviation"), "°", 1),
                 self._fmt_num(match.get("radius_deviation"), " mm", 2),
@@ -519,7 +551,7 @@ class _BendPDF:
                 action,
             ])
 
-        widths = [18 * mm, 24 * mm, 36 * mm, 22 * mm, 22 * mm, 22 * mm, content_width - 144 * mm]
+        widths = [14 * mm, 16 * mm, 22 * mm, 26 * mm, 24 * mm, 14 * mm, 14 * mm, 14 * mm, content_width - 144 * mm]
         table = Table(rows, repeatRows=1, colWidths=widths)
         style = [
             ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#F1F5F9")),

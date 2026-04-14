@@ -322,6 +322,11 @@ export default function JobDetail() {
                   value={qcResult.overall_result || '-'}
                   highlight={qcResult.overall_result === 'PASS' ? 'green' : qcResult.overall_result === 'FAIL' ? 'red' : undefined}
                 />
+                <StatItem
+                  label="Release Decision"
+                  value={qcResult.release_decision || 'LEGACY_ONLY'}
+                  highlight={qcResult.release_decision === 'AUTO_PASS' ? 'green' : qcResult.release_decision === 'AUTO_FAIL' ? 'red' : undefined}
+                />
               </div>
             </div>
           )}
@@ -780,6 +785,7 @@ function buildOperatorBrief(qcResult: any): { headline: string; actions: string[
   }
 
   const overall = qcResult.overall_result || 'REVIEW'
+  const releaseDecision = qcResult.release_decision || (overall === 'PASS' ? 'AUTO_PASS' : overall === 'FAIL' ? 'AUTO_FAIL' : 'HOLD')
   const stats = qcResult.statistics || {}
   const passRate = typeof stats.pass_rate === 'number'
     ? stats.pass_rate
@@ -789,6 +795,7 @@ function buildOperatorBrief(qcResult: any): { headline: string; actions: string[
     : stats.max_deviation
   const headlineParts = [
     `Result: ${overall}`,
+    `Release: ${releaseDecision}`,
     passRate != null ? `Pass rate ${Number(passRate).toFixed(1)}%` : null,
     maxDeviation != null ? `Max deviation ${Number(maxDeviation).toFixed(3)} mm` : null,
   ].filter(Boolean)
