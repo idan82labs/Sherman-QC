@@ -4,7 +4,7 @@ from pathlib import Path
 from types import SimpleNamespace
 
 
-MODULE_PATH = Path("/Users/idant/82Labs/Sherman QC/Full Project-qc-clean/scripts/evaluate_bend_corpus.py")
+MODULE_PATH = Path(__file__).resolve().parents[1] / "scripts" / "evaluate_bend_corpus.py"
 spec = importlib.util.spec_from_file_location("evaluate_bend_corpus", MODULE_PATH)
 evaluate_bend_corpus = importlib.util.module_from_spec(spec)
 assert spec is not None and spec.loader is not None
@@ -116,6 +116,26 @@ def test_ordered_scan_records_prioritizes_partial_sequence_before_full():
     ordered = evaluate_bend_corpus._ordered_scan_records(metadata)
 
     assert [item["name"] for item in ordered] == ["scan_1.ply", "scan_2.ply", "full.ply"]
+
+
+def test_score_scan_marks_byte_identical_scan_as_diagnostic(tmp_path):
+    cad_path = tmp_path / "cad.stl"
+    scan_path = tmp_path / "scan.stl"
+    cad_path.write_text("solid same\nendsolid same\n", encoding="utf-8")
+    scan_path.write_text("solid same\nendsolid same\n", encoding="utf-8")
+
+    item = _item(
+        "scan.stl",
+        "full",
+        [{"bend_id": "CAD_B1", "status": "PASS", "observability_state": "OBSERVED_FORMED"}],
+    )
+    item["cad_path"] = str(cad_path)
+    item["scan_path"] = str(scan_path)
+
+    metrics = evaluate_bend_corpus._score_scan(item, item["expectation"])
+
+    assert metrics["cad_scan_identity"] == "BYTE_IDENTICAL"
+    assert metrics["cad_scan_byte_identical"] is True
 
 
 def test_sequence_continuity_prior_carries_forward_strong_previous_bend():
@@ -301,6 +321,97 @@ def test_should_apply_sequence_continuity_scan_name_fallback_requires_complete_p
         {"sequence": 1, "sequence_confident": False, "name": "23553000_B_SCAN_1.ply"},
         {"sequence": 2, "sequence_confident": False, "name": "23553000_B_SCAN_2.ply"},
     ) is False
+
+
+def test_score_scan_treats_ambiguous_correspondence_as_hold():
+    item = _item(
+        "ambiguous_scan.ply",
+        "full",
+        [
+            {
+                "bend_id": "CAD_B2",
+                "status": "PASS",
+                "observability_state": "OBSERVED_FORMED",
+                "physical_completion_state": "FORMED",
+                "feature_type": "DISCRETE_BEND",
+                "countable_in_regression": True,
+                "correspondence_state": "AMBIGUOUS",
+                "assignment_source": "GLOBAL_DETECTION",
+                "assignment_candidate_count": 2,
+                "assignment_confidence": 0.62,
+                "assignment_candidate_score": 0.7,
+                "assignment_null_score": 0.1,
+                "measured_angle": 135.3,
+                "target_angle": 134.7,
+                "line_center_deviation_mm": 3.94,
+            }
+        ],
+    )
+
+    metrics = evaluate_bend_corpus._score_scan(item, item["expectation"])
+
+    assert metrics["correspondence_ambiguous_bends"] == 1
+    assert metrics["correspondence_abstained_bends"] == 1
+    assert metrics["metrology_scored_bends"] == 0
+    assert metrics["position_scored_bends"] == 0
+    assert metrics["abstained_bends"] == 1
+    assert metrics["release_decision"] == "HOLD"
+    assert metrics["invariant_fail_state"] == "NONE"
+    assert metrics["hold_reason_breakdown"]["correspondence_ambiguous"] == 1
+    assert metrics["hold_reason_rate"] == 1.0
+
+
+def test_score_scan_marks_ambiguity_invariant_fail_when_terminal_fail_survives_ambiguity():
+    item = _item(
+        "ambiguity_invariant_fail_scan.ply",
+        "full",
+        [
+            {
+                "bend_id": "CAD_B2",
+                "status": "NOT_DETECTED",
+                "observability_state": "UNOBSERVED",
+                "feature_type": "DISCRETE_BEND",
+                "countable_in_regression": True,
+                "correspondence_state": "AMBIGUOUS",
+                "assignment_source": "GLOBAL_DETECTION",
+                "assignment_candidate_count": 2,
+                "assignment_confidence": 0.62,
+                "assignment_candidate_score": 0.7,
+                "assignment_null_score": 0.1,
+            },
+                {
+                    "bend_id": "CAD_B3",
+                    "status": "FAIL",
+                    "observability_state": "OBSERVED_FORMED",
+                    "completion_state": "UNFORMED",
+                    "physical_completion_state": "UNFORMED",
+                    "feature_type": "DISCRETE_BEND",
+                    "countable_in_regression": True,
+                    "correspondence_state": "CONFIDENT",
+                    "assignment_source": "GLOBAL_DETECTION",
+                "assignment_candidate_count": 1,
+                "assignment_confidence": 0.9,
+                "assignment_candidate_score": 0.8,
+                "assignment_null_score": 0.1,
+            },
+        ],
+    )
+
+    metrics = evaluate_bend_corpus._score_scan(item, item["expectation"])
+
+    assert metrics["release_decision"] == "AUTO_FAIL"
+    assert metrics["invariant_fail_state"] == "AMBIGUITY_INVARIANT_FAIL"
+    assert metrics["invariant_fail_detected"] is True
+    assert metrics["invariant_fail_reasons"] == {
+        "correspondence_ambiguity": 1,
+        "terminal_unformed": 1,
+    }
+    assert metrics["correspondence_abstained_bends"] == 1
+    assert metrics["unformed_bends"] == 1
+    assert metrics["abstained_bends"] == 2
+    assert metrics["hold_reason_breakdown"]["correspondence_ambiguous"] == 1
+    assert metrics["hold_reason_breakdown"]["metrology_out_of_tolerance"] == 1
+    assert metrics["hold_reason_breakdown"]["position_unknown"] == 1
 
 
 def test_partial_to_full_retention_carries_explicit_previous_partial_bend():
@@ -563,7 +674,21 @@ def test_aggregate_includes_structured_count_metrics():
     item = _item(
         "full_scan.ply",
         "full",
-        [{"bend_id": "CAD_B1", "status": "PASS", "observability_state": "OBSERVED_FORMED"}],
+        [
+            {
+                "bend_id": "CAD_B1",
+                "status": "PASS",
+                "observability_state": "OBSERVED_FORMED",
+                "feature_type": "DISCRETE_BEND",
+                "countable_in_regression": True,
+                "correspondence_state": "CONFIDENT",
+                "assignment_source": "GLOBAL_DETECTION",
+                "assignment_candidate_count": 1,
+                "assignment_confidence": 0.9,
+                "assignment_candidate_score": 0.8,
+                "assignment_null_score": 0.1,
+            }
+        ],
     )
     item["part_key"] = "P1"
     item["expectation"] = {"state": "full", "expected_total_bends": 2, "expected_completed_bends": 2}
@@ -580,13 +705,14 @@ def test_aggregate_includes_structured_count_metrics():
     aggregate = evaluate_bend_corpus._aggregate([item])
 
     assert aggregate["structured_scans"] == 1
-    assert aggregate["structured_mae_vs_expected_total_completed"] == 0.0
-    assert aggregate["structured_mae_vs_expected_completed"] == 0.0
-    assert aggregate["partial_mae_vs_expected_total_completed"] is None
-    assert aggregate["structured_partial_mae_vs_expected_total_completed"] is None
+    assert aggregate["diagnostics"]["structured_mae_vs_expected_total_completed"] == 0.0
+    assert aggregate["diagnostics"]["structured_mae_vs_expected_completed"] == 0.0
+    assert aggregate["diagnostics"]["partial_mae_vs_expected_total_completed"] is None
+    assert aggregate["diagnostics"]["structured_partial_mae_vs_expected_total_completed"] is None
     assert aggregate["structured_full_scan_exact_completion_rate"] == 1.0
-    assert aggregate["scoreboards"]["completion"]["scan_level_mae_expected_completed"] == 1.0
+    assert aggregate["scoreboards"]["correspondence"]["decision_ready_bends"] == 1
     assert aggregate["scoreboards"]["abstention"]["abstention_rate"] == 1.0
+    assert "scan_level_mae_expected_completed" not in aggregate["scoreboards"]["completion"]
 
 
 def test_aggregate_includes_partial_mae_metrics():
@@ -609,11 +735,33 @@ def test_aggregate_includes_partial_mae_metrics():
 
     aggregate = evaluate_bend_corpus._aggregate([item])
 
-    assert aggregate["partial_mae_vs_expected_total_completed"] == 3.0
-    assert aggregate["partial_mae_vs_expected_completed"] == 1.0
-    assert aggregate["structured_partial_mae_vs_expected_total_completed"] == 2.0
-    assert aggregate["structured_partial_mae_vs_expected_completed"] == 0.0
+    assert aggregate["diagnostics"]["partial_mae_vs_expected_total_completed"] == 3.0
+    assert aggregate["diagnostics"]["partial_mae_vs_expected_completed"] == 1.0
+    assert aggregate["diagnostics"]["structured_partial_mae_vs_expected_total_completed"] == 2.0
+    assert aggregate["diagnostics"]["structured_partial_mae_vs_expected_completed"] == 0.0
     assert aggregate["scoreboards"]["completion"]["false_negative_completion_rate"] == 0.5
+
+
+def test_aggregate_counts_cad_duplicate_scans_in_diagnostics(tmp_path):
+    cad_path = tmp_path / "cad.stl"
+    scan_path = tmp_path / "scan.stl"
+    cad_path.write_text("solid same\nendsolid same\n", encoding="utf-8")
+    scan_path.write_text("solid same\nendsolid same\n", encoding="utf-8")
+
+    item = _item(
+        "scan.stl",
+        "full",
+        [{"bend_id": "CAD_B1", "status": "PASS", "observability_state": "OBSERVED_FORMED"}],
+    )
+    item["part_key"] = "P_DUP"
+    item["cad_path"] = str(cad_path)
+    item["scan_path"] = str(scan_path)
+    item["metrics"] = evaluate_bend_corpus._score_scan(item, item["expectation"])
+
+    aggregate = evaluate_bend_corpus._aggregate([item])
+
+    assert aggregate["diagnostics"]["cad_duplicate_scan_count"] == 1
+    assert aggregate["diagnostics"]["cad_duplicate_scan_names"] == ["scan.stl"]
 
 
 def test_heatmap_consistency_metrics_ignore_rolled_features():
@@ -770,6 +918,160 @@ def test_aggregate_includes_contradiction_case_listing():
     case = aggregate["_contradiction_cases"][0]
     assert case["bend_id"] == "CAD_B2"
     assert case["correspondence_state"] == "CONFIDENT"
+    assert case["case_type"] == "trusted_position_contradiction"
+
+
+def test_aggregate_classifies_correspondence_ambiguous_measurement():
+    item = _item(
+        "full_scan.ply",
+        "full",
+        [
+            {
+                "bend_id": "CAD_B2",
+                "status": "PASS",
+                "observability_state": "OBSERVED_FORMED",
+                "physical_completion_state": "FORMED",
+                "feature_type": "DISCRETE_BEND",
+                "countable_in_regression": True,
+                "assignment_source": "GLOBAL_DETECTION",
+                "correspondence_state": "AMBIGUOUS",
+                "assignment_candidate_count": 2,
+                "assignment_confidence": 0.63,
+                "assignment_candidate_score": 0.7,
+                "assignment_null_score": 0.1,
+                "correspondence_margin": 0.6,
+                "correspondence_runner_up_gap": 0.03,
+                "correspondence_top_candidate_selected": True,
+                "measured_angle": 135.3,
+                "target_angle": 134.7,
+                "line_center_deviation_mm": 3.94,
+            }
+        ],
+    )
+    item["metrics"] = evaluate_bend_corpus._score_scan(item, item["expectation"])
+    aggregate = evaluate_bend_corpus._aggregate([item])
+
+    assert aggregate["contradiction_case_count"] == 1
+    case = aggregate["_contradiction_cases"][0]
+    assert case["case_type"] == "correspondence_ambiguous_measurement"
+    assert case["correspondence_state"] == "AMBIGUOUS"
+    assert case["correspondence_runner_up_gap"] == 0.03
+    assert case["correspondence_top_candidate_selected"] is True
+    assert case["claim_gate_reasons"][0] == "correspondence_ambiguous"
+    assert "correspondence_close_runner_up" in case["claim_gate_reasons"]
+
+
+def test_score_scan_counts_reused_candidate_ambiguity():
+    item = _item(
+        "full_scan.ply",
+        "full",
+        [
+            {
+                "bend_id": "CAD_B4",
+                "status": "PASS",
+                "observability_state": "FORMED",
+                "physical_completion_state": "FORMED",
+                "feature_type": "DISCRETE_BEND",
+                "countable_in_regression": True,
+                "assignment_source": "CAD_LOCAL_NEIGHBORHOOD",
+                "correspondence_state": "AMBIGUOUS",
+                "assignment_candidate_count": 2,
+                "assignment_confidence": 0.9,
+                "assignment_candidate_score": 0.56,
+                "assignment_null_score": 0.05,
+                "correspondence_margin": 0.51,
+                "correspondence_runner_up_gap": 0.56,
+                "correspondence_top_candidate_selected": True,
+                "correspondence_candidate_reused": True,
+                "measured_angle": 90.15,
+                "target_angle": 90.49,
+            }
+        ],
+    )
+    metrics = evaluate_bend_corpus._score_scan(item, item["expectation"])
+
+    assert metrics["correspondence_ambiguous_reused_candidate_bends"] == 1
+    assert metrics["hold_reason_breakdown"]["correspondence_candidate_reused"] == 1
+
+
+def test_aggregate_classifies_untrusted_datum_position_claim():
+    item = _item(
+        "full_scan.ply",
+        "full",
+        [
+            {
+                "bend_id": "CAD_B2",
+                "status": "FAIL",
+                "observability_state": "OBSERVED_FORMED",
+                "physical_completion_state": "FORMED",
+                "feature_type": "DISCRETE_BEND",
+                "countable_in_regression": True,
+                "assignment_source": "GLOBAL_DETECTION",
+                "correspondence_state": "CONFIDENT",
+                "trusted_alignment_for_release": False,
+                "trusted_position_evidence": False,
+                "measured_angle": 135.3,
+                "target_angle": 134.7,
+                "line_center_deviation_mm": 3.94,
+            }
+        ],
+    )
+    item["metrics"] = evaluate_bend_corpus._score_scan(item, item["expectation"])
+    aggregate = evaluate_bend_corpus._aggregate([item])
+
+    assert aggregate["contradiction_case_count"] == 1
+    case = aggregate["_contradiction_cases"][0]
+    assert case["case_type"] == "datum_untrusted_position_claim"
+    assert case["datum_ready"] is False
+    assert case["claim_gate_reasons"] == ["datum_untrusted"]
+
+
+def test_aggregate_classifies_ambiguity_invariant_fail():
+    item = _item(
+        "full_scan.ply",
+        "full",
+        [
+            {
+                "bend_id": "CAD_B2",
+                "status": "NOT_DETECTED",
+                "observability_state": "UNOBSERVED",
+                "feature_type": "DISCRETE_BEND",
+                "countable_in_regression": True,
+                "assignment_source": "GLOBAL_DETECTION",
+                "correspondence_state": "AMBIGUOUS",
+                "assignment_candidate_count": 2,
+                "assignment_confidence": 0.63,
+                "assignment_candidate_score": 0.7,
+                "assignment_null_score": 0.1,
+            },
+                {
+                    "bend_id": "CAD_B3",
+                    "status": "FAIL",
+                    "observability_state": "OBSERVED_FORMED",
+                    "completion_state": "UNFORMED",
+                    "physical_completion_state": "UNFORMED",
+                    "feature_type": "DISCRETE_BEND",
+                    "countable_in_regression": True,
+                    "correspondence_state": "CONFIDENT",
+                    "assignment_source": "GLOBAL_DETECTION",
+                "assignment_candidate_count": 1,
+                "assignment_confidence": 0.9,
+                "assignment_candidate_score": 0.8,
+                "assignment_null_score": 0.1,
+            },
+        ],
+    )
+    item["metrics"] = evaluate_bend_corpus._score_scan(item, item["expectation"])
+    aggregate = evaluate_bend_corpus._aggregate([item])
+
+    assert aggregate["invariant_fail_case_count"] == 1
+    assert aggregate["scoreboards"]["invariant_fail"]["ambiguity_invariant_fail_scans"] == 1
+    assert aggregate["scoreboards"]["invariant_fail"]["ambiguity_invariant_fail_rate"] == 1.0
+    case = aggregate["_invariant_fail_cases"][0]
+    assert case["case_type"] == "ambiguity_invariant_fail"
+    assert case["overall_result"] == "FAIL"
+    assert case["release_decision"] == "AUTO_FAIL"
+    assert case["invariant_fail_reasons"] == ["correspondence_ambiguity", "terminal_unformed"]
 
 
 def test_write_scoreboards_outputs_json(tmp_path):
@@ -792,6 +1094,8 @@ def test_write_scoreboards_outputs_json(tmp_path):
                 "assignment_confidence": 0.92,
                 "assignment_candidate_score": 0.8,
                 "assignment_null_score": 0.1,
+                "correspondence_runner_up_gap": 0.55,
+                "correspondence_top_candidate_selected": True,
             },
         ],
     )
@@ -800,7 +1104,11 @@ def test_write_scoreboards_outputs_json(tmp_path):
 
     payload = json.loads((tmp_path / "scoreboards.json").read_text(encoding="utf-8"))
     assert payload["scoreboards"]["completion"]["countable_bends"] == 1
-    assert payload["scoreboards"]["metrology"]["angle_mae_deg"] == 0.2
+    assert payload["scoreboards"]["metrology"]["conditional_in_tolerance_rate"] == 1.0
+    assert payload["scoreboards"]["invariant_fail"]["ambiguity_invariant_fail_scans"] == 0
+    assert payload["scoreboards"]["correspondence"]["top_selected_bends"] == 1
+    assert payload["scoreboards"]["correspondence"]["ambiguous_close_runner_up_bends"] == 0
+    assert payload["diagnostics"]["metrology_angle_mae_deg"] == 0.2
 
 
 def test_write_contradiction_debug_outputs_markdown_and_json(tmp_path):
@@ -811,6 +1119,7 @@ def test_write_contradiction_debug_outputs_markdown_and_json(tmp_path):
                 "scan_name": "49125000_A00.ply",
                 "bend_id": "CAD_B2",
                 "status": "FAIL",
+                "case_type": "trusted_position_contradiction",
                 "measured_angle": 135.33,
                 "target_angle": 134.72,
                 "line_center_deviation_mm": 3.94,
@@ -824,5 +1133,34 @@ def test_write_contradiction_debug_outputs_markdown_and_json(tmp_path):
     json_payload = json.loads((tmp_path / "decision_contradiction_cases.json").read_text(encoding="utf-8"))
     markdown = (tmp_path / "decision_contradiction_cases.md").read_text(encoding="utf-8")
     assert json_payload[0]["bend_id"] == "CAD_B2"
+    assert json_payload[0]["case_type"] == "trusted_position_contradiction"
     assert "49125000" in markdown
     assert "CAD_B2" in markdown
+
+
+def test_write_invariant_fail_outputs_markdown_and_json(tmp_path):
+    aggregate = {
+        "_invariant_fail_cases": [
+            {
+                "part_key": "49125000",
+                "scan_name": "49125000_A00.ply",
+                "state": "full",
+                "overall_result": "FAIL",
+                "release_decision": "AUTO_FAIL",
+                "case_type": "ambiguity_invariant_fail",
+                "invariant_fail_state": "AMBIGUITY_INVARIANT_FAIL",
+                "invariant_fail_reasons": ["correspondence_ambiguity", "terminal_unformed"],
+                "correspondence_abstained_bends": 1,
+                "unformed_bends": 1,
+                "mislocated_bends": 0,
+            }
+        ]
+    }
+
+    evaluate_bend_corpus._write_invariant_fail_debug(tmp_path, aggregate)
+
+    json_payload = json.loads((tmp_path / "decision_invariant_fail_cases.json").read_text(encoding="utf-8"))
+    markdown = (tmp_path / "decision_invariant_fail_cases.md").read_text(encoding="utf-8")
+    assert json_payload[0]["case_type"] == "ambiguity_invariant_fail"
+    assert "49125000" in markdown
+    assert "CAD_B2" not in markdown

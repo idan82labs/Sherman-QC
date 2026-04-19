@@ -281,13 +281,12 @@ export default function BendInspection() {
           <div className="card p-4 mt-4 bg-amber-500/5 border-amber-500/20">
             <h3 className="text-sm font-medium text-amber-400 mb-2">Progressive Inspection</h3>
             <p className="text-xs text-dark-400">
-              This tool compares a partial scan (after some bends) against the complete CAD model.
-              It identifies which bends have been made and verifies they are within tolerance.
+              This tool compares a partial scan against the CAD contract and only trusts bend-specific angle or position claims when correspondence and datum validity are decision-ready.
             </p>
             <ul className="text-xs text-dark-400 mt-2 space-y-1">
               <li>• Works at any stage of bending (2/11 bends, 5/11 bends, etc.)</li>
-              <li>• Detects bend angles and matches to CAD specifications</li>
-              <li>• No need for global alignment - bends are matched by angle</li>
+              <li>• Distinguishes physical formation, observability, correspondence, and datum trust before release</li>
+              <li>• Angle evidence supports detection, but it does not rescue a positional contradiction</li>
             </ul>
           </div>
         </div>
@@ -553,6 +552,8 @@ function BendInspectionResults({
   if (!report) return null
 
   const { summary, matches } = report
+  const reportData = report as Record<string, any>
+  const summaryData = (reportData.summary ?? {}) as Record<string, any>
   const completedBends = summary.completed_bends ?? summary.detected
   const structuredCompletedBends = summary.structured_completed_bends
   const displayedCompletedBends = structuredCompletedBends ?? completedBends
@@ -560,12 +561,19 @@ function BendInspectionResults({
   const completedOutOfSpec = summary.completed_out_of_spec ?? (completedBends - completedInSpec)
   const remainingBends = summary.remaining_bends ?? Math.max(0, summary.total_bends - completedBends)
   const structuredRemainingBends = summary.structured_remaining_bends
-  const releaseDecision = report.release_decision ?? summary.release_decision ?? (
+  const explicitReleaseDecision = (report.release_decision ?? summary.release_decision ?? '').trim() || null
+  const releaseDecision = explicitReleaseDecision ?? (
     summary.overall_result === 'FAIL' ? 'AUTO_FAIL' : summary.overall_result === 'PASS' ? 'AUTO_PASS' : 'HOLD'
   )
+  const releaseBasis = explicitReleaseDecision ? 'Gated release' : 'Legacy-only verdict'
+  const invariantFail = readInvariantFailSnapshot(reportData, summaryData)
+  const failModeLabel = explicitReleaseDecision === 'AUTO_FAIL'
+    ? (invariantFail.hasData ? 'Ambiguity-invariant fail' : 'Bend-specific fail')
+    : null
   const releaseReasons = summary.release_blocked_by?.length
     ? summary.release_blocked_by
     : summary.release_hold_reasons ?? []
+  const claimGateReasons = normalizeReasonList(summary.claim_gate_reasons)
   const scanQuality = report.scan_quality
   const preferredFocusedBendId = useMemo(() => {
     const issueMatches = matches.filter((match) => match.status === 'FAIL' || match.status === 'WARNING')
@@ -654,7 +662,9 @@ function BendInspectionResults({
             <p className="text-xs text-dark-400 uppercase tracking-wide">Release decision</p>
             <p className="mt-1 text-sm text-dark-100">
               {releaseDecision}
-              {summary.overall_result ? ` (legacy verdict ${summary.overall_result})` : ''}
+              {summary.overall_result
+                ? ` (${releaseBasis}, legacy verdict ${summary.overall_result}${failModeLabel ? `, ${failModeLabel}` : ''})`
+                : ` (${releaseBasis}${failModeLabel ? `, ${failModeLabel}` : ''})`}
             </p>
           </div>
           <div className="flex flex-wrap gap-2 text-xs">
@@ -666,10 +676,72 @@ function BendInspectionResults({
             </span>
             {!!releaseReasons.length && (
               <span className="rounded-full border border-amber-500/30 bg-amber-500/10 px-2 py-1 text-amber-200">
-                {releaseReasons.join(', ')}
+                Hold reasons: {releaseReasons.join(', ')}
+              </span>
+            )}
+            {!!claimGateReasons.length && (
+              <span className="rounded-full border border-sky-500/30 bg-sky-500/10 px-2 py-1 text-sky-200">
+                Claim gates: {claimGateReasons.join(', ')}
+              </span>
+            )}
+            {failModeLabel && (
+              <span className={clsx(
+                'rounded-full border px-2 py-1',
+                invariantFail.hasData
+                  ? 'border-red-500/30 bg-red-500/10 text-red-200'
+                  : 'border-amber-500/30 bg-amber-500/10 text-amber-200',
+              )}>
+                Fail mode: {failModeLabel}
+              </span>
+            )}
+            {invariantFail.hasData && (
+              <span className="rounded-full border border-red-500/30 bg-red-500/10 px-2 py-1 text-red-200">
+                Invariant fail: {invariantFail.state}
+              </span>
+            )}
+            {!!invariantFail.reasons.length && (
+              <span className="rounded-full border border-red-500/30 bg-red-500/10 px-2 py-1 text-red-200">
+                Invariant reasons: {invariantFail.reasons.join(', ')}
+              </span>
+            )}
+            {!!invariantFail.evidence.length && (
+              <span className="rounded-full border border-red-500/30 bg-red-500/10 px-2 py-1 text-red-200">
+                Invariant evidence: {invariantFail.evidence.join(', ')}
               </span>
             )}
           </div>
+        </div>
+        {(failModeLabel || invariantFail.hasData) && (
+          <p className="mt-3 text-xs text-dark-400">
+            Bend-specific claims stay gated on correspondence; a part can still fail if every admissible interpretation fails, even when the exact bend attribution is unresolved.
+          </p>
+        )}
+        <div className="mt-3 grid gap-2 md:grid-cols-5">
+          <GatePill
+            label="Physical formation"
+            value={`${summary.formed_bends ?? 0} formed / ${summary.unformed_bends ?? 0} unformed / ${summary.unknown_completion_bends ?? 0} unknown`}
+            tone={summary.unformed_bends ? 'bad' : 'good'}
+          />
+          <GatePill
+            label="Observability"
+            value={`${summary.observability_sufficient_bends ?? 0} sufficient / ${summary.observability_partial_bends ?? 0} partial / ${summary.observability_insufficient_bends ?? 0} insufficient`}
+            tone={summary.observability_insufficient_bends ? 'warn' : 'good'}
+          />
+          <GatePill
+            label="Correspondence"
+            value={`${summary.correspondence_confident_bends ?? 0} confident / ${summary.correspondence_ambiguous_bends ?? 0} ambiguous / ${summary.correspondence_unresolved_bends ?? 0} unresolved`}
+            tone={summary.correspondence_ambiguous_bends || summary.correspondence_unresolved_bends ? 'warn' : 'good'}
+          />
+          <GatePill
+            label="Datum trust"
+            value={summary.trusted_alignment_for_release && summary.trusted_position_evidence ? 'trusted' : 'untrusted'}
+            tone={summary.trusted_alignment_for_release && summary.trusted_position_evidence ? 'good' : 'warn'}
+          />
+          <GatePill
+            label="Claim eligibility"
+            value="Metrology and position claims require confident correspondence plus trusted datum"
+            tone="neutral"
+          />
         </div>
       </div>
 
@@ -769,6 +841,7 @@ function BendInspectionResults({
             <tr className="text-left text-dark-500 border-b border-dark-700">
               <th className={clsx('pb-2', compact ? 'pr-2' : 'pr-4')}>Bend</th>
               <th className={clsx('pb-2', compact ? 'pr-2' : 'pr-4')}>Form</th>
+              <th className={clsx('pb-2', compact ? 'pr-2' : 'pr-4')}>Gate model</th>
               <th className={clsx('pb-2', compact ? 'pr-2' : 'pr-4')}>Angle (deg)</th>
               <th className={clsx('pb-2', compact ? 'pr-2' : 'pr-4')}>Radius (mm)</th>
               <th className={clsx('pb-2', compact ? 'pr-2' : 'pr-4')}>Edge/Arc (mm)</th>
@@ -816,7 +889,7 @@ function BendProgressStrip({
       <div className="flex items-center justify-between mb-2">
         <p className="text-xs text-dark-400 uppercase tracking-wide">Bend Progress Map</p>
         {!compact && (
-          <p className="text-xs text-dark-500">CAD bend IDs colored by inspection status</p>
+          <p className="text-xs text-dark-500">CAD bend IDs colored by inspection status; gate details follow in the selected-bend panel</p>
         )}
       </div>
       <div className={clsx('grid gap-1', compact ? 'grid-cols-6' : 'grid-cols-8')}>
@@ -893,6 +966,101 @@ function formatSignedMetric(value: number | null | undefined, digits: number, su
   return `${value >= 0 ? '+' : ''}${value.toFixed(digits)}${suffix}`
 }
 
+function normalizeTextState(value: string | null | undefined, fallback = 'UNKNOWN') {
+  const trimmed = value?.trim()
+  return trimmed ? trimmed : fallback
+}
+
+function normalizeBooleanState(value: boolean | null | undefined, trueLabel = 'trusted', falseLabel = 'untrusted') {
+  if (value == null) return 'unknown'
+  return value ? trueLabel : falseLabel
+}
+
+function normalizeReasonList(items?: Array<string | null | undefined> | null) {
+  return (items || []).map((item) => item?.trim()).filter((item): item is string => !!item)
+}
+
+function normalizeStringList(value: unknown) {
+  if (!Array.isArray(value)) return []
+  return value
+    .map((item) => {
+      if (typeof item === 'string') return item.trim()
+      if (item == null) return ''
+      if (typeof item === 'object') {
+        const evidence = item as Record<string, unknown>
+        const parts: string[] = []
+        if (typeof evidence.bend_id === 'string' && evidence.bend_id.trim()) {
+          parts.push(evidence.bend_id.trim())
+        }
+        if (typeof evidence.correspondence_state === 'string' && evidence.correspondence_state.trim()) {
+          parts.push(`corr ${evidence.correspondence_state.trim()}`)
+        }
+        if (typeof evidence.assignment_candidate_count === 'number') {
+          parts.push(`candidates ${evidence.assignment_candidate_count}`)
+        }
+        if (typeof evidence.correspondence_margin === 'number' && Number.isFinite(evidence.correspondence_margin)) {
+          parts.push(`margin ${evidence.correspondence_margin >= 0 ? '+' : ''}${evidence.correspondence_margin.toFixed(2)}`)
+        }
+        if (typeof evidence.correspondence_runner_up_gap === 'number' && Number.isFinite(evidence.correspondence_runner_up_gap)) {
+          parts.push(`gap ${evidence.correspondence_runner_up_gap >= 0 ? '+' : ''}${evidence.correspondence_runner_up_gap.toFixed(2)}`)
+        }
+        if (typeof evidence.correspondence_top_candidate_selected === 'boolean') {
+          parts.push(`top ${evidence.correspondence_top_candidate_selected ? 'yes' : 'no'}`)
+        }
+        if (evidence.correspondence_candidate_reused === true) {
+          parts.push('reused yes')
+        }
+        if (typeof evidence.line_center_deviation_mm === 'number' && Number.isFinite(evidence.line_center_deviation_mm)) {
+          parts.push(`center ${evidence.line_center_deviation_mm >= 0 ? '+' : ''}${evidence.line_center_deviation_mm.toFixed(2)}mm`)
+        }
+        const positionEvidence = evidence.position_evidence
+        if (positionEvidence && typeof positionEvidence === 'object') {
+          const status = (positionEvidence as Record<string, unknown>).status
+          if (typeof status === 'string' && status.trim()) {
+            parts.push(`position ${status.trim()}`)
+          }
+        }
+        if (parts.length) return parts.join(' | ')
+      }
+      return String(item).trim()
+    })
+    .filter((item): item is string => !!item)
+}
+
+function formatCorrespondenceDiagnostics(match: BendMatch) {
+  const parts: string[] = []
+  if (typeof match.correspondence_confidence === 'number' && Number.isFinite(match.correspondence_confidence)) {
+    parts.push(`conf ${match.correspondence_confidence.toFixed(2)}`)
+  }
+  if (typeof match.correspondence_margin === 'number' && Number.isFinite(match.correspondence_margin)) {
+    parts.push(`margin ${match.correspondence_margin >= 0 ? '+' : ''}${match.correspondence_margin.toFixed(2)}`)
+  }
+  if (typeof match.correspondence_runner_up_gap === 'number' && Number.isFinite(match.correspondence_runner_up_gap)) {
+    parts.push(`gap ${match.correspondence_runner_up_gap >= 0 ? '+' : ''}${match.correspondence_runner_up_gap.toFixed(2)}`)
+  }
+  if (typeof match.correspondence_top_candidate_selected === 'boolean') {
+    parts.push(`top ${match.correspondence_top_candidate_selected ? 'yes' : 'no'}`)
+  }
+  if (match.correspondence_candidate_reused === true) {
+    parts.push('reused yes')
+  }
+  return parts.join(' | ')
+}
+
+function readInvariantFailSnapshot(source: unknown, summarySource?: unknown) {
+  const root = source && typeof source === 'object' ? source as Record<string, any> : null
+  const summary = summarySource && typeof summarySource === 'object' ? summarySource as Record<string, any> : null
+  const state = normalizeTextState(root?.invariant_fail_state ?? summary?.invariant_fail_state, 'NONE')
+  const reasons = normalizeStringList(root?.invariant_fail_reasons ?? summary?.invariant_fail_reasons)
+  const evidence = normalizeStringList(root?.invariant_fail_evidence ?? summary?.invariant_fail_evidence)
+  return {
+    state,
+    reasons,
+    evidence,
+    hasData: state !== 'NONE' || reasons.length > 0 || evidence.length > 0,
+  }
+}
+
 function BendCadOverlay3D({
   jobId,
   matches,
@@ -914,6 +1082,10 @@ function BendCadOverlay3D({
   const focusedMatch = useMemo(
     () => matches.find((match) => match.bend_id === focusedBendId) ?? null,
     [focusedBendId, matches],
+  )
+  const focusedInvariantFail = useMemo(
+    () => readInvariantFailSnapshot(focusedMatch),
+    [focusedMatch],
   )
   const issueMatches = useMemo(
     () => matches.filter((match) => match.status === 'FAIL' || match.status === 'WARNING'),
@@ -1005,10 +1177,10 @@ function BendCadOverlay3D({
                   {focusedMatch.bend_form === 'ROLLED' ? 'Rolled bend' : 'Folded bend'}
                 </div>
                 <div className="text-xs text-dark-300">
-                  {focusedMatch.completion_state ?? '-'} / {focusedMatch.metrology_state ?? '-'} / {focusedMatch.positional_state ?? '-'}
+                  {normalizeTextState(focusedMatch.physical_completion_state ?? focusedMatch.completion_state)} / {normalizeTextState(focusedMatch.observability_state_internal ?? focusedMatch.observability_state)} / {normalizeTextState(focusedMatch.correspondence_state)} / {normalizeTextState(focusedMatch.positional_state)}{focusedInvariantFail.hasData ? ` / IF ${focusedInvariantFail.state}` : ''}
                 </div>
                 <div className="text-xs text-dark-400">
-                  correspondence {focusedMatch.correspondence_state ?? '-'}
+                  correspondence {normalizeTextState(focusedMatch.correspondence_state)}
                 </div>
                 {focusedMatch.action_item && (
                   <div className="text-sm text-dark-300">
@@ -1017,8 +1189,48 @@ function BendCadOverlay3D({
                 )}
               </div>
               <p className="mt-2 text-xs text-dark-500">
-                Viewer rotates to the selected bend’s inspection angle. Continue rotating manually to verify edge profile and detected overlay against the CAD reference.
+                The inspection angle is only a viewing aid. Use the overlay to verify correspondence and datum-referenced placement before trusting any angle or radius claim.
               </p>
+              <div className="mt-3 grid gap-2 md:grid-cols-5">
+                <GatePill
+                  label="Formation"
+                  value={normalizeTextState(focusedMatch.physical_completion_state ?? focusedMatch.completion_state)}
+                  tone={focusedMatch.physical_completion_state === 'FORMED' || focusedMatch.completion_state === 'FORMED' ? 'good' : focusedMatch.physical_completion_state === 'UNKNOWN' || focusedMatch.completion_state === 'UNKNOWN' ? 'warn' : 'bad'}
+                />
+                <GatePill
+                  label="Observability"
+                  value={normalizeTextState(focusedMatch.observability_state_internal ?? focusedMatch.observability_state)}
+                  tone={focusedMatch.observability_state_internal === 'SUFFICIENT' ? 'good' : focusedMatch.observability_state_internal === 'INSUFFICIENT' ? 'bad' : 'warn'}
+                />
+                <GatePill
+                  label="Correspondence"
+                  value={normalizeTextState(focusedMatch.correspondence_state)}
+                  tone={focusedMatch.correspondence_state === 'CONFIDENT' ? 'good' : focusedMatch.correspondence_state === 'UNRESOLVED' ? 'bad' : 'warn'}
+                  reason={formatCorrespondenceDiagnostics(focusedMatch) || undefined}
+                />
+                <GatePill
+                  label="Datum trust"
+                  value={normalizeBooleanState(focusedMatch.position_evidence?.trusted_frame)}
+                  tone={focusedMatch.position_evidence?.trusted_frame ? 'good' : 'warn'}
+                />
+                <GatePill
+                  label="Claim eligibility"
+                  value={`M ${normalizeBooleanState(focusedMatch.metrology_claim_eligible, 'yes', 'no')} / P ${normalizeBooleanState(focusedMatch.position_claim_eligible, 'yes', 'no')}`}
+                  tone={focusedMatch.metrology_claim_eligible === false || focusedMatch.position_claim_eligible === false ? 'warn' : 'good'}
+                  reason={normalizeReasonList(focusedMatch.claim_gate_reasons).join(', ') || undefined}
+                />
+                {focusedInvariantFail.hasData && (
+                  <GatePill
+                    label="Invariant fail"
+                    value={focusedInvariantFail.state}
+                    tone="bad"
+                    reason={[
+                      ...focusedInvariantFail.reasons,
+                      ...focusedInvariantFail.evidence,
+                    ].join(', ') || undefined}
+                  />
+                )}
+              </div>
             </div>
             <div className="flex flex-wrap gap-2 lg:max-w-[520px] lg:justify-end">
               <FocusedMetricCard
@@ -1104,6 +1316,35 @@ function FocusedMetricCard({
     <div className={clsx('w-[120px] rounded-lg border px-3 py-2', toneClasses[tone])}>
       <div className="text-[10px] uppercase tracking-[0.16em] text-dark-400">{label}</div>
       <div className="mt-1 text-sm font-semibold">{value}</div>
+    </div>
+  )
+}
+
+function GatePill({
+  label,
+  value,
+  tone,
+  reason,
+}: {
+  label: string
+  value: string
+  tone: 'neutral' | 'good' | 'warn' | 'bad'
+  reason?: string
+}) {
+  const toneClasses = {
+    neutral: 'border-dark-600 bg-dark-800/80 text-dark-100',
+    good: 'border-emerald-400/35 bg-emerald-500/10 text-emerald-100',
+    warn: 'border-amber-400/35 bg-amber-500/10 text-amber-100',
+    bad: 'border-red-400/35 bg-red-500/10 text-red-100',
+  }
+
+  return (
+    <div className={clsx('rounded-lg border px-3 py-2', toneClasses[tone])}>
+      <div className="text-[10px] uppercase tracking-[0.16em] text-dark-400">{label}</div>
+      <div className="mt-1 text-sm font-semibold leading-5">{value}</div>
+      {reason && (
+        <div className="mt-1 text-[10px] leading-4 text-sky-200">{reason}</div>
+      )}
     </div>
   )
 }
@@ -1265,7 +1506,7 @@ function BendGeometryCue({
         <p className="text-xs text-dark-400 uppercase tracking-wide">Bend Geometry Cue</p>
         {!compact && (
           <p className="text-xs text-dark-500">
-            CAD bend IDs anchored to geometry, with detected overlays
+            CAD bend IDs anchored to geometry, with detected overlays and gate-aware reporting
           </p>
         )}
       </div>
@@ -1485,6 +1726,7 @@ function BendRow({
     WARNING: 'bg-amber-500/20 text-amber-400',
     NOT_DETECTED: 'bg-dark-600 text-dark-400',
   }
+  const invariantFail = readInvariantFailSnapshot(match)
 
   return (
     <tr
@@ -1501,6 +1743,51 @@ function BendRow({
       </td>
       <td className={clsx('py-2 text-dark-300', compact ? 'pr-2' : 'pr-4')}>
         {match.bend_form || '-'}
+      </td>
+      <td className={clsx('py-2 text-dark-300', compact ? 'pr-2' : 'pr-4')}>
+        <div className="space-y-0.5 text-[11px] leading-4">
+          <div className="text-dark-200">
+            Form {normalizeTextState(match.physical_completion_state ?? match.completion_state)}
+          </div>
+          <div>
+            Obs {normalizeTextState(match.observability_state_internal ?? match.observability_state)}
+          </div>
+          <div>
+            Corr {normalizeTextState(match.correspondence_state)}
+          </div>
+          {!!formatCorrespondenceDiagnostics(match) && (
+            <div className="text-[10px] text-dark-400">
+              {formatCorrespondenceDiagnostics(match)}
+            </div>
+          )}
+          <div className={clsx(
+            match.position_evidence?.trusted_frame ? 'text-emerald-300' : 'text-amber-300',
+          )}>
+            Datum {normalizeBooleanState(match.position_evidence?.trusted_frame)}
+          </div>
+          <div className={clsx(
+            match.metrology_claim_eligible === false || match.position_claim_eligible === false
+              ? 'text-amber-300'
+              : 'text-emerald-300',
+          )}>
+            Elig M {normalizeBooleanState(match.metrology_claim_eligible, 'yes', 'no')} / P {normalizeBooleanState(match.position_claim_eligible, 'yes', 'no')}
+          </div>
+          {!!normalizeReasonList(match.claim_gate_reasons).length && (
+            <div className="text-[10px] text-sky-300">
+              {normalizeReasonList(match.claim_gate_reasons).join(', ')}
+            </div>
+          )}
+          {invariantFail.hasData && (
+            <div className="text-[10px] text-red-300">
+              IF {invariantFail.state}
+            </div>
+          )}
+          {!!(invariantFail.reasons.length || invariantFail.evidence.length) && (
+            <div className="text-[10px] text-red-300">
+              {[...invariantFail.reasons, ...invariantFail.evidence].join(', ')}
+            </div>
+          )}
+        </div>
       </td>
       <td className={clsx('py-2 text-dark-300', compact ? 'pr-2' : 'pr-4')}>
         <div className="space-y-0.5">

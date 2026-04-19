@@ -350,6 +350,387 @@ def test_build_local_assignment_candidates_prefers_candidate_measured_angle_over
     assert selected["candidate_kind"] == "NULL"
 
 
+def test_select_local_assignment_candidate_prefers_highest_assignment_score_measurement():
+    cad_bend = BendSpecification(
+        bend_id="B1",
+        target_angle=120.0,
+        target_radius=2.0,
+        bend_line_start=np.array([0.0, 0.0, 0.0]),
+        bend_line_end=np.array([20.0, 0.0, 0.0]),
+        flange1_normal=np.array([0.0, 1.0, 0.0]),
+        flange2_normal=np.array([0.0, 0.0, 1.0]),
+    )
+    base_entry = {
+        "cad_angle": 120.0,
+        "cad_bend_dict": {
+            "bend_center": np.array([10.0, 0.0, 0.0]),
+            "bend_direction": np.array([1.0, 0.0, 0.0]),
+            "surface1_normal": np.array([0.0, 1.0, 0.0]),
+            "surface2_normal": np.array([0.0, 0.0, 1.0]),
+        },
+    }
+    stronger = {
+        **base_entry,
+        "center": np.array([10.0, 1.0, 0.0]),
+        "measurement": {
+            "success": True,
+            "measured_angle": 119.2,
+            "measurement_confidence": "high",
+            "point_count": 48,
+            "side1_points": 24,
+            "side2_points": 24,
+            "cad_alignment1": 0.98,
+            "cad_alignment2": 0.98,
+            "measurement_method": "surface_classification",
+        },
+        "observability": {
+            "state": "FORMED",
+            "visibility_score": 0.9,
+            "evidence_score": 0.9,
+        },
+    }
+    weaker = {
+        **base_entry,
+        "center": np.array([10.0, 0.2, 0.0]),
+        "measurement": {
+            "success": True,
+            "measured_angle": 127.9,
+            "measurement_confidence": "high",
+            "point_count": 48,
+            "side1_points": 24,
+            "side2_points": 24,
+            "cad_alignment1": 0.98,
+            "cad_alignment2": 0.98,
+            "measurement_method": "surface_classification",
+        },
+        "observability": {
+            "state": "FORMED",
+            "visibility_score": 0.9,
+            "evidence_score": 0.9,
+        },
+    }
+
+    candidates, selected, null_score, best_idx = pipeline._select_local_assignment_candidate(
+        cad_bend,
+        [weaker, stronger],
+    )
+
+    assert any(item["candidate_kind"] == "NULL" for item in candidates)
+    assert selected["candidate_kind"] == "MEASUREMENT"
+    assert selected["measurement_index"] == 1
+    assert best_idx == 1
+    assert selected["assignment_score"] > null_score
+
+
+def test_local_assignment_confidence_promotes_strong_surface_classification_dominance():
+    observability = {
+        "confidence": 0.5,
+        "visibility_score": 0.902,
+        "evidence_score": 0.9,
+        "observed_surface_count": 2,
+    }
+    assignment_candidates = [
+        {
+            "candidate_id": "local_candidate_5",
+            "candidate_kind": "MEASUREMENT",
+            "assignment_score": 0.8116,
+        },
+        {
+            "candidate_id": "null_candidate",
+            "candidate_kind": "NULL",
+            "assignment_score": 0.0989,
+        },
+    ]
+    selected_candidate = assignment_candidates[0]
+
+    confidence = pipeline._local_assignment_confidence(
+        observability,
+        selected_candidate,
+        assignment_candidates,
+        null_assignment_score=0.0989,
+        measurement_success=True,
+    )
+
+    assert confidence >= 0.82
+
+
+def test_local_assignment_confidence_does_not_promote_close_runner_up_case():
+    observability = {
+        "confidence": 0.9,
+        "visibility_score": 0.92,
+        "evidence_score": 0.91,
+        "observed_surface_count": 2,
+    }
+    assignment_candidates = [
+        {
+            "candidate_id": "local_candidate_1",
+            "candidate_kind": "MEASUREMENT",
+            "assignment_score": 0.79,
+        },
+        {
+            "candidate_id": "local_candidate_2",
+            "candidate_kind": "MEASUREMENT",
+            "assignment_score": 0.75,
+        },
+        {
+            "candidate_id": "null_candidate",
+            "candidate_kind": "NULL",
+            "assignment_score": 0.05,
+        },
+    ]
+    selected_candidate = assignment_candidates[0]
+
+    confidence = pipeline._local_assignment_confidence(
+        observability,
+        selected_candidate,
+        assignment_candidates,
+        null_assignment_score=0.05,
+        measurement_success=True,
+    )
+
+    assert confidence == 0.9
+
+
+def test_resolve_local_assignment_conflicts_prefers_unique_total_score():
+    cad_b3 = BendSpecification(
+        bend_id="CAD_B3",
+        target_angle=90.37,
+        target_radius=2.0,
+        bend_line_start=np.array([0.0, 0.0, 0.0]),
+        bend_line_end=np.array([10.0, 0.0, 0.0]),
+    )
+    cad_b4 = BendSpecification(
+        bend_id="CAD_B4",
+        target_angle=90.50,
+        target_radius=2.0,
+        bend_line_start=np.array([20.0, 0.0, 0.0]),
+        bend_line_end=np.array([30.0, 0.0, 0.0]),
+    )
+    plans = [
+        {
+            "cad_bend": cad_b3,
+            "assignment_candidates": [
+                {
+                    "candidate_id": "local_candidate_0",
+                    "candidate_kind": "MEASUREMENT",
+                    "measurement_index": 0,
+                    "assignment_score": 0.6269,
+                    "used_by_other_bend": False,
+                },
+                {
+                    "candidate_id": "local_candidate_1",
+                    "candidate_kind": "MEASUREMENT",
+                    "measurement_index": 1,
+                    "assignment_score": 0.6108,
+                    "used_by_other_bend": False,
+                },
+                {
+                    "candidate_id": "null_candidate",
+                    "candidate_kind": "NULL",
+                    "measurement_index": None,
+                    "assignment_score": 0.05,
+                    "used_by_other_bend": False,
+                },
+            ],
+            "selected_candidate": {
+                "candidate_id": "local_candidate_0",
+                "candidate_kind": "MEASUREMENT",
+                "measurement_index": 0,
+                "assignment_score": 0.6269,
+                "used_by_other_bend": False,
+            },
+            "null_assignment_score": 0.05,
+            "best_idx": 0,
+        },
+        {
+            "cad_bend": cad_b4,
+            "assignment_candidates": [
+                {
+                    "candidate_id": "local_candidate_0",
+                    "candidate_kind": "MEASUREMENT",
+                    "measurement_index": 0,
+                    "assignment_score": 0.7365,
+                    "used_by_other_bend": False,
+                },
+                {
+                    "candidate_id": "null_candidate",
+                    "candidate_kind": "NULL",
+                    "measurement_index": None,
+                    "assignment_score": 0.05,
+                    "used_by_other_bend": False,
+                },
+            ],
+            "selected_candidate": {
+                "candidate_id": "local_candidate_0",
+                "candidate_kind": "MEASUREMENT",
+                "measurement_index": 0,
+                "assignment_score": 0.7365,
+                "used_by_other_bend": False,
+            },
+            "null_assignment_score": 0.05,
+            "best_idx": 0,
+        },
+    ]
+
+    resolved = pipeline._resolve_local_assignment_conflicts(plans)
+
+    assert resolved[0]["best_idx"] == 1
+    assert resolved[0]["selected_candidate"]["candidate_id"] == "local_candidate_1"
+    assert resolved[1]["best_idx"] == 0
+    assert resolved[1]["selected_candidate"]["candidate_id"] == "local_candidate_0"
+    candidate0_for_b3 = next(
+        item for item in resolved[0]["assignment_candidates"]
+        if item["candidate_id"] == "local_candidate_0"
+    )
+    assert candidate0_for_b3["used_by_other_bend"] is True
+
+
+def test_resolve_local_assignment_conflicts_prefers_successful_measurement_over_failed_probe():
+    cad_b3 = BendSpecification(
+        bend_id="CAD_B3",
+        target_angle=90.37,
+        target_radius=2.0,
+        bend_line_start=np.array([0.0, 0.0, 0.0]),
+        bend_line_end=np.array([10.0, 0.0, 0.0]),
+    )
+    cad_b4 = BendSpecification(
+        bend_id="CAD_B4",
+        target_angle=90.50,
+        target_radius=2.0,
+        bend_line_start=np.array([20.0, 0.0, 0.0]),
+        bend_line_end=np.array([30.0, 0.0, 0.0]),
+    )
+    cad_b5 = BendSpecification(
+        bend_id="CAD_B5",
+        target_angle=90.03,
+        target_radius=2.0,
+        bend_line_start=np.array([40.0, 0.0, 0.0]),
+        bend_line_end=np.array([50.0, 0.0, 0.0]),
+    )
+    plans = [
+        {
+            "cad_bend": cad_b3,
+            "assignment_candidates": [
+                {
+                    "candidate_id": "local_candidate_0",
+                    "candidate_kind": "MEASUREMENT",
+                    "measurement_index": 0,
+                    "assignment_score": 0.6270,
+                    "measurement_success": True,
+                    "used_by_other_bend": False,
+                },
+                {
+                    "candidate_id": "local_candidate_1",
+                    "candidate_kind": "MEASUREMENT",
+                    "measurement_index": 1,
+                    "assignment_score": 0.6117,
+                    "measurement_success": True,
+                    "used_by_other_bend": False,
+                },
+                {
+                    "candidate_id": "null_candidate",
+                    "candidate_kind": "NULL",
+                    "measurement_index": None,
+                    "assignment_score": 0.05,
+                    "used_by_other_bend": False,
+                },
+            ],
+            "selected_candidate": {
+                "candidate_id": "local_candidate_1",
+                "candidate_kind": "MEASUREMENT",
+                "measurement_index": 1,
+                "assignment_score": 0.6117,
+                "measurement_success": True,
+                "used_by_other_bend": False,
+            },
+            "null_assignment_score": 0.05,
+            "best_idx": 1,
+        },
+        {
+            "cad_bend": cad_b4,
+            "assignment_candidates": [
+                {
+                    "candidate_id": "local_candidate_0",
+                    "candidate_kind": "MEASUREMENT",
+                    "measurement_index": 0,
+                    "assignment_score": 0.7376,
+                    "measurement_success": True,
+                    "used_by_other_bend": False,
+                },
+                {
+                    "candidate_id": "null_candidate",
+                    "candidate_kind": "NULL",
+                    "measurement_index": None,
+                    "assignment_score": 0.05,
+                    "used_by_other_bend": False,
+                },
+            ],
+            "selected_candidate": {
+                "candidate_id": "local_candidate_0",
+                "candidate_kind": "MEASUREMENT",
+                "measurement_index": 0,
+                "assignment_score": 0.7376,
+                "measurement_success": True,
+                "used_by_other_bend": False,
+            },
+            "null_assignment_score": 0.05,
+            "best_idx": 0,
+        },
+        {
+            "cad_bend": cad_b5,
+            "assignment_candidates": [
+                {
+                    "candidate_id": "local_candidate_1",
+                    "candidate_kind": "MEASUREMENT",
+                    "measurement_index": 1,
+                    "assignment_score": 0.8234,
+                    "measurement_success": True,
+                    "used_by_other_bend": False,
+                },
+                {
+                    "candidate_id": "local_candidate_2",
+                    "candidate_kind": "MEASUREMENT",
+                    "measurement_index": 2,
+                    "assignment_score": 0.5955,
+                    "measurement_success": False,
+                    "used_by_other_bend": False,
+                },
+                {
+                    "candidate_id": "null_candidate",
+                    "candidate_kind": "NULL",
+                    "measurement_index": None,
+                    "assignment_score": 0.05,
+                    "used_by_other_bend": False,
+                },
+            ],
+            "selected_candidate": {
+                "candidate_id": "local_candidate_2",
+                "candidate_kind": "MEASUREMENT",
+                "measurement_index": 2,
+                "assignment_score": 0.5955,
+                "measurement_success": False,
+                "used_by_other_bend": False,
+            },
+            "null_assignment_score": 0.05,
+            "best_idx": 2,
+        },
+    ]
+
+    resolved = pipeline._resolve_local_assignment_conflicts(plans)
+
+    assert resolved[0]["best_idx"] is None
+    assert resolved[0]["selected_candidate"]["candidate_id"] == "null_candidate"
+    assert resolved[1]["best_idx"] == 0
+    assert resolved[1]["selected_candidate"]["candidate_id"] == "local_candidate_0"
+    assert resolved[2]["best_idx"] == 1
+    assert resolved[2]["selected_candidate"]["candidate_id"] == "local_candidate_1"
+    failed_probe_for_b5 = next(
+        item for item in resolved[2]["assignment_candidates"]
+        if item["candidate_id"] == "local_candidate_2"
+    )
+    assert failed_probe_for_b5["used_by_other_bend"] is False
+
+
 def test_local_assignment_entry_angle_prefers_measured_angle_then_cad_angle():
     assert pipeline._local_assignment_entry_angle(
         {
@@ -1407,6 +1788,20 @@ def test_apply_scan_runtime_profile_adapts_large_scans():
     assert call["multiscale"] is False
 
 
+def test_apply_scan_runtime_profile_skips_mesh_vertex_scans():
+    ctor, call, profile = pipeline._apply_scan_runtime_profile(
+        {"min_plane_points": 50, "min_plane_area": 30.0},
+        {"preprocess": True},
+        715_498,
+        fallback=False,
+        scan_geometry_kind="mesh_vertices",
+    )
+
+    assert profile is None
+    assert ctor == {"min_plane_points": 50, "min_plane_area": 30.0}
+    assert call == {"preprocess": True}
+
+
 def test_detect_and_match_with_fallback_uses_adaptive_profile(monkeypatch):
     seen_calls = []
     cad_bends = [_make_spec("B1")]
@@ -1441,6 +1836,44 @@ def test_detect_and_match_with_fallback_uses_adaptive_profile(monkeypatch):
     assert seen_calls[0]["multiscale"] is False
     assert seen_calls[1]["voxel_size"] >= 1.75
     assert seen_calls[1]["multiscale"] is False
+
+
+def test_detect_and_match_with_fallback_skips_adaptive_profile_for_mesh_vertices(monkeypatch):
+    seen_calls = []
+    cad_bends = [_make_spec("B1")]
+
+    def _fake_detect_scan_bends(**kwargs):
+        seen_calls.append(dict(kwargs["scan_detect_call_kwargs"]))
+        return []
+
+    monkeypatch.setattr(pipeline, "detect_scan_bends", _fake_detect_scan_bends)
+    monkeypatch.setattr(
+        pipeline,
+        "match_detected_bends",
+        lambda **kwargs: BendInspectionReport(
+            part_id="PART",
+            matches=[BendMatch(cad_bend=cad_bends[0], detected_bend=None, status="NOT_DETECTED")],
+        ),
+    )
+
+    runtime_cfg = pipeline.BendInspectionRuntimeConfig()
+    report, selected_count, fallback_used = pipeline.detect_and_match_with_fallback(
+        scan_points=np.zeros((500_000, 3)),
+        cad_bends=cad_bends,
+        part_id="PART",
+        runtime_config=runtime_cfg,
+        expected_bend_count=10,
+        scan_geometry_kind="mesh_vertices",
+    )
+
+    assert report.part_id == "PART"
+    assert selected_count == 0
+    assert fallback_used is False
+    assert len(seen_calls) == 2
+    assert "voxel_size" not in seen_calls[0]
+    assert seen_calls[0]["preprocess"] is True
+    assert seen_calls[1]["voxel_size"] == 0.75
+    assert seen_calls[1]["multiscale"] is True
 
 
 def test_detect_and_match_with_fallback_skips_dense_global_fallback(monkeypatch):

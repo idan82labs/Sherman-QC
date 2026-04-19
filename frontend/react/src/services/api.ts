@@ -279,6 +279,9 @@ export interface BendMatch {
   correspondence_state?: 'CONFIDENT' | 'AMBIGUOUS' | 'UNRESOLVED' | string
   correspondence_confidence?: number
   correspondence_margin?: number
+  correspondence_runner_up_gap?: number | null
+  correspondence_top_candidate_selected?: boolean | null
+  correspondence_candidate_reused?: boolean | null
   correspondence_candidate_count?: number
   correspondence_source?: string
   observability_state_internal?: 'SUFFICIENT' | 'PARTIAL' | 'INSUFFICIENT' | string
@@ -306,6 +309,11 @@ export interface BendMatch {
     trusted_frame?: boolean
     reason?: string
   }
+  correspondence_ready?: boolean
+  datum_ready?: boolean
+  metrology_claim_eligible?: boolean
+  position_claim_eligible?: boolean
+  claim_gate_reasons?: string[]
 }
 
 export interface ScanQualitySummary {
@@ -368,6 +376,7 @@ export interface BendInspectionReport {
     release_decision?: 'AUTO_PASS' | 'HOLD' | 'AUTO_FAIL' | string
     release_blocked_by?: string[]
     release_hold_reasons?: string[]
+    claim_gate_reasons?: string[]
     trusted_alignment_for_release?: boolean
     trusted_position_evidence?: boolean
     correspondence_confident_bends?: number

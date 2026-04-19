@@ -898,7 +898,7 @@ class ScanFeatureMeasurer:
         centered = points - centroid
 
         try:
-            U, S, Vt = np.linalg.svd(centered)
+            U, S, Vt = np.linalg.svd(centered, full_matrices=False)
             normal = Vt[-1]  # Last row is normal
         except np.linalg.LinAlgError:
             return None

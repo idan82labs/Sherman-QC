@@ -140,6 +140,30 @@ export default function JobDetail() {
   const material = job.material || 'Unknown'
   const tolerance = job.tolerance ?? 0.1
   const operatorBrief = buildOperatorBrief(qcResult)
+  const explicitReleaseDecision = typeof qcResult?.release_decision === 'string' && qcResult.release_decision.trim()
+    ? qcResult.release_decision.trim()
+    : null
+  const legacyVerdict = qcResult?.overall_result || 'REVIEW'
+  const derivedLegacyDecision = (
+    legacyVerdict === 'PASS' ? 'AUTO_PASS' : legacyVerdict === 'FAIL' ? 'AUTO_FAIL' : 'HOLD'
+  )
+  const releaseBasis = explicitReleaseDecision ? 'Gated release' : 'Legacy-only verdict'
+  const releaseBlockedBy = Array.isArray(qcResult?.release_blocked_by) ? qcResult.release_blocked_by : []
+  const releaseHoldReasons = Array.isArray(qcResult?.release_hold_reasons) ? qcResult.release_hold_reasons : []
+  const claimGateReasons = Array.isArray(qcResult?.claim_gate_reasons) ? qcResult.claim_gate_reasons : []
+  const invariantFail = readInvariantFailSnapshot(qcResult)
+  const failModeLabel = explicitReleaseDecision === 'AUTO_FAIL'
+    ? (invariantFail.hasData ? 'Ambiguity-invariant fail' : 'Bend-specific fail')
+    : null
+  const hasGateSummary = Boolean(
+    explicitReleaseDecision ||
+    releaseBlockedBy.length > 0 ||
+    releaseHoldReasons.length > 0 ||
+    claimGateReasons.length > 0 ||
+    invariantFail.hasData ||
+    qcResult?.trusted_alignment_for_release != null ||
+    qcResult?.trusted_position_evidence != null
+  )
 
   return (
     <div className="space-y-6">
@@ -280,6 +304,75 @@ export default function JobDetail() {
               )}
             </div>
           </div>
+
+          {hasGateSummary && (
+            <div className="card p-6 border-sky-500/15 bg-sky-500/5">
+              <div className="flex items-center justify-between gap-3 mb-4">
+                <h3 className="font-semibold text-dark-100">Gating Model</h3>
+                <span className="text-xs rounded-full border border-sky-500/25 bg-sky-500/10 px-2 py-1 text-sky-200">
+                  {releaseBasis}
+                </span>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-6 gap-3">
+                <GateField
+                  label="Release decision"
+                  value={explicitReleaseDecision || 'LEGACY_ONLY'}
+                  tone={explicitReleaseDecision === 'AUTO_PASS' ? 'green' : explicitReleaseDecision === 'AUTO_FAIL' ? 'red' : 'amber'}
+                  detail={explicitReleaseDecision
+                    ? `Legacy verdict ${legacyVerdict}${failModeLabel ? ` · ${failModeLabel}` : ''}`
+                    : `Derived from legacy verdict ${derivedLegacyDecision}`}
+                />
+                <GateField
+                  label="Invariant fail"
+                  value={invariantFail.hasData ? invariantFail.state : 'none'}
+                  tone={invariantFail.hasData ? 'red' : 'amber'}
+                  detail={
+                    invariantFail.hasData
+                      ? [
+                          invariantFail.reasons.length ? `Reasons: ${invariantFail.reasons.join(', ')}` : '',
+                          invariantFail.evidence.length ? `Evidence: ${invariantFail.evidence.join(', ')}` : '',
+                        ].filter(Boolean).join(' | ')
+                      : 'No invariant-fail evidence on this payload'
+                  }
+                />
+                <GateField
+                  label="Alignment trust"
+                  value={qcResult?.trusted_alignment_for_release ? 'trusted' : 'untrusted'}
+                  tone={qcResult?.trusted_alignment_for_release ? 'green' : 'amber'}
+                />
+                <GateField
+                  label="Position evidence"
+                  value={qcResult?.trusted_position_evidence ? 'trusted' : 'untrusted'}
+                  tone={qcResult?.trusted_position_evidence ? 'green' : 'amber'}
+                />
+                <GateField
+                  label="Blocked by"
+                  value={releaseBlockedBy.length ? releaseBlockedBy.join(', ') : 'none'}
+                  tone={releaseBlockedBy.length ? 'amber' : 'green'}
+                />
+                <GateField
+                  label="Claim gates"
+                  value={claimGateReasons.length ? claimGateReasons.join(', ') : 'none'}
+                  tone={claimGateReasons.length ? 'amber' : 'green'}
+                />
+              </div>
+              {!!releaseHoldReasons.length && (
+                <div className="mt-3 rounded-lg border border-amber-500/20 bg-amber-500/5 px-3 py-2 text-xs text-amber-200">
+                  Hold reasons: {releaseHoldReasons.join(', ')}
+                </div>
+              )}
+              {(failModeLabel || invariantFail.hasData) && (
+                <div className="mt-3 rounded-lg border border-red-500/20 bg-red-500/5 px-3 py-2 text-xs text-red-200">
+                  Bend-specific claims stay gated on correspondence. A part can still fail if every admissible interpretation fails, even when the exact bend attribution is unresolved.
+                </div>
+              )}
+              {!explicitReleaseDecision && (
+                <p className="mt-3 text-xs text-dark-400">
+                  This job is rendering the legacy verdict path only; the gated release model is not available on this payload.
+                </p>
+              )}
+            </div>
+          )}
 
           {/* Statistics */}
           {qcResult.statistics && (
@@ -506,6 +599,101 @@ function StatItem({
       </p>
     </div>
   )
+}
+
+function GateField({
+  label,
+  value,
+  tone,
+  detail,
+}: {
+  label: string
+  value: string
+  tone: 'green' | 'amber' | 'red'
+  detail?: string
+}) {
+  const toneClasses = {
+    green: 'border-emerald-500/20 bg-emerald-500/10 text-emerald-300',
+    amber: 'border-amber-500/20 bg-amber-500/10 text-amber-300',
+    red: 'border-red-500/20 bg-red-500/10 text-red-300',
+  }
+
+  return (
+    <div className={clsx('rounded-lg border px-3 py-2', toneClasses[tone])}>
+      <p className="text-xs text-dark-500">{label}</p>
+      <p className="mt-1 text-sm font-medium text-dark-100">{value}</p>
+      {detail && <p className="mt-1 text-[11px] text-dark-400">{detail}</p>}
+    </div>
+  )
+}
+
+function normalizeTextState(value: unknown, fallback = 'UNKNOWN') {
+  if (typeof value === 'string') {
+    const trimmed = value.trim()
+    if (trimmed) return trimmed
+  }
+  return fallback
+}
+
+function normalizeStringList(value: unknown) {
+  if (!Array.isArray(value)) return []
+  return value
+    .map((item) => {
+      if (typeof item === 'string') return item.trim()
+      if (item == null) return ''
+      if (typeof item === 'object') {
+        const evidence = item as Record<string, unknown>
+        const parts: string[] = []
+        if (typeof evidence.bend_id === 'string' && evidence.bend_id.trim()) {
+          parts.push(evidence.bend_id.trim())
+        }
+        if (typeof evidence.correspondence_state === 'string' && evidence.correspondence_state.trim()) {
+          parts.push(`corr ${evidence.correspondence_state.trim()}`)
+        }
+        if (typeof evidence.assignment_candidate_count === 'number') {
+          parts.push(`candidates ${evidence.assignment_candidate_count}`)
+        }
+        if (typeof evidence.correspondence_margin === 'number' && Number.isFinite(evidence.correspondence_margin)) {
+          parts.push(`margin ${evidence.correspondence_margin >= 0 ? '+' : ''}${evidence.correspondence_margin.toFixed(2)}`)
+        }
+        if (typeof evidence.correspondence_runner_up_gap === 'number' && Number.isFinite(evidence.correspondence_runner_up_gap)) {
+          parts.push(`gap ${evidence.correspondence_runner_up_gap >= 0 ? '+' : ''}${evidence.correspondence_runner_up_gap.toFixed(2)}`)
+        }
+        if (typeof evidence.correspondence_top_candidate_selected === 'boolean') {
+          parts.push(`top ${evidence.correspondence_top_candidate_selected ? 'yes' : 'no'}`)
+        }
+        if (evidence.correspondence_candidate_reused === true) {
+          parts.push('reused yes')
+        }
+        if (typeof evidence.line_center_deviation_mm === 'number' && Number.isFinite(evidence.line_center_deviation_mm)) {
+          parts.push(`center ${evidence.line_center_deviation_mm >= 0 ? '+' : ''}${evidence.line_center_deviation_mm.toFixed(2)}mm`)
+        }
+        const positionEvidence = evidence.position_evidence
+        if (positionEvidence && typeof positionEvidence === 'object') {
+          const status = (positionEvidence as Record<string, unknown>).status
+          if (typeof status === 'string' && status.trim()) {
+            parts.push(`position ${status.trim()}`)
+          }
+        }
+        if (parts.length) return parts.join(' | ')
+      }
+      return String(item).trim()
+    })
+    .filter((item): item is string => !!item)
+}
+
+function readInvariantFailSnapshot(source: unknown) {
+  const report = source && typeof source === 'object' ? source as Record<string, any> : null
+  const summary = report?.summary && typeof report.summary === 'object' ? report.summary as Record<string, any> : null
+  const state = normalizeTextState(report?.invariant_fail_state ?? summary?.invariant_fail_state, 'NONE')
+  const reasons = normalizeStringList(report?.invariant_fail_reasons ?? summary?.invariant_fail_reasons)
+  const evidence = normalizeStringList(report?.invariant_fail_evidence ?? summary?.invariant_fail_evidence)
+  return {
+    state,
+    reasons,
+    evidence,
+    hasData: state !== 'NONE' || reasons.length > 0 || evidence.length > 0,
+  }
 }
 
 function DimensionAnalysisSection({ dimensionAnalysis }: { dimensionAnalysis: DimensionAnalysisResult }) {
@@ -785,7 +973,11 @@ function buildOperatorBrief(qcResult: any): { headline: string; actions: string[
   }
 
   const overall = qcResult.overall_result || 'REVIEW'
-  const releaseDecision = qcResult.release_decision || (overall === 'PASS' ? 'AUTO_PASS' : overall === 'FAIL' ? 'AUTO_FAIL' : 'HOLD')
+  const explicitReleaseDecision = typeof qcResult.release_decision === 'string' && qcResult.release_decision.trim()
+    ? qcResult.release_decision.trim()
+    : null
+  const releaseDecision = explicitReleaseDecision || (overall === 'PASS' ? 'AUTO_PASS' : overall === 'FAIL' ? 'AUTO_FAIL' : 'HOLD')
+  const decisionBasis = explicitReleaseDecision ? 'Decision basis: gated release' : 'Decision basis: legacy-only verdict'
   const stats = qcResult.statistics || {}
   const passRate = typeof stats.pass_rate === 'number'
     ? stats.pass_rate
@@ -796,6 +988,7 @@ function buildOperatorBrief(qcResult: any): { headline: string; actions: string[
   const headlineParts = [
     `Result: ${overall}`,
     `Release: ${releaseDecision}`,
+    decisionBasis,
     passRate != null ? `Pass rate ${Number(passRate).toFixed(1)}%` : null,
     maxDeviation != null ? `Max deviation ${Number(maxDeviation).toFixed(3)} mm` : null,
   ].filter(Boolean)
