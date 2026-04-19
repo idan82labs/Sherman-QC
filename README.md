@@ -1,70 +1,75 @@
 # Sherman QC
 
-AI-assisted quality control for sheet-metal parts using CAD references, 3D scans, bend inspection, and operator-facing reporting.
+Sherman QC is a sheet-metal quality-control system that compares CAD/MBD intent against 3D scan evidence and produces operator-facing inspection decisions, bend-level reporting, and regression metrics.
 
-Sherman QC now includes two connected tracks in one repo:
-- a production-oriented inspection product: upload, analyze, live scan, Bend Inspection UI, PDF/reporting, structured bend counts
-- a research/regression track: labeled bend corpus, staged partial-scan evaluation, observability-aware bend-state modeling, and benchmark docs
+Published `main` now contains the correspondence-gated conformity baseline:
+- bend-specific claims are gated by observability, correspondence readiness, and datum trust
+- part release uses `AUTO_PASS | HOLD | AUTO_FAIL`
+- ambiguous or unmeasurable cases stay explicit instead of being silently coerced into pass/fail
+- corpus evaluation is split into correspondence, completion, metrology, position, and abstention scoreboards
 
-## What This Repo Does
+## What The Repo Contains
 
-### Production capabilities
-- General scan-vs-CAD analysis with alignment, deviation measurement, and reporting
-- Bend Inspection workflow for partial and full scans
-- 3D CAD bend overlay with per-bend status and deltas
-- Structured completed-bend count reporting alongside direct evidence counts
-- Live Scan monitoring and job detail workflows
-- PDF and JSON report generation
+### Product runtime
+- FastAPI backend for CAD/scan analysis and bend inspection
+- React operator UI for bend review, live scan monitoring, and job detail workflows
+- PDF/JSON reporting and structured release summaries
+- CAD-local and global bend matching, alignment, and per-bend evidence surfaces
 
-### Research and regression capabilities
-- Organized bend corpus under `data/bend_corpus`
-- Corpus evaluator and case evaluator for real industrial parts
-- Bend observability fields, candidate/null assignment plumbing, and unary-model infrastructure
-- Research docs for the current factor-model direction
+### Regression and research
+- real bend corpus under `data/bend_corpus`
+- corpus and single-case evaluators
+- docs covering the conformity model, bend-state semantics, and regression methodology
+- test coverage for runtime semantics, evaluator behavior, and frontend contract changes
 
-## Current Direction
+## Current Mainline Direction
 
-The main technical problem being worked in this repo is:
-- reliable bend progression inference from partial industrial scans
+The current `main` branch is centered on Bayesian-style conformity assessment with explicit abstention in product form:
+- separate physical bend formation from measurement observability
+- treat nominal-feature correspondence as first-class state
+- only issue bend-specific metrology/position claims when the claim is decision-ready
+- keep unconditional geometry metrics diagnostic-only rather than release-driving
 
-The current architectural direction is:
-- separate physical bend completion, observability, and evidence assignment
-- keep operator-facing labels derived from those internals
-- use structured count decoding rather than relying only on raw heuristic matches
+In practical repo terms, the important areas are:
+- `backend/feature_detection/bend_detector.py`
+- `backend/bend_inspection_pipeline.py`
+- `domains/bend/services/runtime_semantics.py`
+- `scripts/evaluate_bend_corpus.py`
+- `frontend/react/src/pages/BendInspection.tsx`
 
-This is documented in:
+Recommended architecture reading:
 - `docs/BEND_STATE_FACTOR_MODEL_ARCHITECTURE.md`
 - `docs/BEND_STATE_MODEL_BACKLOG.md`
 - `docs/BEND_REGRESSION_TESTING.md`
+- `docs/PROFESSOR_FOLLOW_UP_MEMO_20260417.md`
 
 ## Repository Layout
 
 ```text
-Full Project/
-├── backend/                         FastAPI server, QC pipeline, bend runtime
-├── frontend/react/                  React + TypeScript product UI
-├── data/bend_corpus/                Corpus metadata, labels, specs, drawings references
-├── docs/                            Research notes, architecture, regression docs
-├── scripts/                         Corpus builders, evaluators, training/annotation scripts
-├── tests/                           Portable regression and math tests
+.
+├── backend/                         FastAPI server, QC pipeline, PDF/report generation
+├── domains/                         Shared domain semantics and service helpers
+├── frontend/react/                  React + TypeScript operator UI
+├── data/bend_corpus/                Corpus metadata, labels, ready regression definitions
+├── docs/                            Architecture notes, research memos, implementation notes
+├── scripts/                         Evaluation, corpus maintenance, training, utilities
+├── tests/                           Portable regression and evaluator tests
 ├── run.py                           Backend startup helper
-└── requirements.txt                 Root Python dependency set
+└── requirements.txt                 Python dependency set
 ```
 
-Key files and entry points:
-- `backend/server.py`: API surface
-- `backend/bend_inspection_pipeline.py`: bend runtime and staged inspection logic
-- `backend/bend_analysis_worker.py`: bend-job processing and structured count reporting
-- `frontend/react/src/pages/BendInspection.tsx`: bend operator workflow
-- `frontend/react/src/pages/LiveScan.tsx`: live monitoring flow
-- `scripts/evaluate_bend_corpus.py`: corpus benchmark runner
-- `scripts/train_bend_unary_models.py`: unary-model training bootstrap
+Key entry points:
+- `backend/server.py`
+- `backend/bend_inspection_pipeline.py`
+- `backend/feature_detection/bend_detector.py`
+- `frontend/react/src/pages/BendInspection.tsx`
+- `frontend/react/src/pages/JobDetail.tsx`
+- `scripts/evaluate_bend_case.py`
+- `scripts/evaluate_bend_corpus.py`
 
 ## Quick Start
 
 ### Backend
-
-From repo root:
 
 ```bash
 python3 -m venv .venv
@@ -73,12 +78,12 @@ pip install -r requirements.txt
 python3 run.py
 ```
 
-Backend default URL:
+Default backend URL:
 - `http://localhost:8080`
 
-Notes:
-- On macOS, `run.py` prefers Python `3.11+` for Open3D stability.
-- Additional macOS runtime notes are in `docs/open3d_macos_runtime.md`.
+Runtime notes:
+- macOS should use Python `3.11+` for Open3D stability
+- additional runtime notes are in `docs/open3d_macos_runtime.md`
 
 ### Frontend
 
@@ -88,58 +93,46 @@ npm ci
 npm run dev
 ```
 
-Frontend default URL:
+Default frontend URL:
 - `http://localhost:5173`
 
-Canonical frontend runtime:
-- Node `20.x` from `/Users/idant/82Labs/Sherman QC/Full Project-qc-clean/.nvmrc`
-- CI is pinned to Node `20.x`; local preflight accepts supported newer Node versions in the repo engine range, but `20.x` remains the canonical baseline
+Canonical frontend baseline:
+- Node `20.x`
+- `./scripts/check_frontend_toolchain.sh` is the supported environment preflight
 
-First-time or recovery validation:
-
-```bash
-./scripts/check_frontend_toolchain.sh
-```
-
-Production build check:
+### Core evaluators
 
 ```bash
-cd frontend/react
-npm run typecheck
-npm run build
+python3 scripts/evaluate_bend_case.py --help
+python3 scripts/evaluate_bend_corpus.py --help
 ```
-
-Failure mode to know about:
-- if `frontend/react/node_modules` is missing, `npm run build` can fail with `tsc: command not found` even though `typescript` is correctly declared in `devDependencies`
-- the supported fix is `cd frontend/react && npm ci` or the one-command preflight above
 
 ## Core Workflows
 
 ### 1. General QC analysis
-Use the upload/product flow to compare a scan against a CAD reference and inspect:
-- alignment
-- regional deviation
-- dimensions
-- AI-assisted summaries
-- downloadable reports
+Use the product flow to compare scan geometry against a CAD reference and inspect:
+- alignment quality
+- deviation summaries
+- dimensions and report outputs
+- AI-assisted analysis summaries
 
 ### 2. Bend Inspection
-Use Bend Inspection for staged or final sheet-metal scans when you need:
-- completed bend count
-- remaining bend count
-- in-spec / warning / out-of-spec bend status
-- per-bend deltas
-- 3D bend overlay on the original CAD
-- structured count vs direct evidence count
+Use Bend Inspection when you need:
+- bend completion progress
+- bend-specific claim gating
+- in-tolerance / out-of-tolerance metrology
+- on-position / unknown-position state
+- release blockers and hold reasons
+- 3D CAD overlay and operator evidence panels
 
-### 3. Corpus and regression evaluation
-Use the corpus tooling to evaluate runtime changes on real part families:
+### 3. Corpus regression
+Use the corpus tooling to test runtime changes on real parts before shipping:
 
 ```bash
 python3 scripts/evaluate_bend_corpus.py
 ```
 
-Useful related scripts:
+Related scripts:
 - `scripts/evaluate_bend_case.py`
 - `scripts/build_bend_corpus.py`
 - `scripts/enrich_bend_corpus_from_specs.py`
@@ -148,42 +141,37 @@ Useful related scripts:
 
 ## Recommended Reading Order
 
-If you are entering the repo for product work:
+If you are entering for product/runtime work:
 1. `README.md`
 2. `backend/server.py`
-3. `frontend/react/src/pages/BendInspection.tsx`
-4. `frontend/react/src/pages/LiveScan.tsx`
+3. `backend/bend_inspection_pipeline.py`
+4. `frontend/react/src/pages/BendInspection.tsx`
+5. `frontend/react/src/pages/JobDetail.tsx`
 
-If you are entering the repo for the bend-model/research track:
+If you are entering for the bend-model/evaluator track:
 1. `docs/BEND_REGRESSION_TESTING.md`
 2. `docs/BEND_STATE_FACTOR_MODEL_ARCHITECTURE.md`
 3. `docs/BEND_STATE_MODEL_BACKLOG.md`
-4. `docs/ONE_PAGER_PARTIAL_BEND_STATE_INFERENCE.md`
-5. `docs/PROFESSOR_RESPONSE_IMPLEMENTATION_NOTE_20260315.md`
+4. `docs/PROFESSOR_FOLLOW_UP_MEMO_20260417.md`
+5. `scripts/evaluate_bend_corpus.py`
 
 Additional useful docs:
 - `docs/BEND_CORPUS_DATA_CARD.md`
 - `docs/RESEARCH_POSITIONING_BEND_WORK.md`
 - `docs/MATH_PRECISION_RND_PLAN.md`
-- `docs/OPEN_RESEARCH_QUESTION_FOR_PROFESSOR.md`
-- `docs/PROFESSOR_MEETING_QUESTIONS_20260315.md`
 
-## Testing
+## Validation
 
-### Backend validation
-Portable backend/regression suite used in the clean integration merge:
+### Mainline backend and evaluator suite
+
+This is the concise mainline suite used for the current published baseline:
 
 ```bash
-OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 NUMEXPR_NUM_THREADS=1 VECLIB_MAXIMUM_THREADS=1 \
-pytest -q \
-  backend/tests/test_bend_report_generator.py \
-  backend/tests/test_bend_analysis_worker.py \
-  backend/tests/test_bend_unary_model.py \
-  backend/tests/test_bend_detector.py \
+PYTHONPATH=\"$(pwd):$(pwd)/backend\" pytest -q \
   backend/tests/test_bend_inspection_pipeline.py \
+  backend/tests/test_bend_detector.py \
   tests/test_evaluate_bend_corpus.py \
-  tests/test_bend_improvement_loop_math.py \
-  tests/test_feature_measurement.py
+  tests/test_evaluate_bend_case.py
 ```
 
 ### Frontend validation
@@ -192,7 +180,15 @@ pytest -q \
 ./scripts/check_frontend_toolchain.sh
 ```
 
-## Data and Artifact Policy
+Recommended frontend build checks:
+
+```bash
+cd frontend/react
+npm run typecheck
+npm run build
+```
+
+## Data And Artifact Policy
 
 Tracked in git:
 - runtime/backend code
@@ -207,16 +203,20 @@ Not tracked in git:
 - `output/`
 - `data/bend_corpus/evaluation/`
 - local FAISS indexes
-- local status logs and scratchpads
-- downloaded/generated scan and CAD binaries that are not intended source assets
+- ad hoc logs, caches, and scratch output
+- downloaded/generated CAD or scan binaries that are not intended source assets
 
-This is deliberate. The repo tracks reproducible source, not local runtime output.
+The repo tracks reproducible source and stable fixtures, not local runtime byproducts.
 
-## Current Benchmark Signal
+## Current Benchmark Posture
 
-The current regression work established that structured bend-count decoding materially improves staged partial-scan accuracy over the earlier heuristic-only path.
+The current published baseline establishes:
+- correspondence-gated bend claims
+- explicit abstention instead of silent overclaiming
+- success-aware local assignment conflict resolution
+- STL sanity handling, including CAD-duplicate scan detection
 
-The exact benchmark history and methodology live in:
+For current methodology and benchmark framing:
 - `docs/BEND_REGRESSION_TESTING.md`
 - `data/bend_corpus/ready_regression.json`
 
@@ -231,13 +231,13 @@ Representative endpoints:
 - `GET /api/bend-inspection/{id}/table`
 - `GET /api/parts`
 
-Read `backend/server.py` for the full current surface.
+See `backend/server.py` for the current full surface.
 
 ## Notes
 
-- The repo now reflects the unified merge of product work, bend runtime work, and research/docs.
-- The old dirty feature worktree was intentionally cleaned after merge; a backup snapshot of its dirty state was preserved outside the repo before cleanup.
-- If you want to continue the bend-model work, start from `main` and the docs listed above rather than reviving the pre-merge feature branch.
+- `main` is now the authoritative unified baseline; do not resurrect the old pre-merge feature branches as working truth.
+- The dirty enterprise reorder worktree was intentionally kept separate and should not be merged wholesale.
+- The next meaningful work is ambiguity/risk calibration on top of the published correspondence-gated baseline, not merge mechanics.
 
 ## License
 
