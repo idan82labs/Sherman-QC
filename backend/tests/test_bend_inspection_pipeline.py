@@ -1315,6 +1315,56 @@ def _make_match(
     )
 
 
+def _mark_confident_global_match(match: BendMatch, candidate_id: str) -> BendMatch:
+    match.assignment_source = "GLOBAL_DETECTION"
+    match.assignment_confidence = max(float(match.match_confidence or 0.0), 0.88)
+    match.assignment_candidate_id = candidate_id
+    match.assignment_candidate_kind = "GLOBAL_DETECTION"
+    match.assignment_candidate_score = max(float(match.assignment_confidence or 0.0), 0.88)
+    match.assignment_null_score = 0.12
+    match.assignment_candidate_count = 1
+    match.measurement_method = "detected_bend_match"
+    match.measurement_mode = "global_detection"
+    match.physical_completion_state = "FORMED"
+    match.observability_state = "FORMED"
+    match.measurement_context = {"trusted_alignment_for_release": True}
+    return match
+
+
+def _mark_confident_local_match(match: BendMatch, candidate_id: str) -> BendMatch:
+    match.assignment_source = "CAD_LOCAL_NEIGHBORHOOD"
+    match.assignment_confidence = max(float(match.match_confidence or 0.0), 0.9)
+    match.assignment_candidate_id = candidate_id
+    match.assignment_candidate_kind = "MEASUREMENT"
+    match.assignment_candidate_score = max(float(match.assignment_confidence or 0.0), 0.845)
+    match.assignment_null_score = 0.05
+    match.assignment_candidate_count = 1
+    match.measurement_method = "surface_classification"
+    match.measurement_mode = "cad_local_neighborhood"
+    match.physical_completion_state = "FORMED"
+    match.observability_state = "FORMED"
+    match.measurement_context = {
+        "trusted_alignment_for_release": True,
+        "assignment_candidates": [
+            {
+                "candidate_id": candidate_id,
+                "candidate_kind": "MEASUREMENT",
+                "measurement_index": 0,
+                "assignment_score": max(float(match.assignment_candidate_score or 0.0), 0.845),
+                "used_by_other_bend": False,
+            },
+            {
+                "candidate_id": "null_candidate",
+                "candidate_kind": "NULL",
+                "measurement_index": None,
+                "assignment_score": 0.05,
+                "used_by_other_bend": False,
+            },
+        ],
+    }
+    return match
+
+
 def test_merge_bend_reports_preserves_primary_detection_when_local_misses():
     b1 = _make_spec("B1")
     b2 = _make_spec("B2")
@@ -1510,6 +1560,231 @@ def test_merge_bend_reports_prefers_local_short_obtuse_geometry_over_bad_global_
 
     assert merged.matches[0].assignment_source == "CAD_LOCAL_NEIGHBORHOOD"
     assert merged.matches[0].line_length_deviation_mm == 0.0
+
+
+def test_merge_bend_reports_preserves_decision_ready_primary_over_ambiguous_local_pass():
+    b1 = _make_spec("B1", angle=90.0)
+
+    primary_match = _make_match(b1, "WARNING", angle_deviation=0.2, confidence=0.88)
+    primary_match.assignment_source = "GLOBAL_DETECTION"
+    primary_match.assignment_confidence = 0.88
+    primary_match.assignment_candidate_id = "B1"
+    primary_match.assignment_candidate_kind = "GLOBAL_DETECTION"
+    primary_match.assignment_candidate_score = 0.88
+    primary_match.assignment_null_score = 0.12
+    primary_match.assignment_candidate_count = 1
+    primary_match.measurement_method = "detected_bend_match"
+    primary_match.physical_completion_state = "FORMED"
+    primary_match.observability_state = "FORMED"
+    primary_match.measurement_context = {"trusted_alignment_for_release": True}
+
+    local_match = _make_match(b1, "PASS", angle_deviation=0.1, confidence=0.9)
+    local_match.assignment_source = "CAD_LOCAL_NEIGHBORHOOD"
+    local_match.assignment_confidence = 0.9
+    local_match.assignment_candidate_id = "local_candidate_0"
+    local_match.assignment_candidate_kind = "MEASUREMENT"
+    local_match.assignment_candidate_score = 0.845
+    local_match.assignment_null_score = 0.05
+    local_match.assignment_candidate_count = 3
+    local_match.measurement_method = "surface_classification"
+    local_match.physical_completion_state = "FORMED"
+    local_match.observability_state = "FORMED"
+    local_match.measurement_context = {
+        "trusted_alignment_for_release": True,
+        "assignment_candidates": [
+            {
+                "candidate_id": "local_candidate_0",
+                "candidate_kind": "MEASUREMENT",
+                "measurement_index": 0,
+                "assignment_score": 0.845,
+                "used_by_other_bend": False,
+            },
+            {
+                "candidate_id": "local_candidate_1",
+                "candidate_kind": "MEASUREMENT",
+                "measurement_index": 1,
+                "assignment_score": 0.821,
+                "used_by_other_bend": False,
+            },
+            {
+                "candidate_id": "null_candidate",
+                "candidate_kind": "NULL",
+                "measurement_index": None,
+                "assignment_score": 0.05,
+                "used_by_other_bend": False,
+            },
+        ],
+    }
+
+    primary = BendInspectionReport(part_id="PART", matches=[primary_match])
+    primary.compute_summary()
+    local = BendInspectionReport(part_id="PART", matches=[local_match])
+    local.compute_summary()
+
+    merged = pipeline.merge_bend_reports(primary, local, part_id="PART")
+
+    assert merged.matches[0].assignment_source == "GLOBAL_DETECTION"
+    assert merged.matches[0].measurement_method == "detected_bend_match"
+    assert merged.matches[0].status == "WARNING"
+    assert merged.matches[0].correspondence_state() == "CONFIDENT"
+
+
+def test_merge_bend_reports_hybrid_policy_does_not_override_with_ambiguous_local_pass():
+    b1 = _make_spec("B1", angle=90.0)
+    b1.countable_in_regression = True
+
+    primary_match = _make_match(b1, "WARNING", angle_deviation=0.2, confidence=0.88)
+    primary_match.assignment_source = "GLOBAL_DETECTION"
+    primary_match.assignment_confidence = 0.88
+    primary_match.assignment_candidate_id = "B1"
+    primary_match.assignment_candidate_kind = "GLOBAL_DETECTION"
+    primary_match.assignment_candidate_score = 0.88
+    primary_match.assignment_null_score = 0.12
+    primary_match.assignment_candidate_count = 1
+    primary_match.measurement_method = "detected_bend_match"
+    primary_match.physical_completion_state = "FORMED"
+    primary_match.observability_state = "FORMED"
+    primary_match.measurement_mode = "global_detection"
+    primary_match.measurement_context = {"trusted_alignment_for_release": True}
+
+    local_match = _make_match(b1, "PASS", angle_deviation=0.1, confidence=0.9)
+    local_match.assignment_source = "CAD_LOCAL_NEIGHBORHOOD"
+    local_match.assignment_confidence = 0.9
+    local_match.assignment_candidate_id = "local_candidate_0"
+    local_match.assignment_candidate_kind = "MEASUREMENT"
+    local_match.assignment_candidate_score = 0.845
+    local_match.assignment_null_score = 0.05
+    local_match.assignment_candidate_count = 3
+    local_match.measurement_method = "surface_classification"
+    local_match.measurement_mode = "cad_local_neighborhood"
+    local_match.physical_completion_state = "FORMED"
+    local_match.observability_state = "FORMED"
+    local_match.measurement_context = {
+        "trusted_alignment_for_release": True,
+        "assignment_candidates": [
+            {
+                "candidate_id": "local_candidate_0",
+                "candidate_kind": "MEASUREMENT",
+                "measurement_index": 0,
+                "assignment_score": 0.845,
+                "used_by_other_bend": False,
+            },
+            {
+                "candidate_id": "local_candidate_1",
+                "candidate_kind": "MEASUREMENT",
+                "measurement_index": 1,
+                "assignment_score": 0.821,
+                "used_by_other_bend": False,
+            },
+            {
+                "candidate_id": "null_candidate",
+                "candidate_kind": "NULL",
+                "measurement_index": None,
+                "assignment_score": 0.05,
+                "used_by_other_bend": False,
+            },
+        ],
+    }
+
+    primary = BendInspectionReport(part_id="PART", matches=[primary_match])
+    primary.compute_summary()
+    local = BendInspectionReport(part_id="PART", matches=[local_match])
+    local.compute_summary()
+
+    merged = pipeline.merge_bend_reports(
+        primary,
+        local,
+        part_id="PART",
+        feature_policy={"countable_source": "legacy_folded_hybrid"},
+    )
+
+    assert merged.matches[0].assignment_source == "GLOBAL_DETECTION"
+    assert merged.matches[0].measurement_method == "detected_bend_match"
+    assert merged.matches[0].correspondence_state() == "CONFIDENT"
+
+
+def test_report_decision_grade_rank_ignores_ambiguous_local_status_gains():
+    b1 = _make_spec("B1", angle=90.0)
+    b2 = _make_spec("B2", angle=90.0)
+
+    primary_match_1 = _make_match(b1, "WARNING", angle_deviation=0.2, confidence=0.88)
+    primary_match_1.assignment_source = "GLOBAL_DETECTION"
+    primary_match_1.assignment_confidence = 0.88
+    primary_match_1.assignment_candidate_id = "B1"
+    primary_match_1.assignment_candidate_kind = "GLOBAL_DETECTION"
+    primary_match_1.assignment_candidate_score = 0.88
+    primary_match_1.assignment_null_score = 0.12
+    primary_match_1.assignment_candidate_count = 1
+    primary_match_1.physical_completion_state = "FORMED"
+    primary_match_1.observability_state = "FORMED"
+
+    primary_match_2 = _make_match(b2, "FAIL", angle_deviation=1.8, confidence=0.84)
+    primary_match_2.assignment_source = "GLOBAL_DETECTION"
+    primary_match_2.assignment_confidence = 0.84
+    primary_match_2.assignment_candidate_id = "B2"
+    primary_match_2.assignment_candidate_kind = "GLOBAL_DETECTION"
+    primary_match_2.assignment_candidate_score = 0.84
+    primary_match_2.assignment_null_score = 0.16
+    primary_match_2.assignment_candidate_count = 1
+    primary_match_2.physical_completion_state = "FORMED"
+    primary_match_2.observability_state = "FORMED"
+
+    ambiguous_candidates = [
+        {
+            "candidate_id": "local_candidate_0",
+            "candidate_kind": "MEASUREMENT",
+            "measurement_index": 0,
+            "assignment_score": 0.845,
+            "used_by_other_bend": False,
+        },
+        {
+            "candidate_id": "local_candidate_1",
+            "candidate_kind": "MEASUREMENT",
+            "measurement_index": 1,
+            "assignment_score": 0.821,
+            "used_by_other_bend": False,
+        },
+        {
+            "candidate_id": "null_candidate",
+            "candidate_kind": "NULL",
+            "measurement_index": None,
+            "assignment_score": 0.05,
+            "used_by_other_bend": False,
+        },
+    ]
+
+    local_match_1 = _make_match(b1, "PASS", angle_deviation=0.1, confidence=0.9)
+    local_match_1.assignment_source = "CAD_LOCAL_NEIGHBORHOOD"
+    local_match_1.assignment_confidence = 0.9
+    local_match_1.assignment_candidate_id = "local_candidate_0"
+    local_match_1.assignment_candidate_kind = "MEASUREMENT"
+    local_match_1.assignment_candidate_score = 0.845
+    local_match_1.assignment_null_score = 0.05
+    local_match_1.assignment_candidate_count = 3
+    local_match_1.physical_completion_state = "FORMED"
+    local_match_1.observability_state = "FORMED"
+    local_match_1.measurement_context = {"assignment_candidates": ambiguous_candidates}
+
+    local_match_2 = _make_match(b2, "FAIL", angle_deviation=1.2, confidence=0.9)
+    local_match_2.assignment_source = "CAD_LOCAL_NEIGHBORHOOD"
+    local_match_2.assignment_confidence = 0.9
+    local_match_2.assignment_candidate_id = "local_candidate_0"
+    local_match_2.assignment_candidate_kind = "MEASUREMENT"
+    local_match_2.assignment_candidate_score = 0.845
+    local_match_2.assignment_null_score = 0.05
+    local_match_2.assignment_candidate_count = 3
+    local_match_2.physical_completion_state = "FORMED"
+    local_match_2.observability_state = "FORMED"
+    local_match_2.measurement_context = {"assignment_candidates": ambiguous_candidates}
+
+    primary = BendInspectionReport(part_id="PART", matches=[primary_match_1, primary_match_2])
+    primary.compute_summary()
+    local = BendInspectionReport(part_id="PART", matches=[local_match_1, local_match_2])
+    local.compute_summary()
+
+    assert pipeline._report_rank(local, 2) > pipeline._report_rank(primary, 2)
+    assert pipeline._report_decision_grade_rank(local, 2) < pipeline._report_decision_grade_rank(primary, 2)
+    assert pipeline._should_promote_dense_local_report(primary, local, 2) is False
 
 
 def test_feature_policy_hybrid_parts_always_require_local_refinement():
@@ -1947,12 +2222,18 @@ def test_run_progressive_bend_inspection_uses_dense_local_refinement(monkeypatch
     cad_bends = [_make_spec("B1"), _make_spec("B2")]
     weak_report = BendInspectionReport(
         part_id="PART",
-        matches=[BendMatch(cad_bend=cad_bends[0], detected_bend=None, status="PASS"), BendMatch(cad_bend=cad_bends[1], detected_bend=None, status="NOT_DETECTED")],
+        matches=[
+            _mark_confident_global_match(BendMatch(cad_bend=cad_bends[0], detected_bend=None, status="PASS"), "B1"),
+            BendMatch(cad_bend=cad_bends[1], detected_bend=None, status="NOT_DETECTED"),
+        ],
     )
     weak_report.compute_summary()
     refined_report = BendInspectionReport(
         part_id="PART",
-        matches=[BendMatch(cad_bend=cad_bends[0], detected_bend=None, status="PASS"), BendMatch(cad_bend=cad_bends[1], detected_bend=None, status="PASS")],
+        matches=[
+            _mark_confident_local_match(BendMatch(cad_bend=cad_bends[0], detected_bend=None, status="PASS"), "local_candidate_b1"),
+            _mark_confident_local_match(BendMatch(cad_bend=cad_bends[1], detected_bend=None, status="PASS"), "local_candidate_b2"),
+        ],
     )
     refined_report.compute_summary()
 
@@ -2752,9 +3033,9 @@ def test_run_progressive_bend_inspection_merges_local_refinement_without_erasing
     primary_report = BendInspectionReport(
         part_id="PART",
         matches=[
-            _make_match(cad_bends[0], "PASS", angle_deviation=0.5),
+            _mark_confident_global_match(_make_match(cad_bends[0], "PASS", angle_deviation=0.5), "B1"),
             _make_match(cad_bends[1], "NOT_DETECTED"),
-            _make_match(cad_bends[2], "PASS", angle_deviation=0.7),
+            _mark_confident_global_match(_make_match(cad_bends[2], "PASS", angle_deviation=0.7), "B3"),
         ],
     )
     primary_report.compute_summary()
@@ -2762,8 +3043,8 @@ def test_run_progressive_bend_inspection_merges_local_refinement_without_erasing
         part_id="PART",
         matches=[
             _make_match(cad_bends[0], "NOT_DETECTED"),
-            _make_match(cad_bends[1], "FAIL", angle_deviation=7.0),
-            _make_match(cad_bends[2], "FAIL", angle_deviation=12.0),
+            _mark_confident_local_match(_make_match(cad_bends[1], "FAIL", angle_deviation=7.0), "local_candidate_b2"),
+            _mark_confident_local_match(_make_match(cad_bends[2], "FAIL", angle_deviation=12.0), "local_candidate_b3"),
         ],
     )
     local_report.compute_summary()
