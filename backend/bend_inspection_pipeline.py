@@ -165,6 +165,12 @@ class BendInspectionRunDetails:
     scan_quality_status: str = "UNKNOWN"
     scan_coverage_pct: float = 0.0
     scan_density_pts_per_cm2: float = 0.0
+    dense_local_refinement_decision: Optional[str] = None
+    dense_local_refinement_report_ranks: Optional[Dict[str, List[int]]] = None
+    dense_local_refinement_geometry_penalties: Optional[Dict[str, Optional[float]]] = None
+    local_alignment_seed: Optional[int] = None
+    local_alignment_fitness: Optional[float] = None
+    local_alignment_rmse: Optional[float] = None
     # CAD geometry from the pipeline run (same vertices used for bend detection).
     # Used to export the reference mesh PLY in the SAME coordinate system as
     # the bend line coordinates, avoiding dual-import coordinate mismatches.
@@ -188,6 +194,20 @@ class BendInspectionRunDetails:
             "scan_quality_status": self.scan_quality_status,
             "scan_coverage_pct": round(self.scan_coverage_pct, 2),
             "scan_density_pts_per_cm2": round(self.scan_density_pts_per_cm2, 2),
+            "dense_local_refinement_decision": self.dense_local_refinement_decision,
+            "dense_local_refinement_report_ranks": self.dense_local_refinement_report_ranks,
+            "dense_local_refinement_geometry_penalties": self.dense_local_refinement_geometry_penalties,
+            "local_alignment_seed": self.local_alignment_seed,
+            "local_alignment_fitness": (
+                round(float(self.local_alignment_fitness), 4)
+                if self.local_alignment_fitness is not None
+                else None
+            ),
+            "local_alignment_rmse": (
+                round(float(self.local_alignment_rmse), 4)
+                if self.local_alignment_rmse is not None
+                else None
+            ),
         }
 
 
@@ -4041,6 +4061,7 @@ def refine_dense_scan_bends_via_alignment(
     report.compute_summary()
     setattr(report, "local_alignment_fitness", fitness)
     setattr(report, "local_alignment_seed", selected_seed)
+    setattr(report, "local_alignment_rmse", rmse)
     setattr(report, "alignment_metadata", alignment_metadata)
     warnings_local.append(
         "Dense-scan local refinement used CAD-guided ICP alignment "
@@ -4254,6 +4275,12 @@ def run_progressive_bend_inspection(
         f"run_progressive_bend_inspection[{part_id}] detect_and_match_with_fallback end "
         f"detected={report.detected_count} pass={report.pass_count} fallback_used={fallback_used}"
     )
+    dense_local_refinement_decision: Optional[str] = "not_applicable"
+    dense_local_refinement_report_ranks: Optional[Dict[str, List[int]]] = None
+    dense_local_refinement_geometry_penalties: Optional[Dict[str, Optional[float]]] = None
+    selected_local_alignment_seed: Optional[int] = None
+    selected_local_alignment_fitness: Optional[float] = None
+    selected_local_alignment_rmse: Optional[float] = None
     should_run_local_refinement = _dense_scan_requires_local_refinement(
         scan_points=scan_points,
         report=report,
@@ -4284,6 +4311,8 @@ def run_progressive_bend_inspection(
         )
         if local_report is not None:
             local_alignment_fitness = getattr(local_report, "local_alignment_fitness", None)
+            local_alignment_seed = getattr(local_report, "local_alignment_seed", None)
+            local_alignment_rmse = getattr(local_report, "local_alignment_rmse", None)
             local_alignment_metadata = getattr(local_report, "alignment_metadata", None)
             merged_report = merge_bend_reports(
                 report,
@@ -4293,19 +4322,35 @@ def run_progressive_bend_inspection(
                 local_alignment_metadata=local_alignment_metadata,
                 feature_policy=feature_policy,
             )
+            current_rank = _report_rank(report, expected_bend_count)
+            local_rank = _report_rank(local_report, expected_bend_count)
+            merged_rank = _report_rank(merged_report, expected_bend_count)
+            current_geometry_penalty = _report_short_obtuse_geometry_penalty(report)
+            local_geometry_penalty = _report_short_obtuse_geometry_penalty(local_report)
+            merged_geometry_penalty = _report_short_obtuse_geometry_penalty(merged_report)
+            dense_local_refinement_report_ranks = {
+                "primary": list(current_rank),
+                "local": list(local_rank),
+                "merged": list(merged_rank),
+            }
+            dense_local_refinement_geometry_penalties = {
+                "primary": round(float(current_geometry_penalty), 4) if np.isfinite(current_geometry_penalty) else None,
+                "local": round(float(local_geometry_penalty), 4) if np.isfinite(local_geometry_penalty) else None,
+                "merged": round(float(merged_geometry_penalty), 4) if np.isfinite(merged_geometry_penalty) else None,
+            }
+            selected_local_alignment_seed = local_alignment_seed
+            selected_local_alignment_fitness = local_alignment_fitness
+            selected_local_alignment_rmse = local_alignment_rmse
             if str((feature_policy or {}).get("countable_source") or "").strip().lower() == "legacy_folded_hybrid":
                 report = merged_report
                 selected_scan_bend_count = int(merged_report.detected_count)
+                dense_local_refinement_decision = "hybrid_authoritative_local"
                 warnings.append("Dense-scan local refinement is authoritative for hybrid rolled countable bends")
             else:
-                current_rank = _report_rank(report, expected_bend_count)
-                local_rank = _report_rank(local_report, expected_bend_count)
-                merged_rank = _report_rank(merged_report, expected_bend_count)
-                current_geometry_penalty = _report_short_obtuse_geometry_penalty(report)
-                merged_geometry_penalty = _report_short_obtuse_geometry_penalty(merged_report)
                 if merged_rank > max(current_rank, local_rank):
                     report = merged_report
                     selected_scan_bend_count = int(merged_report.detected_count)
+                    dense_local_refinement_decision = "merged_over_primary_and_local"
                     warnings.append("Dense-scan local refinement merged with primary global detection")
                 elif (
                     merged_rank == current_rank
@@ -4315,13 +4360,19 @@ def run_progressive_bend_inspection(
                 ):
                     report = merged_report
                     selected_scan_bend_count = int(merged_report.detected_count)
+                    dense_local_refinement_decision = "merged_tie_break_geometry"
                     warnings.append(
                         "Dense-scan local refinement replaced tied primary report on short-obtuse geometry plausibility"
                     )
                 elif local_rank > current_rank:
                     report = local_report
                     selected_scan_bend_count = int(local_report.detected_count)
+                    dense_local_refinement_decision = "local_over_primary"
                     warnings.append("Dense-scan local refinement promoted over primary global detection")
+                else:
+                    dense_local_refinement_decision = "primary_retained"
+        else:
+            dense_local_refinement_decision = "local_unavailable"
     if selected_scan_bend_count == 0:
         warnings.append("No bends detected in scan")
     if fallback_used:
@@ -4389,6 +4440,12 @@ def run_progressive_bend_inspection(
         scan_quality_status=str(scan_quality.get("status", "UNKNOWN")),
         scan_coverage_pct=float(scan_quality.get("coverage_pct", 0.0)),
         scan_density_pts_per_cm2=float(scan_quality.get("density_pts_per_cm2", 0.0)),
+        dense_local_refinement_decision=dense_local_refinement_decision,
+        dense_local_refinement_report_ranks=dense_local_refinement_report_ranks,
+        dense_local_refinement_geometry_penalties=dense_local_refinement_geometry_penalties,
+        local_alignment_seed=selected_local_alignment_seed,
+        local_alignment_fitness=selected_local_alignment_fitness,
+        local_alignment_rmse=selected_local_alignment_rmse,
         cad_vertices=_saved_cad_vertices,
         cad_triangles=_saved_cad_triangles,
     )
