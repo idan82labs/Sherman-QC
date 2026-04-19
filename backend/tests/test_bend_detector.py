@@ -799,6 +799,64 @@ class TestBendInspectionReport:
         assert payload["metrology_state"] == "IN_TOL"
         assert payload["positional_state"] == "ON_POSITION"
 
+    def test_match_serialization_treats_single_measurement_plus_null_as_single_correspondence_candidate(self):
+        cad = BendSpecification(
+            bend_id="B1",
+            target_angle=90.0,
+            target_radius=3.0,
+            bend_line_start=np.zeros(3),
+            bend_line_end=np.array([0, 10, 0]),
+        )
+        flange1 = PlaneSegment(0, np.array([1, 0, 0]), 0.0, np.zeros(3), np.zeros((3, 3)), np.zeros((3, 3)), 10.0, 3)
+        flange2 = PlaneSegment(1, np.array([0, 0, 1]), 0.0, np.zeros(3), np.zeros((3, 3)), np.zeros((3, 3)), 10.0, 3)
+        detected = DetectedBend(
+            bend_id="D1",
+            measured_angle=90.5,
+            measured_radius=3.2,
+            bend_line_start=np.zeros(3),
+            bend_line_end=np.array([0, 10, 0]),
+            bend_line_direction=np.array([0, 1, 0]),
+            confidence=0.75,
+            flange1=flange1,
+            flange2=flange2,
+        )
+        match = BendMatch(
+            cad_bend=cad,
+            detected_bend=detected,
+            status="PASS",
+            physical_completion_state="FORMED",
+            observability_state="FORMED",
+            line_center_deviation_mm=0.0,
+            assignment_source="CAD_LOCAL_NEIGHBORHOOD",
+            assignment_candidate_id="local_candidate_1",
+            assignment_candidate_count=2,
+            assignment_confidence=0.75,
+            assignment_candidate_score=0.63,
+            assignment_null_score=0.10,
+            measurement_context={
+                "assignment_candidates": [
+                    {
+                        "candidate_id": "local_candidate_1",
+                        "candidate_kind": "MEASUREMENT",
+                        "assignment_score": 0.63,
+                        "used_by_other_bend": False,
+                    },
+                    {
+                        "candidate_id": "null_candidate",
+                        "candidate_kind": "NULL",
+                        "assignment_score": 0.10,
+                    },
+                ]
+            },
+        )
+        payload = match.to_dict()
+        assert payload["correspondence_candidate_count"] == 1
+        assert payload["correspondence_state"] == "CONFIDENT"
+        assert payload["correspondence_ready"] is True
+        assert payload["completion_state"] == "FORMED"
+        assert payload["metrology_state"] == "IN_TOL"
+        assert payload["positional_state"] == "ON_POSITION"
+
     def test_match_serialization_keeps_local_assignment_ambiguous_when_runner_up_is_close(self):
         cad = BendSpecification(
             bend_id="B1",

@@ -245,6 +245,12 @@ class BendMatch:
             if str(item.get("candidate_kind") or "").upper() == "MEASUREMENT"
         ]
 
+    def _correspondence_candidate_count(self) -> int:
+        measurement_candidates = self._measurement_assignment_candidates()
+        if measurement_candidates:
+            return len(measurement_candidates)
+        return int(self.assignment_candidate_count or 0)
+
     def _selected_assignment_runner_up_gap(self) -> Optional[float]:
         measurement_candidates = self._measurement_assignment_candidates()
         if not measurement_candidates:
@@ -293,7 +299,7 @@ class BendMatch:
         status = str(self.status).upper()
         if self.detected_bend is None and str(self.status).upper() == "NOT_DETECTED":
             return "UNRESOLVED"
-        candidate_count = int(self.assignment_candidate_count or 0)
+        candidate_count = self._correspondence_candidate_count()
         margin = self.correspondence_margin()
         confidence = float(self.assignment_confidence or self.match_confidence or 0.0)
         if candidate_count <= 0:
@@ -302,7 +308,12 @@ class BendMatch:
             if str(self.assignment_source or "").upper() not in {"", "NONE"} and confidence > 0.0:
                 return "AMBIGUOUS"
             return "UNRESOLVED"
-        if candidate_count == 1 and confidence >= 0.65 and margin >= 0.15:
+        if (
+            candidate_count == 1
+            and confidence >= 0.65
+            and margin >= 0.15
+            and self._selected_assignment_used_by_other_bend() is not True
+        ):
             return "CONFIDENT"
         if str(self.assignment_source or "").upper() == "CAD_LOCAL_NEIGHBORHOOD":
             runner_up_gap = self._selected_assignment_runner_up_gap()
@@ -551,7 +562,7 @@ class BendMatch:
             ),
             "correspondence_top_candidate_selected": self._selected_assignment_is_top_measurement(),
             "correspondence_candidate_reused": self._selected_assignment_used_by_other_bend(),
-            "correspondence_candidate_count": int(self.assignment_candidate_count or 0),
+            "correspondence_candidate_count": self._correspondence_candidate_count(),
             "correspondence_source": self.assignment_source,
             "observability_state_internal": self.observability_state_internal(),
             "completion_observable": self.completion_observable(),
