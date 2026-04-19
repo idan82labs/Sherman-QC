@@ -93,6 +93,11 @@ export interface JobProgress {
 export interface QCResult {
   overall_result: 'PASS' | 'FAIL' | 'WARNING' | 'REVIEW'
   release_decision?: 'AUTO_PASS' | 'HOLD' | 'AUTO_FAIL' | string
+  release_blocked_by?: string[]
+  release_hold_reasons?: string[]
+  claim_gate_reasons?: string[]
+  trusted_alignment_for_release?: boolean
+  trusted_position_evidence?: boolean
   quality_score: number
   part_id: string
   part_name: string

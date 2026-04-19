@@ -58,6 +58,52 @@ class BendArtifactBundle:
     pdf_path: Optional[str] = None
 
 
+def _string_list(value: Any) -> List[str]:
+    if value is None:
+        return []
+    if isinstance(value, str):
+        text = value.strip()
+        return [text] if text else []
+    if isinstance(value, dict):
+        parts: List[str] = []
+        bend_id = str(value.get("bend_id") or "").strip()
+        correspondence_state = str(value.get("correspondence_state") or "").strip()
+        candidate_count = value.get("assignment_candidate_count")
+        line_center = value.get("line_center_deviation_mm")
+        position_status = str((value.get("position_evidence") or {}).get("status") or "").strip()
+        if bend_id:
+            parts.append(bend_id)
+        if correspondence_state:
+            parts.append(f"corr {correspondence_state}")
+        if isinstance(candidate_count, (int, float)):
+            parts.append(f"candidates {int(candidate_count)}")
+        margin = value.get("correspondence_margin")
+        runner_up_gap = value.get("correspondence_runner_up_gap")
+        top_selected = value.get("correspondence_top_candidate_selected")
+        candidate_reused = value.get("correspondence_candidate_reused")
+        if isinstance(margin, (int, float)):
+            parts.append(f"margin {float(margin):+.2f}")
+        if isinstance(runner_up_gap, (int, float)):
+            parts.append(f"gap {float(runner_up_gap):+.2f}")
+        if isinstance(top_selected, bool):
+            parts.append(f"top {'yes' if top_selected else 'no'}")
+        if candidate_reused is True:
+            parts.append("reused yes")
+        if isinstance(line_center, (int, float)):
+            parts.append(f"center {line_center:+.2f}mm")
+        if position_status:
+            parts.append(f"position {position_status}")
+        text = " | ".join(parts)
+        return [text] if text else []
+    if isinstance(value, (list, tuple, set)):
+        out: List[str] = []
+        for item in value:
+            out.extend(_string_list(item))
+        return out
+    text = str(value).strip()
+    return [text] if text else []
+
+
 def _safe_slug(value: str) -> str:
     text = re.sub(r"[^A-Za-z0-9._-]+", "_", value.strip())
     return text.strip("_") or "bend"
@@ -385,10 +431,26 @@ class _BendPDF:
         scan_quality = report_dict.get("scan_quality", {})
         matches = report_dict.get("matches", [])
         release_decision = str(report_dict.get("release_decision") or summary.get("release_decision") or "LEGACY_ONLY")
-        release_blocked_by = list(summary.get("release_blocked_by") or [])
-        release_hold_reasons = list(summary.get("release_hold_reasons") or [])
+        release_blocked_by = list(summary.get("release_blocked_by") or report_dict.get("release_blocked_by") or [])
+        release_hold_reasons = list(summary.get("release_hold_reasons") or report_dict.get("release_hold_reasons") or [])
+        claim_gate_reasons = list(summary.get("claim_gate_reasons") or report_dict.get("claim_gate_reasons") or [])
+        invariant_fail_state = str(report_dict.get("invariant_fail_state") or summary.get("invariant_fail_state") or "").strip()
+        invariant_fail_reasons = _string_list(report_dict.get("invariant_fail_reasons") or summary.get("invariant_fail_reasons") or [])
+        invariant_fail_evidence = _string_list(report_dict.get("invariant_fail_evidence") or summary.get("invariant_fail_evidence") or [])
+        fail_mode = (
+            "Ambiguity-invariant fail"
+            if release_decision == "AUTO_FAIL" and invariant_fail_state
+            else "Bend-specific fail"
+            if release_decision == "AUTO_FAIL"
+            else ""
+        )
         trusted_alignment = summary.get("trusted_alignment_for_release")
+        if trusted_alignment is None:
+            trusted_alignment = report_dict.get("trusted_alignment_for_release")
         trusted_position = summary.get("trusted_position_evidence")
+        if trusted_position is None:
+            trusted_position = report_dict.get("trusted_position_evidence")
+        legacy_verdict = str(summary.get("overall_result") or report_dict.get("overall_result") or "")
 
         story.append(Paragraph("Bend Inspection Report", self.title))
         story.append(Spacer(1, 3 * mm))
@@ -401,8 +463,8 @@ class _BendPDF:
         story.append(Spacer(1, 5 * mm))
 
         release_bits = [f"Release <b>{release_decision}</b>"]
-        if summary.get("overall_result"):
-            release_bits.append(f"Legacy verdict {summary.get('overall_result')}")
+        if legacy_verdict:
+            release_bits.append(f"Legacy verdict {legacy_verdict}")
         if trusted_alignment is not None:
             release_bits.append(f"Alignment {'trusted' if trusted_alignment else 'untrusted'}")
         if trusted_position is not None:
@@ -411,8 +473,25 @@ class _BendPDF:
             release_bits.append("Blocked by " + ", ".join(str(item) for item in release_blocked_by))
         if release_hold_reasons:
             release_bits.append("Hold reasons " + ", ".join(str(item) for item in release_hold_reasons))
+        if claim_gate_reasons:
+            release_bits.append("Claim gates " + ", ".join(str(item) for item in claim_gate_reasons))
+        if fail_mode:
+            release_bits.append(f"Fail mode {fail_mode}")
+        if invariant_fail_state:
+            release_bits.append(f"Invariant fail {invariant_fail_state}")
+        if invariant_fail_reasons:
+            release_bits.append("Invariant reasons " + ", ".join(invariant_fail_reasons))
+        if invariant_fail_evidence:
+            release_bits.append("Invariant evidence " + ", ".join(invariant_fail_evidence))
         story.append(self._box(" | ".join(release_bits), bg="#FEF3C7" if release_decision == "HOLD" else "#F8FAFC", border="#F59E0B" if release_decision == "HOLD" else "#CBD5E1"))
         story.append(Spacer(1, 4 * mm))
+        if fail_mode or invariant_fail_state:
+            story.append(self._box(
+                "Bend-specific claims stay gated on correspondence; a part can still fail without unique bend attribution if every admissible interpretation fails.",
+                bg="#FEF2F2",
+                border="#FCA5A5",
+            ))
+            story.append(Spacer(1, 3 * mm))
 
         kpi_cells = [
             self._kpi("In Spec", str(summary.get("completed_in_spec", summary.get("passed", 0))), "#059669"),
@@ -528,11 +607,34 @@ class _BendPDF:
             exp = match.get("target_angle")
             act = match.get("measured_angle")
             action = str(match.get("action_item") or "-")
-            states = "/".join(
-                str(match.get(key) or "-")
-                for key in ("completion_state", "metrology_state", "positional_state")
+            states = " | ".join(
+                [
+                    f"F {str(match.get('physical_completion_state') or match.get('completion_state') or '-')}",
+                    f"O {str(match.get('observability_state_internal') or match.get('observability_state') or '-')}",
+                    f"C {str(match.get('correspondence_state') or '-')}",
+                    f"P {str(match.get('positional_state') or '-')}",
+                ]
             )
             position_evidence = match.get("position_evidence") or {}
+            claim_gate_reasons = list(match.get("claim_gate_reasons") or [])
+            invariant_fail_state = str(match.get("invariant_fail_state") or "").strip()
+            invariant_fail_reasons = _string_list(match.get("invariant_fail_reasons") or [])
+            invariant_fail_evidence = _string_list(match.get("invariant_fail_evidence") or [])
+            eligibility_bits = []
+            if match.get("metrology_claim_eligible") is not None:
+                eligibility_bits.append(f"M:{'yes' if match.get('metrology_claim_eligible') else 'no'}")
+            if match.get("position_claim_eligible") is not None:
+                eligibility_bits.append(f"P:{'yes' if match.get('position_claim_eligible') else 'no'}")
+            if eligibility_bits:
+                action = f"{action} | Claim eligibility {' / '.join(eligibility_bits)}" if action != "-" else f"Claim eligibility {' / '.join(eligibility_bits)}"
+            if claim_gate_reasons:
+                action = f"{action} | Claim gates {', '.join(str(item) for item in claim_gate_reasons)}" if action != "-" else f"Claim gates {', '.join(str(item) for item in claim_gate_reasons)}"
+            if invariant_fail_state:
+                action = f"{action} | Invariant {invariant_fail_state}" if action != "-" else f"Invariant {invariant_fail_state}"
+            if invariant_fail_reasons:
+                action = f"{action} | Invariant reasons {', '.join(invariant_fail_reasons)}" if action != "-" else f"Invariant reasons {', '.join(invariant_fail_reasons)}"
+            if invariant_fail_evidence:
+                action = f"{action} | Invariant evidence {', '.join(invariant_fail_evidence)}" if action != "-" else f"Invariant evidence {', '.join(invariant_fail_evidence)}"
             position_summary = "/".join(
                 [
                     str(position_evidence.get("status") or "-"),

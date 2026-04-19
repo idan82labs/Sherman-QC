@@ -142,7 +142,7 @@ class GDTEngine:
         centroid = np.mean(points, axis=0)
         centered = points - centroid
 
-        _, _, vh = np.linalg.svd(centered)
+        _, _, vh = np.linalg.svd(centered, full_matrices=False)
         normal = vh[-1]  # Normal vector of best-fit plane
 
         # Calculate signed distances to the plane
@@ -209,7 +209,7 @@ class GDTEngine:
             )
         else:
             # Try all 3 principal components and pick best fit
-            _, _, vh = np.linalg.svd(centered)
+            _, _, vh = np.linalg.svd(centered, full_matrices=False)
 
             best_cylindricity = float('inf')
             best_axis = vh[0]
@@ -318,7 +318,7 @@ class GDTEngine:
         if plane_normal is None:
             centroid = np.mean(points, axis=0)
             centered = points - centroid
-            _, _, vh = np.linalg.svd(centered)
+            _, _, vh = np.linalg.svd(centered, full_matrices=False)
             plane_normal = vh[-1]
 
         # Project points onto the plane
@@ -480,7 +480,7 @@ class GDTEngine:
         # Fit plane to surface to get surface normal (for angle reporting)
         centroid = np.mean(surface_points, axis=0)
         centered = surface_points - centroid
-        _, _, vh = np.linalg.svd(centered)
+        _, _, vh = np.linalg.svd(centered, full_matrices=False)
         surface_normal = vh[-1]
 
         # Ensure consistent normal direction
@@ -550,7 +550,7 @@ class GDTEngine:
         # Fit plane to surface
         centroid = np.mean(surface_points, axis=0)
         centered = surface_points - centroid
-        _, _, vh = np.linalg.svd(centered)
+        _, _, vh = np.linalg.svd(centered, full_matrices=False)
         surface_normal = vh[-1]
 
         # Normalize datum normal
@@ -641,7 +641,7 @@ class GDTEngine:
         centroid = np.mean(points, axis=0)
         centered = points - centroid
 
-        _, _, vh = np.linalg.svd(centered)
+        _, _, vh = np.linalg.svd(centered, full_matrices=False)
         line_direction = vh[0]  # Direction of best-fit line
 
         if direction_hint is not None:
@@ -707,7 +707,7 @@ class GDTEngine:
         # Fit plane to surface
         centroid = np.mean(surface_points, axis=0)
         centered = surface_points - centroid
-        _, _, vh = np.linalg.svd(centered)
+        _, _, vh = np.linalg.svd(centered, full_matrices=False)
         surface_normal = vh[-1]
 
         # Normalize datum normal
@@ -811,7 +811,7 @@ class GDTEngine:
         # Calculate the actual axis of the feature by fitting a cylinder
         centroid = np.mean(feature_points, axis=0)
         centered = feature_points - centroid
-        _, _, vh = np.linalg.svd(centered)
+        _, _, vh = np.linalg.svd(centered, full_matrices=False)
 
         # Find axis most parallel to datum
         best_axis = None

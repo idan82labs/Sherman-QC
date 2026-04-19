@@ -42,6 +42,8 @@ def main() -> int:
     parser.add_argument("--expected-completed")
     parser.add_argument("--spec-bend-angles-json", default="[]")
     parser.add_argument("--spec-schedule-type", default="")
+    parser.add_argument("--skip-heatmap-consistency", action="store_true")
+    parser.add_argument("--heatmap-cache-dir", default=None)
     args = parser.parse_args()
 
     expected_total = None if args.expected_total in {None, "", "None"} else int(float(args.expected_total))
@@ -74,6 +76,8 @@ def main() -> int:
         },
         "spec_bend_angles_hint": spec_bend_angles,
         "spec_schedule_type": args.spec_schedule_type or None,
+        "skip_heatmap_consistency": bool(args.skip_heatmap_consistency),
+        "heatmap_cache_dir": args.heatmap_cache_dir,
         "summary": report_dict.get("summary") or {},
         "details": details.to_dict(),
         "warnings": details.warnings,

@@ -4,6 +4,7 @@ from typing import Optional
 
 
 TERNARY_OBSERVABILITY_STATES = {"FORMED", "UNFORMED", "UNKNOWN"}
+PHYSICAL_COMPLETION_STATES = {"FORMED", "UNFORMED", "UNKNOWN"}
 LEGACY_OBSERVABILITY_STATES = {
     "OBSERVED_FORMED",
     "OBSERVED_NOT_FORMED",
@@ -18,6 +19,7 @@ def normalize_observability_state(
     physical_completion_state: Optional[str] = None,
     status: Optional[str] = None,
 ) -> str:
+    """Legacy-facing completion normalizer kept for compatibility payloads."""
     state = str(observability_state or "").strip().upper()
     physical = str(physical_completion_state or "").strip().upper()
     status_norm = str(status or "").strip().upper()
@@ -51,6 +53,25 @@ def normalize_observability_state(
     if status_norm in {"PASS", "FAIL", "WARNING"}:
         return "FORMED"
     return "UNKNOWN"
+
+
+def normalize_physical_completion_state(
+    physical_completion_state: Optional[str],
+    *,
+    observability_state: Optional[str] = None,
+    status: Optional[str] = None,
+) -> str:
+    """Normalize the part-state claim independently from measurement observability."""
+    physical = str(physical_completion_state or "").strip().upper()
+    if physical in {"FORMED", "UNFORMED"}:
+        return physical
+    if physical == "NOT_FORMED":
+        return "UNFORMED"
+    return normalize_observability_state(
+        observability_state,
+        physical_completion_state=physical_completion_state,
+        status=status,
+    )
 
 
 def legacy_observability_detail_state(

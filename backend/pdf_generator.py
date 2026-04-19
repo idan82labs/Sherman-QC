@@ -86,6 +86,52 @@ def sanitize_text(s: str) -> str:
     return s.strip()
 
 
+def _string_list(value: Any) -> List[str]:
+    if value is None:
+        return []
+    if isinstance(value, str):
+        text = value.strip()
+        return [text] if text else []
+    if isinstance(value, dict):
+        parts: List[str] = []
+        bend_id = sanitize_text(str(value.get("bend_id") or ""))
+        correspondence_state = sanitize_text(str(value.get("correspondence_state") or ""))
+        candidate_count = value.get("assignment_candidate_count")
+        line_center = value.get("line_center_deviation_mm")
+        position_status = sanitize_text(str((value.get("position_evidence") or {}).get("status") or ""))
+        if bend_id:
+            parts.append(bend_id)
+        if correspondence_state:
+            parts.append(f"corr {correspondence_state}")
+        if isinstance(candidate_count, (int, float)):
+            parts.append(f"candidates {int(candidate_count)}")
+        margin = value.get("correspondence_margin")
+        runner_up_gap = value.get("correspondence_runner_up_gap")
+        top_selected = value.get("correspondence_top_candidate_selected")
+        candidate_reused = value.get("correspondence_candidate_reused")
+        if isinstance(margin, (int, float)):
+            parts.append(f"margin {float(margin):+.2f}")
+        if isinstance(runner_up_gap, (int, float)):
+            parts.append(f"gap {float(runner_up_gap):+.2f}")
+        if isinstance(top_selected, bool):
+            parts.append(f"top {'yes' if top_selected else 'no'}")
+        if candidate_reused is True:
+            parts.append("reused yes")
+        if isinstance(line_center, (int, float)):
+            parts.append(f"center {line_center:+.2f}mm")
+        if position_status:
+            parts.append(f"position {position_status}")
+        text = " | ".join(parts)
+        return [text] if text else []
+    if isinstance(value, (list, tuple, set)):
+        out: List[str] = []
+        for item in value:
+            out.extend(_string_list(item))
+        return out
+    text = sanitize_text(str(value))
+    return [text] if text else []
+
+
 # -----------------------------
 # Color scheme (industrial palette)
 # -----------------------------
@@ -162,14 +208,30 @@ class PDFReportGenerator:
         timestamp = report_data.get("timestamp", datetime.now().isoformat())
 
         verdict = report_data.get("overall_result", "FAIL").upper()
-        release_decision = sanitize_text(str(report_data.get("release_decision") or "")) or "LEGACY_ONLY"
-        release_blocked_by = report_data.get("release_blocked_by", []) or []
-        release_hold_reasons = report_data.get("release_hold_reasons", []) or []
+        summary = report_data.get("summary", {}) or {}
+        release_decision = sanitize_text(str(report_data.get("release_decision") or summary.get("release_decision") or "")) or "LEGACY_ONLY"
+        legacy_verdict = sanitize_text(str(report_data.get("overall_result") or summary.get("overall_result") or ""))
+        release_blocked_by = report_data.get("release_blocked_by") or summary.get("release_blocked_by") or []
+        release_hold_reasons = report_data.get("release_hold_reasons") or summary.get("release_hold_reasons") or []
+        claim_gate_reasons = report_data.get("claim_gate_reasons") or summary.get("claim_gate_reasons") or []
+        invariant_fail_state = sanitize_text(str(report_data.get("invariant_fail_state") or summary.get("invariant_fail_state") or ""))
+        invariant_fail_reasons = _string_list(report_data.get("invariant_fail_reasons") or summary.get("invariant_fail_reasons") or [])
+        invariant_fail_evidence = _string_list(report_data.get("invariant_fail_evidence") or summary.get("invariant_fail_evidence") or [])
+        fail_mode = (
+            "Ambiguity-invariant fail"
+            if release_decision == "AUTO_FAIL" and invariant_fail_state
+            else "Bend-specific fail"
+            if release_decision == "AUTO_FAIL"
+            else ""
+        )
         trusted_alignment_for_release = report_data.get("trusted_alignment_for_release")
+        if trusted_alignment_for_release is None:
+            trusted_alignment_for_release = summary.get("trusted_alignment_for_release")
         trusted_position_evidence = report_data.get("trusted_position_evidence")
+        if trusted_position_evidence is None:
+            trusted_position_evidence = summary.get("trusted_position_evidence")
         quality_score = report_data.get("quality_score", 0)
         confidence = report_data.get("confidence", 0)
-
         stats = report_data.get("statistics", {})
         total_points = stats.get("total_points", 0)
         pass_rate = stats.get("pass_rate", 0)
@@ -307,6 +369,10 @@ class PDFReportGenerator:
         flow.append(Spacer(1, 4*mm))
         flow.append(Paragraph(f"Quality Score: {quality_score:.1f}/100 | Confidence: {confidence:.0f}%", self.SMALL))
         release_bits = [f"Release Decision: {release_decision}"]
+        if release_decision == "LEGACY_ONLY" and legacy_verdict:
+            release_bits.append(f"Legacy Verdict: {legacy_verdict}")
+        elif legacy_verdict:
+            release_bits.append(f"Legacy Verdict: {legacy_verdict}")
         if trusted_alignment_for_release is not None:
             release_bits.append(f"Trusted Alignment: {'Yes' if trusted_alignment_for_release else 'No'}")
         if trusted_position_evidence is not None:
@@ -319,7 +385,54 @@ class PDFReportGenerator:
             release_bits.append(
                 "Hold Reasons: " + ", ".join(sanitize_text(str(item)) for item in release_hold_reasons)
             )
+        if claim_gate_reasons:
+            release_bits.append(
+                "Claim Gates: " + ", ".join(sanitize_text(str(item)) for item in claim_gate_reasons)
+            )
+        if fail_mode:
+            release_bits.append(f"Fail Mode: {fail_mode}")
+        if invariant_fail_state:
+            release_bits.append(f"Invariant Fail: {invariant_fail_state}")
+        if invariant_fail_reasons:
+            release_bits.append("Invariant Reasons: " + ", ".join(invariant_fail_reasons))
+        if invariant_fail_evidence:
+            release_bits.append("Invariant Evidence: " + ", ".join(invariant_fail_evidence))
         flow.append(Paragraph(" | ".join(release_bits), self.SMALL))
+        if fail_mode or invariant_fail_state:
+            flow.append(self._box(
+                "Bend-specific claims stay gated on correspondence; a part can still fail without unique bend attribution if every admissible interpretation fails.",
+                bg="#FEF2F2",
+                border="#FCA5A5",
+            ))
+            flow.append(Spacer(1, 3 * mm))
+        gating_bits: List[str] = []
+        if any(summary.get(key) is not None for key in (
+            "formed_bends", "unformed_bends", "unknown_completion_bends",
+            "observability_sufficient_bends", "observability_partial_bends", "observability_insufficient_bends",
+            "correspondence_confident_bends", "correspondence_ambiguous_bends", "correspondence_unresolved_bends",
+        )):
+            gating_bits.append(
+                "Formation "
+                f"{summary.get('formed_bends', 0)} formed / {summary.get('unformed_bends', 0)} unformed / {summary.get('unknown_completion_bends', 0)} unknown"
+            )
+            gating_bits.append(
+                "Observability "
+                f"{summary.get('observability_sufficient_bends', 0)} sufficient / {summary.get('observability_partial_bends', 0)} partial / {summary.get('observability_insufficient_bends', 0)} insufficient"
+            )
+            gating_bits.append(
+                "Correspondence "
+                f"{summary.get('correspondence_confident_bends', 0)} confident / {summary.get('correspondence_ambiguous_bends', 0)} ambiguous / {summary.get('correspondence_unresolved_bends', 0)} unresolved"
+            )
+        if claim_gate_reasons:
+            gating_bits.append("Claim gates " + ", ".join(sanitize_text(str(item)) for item in claim_gate_reasons))
+        if invariant_fail_state:
+            gating_bits.append("Invariant fail " + invariant_fail_state)
+        if invariant_fail_reasons:
+            gating_bits.append("Invariant reasons " + ", ".join(invariant_fail_reasons))
+        if invariant_fail_evidence:
+            gating_bits.append("Invariant evidence " + ", ".join(invariant_fail_evidence))
+        if gating_bits:
+            flow.append(Paragraph("Release Gating: " + " | ".join(gating_bits), self.SMALL))
         flow.append(Spacer(1, 10*mm))
 
         # === KPI CARDS ===
@@ -951,6 +1064,19 @@ class PDFReportGenerator:
                 if issue_location:
                     edge_parts.append(f"Loc: {issue_location}")
                 edge_cell = "<br/>".join(edge_parts) if edge_parts else "N/A"
+
+                claim_gate_reasons = br.get("claim_gate_reasons") or bend_info.get("claim_gate_reasons") or []
+                if claim_gate_reasons:
+                    action = f"{action} | Gates: {', '.join(sanitize_text(str(item)) for item in claim_gate_reasons)}"
+                invariant_fail_state = sanitize_text(str(br.get("invariant_fail_state") or bend_info.get("invariant_fail_state") or ""))
+                invariant_fail_reasons = _string_list(br.get("invariant_fail_reasons") or bend_info.get("invariant_fail_reasons") or [])
+                invariant_fail_evidence = _string_list(br.get("invariant_fail_evidence") or bend_info.get("invariant_fail_evidence") or [])
+                if invariant_fail_state:
+                    action = f"{action} | Invariant: {invariant_fail_state}"
+                if invariant_fail_reasons:
+                    action = f"{action} | Invariant reasons: {', '.join(invariant_fail_reasons)}"
+                if invariant_fail_evidence:
+                    action = f"{action} | Invariant evidence: {', '.join(invariant_fail_evidence)}"
 
                 bend_data.append([bend_name, bend_form, angle_cell, radius_cell, edge_cell, status, action])
 

@@ -486,6 +486,21 @@ def load_scan_points(scan_path: str) -> np.ndarray:
     raise ValueError(f"Failed to load scan geometry: {path.name}")
 
 
+def classify_scan_geometry_kind(scan_path: str) -> str:
+    """
+    Classify the scan representation used by this pipeline.
+
+    STL/OBJ scans are currently consumed as raw mesh vertices, not as measured
+    point clouds. They should not inherit the aggressive large-scan point-cloud
+    runtime profile, which can collapse stable CAD-equivalent geometry into a
+    smaller set of incorrect bend detections.
+    """
+    ext = Path(scan_path).suffix.lower()
+    if ext in {".stl", ".obj"}:
+        return "mesh_vertices"
+    return "point_cloud"
+
+
 def export_bend_reference_visualization(
     cad_path: str,
     output_dir: str | Path,
@@ -1722,6 +1737,7 @@ def _apply_scan_runtime_profile(
     *,
     scan_state: Optional[str] = None,
     fallback: bool = False,
+    scan_geometry_kind: Optional[str] = None,
 ) -> Tuple[Dict[str, Any], Dict[str, Any], Optional[str]]:
     """
     Adapt runtime detection settings for large full-resolution scans.
@@ -1732,6 +1748,8 @@ def _apply_scan_runtime_profile(
     """
     ctor = copy.deepcopy(scan_detector_kwargs or {})
     call = copy.deepcopy(scan_detect_call_kwargs or {})
+    if str(scan_geometry_kind or "").strip().lower() == "mesh_vertices":
+        return ctor, call, None
     profile = _scan_runtime_profile_name_for_state(point_count, scan_state, fallback=fallback)
     if profile is None:
         return ctor, call, None
@@ -2213,6 +2231,66 @@ def _measurement_confidence_score(label: Optional[str]) -> float:
         "very_low": 0.25,
     }
     return float(mapping.get(str(label or "").strip().lower(), 0.4))
+
+
+def _local_assignment_runner_up_gap(
+    assignment_candidates: List[Dict[str, Any]],
+    selected_candidate: Dict[str, Any],
+) -> Optional[float]:
+    if str(selected_candidate.get("candidate_kind") or "").upper() != "MEASUREMENT":
+        return None
+    selected_id = str(selected_candidate.get("candidate_id") or "").strip()
+    selected_score = float(selected_candidate.get("assignment_score") or 0.0)
+    other_scores = [
+        float(item.get("assignment_score") or 0.0)
+        for item in assignment_candidates
+        if str(item.get("candidate_kind") or "").upper() == "MEASUREMENT"
+        and str(item.get("candidate_id") or "").strip() != selected_id
+    ]
+    runner_up = max(other_scores) if other_scores else 0.0
+    return float(selected_score - runner_up)
+
+
+def _local_assignment_confidence(
+    observability: Dict[str, Any],
+    selected_candidate: Dict[str, Any],
+    assignment_candidates: List[Dict[str, Any]],
+    *,
+    null_assignment_score: float,
+    measurement_success: bool,
+) -> float:
+    base_confidence = float(observability.get("confidence") or 0.0)
+    if not measurement_success:
+        return base_confidence
+    if str(selected_candidate.get("candidate_kind") or "").upper() != "MEASUREMENT":
+        return base_confidence
+
+    candidate_score = float(selected_candidate.get("assignment_score") or 0.0)
+    visibility = float(observability.get("visibility_score") or 0.0)
+    evidence = float(observability.get("evidence_score") or 0.0)
+    runner_up_gap = max(0.0, float(_local_assignment_runner_up_gap(assignment_candidates, selected_candidate) or 0.0))
+    null_margin = max(0.0, candidate_score - float(null_assignment_score or 0.0))
+    boosted_confidence = max(
+        base_confidence,
+        min(
+            0.9,
+            0.20 * base_confidence
+            + 0.30 * candidate_score
+            + 0.20 * visibility
+            + 0.20 * evidence
+            + 0.10 * min(1.0, runner_up_gap / 0.25),
+        ),
+    )
+    if (
+        runner_up_gap >= 0.20
+        and candidate_score >= 0.78
+        and null_margin >= 0.45
+        and int(observability.get("observed_surface_count") or 0) >= 2
+        and visibility >= 0.85
+        and evidence >= 0.85
+    ):
+        boosted_confidence = max(boosted_confidence, 0.82)
+    return round(float(min(0.9, max(0.0, boosted_confidence))), 4)
 
 
 def _trusted_parent_frame_metadata(alignment_metadata: Optional[Dict[str, Any]]) -> bool:
@@ -2833,6 +2911,261 @@ def _build_local_assignment_candidates(
     return candidates, copy.deepcopy(selected)
 
 
+def _select_local_assignment_candidate(
+    cad_bend: BendSpecification,
+    measurement_entries: List[Dict[str, Any]],
+    *,
+    used_measurements: Optional[set[int]] = None,
+    distance_limit_mm: float = 45.0,
+    angle_limit_deg: float = 35.0,
+) -> Tuple[List[Dict[str, Any]], Dict[str, Any], float, Optional[int]]:
+    """
+    Select the best local measurement candidate for a CAD bend.
+
+    Unlike the older center+angle heuristic, this uses the same assignment score
+    that is later exposed to runtime semantics, so selection and reporting are
+    aligned.
+    """
+    assignment_candidates, selected_candidate = _build_local_assignment_candidates(
+        cad_bend,
+        measurement_entries,
+        used_measurements=used_measurements,
+        preferred_idx=None,
+        distance_limit_mm=distance_limit_mm,
+        angle_limit_deg=angle_limit_deg,
+    )
+    null_assignment_score = float(
+        next(
+            (item.get("assignment_score") for item in assignment_candidates if item.get("candidate_kind") == "NULL"),
+            0.0,
+        )
+    )
+    measurement_candidates = [
+        item for item in assignment_candidates
+        if str(item.get("candidate_kind") or "").upper() == "MEASUREMENT"
+    ]
+    if measurement_candidates:
+        top_measurement = max(
+            measurement_candidates,
+            key=lambda item: float(item.get("assignment_score") or 0.0),
+        )
+        if float(top_measurement.get("assignment_score") or 0.0) > null_assignment_score:
+            selected_candidate = copy.deepcopy(top_measurement)
+    if (
+        str(selected_candidate.get("candidate_kind") or "").upper() == "MEASUREMENT"
+        and float(selected_candidate.get("assignment_score") or 0.0) > null_assignment_score
+        and selected_candidate.get("measurement_index") is not None
+    ):
+        return (
+            assignment_candidates,
+            copy.deepcopy(selected_candidate),
+            null_assignment_score,
+            int(selected_candidate.get("measurement_index")),
+        )
+    return assignment_candidates, copy.deepcopy(selected_candidate), null_assignment_score, None
+
+
+def _resolve_local_assignment_conflicts(
+    plans: List[Dict[str, Any]],
+    *,
+    brute_force_limit: int = 8,
+) -> List[Dict[str, Any]]:
+    """
+    Resolve CAD-local candidate reuse with a one-to-one assignment pass.
+
+    Greedy bend-order selection can assign the same local measurement to
+    multiple bends. Solve each connected bend/measurement component jointly and
+    keep a unique measurement assignment when that improves total assignment
+    score.
+    """
+
+    def _measurement_candidates(plan: Dict[str, Any]) -> List[Dict[str, Any]]:
+        return [
+            dict(item)
+            for item in (plan.get("assignment_candidates") or [])
+            if str(item.get("candidate_kind") or "").upper() == "MEASUREMENT"
+        ]
+
+    def _null_candidate(plan: Dict[str, Any]) -> Dict[str, Any]:
+        return next(
+            (
+                dict(item)
+                for item in (plan.get("assignment_candidates") or [])
+                if str(item.get("candidate_kind") or "").upper() == "NULL"
+            ),
+            {
+                "candidate_id": "null_candidate",
+                "candidate_kind": "NULL",
+                "measurement_index": None,
+                "assignment_score": float(plan.get("null_assignment_score") or 0.0),
+                "used_by_other_bend": False,
+            },
+        )
+
+    def _objective_score(option: Dict[str, Any], *, null_score: float) -> float:
+        base_score = float(option.get("assignment_score") or 0.0)
+        if str(option.get("candidate_kind") or "").upper() != "MEASUREMENT":
+            return base_score
+        if bool(option.get("measurement_success")):
+            return base_score
+        # Failed probe-only candidates can still carry strong locality evidence.
+        # Keep them slightly above null for diagnostics, but do not let them
+        # crowd out a successful one-to-one assignment in the global objective.
+        return min(base_score, float(null_score) + 1e-3)
+
+    measurement_to_bends: Dict[int, set[int]] = {}
+    for bend_idx, plan in enumerate(plans):
+        for candidate in _measurement_candidates(plan):
+            measurement_idx = candidate.get("measurement_index")
+            if measurement_idx is None:
+                continue
+            measurement_to_bends.setdefault(int(measurement_idx), set()).add(bend_idx)
+
+    visited_bends: set[int] = set()
+    components: List[List[int]] = []
+    for start_idx in range(len(plans)):
+        if start_idx in visited_bends:
+            continue
+        stack = [start_idx]
+        component: set[int] = set()
+        linked_measurements: set[int] = set()
+        while stack:
+            bend_idx = stack.pop()
+            if bend_idx in component:
+                continue
+            component.add(bend_idx)
+            visited_bends.add(bend_idx)
+            for candidate in _measurement_candidates(plans[bend_idx]):
+                measurement_idx = candidate.get("measurement_index")
+                if measurement_idx is None:
+                    continue
+                measurement_idx = int(measurement_idx)
+                if measurement_idx in linked_measurements:
+                    continue
+                linked_measurements.add(measurement_idx)
+                stack.extend(measurement_to_bends.get(measurement_idx, set()) - component)
+        components.append(sorted(component))
+
+    resolved_plans = [copy.deepcopy(plan) for plan in plans]
+    for component_bends in components:
+        options_by_bend: Dict[int, List[Dict[str, Any]]] = {}
+        null_scores_by_bend: Dict[int, float] = {}
+        unique_measurements: set[int] = set()
+        for bend_idx in component_bends:
+            null_candidate = _null_candidate(resolved_plans[bend_idx])
+            null_score = float(null_candidate.get("assignment_score") or resolved_plans[bend_idx].get("null_assignment_score") or 0.0)
+            options = _measurement_candidates(resolved_plans[bend_idx])
+            options.append(null_candidate)
+            options_by_bend[bend_idx] = options
+            null_scores_by_bend[bend_idx] = null_score
+            for option in options:
+                measurement_idx = option.get("measurement_index")
+                if measurement_idx is not None:
+                    unique_measurements.add(int(measurement_idx))
+
+        if len(component_bends) <= 1 or not unique_measurements:
+            continue
+
+        def _greedy_component_solution() -> Dict[int, Dict[str, Any]]:
+            remaining_measurements = set(unique_measurements)
+            resolved: Dict[int, Dict[str, Any]] = {}
+            for bend_idx in sorted(
+                component_bends,
+                key=lambda idx: max(
+                    _objective_score(item, null_score=null_scores_by_bend[idx])
+                    for item in options_by_bend[idx]
+                ),
+                reverse=True,
+            ):
+                ordered = sorted(
+                    options_by_bend[bend_idx],
+                    key=lambda item: _objective_score(item, null_score=null_scores_by_bend[bend_idx]),
+                    reverse=True,
+                )
+                chosen = next(
+                    (
+                        item for item in ordered
+                        if item.get("measurement_index") is None or int(item.get("measurement_index")) in remaining_measurements
+                    ),
+                    ordered[-1],
+                )
+                resolved[bend_idx] = dict(chosen)
+                measurement_idx = chosen.get("measurement_index")
+                if measurement_idx is not None:
+                    remaining_measurements.discard(int(measurement_idx))
+            return resolved
+
+        def _brute_force_component_solution() -> Dict[int, Dict[str, Any]]:
+            search_order = sorted(component_bends, key=lambda idx: len(options_by_bend[idx]))
+            best_total = float("-inf")
+            best_selection: Optional[Dict[int, Dict[str, Any]]] = None
+
+            def _backtrack(order_idx: int, used_measurements: set[int], current_total: float, selection: Dict[int, Dict[str, Any]]) -> None:
+                nonlocal best_total, best_selection
+                if order_idx >= len(search_order):
+                    if current_total > best_total:
+                        best_total = current_total
+                        best_selection = {idx: dict(choice) for idx, choice in selection.items()}
+                    return
+
+                bend_idx = search_order[order_idx]
+                ordered_options = sorted(
+                    options_by_bend[bend_idx],
+                    key=lambda item: _objective_score(item, null_score=null_scores_by_bend[bend_idx]),
+                    reverse=True,
+                )
+                for option in ordered_options:
+                    measurement_idx = option.get("measurement_index")
+                    if measurement_idx is not None and int(measurement_idx) in used_measurements:
+                        continue
+                    selection[bend_idx] = option
+                    if measurement_idx is not None:
+                        used_measurements.add(int(measurement_idx))
+                    _backtrack(
+                        order_idx + 1,
+                        used_measurements,
+                        current_total + _objective_score(option, null_score=null_scores_by_bend[bend_idx]),
+                        selection,
+                    )
+                    if measurement_idx is not None:
+                        used_measurements.discard(int(measurement_idx))
+                    selection.pop(bend_idx, None)
+
+            _backtrack(0, set(), 0.0, {})
+            return best_selection or {}
+
+        if len(component_bends) > brute_force_limit or len(unique_measurements) > brute_force_limit + 2:
+            resolved = _greedy_component_solution()
+        else:
+            resolved = _brute_force_component_solution()
+
+        selected_measurements = {
+            int(choice.get("measurement_index"))
+            for choice in resolved.values()
+            if choice.get("measurement_index") is not None
+        }
+        for bend_idx in component_bends:
+            plan = resolved_plans[bend_idx]
+            selected = dict(resolved.get(bend_idx) or _null_candidate(plan))
+            updated_candidates: List[Dict[str, Any]] = []
+            for candidate in plan.get("assignment_candidates") or []:
+                candidate_copy = dict(candidate)
+                measurement_idx = candidate_copy.get("measurement_index")
+                candidate_copy["used_by_other_bend"] = (
+                    measurement_idx is not None
+                    and int(measurement_idx) in selected_measurements
+                    and str(candidate_copy.get("candidate_id") or "") != str(selected.get("candidate_id") or "")
+                )
+                updated_candidates.append(candidate_copy)
+                if str(candidate_copy.get("candidate_id") or "") == str(selected.get("candidate_id") or ""):
+                    selected = dict(candidate_copy)
+            plan["assignment_candidates"] = updated_candidates
+            plan["selected_candidate"] = selected
+            measurement_idx = selected.get("measurement_index")
+            plan["best_idx"] = int(measurement_idx) if measurement_idx is not None else None
+    return resolved_plans
+
+
 def _local_assignment_entry_angle(entry: Dict[str, Any]) -> Optional[float]:
     measurement = entry.get("measurement") or {}
     for key in ("aggregate_angle_deg", "measured_angle"):
@@ -3169,33 +3502,34 @@ def refine_dense_scan_bends_via_alignment(
             }
         )
 
-    matches: List[BendMatch] = []
-    used_measurements: set[int] = set()
+    assignment_plans: List[Dict[str, Any]] = []
     for cad_bend in cad_bends:
+        assignment_candidates, selected_candidate, null_assignment_score, best_idx = _select_local_assignment_candidate(
+            cad_bend,
+            measurement_entries,
+            used_measurements=set(),
+        )
+        assignment_plans.append(
+            {
+                "cad_bend": cad_bend,
+                "assignment_candidates": assignment_candidates,
+                "selected_candidate": selected_candidate,
+                "null_assignment_score": null_assignment_score,
+                "best_idx": best_idx,
+            }
+        )
+
+    assignment_plans = _resolve_local_assignment_conflicts(assignment_plans)
+
+    matches: List[BendMatch] = []
+    for plan in assignment_plans:
+        cad_bend = plan["cad_bend"]
         cad_mid = (cad_bend.bend_line_start + cad_bend.bend_line_end) / 2.0
-        best_idx: Optional[int] = None
-        best_score = float("inf")
-        for idx, entry in enumerate(measurement_entries):
-            if idx in used_measurements:
-                continue
-            center_dist = float(np.linalg.norm(entry["center"] - cad_mid))
-            if center_dist > 45.0:
-                continue
-            candidate_angle = _local_assignment_entry_angle(entry)
-            angle_diff = abs(float(candidate_angle or 0.0) - cad_bend.target_angle)
-            if angle_diff > 35.0:
-                continue
-            score = center_dist + (angle_diff * 2.0)
-            if score < best_score:
-                best_score = score
-                best_idx = idx
+        assignment_candidates = list(plan.get("assignment_candidates") or [])
+        selected_candidate = dict(plan.get("selected_candidate") or {})
+        null_assignment_score = float(plan.get("null_assignment_score") or 0.0)
+        best_idx = plan.get("best_idx")
         if best_idx is None:
-            assignment_candidates, selected_candidate = _build_local_assignment_candidates(
-                cad_bend,
-                measurement_entries,
-                used_measurements=used_measurements,
-                preferred_idx=None,
-            )
             support_measurement = (
                 _support_only_measurement(aligned_tree, aligned_points, cad_bend)
                 if aligned_tree is not None
@@ -3215,12 +3549,6 @@ def refine_dense_scan_bends_via_alignment(
                 cad_bend.target_angle,
                 scan_state=scan_state,
                 alignment_metadata=alignment_metadata,
-            )
-            null_assignment_score = float(
-                next(
-                    (item.get("assignment_score") for item in assignment_candidates if item.get("candidate_kind") == "NULL"),
-                    0.0,
-                )
             )
             fallback_frame = {
                 "local_frame": {
@@ -3277,7 +3605,6 @@ def refine_dense_scan_bends_via_alignment(
             )
             continue
 
-        used_measurements.add(best_idx)
         entry = measurement_entries[best_idx]
         measurement = entry["measurement"]
         measurement_frame = _local_bend_frame(cad_bend_dicts[best_idx], cad_bend)
@@ -3286,18 +3613,6 @@ def refine_dense_scan_bends_via_alignment(
             cad_bend.target_angle,
             scan_state=scan_state,
             alignment_metadata=alignment_metadata,
-        )
-        assignment_candidates, selected_candidate = _build_local_assignment_candidates(
-            cad_bend,
-            measurement_entries,
-            used_measurements=used_measurements,
-            preferred_idx=best_idx,
-        )
-        null_assignment_score = float(
-            next(
-                (item.get("assignment_score") for item in assignment_candidates if item.get("candidate_kind") == "NULL"),
-                0.0,
-            )
         )
         measurement_context = {
             "local_frame": measurement_frame,
@@ -3338,6 +3653,13 @@ def refine_dense_scan_bends_via_alignment(
             "selected_assignment_candidate_score": selected_candidate.get("assignment_score"),
             "null_assignment_candidate_score": round(null_assignment_score, 4),
         }
+        local_assignment_confidence = _local_assignment_confidence(
+            observability,
+            selected_candidate,
+            assignment_candidates,
+            null_assignment_score=null_assignment_score,
+            measurement_success=bool(measurement.get("success")) and measurement.get("measured_angle") is not None,
+        )
         if not measurement.get("success") or measurement.get("measured_angle") is None:
             matches.append(
                 _build_not_detected_match(
@@ -3354,7 +3676,7 @@ def refine_dense_scan_bends_via_alignment(
                     local_support_score=observability["local_support_score"],
                     side_balance_score=observability["side_balance_score"],
                     assignment_source="CAD_LOCAL_NEIGHBORHOOD",
-                    assignment_confidence=observability["confidence"],
+                    assignment_confidence=local_assignment_confidence,
                     assignment_candidate_id=str(selected_candidate.get("candidate_id") or f"local_candidate_{best_idx}"),
                     assignment_candidate_kind=str(selected_candidate.get("candidate_kind") or "MEASUREMENT"),
                     assignment_candidate_score=float(selected_candidate.get("assignment_score") or 0.0),
@@ -3389,7 +3711,7 @@ def refine_dense_scan_bends_via_alignment(
                     local_support_score=observability["local_support_score"],
                     side_balance_score=observability["side_balance_score"],
                     assignment_source="CAD_LOCAL_NEIGHBORHOOD",
-                    assignment_confidence=observability["confidence"],
+                    assignment_confidence=local_assignment_confidence,
                     assignment_candidate_id=str(selected_candidate.get("candidate_id") or f"local_candidate_{best_idx}"),
                     assignment_candidate_kind=str(selected_candidate.get("candidate_kind") or "MEASUREMENT"),
                     assignment_candidate_score=float(selected_candidate.get("assignment_score") or 0.0),
@@ -3429,7 +3751,7 @@ def refine_dense_scan_bends_via_alignment(
                     local_support_score=observability["local_support_score"],
                     side_balance_score=observability["side_balance_score"],
                     assignment_source="CAD_LOCAL_NEIGHBORHOOD",
-                    assignment_confidence=observability["confidence"],
+                    assignment_confidence=local_assignment_confidence,
                     assignment_candidate_id=str(selected_candidate.get("candidate_id") or f"local_candidate_{best_idx}"),
                     assignment_candidate_kind=str(selected_candidate.get("candidate_kind") or "MEASUREMENT"),
                     assignment_candidate_score=float(selected_candidate.get("assignment_score") or 0.0),
@@ -3480,7 +3802,7 @@ def refine_dense_scan_bends_via_alignment(
                     local_support_score=observability["local_support_score"],
                     side_balance_score=observability["side_balance_score"],
                     assignment_source="CAD_LOCAL_NEIGHBORHOOD",
-                    assignment_confidence=observability["confidence"],
+                    assignment_confidence=local_assignment_confidence,
                     assignment_candidate_id=str(selected_candidate.get("candidate_id") or f"local_candidate_{best_idx}"),
                     assignment_candidate_kind=str(selected_candidate.get("candidate_kind") or "MEASUREMENT"),
                     assignment_candidate_score=float(selected_candidate.get("assignment_score") or 0.0),
@@ -3500,7 +3822,7 @@ def refine_dense_scan_bends_via_alignment(
             )
             continue
 
-        confidence = _measurement_confidence_score(measurement.get("measurement_confidence"))
+        confidence = local_assignment_confidence
         point_count = int(measurement.get("point_count") or (measurement.get("side1_points", 0) + measurement.get("side2_points", 0)))
         plane1 = _placeholder_plane(
             1,
@@ -3739,6 +4061,7 @@ def detect_and_match_with_fallback(
     runtime_config: BendInspectionRuntimeConfig,
     expected_bend_count: Optional[int] = None,
     scan_state: Optional[str] = None,
+    scan_geometry_kind: Optional[str] = None,
 ) -> Tuple[BendInspectionReport, int, bool]:
     """
     Detect and match bends with selective high-recall fallback for weak scans.
@@ -3752,6 +4075,7 @@ def detect_and_match_with_fallback(
         len(scan_points),
         scan_state=scan_state,
         fallback=False,
+        scan_geometry_kind=scan_geometry_kind,
     )
     primary_detected = detect_scan_bends(
         scan_points=scan_points,
@@ -3794,6 +4118,7 @@ def detect_and_match_with_fallback(
         len(scan_points),
         scan_state=scan_state,
         fallback=True,
+        scan_geometry_kind=scan_geometry_kind,
     )
     fallback_detected = detect_scan_bends(
         scan_points=scan_points,
@@ -3906,6 +4231,7 @@ def run_progressive_bend_inspection(
 
     _emit_phase_log(f"run_progressive_bend_inspection[{part_id}] load_scan_points begin")
     scan_points = load_scan_points(scan_path)
+    scan_geometry_kind = classify_scan_geometry_kind(scan_path)
     _emit_phase_log(
         f"run_progressive_bend_inspection[{part_id}] load_scan_points end scan_points={len(scan_points)}"
     )
@@ -3922,6 +4248,7 @@ def run_progressive_bend_inspection(
         runtime_config=cfg,
         expected_bend_count=expected_bend_count,
         scan_state=scan_state,
+        scan_geometry_kind=scan_geometry_kind,
     )
     _emit_phase_log(
         f"run_progressive_bend_inspection[{part_id}] detect_and_match_with_fallback end "
