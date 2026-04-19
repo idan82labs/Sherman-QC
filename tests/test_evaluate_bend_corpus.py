@@ -77,7 +77,7 @@ def test_load_results_from_manifest_preserves_failed_entries(tmp_path):
     assert warnings == ["P1/b.ply: timed out"]
 
 
-def test_run_case_subprocess_appends_skip_heatmap_flag(monkeypatch, tmp_path):
+def test_run_case_subprocess_appends_skip_heatmap_flag_and_seed_args(monkeypatch, tmp_path):
     output_json = tmp_path / "case.json"
     captured = {}
 
@@ -99,9 +99,14 @@ def test_run_case_subprocess_appends_skip_heatmap_flag(monkeypatch, tmp_path):
         timeout_sec=120,
         skip_heatmap_consistency=True,
         heatmap_cache_dir=None,
+        deterministic_seed=101,
+        retry_seeds=[211, 307],
     )
 
     assert "--skip-heatmap-consistency" in captured["cmd"]
+    assert "--deterministic-seed" in captured["cmd"]
+    assert "101" in captured["cmd"]
+    assert "--retry-seeds-json" in captured["cmd"]
 
 
 def test_ordered_scan_records_prioritizes_partial_sequence_before_full():
@@ -601,6 +606,8 @@ def test_evaluate_part_skip_existing_preserves_previous_partial_for_sequence_con
         unary_bundle=None,
         skip_heatmap_consistency=True,
         heatmap_cache_dir=None,
+        deterministic_seed=101,
+        retry_seeds=[211, 307],
     )
 
     assert warnings == []
@@ -610,6 +617,8 @@ def test_evaluate_part_skip_existing_preserves_previous_partial_for_sequence_con
     assert carried["assignment_source"] == "SEQUENCE_CONTINUITY"
     assert carried["continuity_inferred"] is True
     assert results[1]["metrics"]["continuity_inferred_bends"] == 1
+    assert manifest_entries[0]["deterministic_seed"] == 101
+    assert manifest_entries[1]["retry_seeds"] == [211, 307]
 
 
 def test_aggregate_reports_staged_monotonicity_and_retention():

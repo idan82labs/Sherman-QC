@@ -1161,6 +1161,8 @@ def _run_case_subprocess(
     timeout_sec: int,
     skip_heatmap_consistency: bool,
     heatmap_cache_dir: Optional[Path],
+    deterministic_seed: Optional[int],
+    retry_seeds: Optional[List[int]],
 ) -> Dict[str, Any]:
     cmd = [
         "/opt/homebrew/bin/python3.11",
@@ -1188,6 +1190,10 @@ def _run_case_subprocess(
         cmd.append("--skip-heatmap-consistency")
     if heatmap_cache_dir is not None:
         cmd.extend(["--heatmap-cache-dir", str(heatmap_cache_dir)])
+    if deterministic_seed is not None:
+        cmd.extend(["--deterministic-seed", str(int(deterministic_seed))])
+    if retry_seeds is not None:
+        cmd.extend(["--retry-seeds-json", json.dumps([int(seed) for seed in retry_seeds])])
     completed = subprocess.run(
         cmd,
         capture_output=True,
@@ -1253,6 +1259,8 @@ def evaluate_part(
     unary_bundle: Optional[Dict[str, Any]],
     skip_heatmap_consistency: bool,
     heatmap_cache_dir: Optional[Path],
+    deterministic_seed: Optional[int],
+    retry_seeds: Optional[List[int]],
 ) -> Tuple[List[Dict[str, Any]], List[str], List[Dict[str, Any]]]:
     metadata_path = Path(part_record["metadata_path"])
     labels_path = Path(part_record["labels_template_path"])
@@ -1294,6 +1302,8 @@ def evaluate_part(
             "status": "pending",
             "sequence": scan_record.get("sequence"),
             "sequence_confident": bool(scan_record.get("sequence_confident")),
+            "deterministic_seed": deterministic_seed,
+            "retry_seeds": list(retry_seeds or []),
         }
         if skip_existing and result_path.exists():
             existing = _load_json(result_path)
@@ -1340,6 +1350,8 @@ def evaluate_part(
                 timeout_sec=timeout_sec,
                 skip_heatmap_consistency=skip_heatmap_consistency,
                 heatmap_cache_dir=heatmap_cache_dir,
+                deterministic_seed=deterministic_seed,
+                retry_seeds=retry_seeds,
             )
             if _should_apply_sequence_continuity(
                 previous_sequence_item,
@@ -2047,6 +2059,8 @@ def main() -> int:
     parser.add_argument("--unary-model", default=None)
     parser.add_argument("--skip-heatmap-consistency", action="store_true")
     parser.add_argument("--heatmap-cache-dir", default=None)
+    parser.add_argument("--deterministic-seed", type=int, default=None)
+    parser.add_argument("--retry-seeds-json", default=None)
     args = parser.parse_args()
 
     corpus_root = Path(args.corpus)
@@ -2075,6 +2089,9 @@ def main() -> int:
     unary_bundle = None
     if unary_model_path and unary_model_path.exists():
         unary_bundle = load_unary_models(unary_model_path)
+    retry_seeds = None
+    if args.retry_seeds_json not in {None, "", "None"}:
+        retry_seeds = [int(v) for v in json.loads(args.retry_seeds_json)]
 
     for part in ready_parts:
         scan_results, part_warnings, part_manifest_entries = evaluate_part(
@@ -2085,6 +2102,8 @@ def main() -> int:
             unary_bundle=unary_bundle,
             skip_heatmap_consistency=bool(args.skip_heatmap_consistency),
             heatmap_cache_dir=heatmap_cache_dir,
+            deterministic_seed=args.deterministic_seed,
+            retry_seeds=retry_seeds,
         )
         all_results.extend(scan_results)
         warnings_out.extend(part_warnings)
@@ -2096,6 +2115,10 @@ def main() -> int:
         "timeout_sec": args.timeout_sec,
         "skip_heatmap_consistency": bool(args.skip_heatmap_consistency),
         "heatmap_cache_dir": str(heatmap_cache_dir) if heatmap_cache_dir is not None else None,
+        "runtime_seed_profile": {
+            "deterministic_seed": args.deterministic_seed,
+            "retry_seeds": list(retry_seeds or []),
+        },
         "skip_existing": bool(args.skip_existing),
         "parts": [str(part.get("part_key")) for part in ready_parts],
         "entries": manifest_entries,

@@ -31,6 +31,19 @@ sys.path.insert(0, str(ROOT / "backend"))
 from bend_inspection_pipeline import load_bend_runtime_config, run_progressive_bend_inspection  # noqa: E402
 
 
+def _apply_seed_overrides(runtime_config: Any, deterministic_seed: int | None, retry_seeds: List[int] | None) -> Dict[str, Any]:
+    local_refinement = dict(getattr(runtime_config, "local_refinement_kwargs", {}) or {})
+    if deterministic_seed is not None:
+        local_refinement["deterministic_seed"] = int(deterministic_seed)
+    if retry_seeds is not None:
+        local_refinement["retry_seeds"] = [int(seed) for seed in retry_seeds]
+    setattr(runtime_config, "local_refinement_kwargs", local_refinement)
+    return {
+        "deterministic_seed": local_refinement.get("deterministic_seed"),
+        "retry_seeds": list(local_refinement.get("retry_seeds") or []),
+    }
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Evaluate one bend corpus scan case.")
     parser.add_argument("--part-key", required=True)
@@ -44,6 +57,8 @@ def main() -> int:
     parser.add_argument("--spec-schedule-type", default="")
     parser.add_argument("--skip-heatmap-consistency", action="store_true")
     parser.add_argument("--heatmap-cache-dir", default=None)
+    parser.add_argument("--deterministic-seed", type=int, default=None)
+    parser.add_argument("--retry-seeds-json", default=None)
     args = parser.parse_args()
 
     expected_total = None if args.expected_total in {None, "", "None"} else int(float(args.expected_total))
@@ -51,6 +66,10 @@ def main() -> int:
     spec_bend_angles: List[float] = [float(v) for v in json.loads(args.spec_bend_angles_json or "[]")]
 
     runtime_config = load_bend_runtime_config(None)
+    retry_seeds = None
+    if args.retry_seeds_json not in {None, "", "None"}:
+        retry_seeds = [int(v) for v in json.loads(args.retry_seeds_json)]
+    runtime_seed_profile = _apply_seed_overrides(runtime_config, args.deterministic_seed, retry_seeds)
     report, details = run_progressive_bend_inspection(
         cad_path=args.cad_path,
         scan_path=args.scan_path,
@@ -78,6 +97,7 @@ def main() -> int:
         "spec_schedule_type": args.spec_schedule_type or None,
         "skip_heatmap_consistency": bool(args.skip_heatmap_consistency),
         "heatmap_cache_dir": args.heatmap_cache_dir,
+        "runtime_seed_profile": runtime_seed_profile,
         "summary": report_dict.get("summary") or {},
         "details": details.to_dict(),
         "warnings": details.warnings,
