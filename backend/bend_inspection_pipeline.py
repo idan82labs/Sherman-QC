@@ -1947,6 +1947,19 @@ def _should_promote_dense_local_report(
     )
 
 
+def _should_promote_dense_local_merge(
+    current_report: BendInspectionReport,
+    merged_report: BendInspectionReport,
+    expected_bend_count: int,
+) -> bool:
+    if _report_rank(merged_report, expected_bend_count) <= _report_rank(current_report, expected_bend_count):
+        return False
+    return _report_decision_grade_rank(merged_report, expected_bend_count) > _report_decision_grade_rank(
+        current_report,
+        expected_bend_count,
+    )
+
+
 def _match_priority(match: Optional[BendMatch]) -> int:
     if match is None:
         return -1
@@ -2112,6 +2125,35 @@ def _prefer_local_short_obtuse_geometry(
     return True
 
 
+def _prefer_local_decision_ready_upgrade(
+    primary: Optional[BendMatch],
+    candidate: Optional[BendMatch],
+) -> bool:
+    """
+    Allow a per-bend CAD-local upgrade when it adds a release-grade bend claim
+    that the primary report cannot make.
+
+    This is narrower than whole-report promotion: keep the primary report as the
+    stability anchor, but preserve local confident ON_POSITION / IN_TOL evidence
+    when it turns a previously non-eligible bend into a decision-ready PASS.
+    """
+    if primary is None or candidate is None:
+        return False
+    if str(getattr(primary, "assignment_source", "")).upper() != "GLOBAL_DETECTION":
+        return False
+    if str(getattr(candidate, "assignment_source", "")).upper() != "CAD_LOCAL_NEIGHBORHOOD":
+        return False
+    if not bool(candidate.correspondence_ready()):
+        return False
+    if not bool(candidate.position_claim_eligible()):
+        return False
+    if bool(primary.position_claim_eligible()):
+        return False
+    if str(getattr(candidate, "status", "")).upper() != "PASS":
+        return False
+    return True
+
+
 def _prefer_primary_decision_ready_match_over_ambiguous_local(
     primary: Optional[BendMatch],
     candidate: Optional[BendMatch],
@@ -2169,6 +2211,11 @@ def merge_bend_reports(
             local_match,
             local_alignment_fitness,
             local_alignment_metadata=local_alignment_metadata,
+        ):
+            merged_matches.append(copy.deepcopy(local_match))
+        elif _prefer_local_decision_ready_upgrade(
+            primary_match,
+            local_match,
         ):
             merged_matches.append(copy.deepcopy(local_match))
         elif _prefer_primary_decision_ready_match_over_ambiguous_local(
@@ -4425,10 +4472,10 @@ def run_progressive_bend_inspection(
                 dense_local_refinement_decision = "hybrid_authoritative_local"
                 warnings.append("Dense-scan local refinement is authoritative for hybrid rolled countable bends")
             else:
-                if (
-                    merged_rank > max(current_rank, local_rank)
-                    and _report_decision_grade_rank(merged_report, expected_bend_count)
-                    > _report_decision_grade_rank(report, expected_bend_count)
+                if _should_promote_dense_local_merge(
+                    report,
+                    merged_report,
+                    expected_bend_count,
                 ):
                     report = merged_report
                     selected_scan_bend_count = int(merged_report.detected_count)

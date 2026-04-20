@@ -288,6 +288,30 @@ class ScanQCEngine:
         self._heatmap_renderer = None
         self._snapshot_renderer = None
 
+    def _sort_point_cloud(self, pcd):
+        """Canonicalize point ordering so seeded alignment sees stable inputs."""
+        if pcd is None or len(pcd.points) <= 1:
+            return pcd
+
+        points = np.asarray(pcd.points)
+        if points.size == 0:
+            return pcd
+
+        order = np.lexsort((points[:, 2], points[:, 1], points[:, 0]))
+        if np.array_equal(order, np.arange(len(points))):
+            return pcd
+
+        pcd.points = self.o3d.utility.Vector3dVector(points[order])
+        if pcd.has_normals():
+            normals = np.asarray(pcd.normals)
+            if len(normals) == len(points):
+                pcd.normals = self.o3d.utility.Vector3dVector(normals[order])
+        if pcd.has_colors():
+            colors = np.asarray(pcd.colors)
+            if len(colors) == len(points):
+                pcd.colors = self.o3d.utility.Vector3dVector(colors[order])
+        return pcd
+
     @property
     def heatmap_renderer(self):
         """Lazy-load heatmap renderer"""
@@ -1262,10 +1286,11 @@ class ScanQCEngine:
         
         original = len(self.scan_pcd.points)
         self.scan_pcd = self.scan_pcd.voxel_down_sample(voxel_size=voxel_size)
-        
+
         self._update_progress("preprocess", 40, "Removing outliers...")
         self.scan_pcd, _ = self.scan_pcd.remove_statistical_outlier(nb_neighbors=20, std_ratio=2.0)
-        
+        self._sort_point_cloud(self.scan_pcd)
+
         self._update_progress("preprocess", 45, f"Preprocessed: {original} → {len(self.scan_pcd.points)} points")
         
         if not self.scan_pcd.has_normals():
@@ -1363,6 +1388,7 @@ class ScanQCEngine:
             )
         if len(ref_pcd.points) <= 0:
             raise ValueError("Reference point cloud is empty after preparation")
+        self._sort_point_cloud(ref_pcd)
         ref_pcd.estimate_normals()
         return ref_pcd
 

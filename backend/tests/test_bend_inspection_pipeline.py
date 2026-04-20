@@ -1703,6 +1703,33 @@ def test_merge_bend_reports_hybrid_policy_does_not_override_with_ambiguous_local
     assert merged.matches[0].correspondence_state() == "CONFIDENT"
 
 
+def test_merge_bend_reports_prefers_local_decision_ready_pass_upgrade_over_global_unknown_position():
+    b1 = _make_spec("B1", angle=90.0)
+
+    primary_match = _mark_confident_global_match(
+        _make_match(b1, "WARNING", angle_deviation=1.0, confidence=0.88),
+        "B1",
+    )
+    primary_match.line_center_deviation_mm = None
+
+    local_match = _mark_confident_local_match(
+        _make_match(b1, "PASS", angle_deviation=0.2, confidence=0.9),
+        "local_candidate_0",
+    )
+    local_match.line_center_deviation_mm = 0.0
+
+    primary = BendInspectionReport(part_id="PART", matches=[primary_match])
+    primary.compute_summary()
+    local = BendInspectionReport(part_id="PART", matches=[local_match])
+    local.compute_summary()
+
+    merged = pipeline.merge_bend_reports(primary, local, part_id="PART")
+
+    assert merged.matches[0].assignment_source == "CAD_LOCAL_NEIGHBORHOOD"
+    assert merged.matches[0].status == "PASS"
+    assert merged.matches[0].position_claim_eligible() is True
+
+
 def test_report_decision_grade_rank_ignores_ambiguous_local_status_gains():
     b1 = _make_spec("B1", angle=90.0)
     b2 = _make_spec("B2", angle=90.0)
@@ -1785,6 +1812,54 @@ def test_report_decision_grade_rank_ignores_ambiguous_local_status_gains():
     assert pipeline._report_rank(local, 2) > pipeline._report_rank(primary, 2)
     assert pipeline._report_decision_grade_rank(local, 2) < pipeline._report_decision_grade_rank(primary, 2)
     assert pipeline._should_promote_dense_local_report(primary, local, 2) is False
+
+
+def test_should_promote_dense_local_merge_when_merge_beats_primary_but_ties_local_rank():
+    b1 = _make_spec("B1", angle=90.0)
+    b2 = _make_spec("B2", angle=90.0)
+
+    primary_matches = [
+        _mark_confident_global_match(_make_match(b1, "WARNING", angle_deviation=1.0, confidence=0.88), "B1"),
+        _mark_confident_global_match(_make_match(b2, "WARNING", angle_deviation=1.0, confidence=0.88), "B2"),
+    ]
+    for match in primary_matches:
+        match.line_center_deviation_mm = None
+    primary = BendInspectionReport(part_id="PART", matches=primary_matches)
+    primary.compute_summary()
+
+    local_b1 = _make_match(b1, "WARNING", angle_deviation=0.8, confidence=0.9)
+    local_b1.assignment_source = "CAD_LOCAL_NEIGHBORHOOD"
+    local_b1.assignment_confidence = 0.9
+    local_b1.assignment_candidate_id = "local_candidate_b1"
+    local_b1.assignment_candidate_kind = "MEASUREMENT"
+    local_b1.assignment_candidate_score = 0.84
+    local_b1.assignment_null_score = 0.05
+    local_b1.assignment_candidate_count = 3
+    local_b1.measurement_method = "surface_classification"
+    local_b1.measurement_mode = "cad_local_neighborhood"
+    local_b1.physical_completion_state = "FORMED"
+    local_b1.observability_state = "FORMED"
+    local_b1.measurement_context = {
+        "assignment_candidates": [
+            {"candidate_id": "local_candidate_b1", "candidate_kind": "MEASUREMENT", "measurement_index": 0, "assignment_score": 0.84, "used_by_other_bend": False},
+            {"candidate_id": "local_runner_up_b1", "candidate_kind": "MEASUREMENT", "measurement_index": 1, "assignment_score": 0.82, "used_by_other_bend": False},
+            {"candidate_id": "null_candidate", "candidate_kind": "NULL", "measurement_index": None, "assignment_score": 0.05, "used_by_other_bend": False},
+        ]
+    }
+
+    local_b2 = _mark_confident_local_match(_make_match(b2, "PASS", angle_deviation=0.2, confidence=0.9), "local_candidate_b2")
+    local_b2.line_center_deviation_mm = 0.0
+
+    local = BendInspectionReport(part_id="PART", matches=[local_b1, local_b2])
+    local.compute_summary()
+
+    merged = pipeline.merge_bend_reports(primary, local, part_id="PART")
+    merged.compute_summary()
+
+    assert pipeline._report_rank(local, 2) == pipeline._report_rank(merged, 2)
+    assert pipeline._report_rank(merged, 2) > pipeline._report_rank(primary, 2)
+    assert pipeline._report_decision_grade_rank(merged, 2) > pipeline._report_decision_grade_rank(primary, 2)
+    assert pipeline._should_promote_dense_local_merge(primary, merged, 2) is True
 
 
 def test_feature_policy_hybrid_parts_always_require_local_refinement():
@@ -2274,7 +2349,14 @@ def test_run_progressive_bend_inspection_uses_dense_local_refinement(monkeypatch
     assert report.detected_count == 2
     assert details.scan_bend_count == 2
     assert any("Dense-scan local refinement used CAD-guided ICP alignment" in w for w in details.warnings)
-    assert any("Dense-scan local refinement promoted over primary global detection" in w for w in details.warnings)
+    assert any(
+        marker in w
+        for w in details.warnings
+        for marker in (
+            "Dense-scan local refinement promoted over primary global detection",
+            "Dense-scan local refinement merged with primary global detection",
+        )
+    )
 
 
 def test_run_progressive_bend_inspection_accepts_tied_merge_when_short_obtuse_geometry_improves(monkeypatch):
