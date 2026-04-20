@@ -1371,6 +1371,164 @@ class TestBendInspectionReport:
         assert summary["mislocated_bends"] == 0
         assert summary["unknown_position_bends"] == 1
 
+    def test_match_serializes_engine_gap_position_hold(self):
+        cad = BendSpecification(
+            bend_id="B1",
+            target_angle=90.0,
+            target_radius=3.0,
+            bend_line_start=np.zeros(3),
+            bend_line_end=np.array([0, 10, 0]),
+        )
+        flange1 = PlaneSegment(0, np.array([1, 0, 0]), 0.0, np.zeros(3), np.zeros((3, 3)), np.zeros((3, 3)), 10.0, 3)
+        flange2 = PlaneSegment(1, np.array([0, 0, 1]), 0.0, np.zeros(3), np.zeros((3, 3)), np.zeros((3, 3)), 10.0, 3)
+        detected = DetectedBend(
+            bend_id="D1",
+            measured_angle=90.0,
+            measured_radius=3.0,
+            bend_line_start=np.zeros(3),
+            bend_line_end=np.array([0, 10, 0]),
+            bend_line_direction=np.array([0, 1, 0]),
+            confidence=0.9,
+            flange1=flange1,
+            flange2=flange2,
+        )
+        match = BendMatch(
+            cad_bend=cad,
+            detected_bend=detected,
+            status="PASS",
+            physical_completion_state="FORMED",
+            observability_state="FORMED",
+            assignment_confidence=0.91,
+            assignment_candidate_score=0.9,
+            assignment_null_score=0.1,
+            assignment_candidate_count=1,
+        )
+
+        payload = match.to_dict()
+
+        assert payload["blocker_attribution"] == "engine_gap"
+        assert payload["blocker_subtype"] == "position_signal_unavailable"
+        assert payload["primary_hold_cause"] == "position_unknown"
+        assert payload["engine_recoverable"] is True
+        assert payload["scan_reacquisition_recommended"] is False
+
+    def test_match_serializes_scan_limited_reacquisition_case(self):
+        cad = BendSpecification(
+            bend_id="B1",
+            target_angle=90.0,
+            target_radius=3.0,
+            bend_line_start=np.zeros(3),
+            bend_line_end=np.array([0, 10, 0]),
+        )
+        match = BendMatch(
+            cad_bend=cad,
+            detected_bend=None,
+            status="NOT_DETECTED",
+            physical_completion_state="UNKNOWN",
+            observability_state="PARTIALLY_OBSERVED",
+            assignment_candidate_count=0,
+            assignment_confidence=0.0,
+            measurement_context={"trusted_alignment_for_release": True},
+        )
+
+        payload = match.to_dict()
+
+        assert payload["blocker_attribution"] == "scan_limited"
+        assert payload["scan_reacquisition_recommended"] is True
+        assert payload["primary_hold_cause"] in {
+            "correspondence_unresolved",
+            "completion_unknown",
+            "observability_insufficient",
+        }
+
+    def test_match_serializes_process_policy_metrology_driver(self):
+        cad = BendSpecification(
+            bend_id="B1",
+            target_angle=90.0,
+            target_radius=3.0,
+            bend_line_start=np.zeros(3),
+            bend_line_end=np.array([0, 10, 0]),
+            bend_form="ROLLED",
+        )
+        flange1 = PlaneSegment(0, np.array([1, 0, 0]), 0.0, np.zeros(3), np.zeros((3, 3)), np.zeros((3, 3)), 10.0, 3)
+        flange2 = PlaneSegment(1, np.array([0, 0, 1]), 0.0, np.zeros(3), np.zeros((3, 3)), np.zeros((3, 3)), 10.0, 3)
+        detected = DetectedBend(
+            bend_id="D1",
+            measured_angle=90.2,
+            measured_radius=4.0,
+            bend_line_start=np.zeros(3),
+            bend_line_end=np.array([0, 10, 0]),
+            bend_line_direction=np.array([0, 1, 0]),
+            confidence=0.9,
+            flange1=flange1,
+            flange2=flange2,
+        )
+        match = BendMatch(
+            cad_bend=cad,
+            detected_bend=detected,
+            status="WARNING",
+            physical_completion_state="FORMED",
+            observability_state="FORMED",
+            angle_deviation=0.2,
+            radius_deviation=1.0,
+            arc_length_deviation_mm=1.2,
+            line_center_deviation_mm=0.3,
+            assignment_confidence=0.91,
+            assignment_candidate_score=0.9,
+            assignment_null_score=0.1,
+            assignment_candidate_count=1,
+        )
+
+        payload = match.to_dict()
+
+        assert payload["metrology_failure_driver"] == "angle_radius_arc"
+        assert payload["blocker_attribution"] == "process_or_policy"
+        assert payload["primary_hold_cause"] == "metrology_out_of_tolerance"
+
+    def test_summary_includes_blocker_attribution_breakdown(self):
+        cad = BendSpecification(
+            bend_id="B1",
+            target_angle=90.0,
+            target_radius=3.0,
+            bend_line_start=np.zeros(3),
+            bend_line_end=np.array([0, 10, 0]),
+        )
+        flange1 = PlaneSegment(0, np.array([1, 0, 0]), 0.0, np.zeros(3), np.zeros((3, 3)), np.zeros((3, 3)), 10.0, 3)
+        flange2 = PlaneSegment(1, np.array([0, 0, 1]), 0.0, np.zeros(3), np.zeros((3, 3)), np.zeros((3, 3)), 10.0, 3)
+        detected = DetectedBend(
+            bend_id="D1",
+            measured_angle=90.0,
+            measured_radius=3.0,
+            bend_line_start=np.zeros(3),
+            bend_line_end=np.array([0, 10, 0]),
+            bend_line_direction=np.array([0, 1, 0]),
+            confidence=0.9,
+            flange1=flange1,
+            flange2=flange2,
+        )
+        report = BendInspectionReport(
+            part_id="TEST",
+            matches=[
+                BendMatch(
+                    cad_bend=cad,
+                    detected_bend=detected,
+                    status="PASS",
+                    physical_completion_state="FORMED",
+                    observability_state="FORMED",
+                    assignment_confidence=0.91,
+                    assignment_candidate_score=0.9,
+                    assignment_null_score=0.1,
+                    assignment_candidate_count=1,
+                )
+            ],
+        )
+        summary = report.to_dict()["summary"]
+
+        assert summary["blocker_attribution_breakdown"]["engine_gap"] == 1
+        assert summary["engine_gap_bends"] == 1
+        assert summary["engine_recoverable_bends"] == 1
+        assert summary["scan_limited_due_to_observability"] == 0
+
 
 class TestMathematicalFoundations:
     """Tests for mathematical algorithms used in bend detection."""

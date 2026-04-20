@@ -284,7 +284,13 @@ def _observability_state_internal(match: Dict[str, Any]) -> str:
 
 
 def _claim_gate_reasons(match: Dict[str, Any]) -> List[str]:
-    reasons: List[str] = []
+    explicit = match.get("claim_gate_reasons")
+    reasons: List[str] = [str(reason) for reason in explicit] if isinstance(explicit, list) else []
+
+    def _append(reason: str) -> None:
+        if reason not in reasons:
+            reasons.append(reason)
+
     correspondence_state = _correspondence_state(match)
     correspondence_ready = _correspondence_ready(match)
     datum_ready = _datum_ready(match)
@@ -293,29 +299,102 @@ def _claim_gate_reasons(match: Dict[str, Any]) -> List[str]:
     runner_up_gap = _correspondence_runner_up_gap(match)
 
     if correspondence_state in {"AMBIGUOUS", "UNRESOLVED"}:
-        reasons.append(f"correspondence_{correspondence_state.lower()}")
+        _append(f"correspondence_{correspondence_state.lower()}")
     if correspondence_state == "AMBIGUOUS" and runner_up_gap is not None and runner_up_gap < 0.12:
-        reasons.append("correspondence_close_runner_up")
+        _append("correspondence_close_runner_up")
     if correspondence_state == "AMBIGUOUS" and _correspondence_candidate_reused(match) is True:
-        reasons.append("correspondence_candidate_reused")
+        _append("correspondence_candidate_reused")
     if _completion_state(match) == "UNKNOWN":
-        reasons.append("completion_unknown")
+        _append("completion_unknown")
     if not correspondence_ready:
         if metrology_raw != "UNMEASURABLE":
-            reasons.append("metrology_unmeasurable")
+            _append("metrology_unmeasurable")
         if position_raw != "UNKNOWN_POSITION":
-            reasons.append("position_unknown")
+            _append("position_unknown")
         return reasons
     if not datum_ready:
-        reasons.append("datum_untrusted")
+        _append("datum_untrusted")
         return reasons
     if metrology_raw == "UNMEASURABLE":
-        reasons.append("metrology_unmeasurable")
+        _append("metrology_unmeasurable")
     if position_raw == "UNKNOWN_POSITION":
-        reasons.append("position_unknown")
+        _append("position_unknown")
     if metrology_raw == "OUT_OF_TOL":
-        reasons.append("metrology_out_of_tolerance")
+        _append("metrology_out_of_tolerance")
     return reasons
+
+
+def _blocker_attribution(match: Dict[str, Any]) -> Optional[str]:
+    value = match.get("blocker_attribution")
+    if value is not None:
+        return str(value)
+    reasons = set(_claim_gate_reasons(match))
+    if (
+        _completion_state(match) == "FORMED"
+        and _correspondence_state(match) == "CONFIDENT"
+        and _datum_ready(match)
+        and _position_state(match) == "UNKNOWN_POSITION"
+        and "position_signal_unavailable" in reasons
+    ):
+        return "engine_gap"
+    if _metrology_state(match) == "OUT_OF_TOL" and _correspondence_state(match) == "CONFIDENT":
+        return "process_or_policy"
+    if reasons:
+        return "scan_limited"
+    return None
+
+
+def _blocker_subtype(match: Dict[str, Any]) -> Optional[str]:
+    value = match.get("blocker_subtype")
+    if value is not None:
+        return str(value)
+    reasons = _claim_gate_reasons(match)
+    if _blocker_attribution(match) == "process_or_policy":
+        return _metrology_failure_driver(match)
+    return str(reasons[0]) if reasons else None
+
+
+def _engine_recoverable(match: Dict[str, Any]) -> bool:
+    value = match.get("engine_recoverable")
+    if value is not None:
+        return bool(value)
+    return _blocker_attribution(match) == "engine_gap"
+
+
+def _scan_reacquisition_recommended(match: Dict[str, Any]) -> bool:
+    value = match.get("scan_reacquisition_recommended")
+    if value is not None:
+        return bool(value)
+    return _blocker_attribution(match) == "scan_limited"
+
+
+def _metrology_failure_driver(match: Dict[str, Any]) -> Optional[str]:
+    value = match.get("metrology_failure_driver")
+    if value is not None:
+        return str(value)
+    if _metrology_state(match) != "OUT_OF_TOL":
+        return None
+    angle_dev = abs(float(match.get("angle_deviation") or 0.0))
+    radius_dev = abs(float(match.get("radius_deviation") or 0.0))
+    arc_dev = abs(float(match.get("arc_length_deviation_mm") or 0.0))
+    angle_tol = float(match.get("tolerance_angle") or 0.0)
+    radius_tol = float(match.get("tolerance_radius") or 0.0)
+    drivers: List[str] = []
+    if angle_dev > angle_tol:
+        drivers.append("angle")
+    if radius_dev > radius_tol:
+        drivers.append("radius")
+    if match.get("arc_length_deviation_mm") is not None and arc_dev > radius_tol:
+        drivers.append("arc")
+    if drivers == ["angle"]:
+        return "angle_only"
+    if drivers == ["radius"]:
+        return "radius_only"
+    if drivers == ["arc"]:
+        return "arc_only"
+    if drivers:
+        return "angle_radius_arc"
+    return None
 
 
 def _contradiction_case_type(match: Dict[str, Any]) -> Optional[str]:
@@ -848,6 +927,19 @@ def _score_scan(
     metrology_scored_bends = 0
     position_eligible_bends = 0
     position_scored_bends = 0
+    blocker_attribution_breakdown: Dict[str, int] = {
+        "engine_gap": 0,
+        "scan_limited": 0,
+        "process_or_policy": 0,
+    }
+    engine_gap_position_unknown_bends = 0
+    scan_limited_position_unknown_bends = 0
+    process_or_policy_out_of_tol_bends = 0
+    engine_recoverable_bends = 0
+    scan_limited_due_to_observability = 0
+    scan_limited_due_to_datum = 0
+    scan_limited_due_to_correspondence = 0
+    metrology_failure_driver_breakdown: Dict[str, int] = {}
     hold_bends = 0
     for match in countable_matches:
         correspondence_state = _correspondence_state(match)
@@ -868,6 +960,29 @@ def _score_scan(
             correspondence_ambiguous_reused_candidate_bends += 1
 
         reasons = _claim_gate_reasons(match)
+        attribution = _blocker_attribution(match)
+        if attribution in blocker_attribution_breakdown:
+            blocker_attribution_breakdown[attribution] += 1
+        if _engine_recoverable(match):
+            engine_recoverable_bends += 1
+        if attribution == "engine_gap" and _position_state(match) == "UNKNOWN_POSITION":
+            engine_gap_position_unknown_bends += 1
+        if attribution == "scan_limited":
+            if _position_state(match) == "UNKNOWN_POSITION":
+                scan_limited_position_unknown_bends += 1
+            if any(reason in {"observability_partial", "observability_insufficient"} for reason in reasons):
+                scan_limited_due_to_observability += 1
+            if "datum_untrusted" in reasons:
+                scan_limited_due_to_datum += 1
+            if any(reason in {"correspondence_ambiguous", "correspondence_unresolved"} for reason in reasons):
+                scan_limited_due_to_correspondence += 1
+        if attribution == "process_or_policy" and _metrology_state(match) == "OUT_OF_TOL":
+            process_or_policy_out_of_tol_bends += 1
+        metrology_driver = _metrology_failure_driver(match)
+        if metrology_driver:
+            metrology_failure_driver_breakdown[metrology_driver] = (
+                metrology_failure_driver_breakdown.get(metrology_driver, 0) + 1
+            )
         if reasons:
             hold_bends += 1
             for reason in reasons:
@@ -938,6 +1053,15 @@ def _score_scan(
         "correspondence_ambiguous_top_selected_bends": correspondence_ambiguous_top_selected_bends,
         "correspondence_ambiguous_close_runner_up_bends": correspondence_ambiguous_close_runner_up_bends,
         "correspondence_ambiguous_reused_candidate_bends": correspondence_ambiguous_reused_candidate_bends,
+        "blocker_attribution_breakdown": blocker_attribution_breakdown,
+        "engine_gap_position_unknown_bends": engine_gap_position_unknown_bends,
+        "scan_limited_position_unknown_bends": scan_limited_position_unknown_bends,
+        "process_or_policy_out_of_tol_bends": process_or_policy_out_of_tol_bends,
+        "engine_recoverable_bends": engine_recoverable_bends,
+        "scan_limited_due_to_observability": scan_limited_due_to_observability,
+        "scan_limited_due_to_datum": scan_limited_due_to_datum,
+        "scan_limited_due_to_correspondence": scan_limited_due_to_correspondence,
+        "metrology_failure_driver_breakdown": metrology_failure_driver_breakdown,
         "completion_decision_ready_bends": sum(
             1 for match in countable_matches if _completion_state(match) in {"FORMED", "UNFORMED"}
         ),
@@ -1809,6 +1933,32 @@ def _aggregate(all_results: List[Dict[str, Any]]) -> Dict[str, Any]:
             "heatmap_supported_rate": aggregate["heatmap_supported_rate"],
             "heatmap_contradicted_rate": aggregate["heatmap_contradicted_rate"],
         },
+        "blocker_attribution": {
+            "engine_gap_bends": _sum_metric(completed_metric_results, "engine_gap_position_unknown_bends"),
+            "scan_limited_bends": sum(
+                int((r.get("metrics") or {}).get("blocker_attribution_breakdown", {}).get("scan_limited") or 0)
+                for r in completed_metric_results
+            ),
+            "process_or_policy_bends": sum(
+                int((r.get("metrics") or {}).get("blocker_attribution_breakdown", {}).get("process_or_policy") or 0)
+                for r in completed_metric_results
+            ),
+            "engine_gap_position_unknown_bends": _sum_metric(completed_metric_results, "engine_gap_position_unknown_bends"),
+            "scan_limited_position_unknown_bends": _sum_metric(completed_metric_results, "scan_limited_position_unknown_bends"),
+            "process_or_policy_out_of_tol_bends": _sum_metric(completed_metric_results, "process_or_policy_out_of_tol_bends"),
+            "engine_recoverable_bends": _sum_metric(completed_metric_results, "engine_recoverable_bends"),
+            "scan_limited_due_to_observability": _sum_metric(completed_metric_results, "scan_limited_due_to_observability"),
+            "scan_limited_due_to_datum": _sum_metric(completed_metric_results, "scan_limited_due_to_datum"),
+            "scan_limited_due_to_correspondence": _sum_metric(completed_metric_results, "scan_limited_due_to_correspondence"),
+            "engine_gap_rate": _rate(
+                _sum_metric(completed_metric_results, "engine_gap_position_unknown_bends"),
+                total_countable_bends,
+            ),
+            "process_or_policy_rate": _rate(
+                _sum_metric(completed_metric_results, "process_or_policy_out_of_tol_bends"),
+                total_countable_bends,
+            ),
+        },
         "abstention": {
             "hold_reason_breakdown": {
                 key: sum(
@@ -1872,6 +2022,7 @@ def _write_markdown(output_dir: Path, aggregate: Dict[str, Any], all_results: Li
     completion = scoreboards.get("completion") or {}
     metrology = scoreboards.get("metrology") or {}
     position = scoreboards.get("position") or {}
+    blocker_attribution = scoreboards.get("blocker_attribution") or {}
     abstention = scoreboards.get("abstention") or {}
     invariant_fail = scoreboards.get("invariant_fail") or {}
     lines = [
@@ -1926,6 +2077,10 @@ def _write_markdown(output_dir: Path, aggregate: Dict[str, Any], all_results: Li
         f"- Metrology conditional out-of-tolerance rate: `{metrology.get('conditional_out_of_tolerance_rate')}`",
         f"- Position conditional on-position rate: `{position.get('conditional_on_position_rate')}`",
         f"- Position conditional mislocated rate: `{position.get('conditional_mislocated_rate')}`",
+        f"- Engine-gap position unknown bends: `{blocker_attribution.get('engine_gap_position_unknown_bends')}`",
+        f"- Scan-limited position unknown bends: `{blocker_attribution.get('scan_limited_position_unknown_bends')}`",
+        f"- Process/policy out-of-tol bends: `{blocker_attribution.get('process_or_policy_out_of_tol_bends')}`",
+        f"- Engine-recoverable bends: `{blocker_attribution.get('engine_recoverable_bends')}`",
         f"- Abstention rate: `{abstention.get('abstention_rate')}`",
         f"- Accepted coverage rate: `{abstention.get('accepted_coverage_rate')}`",
         f"- Partial selective risk: `{abstention.get('partial_selective_risk')}`",

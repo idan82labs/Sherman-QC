@@ -96,6 +96,14 @@ export interface QCResult {
   release_blocked_by?: string[]
   release_hold_reasons?: string[]
   claim_gate_reasons?: string[]
+  blocker_attribution_breakdown?: Record<string, number>
+  engine_gap_bends?: number
+  scan_limited_bends?: number
+  process_or_policy_bends?: number
+  engine_recoverable_bends?: number
+  scan_limited_due_to_observability?: number
+  scan_limited_due_to_datum?: number
+  scan_limited_due_to_correspondence?: number
   trusted_alignment_for_release?: boolean
   trusted_position_evidence?: boolean
   quality_score: number

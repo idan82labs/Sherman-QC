@@ -574,6 +574,7 @@ function BendInspectionResults({
     ? summary.release_blocked_by
     : summary.release_hold_reasons ?? []
   const claimGateReasons = normalizeReasonList(summary.claim_gate_reasons)
+  const blockerBreakdown = summary.blocker_attribution_breakdown ?? {}
   const scanQuality = report.scan_quality
   const preferredFocusedBendId = useMemo(() => {
     const issueMatches = matches.filter((match) => match.status === 'FAIL' || match.status === 'WARNING')
@@ -682,6 +683,11 @@ function BendInspectionResults({
             {!!claimGateReasons.length && (
               <span className="rounded-full border border-sky-500/30 bg-sky-500/10 px-2 py-1 text-sky-200">
                 Claim gates: {claimGateReasons.join(', ')}
+              </span>
+            )}
+            {!!(summary.engine_gap_bends || summary.scan_limited_bends || summary.process_or_policy_bends) && (
+              <span className="rounded-full border border-violet-500/30 bg-violet-500/10 px-2 py-1 text-violet-200">
+                Blockers E {summary.engine_gap_bends ?? blockerBreakdown.engine_gap ?? 0} / S {summary.scan_limited_bends ?? blockerBreakdown.scan_limited ?? 0} / P {summary.process_or_policy_bends ?? blockerBreakdown.process_or_policy ?? 0}
               </span>
             )}
             {failModeLabel && (
@@ -1217,7 +1223,11 @@ function BendCadOverlay3D({
                   label="Claim eligibility"
                   value={`M ${normalizeBooleanState(focusedMatch.metrology_claim_eligible, 'yes', 'no')} / P ${normalizeBooleanState(focusedMatch.position_claim_eligible, 'yes', 'no')}`}
                   tone={focusedMatch.metrology_claim_eligible === false || focusedMatch.position_claim_eligible === false ? 'warn' : 'good'}
-                  reason={normalizeReasonList(focusedMatch.claim_gate_reasons).join(', ') || undefined}
+                  reason={[
+                    focusedMatch.blocker_attribution ? `attr ${focusedMatch.blocker_attribution}` : '',
+                    focusedMatch.blocker_subtype ? `sub ${focusedMatch.blocker_subtype}` : '',
+                    normalizeReasonList(focusedMatch.claim_gate_reasons).join(', '),
+                  ].filter(Boolean).join(' | ') || undefined}
                 />
                 {focusedInvariantFail.hasData && (
                   <GatePill
@@ -1775,6 +1785,11 @@ function BendRow({
           {!!normalizeReasonList(match.claim_gate_reasons).length && (
             <div className="text-[10px] text-sky-300">
               {normalizeReasonList(match.claim_gate_reasons).join(', ')}
+            </div>
+          )}
+          {(match.blocker_attribution || match.metrology_failure_driver) && (
+            <div className="text-[10px] text-violet-300">
+              {[match.blocker_attribution, match.blocker_subtype, match.metrology_failure_driver].filter(Boolean).join(' / ')}
             </div>
           )}
           {invariantFail.hasData && (

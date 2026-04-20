@@ -168,6 +168,10 @@ class BendInspectionRunDetails:
     dense_local_refinement_decision: Optional[str] = None
     dense_local_refinement_report_ranks: Optional[Dict[str, List[int]]] = None
     dense_local_refinement_geometry_penalties: Optional[Dict[str, Optional[float]]] = None
+    dense_local_engine_gap_bends_before: int = 0
+    dense_local_engine_gap_bends_after: int = 0
+    dense_local_position_signal_recoveries: int = 0
+    dense_local_unresolved_engine_gaps: int = 0
     local_alignment_seed: Optional[int] = None
     local_alignment_fitness: Optional[float] = None
     local_alignment_rmse: Optional[float] = None
@@ -197,6 +201,10 @@ class BendInspectionRunDetails:
             "dense_local_refinement_decision": self.dense_local_refinement_decision,
             "dense_local_refinement_report_ranks": self.dense_local_refinement_report_ranks,
             "dense_local_refinement_geometry_penalties": self.dense_local_refinement_geometry_penalties,
+            "dense_local_engine_gap_bends_before": self.dense_local_engine_gap_bends_before,
+            "dense_local_engine_gap_bends_after": self.dense_local_engine_gap_bends_after,
+            "dense_local_position_signal_recoveries": self.dense_local_position_signal_recoveries,
+            "dense_local_unresolved_engine_gaps": self.dense_local_unresolved_engine_gaps,
             "local_alignment_seed": self.local_alignment_seed,
             "local_alignment_fitness": (
                 round(float(self.local_alignment_fitness), 4)
@@ -1934,6 +1942,15 @@ def _report_decision_grade_rank(
     )
 
 
+def _report_position_ready_count(report: BendInspectionReport) -> int:
+    return sum(
+        1
+        for match in report.matches
+        if bool(getattr(getattr(match, "cad_bend", None), "countable_in_regression", True))
+        and bool(match.position_claim_eligible())
+    )
+
+
 def _should_promote_dense_local_report(
     current_report: BendInspectionReport,
     candidate_report: BendInspectionReport,
@@ -1952,12 +1969,15 @@ def _should_promote_dense_local_merge(
     merged_report: BendInspectionReport,
     expected_bend_count: int,
 ) -> bool:
-    if _report_rank(merged_report, expected_bend_count) <= _report_rank(current_report, expected_bend_count):
+    merged_rank = _report_rank(merged_report, expected_bend_count)
+    current_rank = _report_rank(current_report, expected_bend_count)
+    merged_decision_rank = _report_decision_grade_rank(merged_report, expected_bend_count)
+    current_decision_rank = _report_decision_grade_rank(current_report, expected_bend_count)
+    if merged_rank < current_rank:
         return False
-    return _report_decision_grade_rank(merged_report, expected_bend_count) > _report_decision_grade_rank(
-        current_report,
-        expected_bend_count,
-    )
+    if merged_decision_rank > current_decision_rank:
+        return True
+    return _report_position_ready_count(merged_report) > _report_position_ready_count(current_report)
 
 
 def _match_priority(match: Optional[BendMatch]) -> int:
@@ -2314,11 +2334,10 @@ def _dense_scan_requires_local_refinement(
         match for match in report.matches
         if bool(getattr(getattr(match, "cad_bend", None), "countable_in_regression", True))
     ]
-    formed_confident_unknown_position = sum(
+    engine_gap_position_unknown = sum(
         1
         for match in countable_matches
-        if match.completion_state() == "FORMED"
-        and match.correspondence_state() == "CONFIDENT"
+        if match.blocker_attribution() == "engine_gap"
         and match.positional_state() == "UNKNOWN_POSITION"
     )
     if point_count >= 550000 and detected < max(1, int(np.ceil(0.75 * target))):
@@ -2328,7 +2347,20 @@ def _dense_scan_requires_local_refinement(
         and point_count >= 300000
         and target >= 8
         and detected >= max(6, int(np.ceil(0.80 * target)))
-        and formed_confident_unknown_position >= max(4, int(np.ceil(0.50 * target)))
+        and engine_gap_position_unknown >= max(4, int(np.ceil(0.50 * target)))
+    ):
+        return True
+    # Lower-count full scans can still hide a pure engine-owned position gap:
+    # the global pass found essentially every bend, but none are decision-ready
+    # on position because no line-based signal was recovered. Keep this gate
+    # tight so it only reopens dense refinement on scans that already look
+    # complete and confident, rather than broadening refinement generally.
+    if (
+        state == "full"
+        and point_count >= 200000
+        and 4 <= target < 8
+        and detected >= max(3, int(np.ceil(0.75 * target)))
+        and engine_gap_position_unknown >= max(3, int(np.ceil(0.75 * target)))
     ):
         return True
     gap = max(0, target - detected)
@@ -4476,6 +4508,10 @@ def run_progressive_bend_inspection(
     dense_local_refinement_decision: Optional[str] = "not_applicable"
     dense_local_refinement_report_ranks: Optional[Dict[str, List[int]]] = None
     dense_local_refinement_geometry_penalties: Optional[Dict[str, Optional[float]]] = None
+    dense_local_engine_gap_bends_before = 0
+    dense_local_engine_gap_bends_after = 0
+    dense_local_position_signal_recoveries = 0
+    dense_local_unresolved_engine_gaps = 0
     selected_local_alignment_seed: Optional[int] = None
     selected_local_alignment_fitness: Optional[float] = None
     selected_local_alignment_rmse: Optional[float] = None
@@ -4490,6 +4526,13 @@ def run_progressive_bend_inspection(
         feature_policy=feature_policy,
     )
     if should_run_local_refinement:
+        primary_report_before_local = report
+        dense_local_engine_gap_bends_before = sum(
+            1
+            for match in primary_report_before_local.matches
+            if bool(getattr(getattr(match, "cad_bend", None), "countable_in_regression", True))
+            and match.blocker_attribution() == "engine_gap"
+        )
         _emit_phase_log(f"run_progressive_bend_inspection[{part_id}] dense local refinement begin")
         local_report, local_warnings = refine_dense_scan_bends_via_alignment(
             cad_path=cad_path,
@@ -4513,17 +4556,17 @@ def run_progressive_bend_inspection(
             local_alignment_rmse = getattr(local_report, "local_alignment_rmse", None)
             local_alignment_metadata = getattr(local_report, "alignment_metadata", None)
             merged_report = merge_bend_reports(
-                report,
+                primary_report_before_local,
                 local_report,
                 part_id=part_id,
                 local_alignment_fitness=local_alignment_fitness,
                 local_alignment_metadata=local_alignment_metadata,
                 feature_policy=feature_policy,
             )
-            current_rank = _report_rank(report, expected_bend_count)
+            current_rank = _report_rank(primary_report_before_local, expected_bend_count)
             local_rank = _report_rank(local_report, expected_bend_count)
             merged_rank = _report_rank(merged_report, expected_bend_count)
-            current_geometry_penalty = _report_short_obtuse_geometry_penalty(report)
+            current_geometry_penalty = _report_short_obtuse_geometry_penalty(primary_report_before_local)
             local_geometry_penalty = _report_short_obtuse_geometry_penalty(local_report)
             merged_geometry_penalty = _report_short_obtuse_geometry_penalty(merged_report)
             dense_local_refinement_report_ranks = {
@@ -4546,7 +4589,7 @@ def run_progressive_bend_inspection(
                 warnings.append("Dense-scan local refinement is authoritative for hybrid rolled countable bends")
             else:
                 if _should_promote_dense_local_merge(
-                    report,
+                    primary_report_before_local,
                     merged_report,
                     expected_bend_count,
                 ):
@@ -4573,6 +4616,30 @@ def run_progressive_bend_inspection(
                     warnings.append("Dense-scan local refinement promoted over primary global detection")
                 else:
                     dense_local_refinement_decision = "primary_retained"
+            dense_local_engine_gap_bends_after = sum(
+                1
+                for match in report.matches
+                if bool(getattr(getattr(match, "cad_bend", None), "countable_in_regression", True))
+                and match.blocker_attribution() == "engine_gap"
+            )
+            primary_matches_by_id = {
+                m.cad_bend.bend_id: m
+                for m in primary_report_before_local.matches
+                if bool(getattr(getattr(m, "cad_bend", None), "countable_in_regression", True))
+            }
+            selected_matches_by_id = {
+                m.cad_bend.bend_id: m
+                for m in report.matches
+                if bool(getattr(getattr(m, "cad_bend", None), "countable_in_regression", True))
+            }
+            dense_local_position_signal_recoveries = sum(
+                1
+                for bend_id, primary_match in primary_matches_by_id.items()
+                if primary_match.blocker_attribution() == "engine_gap"
+                and bend_id in selected_matches_by_id
+                and selected_matches_by_id[bend_id].position_claim_eligible()
+            )
+            dense_local_unresolved_engine_gaps = dense_local_engine_gap_bends_after
         else:
             dense_local_refinement_decision = "local_unavailable"
     if selected_scan_bend_count == 0:
@@ -4645,6 +4712,10 @@ def run_progressive_bend_inspection(
         dense_local_refinement_decision=dense_local_refinement_decision,
         dense_local_refinement_report_ranks=dense_local_refinement_report_ranks,
         dense_local_refinement_geometry_penalties=dense_local_refinement_geometry_penalties,
+        dense_local_engine_gap_bends_before=dense_local_engine_gap_bends_before,
+        dense_local_engine_gap_bends_after=dense_local_engine_gap_bends_after,
+        dense_local_position_signal_recoveries=dense_local_position_signal_recoveries,
+        dense_local_unresolved_engine_gaps=dense_local_unresolved_engine_gaps,
         local_alignment_seed=selected_local_alignment_seed,
         local_alignment_fitness=selected_local_alignment_fitness,
         local_alignment_rmse=selected_local_alignment_rmse,

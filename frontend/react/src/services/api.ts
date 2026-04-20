@@ -314,6 +314,12 @@ export interface BendMatch {
   metrology_claim_eligible?: boolean
   position_claim_eligible?: boolean
   claim_gate_reasons?: string[]
+  primary_hold_cause?: string | null
+  blocker_attribution?: 'engine_gap' | 'scan_limited' | 'process_or_policy' | string | null
+  blocker_subtype?: string | null
+  engine_recoverable?: boolean
+  scan_reacquisition_recommended?: boolean
+  metrology_failure_driver?: 'angle_only' | 'radius_only' | 'arc_only' | 'angle_radius_arc' | string | null
 }
 
 export interface ScanQualitySummary {
@@ -377,6 +383,17 @@ export interface BendInspectionReport {
     release_blocked_by?: string[]
     release_hold_reasons?: string[]
     claim_gate_reasons?: string[]
+    blocker_attribution_breakdown?: Record<string, number>
+    engine_gap_bends?: number
+    scan_limited_bends?: number
+    process_or_policy_bends?: number
+    engine_gap_position_unknown_bends?: number
+    scan_limited_position_unknown_bends?: number
+    process_or_policy_out_of_tol_bends?: number
+    engine_recoverable_bends?: number
+    scan_limited_due_to_observability?: number
+    scan_limited_due_to_datum?: number
+    scan_limited_due_to_correspondence?: number
     trusted_alignment_for_release?: boolean
     trusted_position_evidence?: boolean
     correspondence_confident_bends?: number

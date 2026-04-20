@@ -1003,6 +1003,74 @@ def test_score_scan_counts_reused_candidate_ambiguity():
     assert metrics["hold_reason_breakdown"]["correspondence_candidate_reused"] == 1
 
 
+def test_score_scan_tracks_blocker_attribution_buckets():
+    item = _item(
+        "full_scan.ply",
+        "full",
+        [
+            {
+                "bend_id": "CAD_B1",
+                "status": "PASS",
+                "observability_state": "OBSERVED_FORMED",
+                "physical_completion_state": "FORMED",
+                "feature_type": "DISCRETE_BEND",
+                "countable_in_regression": True,
+                "correspondence_state": "CONFIDENT",
+                "correspondence_ready": True,
+                "datum_ready": True,
+                "metrology_claim_eligible": True,
+                "position_claim_eligible": False,
+                "positional_state": "UNKNOWN_POSITION",
+                "blocker_attribution": "engine_gap",
+                "blocker_subtype": "position_signal_unavailable",
+                "engine_recoverable": True,
+                "claim_gate_reasons": ["position_signal_unavailable"],
+            },
+            {
+                "bend_id": "CAD_B2",
+                "status": "NOT_DETECTED",
+                "observability_state": "PARTIALLY_OBSERVED",
+                "physical_completion_state": "UNKNOWN",
+                "feature_type": "DISCRETE_BEND",
+                "countable_in_regression": True,
+                "correspondence_state": "UNRESOLVED",
+                "blocker_attribution": "scan_limited",
+                "blocker_subtype": "observability_partial",
+                "scan_reacquisition_recommended": True,
+                "claim_gate_reasons": ["correspondence_unresolved", "observability_partial", "completion_unknown"],
+            },
+            {
+                "bend_id": "CAD_B3",
+                "status": "WARNING",
+                "observability_state": "OBSERVED_FORMED",
+                "physical_completion_state": "FORMED",
+                "feature_type": "DISCRETE_BEND",
+                "countable_in_regression": True,
+                "correspondence_state": "CONFIDENT",
+                "metrology_state": "OUT_OF_TOL",
+                "metrology_claim_eligible": True,
+                "position_claim_eligible": True,
+                "positional_state": "ON_POSITION",
+                "blocker_attribution": "process_or_policy",
+                "metrology_failure_driver": "radius_only",
+                "claim_gate_reasons": ["metrology_out_of_tolerance"],
+            },
+        ],
+    )
+
+    metrics = evaluate_bend_corpus._score_scan(item, item["expectation"])
+
+    assert metrics["blocker_attribution_breakdown"]["engine_gap"] == 1
+    assert metrics["blocker_attribution_breakdown"]["scan_limited"] == 1
+    assert metrics["blocker_attribution_breakdown"]["process_or_policy"] == 1
+    assert metrics["engine_gap_position_unknown_bends"] == 1
+    assert metrics["scan_limited_due_to_observability"] == 1
+    assert metrics["scan_limited_due_to_correspondence"] == 1
+    assert metrics["process_or_policy_out_of_tol_bends"] == 1
+    assert metrics["engine_recoverable_bends"] == 1
+    assert metrics["metrology_failure_driver_breakdown"]["radius_only"] == 1
+
+
 def test_aggregate_classifies_untrusted_datum_position_claim():
     item = _item(
         "full_scan.ply",
@@ -1081,6 +1149,48 @@ def test_aggregate_classifies_ambiguity_invariant_fail():
     assert case["overall_result"] == "FAIL"
     assert case["release_decision"] == "AUTO_FAIL"
     assert case["invariant_fail_reasons"] == ["correspondence_ambiguity", "terminal_unformed"]
+
+
+def test_aggregate_exposes_blocker_attribution_scoreboard():
+    item = _item(
+        "full_scan.ply",
+        "full",
+        [
+            {
+                "bend_id": "CAD_B1",
+                "status": "PASS",
+                "observability_state": "OBSERVED_FORMED",
+                "physical_completion_state": "FORMED",
+                "feature_type": "DISCRETE_BEND",
+                "countable_in_regression": True,
+                "correspondence_state": "CONFIDENT",
+                "blocker_attribution": "engine_gap",
+                "claim_gate_reasons": ["position_signal_unavailable"],
+                "positional_state": "UNKNOWN_POSITION",
+                "engine_recoverable": True,
+            },
+            {
+                "bend_id": "CAD_B2",
+                "status": "WARNING",
+                "observability_state": "OBSERVED_FORMED",
+                "physical_completion_state": "FORMED",
+                "feature_type": "DISCRETE_BEND",
+                "countable_in_regression": True,
+                "correspondence_state": "CONFIDENT",
+                "blocker_attribution": "process_or_policy",
+                "metrology_state": "OUT_OF_TOL",
+                "metrology_failure_driver": "arc_only",
+                "claim_gate_reasons": ["metrology_out_of_tolerance"],
+            },
+        ],
+    )
+    item["metrics"] = evaluate_bend_corpus._score_scan(item, item["expectation"])
+    aggregate = evaluate_bend_corpus._aggregate([item])
+
+    scoreboard = aggregate["scoreboards"]["blocker_attribution"]
+    assert scoreboard["engine_gap_position_unknown_bends"] == 1
+    assert scoreboard["process_or_policy_out_of_tol_bends"] == 1
+    assert scoreboard["engine_recoverable_bends"] == 1
 
 
 def test_write_scoreboards_outputs_json(tmp_path):

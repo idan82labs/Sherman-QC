@@ -214,6 +214,11 @@ class PDFReportGenerator:
         release_blocked_by = report_data.get("release_blocked_by") or summary.get("release_blocked_by") or []
         release_hold_reasons = report_data.get("release_hold_reasons") or summary.get("release_hold_reasons") or []
         claim_gate_reasons = report_data.get("claim_gate_reasons") or summary.get("claim_gate_reasons") or []
+        blocker_attribution_breakdown = report_data.get("blocker_attribution_breakdown") or summary.get("blocker_attribution_breakdown") or {}
+        engine_gap_bends = report_data.get("engine_gap_bends") or summary.get("engine_gap_bends") or 0
+        scan_limited_bends = report_data.get("scan_limited_bends") or summary.get("scan_limited_bends") or 0
+        process_or_policy_bends = report_data.get("process_or_policy_bends") or summary.get("process_or_policy_bends") or 0
+        engine_recoverable_bends = report_data.get("engine_recoverable_bends") or summary.get("engine_recoverable_bends") or 0
         invariant_fail_state = sanitize_text(str(report_data.get("invariant_fail_state") or summary.get("invariant_fail_state") or ""))
         invariant_fail_reasons = _string_list(report_data.get("invariant_fail_reasons") or summary.get("invariant_fail_reasons") or [])
         invariant_fail_evidence = _string_list(report_data.get("invariant_fail_evidence") or summary.get("invariant_fail_evidence") or [])
@@ -389,6 +394,14 @@ class PDFReportGenerator:
             release_bits.append(
                 "Claim Gates: " + ", ".join(sanitize_text(str(item)) for item in claim_gate_reasons)
             )
+        if engine_gap_bends or scan_limited_bends or process_or_policy_bends:
+            release_bits.append(
+                "Blocker Attribution: "
+                + f"E {sanitize_text(str(engine_gap_bends or blocker_attribution_breakdown.get('engine_gap', 0)))} / "
+                + f"S {sanitize_text(str(scan_limited_bends or blocker_attribution_breakdown.get('scan_limited', 0)))} / "
+                + f"P {sanitize_text(str(process_or_policy_bends or blocker_attribution_breakdown.get('process_or_policy', 0)))}"
+            )
+            release_bits.append(f"Engine Recoverable: {sanitize_text(str(engine_recoverable_bends))}")
         if fail_mode:
             release_bits.append(f"Fail Mode: {fail_mode}")
         if invariant_fail_state:
@@ -1068,6 +1081,17 @@ class PDFReportGenerator:
                 claim_gate_reasons = br.get("claim_gate_reasons") or bend_info.get("claim_gate_reasons") or []
                 if claim_gate_reasons:
                     action = f"{action} | Gates: {', '.join(sanitize_text(str(item)) for item in claim_gate_reasons)}"
+                blocker_bits = [
+                    sanitize_text(str(item))
+                    for item in (
+                        br.get("blocker_attribution") or bend_info.get("blocker_attribution"),
+                        br.get("blocker_subtype") or bend_info.get("blocker_subtype"),
+                        br.get("metrology_failure_driver") or bend_info.get("metrology_failure_driver"),
+                    )
+                    if item
+                ]
+                if blocker_bits:
+                    action = f"{action} | Blocker: {' / '.join(blocker_bits)}"
                 invariant_fail_state = sanitize_text(str(br.get("invariant_fail_state") or bend_info.get("invariant_fail_state") or ""))
                 invariant_fail_reasons = _string_list(br.get("invariant_fail_reasons") or bend_info.get("invariant_fail_reasons") or [])
                 invariant_fail_evidence = _string_list(br.get("invariant_fail_evidence") or bend_info.get("invariant_fail_evidence") or [])

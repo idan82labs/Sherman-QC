@@ -434,6 +434,11 @@ class _BendPDF:
         release_blocked_by = list(summary.get("release_blocked_by") or report_dict.get("release_blocked_by") or [])
         release_hold_reasons = list(summary.get("release_hold_reasons") or report_dict.get("release_hold_reasons") or [])
         claim_gate_reasons = list(summary.get("claim_gate_reasons") or report_dict.get("claim_gate_reasons") or [])
+        blocker_attribution_breakdown = summary.get("blocker_attribution_breakdown") or report_dict.get("blocker_attribution_breakdown") or {}
+        engine_gap_bends = summary.get("engine_gap_bends") or report_dict.get("engine_gap_bends") or 0
+        scan_limited_bends = summary.get("scan_limited_bends") or report_dict.get("scan_limited_bends") or 0
+        process_or_policy_bends = summary.get("process_or_policy_bends") or report_dict.get("process_or_policy_bends") or 0
+        engine_recoverable_bends = summary.get("engine_recoverable_bends") or report_dict.get("engine_recoverable_bends") or 0
         invariant_fail_state = str(report_dict.get("invariant_fail_state") or summary.get("invariant_fail_state") or "").strip()
         invariant_fail_reasons = _string_list(report_dict.get("invariant_fail_reasons") or summary.get("invariant_fail_reasons") or [])
         invariant_fail_evidence = _string_list(report_dict.get("invariant_fail_evidence") or summary.get("invariant_fail_evidence") or [])
@@ -475,6 +480,14 @@ class _BendPDF:
             release_bits.append("Hold reasons " + ", ".join(str(item) for item in release_hold_reasons))
         if claim_gate_reasons:
             release_bits.append("Claim gates " + ", ".join(str(item) for item in claim_gate_reasons))
+        if engine_gap_bends or scan_limited_bends or process_or_policy_bends:
+            release_bits.append(
+                "Blockers "
+                + f"E {engine_gap_bends or blocker_attribution_breakdown.get('engine_gap', 0)} / "
+                + f"S {scan_limited_bends or blocker_attribution_breakdown.get('scan_limited', 0)} / "
+                + f"P {process_or_policy_bends or blocker_attribution_breakdown.get('process_or_policy', 0)}"
+            )
+            release_bits.append(f"Recoverable {engine_recoverable_bends}")
         if fail_mode:
             release_bits.append(f"Fail mode {fail_mode}")
         if invariant_fail_state:
@@ -617,6 +630,15 @@ class _BendPDF:
             )
             position_evidence = match.get("position_evidence") or {}
             claim_gate_reasons = list(match.get("claim_gate_reasons") or [])
+            blocker_bits = [
+                str(item)
+                for item in (
+                    match.get("blocker_attribution"),
+                    match.get("blocker_subtype"),
+                    match.get("metrology_failure_driver"),
+                )
+                if item
+            ]
             invariant_fail_state = str(match.get("invariant_fail_state") or "").strip()
             invariant_fail_reasons = _string_list(match.get("invariant_fail_reasons") or [])
             invariant_fail_evidence = _string_list(match.get("invariant_fail_evidence") or [])
@@ -629,6 +651,8 @@ class _BendPDF:
                 action = f"{action} | Claim eligibility {' / '.join(eligibility_bits)}" if action != "-" else f"Claim eligibility {' / '.join(eligibility_bits)}"
             if claim_gate_reasons:
                 action = f"{action} | Claim gates {', '.join(str(item) for item in claim_gate_reasons)}" if action != "-" else f"Claim gates {', '.join(str(item) for item in claim_gate_reasons)}"
+            if blocker_bits:
+                action = f"{action} | Blocker {' / '.join(blocker_bits)}" if action != "-" else f"Blocker {' / '.join(blocker_bits)}"
             if invariant_fail_state:
                 action = f"{action} | Invariant {invariant_fail_state}" if action != "-" else f"Invariant {invariant_fail_state}"
             if invariant_fail_reasons:

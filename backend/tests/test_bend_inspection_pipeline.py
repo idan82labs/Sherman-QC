@@ -1900,6 +1900,38 @@ def test_should_promote_dense_local_merge_when_merge_beats_primary_but_ties_loca
     assert pipeline._should_promote_dense_local_merge(primary, merged, 2) is True
 
 
+def test_should_promote_dense_local_merge_when_raw_rank_ties_primary_but_decision_grade_improves():
+    b1 = _make_spec("B1", angle=90.0)
+    b2 = _make_spec("B2", angle=90.0)
+
+    primary_matches = [
+        _mark_confident_global_match(_make_match(b1, "PASS", angle_deviation=0.2, confidence=0.92), "B1"),
+        _mark_confident_global_match(_make_match(b2, "PASS", angle_deviation=0.2, confidence=0.92), "B2"),
+    ]
+    for match in primary_matches:
+        match.line_center_deviation_mm = None
+    primary = BendInspectionReport(part_id="PART", matches=primary_matches)
+    primary.compute_summary()
+
+    local_matches = [
+        _mark_confident_local_match(_make_match(b1, "PASS", angle_deviation=0.2, confidence=0.9), "local_candidate_b1"),
+        BendMatch(cad_bend=b2, detected_bend=None, status="NOT_DETECTED"),
+    ]
+    local_matches[0].line_start_deviation_mm = 0.0
+    local_matches[0].line_end_deviation_mm = 0.0
+    local_matches[0].line_center_deviation_mm = 0.0
+    local = BendInspectionReport(part_id="PART", matches=local_matches)
+    local.compute_summary()
+
+    merged = pipeline.merge_bend_reports(primary, local, part_id="PART")
+    merged.compute_summary()
+
+    assert pipeline._report_rank(merged, 2) == pipeline._report_rank(primary, 2)
+    assert pipeline._report_decision_grade_rank(merged, 2) == pipeline._report_decision_grade_rank(primary, 2)
+    assert pipeline._report_position_ready_count(merged) > pipeline._report_position_ready_count(primary)
+    assert pipeline._should_promote_dense_local_merge(primary, merged, 2) is True
+
+
 def test_feature_policy_hybrid_parts_always_require_local_refinement():
     countable = _make_spec("B1")
     rolled = _make_spec("R1", bend_form="ROLLED")
@@ -2690,6 +2722,27 @@ def test_dense_scan_requires_local_refinement_for_position_signal_gap_on_full_sc
         np.zeros((863_115, 3)),
         report,
         10,
+        scan_state="full",
+    ) is True
+
+
+def test_dense_scan_requires_local_refinement_for_lower_count_full_engine_gap():
+    cad_bends = [_make_spec(f"B{i}") for i in range(1, 5)]
+    matches = []
+    for bend in cad_bends:
+        match = _mark_confident_global_match(
+            _make_match(bend, "PASS", angle_deviation=0.2, confidence=0.9),
+            bend.bend_id,
+        )
+        match.line_center_deviation_mm = None
+        matches.append(match)
+    report = BendInspectionReport(part_id="PART", matches=matches)
+    report.compute_summary()
+
+    assert pipeline._dense_scan_requires_local_refinement(
+        np.zeros((241_337, 3)),
+        report,
+        4,
         scan_state="full",
     ) is True
 

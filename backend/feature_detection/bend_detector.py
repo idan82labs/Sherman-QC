@@ -401,6 +401,9 @@ class BendMatch:
     def position_claim_eligible(self) -> bool:
         return self.correspondence_ready() and self.datum_ready() and self.position_observable()
 
+    def trusted_alignment_for_release(self) -> bool:
+        return bool(self.measurement_context.get("trusted_alignment_for_release", True))
+
     def claim_gate_reasons(self) -> List[str]:
         reasons: List[str] = []
         correspondence_state = self.correspondence_state()
@@ -429,6 +432,111 @@ class BendMatch:
         if not self.datum_ready():
             reasons.append("datum_untrusted")
         return reasons
+
+    def metrology_failure_driver(self) -> Optional[str]:
+        if self.metrology_state() != "OUT_OF_TOL":
+            return None
+        drivers: List[str] = []
+        angle_dev = abs(float(self.angle_deviation or 0.0))
+        radius_dev = abs(float(self.radius_deviation or 0.0))
+        arc_dev = abs(float(self.arc_length_deviation_mm or 0.0))
+        if angle_dev > float(self.cad_bend.tolerance_angle or 0.0):
+            drivers.append("angle")
+        if radius_dev > float(self.cad_bend.tolerance_radius or 0.0):
+            drivers.append("radius")
+        if self.arc_length_deviation_mm is not None and arc_dev > float(self.cad_bend.tolerance_radius or 0.0):
+            drivers.append("arc")
+        if not drivers:
+            return None
+        if drivers == ["angle"]:
+            return "angle_only"
+        if drivers == ["radius"]:
+            return "radius_only"
+        if drivers == ["arc"]:
+            return "arc_only"
+        return "angle_radius_arc"
+
+    def blocker_attribution(self) -> Optional[str]:
+        reasons = self.claim_gate_reasons()
+        metrology_driver = self.metrology_failure_driver()
+        if (
+            self.completion_state() == "FORMED"
+            and self.correspondence_state() == "CONFIDENT"
+            and self.datum_ready()
+            and self.trusted_alignment_for_release()
+            and self.positional_state() == "UNKNOWN_POSITION"
+            and "position_signal_unavailable" in reasons
+        ):
+            return "engine_gap"
+        if self.metrology_state() == "OUT_OF_TOL" and self.correspondence_state() == "CONFIDENT" and metrology_driver:
+            return "process_or_policy"
+        if reasons:
+            return "scan_limited"
+        return None
+
+    def blocker_subtype(self) -> Optional[str]:
+        attribution = self.blocker_attribution()
+        reasons = self.claim_gate_reasons()
+        if attribution == "engine_gap":
+            return "position_signal_unavailable"
+        if attribution == "process_or_policy":
+            return self.metrology_failure_driver()
+        for candidate in (
+            "observability_insufficient",
+            "observability_partial",
+            "datum_untrusted",
+            "correspondence_ambiguous",
+            "correspondence_unresolved",
+            "completion_unknown",
+            "metrology_unavailable",
+            "position_signal_unavailable",
+        ):
+            if candidate in reasons:
+                return candidate
+        return reasons[0] if reasons else None
+
+    def primary_hold_cause(self) -> Optional[str]:
+        if self.completion_state() == "UNFORMED":
+            return "completion_unformed"
+        if self.positional_state() == "MISLOCATED":
+            return "position_mislocated"
+        if self.metrology_state() == "OUT_OF_TOL":
+            return "metrology_out_of_tolerance"
+        subtype = self.blocker_subtype()
+        if subtype == "position_signal_unavailable":
+            return "position_unknown"
+        if subtype == "datum_untrusted":
+            return "datum_untrusted"
+        if subtype in {"correspondence_ambiguous", "correspondence_unresolved"}:
+            return subtype
+        if subtype == "observability_partial":
+            return "observability_partial"
+        if subtype == "observability_insufficient":
+            return "observability_insufficient"
+        if subtype == "completion_unknown":
+            return "completion_unknown"
+        if subtype == "metrology_unavailable":
+            return "metrology_unavailable"
+        return None
+
+    def engine_recoverable(self) -> bool:
+        return self.blocker_attribution() == "engine_gap"
+
+    def scan_reacquisition_recommended(self) -> bool:
+        if self.blocker_attribution() != "scan_limited":
+            return False
+        reasons = set(self.claim_gate_reasons())
+        return bool(
+            {
+                "observability_partial",
+                "observability_insufficient",
+                "datum_untrusted",
+                "correspondence_ambiguous",
+                "correspondence_unresolved",
+                "completion_unknown",
+            }
+            & reasons
+        )
 
     def completion_state(self) -> str:
         if not self.completion_claim_eligible():
@@ -553,6 +661,12 @@ class BendMatch:
             "metrology_claim_eligible": self.metrology_claim_eligible(),
             "position_claim_eligible": self.position_claim_eligible(),
             "claim_gate_reasons": self.claim_gate_reasons(),
+            "primary_hold_cause": self.primary_hold_cause(),
+            "blocker_attribution": self.blocker_attribution(),
+            "blocker_subtype": self.blocker_subtype(),
+            "engine_recoverable": self.engine_recoverable(),
+            "scan_reacquisition_recommended": self.scan_reacquisition_recommended(),
+            "metrology_failure_driver": self.metrology_failure_driver(),
             "correspondence_confidence": round(float(self.assignment_confidence or self.match_confidence or 0.0), 3),
             "correspondence_margin": round(self.correspondence_margin(), 3),
             "correspondence_runner_up_gap": (
@@ -722,6 +836,50 @@ class BendInspectionReport:
         sufficient_observability_count = sum(1 for m in countable_matches if m.observability_state_internal() == "SUFFICIENT")
         partial_observability_count = sum(1 for m in countable_matches if m.observability_state_internal() == "PARTIAL")
         insufficient_observability_count = sum(1 for m in countable_matches if m.observability_state_internal() == "INSUFFICIENT")
+        blocker_attribution_breakdown = {
+            key: sum(1 for m in countable_matches if m.blocker_attribution() == key)
+            for key in ("engine_gap", "scan_limited", "process_or_policy")
+        }
+        engine_gap_bends = blocker_attribution_breakdown["engine_gap"]
+        scan_limited_bends = blocker_attribution_breakdown["scan_limited"]
+        process_or_policy_bends = blocker_attribution_breakdown["process_or_policy"]
+        engine_gap_position_unknown_bends = sum(
+            1
+            for m in countable_matches
+            if m.blocker_attribution() == "engine_gap"
+            and m.positional_state() == "UNKNOWN_POSITION"
+        )
+        scan_limited_position_unknown_bends = sum(
+            1
+            for m in countable_matches
+            if m.blocker_attribution() == "scan_limited"
+            and m.positional_state() == "UNKNOWN_POSITION"
+        )
+        process_or_policy_out_of_tol_bends = sum(
+            1
+            for m in countable_matches
+            if m.blocker_attribution() == "process_or_policy"
+            and m.metrology_state() == "OUT_OF_TOL"
+        )
+        engine_recoverable_bends = sum(1 for m in countable_matches if m.engine_recoverable())
+        scan_limited_due_to_observability = sum(
+            1
+            for m in countable_matches
+            if m.blocker_attribution() == "scan_limited"
+            and any(reason in {"observability_partial", "observability_insufficient"} for reason in m.claim_gate_reasons())
+        )
+        scan_limited_due_to_datum = sum(
+            1
+            for m in countable_matches
+            if m.blocker_attribution() == "scan_limited"
+            and "datum_untrusted" in m.claim_gate_reasons()
+        )
+        scan_limited_due_to_correspondence = sum(
+            1
+            for m in countable_matches
+            if m.blocker_attribution() == "scan_limited"
+            and any(reason in {"correspondence_ambiguous", "correspondence_unresolved"} for reason in m.claim_gate_reasons())
+        )
         invariant_fail_state, invariant_fail_reasons, invariant_fail_evidence = self._compute_invariant_fail_summary(countable_matches)
         self.observed_count = sum(
             1
@@ -818,6 +976,19 @@ class BendInspectionReport:
             "sufficient_bends": sufficient_observability_count,
             "partial_bends": partial_observability_count,
             "insufficient_bends": insufficient_observability_count,
+        }
+        self._blocker_attribution_summary = {
+            "blocker_attribution_breakdown": blocker_attribution_breakdown,
+            "engine_gap_bends": engine_gap_bends,
+            "scan_limited_bends": scan_limited_bends,
+            "process_or_policy_bends": process_or_policy_bends,
+            "engine_gap_position_unknown_bends": engine_gap_position_unknown_bends,
+            "scan_limited_position_unknown_bends": scan_limited_position_unknown_bends,
+            "process_or_policy_out_of_tol_bends": process_or_policy_out_of_tol_bends,
+            "engine_recoverable_bends": engine_recoverable_bends,
+            "scan_limited_due_to_observability": scan_limited_due_to_observability,
+            "scan_limited_due_to_datum": scan_limited_due_to_datum,
+            "scan_limited_due_to_correspondence": scan_limited_due_to_correspondence,
         }
 
     def _compute_invariant_fail_summary(
@@ -948,6 +1119,17 @@ class BendInspectionReport:
                 "observability_sufficient_bends": self._observability_internal_summary["sufficient_bends"],
                 "observability_partial_bends": self._observability_internal_summary["partial_bends"],
                 "observability_insufficient_bends": self._observability_internal_summary["insufficient_bends"],
+                "blocker_attribution_breakdown": self._blocker_attribution_summary["blocker_attribution_breakdown"],
+                "engine_gap_bends": self._blocker_attribution_summary["engine_gap_bends"],
+                "scan_limited_bends": self._blocker_attribution_summary["scan_limited_bends"],
+                "process_or_policy_bends": self._blocker_attribution_summary["process_or_policy_bends"],
+                "engine_gap_position_unknown_bends": self._blocker_attribution_summary["engine_gap_position_unknown_bends"],
+                "scan_limited_position_unknown_bends": self._blocker_attribution_summary["scan_limited_position_unknown_bends"],
+                "process_or_policy_out_of_tol_bends": self._blocker_attribution_summary["process_or_policy_out_of_tol_bends"],
+                "engine_recoverable_bends": self._blocker_attribution_summary["engine_recoverable_bends"],
+                "scan_limited_due_to_observability": self._blocker_attribution_summary["scan_limited_due_to_observability"],
+                "scan_limited_due_to_datum": self._blocker_attribution_summary["scan_limited_due_to_datum"],
+                "scan_limited_due_to_correspondence": self._blocker_attribution_summary["scan_limited_due_to_correspondence"],
                 "total_features": self.total_feature_count,
                 "detected_features": self.detected_feature_count,
                 "process_features": self.process_feature_count,
@@ -968,6 +1150,14 @@ class BendInspectionReport:
             "claim_gate_reasons": list(getattr(self, "_claim_gate_reasons", [])),
             "trusted_alignment_for_release": self.trusted_alignment_for_release,
             "trusted_position_evidence": self.trusted_position_evidence,
+            "blocker_attribution_breakdown": self._blocker_attribution_summary["blocker_attribution_breakdown"],
+            "engine_gap_bends": self._blocker_attribution_summary["engine_gap_bends"],
+            "scan_limited_bends": self._blocker_attribution_summary["scan_limited_bends"],
+            "process_or_policy_bends": self._blocker_attribution_summary["process_or_policy_bends"],
+            "engine_recoverable_bends": self._blocker_attribution_summary["engine_recoverable_bends"],
+            "scan_limited_due_to_observability": self._blocker_attribution_summary["scan_limited_due_to_observability"],
+            "scan_limited_due_to_datum": self._blocker_attribution_summary["scan_limited_due_to_datum"],
+            "scan_limited_due_to_correspondence": self._blocker_attribution_summary["scan_limited_due_to_correspondence"],
             "processing_time_ms": round(self.processing_time_ms, 1),
         }
 

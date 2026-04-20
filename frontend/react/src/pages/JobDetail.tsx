@@ -151,6 +151,7 @@ export default function JobDetail() {
   const releaseBlockedBy = Array.isArray(qcResult?.release_blocked_by) ? qcResult.release_blocked_by : []
   const releaseHoldReasons = Array.isArray(qcResult?.release_hold_reasons) ? qcResult.release_hold_reasons : []
   const claimGateReasons = Array.isArray(qcResult?.claim_gate_reasons) ? qcResult.claim_gate_reasons : []
+  const blockerBreakdown = qcResult?.blocker_attribution_breakdown ?? {}
   const invariantFail = readInvariantFailSnapshot(qcResult)
   const failModeLabel = explicitReleaseDecision === 'AUTO_FAIL'
     ? (invariantFail.hasData ? 'Ambiguity-invariant fail' : 'Bend-specific fail')
@@ -354,6 +355,12 @@ export default function JobDetail() {
                   label="Claim gates"
                   value={claimGateReasons.length ? claimGateReasons.join(', ') : 'none'}
                   tone={claimGateReasons.length ? 'amber' : 'green'}
+                />
+                <GateField
+                  label="Blocker attribution"
+                  value={`E ${qcResult?.engine_gap_bends ?? blockerBreakdown.engine_gap ?? 0} / S ${qcResult?.scan_limited_bends ?? blockerBreakdown.scan_limited ?? 0} / P ${qcResult?.process_or_policy_bends ?? blockerBreakdown.process_or_policy ?? 0}`}
+                  tone={(qcResult?.engine_gap_bends || qcResult?.scan_limited_bends || qcResult?.process_or_policy_bends) ? 'amber' : 'green'}
+                  detail={`Recoverable ${qcResult?.engine_recoverable_bends ?? 0} | scan obs ${qcResult?.scan_limited_due_to_observability ?? 0} | datum ${qcResult?.scan_limited_due_to_datum ?? 0} | corr ${qcResult?.scan_limited_due_to_correspondence ?? 0}`}
                 />
               </div>
               {!!releaseHoldReasons.length && (
