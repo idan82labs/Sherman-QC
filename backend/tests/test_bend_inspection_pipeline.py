@@ -1730,6 +1730,44 @@ def test_merge_bend_reports_prefers_local_decision_ready_pass_upgrade_over_globa
     assert merged.matches[0].position_claim_eligible() is True
 
 
+def test_merge_bend_reports_preserves_primary_match_while_borrowing_local_position_signal():
+    b1 = _make_spec("B1", angle=90.0)
+
+    primary_match = _mark_confident_global_match(
+        _make_match(b1, "PASS", angle_deviation=0.1, confidence=0.92),
+        "B1",
+    )
+    primary_match.line_center_deviation_mm = None
+
+    local_match = _mark_confident_local_match(
+        _make_match(b1, "WARNING", angle_deviation=1.2, confidence=0.84),
+        "local_candidate_0",
+    )
+    local_match.line_start_deviation_mm = 0.0
+    local_match.line_end_deviation_mm = 0.0
+    local_match.line_center_deviation_mm = 0.0
+    local_match.measurement_context["parent_frame"] = {
+        "alignment_source": "PLANE_DATUM_REFINEMENT",
+        "alignment_confidence": 0.88,
+        "alignment_abstained": False,
+    }
+
+    primary = BendInspectionReport(part_id="PART", matches=[primary_match])
+    primary.compute_summary()
+    local = BendInspectionReport(part_id="PART", matches=[local_match])
+    local.compute_summary()
+
+    merged = pipeline.merge_bend_reports(primary, local, part_id="PART")
+
+    assert merged.matches[0].assignment_source == "GLOBAL_DETECTION"
+    assert merged.matches[0].measurement_method == "detected_bend_match"
+    assert merged.matches[0].status == "PASS"
+    assert merged.matches[0].line_center_deviation_mm == 0.0
+    assert merged.matches[0].position_claim_eligible() is True
+    assert merged.matches[0].positional_state() == "ON_POSITION"
+    assert merged.matches[0].measurement_context["position_signal_source"] == "CAD_LOCAL_NEIGHBORHOOD"
+
+
 def test_report_decision_grade_rank_ignores_ambiguous_local_status_gains():
     b1 = _make_spec("B1", angle=90.0)
     b2 = _make_spec("B2", angle=90.0)
@@ -2631,6 +2669,27 @@ def test_dense_scan_requires_local_refinement_for_medium_full_severe_under_recov
         np.zeros((473_764, 3)),
         report,
         16,
+        scan_state="full",
+    ) is True
+
+
+def test_dense_scan_requires_local_refinement_for_position_signal_gap_on_full_scan():
+    cad_bends = [_make_spec(f"B{i}") for i in range(1, 11)]
+    matches = []
+    for bend in cad_bends:
+        match = _mark_confident_global_match(
+            _make_match(bend, "PASS", angle_deviation=0.2, confidence=0.9),
+            bend.bend_id,
+        )
+        match.line_center_deviation_mm = None
+        matches.append(match)
+    report = BendInspectionReport(part_id="PART", matches=matches)
+    report.compute_summary()
+
+    assert pipeline._dense_scan_requires_local_refinement(
+        np.zeros((863_115, 3)),
+        report,
+        10,
         scan_state="full",
     ) is True
 

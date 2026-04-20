@@ -2010,6 +2010,55 @@ def _match_has_position_verification(match: Optional[BendMatch]) -> bool:
     )
 
 
+def _prefer_primary_with_local_position_signal(
+    primary: Optional[BendMatch],
+    candidate: Optional[BendMatch],
+) -> bool:
+    """
+    Preserve a stronger primary bend claim while borrowing trusted CAD-local
+    position evidence.
+
+    This handles the common dense-scan case where global detection gives the
+    right bend identity and metrology, but never emits line-based position
+    evidence. When the local report can verify position for the same bend
+    without providing a better overall bend claim, keep the primary match as the
+    anchor and graft in the local position signal.
+    """
+    if primary is None or candidate is None:
+        return False
+    if str(getattr(primary, "assignment_source", "")).upper() != "GLOBAL_DETECTION":
+        return False
+    if str(getattr(candidate, "assignment_source", "")).upper() != "CAD_LOCAL_NEIGHBORHOOD":
+        return False
+    if str(getattr(primary, "status", "")).upper() == "NOT_DETECTED":
+        return False
+    if not bool(primary.correspondence_ready()) or not bool(candidate.correspondence_ready()):
+        return False
+    if bool(primary.position_claim_eligible()) or not bool(candidate.position_claim_eligible()):
+        return False
+    if _match_priority(candidate) > _match_priority(primary):
+        return False
+    return _match_has_position_verification(candidate)
+
+
+def _merge_primary_with_local_position_signal(
+    primary: BendMatch,
+    candidate: BendMatch,
+) -> BendMatch:
+    merged = copy.deepcopy(primary)
+    merged.line_start_deviation_mm = candidate.line_start_deviation_mm
+    merged.line_end_deviation_mm = candidate.line_end_deviation_mm
+    merged.line_center_deviation_mm = candidate.line_center_deviation_mm
+    merged.measurement_context = copy.deepcopy(primary.measurement_context or {})
+    merged.measurement_context["position_signal_source"] = "CAD_LOCAL_NEIGHBORHOOD"
+    merged.measurement_context["position_signal_context"] = copy.deepcopy(candidate.measurement_context or {})
+    if "trusted_alignment_for_release" not in merged.measurement_context:
+        merged.measurement_context["trusted_alignment_for_release"] = bool(
+            (candidate.measurement_context or {}).get("trusted_alignment_for_release", True)
+        )
+    return merged
+
+
 def _prefer_authoritative_local_absence(
     primary: Optional[BendMatch],
     candidate: Optional[BendMatch],
@@ -2218,6 +2267,11 @@ def merge_bend_reports(
             local_match,
         ):
             merged_matches.append(copy.deepcopy(local_match))
+        elif _prefer_primary_with_local_position_signal(
+            primary_match,
+            local_match,
+        ):
+            merged_matches.append(_merge_primary_with_local_position_signal(primary_match, local_match))
         elif _prefer_primary_decision_ready_match_over_ambiguous_local(
             primary_match,
             local_match,
@@ -2256,7 +2310,26 @@ def _dense_scan_requires_local_refinement(
     state = str(scan_state or "").strip().lower()
     target = max(1, int(expected_bend_count))
     detected = int(report.detected_count)
+    countable_matches = [
+        match for match in report.matches
+        if bool(getattr(getattr(match, "cad_bend", None), "countable_in_regression", True))
+    ]
+    formed_confident_unknown_position = sum(
+        1
+        for match in countable_matches
+        if match.completion_state() == "FORMED"
+        and match.correspondence_state() == "CONFIDENT"
+        and match.positional_state() == "UNKNOWN_POSITION"
+    )
     if point_count >= 550000 and detected < max(1, int(np.ceil(0.75 * target))):
+        return True
+    if (
+        state == "full"
+        and point_count >= 300000
+        and target >= 8
+        and detected >= max(6, int(np.ceil(0.80 * target)))
+        and formed_confident_unknown_position >= max(4, int(np.ceil(0.50 * target)))
+    ):
         return True
     gap = max(0, target - detected)
     if gap == 0:
