@@ -19,7 +19,9 @@ import {
   bendInspectionApi,
   getErrorMessage,
   type BendInspectionJob,
+  type BendInspectionPipelineDetails,
   type BendMatch,
+  type ScanStructuralRenderableBendObject,
   type ScanQualitySummary,
 } from '../services/api'
 import type { BendAnnotation } from '../components/ThreeViewer'
@@ -528,6 +530,7 @@ function JobListItem({
             jobId={job.job_id}
             referenceMeshUrl={job.artifacts?.reference_mesh_url}
             artifacts={job.artifacts}
+            pipelineDetails={job.pipeline_details}
           />
         </div>
       )}
@@ -541,12 +544,14 @@ function BendInspectionResults({
   jobId,
   referenceMeshUrl,
   artifacts,
+  pipelineDetails,
   compact = false,
 }: {
   report: BendInspectionJob['report']
   jobId?: string
   referenceMeshUrl?: string
   artifacts?: BendInspectionJob['artifacts']
+  pipelineDetails?: BendInspectionPipelineDetails | null
   compact?: boolean
 }) {
   if (!report) return null
@@ -757,6 +762,8 @@ function BendInspectionResults({
           matches={matches}
           referenceMeshUrl={referenceMeshUrl}
           focusedBendId={focusedBendId}
+          onFocusBend={setFocusedBendId}
+          pipelineDetails={pipelineDetails}
         />
       )}
 
@@ -967,6 +974,36 @@ function toViewerStatus(status: BendMatch['status']): BendAnnotation['status'] {
   }
 }
 
+function toViewerOverlayStatus(status?: string | null): BendAnnotation['status'] {
+  switch ((status || '').toUpperCase()) {
+    case 'PASS':
+      return 'pass'
+    case 'FAIL':
+      return 'fail'
+    case 'WARNING':
+      return 'warning'
+    default:
+      return 'pending'
+  }
+}
+
+function readOverlayPoint(raw?: [number, number, number] | number[] | null): [number, number, number] | undefined {
+  return parseLinePoint(raw) ?? undefined
+}
+
+function buildOverlayMetricRows(renderable: ScanStructuralRenderableBendObject) {
+  const detailSegments = (renderable.detail_segments || []).filter((item): item is string => typeof item === 'string' && !!item.trim())
+  if (detailSegments.length) return detailSegments
+  const metadata = renderable.metadata || {}
+  const rows: string[] = []
+  if (typeof renderable.profile_family === 'string' && renderable.profile_family.trim()) rows.push(renderable.profile_family.trim())
+  if (typeof metadata.dominant_angle_deg === 'number' && Number.isFinite(metadata.dominant_angle_deg)) rows.push(`θ≈${metadata.dominant_angle_deg.toFixed(1)}°`)
+  if (typeof metadata.along_axis_span_mm === 'number' && Number.isFinite(metadata.along_axis_span_mm)) rows.push(`span ${metadata.along_axis_span_mm.toFixed(1)}mm`)
+  if (typeof metadata.observability_status === 'string' && metadata.observability_status.trim()) rows.push(metadata.observability_status.trim())
+  if (typeof metadata.confidence === 'number' && Number.isFinite(metadata.confidence)) rows.push(`conf ${metadata.confidence.toFixed(2)}`)
+  return rows.length ? rows : ['Zero-shot bend support']
+}
+
 function formatSignedMetric(value: number | null | undefined, digits: number, suffix = '') {
   if (value == null || !Number.isFinite(value)) return '-'
   return `${value >= 0 ? '+' : ''}${value.toFixed(digits)}${suffix}`
@@ -1072,33 +1109,17 @@ function BendCadOverlay3D({
   matches,
   referenceMeshUrl,
   focusedBendId,
+  onFocusBend,
+  pipelineDetails,
 }: {
   jobId: string
   matches: BendMatch[]
   referenceMeshUrl?: string
   focusedBendId?: string | null
+  onFocusBend?: (bendId: string) => void
+  pipelineDetails?: BendInspectionPipelineDetails | null
 }) {
-  const focusPoint = useMemo<[number, number, number] | null>(() => {
-    const focused = matches.find((match) => match.bend_id === focusedBendId)
-    if (!focused) return null
-    return parseLinePoint(focused.callout_anchor)
-      ?? midpointFromMatch(focused)
-      ?? null
-  }, [focusedBendId, matches])
-  const focusedMatch = useMemo(
-    () => matches.find((match) => match.bend_id === focusedBendId) ?? null,
-    [focusedBendId, matches],
-  )
-  const focusedInvariantFail = useMemo(
-    () => readInvariantFailSnapshot(focusedMatch),
-    [focusedMatch],
-  )
-  const issueMatches = useMemo(
-    () => matches.filter((match) => match.status === 'FAIL' || match.status === 'WARNING'),
-    [matches],
-  )
-
-  const bendAnnotations = useMemo<BendAnnotation[]>(() => {
+  const cadBendAnnotations = useMemo<BendAnnotation[]>(() => {
     const overlays: BendAnnotation[] = []
     for (const match of matches) {
       const lineStart = parseLinePoint(match.cad_line_start)
@@ -1132,6 +1153,73 @@ function BendCadOverlay3D({
     }
     return overlays
   }, [focusedBendId, matches])
+  const scanOnlyBendAnnotations = useMemo<BendAnnotation[]>(() => {
+    const renderableObjects = pipelineDetails?.scan_structural_hypothesis?.renderable_bend_objects || []
+    const overlays: BendAnnotation[] = []
+    for (const bend of renderableObjects) {
+      const lineStart = readOverlayPoint(
+        bend.detected_line?.display_start
+          ?? bend.detected_line?.raw_start
+          ?? bend.cad_line?.display_start
+          ?? bend.cad_line?.raw_start,
+      )
+      const lineEnd = readOverlayPoint(
+        bend.detected_line?.display_end
+          ?? bend.detected_line?.raw_end
+          ?? bend.cad_line?.display_end
+          ?? bend.cad_line?.raw_end,
+      )
+      const position = readOverlayPoint(bend.anchor) ?? (lineStart && lineEnd ? midpoint3D(lineStart, lineEnd) : undefined)
+      if (!lineStart || !lineEnd || !position) continue
+      const metadata = bend.metadata || {}
+      const dominantAngle = typeof metadata.dominant_angle_deg === 'number' && Number.isFinite(metadata.dominant_angle_deg)
+        ? metadata.dominant_angle_deg
+        : 0
+      overlays.push({
+        id: bend.bend_id,
+        label: bend.label || bend.bend_id,
+        position,
+        calloutAnchor: position,
+        lineStart,
+        lineEnd,
+        detectedLineStart: lineStart,
+        detectedLineEnd: lineEnd,
+        expectedAngle: dominantAngle,
+        measuredAngle: null,
+        deviation: null,
+        status: toViewerOverlayStatus(bend.status),
+        active: focusedBendId === bend.bend_id,
+        displayGeometryCanonical: true,
+        metricRows: buildOverlayMetricRows(bend),
+      })
+    }
+    return overlays
+  }, [focusedBendId, pipelineDetails])
+  const usingScanOnlyOverlay = cadBendAnnotations.length === 0 && scanOnlyBendAnnotations.length > 0
+  const bendAnnotations = usingScanOnlyOverlay ? scanOnlyBendAnnotations : cadBendAnnotations
+  const focusPoint = useMemo<[number, number, number] | null>(() => {
+    if (usingScanOnlyOverlay) {
+      const focused = bendAnnotations.find((annotation) => String(annotation.id) === focusedBendId)
+      return focused?.calloutAnchor ?? focused?.position ?? null
+    }
+    const focused = matches.find((match) => match.bend_id === focusedBendId)
+    if (!focused) return null
+    return parseLinePoint(focused.callout_anchor)
+      ?? midpointFromMatch(focused)
+      ?? null
+  }, [bendAnnotations, focusedBendId, matches, usingScanOnlyOverlay])
+  const focusedMatch = useMemo(
+    () => matches.find((match) => match.bend_id === focusedBendId) ?? null,
+    [focusedBendId, matches],
+  )
+  const focusedInvariantFail = useMemo(
+    () => readInvariantFailSnapshot(focusedMatch),
+    [focusedMatch],
+  )
+  const issueMatches = useMemo(
+    () => matches.filter((match) => match.status === 'FAIL' || match.status === 'WARNING'),
+    [matches],
+  )
   const completed = matches.filter((match) => match.status !== 'NOT_DETECTED').length
   const inSpec = matches.filter((match) => match.status === 'PASS').length
   const remaining = Math.max(0, matches.length - completed)
@@ -1145,9 +1233,11 @@ function BendCadOverlay3D({
     <div className="rounded-lg border border-dark-600 bg-dark-800/40 p-3">
       <div className="flex items-center justify-between mb-3">
         <div>
-          <p className="text-xs text-dark-400 uppercase tracking-wide">3D CAD Bend Overlay</p>
+          <p className="text-xs text-dark-400 uppercase tracking-wide">{usingScanOnlyOverlay ? '3D Bend Overlay' : '3D CAD Bend Overlay'}</p>
           <p className="text-xs text-dark-500 mt-1">
-            Aligned scan over original CAD with bend lines colored by inspection status
+            {usingScanOnlyOverlay
+              ? 'Aligned scan with zero-shot bend marks. Click a bend mark or bend card to inspect that bend.'
+              : 'Aligned scan over original CAD with bend lines colored by inspection status'}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2 text-[11px] text-dark-400">
@@ -1158,11 +1248,24 @@ function BendCadOverlay3D({
           <LegendPill color="bg-amber-500" label="Warning" />
           <LegendPill color="bg-red-500" label="Out of spec" />
           <LegendPill color="bg-slate-500" label="Not detected" />
+          {usingScanOnlyOverlay && <LegendPill color="bg-sky-500" label="Zero-shot support" />}
         </div>
       </div>
 
       <div className="mb-3 rounded-xl border border-dark-600 bg-dark-900/75 px-4 py-3">
-        {focusedMatch ? (
+        {usingScanOnlyOverlay && !focusedMatch ? (
+          <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <p className="text-[11px] uppercase tracking-[0.18em] text-dark-400">Selected bend</p>
+              <p className="mt-1 text-sm text-dark-200">
+                Click any marked bend in the viewer or a bend card to open its scan-only bend card.
+              </p>
+            </div>
+            <div className="rounded-lg border border-sky-500/30 bg-sky-500/10 px-3 py-2 text-xs text-sky-100">
+              Scan-only bend cards are descriptive overlays, not CAD-authoritative inspection claims.
+            </div>
+          </div>
+        ) : focusedMatch ? (
           <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
             <div>
               <div className="flex flex-wrap items-center gap-2">
@@ -1298,6 +1401,11 @@ function BendCadOverlay3D({
           bendAnnotations={bendAnnotations}
           focusPoint={focusPoint}
           focusAnnotationId={focusedBendId}
+          onFocusAnnotationId={(id) => {
+            if (id == null) return
+            onFocusBend?.(String(id))
+          }}
+          calloutMode={usingScanOnlyOverlay ? 'focused' : 'all'}
           className="h-[560px]"
         />
       </Suspense>
