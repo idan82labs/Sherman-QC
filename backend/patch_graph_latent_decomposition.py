@@ -1177,10 +1177,7 @@ def extract_owned_bend_regions(
             )
         )
         next_index += 1
-    return _suppress_tiny_cross_pair_marker_clusters(
-        [item for item in regions if item.admissible],
-        local_spacing_mm=float(getattr(atom_graph, "local_spacing_mm", 1.0) or 1.0),
-    )
+    return [item for item in regions if item.admissible]
 
 
 def _suppress_tiny_cross_pair_marker_clusters(
@@ -1252,10 +1249,17 @@ def _suppress_tiny_cross_pair_marker_clusters(
 def build_owned_region_renderable_objects(
     owned_bend_regions: Sequence[OwnedBendRegion],
     atom_graph: Optional[SurfaceAtomGraph] = None,
+    suppress_tiny_marker_clusters: bool = True,
 ) -> List[Dict[str, Any]]:
     renderable: List[Dict[str, Any]] = []
     atom_lookup = {atom.atom_id: atom for atom in atom_graph.atoms} if atom_graph is not None else {}
-    for region in owned_bend_regions:
+    render_regions = list(owned_bend_regions)
+    if suppress_tiny_marker_clusters and atom_graph is not None:
+        render_regions = _suppress_tiny_cross_pair_marker_clusters(
+            render_regions,
+            local_spacing_mm=float(atom_graph.local_spacing_mm or 1.0),
+        )
+    for region in render_regions:
         owned_points = [
             np.asarray(atom_lookup[atom_id].centroid, dtype=np.float64)
             for atom_id in region.owned_atom_ids
@@ -1509,6 +1513,8 @@ def render_decomposition_artifacts(
         "raw_f1_estimated_bend_count": result.exact_bend_count,
         "raw_f1_estimated_bend_count_range": list(result.bend_count_range),
         "raw_f1_owned_region_count": len(result.owned_bend_regions),
+        "render_owned_region_count": len(renderable),
+        "render_suppressed_owned_region_count": max(0, len(result.owned_bend_regions) - len(renderable)),
         "abstained": False,
         "abstain_reasons": [],
         "overview_image": "patch_graph_owned_region_overview.png",
