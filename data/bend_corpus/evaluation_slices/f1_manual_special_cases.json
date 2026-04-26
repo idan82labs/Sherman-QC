@@ -44,30 +44,32 @@
       "expectation": {
         "label_semantics": "full_scan_conventional_bends",
         "manual_validation_source": "f1_manual_validation_20260425",
-        "expected_bend_count": 3,
-        "expected_conventional_bend_count": 3
+          "expected_bend_count": 3,
+          "expected_conventional_bend_count": 3,
+          "legacy_expected_disputed": true
       },
       "audit_tags": [
         "conventional_bend_count",
         "full_scan",
         "known_count",
+        "legacy_expected_disputed",
         "manual_validation",
         "special_or_disputed"
       ],
       "manual_validation": {
         "scan_name": "49024000_A.ply",
         "algorithm_range": [
-          4,
-          4
+          3,
+          16
         ],
         "algorithm_observed_prediction": null,
-        "algorithm_exact": 4,
+        "algorithm_exact": null,
         "feature_breakdown": {
           "conventional_bends": 3,
           "counted_target": "conventional_bends"
         },
-        "notes": "User validated 3 bends; part is pretty problematic. This contradicts prior known expected count 4 and F1 promoted exact 4. Assistant render inspection: F1 4-count appears caused by a tiny duplicate/fragment around the upper-right bend cluster; visually supports user count 3.",
-        "contact_sheet": "/Users/idant/Library/Mobile Documents/com~apple~CloudDocs/Sherman QC/F1 Accuracy Validation Review Queue 2026-04-25/priority_contact_sheets/P1_05_known_49024000_49024000_A.png"
+        "notes": "User reviewed latest 1080p F1 renders: this is a 3-bend part. Raw F1 OB2 is acceptable; the remaining raw owned regions/marks are wrong. Prior known expected count 4 and raw F1 exact 4 are rejected for promotion.",
+        "contact_sheet": "/Users/idant/Library/Mobile Documents/com~apple~CloudDocs/Sherman QC/Status for Idan to test/special_manual_review_queue/priority_contact_sheets/P1_02_known_49024000_49024000_A.png"
       }
     },
     {
@@ -194,7 +196,7 @@
         "label_semantics": "full_scan_conventional_bends",
         "manual_validation_source": "f1_manual_validation_20260425",
         "exclude_from_accuracy": true,
-        "exclusion_reason": "bad_scan_quality_clustered_duplicate_markings"
+        "exclusion_reason": "bad_scan_quality_duplicate_owned_regions"
       },
       "audit_tags": [
         "conventional_bend_count",
@@ -207,7 +209,7 @@
       "manual_validation": {
         "scan_name": "48991006_A 4.ply",
         "algorithm_range": [
-          9,
+          8,
           12
         ],
         "algorithm_observed_prediction": null,
@@ -215,8 +217,8 @@
         "feature_breakdown": {
           "counted_target": "conventional_bends"
         },
-        "notes": "User reviewed F1 3D render: render/marking is completely wrong, with a cluster of bend markings. Likely rooted in bad scan quality. Exclude as clean accuracy anchor; keep as bad-scan failure case.",
-        "contact_sheet": "/Users/idant/Library/Mobile Documents/com~apple~CloudDocs/Sherman QC/F1 Accuracy Validation Review Queue 2026-04-25/priority_contact_sheets/P2_14_known_48991006_48991006_A_4.png"
+        "notes": "User reviewed latest 1080p F1 renders: OB4 and OB5 sit on a bend but represent the same bend, so the raw owned-region count is duplicated/wrong. The part did not process well. Exclude as clean accuracy anchor; keep as duplicate-support/bad-scan diagnostic case.",
+        "contact_sheet": "/Users/idant/Library/Mobile Documents/com~apple~CloudDocs/Sherman QC/Status for Idan to test/special_manual_review_queue/priority_contact_sheets/P2_06_known_48991006_48991006_A_4.png"
       }
     },
     {

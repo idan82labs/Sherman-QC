@@ -69,7 +69,7 @@ GitHub PR check:
 
 - `47959001` raw F1 still undercounts; accepted output remains protected by control guard.
 - `10839000` raw F1 still undercounts; accepted output remains protected by control guard.
-- `48991006` and `49024000` are raw F1 singleton promotion candidates, but still require manual visual review before exact promotion.
+- `48991006` and `49024000` were manually reviewed and are not promotion candidates: `49024000` is validated as 3 bends with only `OB2` acceptable, and `48991006` has duplicate owned regions on the same bend with poor scan/processing quality.
 - Rounded, raised, and non-conventional bend semantics still need a separate policy/validation pass.
 - Partial scans must continue to target visible observed bends, not inferred full-part totals.
 
@@ -85,7 +85,7 @@ Before this branch is merged as anything beyond offline diagnostics:
 ## Post-Merge Work
 
 - Improve raw F1 support ownership on `47959001` and `10839000`.
-- Generate review packs for `48991006` and `49024000`.
+- Use `48991006` and `49024000` as post-review failure cases for duplicate-support collapse, bad-scan handling, and false owned-region suppression.
 - Expand strict visual marker audit beyond the current focused four-case pack.
 - Add a partial-scan observed-bend validation lane.
 - Decide policy for rounded and raised bend features before runtime promotion.

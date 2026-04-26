@@ -71,5 +71,5 @@ Result:
 
 - This is still a large branch and should be reviewed by slice.
 - Raw F1 still undercounts `47959001` and `10839000`.
-- Raw F1 exact candidates `48991006` and `49024000` still require manual visual review.
+- Raw F1 exact candidates `48991006` and `49024000` were manually reviewed and rejected for promotion; both now remain special diagnostic cases.
 - Product diagnostics / scan overlay should be reviewed separately from F1 algorithmic work.

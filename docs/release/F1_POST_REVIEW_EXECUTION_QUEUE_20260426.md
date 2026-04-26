@@ -58,7 +58,7 @@ Acceptance:
 - accepted known10 remains exact/range-safe;
 - no broadened accepted cases.
 
-### A2: Validate Raw F1 Singleton Promotion Candidates
+### A2: Convert Rejected Raw F1 Singleton Candidates Into Failure Tests
 
 Target parts:
 
@@ -67,12 +67,14 @@ Target parts:
 
 Current status:
 
-- raw F1 singleton candidate;
-- manual visual review still required.
+- manually reviewed on 2026-04-26;
+- `49024000`: validated truth is 3 conventional bends; only `OB2` is acceptable, remaining raw owned-region marks are wrong;
+- `48991006`: `OB4` and `OB5` sit on the same bend and duplicate the same support; scan/processing quality is poor.
 
 Required artifacts:
 
 - 1080p overview with numbered bend marks;
+- rejected-owned-region sidecars for `49024000` and `48991006`;
 - one selected-bend card/contact sheet for disputed bends;
 - sidecar JSON with raw count, accepted candidate count, route, and owned support metadata.
 
@@ -149,5 +151,5 @@ Escalate only if one of these happens:
 
 - Do not wire F1 into runtime APIs as authoritative count.
 - Do not remove control guard for protected anchors.
-- Do not auto-promote `48991006` or `49024000` without manual render review.
+- Do not auto-promote `48991006` or `49024000`; manual render review rejected both as promotion evidence.
 - Do not let render-only marker suppression change solver/count outputs.
