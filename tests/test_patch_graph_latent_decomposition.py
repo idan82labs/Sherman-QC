@@ -27,6 +27,7 @@ from patch_graph_latent_decomposition import (
     _normalize_bend_hypotheses,
     _prune_and_refit_labels,
     _rescue_interface_birth_supports,
+    _suppress_tiny_cross_pair_marker_clusters,
     _typed_adjacency_penalty,
     build_surface_atom_graph,
     extract_owned_bend_regions,
@@ -262,6 +263,41 @@ def test_extract_owned_bend_regions_collapses_connected_bend_support():
     assert regions[0].owned_atom_ids == ("A2",)
     assert regions[0].admissible is True
     assert regions[0].post_bend_class == "transition_only"
+
+
+def test_suppress_tiny_cross_pair_marker_clusters_drops_smallest_multi_issue_fragment():
+    def region(bend_id, pair, anchor, atom_count, support_mass):
+        return OwnedBendRegion(
+            bend_id=bend_id,
+            bend_class="transition_only",
+            incident_flange_ids=pair,
+            canonical_bend_key=f"{','.join(pair)}::{bend_id}",
+            owned_atom_ids=tuple(f"{bend_id}_A{i}" for i in range(atom_count)),
+            anchor=anchor,
+            axis_direction=(1.0, 0.0, 0.0),
+            support_centroid=anchor,
+            span_endpoints=(anchor, anchor),
+            angle_deg=90.0,
+            radius_mm=None,
+            visibility_state="internal",
+            support_mass=support_mass,
+            admissible=True,
+            admissibility_reasons=(),
+            post_bend_class="transition_only",
+            debug_confidence=1.0,
+        )
+
+    large_a = region("OB3", ("F27", "F4"), (0.0, 0.0, 0.0), 18, 4007.0)
+    large_b = region("OB4", ("F1", "F14"), (31.0, 0.0, 0.0), 16, 6021.0)
+    tiny_multi_issue = region("OB9", ("F27", "F32"), (16.0, 0.0, 0.0), 3, 885.0)
+    far_tiny = region("OB10", ("F8", "F9"), (100.0, 0.0, 0.0), 3, 100.0)
+
+    filtered = _suppress_tiny_cross_pair_marker_clusters(
+        [large_a, large_b, tiny_multi_issue, far_tiny],
+        local_spacing_mm=1.5,
+    )
+
+    assert [item.bend_id for item in filtered] == ["OB3", "OB4", "OB10"]
 
 
 def test_dedupe_bend_hypotheses_collapses_overlap_even_when_flange_ids_drift():

@@ -1177,7 +1177,76 @@ def extract_owned_bend_regions(
             )
         )
         next_index += 1
-    return [item for item in regions if item.admissible]
+    return _suppress_tiny_cross_pair_marker_clusters(
+        [item for item in regions if item.admissible],
+        local_spacing_mm=float(getattr(atom_graph, "local_spacing_mm", 1.0) or 1.0),
+    )
+
+
+def _suppress_tiny_cross_pair_marker_clusters(
+    regions: Sequence[OwnedBendRegion],
+    *,
+    local_spacing_mm: float,
+    tiny_atom_count_max: int = 5,
+) -> List[OwnedBendRegion]:
+    """Drop tiny duplicate-like cross-pair bend fragments before count/render export.
+
+    These fragments are usually produced when a small residual support patch can be
+    explained by several neighboring flange-pair attachments. Keeping the larger
+    nearby support and suppressing the tiny fragment is safer than rendering two
+    clustered bend markers on top of the same visible bend area.
+    """
+    active = set(range(len(regions)))
+    threshold_mm = max(35.0, 10.0 * float(local_spacing_mm or 1.0))
+
+    def atom_count(index: int) -> int:
+        return len(regions[index].owned_atom_ids)
+
+    def pair(index: int) -> Tuple[str, ...]:
+        return tuple(sorted(str(value) for value in regions[index].incident_flange_ids))
+
+    while True:
+        candidate_edges: List[Tuple[int, int]] = []
+        ordered = sorted(active)
+        for offset, lhs in enumerate(ordered):
+            lhs_pair = pair(lhs)
+            if len(lhs_pair) != 2:
+                continue
+            lhs_anchor = np.asarray(regions[lhs].anchor, dtype=np.float64)
+            for rhs in ordered[offset + 1 :]:
+                rhs_pair = pair(rhs)
+                if len(rhs_pair) != 2 or lhs_pair == rhs_pair:
+                    continue
+                min_atoms = min(atom_count(lhs), atom_count(rhs))
+                if min_atoms > tiny_atom_count_max:
+                    continue
+                rhs_anchor = np.asarray(regions[rhs].anchor, dtype=np.float64)
+                if float(np.linalg.norm(lhs_anchor - rhs_anchor)) <= threshold_mm:
+                    candidate_edges.append((lhs, rhs))
+        if not candidate_edges:
+            break
+
+        issue_degree: Dict[int, int] = defaultdict(int)
+        for lhs, rhs in candidate_edges:
+            if atom_count(lhs) <= tiny_atom_count_max:
+                issue_degree[lhs] += 1
+            if atom_count(rhs) <= tiny_atom_count_max:
+                issue_degree[rhs] += 1
+        if not issue_degree:
+            break
+        drop_index = max(
+            issue_degree,
+            key=lambda index: (
+                issue_degree[index],
+                -atom_count(index),
+                -float(regions[index].support_mass),
+                -float(regions[index].debug_confidence),
+                regions[index].bend_id,
+            ),
+        )
+        active.remove(drop_index)
+
+    return [region for index, region in enumerate(regions) if index in active]
 
 
 def build_owned_region_renderable_objects(
