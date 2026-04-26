@@ -1,0 +1,66 @@
+{
+  "name": "zero_shot_holdout",
+  "description": "Frozen zero-shot holdout slice. Categories are chosen to stress repeated-90, rolled/mixed, partial/scan-limited, and non-development source families.",
+  "entries": [
+    {
+      "part_key": "11979003",
+      "scan_path": "/Users/idant/Downloads/11979003_C.stl",
+      "expectation": {
+        "expected_bend_count": 7
+      },
+      "holdout_tags": [
+        "full_scan",
+        "best_available_repeated_90_proxy",
+        "outside_development_slice"
+      ]
+    },
+    {
+      "part_key": "47479000",
+      "scan_path": "/Users/idant/Downloads/47479000_C.ply",
+      "expectation": {
+        "expected_profile_family": "rolled_or_mixed_transition"
+      },
+      "holdout_tags": [
+        "full_scan",
+        "rolled_profile_hint",
+        "outside_development_slice"
+      ]
+    },
+    {
+      "part_key": "48991006",
+      "scan_path": "/Users/idant/Downloads/48991006_A 4.ply",
+      "expectation": {
+        "expected_bend_count": 9,
+        "expected_profile_family": "rolled_or_mixed_transition"
+      },
+      "holdout_tags": [
+        "full_scan",
+        "mixed_angle_candidate",
+        "outside_development_slice"
+      ]
+    },
+    {
+      "part_key": "40500000",
+      "scan_path": "/Users/idant/Downloads/40500000_0_SCAN1 1.ply",
+      "expectation": {
+        "expected_profile_family": "scan_limited_partial",
+        "expected_abstained": true
+      },
+      "holdout_tags": [
+        "partial_scan",
+        "sparse_or_occluded_candidate",
+        "outside_development_slice"
+      ]
+    },
+    {
+      "part_key": "23553000",
+      "scan_path": "/Users/idant/Downloads/23553000_B_FULL_SCAN 1.ply",
+      "expectation": {},
+      "holdout_tags": [
+        "full_scan",
+        "outside_family_source_vendor_candidate",
+        "outside_development_slice"
+      ]
+    }
+  ]
+}

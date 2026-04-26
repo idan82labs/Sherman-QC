@@ -1,0 +1,184 @@
+{
+  "generated_at": "2026-04-22T00:00:00",
+  "baseline_kind": "branch_head_promoted_contract",
+  "seed_profile": {
+    "deterministic_seed": 101,
+    "retry_seeds": [211, 307]
+  },
+  "promotion_contract": {
+    "required_validation_order": [
+      "fast_tests",
+      "cad_gold",
+      "zero_shot_development",
+      "zero_shot_holdout",
+      "full_corpus_seeded",
+      "full_corpus_compare",
+      "engine_gap_analysis",
+      "position_hold_analysis",
+      "metrology_hold_analysis",
+      "seed_matrix_when_applicable"
+    ],
+    "hard_blockers": [
+      "cad_gold_mismatch",
+      "failed_scans",
+      "protected_metric_regression_without_approval",
+      "unexpected_cad_authority_change",
+      "new_invariant_failures"
+    ],
+    "refreeze_rule": "Refreeze only after a clean verify run with exact CAD-gold parity and a completed promotion memo in the tranche artifact folder.",
+    "artifact_folder_contract": "data/bend_corpus/evaluation/<stamp>_<change>/"
+  },
+  "cad_gold": {
+    "slice_json": "data/bend_corpus/evaluation_slices/cad_gold_set.json",
+    "gold_json": "data/bend_corpus/gold_sets/cad_structural_gold.json",
+    "verify_summary_json": "data/bend_corpus/evaluation/cad_gold_position_borrow_refreeze_verify_20260421_seeded_101/summary.json",
+    "rows_evaluated": 14,
+    "exact_matches": 14,
+    "mismatch_count": 0
+  },
+  "zero_shot_development": {
+    "slice_json": "data/bend_corpus/evaluation_slices/zero_shot_development.json",
+    "summary_json": "data/bend_corpus/evaluation/zero_shot_development_candidate6_20260420_seeded_101/summary.json",
+    "scans_processed": 7,
+    "successful_scans": 7,
+    "exact_count_accuracy": 1.0,
+    "count_range_contains_truth_rate": 1.0,
+    "dominant_angle_family_match_rate": 0.667,
+    "profile_family_match_rate": null,
+    "abstention_correctness_rate": null,
+    "mean_duplicate_line_family_rate": 0.456,
+    "abstained_rate": 0.571
+  },
+  "zero_shot_holdout": {
+    "slice_json": "data/bend_corpus/evaluation_slices/zero_shot_holdout.json",
+    "summary_json": "data/bend_corpus/evaluation/zero_shot_holdout_candidate7_20260420_seeded_101/summary.json",
+    "scans_processed": 5,
+    "successful_scans": 5,
+    "exact_count_accuracy": null,
+    "count_range_contains_truth_rate": 1.0,
+    "dominant_angle_family_match_rate": null,
+    "profile_family_match_rate": 1.0,
+    "abstention_correctness_rate": 1.0,
+    "mean_duplicate_line_family_rate": 0.479,
+    "abstained_rate": 1.0
+  },
+  "supplemental_zero_shot_slices": {
+    "small_tight_bends": {
+      "slice_json": "data/bend_corpus/evaluation_slices/zero_shot_small_tight_bends.json",
+      "summary_json": "data/bend_corpus/evaluation/zero_shot_small_tight_bends_baseline_20260422_seeded_101/summary.json",
+      "scans_processed": 5,
+      "successful_scans": 5,
+      "count_range_contains_truth_rate": 1.0,
+      "mean_duplicate_line_family_rate": 0.364,
+      "mean_bend_support_strip_count": 5.4,
+      "mean_strip_duplicate_merge_count": 0.2,
+      "abstained_rate": 1.0,
+      "required_when": [
+        "detector_support_changes",
+        "evidence_admission_changes",
+        "strip_grouping_changes_for_compact_neighbor_bends",
+        "small_bend_observability_changes"
+      ],
+      "notes": "Supplemental benchmark for compact fixtures with short neighboring bends. Use alongside the protected development and holdout slices; do not relax branch-head gates to improve this slice."
+    },
+    "known_count_plys": {
+      "slice_json": "data/bend_corpus/evaluation_slices/zero_shot_known_count_plys.json",
+      "summary_json": "data/bend_corpus/evaluation/zero_shot_known_count_plys_20260422_seeded_101/summary.json",
+      "scans_processed": 10,
+      "successful_scans": 10,
+      "exact_count_evaluated": 4,
+      "exact_count_accuracy": 1.0,
+      "count_range_contains_truth_rate": 1.0,
+      "abstained_rate": 0.5,
+      "required_when": [
+        "exact_count_promotion_changes",
+        "selector_abstention_changes",
+        "deterministic_output_changes"
+      ],
+      "notes": "Known-count real-Ply audit slice. Use it to track deterministic zero-shot output quality separately from the protected development and holdout contracts."
+    },
+    "repeated_near_90": {
+      "slice_json": "data/bend_corpus/evaluation_slices/zero_shot_repeated_near_90.json",
+      "summary_json": "data/bend_corpus/evaluation/zero_shot_repeated_near_90_baseline_20260423_seeded_101/summary.json",
+      "analysis_json": "data/bend_corpus/evaluation/zero_shot_repeated_near_90_baseline_20260423_seeded_101/repeated_near_90_analysis.json",
+      "scans_processed": 3,
+      "successful_scans": 3,
+      "exact_count_evaluated": 1,
+      "exact_count_accuracy": 1.0,
+      "count_range_contains_truth_rate": 1.0,
+      "dominant_angle_family_match_rate": 1.0,
+      "abstained_rate": 0.333,
+      "required_when": [
+        "voxel_perturbation_changes",
+        "detector_preprocessing_changes",
+        "repeated_family_candidate_preservation_changes"
+      ],
+      "notes": "Repeated near-90 real-Ply benchmark for perturbation stability. Use the paired analysis output to reject preprocessing or detector changes that broaden `ysherman` or destabilize repeated-family support even when protected development and holdout slices stay green."
+    },
+    "partial_total_bends": {
+      "slice_json": "data/bend_corpus/evaluation_slices/zero_shot_partial_total_bends.json",
+      "summary_json": "data/bend_corpus/evaluation/zero_shot_partial_total_bends_guard1_20260423_seeded_101/summary.json",
+      "scans_processed": 10,
+      "successful_scans": 10,
+      "exact_count_evaluated": 0,
+      "exact_count_accuracy": null,
+      "count_range_contains_truth_rate": 0.4,
+      "abstained_rate": 1.0,
+      "profile_family_breakdown": {
+        "scan_limited_partial": 10
+      },
+      "required_when": [
+        "partial_scan_handling_changes",
+        "exact_count_promotion_changes",
+        "scan_state_inference_changes"
+      ],
+      "notes": "Partial-scan negative-control audit. Use it to verify that runtime zero-shot abstains on partial geometry instead of emitting exact whole-part counts; do not treat whole-part total bend count as a protected deterministic target on this slice."
+    }
+  },
+  "theory_to_reality_experiment_lane": {
+    "runner_script": "scripts/run_zero_shot_theory_experiment.py",
+    "program_doc": "docs/release/THEORY_TO_REALITY_TEST_PROGRAM.md",
+    "control_policy": "The current validated zero-shot engine is the control. Theory-derived methods must run in isolated fresh control-vs-candidate comparisons before any runtime promotion.",
+    "required_slices": [
+      "zero_shot_development",
+      "zero_shot_holdout",
+      "supplemental_zero_shot_slices.known_count_plys",
+      "supplemental_zero_shot_slices.repeated_near_90",
+      "supplemental_zero_shot_slices.small_tight_bends"
+    ],
+    "conditional_slices": [
+      "supplemental_zero_shot_slices.partial_total_bends"
+    ],
+    "watch_cases": {
+      "exact_anchors_must_hold": ["10839000", "47959001"],
+      "hard_cases_must_not_broaden": ["ysherman", "49204020_04"],
+      "secondary_hard_cases": ["48963008", "48991006"]
+    },
+    "winning_rule": "Keep an isolated family only if protected and supplemental slices stay green and at least one hard full-scan case materially improves by tighter range or new correct exact output.",
+    "rejection_rule": "Reject a family on any protected regression, broader hard-case band, loss of an exact anchor, or improvement that depends on broad preprocessing without stable canary wins."
+  },
+  "full_corpus_cad": {
+    "summary_json": "data/bend_corpus/evaluation/full_corpus_post_position_borrow_20260421_seeded_101/summary.json",
+    "successful_scans": 29,
+    "failed_scans": 0,
+    "mae_vs_expected_total_completed": 0.786,
+    "mae_vs_expected_completed": 0.0,
+    "full_scan_exact_completion_rate": 0.941,
+    "correspondence_decision_ready_rate": 0.788,
+    "position_eligible_bends": 65,
+    "accepted_bends": 37,
+    "accepted_coverage_rate": 0.237,
+    "engine_gap_bends": 58,
+    "scan_limited_bends": 33,
+    "process_or_policy_bends": 28,
+    "position_signal_unavailable_holds": 80,
+    "unknown_position_bends": 91,
+    "ambiguity_invariant_fail_scans": 0,
+    "contradiction_case_count": 11
+  },
+  "engine_gap_queue": {
+    "slice_json": "data/bend_corpus/evaluation_slices/engine_gap_position_unknown_full_scans_post_position_borrow.json",
+    "analysis_json": "data/bend_corpus/evaluation/engine_gap_position_unknown_full_scans_post_position_borrow_20260421/analysis.json",
+    "top_part_keys": ["47479000", "11979003", "48963008", "49024000", "44211000", "47266000", "15651004", "48991006"]
+  }
+}
