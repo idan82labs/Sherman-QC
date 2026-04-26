@@ -1246,6 +1246,78 @@ def _suppress_tiny_cross_pair_marker_clusters(
     return [region for index, region in enumerate(regions) if index in active]
 
 
+def _suppress_same_pair_marker_aliases(
+    regions: Sequence[OwnedBendRegion],
+    *,
+    local_spacing_mm: float,
+    alias_atom_count_max: int = 15,
+) -> List[OwnedBendRegion]:
+    """Drop close same-pair marker aliases from render/export artifacts.
+
+    This is deliberately conservative and render-only. It suppresses the
+    smaller support only when two raw owned regions pick the same selected
+    flange pair, sit close together, and at least one side is a small alias-like
+    fragment. Real neighboring bends with larger support should remain visible.
+    """
+    active = set(range(len(regions)))
+    threshold_mm = max(35.0, 6.0 * float(local_spacing_mm or 1.0))
+
+    def atom_count(index: int) -> int:
+        return len(regions[index].owned_atom_ids)
+
+    def pair(index: int) -> Tuple[str, ...]:
+        return tuple(sorted(str(value) for value in regions[index].incident_flange_ids))
+
+    def anchor(index: int) -> np.ndarray:
+        return np.asarray(regions[index].anchor, dtype=np.float64)
+
+    def axis(index: int) -> np.ndarray:
+        return _normalize_direction(np.asarray(regions[index].axis_direction, dtype=np.float64))
+
+    while True:
+        duplicate_edges: List[Tuple[int, int]] = []
+        ordered = sorted(active)
+        for offset, lhs in enumerate(ordered):
+            lhs_pair = pair(lhs)
+            if len(lhs_pair) != 2:
+                continue
+            for rhs in ordered[offset + 1 :]:
+                if lhs_pair != pair(rhs):
+                    continue
+                min_atoms = min(atom_count(lhs), atom_count(rhs))
+                if min_atoms > alias_atom_count_max:
+                    continue
+                if float(np.linalg.norm(anchor(lhs) - anchor(rhs))) > threshold_mm:
+                    continue
+                if _angle_deg(axis(lhs), axis(rhs)) > 18.0:
+                    continue
+                duplicate_edges.append((lhs, rhs))
+        if not duplicate_edges:
+            break
+
+        issue_degree: Dict[int, int] = defaultdict(int)
+        for lhs, rhs in duplicate_edges:
+            if atom_count(lhs) <= alias_atom_count_max:
+                issue_degree[lhs] += 1
+            if atom_count(rhs) <= alias_atom_count_max:
+                issue_degree[rhs] += 1
+        if not issue_degree:
+            break
+        drop_index = max(
+            issue_degree,
+            key=lambda index: (
+                issue_degree[index],
+                -atom_count(index),
+                -float(regions[index].support_mass),
+                -float(regions[index].debug_confidence),
+                regions[index].bend_id,
+            ),
+        )
+        active.remove(drop_index)
+
+    return [region for index, region in enumerate(regions) if index in active]
+
+
 def build_owned_region_renderable_objects(
     owned_bend_regions: Sequence[OwnedBendRegion],
     atom_graph: Optional[SurfaceAtomGraph] = None,
@@ -1255,6 +1327,10 @@ def build_owned_region_renderable_objects(
     atom_lookup = {atom.atom_id: atom for atom in atom_graph.atoms} if atom_graph is not None else {}
     render_regions = list(owned_bend_regions)
     if suppress_tiny_marker_clusters and atom_graph is not None:
+        render_regions = _suppress_same_pair_marker_aliases(
+            render_regions,
+            local_spacing_mm=float(atom_graph.local_spacing_mm or 1.0),
+        )
         render_regions = _suppress_tiny_cross_pair_marker_clusters(
             render_regions,
             local_spacing_mm=float(atom_graph.local_spacing_mm or 1.0),
@@ -1480,7 +1556,7 @@ def _render_owned_region_atom_projection(
         )
 
     ax.set_title(
-        f"Raw F1 Owned Bend Projection - {len(result.owned_bend_regions)} owned support regions",
+        f"Debug Raw F1 Owned Bend Projection - {len(result.owned_bend_regions)} support regions (not final dots)",
         fontsize=15,
         fontweight="bold",
         color="#0f172a",
@@ -1509,6 +1585,11 @@ def render_decomposition_artifacts(
         "generated_at": str(np.datetime64("now")),
         "source_kind": "patch_graph_f1",
         "owned_region_semantics": "raw_f1_owned_support_regions_not_always_accepted_candidate_count",
+        "render_debug_semantics": "debug_raw_owned_regions_not_final_accepted_bends",
+        "accepted_final_marker_semantics": (
+            "final bend markers are only valid when the run summary reports "
+            "accepted_render_semantics=owned_regions_match_accepted_exact"
+        ),
         "scan_path": result.scan_path,
         "raw_f1_estimated_bend_count": result.exact_bend_count,
         "raw_f1_estimated_bend_count_range": list(result.bend_count_range),
@@ -1536,7 +1617,7 @@ def render_decomposition_artifacts(
             focused_bend_ids=None,
             show_issue_callouts=False,
             compact_bend_labels=True,
-            title_override=f"Raw F1 Owned Bend Regions - {len(renderable)} owned support regions",
+            title_override=f"Debug Raw F1 Owned Regions - {len(renderable)} support regions (not final dots)",
         )
     )
     overview_view_paths: Dict[str, str] = {"iso": str(overview_path)}
@@ -1553,8 +1634,8 @@ def render_decomposition_artifacts(
                 show_issue_callouts=False,
                 compact_bend_labels=True,
                 title_override=(
-                    f"Raw F1 Owned Bend Regions - {len(renderable)} owned support regions "
-                    f"({view.capitalize()} view)"
+                    f"Debug Raw F1 Owned Regions - {len(renderable)} support regions "
+                    f"(not final dots, {view.capitalize()} view)"
                 ),
             )
         )
@@ -1605,7 +1686,7 @@ def render_decomposition_artifacts(
                 height=1080,
                 focused_bend_ids=[bend_id],
                 show_issue_callouts=False,
-                title_override=f"Raw F1 Owned Region {bend_id}",
+                title_override=f"Debug Raw F1 Owned Region {bend_id} - not an accepted final marker",
             )
         )
         focus_paths.append(str(focus_path))

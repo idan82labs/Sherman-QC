@@ -51,3 +51,23 @@ This note records assistant visual inspection of the 1080p review renders after 
 3. Improve duplicate support collapse where multiple OB labels sit on the same physical bend zone.
 4. Add a feature-class gate for raised/form features so they do not compete directly with conventional bend count.
 5. Improve compact-neighbor separation on `47959001`, where the accepted range is safe but raw F1 still misses one human-counted visible bend.
+
+## Follow-up Patch
+
+- Raw F1 render titles now explicitly say `Debug Raw F1` and `not final dots`.
+- Owned-region manifests now include `render_debug_semantics=debug_raw_owned_regions_not_final_accepted_bends`.
+- Render/export now suppresses conservative same-selected-pair alias markers before screenshots and manifest export. This targets cases like `48991006`, where two nearby OB labels can sit on the same physical bend.
+- The suppression is artifact-only. It does not change solver ownership, F1 candidate ranges, accepted exact/range logic, runtime zero-shot, or product APIs.
+- Focused regression: `82 passed` across patch-graph decomposition, marker audit, accuracy validation, and F1 runner tests.
+
+## Regenerated Review Pack
+
+- Generated focused 1080p review pack at `/Users/idant/Library/Mobile Documents/com~apple~CloudDocs/Sherman QC/Status for Idan to test/visual_qa_after_debug_alias_patch_20260426`.
+- `49024000`: accepted range remains `[3,16]` with corrected manual truth `3`; raw F1 still solves as `4`, but render/export suppresses one raw marker and shows `3` debug support regions.
+- `48991006`: accepted range remains `[8,12]`; raw F1 still solves as `9`, but render/export suppresses three raw marker aliases/fragments and shows `6` debug support regions.
+
+## Remaining Before Promotion
+
+- Keep `49024000` treated as a 3-bend manual-truth case; only `OB2` was manually accepted in the previous raw debug view.
+- Keep `48991006` as poor-scan / duplicate-owned-region evidence. The regenerated render is less noisy, but still not clean enough for exact promotion.
+- Do not promote raw F1 exact output from range cases. Promotion remains blocked until accepted final markers match a validated exact count.

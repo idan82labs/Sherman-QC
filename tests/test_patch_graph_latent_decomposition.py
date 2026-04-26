@@ -27,6 +27,7 @@ from patch_graph_latent_decomposition import (
     _normalize_bend_hypotheses,
     _prune_and_refit_labels,
     _rescue_interface_birth_supports,
+    _suppress_same_pair_marker_aliases,
     _suppress_tiny_cross_pair_marker_clusters,
     _typed_adjacency_penalty,
     build_surface_atom_graph,
@@ -300,6 +301,41 @@ def test_suppress_tiny_cross_pair_marker_clusters_drops_smallest_multi_issue_fra
     assert [item.bend_id for item in filtered] == ["OB3", "OB4", "OB10"]
 
 
+def test_suppress_same_pair_marker_aliases_drops_close_tiny_alias_only():
+    def region(bend_id, pair, anchor, atom_count, support_mass, axis=(1.0, 0.0, 0.0)):
+        return OwnedBendRegion(
+            bend_id=bend_id,
+            bend_class="transition_only",
+            incident_flange_ids=pair,
+            canonical_bend_key=f"{','.join(pair)}::{bend_id}",
+            owned_atom_ids=tuple(f"{bend_id}_A{i}" for i in range(atom_count)),
+            anchor=anchor,
+            axis_direction=axis,
+            support_centroid=anchor,
+            span_endpoints=(anchor, anchor),
+            angle_deg=90.0,
+            radius_mm=None,
+            visibility_state="internal",
+            support_mass=support_mass,
+            admissible=True,
+            admissibility_reasons=(),
+            post_bend_class="transition_only",
+            debug_confidence=0.8,
+        )
+
+    real_region = region("OB4", ("F1", "F2"), (0.0, 0.0, 0.0), 24, 5000.0)
+    tiny_alias = region("OB5", ("F2", "F1"), (18.0, 0.0, 0.0), 5, 400.0)
+    far_same_pair = region("OB6", ("F1", "F2"), (90.0, 0.0, 0.0), 4, 300.0)
+    real_neighbor = region("OB7", ("F1", "F2"), (25.0, 0.0, 0.0), 20, 4500.0)
+
+    filtered = _suppress_same_pair_marker_aliases(
+        [real_region, tiny_alias, far_same_pair, real_neighbor],
+        local_spacing_mm=2.0,
+    )
+
+    assert [item.bend_id for item in filtered] == ["OB4", "OB6", "OB7"]
+
+
 def test_dedupe_bend_hypotheses_collapses_overlap_even_when_flange_ids_drift():
     bend1 = _bend("B1", atom_ids=("A1", "A2", "A3", "A4"), cross_width_mm=2.0, span_mm=10.0, confidence=0.9)
     bend2 = _bend(
@@ -399,7 +435,7 @@ def test_render_decomposition_artifacts_marks_raw_f1_ownership_semantics(tmp_pat
 
     class DummyRenderer:
         def render_bend_status_overlay(self, **kwargs):
-            assert kwargs["title_override"].startswith(("Raw F1", "Scan Context"))
+            assert kwargs["title_override"].startswith(("Debug Raw F1", "Scan Context"))
             return b"dummy-png-bytes"
 
     import patch_graph_latent_decomposition as module
@@ -409,6 +445,7 @@ def test_render_decomposition_artifacts_marks_raw_f1_ownership_semantics(tmp_pat
 
     manifest = json.loads((tmp_path / "owned_region_manifest.json").read_text())
     assert manifest["owned_region_semantics"] == "raw_f1_owned_support_regions_not_always_accepted_candidate_count"
+    assert manifest["render_debug_semantics"] == "debug_raw_owned_regions_not_final_accepted_bends"
     assert manifest["raw_f1_owned_region_count"] == 1
     assert "estimated_bend_count" not in manifest
     assert manifest["bends"][0]["metadata"]["render_anchor_source"] == "owned_atom_medoid"
