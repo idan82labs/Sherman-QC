@@ -97,6 +97,13 @@ This note records assistant visual inspection of the 1080p review renders after 
 - Result: rejected. The diagnostic found no admissible clean missing-bend candidate: `selection_status=no_admissible_candidate`, `corridor_coverage_status=no_corridor_gap`, and `family_residual_repair_eligible=false`.
 - Decision: current overcomplete interface-birth candidates are not sufficient for `49024000`. The next algorithmic tranche should create new candidate support from flange-interface/residual geometry, then score it against manual-label deficits before any exact promotion.
 
+## Residual / Interface Support Proposal Diagnostic
+
+- Added `scripts/analyze_f1_residual_interface_support_candidates.py`, a diagnostic-only search over residual/flange-interface atoms. It excludes manually accepted conventional support and treats manually rejected raw OB atoms as evidence only, not as countable bends.
+- `49024000` result: `recovery_deficit=2`, `candidate_count=237`, `admissible_candidate_count=4`, `status=ambiguous_overlapping_candidate_pool`.
+- The four admissible candidates all conflict into one overlapping component (`RIC1`-`RIC4`), with high atom overlap / near-centroid conflicts. This means the residual/interface signal exists, but it is not yet separated into two physical missing bend objects.
+- Decision: next solver tranche should add corridor-family selection or sub-clustering over residual/interface support before any birth promotion. The current diagnostic should not be used to accept exact `3` yet.
+
 ## Remaining Before Promotion
 
 - Keep `49024000` treated as a 3-bend manual-truth case; only `OB2` was manually accepted in the previous raw debug view.
