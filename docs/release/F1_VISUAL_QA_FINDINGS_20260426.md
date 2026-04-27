@@ -63,8 +63,14 @@ This note records assistant visual inspection of the 1080p review renders after 
 ## Regenerated Review Pack
 
 - Generated focused 1080p review pack at `/Users/idant/Library/Mobile Documents/com~apple~CloudDocs/Sherman QC/Status for Idan to test/visual_qa_after_debug_alias_patch_20260426`.
-- `49024000`: accepted range remains `[3,16]` with corrected manual truth `3`; raw F1 still solves as `4`, but render/export suppresses one raw marker and shows `3` debug support regions.
+- `49024000`: accepted range remains `[3,16]` with corrected manual truth `3`; raw F1 still solves as `4`, but the review reason is now `raw_f1_stable_singleton_conflicts_with_known_truth`, not a promotion candidate.
 - `48991006`: accepted range remains `[8,12]`; raw F1 still solves as `9`, but render/export suppresses three raw marker aliases/fragments and shows `6` debug support regions.
+
+## Rejected Solver Cleanup Probe
+
+- A no-render probe forced selected-pair duplicate cleanup into the solver/count path with relaxed alias thresholds.
+- Result: rejected. It did not fix `49024000` (`4` stayed `4`) and damaged protected/sensitive cases: `48991006` collapsed to `6`, `47959001` collapsed to `1`, and `10839000` narrowed to `9`.
+- Decision: keep alias/cluster cleanup in render/export artifacts only for now. Solver-count cleanup needs a stronger physical split/merge/support model before it can be trusted.
 
 ## Remaining Before Promotion
 

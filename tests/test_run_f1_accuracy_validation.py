@@ -220,6 +220,34 @@ def test_known_review_flags_non_singleton_range_for_render_review():
     assert "non_singleton_known_count_range" in reasons
 
 
+def test_known_review_blocks_raw_f1_promotion_candidate_when_raw_singleton_conflicts_with_truth():
+    row = {
+        "expectation": {"expected_bend_count": 3},
+        "candidate": {"exact_bend_count": None, "bend_count_range": [3, 16]},
+        "raw_f1_candidate": {"map_bend_count": 4, "bend_count_range": [4, 4]},
+        "raw_f1_promotion_diagnostic": {"candidate": True},
+    }
+
+    reasons = validator._known_escalation_reasons(row)
+
+    assert "raw_f1_stable_singleton_conflicts_with_known_truth" in reasons
+    assert "raw_f1_manual_promotion_candidate" not in reasons
+
+
+def test_known_review_keeps_raw_f1_promotion_candidate_when_raw_singleton_matches_truth():
+    row = {
+        "expectation": {"expected_bend_count": 4},
+        "candidate": {"exact_bend_count": None, "bend_count_range": [3, 16]},
+        "raw_f1_candidate": {"map_bend_count": 4, "bend_count_range": [4, 4]},
+        "raw_f1_promotion_diagnostic": {"candidate": True},
+    }
+
+    reasons = validator._known_escalation_reasons(row)
+
+    assert "raw_f1_manual_promotion_candidate" in reasons
+    assert "raw_f1_stable_singleton_conflicts_with_known_truth" not in reasons
+
+
 def test_final_marker_overlay_requires_singleton_range_matching_exact():
     assert validator._has_final_accepted_exact(
         {"accepted_exact_bend_count": 12, "accepted_bend_count_range": [12, 12]}

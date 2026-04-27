@@ -167,8 +167,21 @@ def _known_escalation_reasons(row: Mapping[str, Any]) -> List[str]:
     width = _range_width(candidate_range)
     if width is not None and width > 0:
         reasons.append("non_singleton_known_count_range")
-    if dict(row.get("raw_f1_promotion_diagnostic") or {}).get("candidate"):
-        reasons.append("raw_f1_manual_promotion_candidate")
+    raw_promotion = dict(row.get("raw_f1_promotion_diagnostic") or {})
+    if raw_promotion.get("candidate"):
+        raw_f1 = dict(row.get("raw_f1_candidate") or {})
+        raw_map = raw_f1.get("map_bend_count")
+        if expected is not None and raw_map is not None:
+            try:
+                raw_conflicts = int(raw_map) != int(expected)
+            except (TypeError, ValueError):
+                raw_conflicts = False
+            if raw_conflicts:
+                reasons.append("raw_f1_stable_singleton_conflicts_with_known_truth")
+            else:
+                reasons.append("raw_f1_manual_promotion_candidate")
+        else:
+            reasons.append("raw_f1_manual_promotion_candidate")
     return reasons
 
 
