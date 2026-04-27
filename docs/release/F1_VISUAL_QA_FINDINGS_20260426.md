@@ -84,6 +84,19 @@ This note records assistant visual inspection of the 1080p review renders after 
 - Result: rejected. Counts climbed with the cap (`5`, `6`, `8`, then `15-16`) instead of converging to the validated `3`.
 - Decision: do not loosen birth caps. The next solver work needs object-level support competition that can choose the right missing supports while rejecting large false supports.
 
+## Split-Recovery Diagnostic
+
+- Updated `scripts/analyze_f1_owned_region_split_candidates.py` so manual/feature-label deficits drive recovery diagnostics, not just raw owned-region count.
+- `49024000` now reports `capacity_deficit=2` from `valid_conventional_region_deficit` / `valid_counted_feature_deficit`, while `owned_region_capacity_deficit=0`.
+- Result: no existing owned region is a strong balanced split candidate. `OB1` has enough span but no large absolute along-axis gap; `OB2`, `OB3`, and `OB4` are too small or unbalanced.
+- Decision: reject “split existing owned region” as the next fix for `49024000`. This case needs missing support discovery from residual/flange-interface evidence, not splitting the current OB set.
+
+## Interface-Birth Candidate Diagnostic
+
+- Ran the existing exact-blocker/interface-birth diagnostic using the raw visual-QA result as baseline and the `cap_6` overcomplete run as candidate pool.
+- Result: rejected. The diagnostic found no admissible clean missing-bend candidate: `selection_status=no_admissible_candidate`, `corridor_coverage_status=no_corridor_gap`, and `family_residual_repair_eligible=false`.
+- Decision: current overcomplete interface-birth candidates are not sufficient for `49024000`. The next algorithmic tranche should create new candidate support from flange-interface/residual geometry, then score it against manual-label deficits before any exact promotion.
+
 ## Remaining Before Promotion
 
 - Keep `49024000` treated as a 3-bend manual-truth case; only `OB2` was manually accepted in the previous raw debug view.

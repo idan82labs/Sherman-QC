@@ -129,7 +129,19 @@ def analyze_owned_region_split_candidates(
     )
     summary = dict(feature_label_summary or {})
     capacity = dict(summary.get("label_capacity") or {})
-    deficit = _as_int(capacity.get("owned_region_capacity_deficit")) or 0
+    owned_region_deficit = _as_int(capacity.get("owned_region_capacity_deficit")) or 0
+    conventional_region_deficit = _as_int(capacity.get("valid_conventional_region_deficit")) or 0
+    counted_feature_deficit = _as_int(capacity.get("valid_counted_feature_deficit")) or 0
+    deficit = max(owned_region_deficit, conventional_region_deficit, counted_feature_deficit)
+    deficit_basis = [
+        name
+        for name, value in (
+            ("owned_region_capacity_deficit", owned_region_deficit),
+            ("valid_conventional_region_deficit", conventional_region_deficit),
+            ("valid_counted_feature_deficit", counted_feature_deficit),
+        )
+        if value == deficit and value > 0
+    ]
     split_candidates = [row for row in metrics if row.get("split_candidate")]
     return {
         "generated_at": datetime.now().isoformat(timespec="seconds"),
@@ -137,6 +149,10 @@ def analyze_owned_region_split_candidates(
         "part_id": decomposition.get("part_id"),
         "owned_region_count": len(regions),
         "capacity_deficit": deficit,
+        "owned_region_capacity_deficit": owned_region_deficit,
+        "valid_conventional_region_deficit": conventional_region_deficit,
+        "valid_counted_feature_deficit": counted_feature_deficit,
+        "deficit_basis": deficit_basis,
         "split_candidate_count": len(split_candidates),
         "top_split_candidate_bend_ids": [row["bend_id"] for row in split_candidates[:5]],
         "status": (

@@ -6,3 +6,8 @@ These files encode manual owned-region feedback from the 1080p F1 visual review.
 - `48991006_feature_region_labels.json`: partial region labels. User identified `OB4` and `OB5` as the same physical bend zone; the remaining regions need a cleaner manual pass because the scan/process quality is poor.
 
 Use `scripts/summarize_f1_feature_region_labels.py` to regenerate the `*_summary.json` files.
+
+## Follow-up Diagnostics
+
+- `49024000_split_candidate_diagnostics.json`: label-aware split-recovery diagnostic. It uses `valid_conventional_region_deficit` and `valid_counted_feature_deficit` as recovery targets. Current result: `missing_region_recovery_needed`, with no strong split candidate among existing owned regions.
+- `49024000_interface_birth_cap6_diagnostics/`: exact-blocker/interface-birth diagnostic comparing the visual-QA baseline against the `cap_6` overcomplete pool. Current result: no admissible clean missing-bend candidate, so this case still needs a stronger residual/flange-interface support proposal step.

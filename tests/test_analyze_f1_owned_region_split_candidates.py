@@ -68,6 +68,34 @@ def test_missing_region_status_when_no_split_candidate_for_deficit():
     assert report["split_candidate_count"] == 0
 
 
+def test_conventional_region_deficit_drives_split_recovery_even_when_raw_count_is_not_short():
+    left = [_atom(f"L{i}", i * 3.0) for i in range(5)]
+    right = [_atom(f"R{i}", 60.0 + i * 3.0) for i in range(5)]
+    atoms = left + right
+    report = analyzer.analyze_owned_region_split_candidates(
+        decomposition={
+            "scan_path": "/tmp/demo.ply",
+            "part_id": "demo",
+            "atom_graph": {"atoms": atoms},
+            "owned_bend_regions": [_region("OB1", [atom["atom_id"] for atom in atoms])],
+        },
+        feature_label_summary={
+            "label_capacity": {
+                "owned_region_capacity_deficit": 0,
+                "valid_conventional_region_deficit": 2,
+                "valid_counted_feature_deficit": 2,
+            }
+        },
+    )
+
+    assert report["status"] == "split_candidate_available"
+    assert report["capacity_deficit"] == 2
+    assert report["owned_region_capacity_deficit"] == 0
+    assert report["valid_conventional_region_deficit"] == 2
+    assert "valid_conventional_region_deficit" in report["deficit_basis"]
+    assert report["top_split_candidate_bend_ids"] == ["OB1"]
+
+
 def test_no_capacity_deficit_status():
     atoms = [_atom(f"A{i}", i * 3.0) for i in range(10)]
     report = analyzer.analyze_owned_region_split_candidates(
