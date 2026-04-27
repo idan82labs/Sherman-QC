@@ -79,6 +79,16 @@ def summarize_feature_region_labels(payload: Mapping[str, Any]) -> Dict[str, Any
         if expected_counted_total is not None
         else 0
     )
+    valid_conventional_region_deficit = (
+        max(0, int(expected_conventional) - conventional_count)
+        if expected_conventional is not None
+        else 0
+    )
+    valid_counted_feature_deficit = (
+        max(0, int(expected_counted_total) - total_counted_feature_count)
+        if expected_counted_total is not None
+        else 0
+    )
 
     complete = not pending and not invalid
     resolves_conventional = complete and expected_conventional is not None and conventional_count == expected_conventional
@@ -128,7 +138,10 @@ def summarize_feature_region_labels(payload: Mapping[str, Any]) -> Dict[str, Any
             "owned_region_count": len(rows),
             "expected_counted_conventional_plus_raised": expected_counted_total,
             "owned_region_capacity_deficit": region_capacity_deficit,
+            "valid_conventional_region_deficit": valid_conventional_region_deficit,
+            "valid_counted_feature_deficit": valid_counted_feature_deficit,
             "requires_split_or_missing_region_recovery": bool(region_capacity_deficit > 0),
+            "requires_missing_conventional_region_recovery": bool(valid_conventional_region_deficit > 0 and complete and not invalid),
         },
         "resolves_expected_counts": {
             "conventional_bends": bool(resolves_conventional),

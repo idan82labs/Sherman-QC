@@ -72,6 +72,18 @@ This note records assistant visual inspection of the 1080p review renders after 
 - Result: rejected. It did not fix `49024000` (`4` stayed `4`) and damaged protected/sensitive cases: `48991006` collapsed to `6`, `47959001` collapsed to `1`, and `10839000` narrowed to `9`.
 - Decision: keep alias/cluster cleanup in render/export artifacts only for now. Solver-count cleanup needs a stronger physical split/merge/support model before it can be trusted.
 
+## Region-Level Label Encoding
+
+- Added owned-region feature labels under `data/bend_corpus/annotations/f1_feature_region_labels_20260427/`.
+- `49024000`: complete labels show only `OB2` is a validated conventional bend; `OB1`, `OB3`, and `OB4` are fragments/false supports. Summary reports `valid_conventional_region_deficit=2`, proving this is missing-support/split-recovery, not only duplicate overcount.
+- `48991006`: partial labels encode the user finding that `OB4` and `OB5` sit on the same physical bend zone, with `OB5` marked duplicate and other regions pending because scan/process quality is poor.
+
+## Rejected Support-Birth Cap Probe
+
+- A `49024000` no-render probe relaxed the birth-rescue active-count cap.
+- Result: rejected. Counts climbed with the cap (`5`, `6`, `8`, then `15-16`) instead of converging to the validated `3`.
+- Decision: do not loosen birth caps. The next solver work needs object-level support competition that can choose the right missing supports while rejecting large false supports.
+
 ## Remaining Before Promotion
 
 - Keep `49024000` treated as a 3-bend manual-truth case; only `OB2` was manually accepted in the previous raw debug view.

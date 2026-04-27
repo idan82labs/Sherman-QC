@@ -1,0 +1,93 @@
+{
+  "generated_at": "2026-04-27T15:49:57",
+  "part_key": "49024000",
+  "scan_name": "49024000_A.ply",
+  "region_count": 4,
+  "valid_labels": [
+    "conventional_bend",
+    "fragment_or_duplicate",
+    "raised_form_feature",
+    "rolled_transition",
+    "unclear"
+  ],
+  "pending_region_ids": [],
+  "invalid_labels": [],
+  "label_counts": {
+    "conventional_bend": 1,
+    "fragment_or_duplicate": 3
+  },
+  "computed_counts": {
+    "conventional_bend_count": 1,
+    "raised_form_feature_count": 0,
+    "rolled_transition_count": 0,
+    "fragment_or_duplicate_count": 3,
+    "unclear_count": 0,
+    "total_counted_feature_count": 1
+  },
+  "expected_counts": {
+    "conventional_bend_count": 3,
+    "raised_form_feature_count": 0,
+    "total_feature_count": 3,
+    "counted_conventional_plus_raised": 3
+  },
+  "label_capacity": {
+    "owned_region_count": 4,
+    "expected_counted_conventional_plus_raised": 3,
+    "owned_region_capacity_deficit": 0,
+    "valid_conventional_region_deficit": 2,
+    "valid_counted_feature_deficit": 2,
+    "requires_split_or_missing_region_recovery": false,
+    "requires_missing_conventional_region_recovery": true
+  },
+  "resolves_expected_counts": {
+    "conventional_bends": false,
+    "raised_form_features": true,
+    "total_features": false
+  },
+  "blocker_status": "labels_do_not_resolve_expected_counts",
+  "regions": [
+    {
+      "bend_id": "OB1",
+      "human_feature_label": "fragment_or_duplicate",
+      "suggested_role": "false_positive_large_support",
+      "diagnostic_tags": [
+        "manual_rejected",
+        "large_false_support",
+        "circular_strip"
+      ],
+      "notes": "Manual review: wrong raw owned-region mark, not one of the 3 counted conventional bends."
+    },
+    {
+      "bend_id": "OB2",
+      "human_feature_label": "conventional_bend",
+      "suggested_role": "validated_conventional_bend",
+      "diagnostic_tags": [
+        "manual_accepted",
+        "valid_support"
+      ],
+      "notes": "Manual review: OB2 is acceptable and sits on a real conventional bend."
+    },
+    {
+      "bend_id": "OB3",
+      "human_feature_label": "fragment_or_duplicate",
+      "suggested_role": "false_positive_fragment",
+      "diagnostic_tags": [
+        "manual_rejected",
+        "tiny_support",
+        "same_zone_as_ob2"
+      ],
+      "notes": "Manual review: wrong raw owned-region mark. This is a small false support near the accepted bend zone."
+    },
+    {
+      "bend_id": "OB4",
+      "human_feature_label": "fragment_or_duplicate",
+      "suggested_role": "false_positive_fragment",
+      "diagnostic_tags": [
+        "manual_rejected",
+        "tiny_support",
+        "cross_pair_fragment"
+      ],
+      "notes": "Manual review: wrong raw owned-region mark. Render/export suppression may hide it, but solver still counts it in raw F1."
+    }
+  ]
+}

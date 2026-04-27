@@ -77,6 +77,8 @@ def test_summary_complete_but_not_resolved():
 
     assert summary["blocker_status"] == "labels_do_not_resolve_expected_counts"
     assert summary["resolves_expected_counts"]["conventional_bends"] is False
+    assert summary["label_capacity"]["valid_conventional_region_deficit"] == 1
+    assert summary["label_capacity"]["requires_missing_conventional_region_recovery"] is True
 
 
 def test_summary_reports_owned_region_capacity_deficit_before_labels():
@@ -96,4 +98,5 @@ def test_summary_reports_owned_region_capacity_deficit_before_labels():
     assert summary["label_capacity"]["owned_region_count"] == 9
     assert summary["label_capacity"]["expected_counted_conventional_plus_raised"] == 10
     assert summary["label_capacity"]["owned_region_capacity_deficit"] == 1
+    assert summary["label_capacity"]["valid_counted_feature_deficit"] == 10
     assert summary["label_capacity"]["requires_split_or_missing_region_recovery"] is True
