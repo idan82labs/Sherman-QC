@@ -104,6 +104,14 @@ This note records assistant visual inspection of the 1080p review renders after 
 - The four admissible candidates all conflict into one overlapping component (`RIC1`-`RIC4`), with high atom overlap / near-centroid conflicts. This means the residual/interface signal exists, but it is not yet separated into two physical missing bend objects.
 - Decision: next solver tranche should add corridor-family selection or sub-clustering over residual/interface support before any birth promotion. The current diagnostic should not be used to accept exact `3` yet.
 
+## Residual / Interface Sub-Cluster Visual Gate
+
+- Added `scripts/cluster_f1_residual_interface_candidates.py` to test whether the ambiguous residual/interface support separates into smaller physical corridor families.
+- `49024000` result: `candidate_atom_count=319`, `connected_component_count=1`, `cluster_count=1`, `plausible_cluster_count=1`, `status=partial_subcluster_signal`.
+- Generated 1080p overlays in iCloud under `feature_region_labels_20260427/49024000_residual_interface_subcluster_visual_check/`.
+- Visual inspection confirms the sub-cluster remains one broad same-zone support patch, not two separated missing conventional bends.
+- Decision: reject this sub-cluster method as promotion logic. The next game plan needs a different support partition cue, likely local normal/curvature ridge tracing or manual/professor-guided interface-line constraints, before exact recovery on `49024000`.
+
 ## Remaining Before Promotion
 
 - Keep `49024000` treated as a 3-bend manual-truth case; only `OB2` was manually accepted in the previous raw debug view.
