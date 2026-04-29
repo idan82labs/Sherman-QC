@@ -127,6 +127,21 @@ Raw bridge support-birth experiment:
 - Target visible observed bends: `5`
 - Visual verdict: the selected births are coherent side supports and rejected texture candidates stay out. This proves the bridge can add safe support objects, but it is still an underfit partial recovery and not promotion-ready.
 
+Flange-family validation of rejected raw creases:
+
+- Output: `47959001_raw_point_crease_flange_family_validation.json`
+- F1 flange family merge: `20` flange hypotheses -> `4` coplanar families
+- Families:
+  - `FG1`: `F1/F2`
+  - `FG2`: `F5/F6/F7`
+  - `FG3`: `F10/F11/F12/F13/F14/F15/F16/F17/F18/F19`
+  - `FG4`: `F43/F44/F45/F46/F47`
+- Family bridge-safe candidates: `2`
+- Recovered after family merge: none beyond `RPC5/RPC6`
+- `RPC3`: still rejected; best family pair `FG1-FG2`, corridor distance about `78.9 mm`, weak right/two-sided support
+- `RPC4`: still rejected; best family pair `FG2-FG4`, axis mismatch about `80.3°`, corridor distance about `174.6 mm`
+- Verdict: `RPC3/RPC4` are not failures caused by simple flange-ID fragmentation. Under current geometry they behave like texture/panel-edge candidates, so they should stay rejected.
+
 ## Visual Verdict
 
 The 1080p arrangement render shows the selected lines clustered along one broad edge/ridge family. This is not a valid multi-bend recovery for the five-visible-bend target.
@@ -151,12 +166,12 @@ The raw-family suppression change should not be judged against the stale `F20/F2
 - raw-point crease tracing below the atom graph produces four line-like candidates, which is the first promising recovery signal but still needs flange-pair/contact validation and cleaner rendering before promotion,
 - raw-point bridge validation keeps two coherent crease supports and rejects two texture-like candidates, proving that bridge validation can reduce overcount risk but is not enough to recover the full 47959001 count yet,
 - controlled raw bridge support birth selects the two safe births and projects count `3/5`, so it improves support capacity without overcounting but still underfits,
+- flange-family merging does not recover the rejected raw candidates, so `RPC3/RPC4` should remain rejected rather than forced into F1 support births,
 - this remains offline diagnostic evidence only.
 
 ## Next Work
 
-- Investigate why `RPC3/RPC4` fail bridge validation: true texture rejection vs overly strict/flange-fragmented pair selection.
-- Add a second-stage bridge validator for rejected raw candidates that can merge fragmented flange IDs into flange families before rejecting, while preserving the current texture/corridor gates.
+- The remaining `47959001` gap is now not safe support-birth plumbing; it is missing raw crease candidates for the last two visible bends or inadequate scan coverage/quality. Next experiment should vary raw-point crease extraction scales and render candidate-only views for the missing zones, not relax bridge gates for rejected texture candidates.
 - Keep scan-quality/coverage gating active for cases where raw crease candidates remain scattered or unstable.
 - Do not use stale flange-ID arrangements as regression controls.
 - Use this current-snapshot file set for future `47959001` experiments.
