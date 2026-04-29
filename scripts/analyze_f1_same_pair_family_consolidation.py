@@ -179,11 +179,75 @@ def _is_recovered_contact_line(line_id: str) -> bool:
     return str(line_id).startswith("RCB")
 
 
+def _is_interior_line(line_id: str) -> bool:
+    return str(line_id).startswith(("IBG", "IBH"))
+
+
+def _interior_rows_for_pair(
+    *,
+    interior_gaps: Mapping[str, Any] | None,
+    contact_recovery: Mapping[str, Any] | None,
+    pair_key: Tuple[str, str],
+    atoms: Mapping[str, Mapping[str, Any]],
+) -> List[Dict[str, Any]]:
+    if not interior_gaps:
+        return []
+    contact_pair_by_source: Dict[str, Mapping[str, Any]] = {}
+    for row in (contact_recovery or {}).get("candidates") or ():
+        source_id = str(row.get("source_id") or "")
+        best_pair = row.get("best_pair") or {}
+        candidate_pair = tuple(sorted(str(value) for value in best_pair.get("flange_pair") or ()))
+        if source_id and candidate_pair == pair_key:
+            contact_pair_by_source[source_id] = best_pair
+    rows: List[Dict[str, Any]] = []
+    for candidate in interior_gaps.get("candidates") or ():
+        source_id = str(candidate.get("candidate_id") or "")
+        if source_id not in contact_pair_by_source:
+            continue
+        contact = contact_pair_by_source[source_id]
+        rows.append(
+            _line_row(
+                line_id=source_id,
+                source_kind="interior_gap_fragment",
+                atom_ids=[str(value) for value in candidate.get("atom_ids") or ()],
+                atoms=atoms,
+                extra={
+                    "incident_flange_ids": list(pair_key),
+                    "contact_status": contact.get("status"),
+                    "contact_score": contact.get("score"),
+                    "contact_reason_codes": contact.get("reason_codes") or [],
+                },
+            )
+        )
+    for hypothesis in interior_gaps.get("merged_hypotheses") or ():
+        source_id = str(hypothesis.get("hypothesis_id") or "")
+        if source_id not in contact_pair_by_source:
+            continue
+        contact = contact_pair_by_source[source_id]
+        rows.append(
+            _line_row(
+                line_id=source_id,
+                source_kind="merged_interior_hypothesis",
+                atom_ids=[str(value) for value in hypothesis.get("atom_ids") or ()],
+                atoms=atoms,
+                extra={
+                    "incident_flange_ids": list(pair_key),
+                    "contact_status": contact.get("status"),
+                    "contact_score": contact.get("score"),
+                    "contact_reason_codes": contact.get("reason_codes") or [],
+                },
+            )
+        )
+    return rows
+
+
 def analyze_same_pair_family_consolidation(
     *,
     decomposition: Mapping[str, Any],
     arrangement: Mapping[str, Any],
     flange_pair: Tuple[str, str],
+    interior_gaps: Mapping[str, Any] | None = None,
+    contact_recovery: Mapping[str, Any] | None = None,
 ) -> Dict[str, Any]:
     atoms = _atom_lookup(decomposition)
     pair_key = tuple(sorted(str(value) for value in flange_pair))
@@ -219,6 +283,14 @@ def analyze_same_pair_family_consolidation(
                 },
             )
         )
+    lines.extend(
+        _interior_rows_for_pair(
+            interior_gaps=interior_gaps,
+            contact_recovery=contact_recovery,
+            pair_key=pair_key,
+            atoms=atoms,
+        )
+    )
     relations: List[Dict[str, Any]] = []
     for index, lhs in enumerate(lines):
         for rhs in lines[index + 1 :]:
@@ -234,8 +306,15 @@ def analyze_same_pair_family_consolidation(
             status = "recovered_contact_aliases_existing_family"
         elif any(any(_is_recovered_contact_line(line_id) for line_id in component) and len(component) == 1 for component in components):
             status = "recovered_contact_separate_family"
+        elif any(any(_is_interior_line(line_id) for line_id in component) and len(component) == 1 for component in components):
+            status = "interior_candidate_separate_family"
         else:
             status = "raw_same_pair_family_only"
+    interior_separate_components = [
+        component
+        for component in components
+        if any(_is_interior_line(line_id) for line_id in component) and not any(not _is_interior_line(line_id) for line_id in component)
+    ]
     return {
         "generated_at": datetime.now().isoformat(timespec="seconds"),
         "scan_path": decomposition.get("scan_path"),
@@ -246,6 +325,8 @@ def analyze_same_pair_family_consolidation(
         "relation_counts": dict(sorted(relation_counts.items())),
         "component_count": len(components),
         "components": components,
+        "interior_separate_component_count": len(interior_separate_components),
+        "interior_separate_components": interior_separate_components,
         "status": status,
         "lines": lines,
         "relations": relations,
@@ -256,12 +337,16 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Analyze same-pair line family consolidation for recovered-contact candidates.")
     parser.add_argument("--decomposition-json", required=True, type=Path)
     parser.add_argument("--arrangement-json", required=True, type=Path)
+    parser.add_argument("--interior-gaps-json", type=Path)
+    parser.add_argument("--contact-recovery-json", type=Path)
     parser.add_argument("--output-json", required=True, type=Path)
     parser.add_argument("--flange-pair", nargs=2, required=True)
     args = parser.parse_args()
     report = analyze_same_pair_family_consolidation(
         decomposition=_load_json(args.decomposition_json),
         arrangement=_load_json(args.arrangement_json),
+        interior_gaps=_load_json(args.interior_gaps_json) if args.interior_gaps_json else None,
+        contact_recovery=_load_json(args.contact_recovery_json) if args.contact_recovery_json else None,
         flange_pair=tuple(args.flange_pair),
     )
     _write_json(args.output_json, report)
@@ -274,6 +359,7 @@ def main() -> int:
                 "component_count": report["component_count"],
                 "relation_counts": report["relation_counts"],
                 "components": report["components"],
+                "interior_separate_components": report["interior_separate_components"],
             },
             indent=2,
         )

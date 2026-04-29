@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-04-29T14:41:30",
+  "generated_at": "2026-04-29T14:46:39",
   "scan_path": "/Users/idant/Downloads/48991006_A 4.ply",
   "part_id": "48991006",
   "purpose": "Diagnostic-only same-pair line family consolidation over raw and recovered-contact supports.",
@@ -7,14 +7,18 @@
     "F1",
     "F5"
   ],
-  "line_count": 6,
+  "line_count": 9,
   "relation_counts": {
-    "alias": 3,
-    "separable": 12
+    "alias": 9,
+    "ambiguous": 2,
+    "separable": 25
   },
   "component_count": 3,
   "components": [
     [
+      "IBG1",
+      "IBG2",
+      "IBH1",
       "OB1",
       "OB2",
       "OB3",
@@ -27,6 +31,8 @@
       "OB7"
     ]
   ],
+  "interior_separate_component_count": 0,
+  "interior_separate_components": [],
   "status": "recovered_contact_aliases_existing_family",
   "lines": [
     {
@@ -324,6 +330,161 @@
       "interior_source_id": "IBG1",
       "contact_recovery_score": 3.981043,
       "duplicate_status": "same_pair_line_alias"
+    },
+    {
+      "line_id": "IBG1",
+      "source_kind": "interior_gap_fragment",
+      "atom_ids": [
+        "A1054",
+        "A1059",
+        "A1062",
+        "A1063",
+        "A1124",
+        "A856",
+        "A928",
+        "A930",
+        "A992",
+        "A995"
+      ],
+      "atom_count": 10,
+      "centroid": [
+        -145.625036,
+        -151.41418,
+        211.211247
+      ],
+      "axis_direction": [
+        -0.704386,
+        -0.709183,
+        -0.029988
+      ],
+      "span_mm": 25.450707,
+      "median_line_residual_mm": 4.700946,
+      "endpoints": [
+        [
+          -136.104418,
+          -141.828728,
+          211.616574
+        ],
+        [
+          -154.031548,
+          -159.877939,
+          210.853351
+        ]
+      ],
+      "incident_flange_ids": [
+        "F1",
+        "F5"
+      ],
+      "contact_status": "recovered_contact_validated",
+      "contact_score": 3.981043,
+      "contact_reason_codes": [
+        "recovered_two_sided_contact"
+      ]
+    },
+    {
+      "line_id": "IBG2",
+      "source_kind": "interior_gap_fragment",
+      "atom_ids": [
+        "A1003",
+        "A1068",
+        "A799",
+        "A801",
+        "A862",
+        "A863",
+        "A936"
+      ],
+      "atom_count": 7,
+      "centroid": [
+        -154.135013,
+        -134.232229,
+        220.087237
+      ],
+      "axis_direction": [
+        -0.893922,
+        -0.419409,
+        0.158116
+      ],
+      "span_mm": 23.971664,
+      "median_line_residual_mm": 2.278873,
+      "endpoints": [
+        [
+          -140.836927,
+          -127.993056,
+          217.735088
+        ],
+        [
+          -162.265715,
+          -138.046978,
+          221.525385
+        ]
+      ],
+      "incident_flange_ids": [
+        "F1",
+        "F5"
+      ],
+      "contact_status": "recovered_contact_rejected",
+      "contact_score": 1.92486,
+      "contact_reason_codes": [
+        "F5_nearby_flange_atoms_below_floor",
+        "weak_two_sided_balance"
+      ]
+    },
+    {
+      "line_id": "IBH1",
+      "source_kind": "merged_interior_hypothesis",
+      "atom_ids": [
+        "A1003",
+        "A1054",
+        "A1059",
+        "A1062",
+        "A1063",
+        "A1068",
+        "A1124",
+        "A799",
+        "A801",
+        "A856",
+        "A862",
+        "A863",
+        "A928",
+        "A930",
+        "A936",
+        "A992",
+        "A995"
+      ],
+      "atom_count": 17,
+      "centroid": [
+        -149.129144,
+        -144.339259,
+        214.866066
+      ],
+      "axis_direction": [
+        -0.340605,
+        0.837182,
+        0.427919
+      ],
+      "span_mm": 37.265927,
+      "median_line_residual_mm": 6.362829,
+      "endpoints": [
+        [
+          -142.962167,
+          -159.497243,
+          207.118178
+        ],
+        [
+          -155.655119,
+          -128.298883,
+          223.064983
+        ]
+      ],
+      "incident_flange_ids": [
+        "F1",
+        "F5"
+      ],
+      "contact_status": "recovered_contact_rejected",
+      "contact_score": 2.51054,
+      "contact_reason_codes": [
+        "axis_mismatch"
+      ]
     }
   ],
   "relations": [
@@ -378,6 +539,36 @@
       "relation": "separable"
     },
     {
+      "lhs": "OB1",
+      "rhs": "IBG1",
+      "atom_iou": 0.0,
+      "centroid_distance_mm": 20.505413,
+      "axis_delta_deg": 5.52688,
+      "line_distance_mm": 14.087399,
+      "span_overlap": 1.0,
+      "relation": "separable"
+    },
+    {
+      "lhs": "OB1",
+      "rhs": "IBG2",
+      "atom_iou": 0.0,
+      "centroid_distance_mm": 34.13284,
+      "axis_delta_deg": 21.656764,
+      "line_distance_mm": 0.867458,
+      "span_overlap": 1.0,
+      "relation": "alias"
+    },
+    {
+      "lhs": "OB1",
+      "rhs": "IBH1",
+      "atom_iou": 0.0,
+      "centroid_distance_mm": 24.878369,
+      "axis_delta_deg": 70.458812,
+      "line_distance_mm": 9.189657,
+      "span_overlap": 1.0,
+      "relation": "separable"
+    },
+    {
       "lhs": "OB2",
       "rhs": "OB3",
       "atom_iou": 0.0,
@@ -418,6 +609,36 @@
       "relation": "alias"
     },
     {
+      "lhs": "OB2",
+      "rhs": "IBG1",
+      "atom_iou": 0.0,
+      "centroid_distance_mm": 12.097143,
+      "axis_delta_deg": 13.432645,
+      "line_distance_mm": 6.043297,
+      "span_overlap": 0.851249,
+      "relation": "ambiguous"
+    },
+    {
+      "lhs": "OB2",
+      "rhs": "IBG2",
+      "atom_iou": 0.0,
+      "centroid_distance_mm": 32.377567,
+      "axis_delta_deg": 19.033547,
+      "line_distance_mm": 21.112764,
+      "span_overlap": 0.498175,
+      "relation": "separable"
+    },
+    {
+      "lhs": "OB2",
+      "rhs": "IBH1",
+      "atom_iou": 0.0,
+      "centroid_distance_mm": 20.23879,
+      "axis_delta_deg": 75.679111,
+      "line_distance_mm": 3.929191,
+      "span_overlap": 0.879749,
+      "relation": "separable"
+    },
+    {
       "lhs": "OB3",
       "rhs": "OB6",
       "atom_iou": 0.0,
@@ -448,6 +669,36 @@
       "relation": "separable"
     },
     {
+      "lhs": "OB3",
+      "rhs": "IBG1",
+      "atom_iou": 0.0,
+      "centroid_distance_mm": 25.509005,
+      "axis_delta_deg": 8.224577,
+      "line_distance_mm": 7.805315,
+      "span_overlap": 0.0,
+      "relation": "separable"
+    },
+    {
+      "lhs": "OB3",
+      "rhs": "IBG2",
+      "atom_iou": 0.0,
+      "centroid_distance_mm": 41.302717,
+      "axis_delta_deg": 23.510639,
+      "line_distance_mm": 11.303954,
+      "span_overlap": 0.0,
+      "relation": "separable"
+    },
+    {
+      "lhs": "OB3",
+      "rhs": "IBH1",
+      "atom_iou": 0.0,
+      "centroid_distance_mm": 31.258208,
+      "axis_delta_deg": 69.631485,
+      "line_distance_mm": 0.488597,
+      "span_overlap": 0.0,
+      "relation": "separable"
+    },
+    {
       "lhs": "OB6",
       "rhs": "OB7",
       "atom_iou": 0.0,
@@ -468,6 +719,36 @@
       "relation": "separable"
     },
     {
+      "lhs": "OB6",
+      "rhs": "IBG1",
+      "atom_iou": 0.0,
+      "centroid_distance_mm": 50.552063,
+      "axis_delta_deg": 13.334856,
+      "line_distance_mm": 0.284894,
+      "span_overlap": 0.0,
+      "relation": "separable"
+    },
+    {
+      "lhs": "OB6",
+      "rhs": "IBG2",
+      "atom_iou": 0.0,
+      "centroid_distance_mm": 61.678479,
+      "axis_delta_deg": 9.909174,
+      "line_distance_mm": 12.294402,
+      "span_overlap": 0.0,
+      "relation": "separable"
+    },
+    {
+      "lhs": "OB6",
+      "rhs": "IBH1",
+      "atom_iou": 0.0,
+      "centroid_distance_mm": 54.42023,
+      "axis_delta_deg": 81.691684,
+      "line_distance_mm": 1.965249,
+      "span_overlap": 0.0,
+      "relation": "separable"
+    },
+    {
       "lhs": "OB7",
       "rhs": "RCB1",
       "atom_iou": 0.0,
@@ -476,6 +757,96 @@
       "line_distance_mm": 5.325206,
       "span_overlap": 0.0,
       "relation": "separable"
+    },
+    {
+      "lhs": "OB7",
+      "rhs": "IBG1",
+      "atom_iou": 0.0,
+      "centroid_distance_mm": 60.989077,
+      "axis_delta_deg": 65.611081,
+      "line_distance_mm": 4.421743,
+      "span_overlap": 0.0,
+      "relation": "separable"
+    },
+    {
+      "lhs": "OB7",
+      "rhs": "IBG2",
+      "atom_iou": 0.0,
+      "centroid_distance_mm": 71.649761,
+      "axis_delta_deg": 69.596095,
+      "line_distance_mm": 46.626835,
+      "span_overlap": 0.0,
+      "relation": "separable"
+    },
+    {
+      "lhs": "OB7",
+      "rhs": "IBH1",
+      "atom_iou": 0.0,
+      "centroid_distance_mm": 64.759412,
+      "axis_delta_deg": 78.5947,
+      "line_distance_mm": 48.852954,
+      "span_overlap": 0.0,
+      "relation": "separable"
+    },
+    {
+      "lhs": "RCB1",
+      "rhs": "IBG1",
+      "atom_iou": 0.7,
+      "centroid_distance_mm": 0.611649,
+      "axis_delta_deg": 10.077537,
+      "line_distance_mm": 0.370177,
+      "span_overlap": 1.0,
+      "relation": "alias"
+    },
+    {
+      "lhs": "RCB1",
+      "rhs": "IBG2",
+      "atom_iou": 0.0,
+      "centroid_distance_mm": 20.655242,
+      "axis_delta_deg": 32.728249,
+      "line_distance_mm": 0.4466,
+      "span_overlap": 0.450658,
+      "relation": "ambiguous"
+    },
+    {
+      "lhs": "RCB1",
+      "rhs": "IBH1",
+      "atom_iou": 0.411765,
+      "centroid_distance_mm": 8.231948,
+      "axis_delta_deg": 58.478635,
+      "line_distance_mm": 0.475576,
+      "span_overlap": 0.863016,
+      "relation": "alias"
+    },
+    {
+      "lhs": "IBG1",
+      "rhs": "IBG2",
+      "atom_iou": 0.0,
+      "centroid_distance_mm": 21.128709,
+      "axis_delta_deg": 22.726125,
+      "line_distance_mm": 1.114957,
+      "span_overlap": 0.698696,
+      "relation": "alias"
+    },
+    {
+      "lhs": "IBG1",
+      "rhs": "IBH1",
+      "atom_iou": 0.588235,
+      "centroid_distance_mm": 8.700056,
+      "axis_delta_deg": 68.492048,
+      "line_distance_mm": 0.152786,
+      "span_overlap": 1.0,
+      "relation": "alias"
+    },
+    {
+      "lhs": "IBG2",
+      "rhs": "IBH1",
+      "atom_iou": 0.411765,
+      "centroid_distance_mm": 12.428653,
+      "axis_delta_deg": 88.795929,
+      "line_distance_mm": 0.229739,
+      "span_overlap": 1.0,
+      "relation": "alias"
     }
   ]
 }

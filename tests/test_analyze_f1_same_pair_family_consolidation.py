@@ -103,3 +103,43 @@ def test_raw_only_same_pair_family_reports_raw_status():
 
     assert report["status"] == "raw_same_pair_family_only"
     assert report["line_count"] == 1
+
+
+def test_interior_gap_candidate_can_be_reported_as_separate_family():
+    decomposition = _payload({"OB2": [f"A{i}" for i in range(8)]})
+    distant_atoms = [_atom(f"C{i}", 160.0 + i * 4.0, y=30.0) for i in range(8)]
+    decomposition["atom_graph"]["atoms"].extend(distant_atoms)
+    interior_gaps = {
+        "candidates": [
+            {
+                "candidate_id": "IBG1",
+                "atom_ids": [atom["atom_id"] for atom in distant_atoms],
+            }
+        ],
+        "merged_hypotheses": [],
+    }
+    contact_recovery = {
+        "candidates": [
+            {
+                "source_id": "IBG1",
+                "best_pair": {
+                    "flange_pair": ["F5", "F1"],
+                    "status": "recovered_contact_rejected",
+                    "score": 1.9,
+                    "reason_codes": ["weak_two_sided_balance"],
+                },
+            }
+        ]
+    }
+
+    report = analyzer.analyze_same_pair_family_consolidation(
+        decomposition=decomposition,
+        arrangement={"top_recovered_contact_birth_candidates": []},
+        interior_gaps=interior_gaps,
+        contact_recovery=contact_recovery,
+        flange_pair=("F1", "F5"),
+    )
+
+    assert report["status"] == "interior_candidate_separate_family"
+    assert report["interior_separate_component_count"] == 1
+    assert report["interior_separate_components"] == [["IBG1"]]
