@@ -88,6 +88,17 @@ Thin atom-edge transition search:
 - Admissible candidates: `1`
 - Visual verdict: `TEC2` is a compact 8-edge local fragment between `F1/F5`; the dominant `TEC1` component is a huge 805-atom boundary/face flood. This does not recover the four missing bend-line supports.
 
+Raw-point crease search below atom graph:
+
+- Output: `47959001_raw_point_crease_candidates.json`
+- Render: `47959001_raw_point_crease_candidates_top4_visual_check/raw_point_crease_candidates_top_1080p.png`
+- Source PLY: `/Users/idant/Downloads/47959001_01PREL_scan1.ply`
+- Sampled points: `43142`
+- Candidate crease points: `1208`
+- Candidate components: `33`
+- Admissible line-like crease candidates: `4`
+- Visual verdict: this is the first diagnostic that numerically matches the four missing supports after excluding the accepted bend. The top-4 render shows several plausible crease-line supports, but at least one candidate still appears partly scattered on panel/edge texture. Treat as a promising candidate-generation lane, not accepted F1 count evidence yet.
+
 ## Visual Verdict
 
 The 1080p arrangement render shows the selected lines clustered along one broad edge/ridge family. This is not a valid multi-bend recovery for the five-visible-bend target.
@@ -109,10 +120,12 @@ The raw-family suppression change should not be judged against the stale `F20/F2
 - strict scan-wide corridor search finds no clean independent two-sided uncovered corridor after excluding the known raw support and broad ridge,
 - low-threshold scan-wide ridge discovery floods into broad face/edge support and does not isolate missing bend lines,
 - thin transition-edge tracing finds only one compact local fragment plus one huge boundary flood, not the missing set of countable bend lines,
+- raw-point crease tracing below the atom graph produces four line-like candidates, which is the first promising recovery signal but still needs flange-pair/contact validation and cleaner rendering before promotion,
 - this remains offline diagnostic evidence only.
 
 ## Next Work
 
-- The next support-creation attempt must move below the current atom graph abstraction: either better crease-focused local atomization, raw-point/mesh edge skeleton extraction, or scan-quality/coverage gating before F1 count promotion. Current atom-level and atom-edge diagnostics do not expose the missing bend supports as separable objects.
+- Build a raw-point-to-F1 bridge: validate raw crease candidates against flange-pair/contact geometry, convert promotion-safe candidates into temporary F1 support atoms, and reject scattered panel/edge texture before allowing count recovery.
+- Keep scan-quality/coverage gating active for cases where raw crease candidates remain scattered or unstable.
 - Do not use stale flange-ID arrangements as regression controls.
 - Use this current-snapshot file set for future `47959001` experiments.
