@@ -485,6 +485,7 @@ def _owned_region_duplicate_diagnostics(
     candidate: Mapping[str, Any],
     decomposition: Mapping[str, Any],
     atoms: Mapping[str, Mapping[str, Any]],
+    same_pair_only: bool = True,
 ) -> Dict[str, Any]:
     candidate_pair = tuple(str(value) for value in candidate.get("flange_pair") or ())
     candidate_atoms = {str(value) for value in candidate.get("atom_ids") or ()}
@@ -501,7 +502,7 @@ def _owned_region_duplicate_diagnostics(
     same_pair_rows: List[Dict[str, Any]] = []
     for region in decomposition.get("owned_bend_regions") or ():
         region_pair = tuple(str(value) for value in region.get("incident_flange_ids") or ())
-        if tuple(sorted(region_pair)) != tuple(sorted(candidate_pair)):
+        if same_pair_only and tuple(sorted(region_pair)) != tuple(sorted(candidate_pair)):
             continue
         region_atoms = {str(value) for value in region.get("owned_atom_ids") or ()}
         region_points = [_vec(atoms[atom_id].get("centroid") or (0, 0, 0)) for atom_id in region_atoms if atom_id in atoms]
@@ -523,6 +524,7 @@ def _owned_region_duplicate_diagnostics(
             {
                 "bend_id": region.get("bend_id"),
                 "incident_flange_ids": list(region_pair),
+                "same_flange_pair": tuple(sorted(region_pair)) == tuple(sorted(candidate_pair)),
                 "atom_iou": round(float(atom_iou), 6),
                 "centroid_distance_mm": round(float(centroid_distance), 6),
                 "axis_delta_deg": round(float(axis_delta), 6),
@@ -705,6 +707,81 @@ def _recovered_contact_birth_candidates(
     return candidates
 
 
+def _suppress_raw_family_covered_ridge_candidates(
+    *,
+    candidates: Sequence[Dict[str, Any]],
+    recovered_contact_candidates: Sequence[Mapping[str, Any]],
+    decomposition: Mapping[str, Any],
+    atoms: Mapping[str, Mapping[str, Any]],
+) -> List[Dict[str, Any]]:
+    valid_recovered_candidates = [
+        candidate
+        for candidate in recovered_contact_candidates
+        if candidate.get("admissible")
+        and (candidate.get("duplicate_diagnostics") or {}).get("status")
+        in {"unique_recovered_support", "offset_parallel_same_pair_candidate"}
+    ]
+    recovered_by_pair = {
+        tuple(sorted(str(value) for value in candidate.get("flange_pair") or ())): candidate
+        for candidate in valid_recovered_candidates
+    }
+    best_recovered = max(
+        valid_recovered_candidates,
+        key=lambda candidate: (float(candidate.get("candidate_score") or 0.0), str(candidate.get("candidate_id"))),
+        default=None,
+    )
+    if not valid_recovered_candidates:
+        return [dict(candidate) for candidate in candidates]
+    next_candidates: List[Dict[str, Any]] = []
+    for candidate in candidates:
+        row = dict(candidate)
+        pair = tuple(sorted(str(value) for value in row.get("flange_pair") or ()))
+        recovered = recovered_by_pair.get(pair)
+        if (
+            recovered
+            and row.get("source_kind") == "ridge_pair_support"
+            and not row.get("locked_accepted")
+            and row.get("admissible")
+        ):
+            duplicate_diagnostics = _owned_region_duplicate_diagnostics(
+                candidate=row,
+                decomposition=decomposition,
+                atoms=atoms,
+            )
+            if duplicate_diagnostics.get("status") in {"duplicate_of_existing_owned_region", "same_pair_line_alias"}:
+                row["admissible"] = False
+                row["raw_family_cover_diagnostics"] = duplicate_diagnostics
+                row["suppressed_by_recovered_contact_candidate"] = recovered.get("candidate_id")
+                row["reason_codes"] = sorted(
+                    set([*(str(value) for value in row.get("reason_codes") or ()), "raw_family_covered_when_recovered_contact_exists"])
+                )
+        elif (
+            best_recovered
+            and row.get("source_kind") == "ridge_pair_support"
+            and not row.get("locked_accepted")
+            and row.get("admissible")
+            and float(row.get("candidate_score") or 0.0) <= float(best_recovered.get("candidate_score") or 0.0) + 0.75
+        ):
+            # Some bad scans produce generic ridge candidates on a raw edge family but
+            # with a different flange pair. Keep this suppression comparable-score
+            # gated so a genuinely strong direct transition can still win.
+            duplicate_diagnostics = _owned_region_duplicate_diagnostics(
+                candidate=row,
+                decomposition=decomposition,
+                atoms=atoms,
+                same_pair_only=False,
+            )
+            if duplicate_diagnostics.get("status") in {"duplicate_of_existing_owned_region", "same_pair_line_alias"}:
+                row["admissible"] = False
+                row["raw_family_cover_diagnostics"] = duplicate_diagnostics
+                row["suppressed_by_recovered_contact_candidate"] = best_recovered.get("candidate_id")
+                row["reason_codes"] = sorted(
+                    set([*(str(value) for value in row.get("reason_codes") or ()), "raw_family_covered_when_recovered_contact_exists"])
+                )
+        next_candidates.append(row)
+    return next_candidates
+
+
 def _candidate_overlap(lhs: Mapping[str, Any], rhs: Mapping[str, Any]) -> float:
     left = {str(value) for value in lhs.get("atom_ids") or ()}
     right = {str(value) for value in rhs.get("atom_ids") or ()}
@@ -821,6 +898,12 @@ def solve_junction_bend_arrangement(
         locked_pair=locked_pair,
         allow_recovered_contact_counting=allow_recovered_contact_counting,
     )
+    candidates = _suppress_raw_family_covered_ridge_candidates(
+        candidates=candidates,
+        recovered_contact_candidates=recovered_contact_candidates,
+        decomposition=decomposition,
+        atoms=atoms,
+    )
     candidates.extend(interior_candidates)
     candidates.extend(recovered_contact_candidates)
     candidates.sort(key=lambda item: (not item["locked_accepted"], -float(item["candidate_score"]), item["candidate_id"]))
@@ -865,7 +948,7 @@ def solve_junction_bend_arrangement(
         "generated_at": datetime.now().isoformat(timespec="seconds"),
         "scan_path": decomposition.get("scan_path"),
         "part_id": decomposition.get("part_id"),
-        "purpose": "Diagnostic-only junction-aware bend-line arrangement over the 49024000 connected ridge complex.",
+        "purpose": "Diagnostic-only junction-aware bend-line arrangement over a connected ridge complex.",
         "locked_accepted_pair": list(locked_pair),
         "input_flange_ids": [flange_id for flange_id in flange_ids if flange_id in flanges],
         "target_new_bends": target_new_bends,

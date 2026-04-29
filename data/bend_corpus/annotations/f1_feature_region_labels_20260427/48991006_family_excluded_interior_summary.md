@@ -35,14 +35,20 @@ Arrangement check:
 - Output: `48991006_junction_bend_arrangement_with_family_excluded_contact.json`
 - Recovered candidate: `RCB1`, source `FEIG2`
 - Duplicate status: `offset_parallel_same_pair_candidate`
-- Unconstrained arrangement status: `overfit_arrangement`
-- Best unconstrained hypothesis: `H4_locked_1_plus_3_new`
+- Unconstrained arrangement status: `underfit_arrangement`
+- Best unconstrained hypothesis: `H2_locked_1_plus_1_new`
+- Best selected candidates: `JBL11`, `RCB1`
+- Target-one arrangement status: `single_bend_arrangement_candidate`
+- Target-one selected candidates: `JBL11`, `RCB1`
+- Suppressed generic raw-family candidates: `JBL1`, `JBL6`, `JBL7`
 
 ## Visual Verdict
 
 The 1080p overlays show `FEIG2/RCB1` as an offset parallel support above the raw `F1-F5` lower-edge family. It is no longer the same failure as the previous `IBG1/RCB1` alias path.
 
-However, this is not promotion-ready. Once `RCB1` is admitted, the arrangement solver still chooses too many additional candidates unless constrained, and a one-new-bend constraint chooses a different ridge candidate. That means the local support recovery improved, but the global local-arrangement selection is still unstable on this poor-quality scan.
+The candidate-competition renders showed that `JBL1`, `JBL6`, and `JBL7` ride already-owned raw edge families rather than the visually reported missing middle support. The arrangement solver now suppresses comparable-score generic ridge candidates when they are raw-family covered and a clean recovered-contact candidate exists. With that guard, the target-one arrangement selects `RCB1`.
+
+This is still not promotion-ready. The scan/process quality remains poor, and the unconstrained local arrangement is now intentionally conservative (`underfit_arrangement`) rather than allowed to overfit raw-family edge candidates.
 
 ## Decision
 
@@ -59,6 +65,6 @@ The remaining blocker is arrangement selection, not local support detection.
 
 ## Next Work
 
-- Add a local arrangement mode that can prefer recovered-contact candidates when they pass family exclusion, without allowing unrelated ridge candidates to overfit.
-- Add a render focused on `FEIG2/RCB1` versus `JBL1` so the competing one-bend choices can be compared visually.
+- Add a broader validation pass to make sure raw-family suppression does not hide true direct transitions on cleaner scans.
+- Keep the candidate-comparison render path for future disputes (`JBL1` vs `RCB1`, `JBL6` vs `RCB1`).
 - Keep `48991006` as a poor-scan stress test; do not use this case alone for promotion.

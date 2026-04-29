@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-04-29T15:05:04",
+  "generated_at": "2026-04-29T15:21:09",
   "scan_path": "/Users/idant/Downloads/48991006_A 4.ply",
   "part_id": "48991006",
-  "purpose": "Diagnostic-only junction-aware bend-line arrangement over the 49024000 connected ridge complex.",
+  "purpose": "Diagnostic-only junction-aware bend-line arrangement over a connected ridge complex.",
   "locked_accepted_pair": [
     "F32",
     "F8"
@@ -1499,6 +1499,7 @@
               "F1",
               "F5"
             ],
+            "same_flange_pair": true,
             "atom_iou": 0.0,
             "centroid_distance_mm": 14.700253,
             "axis_delta_deg": 11.463316,
@@ -1514,6 +1515,7 @@
               "F1",
               "F5"
             ],
+            "same_flange_pair": true,
             "atom_iou": 0.0,
             "centroid_distance_mm": 22.099861,
             "axis_delta_deg": 6.020858,
@@ -1529,6 +1531,7 @@
               "F1",
               "F5"
             ],
+            "same_flange_pair": true,
             "atom_iou": 0.0,
             "centroid_distance_mm": 51.357904,
             "axis_delta_deg": 9.821411,
@@ -1544,6 +1547,7 @@
               "F1",
               "F5"
             ],
+            "same_flange_pair": true,
             "atom_iou": 0.0,
             "centroid_distance_mm": 27.004065,
             "axis_delta_deg": 9.146337,
@@ -1559,6 +1563,7 @@
               "F1",
               "F5"
             ],
+            "same_flange_pair": true,
             "atom_iou": 0.0,
             "centroid_distance_mm": 61.81846,
             "axis_delta_deg": 66.410535,
@@ -1574,12 +1579,16 @@
     }
   ],
   "candidate_count": 30,
-  "admissible_nonlocked_candidate_count": 6,
+  "admissible_nonlocked_candidate_count": 1,
   "junction_transition_atom_ids": [
+    "A1053",
+    "A1054",
     "A1059",
-    "A1063",
+    "A1115",
+    "A1116",
     "A1121",
     "A1172",
+    "A1175",
     "A1178",
     "A1180",
     "A1227",
@@ -1611,33 +1620,48 @@
     "A527",
     "A565",
     "A569",
+    "A570",
+    "A571",
+    "A574",
     "A576",
     "A577",
     "A579",
     "A620",
+    "A622",
+    "A623",
     "A624",
     "A628",
     "A672",
+    "A673",
+    "A675",
+    "A676",
     "A677",
     "A680",
     "A724",
+    "A725",
     "A726",
+    "A728",
     "A730",
+    "A778",
+    "A779",
     "A780",
+    "A845",
+    "A846",
     "A847",
     "A854",
-    "A856",
     "A915",
+    "A919",
     "A925",
-    "A928",
+    "A986",
+    "A987",
     "A992"
   ],
-  "junction_transition_atom_count": 55,
+  "junction_transition_atom_count": 74,
   "status": "single_bend_arrangement_candidate",
   "best_hypothesis": {
     "candidate_ids": [
       "JBL11",
-      "JBL1"
+      "RCB1"
     ],
     "flange_pairs": [
       [
@@ -1650,8 +1674,8 @@
       ]
     ],
     "new_bend_count": 1,
-    "subset_score": 7.931263,
-    "raw_candidate_score": 9.081263,
+    "subset_score": 7.108626,
+    "raw_candidate_score": 8.258626,
     "label_penalty": 1.15,
     "overlap_penalty": 0.0,
     "conflicts": [],
@@ -2037,7 +2061,8 @@
       "raw_score": 4.925836,
       "penalty": 0.0,
       "reason_codes": [
-        "bend_line_candidate"
+        "bend_line_candidate",
+        "raw_family_covered_when_recovered_contact_exists"
       ],
       "path_component_diagnostics": [
         {
@@ -2071,7 +2096,93 @@
         "pretrim_span_mm": 88.774579,
         "pretrim_median_line_residual_mm": 3.501447
       },
-      "admissible": true
+      "admissible": false,
+      "raw_family_cover_diagnostics": {
+        "status": "same_pair_line_alias",
+        "same_pair_owned_regions": [
+          {
+            "bend_id": "OB1",
+            "incident_flange_ids": [
+              "F1",
+              "F5"
+            ],
+            "same_flange_pair": true,
+            "atom_iou": 0.0,
+            "centroid_distance_mm": 41.09729,
+            "axis_delta_deg": 3.518308,
+            "line_distance_mm": 0.428839,
+            "candidate_axis_interval_overlap": 0.737889,
+            "region_span_mm": 84.628448,
+            "region_line_residual_mm": 4.888509,
+            "owned_atom_count": 44
+          },
+          {
+            "bend_id": "OB2",
+            "incident_flange_ids": [
+              "F1",
+              "F5"
+            ],
+            "same_flange_pair": true,
+            "atom_iou": 0.0,
+            "centroid_distance_mm": 19.618388,
+            "axis_delta_deg": 13.987003,
+            "line_distance_mm": 0.794721,
+            "candidate_axis_interval_overlap": 1.0,
+            "region_span_mm": 19.833138,
+            "region_line_residual_mm": 3.127714,
+            "owned_atom_count": 12
+          },
+          {
+            "bend_id": "OB3",
+            "incident_flange_ids": [
+              "F1",
+              "F5"
+            ],
+            "same_flange_pair": true,
+            "atom_iou": 0.0,
+            "centroid_distance_mm": 4.644303,
+            "axis_delta_deg": 6.638478,
+            "line_distance_mm": 0.973113,
+            "candidate_axis_interval_overlap": 1.0,
+            "region_span_mm": 15.129593,
+            "region_line_residual_mm": 3.45859,
+            "owned_atom_count": 8
+          },
+          {
+            "bend_id": "OB7",
+            "incident_flange_ids": [
+              "F1",
+              "F5"
+            ],
+            "same_flange_pair": true,
+            "atom_iou": 0.0,
+            "centroid_distance_mm": 34.76474,
+            "axis_delta_deg": 63.892491,
+            "line_distance_mm": 2.661523,
+            "candidate_axis_interval_overlap": 0.0,
+            "region_span_mm": 10.206523,
+            "region_line_residual_mm": 2.488473,
+            "owned_atom_count": 6
+          },
+          {
+            "bend_id": "OB6",
+            "incident_flange_ids": [
+              "F1",
+              "F5"
+            ],
+            "same_flange_pair": true,
+            "atom_iou": 0.0,
+            "centroid_distance_mm": 25.75667,
+            "axis_delta_deg": 9.969052,
+            "line_distance_mm": 8.125455,
+            "candidate_axis_interval_overlap": 0.768398,
+            "region_span_mm": 19.530759,
+            "region_line_residual_mm": 1.444596,
+            "owned_atom_count": 6
+          }
+        ]
+      },
+      "suppressed_by_recovered_contact_candidate": "RCB1"
     },
     {
       "candidate_id": "JBL6",
@@ -2225,7 +2336,8 @@
       "raw_score": 4.45598,
       "penalty": 0.0,
       "reason_codes": [
-        "bend_line_candidate"
+        "bend_line_candidate",
+        "raw_family_covered_when_recovered_contact_exists"
       ],
       "path_component_diagnostics": [
         {
@@ -2259,7 +2371,141 @@
         "pretrim_span_mm": 88.781812,
         "pretrim_median_line_residual_mm": 3.854486
       },
-      "admissible": true
+      "admissible": false,
+      "raw_family_cover_diagnostics": {
+        "status": "duplicate_of_existing_owned_region",
+        "same_pair_owned_regions": [
+          {
+            "bend_id": "OB5",
+            "incident_flange_ids": [
+              "F43",
+              "F5"
+            ],
+            "same_flange_pair": false,
+            "atom_iou": 0.16,
+            "centroid_distance_mm": 22.368757,
+            "axis_delta_deg": 3.245513,
+            "line_distance_mm": 0.857993,
+            "candidate_axis_interval_overlap": 1.0,
+            "region_span_mm": 14.545103,
+            "region_line_residual_mm": 0.538012,
+            "owned_atom_count": 6
+          },
+          {
+            "bend_id": "OB1",
+            "incident_flange_ids": [
+              "F1",
+              "F5"
+            ],
+            "same_flange_pair": false,
+            "atom_iou": 0.0,
+            "centroid_distance_mm": 42.385957,
+            "axis_delta_deg": 2.866419,
+            "line_distance_mm": 0.459748,
+            "candidate_axis_interval_overlap": 0.735699,
+            "region_span_mm": 84.628448,
+            "region_line_residual_mm": 4.888509,
+            "owned_atom_count": 44
+          },
+          {
+            "bend_id": "OB2",
+            "incident_flange_ids": [
+              "F1",
+              "F5"
+            ],
+            "same_flange_pair": false,
+            "atom_iou": 0.0,
+            "centroid_distance_mm": 20.929369,
+            "axis_delta_deg": 14.637047,
+            "line_distance_mm": 0.778992,
+            "candidate_axis_interval_overlap": 1.0,
+            "region_span_mm": 19.833138,
+            "region_line_residual_mm": 3.127714,
+            "owned_atom_count": 12
+          },
+          {
+            "bend_id": "OB3",
+            "incident_flange_ids": [
+              "F1",
+              "F5"
+            ],
+            "same_flange_pair": false,
+            "atom_iou": 0.0,
+            "centroid_distance_mm": 5.53597,
+            "axis_delta_deg": 5.986006,
+            "line_distance_mm": 0.973171,
+            "candidate_axis_interval_overlap": 1.0,
+            "region_span_mm": 15.129593,
+            "region_line_residual_mm": 3.45859,
+            "owned_atom_count": 8
+          },
+          {
+            "bend_id": "OB9",
+            "incident_flange_ids": [
+              "F28",
+              "F31"
+            ],
+            "same_flange_pair": false,
+            "atom_iou": 0.0,
+            "centroid_distance_mm": 95.439416,
+            "axis_delta_deg": 3.582684,
+            "line_distance_mm": 87.992727,
+            "candidate_axis_interval_overlap": 1.0,
+            "region_span_mm": 14.465542,
+            "region_line_residual_mm": 0.871601,
+            "owned_atom_count": 5
+          },
+          {
+            "bend_id": "OB4",
+            "incident_flange_ids": [
+              "F32",
+              "F8"
+            ],
+            "same_flange_pair": false,
+            "atom_iou": 0.0,
+            "centroid_distance_mm": 103.120246,
+            "axis_delta_deg": 3.767251,
+            "line_distance_mm": 94.072641,
+            "candidate_axis_interval_overlap": 0.586142,
+            "region_span_mm": 43.491844,
+            "region_line_residual_mm": 0.213307,
+            "owned_atom_count": 8
+          },
+          {
+            "bend_id": "OB8",
+            "incident_flange_ids": [
+              "F28",
+              "F5"
+            ],
+            "same_flange_pair": false,
+            "atom_iou": 0.0,
+            "centroid_distance_mm": 45.173721,
+            "axis_delta_deg": 5.07099,
+            "line_distance_mm": 0.963089,
+            "candidate_axis_interval_overlap": 0.202945,
+            "region_span_mm": 18.938234,
+            "region_line_residual_mm": 2.84826,
+            "owned_atom_count": 5
+          },
+          {
+            "bend_id": "OB7",
+            "incident_flange_ids": [
+              "F1",
+              "F5"
+            ],
+            "same_flange_pair": false,
+            "atom_iou": 0.0,
+            "centroid_distance_mm": 33.509928,
+            "axis_delta_deg": 63.263602,
+            "line_distance_mm": 2.818811,
+            "candidate_axis_interval_overlap": 0.0,
+            "region_span_mm": 10.206523,
+            "region_line_residual_mm": 2.488473,
+            "owned_atom_count": 6
+          }
+        ]
+      },
+      "suppressed_by_recovered_contact_candidate": "RCB1"
     },
     {
       "candidate_id": "JBL9",
@@ -2409,7 +2655,8 @@
       "raw_score": 4.433238,
       "penalty": 0.0,
       "reason_codes": [
-        "bend_line_candidate"
+        "bend_line_candidate",
+        "raw_family_covered_when_recovered_contact_exists"
       ],
       "path_component_diagnostics": [
         {
@@ -2443,7 +2690,141 @@
         "pretrim_span_mm": 88.774579,
         "pretrim_median_line_residual_mm": 3.501447
       },
-      "admissible": true
+      "admissible": false,
+      "raw_family_cover_diagnostics": {
+        "status": "same_pair_line_alias",
+        "same_pair_owned_regions": [
+          {
+            "bend_id": "OB1",
+            "incident_flange_ids": [
+              "F1",
+              "F5"
+            ],
+            "same_flange_pair": false,
+            "atom_iou": 0.0,
+            "centroid_distance_mm": 41.09729,
+            "axis_delta_deg": 3.518308,
+            "line_distance_mm": 0.428839,
+            "candidate_axis_interval_overlap": 0.737889,
+            "region_span_mm": 84.628448,
+            "region_line_residual_mm": 4.888509,
+            "owned_atom_count": 44
+          },
+          {
+            "bend_id": "OB2",
+            "incident_flange_ids": [
+              "F1",
+              "F5"
+            ],
+            "same_flange_pair": false,
+            "atom_iou": 0.0,
+            "centroid_distance_mm": 19.618388,
+            "axis_delta_deg": 13.987003,
+            "line_distance_mm": 0.794721,
+            "candidate_axis_interval_overlap": 1.0,
+            "region_span_mm": 19.833138,
+            "region_line_residual_mm": 3.127714,
+            "owned_atom_count": 12
+          },
+          {
+            "bend_id": "OB3",
+            "incident_flange_ids": [
+              "F1",
+              "F5"
+            ],
+            "same_flange_pair": false,
+            "atom_iou": 0.0,
+            "centroid_distance_mm": 4.644303,
+            "axis_delta_deg": 6.638478,
+            "line_distance_mm": 0.973113,
+            "candidate_axis_interval_overlap": 1.0,
+            "region_span_mm": 15.129593,
+            "region_line_residual_mm": 3.45859,
+            "owned_atom_count": 8
+          },
+          {
+            "bend_id": "OB5",
+            "incident_flange_ids": [
+              "F43",
+              "F5"
+            ],
+            "same_flange_pair": true,
+            "atom_iou": 0.12,
+            "centroid_distance_mm": 23.678631,
+            "axis_delta_deg": 2.613637,
+            "line_distance_mm": 1.200806,
+            "candidate_axis_interval_overlap": 0.984641,
+            "region_span_mm": 14.545103,
+            "region_line_residual_mm": 0.538012,
+            "owned_atom_count": 6
+          },
+          {
+            "bend_id": "OB9",
+            "incident_flange_ids": [
+              "F28",
+              "F31"
+            ],
+            "same_flange_pair": false,
+            "atom_iou": 0.0,
+            "centroid_distance_mm": 95.644004,
+            "axis_delta_deg": 3.077127,
+            "line_distance_mm": 83.031965,
+            "candidate_axis_interval_overlap": 1.0,
+            "region_span_mm": 14.465542,
+            "region_line_residual_mm": 0.871601,
+            "owned_atom_count": 5
+          },
+          {
+            "bend_id": "OB4",
+            "incident_flange_ids": [
+              "F32",
+              "F8"
+            ],
+            "same_flange_pair": false,
+            "atom_iou": 0.0,
+            "centroid_distance_mm": 102.583473,
+            "axis_delta_deg": 3.120745,
+            "line_distance_mm": 94.451753,
+            "candidate_axis_interval_overlap": 0.593844,
+            "region_span_mm": 43.491844,
+            "region_line_residual_mm": 0.213307,
+            "owned_atom_count": 8
+          },
+          {
+            "bend_id": "OB8",
+            "incident_flange_ids": [
+              "F28",
+              "F5"
+            ],
+            "same_flange_pair": false,
+            "atom_iou": 0.0,
+            "centroid_distance_mm": 43.886487,
+            "axis_delta_deg": 5.722395,
+            "line_distance_mm": 0.998777,
+            "candidate_axis_interval_overlap": 0.203442,
+            "region_span_mm": 18.938234,
+            "region_line_residual_mm": 2.84826,
+            "owned_atom_count": 5
+          },
+          {
+            "bend_id": "OB7",
+            "incident_flange_ids": [
+              "F1",
+              "F5"
+            ],
+            "same_flange_pair": false,
+            "atom_iou": 0.0,
+            "centroid_distance_mm": 34.76474,
+            "axis_delta_deg": 63.892491,
+            "line_distance_mm": 2.661523,
+            "candidate_axis_interval_overlap": 0.0,
+            "region_span_mm": 10.206523,
+            "region_line_residual_mm": 2.488473,
+            "owned_atom_count": 6
+          }
+        ]
+      },
+      "suppressed_by_recovered_contact_candidate": "RCB1"
     },
     {
       "candidate_id": "RCB1",
@@ -2570,6 +2951,7 @@
               "F1",
               "F5"
             ],
+            "same_flange_pair": true,
             "atom_iou": 0.0,
             "centroid_distance_mm": 14.700253,
             "axis_delta_deg": 11.463316,
@@ -2585,6 +2967,7 @@
               "F1",
               "F5"
             ],
+            "same_flange_pair": true,
             "atom_iou": 0.0,
             "centroid_distance_mm": 22.099861,
             "axis_delta_deg": 6.020858,
@@ -2600,6 +2983,7 @@
               "F1",
               "F5"
             ],
+            "same_flange_pair": true,
             "atom_iou": 0.0,
             "centroid_distance_mm": 51.357904,
             "axis_delta_deg": 9.821411,
@@ -2615,6 +2999,7 @@
               "F1",
               "F5"
             ],
+            "same_flange_pair": true,
             "atom_iou": 0.0,
             "centroid_distance_mm": 27.004065,
             "axis_delta_deg": 9.146337,
@@ -2630,6 +3015,7 @@
               "F1",
               "F5"
             ],
+            "same_flange_pair": true,
             "atom_iou": 0.0,
             "centroid_distance_mm": 61.81846,
             "axis_delta_deg": 66.410535,
@@ -2761,7 +3147,8 @@
       "raw_score": 4.031233,
       "penalty": 0.0,
       "reason_codes": [
-        "bend_line_candidate"
+        "bend_line_candidate",
+        "raw_family_covered_when_recovered_contact_exists"
       ],
       "path_component_diagnostics": [
         {
@@ -2789,7 +3176,141 @@
         "pretrim_span_mm": 83.684103,
         "pretrim_median_line_residual_mm": 2.353735
       },
-      "admissible": true
+      "admissible": false,
+      "raw_family_cover_diagnostics": {
+        "status": "same_pair_line_alias",
+        "same_pair_owned_regions": [
+          {
+            "bend_id": "OB1",
+            "incident_flange_ids": [
+              "F1",
+              "F5"
+            ],
+            "same_flange_pair": false,
+            "atom_iou": 0.0,
+            "centroid_distance_mm": 37.682317,
+            "axis_delta_deg": 8.76681,
+            "line_distance_mm": 0.291729,
+            "candidate_axis_interval_overlap": 0.818276,
+            "region_span_mm": 84.628448,
+            "region_line_residual_mm": 4.888509,
+            "owned_atom_count": 44
+          },
+          {
+            "bend_id": "OB2",
+            "incident_flange_ids": [
+              "F1",
+              "F5"
+            ],
+            "same_flange_pair": false,
+            "atom_iou": 0.0,
+            "centroid_distance_mm": 16.270434,
+            "axis_delta_deg": 8.724842,
+            "line_distance_mm": 1.00032,
+            "candidate_axis_interval_overlap": 1.0,
+            "region_span_mm": 19.833138,
+            "region_line_residual_mm": 3.127714,
+            "owned_atom_count": 12
+          },
+          {
+            "bend_id": "OB3",
+            "incident_flange_ids": [
+              "F1",
+              "F5"
+            ],
+            "same_flange_pair": false,
+            "atom_iou": 0.0,
+            "centroid_distance_mm": 4.299493,
+            "axis_delta_deg": 11.892174,
+            "line_distance_mm": 1.27145,
+            "candidate_axis_interval_overlap": 1.0,
+            "region_span_mm": 15.129593,
+            "region_line_residual_mm": 3.45859,
+            "owned_atom_count": 8
+          },
+          {
+            "bend_id": "OB5",
+            "incident_flange_ids": [
+              "F43",
+              "F5"
+            ],
+            "same_flange_pair": false,
+            "atom_iou": 0.0,
+            "centroid_distance_mm": 27.033382,
+            "axis_delta_deg": 2.96101,
+            "line_distance_mm": 2.375716,
+            "candidate_axis_interval_overlap": 0.511723,
+            "region_span_mm": 14.545103,
+            "region_line_residual_mm": 0.538012,
+            "owned_atom_count": 6
+          },
+          {
+            "bend_id": "OB6",
+            "incident_flange_ids": [
+              "F1",
+              "F5"
+            ],
+            "same_flange_pair": false,
+            "atom_iou": 0.0,
+            "centroid_distance_mm": 28.996948,
+            "axis_delta_deg": 9.944236,
+            "line_distance_mm": 6.871874,
+            "candidate_axis_interval_overlap": 0.344973,
+            "region_span_mm": 19.530759,
+            "region_line_residual_mm": 1.444596,
+            "owned_atom_count": 6
+          },
+          {
+            "bend_id": "OB9",
+            "incident_flange_ids": [
+              "F28",
+              "F31"
+            ],
+            "same_flange_pair": false,
+            "atom_iou": 0.0,
+            "centroid_distance_mm": 96.552276,
+            "axis_delta_deg": 3.434014,
+            "line_distance_mm": 67.842022,
+            "candidate_axis_interval_overlap": 0.593802,
+            "region_span_mm": 14.465542,
+            "region_line_residual_mm": 0.871601,
+            "owned_atom_count": 5
+          },
+          {
+            "bend_id": "OB4",
+            "incident_flange_ids": [
+              "F32",
+              "F8"
+            ],
+            "same_flange_pair": false,
+            "atom_iou": 0.0,
+            "centroid_distance_mm": 101.519533,
+            "axis_delta_deg": 2.161196,
+            "line_distance_mm": 90.728515,
+            "candidate_axis_interval_overlap": 0.639571,
+            "region_span_mm": 43.491844,
+            "region_line_residual_mm": 0.213307,
+            "owned_atom_count": 8
+          },
+          {
+            "bend_id": "OB8",
+            "incident_flange_ids": [
+              "F28",
+              "F5"
+            ],
+            "same_flange_pair": false,
+            "atom_iou": 0.0,
+            "centroid_distance_mm": 40.475977,
+            "axis_delta_deg": 10.984261,
+            "line_distance_mm": 1.086574,
+            "candidate_axis_interval_overlap": 0.220081,
+            "region_span_mm": 18.938234,
+            "region_line_residual_mm": 2.84826,
+            "owned_atom_count": 5
+          }
+        ]
+      },
+      "suppressed_by_recovered_contact_candidate": "RCB1"
     },
     {
       "candidate_id": "JBL8",
@@ -2909,7 +3430,8 @@
       "raw_score": 4.031233,
       "penalty": 0.0,
       "reason_codes": [
-        "bend_line_candidate"
+        "bend_line_candidate",
+        "raw_family_covered_when_recovered_contact_exists"
       ],
       "path_component_diagnostics": [
         {
@@ -2937,7 +3459,141 @@
         "pretrim_span_mm": 83.684103,
         "pretrim_median_line_residual_mm": 2.353735
       },
-      "admissible": true
+      "admissible": false,
+      "raw_family_cover_diagnostics": {
+        "status": "same_pair_line_alias",
+        "same_pair_owned_regions": [
+          {
+            "bend_id": "OB1",
+            "incident_flange_ids": [
+              "F1",
+              "F5"
+            ],
+            "same_flange_pair": false,
+            "atom_iou": 0.0,
+            "centroid_distance_mm": 37.682317,
+            "axis_delta_deg": 8.76681,
+            "line_distance_mm": 0.291729,
+            "candidate_axis_interval_overlap": 0.818276,
+            "region_span_mm": 84.628448,
+            "region_line_residual_mm": 4.888509,
+            "owned_atom_count": 44
+          },
+          {
+            "bend_id": "OB2",
+            "incident_flange_ids": [
+              "F1",
+              "F5"
+            ],
+            "same_flange_pair": false,
+            "atom_iou": 0.0,
+            "centroid_distance_mm": 16.270434,
+            "axis_delta_deg": 8.724842,
+            "line_distance_mm": 1.00032,
+            "candidate_axis_interval_overlap": 1.0,
+            "region_span_mm": 19.833138,
+            "region_line_residual_mm": 3.127714,
+            "owned_atom_count": 12
+          },
+          {
+            "bend_id": "OB3",
+            "incident_flange_ids": [
+              "F1",
+              "F5"
+            ],
+            "same_flange_pair": false,
+            "atom_iou": 0.0,
+            "centroid_distance_mm": 4.299493,
+            "axis_delta_deg": 11.892174,
+            "line_distance_mm": 1.27145,
+            "candidate_axis_interval_overlap": 1.0,
+            "region_span_mm": 15.129593,
+            "region_line_residual_mm": 3.45859,
+            "owned_atom_count": 8
+          },
+          {
+            "bend_id": "OB5",
+            "incident_flange_ids": [
+              "F43",
+              "F5"
+            ],
+            "same_flange_pair": false,
+            "atom_iou": 0.0,
+            "centroid_distance_mm": 27.033382,
+            "axis_delta_deg": 2.96101,
+            "line_distance_mm": 2.375716,
+            "candidate_axis_interval_overlap": 0.511723,
+            "region_span_mm": 14.545103,
+            "region_line_residual_mm": 0.538012,
+            "owned_atom_count": 6
+          },
+          {
+            "bend_id": "OB6",
+            "incident_flange_ids": [
+              "F1",
+              "F5"
+            ],
+            "same_flange_pair": false,
+            "atom_iou": 0.0,
+            "centroid_distance_mm": 28.996948,
+            "axis_delta_deg": 9.944236,
+            "line_distance_mm": 6.871874,
+            "candidate_axis_interval_overlap": 0.344973,
+            "region_span_mm": 19.530759,
+            "region_line_residual_mm": 1.444596,
+            "owned_atom_count": 6
+          },
+          {
+            "bend_id": "OB9",
+            "incident_flange_ids": [
+              "F28",
+              "F31"
+            ],
+            "same_flange_pair": false,
+            "atom_iou": 0.0,
+            "centroid_distance_mm": 96.552276,
+            "axis_delta_deg": 3.434014,
+            "line_distance_mm": 67.842022,
+            "candidate_axis_interval_overlap": 0.593802,
+            "region_span_mm": 14.465542,
+            "region_line_residual_mm": 0.871601,
+            "owned_atom_count": 5
+          },
+          {
+            "bend_id": "OB4",
+            "incident_flange_ids": [
+              "F32",
+              "F8"
+            ],
+            "same_flange_pair": false,
+            "atom_iou": 0.0,
+            "centroid_distance_mm": 101.519533,
+            "axis_delta_deg": 2.161196,
+            "line_distance_mm": 90.728515,
+            "candidate_axis_interval_overlap": 0.639571,
+            "region_span_mm": 43.491844,
+            "region_line_residual_mm": 0.213307,
+            "owned_atom_count": 8
+          },
+          {
+            "bend_id": "OB8",
+            "incident_flange_ids": [
+              "F28",
+              "F5"
+            ],
+            "same_flange_pair": false,
+            "atom_iou": 0.0,
+            "centroid_distance_mm": 40.475977,
+            "axis_delta_deg": 10.984261,
+            "line_distance_mm": 1.086574,
+            "candidate_axis_interval_overlap": 0.220081,
+            "region_span_mm": 18.938234,
+            "region_line_residual_mm": 2.84826,
+            "owned_atom_count": 5
+          }
+        ]
+      },
+      "suppressed_by_recovered_contact_candidate": "RCB1"
     },
     {
       "candidate_id": "JBL3",
@@ -5747,75 +6403,6 @@
     {
       "candidate_ids": [
         "JBL11",
-        "JBL1"
-      ],
-      "flange_pairs": [
-        [
-          "F32",
-          "F8"
-        ],
-        [
-          "F1",
-          "F5"
-        ]
-      ],
-      "new_bend_count": 1,
-      "subset_score": 7.931263,
-      "raw_candidate_score": 9.081263,
-      "label_penalty": 1.15,
-      "overlap_penalty": 0.0,
-      "conflicts": [],
-      "hypothesis": "H2_locked_1_plus_1_new"
-    },
-    {
-      "candidate_ids": [
-        "JBL11",
-        "JBL6"
-      ],
-      "flange_pairs": [
-        [
-          "F32",
-          "F8"
-        ],
-        [
-          "F5",
-          "F8"
-        ]
-      ],
-      "new_bend_count": 1,
-      "subset_score": 7.461407,
-      "raw_candidate_score": 8.611407,
-      "label_penalty": 1.15,
-      "overlap_penalty": 0.0,
-      "conflicts": [],
-      "hypothesis": "H2_locked_1_plus_1_new"
-    },
-    {
-      "candidate_ids": [
-        "JBL11",
-        "JBL9"
-      ],
-      "flange_pairs": [
-        [
-          "F32",
-          "F8"
-        ],
-        [
-          "F43",
-          "F5"
-        ]
-      ],
-      "new_bend_count": 1,
-      "subset_score": 7.438665,
-      "raw_candidate_score": 8.588665,
-      "label_penalty": 1.15,
-      "overlap_penalty": 0.0,
-      "conflicts": [],
-      "hypothesis": "H2_locked_1_plus_1_new"
-    },
-    {
-      "candidate_ids": [
-        "JBL11",
         "RCB1"
       ],
       "flange_pairs": [
@@ -5831,52 +6418,6 @@
       "new_bend_count": 1,
       "subset_score": 7.108626,
       "raw_candidate_score": 8.258626,
-      "label_penalty": 1.15,
-      "overlap_penalty": 0.0,
-      "conflicts": [],
-      "hypothesis": "H2_locked_1_plus_1_new"
-    },
-    {
-      "candidate_ids": [
-        "JBL11",
-        "JBL7"
-      ],
-      "flange_pairs": [
-        [
-          "F32",
-          "F8"
-        ],
-        [
-          "F31",
-          "F5"
-        ]
-      ],
-      "new_bend_count": 1,
-      "subset_score": 7.03666,
-      "raw_candidate_score": 8.18666,
-      "label_penalty": 1.15,
-      "overlap_penalty": 0.0,
-      "conflicts": [],
-      "hypothesis": "H2_locked_1_plus_1_new"
-    },
-    {
-      "candidate_ids": [
-        "JBL11",
-        "JBL8"
-      ],
-      "flange_pairs": [
-        [
-          "F32",
-          "F8"
-        ],
-        [
-          "F32",
-          "F5"
-        ]
-      ],
-      "new_bend_count": 1,
-      "subset_score": 7.03666,
-      "raw_candidate_score": 8.18666,
       "label_penalty": 1.15,
       "overlap_penalty": 0.0,
       "conflicts": [],
