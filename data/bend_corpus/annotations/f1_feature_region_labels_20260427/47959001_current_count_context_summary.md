@@ -99,6 +99,20 @@ Raw-point crease search below atom graph:
 - Admissible line-like crease candidates: `4`
 - Visual verdict: this is the first diagnostic that numerically matches the four missing supports after excluding the accepted bend. The top-4 render shows several plausible crease-line supports, but at least one candidate still appears partly scattered on panel/edge texture. Treat as a promising candidate-generation lane, not accepted F1 count evidence yet.
 
+Raw-point to F1 bridge validation:
+
+- Output: `47959001_raw_point_crease_bridge_validation.json`
+- Render: `47959001_raw_point_crease_bridge_validation_visual_check/raw_point_crease_bridge_validation_1080p.png`
+- Raw admissible candidates: `4`
+- Bridge-safe candidates: `2`
+- Safe candidates:
+  - `RPC5`, selected pair `F11-F47`, score `3.092831`
+  - `RPC6`, selected pair `F12-F45`, score `3.069415`
+- Rejected candidates:
+  - `RPC3`, rejected for corridor/contact failure against best pair `F1-F5`
+  - `RPC4`, rejected for axis/corridor/contact failure against best pair `F43-F5`
+- Visual verdict: bridge validation is conservative and useful. The safe green candidates sit on coherent side crease supports; the rejected red candidates are broader/scattered panel or edge texture. This is still diagnostic-only because it recovers two of four missing supports, not the full target.
+
 ## Visual Verdict
 
 The 1080p arrangement render shows the selected lines clustered along one broad edge/ridge family. This is not a valid multi-bend recovery for the five-visible-bend target.
@@ -121,11 +135,13 @@ The raw-family suppression change should not be judged against the stale `F20/F2
 - low-threshold scan-wide ridge discovery floods into broad face/edge support and does not isolate missing bend lines,
 - thin transition-edge tracing finds only one compact local fragment plus one huge boundary flood, not the missing set of countable bend lines,
 - raw-point crease tracing below the atom graph produces four line-like candidates, which is the first promising recovery signal but still needs flange-pair/contact validation and cleaner rendering before promotion,
+- raw-point bridge validation keeps two coherent crease supports and rejects two texture-like candidates, proving that bridge validation can reduce overcount risk but is not enough to recover the full 47959001 count yet,
 - this remains offline diagnostic evidence only.
 
 ## Next Work
 
-- Build a raw-point-to-F1 bridge: validate raw crease candidates against flange-pair/contact geometry, convert promotion-safe candidates into temporary F1 support atoms, and reject scattered panel/edge texture before allowing count recovery.
+- Build a controlled support-birth experiment from bridge-safe raw creases only. Convert `RPC5/RPC6` into temporary diagnostic F1 support births, then rerun local arrangement/count recovery while keeping rejected raw candidates out.
+- Investigate why `RPC3/RPC4` fail bridge validation: true texture rejection vs overly strict/flange-fragmented pair selection.
 - Keep scan-quality/coverage gating active for cases where raw crease candidates remain scattered or unstable.
 - Do not use stale flange-ID arrangements as regression controls.
 - Use this current-snapshot file set for future `47959001` experiments.
