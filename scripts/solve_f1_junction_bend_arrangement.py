@@ -130,6 +130,105 @@ def _touching_counts(
     return counts
 
 
+def _connected_components(atom_ids: Iterable[str], adjacency: Mapping[str, Sequence[str]]) -> List[List[str]]:
+    remaining = {str(atom_id) for atom_id in atom_ids}
+    components: List[List[str]] = []
+    while remaining:
+        start = remaining.pop()
+        stack = [start]
+        component = [start]
+        while stack:
+            atom_id = stack.pop()
+            for neighbor in adjacency.get(atom_id, ()) or ():
+                neighbor_id = str(neighbor)
+                if neighbor_id not in remaining:
+                    continue
+                remaining.remove(neighbor_id)
+                stack.append(neighbor_id)
+                component.append(neighbor_id)
+        components.append(sorted(component))
+    components.sort(key=lambda values: (-len(values), values))
+    return components
+
+
+def _component_line_quality(atom_ids: Sequence[str], atoms: Mapping[str, Mapping[str, Any]]) -> Tuple[float, float]:
+    points = np.asarray([_vec(atoms[atom_id].get("centroid") or (0, 0, 0)) for atom_id in atom_ids], dtype=np.float64)
+    _, _, span, residual = _pca_line(points)
+    return span, residual
+
+
+def _best_path_component(
+    atom_ids: Sequence[str],
+    *,
+    atoms: Mapping[str, Mapping[str, Any]],
+    adjacency: Mapping[str, Sequence[str]],
+    min_atoms: int = 4,
+) -> Tuple[List[str], List[Dict[str, Any]]]:
+    components = _connected_components(atom_ids, adjacency)
+    diagnostics: List[Dict[str, Any]] = []
+    best_component: List[str] = []
+    best_score = -1.0
+    for component in components:
+        span, residual = _component_line_quality(component, atoms)
+        score = min(1.0, len(component) / 24.0) + min(1.0, span / 24.0) + max(0.0, 1.0 - residual / 8.0)
+        diagnostics.append(
+            {
+                "atom_count": len(component),
+                "span_mm": round(float(span), 6),
+                "median_line_residual_mm": round(float(residual), 6),
+                "component_score": round(float(score), 6),
+            }
+        )
+        if len(component) >= min_atoms and score > best_score:
+            best_score = score
+            best_component = list(component)
+    return best_component or (components[0] if components else []), diagnostics
+
+
+def _line_core_atoms(
+    atom_ids: Sequence[str],
+    *,
+    atoms: Mapping[str, Mapping[str, Any]],
+    locked: bool,
+) -> Tuple[List[str], Dict[str, Any]]:
+    if locked or len(atom_ids) < 8:
+        return sorted(atom_ids), {"core_trimmed": False, "input_atom_count": len(atom_ids), "core_atom_count": len(atom_ids)}
+    points = np.asarray([_vec(atoms[atom_id].get("centroid") or (0, 0, 0)) for atom_id in atom_ids], dtype=np.float64)
+    centroid, axis, span, residual = _pca_line(points)
+    projections = (points - centroid) @ axis
+    closest = centroid + np.outer(projections, axis)
+    distances = np.linalg.norm(points - closest, axis=1)
+    distance_gate = max(float(np.median(distances)) * 1.75, 3.5)
+    lo, hi = np.quantile(projections, [0.06, 0.94])
+    core = [
+        atom_id
+        for atom_id, distance, projection in zip(atom_ids, distances, projections)
+        if float(distance) <= distance_gate and float(lo) <= float(projection) <= float(hi)
+    ]
+    if len(core) < 6:
+        core = [
+            atom_id
+            for atom_id, distance in zip(atom_ids, distances)
+            if float(distance) <= max(distance_gate, 5.5)
+        ]
+    if len(core) < 6:
+        return sorted(atom_ids), {
+            "core_trimmed": False,
+            "input_atom_count": len(atom_ids),
+            "core_atom_count": len(atom_ids),
+            "trim_rejected": "too_few_core_atoms",
+        }
+    return sorted(core), {
+        "core_trimmed": len(core) < len(atom_ids),
+        "input_atom_count": len(atom_ids),
+        "core_atom_count": len(core),
+        "distance_gate_mm": round(float(distance_gate), 6),
+        "projection_quantile_interval": [round(float(lo), 6), round(float(hi), 6)],
+        "pretrim_span_mm": round(float(span), 6),
+        "pretrim_median_line_residual_mm": round(float(residual), 6),
+    }
+
+
 def _support_for_pair(
     *,
     pair: Tuple[str, str],
@@ -166,28 +265,41 @@ def _line_candidate(
     label_types: Mapping[str, str],
     locked_pair: Tuple[str, str],
 ) -> Dict[str, Any]:
-    points = np.asarray([_vec(atoms[atom_id].get("centroid") or (0, 0, 0)) for atom_id in atom_ids], dtype=np.float64)
-    centroid, axis, span, residual = _pca_line(points)
     flange_a = flanges[pair[0]]
     flange_b = flanges[pair[1]]
+    is_locked = pair == locked_pair
+    path_atom_ids, path_component_diagnostics = _best_path_component(
+        atom_ids,
+        atoms=atoms,
+        adjacency=adjacency,
+    )
+    core_atom_ids, core_diagnostics = _line_core_atoms(path_atom_ids, atoms=atoms, locked=is_locked)
+    points = np.asarray([_vec(atoms[atom_id].get("centroid") or (0, 0, 0)) for atom_id in core_atom_ids], dtype=np.float64)
+    centroid, axis, span, residual = _pca_line(points)
+    projections = (points - centroid) @ axis if len(points) else np.asarray([], dtype=np.float64)
+    if len(projections):
+        endpoint_min = centroid + axis * float(np.min(projections))
+        endpoint_max = centroid + axis * float(np.max(projections))
+    else:
+        endpoint_min = centroid
+        endpoint_max = centroid
     expected_axis = _unit(np.cross(_unit(flange_a.get("normal") or (1, 0, 0)), _unit(flange_b.get("normal") or (0, 1, 0))))
     axis_delta = _angle_deg(axis, expected_axis)
     touch_counts = _touching_counts(
-        atom_ids,
+        core_atom_ids,
         pair,
         adjacency=adjacency,
         atom_labels=atom_labels,
         label_types=label_types,
     )
     present_contacts = sum(1 for value in touch_counts.values() if value > 0)
-    normal_costs = [_normal_arc_cost(atoms[atom_id].get("normal") or (1, 0, 0), flange_a, flange_b) for atom_id in atom_ids]
+    normal_costs = [_normal_arc_cost(atoms[atom_id].get("normal") or (1, 0, 0), flange_a, flange_b) for atom_id in core_atom_ids]
     mean_normal_cost = float(sum(normal_costs) / max(1, len(normal_costs)))
-    support_mass = float(sum(float((atoms.get(atom_id) or {}).get("weight") or 0.0) for atom_id in atom_ids))
-    is_locked = pair == locked_pair
+    support_mass = float(sum(float((atoms.get(atom_id) or {}).get("weight") or 0.0) for atom_id in core_atom_ids))
     is_chord = pair == tuple(sorted((locked_pair[0], "F1"))) or pair == tuple(sorted(("F1", "F17")))
     # Diagnostic score: higher is better, not calibrated as final energy.
     score = (
-        min(1.0, len(atom_ids) / 35.0)
+        min(1.0, len(core_atom_ids) / 35.0)
         + min(1.0, span / 20.0)
         + max(0.0, 1.0 - residual / 6.0)
         + max(0.0, 1.0 - axis_delta / 35.0)
@@ -196,7 +308,7 @@ def _line_candidate(
     )
     penalty = 0.0
     reasons: List[str] = []
-    if len(atom_ids) < 6:
+    if len(core_atom_ids) < 6:
         penalty += 0.8
         reasons.append("short_support")
     if span < 10.0:
@@ -219,11 +331,19 @@ def _line_candidate(
     return {
         "candidate_id": candidate_id,
         "flange_pair": list(pair),
-        "atom_ids": sorted(atom_ids),
-        "atom_count": len(atom_ids),
+        "atom_ids": sorted(core_atom_ids),
+        "proposal_atom_ids": sorted(str(value) for value in atom_ids),
+        "path_atom_ids": sorted(path_atom_ids),
+        "atom_count": len(core_atom_ids),
+        "proposal_atom_count": len(atom_ids),
+        "path_atom_count": len(path_atom_ids),
         "support_mass": round(float(support_mass), 6),
         "centroid": [round(float(value), 6) for value in centroid.tolist()],
         "axis_direction": [round(float(value), 6) for value in axis.tolist()],
+        "endpoints": [
+            [round(float(value), 6) for value in endpoint_min.tolist()],
+            [round(float(value), 6) for value in endpoint_max.tolist()],
+        ],
         "expected_axis": [round(float(value), 6) for value in expected_axis.tolist()],
         "axis_delta_deg": round(float(axis_delta), 6),
         "span_mm": round(float(span), 6),
@@ -237,7 +357,9 @@ def _line_candidate(
         "raw_score": round(float(score), 6),
         "penalty": round(float(penalty), 6),
         "reason_codes": reasons,
-        "admissible": score - penalty >= 3.25 and span >= 10.0 and len(atom_ids) >= 6,
+        "path_component_diagnostics": path_component_diagnostics,
+        "line_core_diagnostics": core_diagnostics,
+        "admissible": score - penalty >= 3.25 and span >= 10.0 and len(core_atom_ids) >= 6 and not (is_chord and not is_locked),
     }
 
 
@@ -344,6 +466,8 @@ def solve_junction_bend_arrangement(
             subsets.append(row)
     subsets.sort(key=lambda item: (-float(item["subset_score"]), int(item["new_bend_count"]), item["candidate_ids"]))
     best = subsets[0] if subsets else None
+    selected_atoms = {str(atom_id) for candidate_id in ((best or {}).get("candidate_ids") or ()) for candidate in candidates if candidate.get("candidate_id") == candidate_id for atom_id in candidate.get("atom_ids") or ()}
+    junction_atom_ids = sorted(set(ridge_atom_ids) - selected_atoms)
     status = "no_arrangement_candidate"
     if best:
         if int(best.get("new_bend_count") or 0) == 2 and not best.get("conflicts"):
@@ -364,6 +488,8 @@ def solve_junction_bend_arrangement(
         "ridge_atom_count": len(ridge_atom_ids),
         "candidate_count": len(candidates),
         "admissible_nonlocked_candidate_count": len(nonlocked),
+        "junction_transition_atom_ids": junction_atom_ids,
+        "junction_transition_atom_count": len(junction_atom_ids),
         "status": status,
         "best_hypothesis": best,
         "candidates": candidates,

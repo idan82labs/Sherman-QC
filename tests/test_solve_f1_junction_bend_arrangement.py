@@ -82,3 +82,45 @@ def test_subset_score_penalizes_overlapping_candidates():
 
     assert row["overlap_penalty"] > 0
     assert row["conflicts"]
+
+
+def test_chord_candidates_are_not_countable_without_unique_support():
+    atoms = [_atom(f"A{i}", i * 3.0, normal=(0.707, 0.707, 0.0)) for i in range(12)]
+    payload = _payload(atoms)
+    payload["flange_hypotheses"].append({"flange_id": "F1", "normal": [0.0, 0.0, 1.0], "d": 0.0, "atom_ids": []})
+    atom_lookup = solver._atom_lookup(payload)
+    flange_lookup = solver._flange_lookup(payload)
+    atom_labels, label_types = solver._assignment(payload)
+    candidate = solver._line_candidate(
+        candidate_id="JBLX",
+        pair=("F1", "F11"),
+        atom_ids=[atom["atom_id"] for atom in atoms],
+        atoms=atom_lookup,
+        flanges=flange_lookup,
+        adjacency=payload["atom_graph"]["adjacency"],
+        atom_labels=atom_labels,
+        label_types=label_types,
+        locked_pair=("F11", "F14"),
+    )
+
+    assert not candidate["admissible"]
+    assert "possible_chord" in candidate["reason_codes"]
+
+
+def test_best_hypothesis_exports_junction_transition_atoms():
+    atoms = [_atom(f"A{i}", i * 3.0) for i in range(10)]
+    payload = _payload(atoms)
+    ridge = {
+        "ridges": [{"atom_ids": [atom["atom_id"] for atom in atoms]}],
+        "atom_scores": [{"atom_id": atom["atom_id"], "ridge_score": 0.8} for atom in atoms],
+    }
+
+    report = solver.solve_junction_bend_arrangement(
+        decomposition=payload,
+        feature_labels={"region_labels": [{"bend_id": "OB2", "human_feature_label": "conventional_bend"}]},
+        local_ridge_payload=ridge,
+        flange_ids=["F11", "F14", "F17"],
+    )
+
+    assert "junction_transition_atom_ids" in report
+    assert report["junction_transition_atom_count"] == len(report["junction_transition_atom_ids"])

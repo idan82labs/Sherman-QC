@@ -113,6 +113,11 @@ def _scatter(ax: Any, points: np.ndarray, *, color: str, size: float, alpha: flo
 
 
 def _draw_candidate_line(ax: Any, candidate: Mapping[str, Any], *, color: str, label: str, linewidth: float = 3.0) -> None:
+    endpoints_payload = candidate.get("endpoints") or ()
+    if len(endpoints_payload) == 2:
+        endpoints = np.asarray(endpoints_payload, dtype=np.float64)
+        ax.plot(endpoints[:, 0], endpoints[:, 1], endpoints[:, 2], color=color, linewidth=linewidth, label=label)
+        return
     centroid = _vec(candidate.get("centroid") or (0.0, 0.0, 0.0))
     axis = _vec(candidate.get("axis_direction") or (1.0, 0.0, 0.0))
     norm = float(np.linalg.norm(axis))

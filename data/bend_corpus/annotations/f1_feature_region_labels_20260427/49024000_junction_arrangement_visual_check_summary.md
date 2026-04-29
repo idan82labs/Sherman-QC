@@ -20,9 +20,9 @@ H3_locked_plus_2_new
 Selected countable bend-line candidates:
 
 ```text
-JBL4: F11-F14, locked accepted OB2
-JBL5: F11-F17, proposed missing bend-line instance
-JBL2: F1-F14, proposed missing bend-line instance
+JBL4: F11-F14, locked accepted OB2, 15 atoms
+JBL5: F11-F17, proposed missing bend-line instance, 6 line-core atoms from 19 proposal atoms
+JBL2: F1-F14, proposed missing bend-line instance, 7 line-core atoms from 16 proposal atoms
 ```
 
 Rejected/chord candidates:
@@ -49,11 +49,12 @@ The close-up render shows a useful diagnostic signal:
 - it proposes two additional flange-pair-conditioned line instances;
 - it leaves leftover ridge atoms as uncounted junction/corner support;
 - it rejects the broad diagonal/chord candidate.
+- the second pass now selects compact line-core atoms and explicit endpoints rather than rendering every broad proposal atom as countable support.
 
 This is not promotion-ready yet:
 
-- candidate support remains broad around the central corner;
-- fitted line endpoints are approximate;
+- candidate support is now compact, but line-core support is sparse;
+- fitted line endpoints are improved but still diagnostic endpoints, not final owned-region boundaries;
 - the selected lines need stronger path skeleton / endpoint ownership before becoming final F1 owned bend regions;
 - this has only been tested on `49024000`.
 
