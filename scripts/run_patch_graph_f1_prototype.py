@@ -916,6 +916,11 @@ def main() -> int:
         help="Diagnostic-only mode: when birth rescue is capped, prioritize birth supports currently owned by residual.",
     )
     parser.add_argument(
+        "--allow-corridor-backed-contact-recovery",
+        action="store_true",
+        help="Diagnostic-only mode: keep one-sided/imbalanced bend support when axis/span/corridor/contact purity are strong.",
+    )
+    parser.add_argument(
         "--count-sweep-summary-json",
         action="append",
         default=[],
@@ -961,6 +966,10 @@ def main() -> int:
     if args.prioritize_residual_birth_rescue:
         solver_option_overrides = dict(solver_option_overrides or {})
         solver_option_overrides["prioritize_residual_birth_rescue"] = True
+        solver_option_overrides["upper_tail_probe"] = True
+    if args.allow_corridor_backed_contact_recovery:
+        solver_option_overrides = dict(solver_option_overrides or {})
+        solver_option_overrides["allow_corridor_backed_contact_recovery"] = True
         solver_option_overrides["upper_tail_probe"] = True
     promotion_evidence = _load_count_sweep_promotion_evidence(args.count_sweep_summary_json or ())
     promotion_evidence.update(_load_promotion_evidence(args.promotion_evidence_json or ()))

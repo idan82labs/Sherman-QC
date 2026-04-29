@@ -735,6 +735,58 @@ def test_bend_component_admissibility_single_contact_requires_route_relaxation()
     assert "missing_designated_flange_contact" not in relaxed_reasons
 
 
+def test_bend_component_admissibility_allows_corridor_backed_contact_recovery():
+    atom1 = SurfaceAtom("A1", (0, 0, 0), (0,), (0.0, 0.0, 0.0), (0.0, 0.7, 0.7), 0.2, 0.02, (1.0, 0.0, 0.0), 3.0, 1.0)
+    atom2 = SurfaceAtom("A2", (1, 0, 0), (1,), (1.0, 0.0, 0.0), (0.0, 0.7, 0.7), 0.2, 0.02, (1.0, 0.0, 0.0), 3.0, 1.0)
+    graph = SimpleNamespace(
+        atoms=(atom1, atom2),
+        adjacency={"A1": ("A2", "F3A"), "A2": ("A1", "F3A"), "F3A": ("A1", "A2")},
+        edge_weights={"A1::A2": 1.0, "A1::F3A": 1.0, "A2::F3A": 1.0},
+        voxel_size_mm=1.0,
+        local_spacing_mm=0.2,
+    )
+    flanges = {
+        "F3": FlangeHypothesis("F3", "seed", (), (0.0, 0.0, 1.0), 0.0, (0.0, 0.0, 0.0), 0.8),
+        "F4": FlangeHypothesis("F4", "seed", (), (0.0, 1.0, 0.0), 0.0, (0.0, 0.0, 0.0), 0.8),
+    }
+    bend = _bend(
+        "B1",
+        incident_flange_ids=("F3", "F4"),
+        atom_ids=("A1",),
+        anchor=(0.0, 0.0, 0.0),
+        axis_direction=(1.0, 0.0, 0.0),
+        angle_deg=50.0,
+        candidate_incident_flange_pairs=(("F3", "F4"),),
+    )
+    labels = {"A1": "B1", "A2": "B1", "F3A": "F3"}
+    label_types = {"B1": "bend", "F3": "flange", "F4": "flange"}
+
+    strict_admissible, strict_reasons = _bend_component_admissibility(
+        component=("A1", "A2"),
+        bend=bend,
+        atom_graph=graph,
+        labels=labels,
+        label_types=label_types,
+        atom_lookup={"A1": atom1, "A2": atom2},
+        flange_lookup=flanges,
+    )
+    recovered_admissible, recovered_reasons = _bend_component_admissibility(
+        component=("A1", "A2"),
+        bend=bend,
+        atom_graph=graph,
+        labels=labels,
+        label_types=label_types,
+        atom_lookup={"A1": atom1, "A2": atom2},
+        flange_lookup=flanges,
+        allow_corridor_backed_contact_recovery=True,
+    )
+
+    assert strict_admissible is False
+    assert "missing_designated_flange_contact" in strict_reasons
+    assert recovered_admissible is True
+    assert "missing_designated_flange_contact" not in recovered_reasons
+
+
 def test_bend_component_admissibility_can_use_flange_hypothesis_support_contacts():
     atom1 = SurfaceAtom("A1", (0, 0, 0), (0,), (0.0, 0.0, 0.0), (0.0, 0.7, 0.7), 0.2, 0.02, (1.0, 0.0, 0.0), 3.0, 1.0)
     support_atom = SurfaceAtom("F4A", (1, 0, 0), (1,), (1.0, 0.0, 0.0), (0.0, 1.0, 0.0), 0.2, 0.01, (1.0, 0.0, 0.0), 3.0, 1.0)

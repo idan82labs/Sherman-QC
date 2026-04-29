@@ -1002,6 +1002,7 @@ def solve_typed_latent_decomposition(
                     label_types=label_types,
                     flange_lookup={flange.flange_id: flange for flange in flange_hypotheses},
                     allow_geometry_backed_single_contact=bool(solver_options.get("allow_geometry_backed_single_contact", False)),
+                    allow_corridor_backed_contact_recovery=bool(solver_options.get("allow_corridor_backed_contact_recovery", False)),
                     allow_hypothesis_support_contacts=bool(solver_options.get("allow_hypothesis_support_contacts", False)),
                     allow_cross_axis_attachment_match=bool(solver_options.get("allow_cross_axis_attachment_match", False)),
                     allow_mixed_transition_single_contact=bool(solver_options.get("allow_mixed_transition_single_contact", False)),
@@ -1036,6 +1037,7 @@ def solve_typed_latent_decomposition(
             label_types=label_types,
             flange_lookup={item.flange_id: item for item in flange_hypotheses},
             allow_geometry_backed_single_contact=bool(solver_options.get("allow_geometry_backed_single_contact", False)),
+            allow_corridor_backed_contact_recovery=bool(solver_options.get("allow_corridor_backed_contact_recovery", False)),
             allow_hypothesis_support_contacts=bool(solver_options.get("allow_hypothesis_support_contacts", False)),
             allow_cross_axis_attachment_match=bool(solver_options.get("allow_cross_axis_attachment_match", False)),
             allow_mixed_transition_single_contact=bool(solver_options.get("allow_mixed_transition_single_contact", False)),
@@ -1050,6 +1052,7 @@ def solve_typed_latent_decomposition(
         solution_energies=solution_energies,
         label_types=label_types,
         allow_geometry_backed_single_contact=bool(solver_options.get("allow_geometry_backed_single_contact", False)),
+        allow_corridor_backed_contact_recovery=bool(solver_options.get("allow_corridor_backed_contact_recovery", False)),
         allow_hypothesis_support_contacts=bool(solver_options.get("allow_hypothesis_support_contacts", False)),
         allow_cross_axis_attachment_match=bool(solver_options.get("allow_cross_axis_attachment_match", False)),
         allow_mixed_transition_single_contact=bool(solver_options.get("allow_mixed_transition_single_contact", False)),
@@ -1136,6 +1139,7 @@ def extract_owned_bend_regions(
             atom_lookup=atom_lookup,
             flange_lookup=flange_lookup,
             allow_geometry_backed_single_contact=bool(solver_options.get("allow_geometry_backed_single_contact", False)),
+            allow_corridor_backed_contact_recovery=bool(solver_options.get("allow_corridor_backed_contact_recovery", False)),
             allow_hypothesis_support_contacts=bool(solver_options.get("allow_hypothesis_support_contacts", False)),
             allow_cross_axis_attachment_match=bool(solver_options.get("allow_cross_axis_attachment_match", False)),
             allow_mixed_transition_single_contact=bool(solver_options.get("allow_mixed_transition_single_contact", False)),
@@ -2345,6 +2349,7 @@ def _apply_object_repair_moves(
     repair_before_prune = bool(solver_options.get("repair_before_prune", False))
     enable_birth_support_rescue = bool(solver_options.get("enable_birth_support_rescue", False))
     allow_geometry_backed_single_contact = bool(solver_options.get("allow_geometry_backed_single_contact", False))
+    allow_corridor_backed_contact_recovery = bool(solver_options.get("allow_corridor_backed_contact_recovery", False))
     allow_hypothesis_support_contacts = bool(solver_options.get("allow_hypothesis_support_contacts", False))
     allow_cross_axis_attachment_match = bool(solver_options.get("allow_cross_axis_attachment_match", False))
     allow_mixed_transition_single_contact = bool(solver_options.get("allow_mixed_transition_single_contact", False))
@@ -2365,6 +2370,7 @@ def _apply_object_repair_moves(
         "repair_before_prune": repair_before_prune,
         "enable_birth_support_rescue": enable_birth_support_rescue,
         "allow_geometry_backed_single_contact": allow_geometry_backed_single_contact,
+        "allow_corridor_backed_contact_recovery": allow_corridor_backed_contact_recovery,
         "allow_hypothesis_support_contacts": allow_hypothesis_support_contacts,
         "allow_cross_axis_attachment_match": allow_cross_axis_attachment_match,
         "allow_mixed_transition_single_contact": allow_mixed_transition_single_contact,
@@ -2385,6 +2391,7 @@ def _apply_object_repair_moves(
                 bend_hypotheses=bend_hypotheses,
                 label_types=label_types,
                 allow_geometry_backed_single_contact=allow_geometry_backed_single_contact,
+                allow_corridor_backed_contact_recovery=allow_corridor_backed_contact_recovery,
                 allow_hypothesis_support_contacts=allow_hypothesis_support_contacts,
                 allow_cross_axis_attachment_match=allow_cross_axis_attachment_match,
                 allow_mixed_transition_single_contact=allow_mixed_transition_single_contact,
@@ -2398,6 +2405,7 @@ def _apply_object_repair_moves(
             label_types=label_types,
             diagnostics=prune_diagnostics,
             allow_geometry_backed_single_contact=allow_geometry_backed_single_contact,
+            allow_corridor_backed_contact_recovery=allow_corridor_backed_contact_recovery,
             allow_hypothesis_support_contacts=allow_hypothesis_support_contacts,
             allow_cross_axis_attachment_match=allow_cross_axis_attachment_match,
             allow_mixed_transition_single_contact=allow_mixed_transition_single_contact,
@@ -2425,6 +2433,7 @@ def _apply_object_repair_moves(
                 bend_hypotheses=bend_hypotheses,
                 label_types=label_types,
                 allow_geometry_backed_single_contact=allow_geometry_backed_single_contact,
+                allow_corridor_backed_contact_recovery=allow_corridor_backed_contact_recovery,
                 allow_hypothesis_support_contacts=allow_hypothesis_support_contacts,
                 allow_cross_axis_attachment_match=allow_cross_axis_attachment_match,
                 allow_mixed_transition_single_contact=allow_mixed_transition_single_contact,
@@ -2440,6 +2449,7 @@ def _apply_object_repair_moves(
                 label_types=label_types,
                 diagnostics=rescue_diagnostics,
                 allow_geometry_backed_single_contact=allow_geometry_backed_single_contact,
+                allow_corridor_backed_contact_recovery=allow_corridor_backed_contact_recovery,
                 allow_hypothesis_support_contacts=allow_hypothesis_support_contacts,
                 allow_cross_axis_attachment_match=allow_cross_axis_attachment_match,
                 allow_no_contact_birth_rescue=allow_no_contact_birth_rescue,
@@ -2580,6 +2590,7 @@ def _drop_duplicate_and_inadmissible_bends(
     flange_lookup: Optional[Mapping[str, FlangeHypothesis]] = None,
     diagnostics: Optional[Dict[str, Any]] = None,
     allow_geometry_backed_single_contact: bool = False,
+    allow_corridor_backed_contact_recovery: bool = False,
     allow_hypothesis_support_contacts: bool = False,
     allow_cross_axis_attachment_match: bool = False,
     allow_mixed_transition_single_contact: bool = False,
@@ -2647,6 +2658,7 @@ def _drop_duplicate_and_inadmissible_bends(
             atom_lookup=atom_lookup,
             flange_lookup=flange_lookup or {},
             allow_geometry_backed_single_contact=allow_geometry_backed_single_contact,
+            allow_corridor_backed_contact_recovery=allow_corridor_backed_contact_recovery,
             allow_hypothesis_support_contacts=allow_hypothesis_support_contacts,
             allow_cross_axis_attachment_match=allow_cross_axis_attachment_match,
             allow_mixed_transition_single_contact=allow_mixed_transition_single_contact,
@@ -2690,6 +2702,7 @@ def _activate_interface_bends(
     bend_hypotheses: Sequence[BendHypothesis],
     label_types: Mapping[str, str],
     allow_geometry_backed_single_contact: bool = False,
+    allow_corridor_backed_contact_recovery: bool = False,
     allow_hypothesis_support_contacts: bool = False,
     allow_cross_axis_attachment_match: bool = False,
     allow_mixed_transition_single_contact: bool = False,
@@ -2787,6 +2800,7 @@ def _activate_interface_bends(
                 atom_lookup=atom_lookup,
                 flange_lookup=flange_lookup,
                 allow_geometry_backed_single_contact=allow_geometry_backed_single_contact,
+                allow_corridor_backed_contact_recovery=allow_corridor_backed_contact_recovery,
                 allow_hypothesis_support_contacts=allow_hypothesis_support_contacts,
                 allow_cross_axis_attachment_match=allow_cross_axis_attachment_match,
                 allow_mixed_transition_single_contact=allow_mixed_transition_single_contact,
@@ -3055,6 +3069,7 @@ def _rescue_interface_birth_supports(
     max_rescues: int = 8,
     diagnostics: Optional[Dict[str, Any]] = None,
     allow_geometry_backed_single_contact: bool = False,
+    allow_corridor_backed_contact_recovery: bool = False,
     allow_hypothesis_support_contacts: bool = False,
     allow_cross_axis_attachment_match: bool = False,
     allow_no_contact_birth_rescue: bool = False,
@@ -3228,6 +3243,7 @@ def _rescue_interface_birth_supports(
                 atom_lookup=atom_lookup,
                 flange_lookup=flange_lookup,
                 allow_geometry_backed_single_contact=allow_geometry_backed_single_contact,
+                allow_corridor_backed_contact_recovery=allow_corridor_backed_contact_recovery,
                 allow_hypothesis_support_contacts=allow_hypothesis_support_contacts,
                 allow_cross_axis_attachment_match=allow_cross_axis_attachment_match,
                 allow_mixed_transition_single_contact=allow_mixed_transition_single_contact,
@@ -4416,6 +4432,7 @@ def _bend_component_admissibility(
     atom_lookup: Mapping[str, SurfaceAtom],
     flange_lookup: Optional[Mapping[str, FlangeHypothesis]] = None,
     allow_geometry_backed_single_contact: bool = False,
+    allow_corridor_backed_contact_recovery: bool = False,
     allow_hypothesis_support_contacts: bool = False,
     allow_cross_axis_attachment_match: bool = False,
     allow_mixed_transition_single_contact: bool = False,
@@ -4469,6 +4486,18 @@ def _bend_component_admissibility(
         and float(evaluation.get("penalty", 999.0)) <= 3.60
     )
     terms = dict(evaluation.get("terms") or {})
+    corridor_backed_contact_recovery = (
+        bool(allow_corridor_backed_contact_recovery)
+        and required_contacts >= 2
+        and present_designated >= 1
+        and support_mass >= _minimum_bend_support_mass(atom_graph, bend)
+        and float(terms.get("contact_ratio", 0.0)) >= 0.88
+        and float(terms.get("extra_ratio", 1.0)) <= 0.12
+        and float(terms.get("line_norm", 999.0)) <= 0.40
+        and float(terms.get("span_overlap", 0.0)) >= 0.65
+        and float(terms.get("axis_deg", 999.0)) <= 14.0
+        and float(evaluation.get("penalty", 999.0)) <= 3.20
+    )
     geometry_backed_birth_contact = (
         bool(allow_geometry_backed_single_contact)
         and str(bend.source_kind) == "interface_birth"
@@ -4492,7 +4521,7 @@ def _bend_component_admissibility(
         and float(evaluation.get("penalty", 999.0)) <= 3.20
     )
     if present_designated < required_contacts:
-        if not (geometry_backed_single_contact or geometry_backed_birth_contact or mixed_transition_single_contact):
+        if not (geometry_backed_single_contact or geometry_backed_birth_contact or mixed_transition_single_contact or corridor_backed_contact_recovery):
             return False, sorted(set(reasons))
         reasons = [reason for reason in reasons if reason not in {"missing_designated_flange_contact", "contact_imbalance"}]
 
@@ -4500,9 +4529,17 @@ def _bend_component_admissibility(
         reasons.remove("boundary_leakage")
     if "contact_imbalance" in reasons and quality >= 0.75:
         reasons.remove("contact_imbalance")
-    if (geometry_backed_single_contact or geometry_backed_imbalanced_contact or geometry_backed_birth_contact or mixed_transition_single_contact) and "contact_imbalance" in reasons:
+    if (
+        geometry_backed_single_contact
+        or geometry_backed_imbalanced_contact
+        or geometry_backed_birth_contact
+        or mixed_transition_single_contact
+        or corridor_backed_contact_recovery
+    ) and "contact_imbalance" in reasons:
         reasons.remove("contact_imbalance")
     penalty_limit = 4.60 if geometry_backed_birth_contact else 4.00
+    if corridor_backed_contact_recovery:
+        penalty_limit = max(penalty_limit, 3.20)
     if float(evaluation.get("penalty", 999.0)) > penalty_limit:
         reasons.append("attachment_penalty_too_high")
     return (len(reasons) == 0, sorted(set(reasons)))
@@ -4516,6 +4553,7 @@ def _count_admissible_bend_components(
     label_types: Mapping[str, str],
     flange_lookup: Optional[Mapping[str, FlangeHypothesis]] = None,
     allow_geometry_backed_single_contact: bool = False,
+    allow_corridor_backed_contact_recovery: bool = False,
     allow_hypothesis_support_contacts: bool = False,
     allow_cross_axis_attachment_match: bool = False,
     allow_mixed_transition_single_contact: bool = False,
@@ -4534,6 +4572,7 @@ def _count_admissible_bend_components(
             atom_lookup=atom_lookup,
             flange_lookup=flange_lookup or {},
             allow_geometry_backed_single_contact=allow_geometry_backed_single_contact,
+            allow_corridor_backed_contact_recovery=allow_corridor_backed_contact_recovery,
             allow_hypothesis_support_contacts=allow_hypothesis_support_contacts,
             allow_cross_axis_attachment_match=allow_cross_axis_attachment_match,
             allow_mixed_transition_single_contact=allow_mixed_transition_single_contact,
@@ -4551,6 +4590,7 @@ def _build_object_level_confidence_summary(
     label_types: Mapping[str, str],
     flange_lookup: Optional[Mapping[str, FlangeHypothesis]] = None,
     allow_geometry_backed_single_contact: bool = False,
+    allow_corridor_backed_contact_recovery: bool = False,
     allow_hypothesis_support_contacts: bool = False,
     allow_cross_axis_attachment_match: bool = False,
     allow_mixed_transition_single_contact: bool = False,
@@ -4578,6 +4618,7 @@ def _build_object_level_confidence_summary(
                 atom_lookup=atom_lookup,
                 flange_lookup=flange_lookup or {},
                 allow_geometry_backed_single_contact=allow_geometry_backed_single_contact,
+                allow_corridor_backed_contact_recovery=allow_corridor_backed_contact_recovery,
                 allow_hypothesis_support_contacts=allow_hypothesis_support_contacts,
                 allow_cross_axis_attachment_match=allow_cross_axis_attachment_match,
                 allow_mixed_transition_single_contact=allow_mixed_transition_single_contact,
