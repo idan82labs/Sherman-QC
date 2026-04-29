@@ -1398,9 +1398,11 @@ def _render_region_suppression_report(
                 "bend_id": region.bend_id,
                 "incident_flange_ids": list(region.incident_flange_ids),
                 "atom_count": len(region.owned_atom_ids),
+                "owned_atom_ids": list(region.owned_atom_ids),
                 "support_mass": float(region.support_mass),
                 "debug_confidence": float(region.debug_confidence),
                 "anchor": [float(value) for value in region.anchor],
+                "axis_direction": [float(value) for value in region.axis_direction],
                 "reason_codes": sorted(reason_codes) or ["unknown_render_suppression"],
                 "nearest_kept_regions": nearest[:3],
             }
@@ -1522,6 +1524,12 @@ def build_owned_region_marker_admissibility(
     fragment_upgrade_diagnostics = _suppressed_marker_fragment_upgrade_diagnostics(
         suppression_details,
         local_spacing_mm=float(atom_graph.local_spacing_mm or 1.0),
+        atom_graph=atom_graph,
+        occupied_atom_ids={
+            atom_id
+            for region in owned_bend_regions
+            for atom_id in region.owned_atom_ids
+        },
     )
     upgrade_action_counts: Dict[str, int] = defaultdict(int)
     for item in fragment_upgrade_diagnostics:
@@ -1542,6 +1550,8 @@ def _suppressed_marker_fragment_upgrade_diagnostics(
     suppression_details: Sequence[Mapping[str, Any]],
     *,
     local_spacing_mm: float,
+    atom_graph: Optional[SurfaceAtomGraph] = None,
+    occupied_atom_ids: Optional[set[str]] = None,
 ) -> List[Dict[str, Any]]:
     """Classify suppressed raw owned regions for future solver repair.
 
@@ -1564,16 +1574,30 @@ def _suppressed_marker_fragment_upgrade_diagnostics(
             nearest_id = str(nearest[0].get("bend_id") or "")
 
         blockers: List[str] = []
+        growth_probe = _suppressed_fragment_growth_probe(
+            item,
+            atom_graph=atom_graph,
+            occupied_atom_ids=occupied_atom_ids or set(),
+            search_depth=2,
+        )
+        growth_needed_atoms = max(0, min_upgrade_atoms - atom_count)
+        growth_candidate_count = int(growth_probe.get("candidate_unowned_atom_count", 0))
         recommended_action = "manual_review"
         if "same_pair_marker_alias" in reasons:
             recommended_action = "merge_alias"
             blockers.append("same_selected_flange_pair_as_kept_region")
         elif "tiny_cross_pair_marker_cluster" in reasons:
-            if atom_count < min_upgrade_atoms:
+            if atom_count < min_upgrade_atoms and growth_candidate_count < growth_needed_atoms:
                 blockers.append("insufficient_atoms_for_standalone_line_instance")
+                blockers.append("insufficient_adjacent_unowned_growth_support")
             if nearest_distance is not None and nearest_distance < min_upgrade_distance_mm:
                 blockers.append("too_close_to_existing_kept_marker")
-            recommended_action = "upgrade_candidate" if not blockers else "requires_support_growth_before_counting"
+            if not blockers:
+                recommended_action = "upgrade_candidate"
+            elif growth_needed_atoms > 0 and growth_candidate_count >= growth_needed_atoms:
+                recommended_action = "local_growth_probe_candidate"
+            else:
+                recommended_action = "requires_support_growth_before_counting"
         elif "unknown_render_suppression" in reasons:
             blockers.append("unknown_suppression_reason")
 
@@ -1587,11 +1611,52 @@ def _suppressed_marker_fragment_upgrade_diagnostics(
                 "nearest_kept_distance_mm": None if nearest_distance is None else round(float(nearest_distance), 4),
                 "min_upgrade_atoms": min_upgrade_atoms,
                 "min_upgrade_distance_mm": round(float(min_upgrade_distance_mm), 4),
+                "growth_needed_atoms": growth_needed_atoms,
+                "growth_probe": growth_probe,
                 "recommended_action": recommended_action,
                 "upgrade_blockers": sorted(set(blockers)),
             }
         )
     return diagnostics
+
+
+def _suppressed_fragment_growth_probe(
+    suppression_detail: Mapping[str, Any],
+    *,
+    atom_graph: Optional[SurfaceAtomGraph],
+    occupied_atom_ids: set[str],
+    search_depth: int,
+) -> Dict[str, Any]:
+    """Find nearby unowned atoms that could grow a tiny suppressed fragment."""
+    seed_ids = [str(value) for value in suppression_detail.get("owned_atom_ids") or ()]
+    if atom_graph is None or not seed_ids:
+        return {
+            "search_depth": int(search_depth),
+            "candidate_unowned_atom_count": 0,
+            "candidate_unowned_atom_ids": [],
+        }
+
+    visited = set(seed_ids)
+    frontier = set(seed_ids)
+    candidates: set[str] = set()
+    for _ in range(max(0, int(search_depth))):
+        next_frontier: set[str] = set()
+        for atom_id in frontier:
+            for neighbor_id in atom_graph.adjacency.get(atom_id, ()):
+                if neighbor_id in visited:
+                    continue
+                visited.add(neighbor_id)
+                next_frontier.add(neighbor_id)
+                if neighbor_id not in occupied_atom_ids:
+                    candidates.add(neighbor_id)
+        frontier = next_frontier
+        if not frontier:
+            break
+    return {
+        "search_depth": int(search_depth),
+        "candidate_unowned_atom_count": len(candidates),
+        "candidate_unowned_atom_ids": sorted(candidates)[:24],
+    }
 
 
 def _render_owned_region_atom_projection(
