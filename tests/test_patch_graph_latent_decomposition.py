@@ -496,9 +496,12 @@ def test_build_owned_region_marker_admissibility_flags_tiny_cross_pair_for_growt
     assert diagnostic["upgrade_blockers"] == [
         "insufficient_adjacent_unowned_growth_support",
         "insufficient_atoms_for_standalone_line_instance",
+        "insufficient_grown_support_atoms",
+        "insufficient_grown_support_span",
         "too_close_to_existing_kept_marker",
     ]
     assert diagnostic["growth_probe"]["candidate_unowned_atom_count"] == 0
+    assert diagnostic["growth_separability"]["status"] == "no_growth_support"
 
 
 def test_build_owned_region_marker_admissibility_detects_growth_probe_candidates():
@@ -562,7 +565,85 @@ def test_build_owned_region_marker_admissibility_detects_growth_probe_candidates
     assert diagnostic["recommended_action"] == "local_growth_probe_candidate"
     assert diagnostic["growth_needed_atoms"] == 3
     assert diagnostic["growth_probe"]["candidate_unowned_atom_count"] == 3
-    assert diagnostic["upgrade_blockers"] == ["too_close_to_existing_kept_marker"]
+    assert diagnostic["growth_separability"]["status"] == "growth_available_but_not_separable"
+    assert diagnostic["upgrade_blockers"] == [
+        "insufficient_grown_support_span",
+        "too_close_to_existing_kept_marker",
+    ]
+
+
+def test_build_owned_region_marker_admissibility_detects_separable_growth_candidates():
+    def region(bend_id, pair, atom_ids, anchor, axis):
+        return OwnedBendRegion(
+            bend_id=bend_id,
+            bend_class="transition_only",
+            incident_flange_ids=pair,
+            canonical_bend_key=f"{','.join(pair)}::{bend_id}",
+            owned_atom_ids=tuple(atom_ids),
+            anchor=anchor,
+            axis_direction=axis,
+            support_centroid=anchor,
+            span_endpoints=(anchor, anchor),
+            angle_deg=90.0,
+            radius_mm=None,
+            visibility_state="internal",
+            support_mass=1000.0,
+            admissible=True,
+            admissibility_reasons=(),
+            post_bend_class="transition_only",
+            debug_confidence=0.8,
+        )
+
+    kept = region("OB3", ("F27", "F4"), tuple(f"K{i}" for i in range(18)), (0.0, 0.0, 0.0), (1.0, 0.0, 0.0))
+    tiny_cross = region("OB9", ("F27", "F32"), ("S1", "S2", "S3"), (30.0, 0.0, 0.0), (0.0, 1.0, 0.0))
+    extra_atoms = ("R1", "R2", "R3")
+    coordinates = {atom_id: (float(index), 0.0, 0.0) for index, atom_id in enumerate(kept.owned_atom_ids)}
+    coordinates.update(
+        {
+            "S1": (30.0, 0.0, 0.0),
+            "S2": (30.0, 2.0, 0.0),
+            "S3": (30.0, 4.0, 0.0),
+            "R1": (30.0, 8.0, 0.0),
+            "R2": (30.0, 12.0, 0.0),
+            "R3": (30.0, 16.0, 0.0),
+        }
+    )
+    graph = SurfaceAtomGraph(
+        atoms=tuple(
+            SurfaceAtom(
+                atom_id,
+                (index, 0, 0),
+                (index,),
+                coordinates[atom_id],
+                (0.0, 0.7, 0.7),
+                1.0,
+                0.02,
+                (0.0, 1.0, 0.0) if atom_id.startswith(("S", "R")) else (1.0, 0.0, 0.0),
+                1.0,
+                1.0,
+            )
+            for index, atom_id in enumerate((*kept.owned_atom_ids, *tiny_cross.owned_atom_ids, *extra_atoms))
+        ),
+        adjacency={
+            "S1": ("R1",),
+            "S2": ("R2",),
+            "S3": ("R3",),
+            "R1": ("S1",),
+            "R2": ("S2",),
+            "R3": ("S3",),
+        },
+        edge_weights={},
+        voxel_size_mm=1.0,
+        local_spacing_mm=1.5,
+    )
+
+    payload = build_owned_region_marker_admissibility([kept, tiny_cross], atom_graph=graph)
+
+    diagnostic = payload["fragment_upgrade_diagnostics"][0]
+    assert diagnostic["recommended_action"] == "upgrade_candidate"
+    assert diagnostic["growth_separability"]["status"] == "separable_growth_candidate"
+    assert diagnostic["growth_separability"]["grown_support_atom_count"] == 6
+    assert diagnostic["upgrade_blockers"] == []
 
 
 def test_dedupe_bend_hypotheses_collapses_overlap_even_when_flange_ids_drift():

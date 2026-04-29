@@ -1580,6 +1580,14 @@ def _suppressed_marker_fragment_upgrade_diagnostics(
             occupied_atom_ids=occupied_atom_ids or set(),
             search_depth=2,
         )
+        growth_separability = _suppressed_fragment_growth_separability(
+            item,
+            growth_probe=growth_probe,
+            atom_graph=atom_graph,
+            local_spacing_mm=h,
+            min_upgrade_atoms=min_upgrade_atoms,
+            min_upgrade_distance_mm=min_upgrade_distance_mm,
+        )
         growth_needed_atoms = max(0, min_upgrade_atoms - atom_count)
         growth_candidate_count = int(growth_probe.get("candidate_unowned_atom_count", 0))
         recommended_action = "manual_review"
@@ -1590,8 +1598,15 @@ def _suppressed_marker_fragment_upgrade_diagnostics(
             if atom_count < min_upgrade_atoms and growth_candidate_count < growth_needed_atoms:
                 blockers.append("insufficient_atoms_for_standalone_line_instance")
                 blockers.append("insufficient_adjacent_unowned_growth_support")
-            if nearest_distance is not None and nearest_distance < min_upgrade_distance_mm:
+            if (
+                nearest_distance is not None
+                and nearest_distance < min_upgrade_distance_mm
+                and growth_separability.get("status") != "separable_growth_candidate"
+            ):
                 blockers.append("too_close_to_existing_kept_marker")
+            for blocker in growth_separability.get("blockers") or ():
+                if blocker != "nearest_marker_too_close_without_axis_separation":
+                    blockers.append(str(blocker))
             if not blockers:
                 recommended_action = "upgrade_candidate"
             elif growth_needed_atoms > 0 and growth_candidate_count >= growth_needed_atoms:
@@ -1613,6 +1628,7 @@ def _suppressed_marker_fragment_upgrade_diagnostics(
                 "min_upgrade_distance_mm": round(float(min_upgrade_distance_mm), 4),
                 "growth_needed_atoms": growth_needed_atoms,
                 "growth_probe": growth_probe,
+                "growth_separability": growth_separability,
                 "recommended_action": recommended_action,
                 "upgrade_blockers": sorted(set(blockers)),
             }
@@ -1656,6 +1672,94 @@ def _suppressed_fragment_growth_probe(
         "search_depth": int(search_depth),
         "candidate_unowned_atom_count": len(candidates),
         "candidate_unowned_atom_ids": sorted(candidates)[:24],
+    }
+
+
+def _suppressed_fragment_growth_separability(
+    suppression_detail: Mapping[str, Any],
+    *,
+    growth_probe: Mapping[str, Any],
+    atom_graph: Optional[SurfaceAtomGraph],
+    local_spacing_mm: float,
+    min_upgrade_atoms: int,
+    min_upgrade_distance_mm: float,
+) -> Dict[str, Any]:
+    """Estimate whether a grown tiny fragment could become a standalone bend line."""
+    seed_ids = [str(value) for value in suppression_detail.get("owned_atom_ids") or ()]
+    growth_ids = [str(value) for value in growth_probe.get("candidate_unowned_atom_ids") or ()]
+    support_ids = sorted(set(seed_ids + growth_ids))
+    h = max(float(local_spacing_mm or 1.0), 1.0)
+    min_span_mm = max(12.0, 4.0 * h)
+    blockers: List[str] = []
+
+    if atom_graph is None or not support_ids:
+        return {
+            "status": "no_growth_support",
+            "grown_support_atom_count": len(support_ids),
+            "grown_support_span_mm": 0.0,
+            "min_grown_support_span_mm": round(float(min_span_mm), 4),
+            "nearest_axis_delta_deg": None,
+            "nearest_distance_mm": None,
+            "blockers": ["missing_atom_graph_or_support"],
+        }
+
+    atom_lookup = {atom.atom_id: atom for atom in atom_graph.atoms}
+    points = [
+        np.asarray(atom_lookup[atom_id].centroid, dtype=np.float64)
+        for atom_id in support_ids
+        if atom_id in atom_lookup
+    ]
+    if not points:
+        return {
+            "status": "no_growth_support",
+            "grown_support_atom_count": len(support_ids),
+            "grown_support_span_mm": 0.0,
+            "min_grown_support_span_mm": round(float(min_span_mm), 4),
+            "nearest_axis_delta_deg": None,
+            "nearest_distance_mm": None,
+            "blockers": ["missing_support_atoms"],
+        }
+
+    axis_values = suppression_detail.get("axis_direction") or (1.0, 0.0, 0.0)
+    axis = _normalize_direction(np.asarray(axis_values, dtype=np.float64))
+    support_points = np.asarray(points, dtype=np.float64)
+    projections = support_points @ axis
+    grown_span_mm = float(np.max(projections) - np.min(projections)) if len(projections) else 0.0
+    grown_count = len(points)
+
+    nearest = list(suppression_detail.get("nearest_kept_regions") or ())
+    nearest_distance = None
+    nearest_axis_delta = None
+    if nearest:
+        nearest_distance = float(nearest[0].get("distance_mm", 0.0))
+        nearest_axis_delta = float(nearest[0].get("axis_delta_deg", 0.0))
+
+    if grown_count < int(min_upgrade_atoms):
+        blockers.append("insufficient_grown_support_atoms")
+    if grown_span_mm < min_span_mm:
+        blockers.append("insufficient_grown_support_span")
+    if (
+        nearest_distance is not None
+        and nearest_distance < float(min_upgrade_distance_mm)
+        and (nearest_axis_delta is None or nearest_axis_delta < 12.0)
+    ):
+        blockers.append("nearest_marker_too_close_without_axis_separation")
+
+    if not growth_ids:
+        status = "no_growth_support"
+    elif blockers:
+        status = "growth_available_but_not_separable"
+    else:
+        status = "separable_growth_candidate"
+
+    return {
+        "status": status,
+        "grown_support_atom_count": int(grown_count),
+        "grown_support_span_mm": round(float(grown_span_mm), 4),
+        "min_grown_support_span_mm": round(float(min_span_mm), 4),
+        "nearest_axis_delta_deg": None if nearest_axis_delta is None else round(float(nearest_axis_delta), 4),
+        "nearest_distance_mm": None if nearest_distance is None else round(float(nearest_distance), 4),
+        "blockers": sorted(set(blockers)),
     }
 
 
