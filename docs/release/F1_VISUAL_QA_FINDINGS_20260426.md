@@ -120,6 +120,15 @@ This note records assistant visual inspection of the 1080p review renders after 
 - Visual inspection: ridge tracing is sharper than broad residual/interface support, but the output is still one U/corner-shaped ridge around the same zone. It does not separate into the two missing conventional bend lines.
 - Decision: reject local ridge tracing alone as promotion logic. The next useful step is likely professor guidance or an explicit interface-line/support assignment formulation that can separate connected corner ridges into distinct conventional bend objects.
 
+## Junction-Aware Bend-Line Arrangement Diagnostic
+
+- Added `scripts/solve_f1_junction_bend_arrangement.py` as a professor-guided diagnostic-only local arrangement solver for the connected `49024000` U/corner ridge.
+- The countable object is now tested as a maximal flange-pair-conditioned conventional bend-line instance inside an uncounted junction/corner complex, not as a connected support patch.
+- `49024000` result: selected `H3_locked_plus_2_new`, keeping locked accepted `OB2` (`F11-F14`), proposing `F11-F17` and `F1-F14` as the two missing conventional bend-line instances, and rejecting `F1-F17` as a possible chord.
+- Generated 1080p overlays in iCloud under `feature_region_labels_20260427/49024000_junction_arrangement_visual_check/`.
+- Visual inspection: this is a meaningful topology-level improvement over residual support, sub-clustering, and plain ridge tracing. It separates the connected ridge into a sparse three-line arrangement plus leftover uncounted junction support.
+- Decision: keep as a diagnostic proof-of-concept only. The selected lines still have broad corner support and approximate endpoints, so this must be turned into a reusable local arrangement module with real skeleton/path/endpoints before any F1 promotion.
+
 ## Remaining Before Promotion
 
 - Keep `49024000` treated as a 3-bend manual-truth case; only `OB2` was manually accepted in the previous raw debug view.
