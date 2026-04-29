@@ -761,15 +761,43 @@ def _attach_candidate_render_semantics(payload: Dict[str, Any], *, render_info: 
         "family_residual_repair_promoted_f1",
         "control_aligned_f1_tiebreak",
     }
+    visual_blockers: List[str] = []
+    render_suppressed_count = 0 if not render_info else int(render_info.get("render_suppressed_owned_region_count", 0))
+    render_suppressed_ids = [] if not render_info else list(render_info.get("render_suppressed_region_ids") or [])
+    if render_info is None:
+        visual_blockers.append("render_not_generated")
+    if singleton_exact and rendered_owned_region_count != int(candidate_exact):
+        visual_blockers.append("render_marker_count_mismatch")
+    if render_suppressed_count > 0:
+        visual_blockers.append("owned_region_markers_suppressed")
+    if candidate_source not in raw_marker_sources:
+        visual_blockers.append("candidate_source_not_raw_owned_region_renderable")
     if raw_markers_match_accepted and candidate_source in raw_marker_sources:
         candidate["accepted_render_semantics"] = "owned_regions_match_accepted_exact"
         candidate["accepted_render_marker_count"] = int(rendered_owned_region_count)
         candidate["accepted_render_overview_path"] = None if not render_info else render_info.get("overview_path")
+        candidate["visual_acceptance_status"] = "render_verified"
     else:
         candidate["accepted_render_semantics"] = "scan_context_only_raw_f1_debug_not_final"
         candidate["accepted_render_marker_count"] = 0
         candidate["accepted_render_overview_path"] = None if not render_info else render_info.get("scan_context_path")
+        candidate["visual_acceptance_status"] = "blocked"
+    candidate["visual_acceptance_blockers"] = sorted(set(visual_blockers))
+    candidate["render_suppressed_region_ids"] = render_suppressed_ids
     payload["candidate"] = candidate
+
+    promotion_diagnostic = dict(payload.get("raw_f1_promotion_diagnostic") or {})
+    if visual_blockers:
+        blockers = list(promotion_diagnostic.get("blockers") or [])
+        blockers.extend(f"visual_acceptance:{blocker}" for blocker in sorted(set(visual_blockers)))
+        promotion_diagnostic["blockers"] = sorted(set(blockers))
+        promotion_diagnostic["candidate"] = False
+        promotion_diagnostic["recommendation"] = "do_not_promote_exact"
+        promotion_diagnostic["visual_acceptance_status"] = "blocked"
+    else:
+        promotion_diagnostic["visual_acceptance_status"] = "render_verified"
+    promotion_diagnostic["visual_acceptance_blockers"] = sorted(set(visual_blockers))
+    payload["raw_f1_promotion_diagnostic"] = promotion_diagnostic
 
 
 def _aggregate(results: Sequence[Dict[str, Any]]) -> Dict[str, Any]:
@@ -789,6 +817,7 @@ def _aggregate(results: Sequence[Dict[str, Any]]) -> Dict[str, Any]:
     guard_reason_counts: Dict[str, int] = {}
     by_route: Dict[str, Dict[str, Any]] = {}
     promotion_candidate_parts: List[str] = []
+    render_blocked_parts: List[str] = []
     for row in results:
         metrics = dict(row.get("metrics") or {})
         expected_count = (row.get("expectation") or {}).get("expected_bend_count")
@@ -802,6 +831,8 @@ def _aggregate(results: Sequence[Dict[str, Any]]) -> Dict[str, Any]:
         promotion_diagnostic = dict(row.get("raw_f1_promotion_diagnostic") or {})
         if promotion_diagnostic.get("candidate"):
             promotion_candidate_parts.append(str(row.get("part_key") or ""))
+        if str(candidate_payload.get("visual_acceptance_status") or "") == "blocked":
+            render_blocked_parts.append(str(row.get("part_key") or ""))
         candidate_source_counts[candidate_source] = candidate_source_counts.get(candidate_source, 0) + 1
         if guard_reason:
             key = str(guard_reason)
@@ -882,6 +913,8 @@ def _aggregate(results: Sequence[Dict[str, Any]]) -> Dict[str, Any]:
         "guard_reason_counts": dict(sorted(guard_reason_counts.items())),
         "raw_f1_manual_promotion_candidate_count": len([value for value in promotion_candidate_parts if value]),
         "raw_f1_manual_promotion_candidate_parts": sorted(value for value in promotion_candidate_parts if value),
+        "render_blocked_candidate_count": len([value for value in render_blocked_parts if value]),
+        "render_blocked_candidate_parts": sorted(value for value in render_blocked_parts if value),
         "by_route_id": dict(sorted(by_route.items())),
     }
 

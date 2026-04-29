@@ -944,13 +944,26 @@ def test_attach_candidate_render_semantics_rejects_suppressed_marker_count():
 
     runner._attach_candidate_render_semantics(
         payload,
-        render_info={"overview_path": "/tmp/raw.png", "scan_context_path": "/tmp/context.png"},
+        render_info={
+            "overview_path": "/tmp/raw.png",
+            "scan_context_path": "/tmp/context.png",
+            "render_suppressed_owned_region_count": 3,
+            "render_suppressed_region_ids": ["OB10", "OB11", "OB12"],
+        },
         rendered_owned_region_count=9,
     )
 
     assert payload["candidate"]["accepted_render_semantics"] == "scan_context_only_raw_f1_debug_not_final"
     assert payload["candidate"]["accepted_render_marker_count"] == 0
     assert payload["candidate"]["accepted_render_overview_path"] == "/tmp/context.png"
+    assert payload["candidate"]["visual_acceptance_status"] == "blocked"
+    assert payload["candidate"]["visual_acceptance_blockers"] == [
+        "owned_region_markers_suppressed",
+        "render_marker_count_mismatch",
+    ]
+    assert payload["candidate"]["render_suppressed_region_ids"] == ["OB10", "OB11", "OB12"]
+    assert "visual_acceptance:owned_region_markers_suppressed" in payload["raw_f1_promotion_diagnostic"]["blockers"]
+    assert payload["raw_f1_promotion_diagnostic"]["candidate"] is False
 
 
 def test_attach_candidate_render_semantics_accepts_exact_render_count():
@@ -971,3 +984,6 @@ def test_attach_candidate_render_semantics_accepts_exact_render_count():
     assert payload["candidate"]["accepted_render_semantics"] == "owned_regions_match_accepted_exact"
     assert payload["candidate"]["accepted_render_marker_count"] == 12
     assert payload["candidate"]["accepted_render_overview_path"] == "/tmp/raw.png"
+    assert payload["candidate"]["visual_acceptance_status"] == "render_verified"
+    assert payload["candidate"]["visual_acceptance_blockers"] == []
+    assert payload["raw_f1_promotion_diagnostic"]["visual_acceptance_status"] == "render_verified"
