@@ -29,6 +29,7 @@ from bend_inspection_pipeline import load_bend_runtime_config
 from patch_graph_latent_decomposition import (
     DecompositionResult,
     OwnedBendRegion,
+    _render_region_suppression_report,
     build_owned_region_renderable_objects,
     render_decomposition_artifacts,
     run_patch_graph_latent_decomposition,
@@ -749,10 +750,17 @@ def _owned_region_marker_admissibility(result: DecompositionResult) -> Dict[str,
     marker_admissible = build_owned_region_renderable_objects(result.owned_bend_regions, atom_graph=result.atom_graph)
     kept_ids = {str(item.get("bend_id") or "") for item in marker_admissible}
     suppressed_ids = [region.bend_id for region in result.owned_bend_regions if region.bend_id not in kept_ids]
+    kept_regions = [region for region in result.owned_bend_regions if region.bend_id in kept_ids]
+    suppression_details = _render_region_suppression_report(
+        result.owned_bend_regions,
+        kept_regions,
+        local_spacing_mm=float(result.atom_graph.local_spacing_mm or 1.0),
+    )
     return {
         "marker_admissible_owned_region_count": len(marker_admissible),
         "marker_suppressed_owned_region_count": len(suppressed_ids),
         "marker_suppressed_region_ids": suppressed_ids,
+        "marker_suppression_details": suppression_details,
     }
 
 
@@ -793,6 +801,12 @@ def _attach_candidate_render_semantics(
             [] if not render_info else list(render_info.get("render_suppressed_region_ids") or []),
         )
     )
+    render_suppression_details = list(
+        marker_payload.get(
+            "marker_suppression_details",
+            [] if not render_info else list(render_info.get("render_suppression_details") or []),
+        )
+    )
     render_admissible_exact = marker_owned_count
     raw_markers_match_accepted = bool(singleton_exact and marker_owned_count == int(candidate_exact))
     if render_info is None:
@@ -822,6 +836,7 @@ def _attach_candidate_render_semantics(
         candidate["visual_acceptance_status"] = "blocked"
     candidate["visual_acceptance_blockers"] = sorted(set(visual_blockers))
     candidate["render_suppressed_region_ids"] = render_suppressed_ids
+    candidate["marker_suppression_details"] = render_suppression_details
     candidate["render_admissible_exact_bend_count"] = render_admissible_exact
     candidate["render_admissible_bend_count_range"] = (
         None if render_admissible_exact is None else [render_admissible_exact, render_admissible_exact]

@@ -1002,6 +1002,10 @@ def test_attach_candidate_render_semantics_guards_marker_blocked_raw_exact():
             "marker_admissible_owned_region_count": 9,
             "marker_suppressed_owned_region_count": 3,
             "marker_suppressed_region_ids": ["OB10", "OB11", "OB12"],
+            "marker_suppression_details": [
+                {"bend_id": "OB10", "reason_codes": ["same_pair_marker_alias"]},
+                {"bend_id": "OB11", "reason_codes": ["tiny_cross_pair_marker_cluster"]},
+            ],
         },
     )
 
@@ -1034,6 +1038,10 @@ def test_attach_candidate_render_semantics_uses_marker_admissibility_without_ren
             "marker_admissible_owned_region_count": 9,
             "marker_suppressed_owned_region_count": 3,
             "marker_suppressed_region_ids": ["OB10", "OB11", "OB12"],
+            "marker_suppression_details": [
+                {"bend_id": "OB10", "reason_codes": ["same_pair_marker_alias"]},
+                {"bend_id": "OB11", "reason_codes": ["tiny_cross_pair_marker_cluster"]},
+            ],
         },
     )
 
@@ -1045,6 +1053,8 @@ def test_attach_candidate_render_semantics_uses_marker_admissibility_without_ren
     ]
     assert payload["candidate"]["render_admissible_exact_bend_count"] == 9
     assert payload["candidate"]["render_suppressed_region_ids"] == ["OB10", "OB11", "OB12"]
+    assert payload["candidate"]["marker_suppression_details"][0]["bend_id"] == "OB10"
+    assert payload["candidate"]["marker_suppression_details"][0]["reason_codes"] == ["same_pair_marker_alias"]
     assert payload["candidate"]["marker_acceptance_status"] == "blocked"
     assert payload["candidate"]["marker_acceptance_blockers"] == [
         "marker_count_mismatch",
