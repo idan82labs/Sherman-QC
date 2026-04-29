@@ -764,6 +764,7 @@ def _attach_candidate_render_semantics(payload: Dict[str, Any], *, render_info: 
     visual_blockers: List[str] = []
     render_suppressed_count = 0 if not render_info else int(render_info.get("render_suppressed_owned_region_count", 0))
     render_suppressed_ids = [] if not render_info else list(render_info.get("render_suppressed_region_ids") or [])
+    render_admissible_exact = None if render_info is None else int(rendered_owned_region_count)
     if render_info is None:
         visual_blockers.append("render_not_generated")
     if singleton_exact and rendered_owned_region_count != int(candidate_exact):
@@ -784,6 +785,13 @@ def _attach_candidate_render_semantics(payload: Dict[str, Any], *, render_info: 
         candidate["visual_acceptance_status"] = "blocked"
     candidate["visual_acceptance_blockers"] = sorted(set(visual_blockers))
     candidate["render_suppressed_region_ids"] = render_suppressed_ids
+    candidate["render_admissible_exact_bend_count"] = render_admissible_exact
+    candidate["render_admissible_bend_count_range"] = (
+        None if render_admissible_exact is None else [render_admissible_exact, render_admissible_exact]
+    )
+    candidate["render_admissible_delta_from_candidate_exact"] = (
+        None if render_admissible_exact is None or candidate_exact is None else render_admissible_exact - int(candidate_exact)
+    )
     payload["candidate"] = candidate
 
     promotion_diagnostic = dict(payload.get("raw_f1_promotion_diagnostic") or {})
@@ -805,6 +813,10 @@ def _aggregate(results: Sequence[Dict[str, Any]]) -> Dict[str, Any]:
     exact_correct = 0
     raw_exact_evaluated = 0
     raw_exact_correct = 0
+    render_admissible_exact_evaluated = 0
+    render_admissible_exact_correct = 0
+    render_admissible_contains = 0
+    render_admissible_contains_evaluated = 0
     tightened = 0
     broadened = 0
     raw_tightened = 0
@@ -826,6 +838,8 @@ def _aggregate(results: Sequence[Dict[str, Any]]) -> Dict[str, Any]:
         raw_payload = dict(row.get("raw_f1_candidate") or {})
         raw_range = list(raw_payload.get("bend_count_range") or [0, 0])
         raw_exact = raw_payload.get("exact_bend_count")
+        render_admissible_exact = candidate_payload.get("render_admissible_exact_bend_count")
+        render_admissible_range = candidate_payload.get("render_admissible_bend_count_range")
         candidate_source = str(candidate_payload.get("candidate_source") or "unknown")
         guard_reason = candidate_payload.get("guard_reason")
         promotion_diagnostic = dict(row.get("raw_f1_promotion_diagnostic") or {})
@@ -868,6 +882,12 @@ def _aggregate(results: Sequence[Dict[str, Any]]) -> Dict[str, Any]:
             raw_exact_correct += int(raw_match)
             route_bucket["raw_f1_exact_evaluated"] += 1
             route_bucket["raw_f1_exact_correct"] += int(raw_match)
+        if expected_count is not None and render_admissible_exact is not None:
+            render_admissible_exact_evaluated += 1
+            render_admissible_exact_correct += int(int(render_admissible_exact) == int(expected_count))
+        if expected_count is not None and isinstance(render_admissible_range, list) and len(render_admissible_range) >= 2:
+            render_admissible_contains_evaluated += 1
+            render_admissible_contains += int(bool(_range_contains(expected_count, render_admissible_range)))
         if metrics.get("control_range_contains_truth") is not None:
             contains_evaluated += 1
             control_contains += int(bool(metrics.get("control_range_contains_truth")))
@@ -902,9 +922,19 @@ def _aggregate(results: Sequence[Dict[str, Any]]) -> Dict[str, Any]:
         "candidate_exact_accuracy": round(exact_correct / exact_evaluated, 3) if exact_evaluated else None,
         "raw_f1_exact_count_evaluated": raw_exact_evaluated,
         "raw_f1_exact_accuracy": round(raw_exact_correct / raw_exact_evaluated, 3) if raw_exact_evaluated else None,
+        "render_admissible_exact_count_evaluated": render_admissible_exact_evaluated,
+        "render_admissible_exact_accuracy": round(render_admissible_exact_correct / render_admissible_exact_evaluated, 3)
+        if render_admissible_exact_evaluated
+        else None,
         "control_range_contains_truth_rate": round(control_contains / contains_evaluated, 3) if contains_evaluated else None,
         "candidate_range_contains_truth_rate": round(candidate_contains / contains_evaluated, 3) if contains_evaluated else None,
         "raw_f1_range_contains_truth_rate": round(raw_contains / contains_evaluated, 3) if contains_evaluated else None,
+        "render_admissible_range_contains_truth_rate": round(
+            render_admissible_contains / render_admissible_contains_evaluated,
+            3,
+        )
+        if render_admissible_contains_evaluated
+        else None,
         "tightened_case_count": tightened,
         "broadened_case_count": broadened,
         "raw_f1_tightened_case_count": raw_tightened,

@@ -923,8 +923,10 @@ def test_aggregate_tracks_raw_f1_and_guard_reasons_separately():
 
     assert aggregate["candidate_exact_accuracy"] == 1.0
     assert aggregate["raw_f1_exact_accuracy"] == 0.0
+    assert aggregate["render_admissible_exact_accuracy"] is None
     assert aggregate["candidate_range_contains_truth_rate"] == 1.0
     assert aggregate["raw_f1_range_contains_truth_rate"] == 0.0
+    assert aggregate["render_admissible_range_contains_truth_rate"] is None
     assert aggregate["candidate_source_counts"] == {"control_guard": 2}
     assert aggregate["guard_reason_counts"]["f1_range_disjoint_from_control"] == 1
     assert aggregate["raw_f1_manual_promotion_candidate_count"] == 1
@@ -962,6 +964,9 @@ def test_attach_candidate_render_semantics_rejects_suppressed_marker_count():
         "render_marker_count_mismatch",
     ]
     assert payload["candidate"]["render_suppressed_region_ids"] == ["OB10", "OB11", "OB12"]
+    assert payload["candidate"]["render_admissible_exact_bend_count"] == 9
+    assert payload["candidate"]["render_admissible_bend_count_range"] == [9, 9]
+    assert payload["candidate"]["render_admissible_delta_from_candidate_exact"] == -3
     assert "visual_acceptance:owned_region_markers_suppressed" in payload["raw_f1_promotion_diagnostic"]["blockers"]
     assert payload["raw_f1_promotion_diagnostic"]["candidate"] is False
 
@@ -986,4 +991,42 @@ def test_attach_candidate_render_semantics_accepts_exact_render_count():
     assert payload["candidate"]["accepted_render_overview_path"] == "/tmp/raw.png"
     assert payload["candidate"]["visual_acceptance_status"] == "render_verified"
     assert payload["candidate"]["visual_acceptance_blockers"] == []
+    assert payload["candidate"]["render_admissible_exact_bend_count"] == 12
+    assert payload["candidate"]["render_admissible_bend_count_range"] == [12, 12]
+    assert payload["candidate"]["render_admissible_delta_from_candidate_exact"] == 0
     assert payload["raw_f1_promotion_diagnostic"]["visual_acceptance_status"] == "render_verified"
+
+
+def test_aggregate_reports_render_admissible_accuracy_separately():
+    aggregate = runner._aggregate(
+        [
+            {
+                "part_key": "visual-blocked",
+                "expectation": {"expected_bend_count": 12},
+                "control": {"bend_count_range": [10, 12]},
+                "candidate": {
+                    "exact_bend_count": 12,
+                    "bend_count_range": [12, 12],
+                    "candidate_source": "raw_f1",
+                    "render_admissible_exact_bend_count": 9,
+                    "render_admissible_bend_count_range": [9, 9],
+                    "visual_acceptance_status": "blocked",
+                },
+                "raw_f1_candidate": {"exact_bend_count": 12, "bend_count_range": [12, 12]},
+                "raw_f1_promotion_diagnostic": {"candidate": False},
+                "scan_family_route": {"route_id": "fragmented_repeat90_interface_birth"},
+                "metrics": {
+                    "candidate_exact_match": True,
+                    "control_range_contains_truth": True,
+                    "candidate_range_contains_truth": True,
+                    "range_delta": {"tightened": True, "broadened": False},
+                },
+            }
+        ]
+    )
+
+    assert aggregate["candidate_exact_accuracy"] == 1.0
+    assert aggregate["raw_f1_exact_accuracy"] == 1.0
+    assert aggregate["render_admissible_exact_accuracy"] == 0.0
+    assert aggregate["render_admissible_range_contains_truth_rate"] == 0.0
+    assert aggregate["render_blocked_candidate_parts"] == ["visual-blocked"]
