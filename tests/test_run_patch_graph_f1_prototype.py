@@ -972,8 +972,49 @@ def test_attach_candidate_render_semantics_rejects_suppressed_marker_count():
         "marker_count_mismatch",
         "owned_region_markers_suppressed",
     ]
+    assert payload["candidate"]["marker_guard_applied"] is False
     assert "visual_acceptance:owned_region_markers_suppressed" in payload["raw_f1_promotion_diagnostic"]["blockers"]
     assert payload["raw_f1_promotion_diagnostic"]["candidate"] is False
+
+
+def test_attach_candidate_render_semantics_guards_marker_blocked_raw_exact():
+    payload = {
+        "expectation": {"expected_bend_count": 12},
+        "control": {"bend_count_range": [10, 12]},
+        "candidate": {
+            "candidate_source": "raw_f1",
+            "exact_bend_count": 12,
+            "bend_count_range": [12, 12],
+            "guard_reason": None,
+        },
+        "metrics": {
+            "candidate_exact_match": True,
+            "candidate_range_contains_truth": True,
+            "range_delta": {"tightened": True, "broadened": False},
+        },
+    }
+
+    runner._attach_candidate_render_semantics(
+        payload,
+        render_info=None,
+        rendered_owned_region_count=9,
+        marker_admissibility={
+            "marker_admissible_owned_region_count": 9,
+            "marker_suppressed_owned_region_count": 3,
+            "marker_suppressed_region_ids": ["OB10", "OB11", "OB12"],
+        },
+    )
+
+    assert payload["candidate"]["marker_guard_applied"] is True
+    assert payload["candidate"]["candidate_source"] == "marker_blocked_control_guard"
+    assert payload["candidate"]["guard_reason"] == "raw_f1_marker_acceptance_blocked"
+    assert payload["candidate"]["exact_bend_count"] is None
+    assert payload["candidate"]["bend_count_range"] == [10, 12]
+    assert payload["candidate"]["pre_marker_guard_candidate"]["exact_bend_count"] == 12
+    assert payload["metrics"]["candidate_exact_match"] is None
+    assert payload["metrics"]["candidate_range_contains_truth"] is True
+    assert payload["metrics"]["range_delta"]["tightened"] is False
+    assert "marker_acceptance_guard_applied" in payload["raw_f1_promotion_diagnostic"]["blockers"]
 
 
 def test_attach_candidate_render_semantics_uses_marker_admissibility_without_render():
@@ -1009,6 +1050,7 @@ def test_attach_candidate_render_semantics_uses_marker_admissibility_without_ren
         "marker_count_mismatch",
         "owned_region_markers_suppressed",
     ]
+    assert payload["candidate"]["marker_guard_applied"] is False
 
 
 def test_attach_candidate_render_semantics_accepts_exact_render_count():
@@ -1036,6 +1078,7 @@ def test_attach_candidate_render_semantics_accepts_exact_render_count():
     assert payload["candidate"]["render_admissible_delta_from_candidate_exact"] == 0
     assert payload["candidate"]["marker_acceptance_status"] == "marker_verified"
     assert payload["candidate"]["marker_acceptance_blockers"] == []
+    assert payload["candidate"]["marker_guard_applied"] is False
     assert payload["raw_f1_promotion_diagnostic"]["visual_acceptance_status"] == "render_verified"
 
 

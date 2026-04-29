@@ -837,6 +837,31 @@ def _attach_candidate_render_semantics(
         else "marker_verified"
     )
     candidate["marker_acceptance_blockers"] = sorted(set(marker_blockers))
+
+    marker_guard_applied = False
+    if marker_applicable and marker_blockers:
+        control_range = list((payload.get("control") or {}).get("bend_count_range") or ())
+        if len(control_range) >= 2:
+            guarded_range = [int(control_range[0]), int(control_range[1])]
+            candidate["pre_marker_guard_candidate"] = {
+                "exact_bend_count": candidate_exact,
+                "bend_count_range": candidate_range,
+                "candidate_source": candidate_source,
+                "guard_reason": candidate.get("guard_reason"),
+            }
+            candidate["exact_bend_count"] = None
+            candidate["bend_count_range"] = guarded_range
+            candidate["candidate_source"] = "marker_blocked_control_guard"
+            candidate["guard_reason"] = "raw_f1_marker_acceptance_blocked"
+            marker_guard_applied = True
+
+            expected_bend_count = (payload.get("expectation") or {}).get("expected_bend_count")
+            metrics = dict(payload.get("metrics") or {})
+            metrics["candidate_exact_match"] = None
+            metrics["candidate_range_contains_truth"] = _range_contains(expected_bend_count, guarded_range)
+            metrics["range_delta"] = _compare(control_range, guarded_range, expected_bend_count)
+            payload["metrics"] = metrics
+    candidate["marker_guard_applied"] = marker_guard_applied
     payload["candidate"] = candidate
 
     promotion_diagnostic = dict(payload.get("raw_f1_promotion_diagnostic") or {})
@@ -852,6 +877,10 @@ def _attach_candidate_render_semantics(
     promotion_diagnostic["visual_acceptance_blockers"] = sorted(set(visual_blockers))
     promotion_diagnostic["marker_acceptance_status"] = candidate["marker_acceptance_status"]
     promotion_diagnostic["marker_acceptance_blockers"] = candidate["marker_acceptance_blockers"]
+    if marker_guard_applied:
+        blockers = list(promotion_diagnostic.get("blockers") or [])
+        blockers.append("marker_acceptance_guard_applied")
+        promotion_diagnostic["blockers"] = sorted(set(blockers))
     payload["raw_f1_promotion_diagnostic"] = promotion_diagnostic
 
 
