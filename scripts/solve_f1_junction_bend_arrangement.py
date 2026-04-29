@@ -467,6 +467,140 @@ def _interior_birth_candidates(
     return candidates
 
 
+def _interior_source_lookup(interior_gaps_payload: Optional[Mapping[str, Any]]) -> Dict[str, Mapping[str, Any]]:
+    if not interior_gaps_payload:
+        return {}
+    rows: Dict[str, Mapping[str, Any]] = {}
+    for candidate in interior_gaps_payload.get("candidates") or ():
+        if candidate.get("candidate_id"):
+            rows[str(candidate["candidate_id"])] = candidate
+    for hypothesis in interior_gaps_payload.get("merged_hypotheses") or ():
+        if hypothesis.get("hypothesis_id"):
+            rows[str(hypothesis["hypothesis_id"])] = hypothesis
+    return rows
+
+
+def _owned_region_duplicate_diagnostics(
+    *,
+    candidate: Mapping[str, Any],
+    decomposition: Mapping[str, Any],
+    atoms: Mapping[str, Mapping[str, Any]],
+) -> Dict[str, Any]:
+    candidate_pair = tuple(str(value) for value in candidate.get("flange_pair") or ())
+    candidate_atoms = {str(value) for value in candidate.get("atom_ids") or ()}
+    candidate_points = [_vec(atoms[atom_id].get("centroid") or (0, 0, 0)) for atom_id in candidate_atoms if atom_id in atoms]
+    if not candidate_points:
+        return {"status": "no_candidate_points", "same_pair_owned_regions": []}
+    candidate_centroid = np.mean(np.asarray(candidate_points, dtype=np.float64), axis=0)
+    same_pair_rows: List[Dict[str, Any]] = []
+    for region in decomposition.get("owned_bend_regions") or ():
+        region_pair = tuple(str(value) for value in region.get("incident_flange_ids") or ())
+        if tuple(sorted(region_pair)) != tuple(sorted(candidate_pair)):
+            continue
+        region_atoms = {str(value) for value in region.get("owned_atom_ids") or ()}
+        region_points = [_vec(atoms[atom_id].get("centroid") or (0, 0, 0)) for atom_id in region_atoms if atom_id in atoms]
+        if not region_points:
+            continue
+        region_centroid = np.mean(np.asarray(region_points, dtype=np.float64), axis=0)
+        atom_iou = len(candidate_atoms & region_atoms) / max(1, len(candidate_atoms | region_atoms))
+        centroid_distance = float(np.linalg.norm(candidate_centroid - region_centroid))
+        same_pair_rows.append(
+            {
+                "bend_id": region.get("bend_id"),
+                "incident_flange_ids": list(region_pair),
+                "atom_iou": round(float(atom_iou), 6),
+                "centroid_distance_mm": round(float(centroid_distance), 6),
+                "owned_atom_count": len(region_atoms),
+            }
+        )
+    same_pair_rows.sort(key=lambda row: (float(row["centroid_distance_mm"]), -float(row["atom_iou"]), str(row["bend_id"])))
+    status = "unique_recovered_support"
+    if same_pair_rows:
+        nearest = same_pair_rows[0]
+        if float(nearest["atom_iou"]) > 0.12 or float(nearest["centroid_distance_mm"]) < 8.0:
+            status = "duplicate_of_existing_owned_region"
+        elif float(nearest["centroid_distance_mm"]) < 18.0:
+            status = "ambiguous_near_existing_owned_region"
+    return {
+        "status": status,
+        "same_pair_owned_regions": same_pair_rows[:8],
+    }
+
+
+def _recovered_contact_birth_candidates(
+    *,
+    contact_recovery_payload: Optional[Mapping[str, Any]],
+    interior_gaps_payload: Optional[Mapping[str, Any]],
+    decomposition: Mapping[str, Any],
+    atoms: Mapping[str, Mapping[str, Any]],
+    flanges: Mapping[str, Mapping[str, Any]],
+    adjacency: Mapping[str, Sequence[str]],
+    atom_labels: Mapping[str, str],
+    label_types: Mapping[str, str],
+    locked_pair: Tuple[str, str],
+    allow_recovered_contact_counting: bool,
+) -> List[Dict[str, Any]]:
+    if not contact_recovery_payload:
+        return []
+    source_lookup = _interior_source_lookup(interior_gaps_payload)
+    candidates: List[Dict[str, Any]] = []
+    for index, row in enumerate(contact_recovery_payload.get("validated_pairs") or (), start=1):
+        source_id = str(row.get("source_id") or "")
+        source = source_lookup.get(source_id)
+        pair = tuple(sorted(str(value) for value in row.get("flange_pair") or ()))
+        if not source or len(pair) != 2 or pair[0] not in flanges or pair[1] not in flanges:
+            continue
+        atom_ids = [str(value) for value in source.get("atom_ids") or () if str(value) in atoms]
+        if len(atom_ids) < 4:
+            continue
+        line_candidate = _line_candidate(
+            candidate_id=f"RCB{index}",
+            pair=pair,
+            atom_ids=atom_ids,
+            atoms=atoms,
+            flanges=flanges,
+            adjacency=adjacency,
+            atom_labels=atom_labels,
+            label_types=label_types,
+            locked_pair=locked_pair,
+            preserve_support_components=True,
+        )
+        duplicate_diagnostics = _owned_region_duplicate_diagnostics(
+            candidate=line_candidate,
+            decomposition=decomposition,
+            atoms=atoms,
+        )
+        line_candidate["source_kind"] = "recovered_interior_contact_birth"
+        line_candidate["interior_source_id"] = source_id
+        line_candidate["contact_recovery_status"] = row.get("status")
+        line_candidate["contact_recovery_score"] = row.get("score")
+        line_candidate["contact_recovery_metrics"] = {
+            "axis_delta_deg": row.get("axis_delta_deg"),
+            "mean_normal_arc_cost": row.get("mean_normal_arc_cost"),
+            "nearby_counts": row.get("nearby_counts"),
+            "side_balance": row.get("side_balance"),
+            "median_line_distance_mm": row.get("median_line_distance_mm"),
+            "reason_codes": row.get("reason_codes"),
+        }
+        line_candidate["duplicate_diagnostics"] = duplicate_diagnostics
+        line_candidate["admissible_without_recovered_contact_gate"] = bool(line_candidate.get("admissible"))
+        line_candidate["admissible"] = bool(
+            allow_recovered_contact_counting
+            and line_candidate.get("admissible")
+            and row.get("status") == "recovered_contact_validated"
+            and duplicate_diagnostics.get("status") == "unique_recovered_support"
+        )
+        candidates.append(line_candidate)
+    candidates.sort(
+        key=lambda item: (
+            item.get("duplicate_diagnostics", {}).get("status") != "unique_recovered_support",
+            -float(item.get("contact_recovery_score") or 0.0),
+            item.get("candidate_id"),
+        )
+    )
+    return candidates
+
+
 def _candidate_overlap(lhs: Mapping[str, Any], rhs: Mapping[str, Any]) -> float:
     left = {str(value) for value in lhs.get("atom_ids") or ()}
     right = {str(value) for value in rhs.get("atom_ids") or ()}
@@ -511,9 +645,11 @@ def solve_junction_bend_arrangement(
     feature_labels: Mapping[str, Any],
     local_ridge_payload: Mapping[str, Any],
     interior_gaps_payload: Optional[Mapping[str, Any]] = None,
+    contact_recovery_payload: Optional[Mapping[str, Any]] = None,
     flange_ids: Sequence[str] = ("F1", "F11", "F14", "F17"),
     target_new_bends: Optional[int] = None,
     allow_interior_birth_counting: bool = False,
+    allow_recovered_contact_counting: bool = False,
 ) -> Dict[str, Any]:
     atoms = _atom_lookup(decomposition)
     flanges = _flange_lookup(decomposition)
@@ -569,7 +705,20 @@ def solve_junction_bend_arrangement(
         locked_pair=locked_pair,
         allow_interior_birth_counting=allow_interior_birth_counting,
     )
+    recovered_contact_candidates = _recovered_contact_birth_candidates(
+        contact_recovery_payload=contact_recovery_payload,
+        interior_gaps_payload=interior_gaps_payload,
+        decomposition=decomposition,
+        atoms=atoms,
+        flanges=flanges,
+        adjacency=adjacency,
+        atom_labels=atom_labels,
+        label_types=label_types,
+        locked_pair=locked_pair,
+        allow_recovered_contact_counting=allow_recovered_contact_counting,
+    )
     candidates.extend(interior_candidates)
+    candidates.extend(recovered_contact_candidates)
     candidates.sort(key=lambda item: (not item["locked_accepted"], -float(item["candidate_score"]), item["candidate_id"]))
     locked = [item for item in candidates if item.get("locked_accepted")]
     nonlocked = [item for item in candidates if not item.get("locked_accepted") and item.get("admissible")]
@@ -617,6 +766,7 @@ def solve_junction_bend_arrangement(
         "input_flange_ids": [flange_id for flange_id in flange_ids if flange_id in flanges],
         "target_new_bends": target_new_bends,
         "allow_interior_birth_counting": allow_interior_birth_counting,
+        "allow_recovered_contact_counting": allow_recovered_contact_counting,
         "ridge_atom_count": len(ridge_atom_ids),
         "interior_birth_candidate_count": len(interior_candidates),
         "interior_birth_status_counts": {
@@ -624,6 +774,23 @@ def solve_junction_bend_arrangement(
             for status in sorted({str(candidate.get("interior_incidence_status")) for candidate in interior_candidates})
         },
         "top_interior_birth_candidates": interior_candidates[:10],
+        "recovered_contact_birth_candidate_count": len(recovered_contact_candidates),
+        "recovered_contact_duplicate_status_counts": {
+            status: len(
+                [
+                    candidate
+                    for candidate in recovered_contact_candidates
+                    if candidate.get("duplicate_diagnostics", {}).get("status") == status
+                ]
+            )
+            for status in sorted(
+                {
+                    str(candidate.get("duplicate_diagnostics", {}).get("status"))
+                    for candidate in recovered_contact_candidates
+                }
+            )
+        },
+        "top_recovered_contact_birth_candidates": recovered_contact_candidates[:10],
         "candidate_count": len(candidates),
         "admissible_nonlocked_candidate_count": len(nonlocked),
         "junction_transition_atom_ids": junction_atom_ids,
@@ -641,10 +808,12 @@ def main() -> int:
     parser.add_argument("--feature-labels-json", required=True, type=Path)
     parser.add_argument("--local-ridge-json", required=True, type=Path)
     parser.add_argument("--interior-gaps-json", type=Path, default=None)
+    parser.add_argument("--contact-recovery-json", type=Path, default=None)
     parser.add_argument("--output-json", required=True, type=Path)
     parser.add_argument("--flange-ids", nargs="+", default=["F1", "F11", "F14", "F17"])
     parser.add_argument("--target-new-bends", type=int, default=None)
     parser.add_argument("--allow-interior-birth-counting", action="store_true")
+    parser.add_argument("--allow-recovered-contact-counting", action="store_true")
     args = parser.parse_args()
 
     report = solve_junction_bend_arrangement(
@@ -652,9 +821,11 @@ def main() -> int:
         feature_labels=_load_json(args.feature_labels_json),
         local_ridge_payload=_load_json(args.local_ridge_json),
         interior_gaps_payload=_load_json(args.interior_gaps_json) if args.interior_gaps_json else None,
+        contact_recovery_payload=_load_json(args.contact_recovery_json) if args.contact_recovery_json else None,
         flange_ids=args.flange_ids,
         target_new_bends=args.target_new_bends,
         allow_interior_birth_counting=bool(args.allow_interior_birth_counting),
+        allow_recovered_contact_counting=bool(args.allow_recovered_contact_counting),
     )
     _write_json(args.output_json, report)
     print(
@@ -665,6 +836,8 @@ def main() -> int:
                 "candidate_count": report["candidate_count"],
                 "interior_birth_candidate_count": report["interior_birth_candidate_count"],
                 "interior_birth_status_counts": report["interior_birth_status_counts"],
+                "recovered_contact_birth_candidate_count": report["recovered_contact_birth_candidate_count"],
+                "recovered_contact_duplicate_status_counts": report["recovered_contact_duplicate_status_counts"],
                 "best_hypothesis": report.get("best_hypothesis", {}).get("hypothesis"),
                 "best_candidate_ids": report.get("best_hypothesis", {}).get("candidate_ids"),
             },

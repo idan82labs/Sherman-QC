@@ -144,7 +144,9 @@ This note records assistant visual inspection of the 1080p review renders after 
 - Interior-gap result: promising diagnostic signal. It finds two adjacent admissible fragments (`IBG1`, `IBG2`) on the interior panel area and merges them into one candidate hypothesis (`IBH1`), instead of repeating the lower-edge alias failure.
 - Fed `IBH1` back into the junction-aware arrangement as an interior birth input. Result: safe rejection, with `36` tested flange-pair attachments and `0` incidence-validated candidates.
 - Added local flange/contact recovery around the interior fragments. Result: `IBG1` validates as a recovered `F1-F5` contact candidate (`axis_delta=3.9°`, `mean_normal_arc_cost=0.106`, nearby counts `F1=134`, `F5=38`), while `IBG2` and merged `IBH1` remain rejected.
-- Decision: do not promote. Keep `48991006` as a poor-scan / duplicate-support / missed-interior-bend fail-safe case. The next step is to add `IBG1/F1-F5` to a diagnostic arrangement pass and verify it does not duplicate existing raw `F1-F5` bend regions.
+- Fed validated `IBG1/F1-F5` into the arrangement as `RCB1`. Result: strong recovered-contact candidate, but blocked as `ambiguous_near_existing_owned_region`: it has `0.0` atom IoU with raw same-pair regions, but nearest raw `F1-F5` region `OB2` is only `12.56 mm` away.
+- Visual verdict: `RCB1` appears above the raw same-pair band and is plausibly the missed middle bend, but it still requires same-pair line deconfliction before any count effect.
+- Decision: do not promote. Keep `48991006` as a poor-scan / duplicate-support / missed-interior-bend fail-safe case. The next step is same-pair line deconfliction for recovered-contact candidates.
 
 ## Cross-Scan Junction Diagnostic: `47959001`
 

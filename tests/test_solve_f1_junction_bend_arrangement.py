@@ -185,3 +185,53 @@ def test_interior_birth_requires_incidence_before_counting():
         for candidate in report["top_interior_birth_candidates"]
         if candidate["interior_incidence_status"] == "incidence_pending"
     )
+
+
+def test_recovered_contact_birth_is_blocked_when_near_existing_same_pair_region():
+    atoms = [_atom(f"A{i}", i * 3.0, normal=(0.707, 0.707, 0.0), label="residual") for i in range(10)]
+    payload = _payload(atoms)
+    payload["owned_bend_regions"].append(
+        {
+            "bend_id": "OBX",
+            "incident_flange_ids": ["F11", "F14"],
+            "owned_atom_ids": [atom["atom_id"] for atom in atoms[:6]],
+        }
+    )
+    ridge = {"ridges": [{"atom_ids": []}], "atom_scores": []}
+    interior = {
+        "candidates": [
+            {
+                "candidate_id": "IBG1",
+                "admissible": True,
+                "atom_ids": [atom["atom_id"] for atom in atoms],
+            }
+        ],
+        "merged_hypotheses": [],
+    }
+    contact_recovery = {
+        "validated_pairs": [
+            {
+                "source_id": "IBG1",
+                "source_kind": "interior_fragment",
+                "flange_pair": ["F11", "F14"],
+                "status": "recovered_contact_validated",
+                "score": 4.0,
+            }
+        ]
+    }
+
+    report = solver.solve_junction_bend_arrangement(
+        decomposition=payload,
+        feature_labels={"region_labels": []},
+        local_ridge_payload=ridge,
+        interior_gaps_payload=interior,
+        contact_recovery_payload=contact_recovery,
+        flange_ids=["F11", "F14", "F17"],
+        target_new_bends=1,
+        allow_recovered_contact_counting=True,
+    )
+
+    candidate = report["top_recovered_contact_birth_candidates"][0]
+    assert candidate["source_kind"] == "recovered_interior_contact_birth"
+    assert candidate["duplicate_diagnostics"]["status"] == "duplicate_of_existing_owned_region"
+    assert not candidate["admissible"]
