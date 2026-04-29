@@ -41,6 +41,18 @@ Junction arrangement:
 - Best candidates: `JBL2 / F1-F5`, `JBL40 / F10-F5`, `JBL50 / F43-F5`
 - Best candidates overlap heavily, so they do not explain four missing conventional bends.
 
+Underfit ridge support split:
+
+- Output: `47959001_current_underfit_ridge_support_splits.json`
+- Status: `underfit_not_splittable_single_ridge_family`
+- Source ridge atoms: `48`
+- Candidate segments: `1`
+- Admissible segments: `1`
+- Ridge span: `92.216051 mm`
+- Largest projection gap: `5.396338 mm`
+- Split threshold: `10.1895 mm`
+- Interpretation: the broad ridge is continuous along projection and does not naturally split into multiple support objects.
+
 ## Visual Verdict
 
 The 1080p arrangement render shows the selected lines clustered along one broad edge/ridge family. This is not a valid multi-bend recovery for the five-visible-bend target.
@@ -58,10 +70,11 @@ The raw-family suppression change should not be judged against the stale `F20/F2
 - existing F1 snapshot is too sparse (`1` owned region),
 - current residual/ridge diagnostics find only one broad support family,
 - local arrangement cannot recover the missing four visible bends,
+- projection-gap splitting also finds only one continuous support family,
 - this remains offline diagnostic evidence only.
 
 ## Next Work
 
-- Add a broader support-creation lane for severe underfit scans where current F1 owns far fewer regions than expected.
+- Add a broader support-creation lane that can discover separate support families outside the current single broad ridge.
 - Do not use stale flange-ID arrangements as regression controls.
 - Use this current-snapshot file set for future `47959001` experiments.
