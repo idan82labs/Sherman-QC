@@ -1,6 +1,6 @@
 # F1 Merge Readiness Status
 
-Generated: `2026-04-29T17:07:36`
+Generated: `2026-04-29T17:17:16`
 
 Runtime contract: `No runtime zero-shot or product API mutation is approved by this report.`
 
@@ -39,7 +39,8 @@ Range misses:
 
 - `candidate_for_sparse_arrangement_review`: 1
 - `hold_exact_count_scan_quality_limited`: 2
-- `preserve_existing_f1_exact_raw_lane_abstains`: 1
+- `hold_underfit_support_creation_needed`: 1
+- `preserve_existing_f1_exact_raw_lane_abstains`: 3
 
 Sparse-arrangement review candidates:
 - `37361005`: selected `4` / target `4`, safe candidates `6`.
@@ -48,6 +49,9 @@ Held or abstained cases:
 - `47959001`: `hold_exact_count_scan_quality_limited` (`limited_observed_support`, `sparse_arrangement_underfit`).
 - `49001000`: `hold_exact_count_scan_quality_limited` (`limited_observed_support`, `sparse_arrangement_underfit`).
 - `48963008`: `preserve_existing_f1_exact_raw_lane_abstains` (`insufficient_support_abstain`, `no_safe_support`).
+- `49125000`: `hold_underfit_support_creation_needed` (`promotion_needs_review`, `sparse_arrangement_underfit`).
+- `44211000`: `preserve_existing_f1_exact_raw_lane_abstains` (`insufficient_support_abstain`, `no_safe_support`).
+- `15651004`: `preserve_existing_f1_exact_raw_lane_abstains` (`insufficient_support_abstain`, `no_safe_support`).
 
 ## Practical Merge Path
 

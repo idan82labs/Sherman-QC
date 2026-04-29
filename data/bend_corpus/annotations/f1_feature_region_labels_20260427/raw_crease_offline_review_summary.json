@@ -1,22 +1,24 @@
 {
-  "generated_at": "2026-04-29T17:01:28",
+  "generated_at": "2026-04-29T17:17:16",
   "purpose": "Offline-only review summary for raw-crease support and sparse-arrangement diagnostics.",
   "artifact_contract": "Diagnostic gating only. Does not mutate runtime zero-shot or F1 solver behavior.",
-  "case_count": 4,
+  "case_count": 7,
   "recommendation_counts": {
     "candidate_for_sparse_arrangement_review": 1,
     "hold_exact_count_scan_quality_limited": 2,
-    "preserve_existing_f1_exact_raw_lane_abstains": 1
+    "hold_underfit_support_creation_needed": 1,
+    "preserve_existing_f1_exact_raw_lane_abstains": 3
   },
   "quality_decision_counts": {
     "arrangement_needed": 1,
-    "insufficient_support_abstain": 1,
-    "limited_observed_support": 2
+    "insufficient_support_abstain": 3,
+    "limited_observed_support": 2,
+    "promotion_needs_review": 1
   },
   "sparse_status_counts": {
-    "no_safe_support": 1,
+    "no_safe_support": 3,
     "sparse_arrangement_exact_candidate": 1,
-    "sparse_arrangement_underfit": 2
+    "sparse_arrangement_underfit": 3
   },
   "cases": [
     {
@@ -213,6 +215,127 @@
       "artifact_paths": {
         "quality_json": "data/bend_corpus/annotations/f1_feature_region_labels_20260427/48963008_raw_crease_scan_support_quality.json",
         "sparse_arrangement_json": "data/bend_corpus/annotations/f1_feature_region_labels_20260427/48963008_raw_crease_sparse_arrangement.json"
+      }
+    },
+    {
+      "part_id": "49125000",
+      "target_count": 2,
+      "track": "known",
+      "existing_f1_exact": null,
+      "quality_decision": "promotion_needs_review",
+      "recommended_gate": "manual_review",
+      "quality_reason_codes": [
+        "bridge_safe_matches_human_target",
+        "low_bridge_safe_fraction"
+      ],
+      "feature_snapshot": {
+        "raw_admissible_before_dedupe": 7,
+        "raw_deduped_candidate_count": 5,
+        "bridge_safe_candidate_count": 2,
+        "bridge_safe_fraction": 0.4,
+        "safe_flange_pair_count": 1,
+        "safe_flange_pair_counts": {
+          "F10-F2": 2
+        }
+      },
+      "sparse_status": "sparse_arrangement_underfit",
+      "sparse_reason_codes": [
+        "duplicate_flange_pair_support_suppressed",
+        "unique_flange_pair_count_below_target"
+      ],
+      "safe_candidate_count": 2,
+      "selected_family_count": 1,
+      "suppressed_duplicate_count": 1,
+      "selected_candidate_ids": [
+        "FINE_RPC2"
+      ],
+      "selected_family_source_candidate_ids": [
+        [
+          "FINE_RPC2",
+          "STANDARD_RPC2"
+        ]
+      ],
+      "final_offline_recommendation": "hold_underfit_support_creation_needed",
+      "final_recommendation_reasons": [
+        "sparse_arrangement_below_target"
+      ],
+      "artifact_paths": {
+        "quality_json": "data/bend_corpus/annotations/f1_feature_region_labels_20260427/49125000_raw_crease_scan_support_quality.json",
+        "sparse_arrangement_json": "data/bend_corpus/annotations/f1_feature_region_labels_20260427/49125000_raw_crease_sparse_arrangement.json"
+      }
+    },
+    {
+      "part_id": "44211000",
+      "target_count": 1,
+      "track": "known",
+      "existing_f1_exact": 1,
+      "quality_decision": "insufficient_support_abstain",
+      "recommended_gate": "observe_only",
+      "quality_reason_codes": [
+        "no_bridge_safe_support"
+      ],
+      "feature_snapshot": {
+        "raw_admissible_before_dedupe": 0,
+        "raw_deduped_candidate_count": 0,
+        "bridge_safe_candidate_count": 0,
+        "bridge_safe_fraction": 0.0,
+        "safe_flange_pair_count": 0,
+        "safe_flange_pair_counts": {}
+      },
+      "sparse_status": "no_safe_support",
+      "sparse_reason_codes": [
+        "no_bridge_safe_support"
+      ],
+      "safe_candidate_count": 0,
+      "selected_family_count": 0,
+      "suppressed_duplicate_count": 0,
+      "selected_candidate_ids": [],
+      "selected_family_source_candidate_ids": [],
+      "final_offline_recommendation": "preserve_existing_f1_exact_raw_lane_abstains",
+      "final_recommendation_reasons": [
+        "existing_f1_exact_matches_target",
+        "raw_crease_lane_abstains"
+      ],
+      "artifact_paths": {
+        "quality_json": "data/bend_corpus/annotations/f1_feature_region_labels_20260427/44211000_raw_crease_scan_support_quality.json",
+        "sparse_arrangement_json": "data/bend_corpus/annotations/f1_feature_region_labels_20260427/44211000_raw_crease_sparse_arrangement.json"
+      }
+    },
+    {
+      "part_id": "15651004",
+      "target_count": 1,
+      "track": "known",
+      "existing_f1_exact": 1,
+      "quality_decision": "insufficient_support_abstain",
+      "recommended_gate": "observe_only",
+      "quality_reason_codes": [
+        "no_bridge_safe_support"
+      ],
+      "feature_snapshot": {
+        "raw_admissible_before_dedupe": 8,
+        "raw_deduped_candidate_count": 3,
+        "bridge_safe_candidate_count": 0,
+        "bridge_safe_fraction": 0.0,
+        "safe_flange_pair_count": 0,
+        "safe_flange_pair_counts": {}
+      },
+      "sparse_status": "no_safe_support",
+      "sparse_reason_codes": [
+        "no_bridge_safe_support"
+      ],
+      "safe_candidate_count": 0,
+      "selected_family_count": 0,
+      "suppressed_duplicate_count": 0,
+      "selected_candidate_ids": [],
+      "selected_family_source_candidate_ids": [],
+      "final_offline_recommendation": "preserve_existing_f1_exact_raw_lane_abstains",
+      "final_recommendation_reasons": [
+        "existing_f1_exact_matches_target",
+        "raw_crease_lane_abstains"
+      ],
+      "artifact_paths": {
+        "quality_json": "data/bend_corpus/annotations/f1_feature_region_labels_20260427/15651004_raw_crease_scan_support_quality.json",
+        "sparse_arrangement_json": "data/bend_corpus/annotations/f1_feature_region_labels_20260427/15651004_raw_crease_sparse_arrangement.json"
       }
     }
   ]
