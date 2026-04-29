@@ -264,15 +264,29 @@ def _line_candidate(
     atom_labels: Mapping[str, str],
     label_types: Mapping[str, str],
     locked_pair: Tuple[str, str],
+    preserve_support_components: bool = False,
 ) -> Dict[str, Any]:
     flange_a = flanges[pair[0]]
     flange_b = flanges[pair[1]]
     is_locked = pair == locked_pair
-    path_atom_ids, path_component_diagnostics = _best_path_component(
-        atom_ids,
-        atoms=atoms,
-        adjacency=adjacency,
-    )
+    if preserve_support_components:
+        path_atom_ids = [str(value) for value in atom_ids]
+        span, residual = _component_line_quality(path_atom_ids, atoms)
+        path_component_diagnostics = [
+            {
+                "atom_count": len(path_atom_ids),
+                "span_mm": round(float(span), 6),
+                "median_line_residual_mm": round(float(residual), 6),
+                "component_score": None,
+                "preserved_merged_support": True,
+            }
+        ]
+    else:
+        path_atom_ids, path_component_diagnostics = _best_path_component(
+            atom_ids,
+            atoms=atoms,
+            adjacency=adjacency,
+        )
     core_atom_ids, core_diagnostics = _line_core_atoms(path_atom_ids, atoms=atoms, locked=is_locked)
     points = np.asarray([_vec(atoms[atom_id].get("centroid") or (0, 0, 0)) for atom_id in core_atom_ids], dtype=np.float64)
     centroid, axis, span, residual = _pca_line(points)
@@ -330,6 +344,7 @@ def _line_candidate(
         reasons.append("bend_line_candidate")
     return {
         "candidate_id": candidate_id,
+        "source_kind": "ridge_pair_support",
         "flange_pair": list(pair),
         "atom_ids": sorted(core_atom_ids),
         "proposal_atom_ids": sorted(str(value) for value in atom_ids),
@@ -361,6 +376,95 @@ def _line_candidate(
         "line_core_diagnostics": core_diagnostics,
         "admissible": score - penalty >= 3.25 and span >= 10.0 and len(core_atom_ids) >= 6 and not (is_chord and not is_locked),
     }
+
+
+def _interior_birth_incidence_status(candidate: Mapping[str, Any]) -> Tuple[str, List[str]]:
+    reasons: List[str] = []
+    if int(candidate.get("present_contact_count") or 0) < 2:
+        reasons.append("missing_two_sided_flange_contact")
+    axis_delta = 999.0 if candidate.get("axis_delta_deg") is None else float(candidate.get("axis_delta_deg"))
+    normal_arc = 999.0 if candidate.get("mean_normal_arc_cost") is None else float(candidate.get("mean_normal_arc_cost"))
+    span = 0.0 if candidate.get("span_mm") is None else float(candidate.get("span_mm"))
+    atom_count = 0 if candidate.get("atom_count") is None else int(candidate.get("atom_count"))
+    if axis_delta > 28.0:
+        reasons.append("axis_mismatch_for_interior_birth")
+    if normal_arc > 0.95:
+        reasons.append("weak_normal_arc_for_interior_birth")
+    if span < 18.0:
+        reasons.append("short_interior_birth_span")
+    if atom_count < 8:
+        reasons.append("small_interior_birth_support")
+    if not reasons:
+        return "incidence_validated", ["interior_birth_incidence_validated"]
+    if reasons == ["missing_two_sided_flange_contact"] or (
+        "missing_two_sided_flange_contact" in reasons
+        and axis_delta <= 25.0
+        and normal_arc <= 0.75
+        and span >= 18.0
+    ):
+        return "incidence_pending", reasons
+    return "incidence_rejected", reasons
+
+
+def _interior_birth_candidates(
+    *,
+    interior_gaps_payload: Optional[Mapping[str, Any]],
+    candidate_pairs: Sequence[Tuple[str, str]],
+    atoms: Mapping[str, Mapping[str, Any]],
+    flanges: Mapping[str, Mapping[str, Any]],
+    adjacency: Mapping[str, Sequence[str]],
+    atom_labels: Mapping[str, str],
+    label_types: Mapping[str, str],
+    locked_pair: Tuple[str, str],
+    allow_interior_birth_counting: bool,
+) -> List[Dict[str, Any]]:
+    if not interior_gaps_payload:
+        return []
+    candidates: List[Dict[str, Any]] = []
+    birth_index = 1
+    for hypothesis in interior_gaps_payload.get("merged_hypotheses") or ():
+        atom_ids = [str(value) for value in hypothesis.get("atom_ids") or () if str(value) in atoms]
+        if len(atom_ids) < 4:
+            continue
+        for pair in candidate_pairs:
+            line_candidate = _line_candidate(
+                candidate_id=f"IBL{birth_index}",
+                pair=pair,
+                atom_ids=atom_ids,
+                atoms=atoms,
+                flanges=flanges,
+                adjacency=adjacency,
+                atom_labels=atom_labels,
+                label_types=label_types,
+                locked_pair=locked_pair,
+                preserve_support_components=True,
+            )
+            birth_index += 1
+            status, incidence_reasons = _interior_birth_incidence_status(line_candidate)
+            line_candidate["source_kind"] = "interior_gap_birth"
+            line_candidate["interior_hypothesis_id"] = hypothesis.get("hypothesis_id")
+            line_candidate["interior_source_candidate_ids"] = list(hypothesis.get("source_candidate_ids") or ())
+            line_candidate["interior_incidence_status"] = status
+            line_candidate["interior_incidence_reason_codes"] = incidence_reasons
+            line_candidate["admissible_without_interior_gate"] = bool(line_candidate.get("admissible"))
+            # Interior births must prove incidence before they can enter count selection.
+            line_candidate["admissible"] = bool(
+                allow_interior_birth_counting
+                and line_candidate.get("admissible")
+                and status == "incidence_validated"
+            )
+            candidates.append(line_candidate)
+    candidates.sort(
+        key=lambda row: (
+            {"incidence_validated": 0, "incidence_pending": 1, "incidence_rejected": 2}.get(
+                str(row.get("interior_incidence_status")),
+                3,
+            ),
+            -float(row.get("candidate_score") or 0.0),
+            row.get("candidate_id"),
+        )
+    )
+    return candidates
 
 
 def _candidate_overlap(lhs: Mapping[str, Any], rhs: Mapping[str, Any]) -> float:
@@ -406,8 +510,10 @@ def solve_junction_bend_arrangement(
     decomposition: Mapping[str, Any],
     feature_labels: Mapping[str, Any],
     local_ridge_payload: Mapping[str, Any],
+    interior_gaps_payload: Optional[Mapping[str, Any]] = None,
     flange_ids: Sequence[str] = ("F1", "F11", "F14", "F17"),
     target_new_bends: Optional[int] = None,
+    allow_interior_birth_counting: bool = False,
 ) -> Dict[str, Any]:
     atoms = _atom_lookup(decomposition)
     flanges = _flange_lookup(decomposition)
@@ -452,6 +558,18 @@ def solve_junction_bend_arrangement(
                 locked_pair=locked_pair,
             )
         )
+    interior_candidates = _interior_birth_candidates(
+        interior_gaps_payload=interior_gaps_payload,
+        candidate_pairs=candidate_pairs,
+        atoms=atoms,
+        flanges=flanges,
+        adjacency=adjacency,
+        atom_labels=atom_labels,
+        label_types=label_types,
+        locked_pair=locked_pair,
+        allow_interior_birth_counting=allow_interior_birth_counting,
+    )
+    candidates.extend(interior_candidates)
     candidates.sort(key=lambda item: (not item["locked_accepted"], -float(item["candidate_score"]), item["candidate_id"]))
     locked = [item for item in candidates if item.get("locked_accepted")]
     nonlocked = [item for item in candidates if not item.get("locked_accepted") and item.get("admissible")]
@@ -498,7 +616,14 @@ def solve_junction_bend_arrangement(
         "locked_accepted_pair": list(locked_pair),
         "input_flange_ids": [flange_id for flange_id in flange_ids if flange_id in flanges],
         "target_new_bends": target_new_bends,
+        "allow_interior_birth_counting": allow_interior_birth_counting,
         "ridge_atom_count": len(ridge_atom_ids),
+        "interior_birth_candidate_count": len(interior_candidates),
+        "interior_birth_status_counts": {
+            status: len([candidate for candidate in interior_candidates if candidate.get("interior_incidence_status") == status])
+            for status in sorted({str(candidate.get("interior_incidence_status")) for candidate in interior_candidates})
+        },
+        "top_interior_birth_candidates": interior_candidates[:10],
         "candidate_count": len(candidates),
         "admissible_nonlocked_candidate_count": len(nonlocked),
         "junction_transition_atom_ids": junction_atom_ids,
@@ -515,17 +640,21 @@ def main() -> int:
     parser.add_argument("--decomposition-json", required=True, type=Path)
     parser.add_argument("--feature-labels-json", required=True, type=Path)
     parser.add_argument("--local-ridge-json", required=True, type=Path)
+    parser.add_argument("--interior-gaps-json", type=Path, default=None)
     parser.add_argument("--output-json", required=True, type=Path)
     parser.add_argument("--flange-ids", nargs="+", default=["F1", "F11", "F14", "F17"])
     parser.add_argument("--target-new-bends", type=int, default=None)
+    parser.add_argument("--allow-interior-birth-counting", action="store_true")
     args = parser.parse_args()
 
     report = solve_junction_bend_arrangement(
         decomposition=_load_json(args.decomposition_json),
         feature_labels=_load_json(args.feature_labels_json),
         local_ridge_payload=_load_json(args.local_ridge_json),
+        interior_gaps_payload=_load_json(args.interior_gaps_json) if args.interior_gaps_json else None,
         flange_ids=args.flange_ids,
         target_new_bends=args.target_new_bends,
+        allow_interior_birth_counting=bool(args.allow_interior_birth_counting),
     )
     _write_json(args.output_json, report)
     print(
@@ -534,6 +663,8 @@ def main() -> int:
                 "output_json": str(args.output_json),
                 "status": report["status"],
                 "candidate_count": report["candidate_count"],
+                "interior_birth_candidate_count": report["interior_birth_candidate_count"],
+                "interior_birth_status_counts": report["interior_birth_status_counts"],
                 "best_hypothesis": report.get("best_hypothesis", {}).get("hypothesis"),
                 "best_candidate_ids": report.get("best_hypothesis", {}).get("candidate_ids"),
             },

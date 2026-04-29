@@ -142,7 +142,8 @@ This note records assistant visual inspection of the 1080p review renders after 
 - Scan-wide uncovered-corridor result: rejected. It finds broad top/lower bands and aliases, but does not isolate the missed middle bend as a clean countable line instance.
 - Added `scripts/analyze_f1_interior_bend_gaps.py` and `scripts/render_f1_interior_bend_gaps.py` to test an interior-only missed-bend search that excludes already-owned bend atoms.
 - Interior-gap result: promising diagnostic signal. It finds two adjacent admissible fragments (`IBG1`, `IBG2`) on the interior panel area and merges them into one candidate hypothesis (`IBH1`), instead of repeating the lower-edge alias failure.
-- Decision: do not promote. Keep `48991006` as a poor-scan / duplicate-support / missed-interior-bend fail-safe case, but use `IBH1` as the next input to an incidence-validated interior-birth / junction-line arrangement step.
+- Fed `IBH1` back into the junction-aware arrangement as an interior birth input. Result: safe rejection, with `36` tested flange-pair attachments and `0` incidence-validated candidates.
+- Decision: do not promote. Keep `48991006` as a poor-scan / duplicate-support / missed-interior-bend fail-safe case. The next blocker is local flange/contact recovery around `IBH1`, not more raw interior detection.
 
 ## Cross-Scan Junction Diagnostic: `47959001`
 

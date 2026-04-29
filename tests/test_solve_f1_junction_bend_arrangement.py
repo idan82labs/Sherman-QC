@@ -148,3 +148,40 @@ def test_target_new_bends_limits_subset_size():
 
     assert report["target_new_bends"] == 1
     assert report["best_hypothesis"]["new_bend_count"] <= 1
+
+
+def test_interior_birth_requires_incidence_before_counting():
+    atoms = [_atom(f"A{i}", i * 3.0, normal=(0.707, 0.707, 0.0), label="residual") for i in range(10)]
+    for index, atom in enumerate(atoms):
+        atom["centroid"] = [0.0, 0.0, float(index * 3.0)]
+    payload = _payload(atoms)
+    ridge = {
+        "ridges": [{"atom_ids": []}],
+        "atom_scores": [],
+    }
+    interior = {
+        "merged_hypotheses": [
+            {
+                "hypothesis_id": "IBH1",
+                "source_candidate_ids": ["IBG1"],
+                "atom_ids": [atom["atom_id"] for atom in atoms],
+            }
+        ]
+    }
+
+    report = solver.solve_junction_bend_arrangement(
+        decomposition=payload,
+        feature_labels={"region_labels": []},
+        local_ridge_payload=ridge,
+        interior_gaps_payload=interior,
+        flange_ids=["F11", "F14", "F17"],
+        target_new_bends=1,
+    )
+
+    assert report["interior_birth_candidate_count"] >= 1
+    assert report["interior_birth_status_counts"]["incidence_pending"] >= 1
+    assert all(
+        not candidate["admissible"]
+        for candidate in report["top_interior_birth_candidates"]
+        if candidate["interior_incidence_status"] == "incidence_pending"
+    )
