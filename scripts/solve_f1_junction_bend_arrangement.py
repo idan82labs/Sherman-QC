@@ -492,6 +492,12 @@ def _owned_region_duplicate_diagnostics(
     if not candidate_points:
         return {"status": "no_candidate_points", "same_pair_owned_regions": []}
     candidate_centroid = np.mean(np.asarray(candidate_points, dtype=np.float64), axis=0)
+    candidate_axis = _unit(candidate.get("axis_direction") or (1, 0, 0))
+    candidate_projections = (np.asarray(candidate_points, dtype=np.float64) - candidate_centroid) @ candidate_axis
+    candidate_interval = (
+        float(np.min(candidate_projections)) if len(candidate_projections) else 0.0,
+        float(np.max(candidate_projections)) if len(candidate_projections) else 0.0,
+    )
     same_pair_rows: List[Dict[str, Any]] = []
     for region in decomposition.get("owned_bend_regions") or ():
         region_pair = tuple(str(value) for value in region.get("incident_flange_ids") or ())
@@ -501,30 +507,114 @@ def _owned_region_duplicate_diagnostics(
         region_points = [_vec(atoms[atom_id].get("centroid") or (0, 0, 0)) for atom_id in region_atoms if atom_id in atoms]
         if not region_points:
             continue
-        region_centroid = np.mean(np.asarray(region_points, dtype=np.float64), axis=0)
+        region_points_array = np.asarray(region_points, dtype=np.float64)
+        region_centroid, region_axis, region_span, region_residual = _pca_line(region_points_array)
+        region_projections_on_candidate = (region_points_array - candidate_centroid) @ candidate_axis
+        region_interval_on_candidate = (
+            float(np.min(region_projections_on_candidate)) if len(region_projections_on_candidate) else 0.0,
+            float(np.max(region_projections_on_candidate)) if len(region_projections_on_candidate) else 0.0,
+        )
         atom_iou = len(candidate_atoms & region_atoms) / max(1, len(candidate_atoms | region_atoms))
         centroid_distance = float(np.linalg.norm(candidate_centroid - region_centroid))
+        axis_delta = _angle_deg(candidate_axis, region_axis)
+        line_distance = _line_to_line_distance(candidate_centroid, candidate_axis, region_centroid, region_axis)
+        interval_overlap = _interval_overlap_fraction(candidate_interval, region_interval_on_candidate)
         same_pair_rows.append(
             {
                 "bend_id": region.get("bend_id"),
                 "incident_flange_ids": list(region_pair),
                 "atom_iou": round(float(atom_iou), 6),
                 "centroid_distance_mm": round(float(centroid_distance), 6),
+                "axis_delta_deg": round(float(axis_delta), 6),
+                "line_distance_mm": round(float(line_distance), 6),
+                "candidate_axis_interval_overlap": round(float(interval_overlap), 6),
+                "region_span_mm": round(float(region_span), 6),
+                "region_line_residual_mm": round(float(region_residual), 6),
                 "owned_atom_count": len(region_atoms),
             }
         )
-    same_pair_rows.sort(key=lambda row: (float(row["centroid_distance_mm"]), -float(row["atom_iou"]), str(row["bend_id"])))
+    same_pair_rows.sort(
+        key=lambda row: (
+            _same_pair_alias_rank(row),
+            float(row["line_distance_mm"]),
+            float(row["centroid_distance_mm"]),
+            -float(row["atom_iou"]),
+            str(row["bend_id"]),
+        )
+    )
     status = "unique_recovered_support"
     if same_pair_rows:
-        nearest = same_pair_rows[0]
-        if float(nearest["atom_iou"]) > 0.12 or float(nearest["centroid_distance_mm"]) < 8.0:
+        strongest = same_pair_rows[0]
+        if _is_same_pair_duplicate(strongest):
             status = "duplicate_of_existing_owned_region"
-        elif float(nearest["centroid_distance_mm"]) < 18.0:
+        elif _is_same_pair_line_alias(strongest):
+            status = "same_pair_line_alias"
+        elif _is_same_pair_ambiguous(strongest):
             status = "ambiguous_near_existing_owned_region"
     return {
         "status": status,
         "same_pair_owned_regions": same_pair_rows[:8],
     }
+
+
+def _line_to_line_distance(point_a: np.ndarray, axis_a: np.ndarray, point_b: np.ndarray, axis_b: np.ndarray) -> float:
+    cross = np.cross(axis_a, axis_b)
+    norm = float(np.linalg.norm(cross))
+    delta = point_b - point_a
+    if norm <= 1e-9:
+        return float(np.linalg.norm(delta - float(np.dot(delta, axis_a)) * axis_a))
+    return abs(float(np.dot(delta, cross / norm)))
+
+
+def _interval_overlap_fraction(lhs: Tuple[float, float], rhs: Tuple[float, float]) -> float:
+    left_span = max(0.0, lhs[1] - lhs[0])
+    right_span = max(0.0, rhs[1] - rhs[0])
+    if left_span <= 1e-9 or right_span <= 1e-9:
+        return 0.0
+    overlap = max(0.0, min(lhs[1], rhs[1]) - max(lhs[0], rhs[0]))
+    return overlap / max(1e-9, min(left_span, right_span))
+
+
+def _is_same_pair_duplicate(row: Mapping[str, Any]) -> bool:
+    return _float_or(row.get("atom_iou"), 0.0) > 0.12
+
+
+def _is_same_pair_line_alias(row: Mapping[str, Any]) -> bool:
+    return (
+        _float_or(row.get("line_distance_mm"), 999.0) <= 4.0
+        and _float_or(row.get("candidate_axis_interval_overlap"), 0.0) >= 0.40
+        and _float_or(row.get("axis_delta_deg"), 999.0) <= 25.0
+    )
+
+
+def _is_same_pair_ambiguous(row: Mapping[str, Any]) -> bool:
+    return (
+        _float_or(row.get("centroid_distance_mm"), 999.0) < 18.0
+        or (
+            _float_or(row.get("line_distance_mm"), 999.0) <= 8.0
+            and _float_or(row.get("candidate_axis_interval_overlap"), 0.0) >= 0.25
+            and _float_or(row.get("axis_delta_deg"), 999.0) <= 35.0
+        )
+    )
+
+
+def _float_or(value: Any, fallback: float) -> float:
+    if value is None:
+        return fallback
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return fallback
+
+
+def _same_pair_alias_rank(row: Mapping[str, Any]) -> int:
+    if _is_same_pair_duplicate(row):
+        return 0
+    if _is_same_pair_line_alias(row):
+        return 1
+    if _is_same_pair_ambiguous(row):
+        return 2
+    return 3
 
 
 def _recovered_contact_birth_candidates(

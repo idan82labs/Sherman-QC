@@ -235,3 +235,60 @@ def test_recovered_contact_birth_is_blocked_when_near_existing_same_pair_region(
     assert candidate["source_kind"] == "recovered_interior_contact_birth"
     assert candidate["duplicate_diagnostics"]["status"] == "duplicate_of_existing_owned_region"
     assert not candidate["admissible"]
+
+
+def test_same_pair_line_alias_blocks_zero_overlap_candidate():
+    raw_atoms = [_atom(f"R{i}", i * 3.0, normal=(0.707, 0.707, 0.0), label="residual") for i in range(8)]
+    candidate_atoms = [_atom(f"C{i}", i * 3.0, normal=(0.707, 0.707, 0.0), label="residual") for i in range(8)]
+    for index, atom in enumerate(raw_atoms):
+        atom["centroid"] = [0.0, 0.0, float(index * 3.0)]
+    for index, atom in enumerate(candidate_atoms):
+        atom["centroid"] = [0.8, 0.0, float(index * 3.0)]
+    atoms = raw_atoms + candidate_atoms
+    payload = _payload(atoms)
+    payload["owned_bend_regions"] = [
+        {
+            "bend_id": "OB_RAW",
+            "incident_flange_ids": ["F11", "F14"],
+            "owned_atom_ids": [atom["atom_id"] for atom in raw_atoms],
+        }
+    ]
+    ridge = {"ridges": [{"atom_ids": []}], "atom_scores": []}
+    interior = {
+        "candidates": [
+            {
+                "candidate_id": "IBG1",
+                "admissible": True,
+                "atom_ids": [atom["atom_id"] for atom in candidate_atoms],
+            }
+        ],
+        "merged_hypotheses": [],
+    }
+    contact_recovery = {
+        "validated_pairs": [
+            {
+                "source_id": "IBG1",
+                "source_kind": "interior_fragment",
+                "flange_pair": ["F11", "F14"],
+                "status": "recovered_contact_validated",
+                "score": 4.0,
+            }
+        ]
+    }
+
+    report = solver.solve_junction_bend_arrangement(
+        decomposition=payload,
+        feature_labels={"region_labels": []},
+        local_ridge_payload=ridge,
+        interior_gaps_payload=interior,
+        contact_recovery_payload=contact_recovery,
+        flange_ids=["F11", "F14", "F17"],
+        target_new_bends=1,
+        allow_recovered_contact_counting=True,
+    )
+
+    candidate = report["top_recovered_contact_birth_candidates"][0]
+    assert candidate["duplicate_diagnostics"]["status"] == "same_pair_line_alias"
+    assert candidate["duplicate_diagnostics"]["same_pair_owned_regions"][0]["atom_iou"] == 0.0
+    assert candidate["duplicate_diagnostics"]["same_pair_owned_regions"][0]["candidate_axis_interval_overlap"] > 0.4
+    assert not candidate["admissible"]
