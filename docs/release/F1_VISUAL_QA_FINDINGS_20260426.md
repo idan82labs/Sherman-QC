@@ -130,6 +130,15 @@ This note records assistant visual inspection of the 1080p review renders after 
 - Follow-up refinement: added connected-component/path selection, robust line-core atoms, explicit line endpoints, exported `junction_transition_atom_ids`, and hard rejection of chord-labeled candidates unless a future unique-support proof is added.
 - Decision: keep as a diagnostic proof-of-concept only. The selected lines are now more compact, but support is sparse and endpoints are still diagnostic, so this must be turned into a reusable local arrangement module with real skeleton/path/endpoints before any F1 promotion.
 
+## Cross-Scan Junction Diagnostic: `48991006`
+
+- Ran the same residual-interface, local-ridge, and junction-arrangement chain on `48991006`.
+- Residual-interface result: `partial_candidate_pool`, with only `3` admissible candidates for the unresolved manual-label deficit.
+- Local-ridge result: `partial_ridge_signal`, with `2` admissible ridge candidates.
+- Junction-arrangement result: `two_bend_arrangement_conflicted`, selecting locked accepted `OB4` plus `F1-F5` and `F31-F5` new line candidates, but those two candidates overlap heavily (`atom_iou=0.636364`).
+- Visual inspection confirms the selected new line candidates mostly sit on the same lower-edge support, so this is not a valid separated-bend arrangement.
+- Decision: reject as a promotion candidate. Keep `48991006` as a poor-scan / duplicate-support fail-safe case where conflicted arrangements must block exact promotion.
+
 ## Remaining Before Promotion
 
 - Keep `49024000` treated as a 3-bend manual-truth case; only `OB2` was manually accepted in the previous raw debug view.

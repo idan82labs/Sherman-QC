@@ -185,6 +185,7 @@ def render_junction_arrangement(
     feature_labels = _load_json(feature_labels_json)
     local_ridge = _load_json(local_ridge_json)
     arrangement = _load_json(arrangement_json)
+    part_id = str(decomposition.get("part_id") or arrangement.get("part_id") or "scan")
 
     output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -239,7 +240,7 @@ def render_junction_arrangement(
         bbox_to_anchor=(0.5, 0.015),
     )
     fig.suptitle(
-        "49024000 junction-aware bend-line diagnostic: selected H3 = OB2 + two new conventional line instances",
+        f"{part_id} junction-aware bend-line diagnostic: selected local bend-line arrangement",
         fontsize=15,
         fontweight="bold",
         y=0.985,
@@ -287,7 +288,7 @@ def render_junction_arrangement(
         bbox_to_anchor=(0.5, 0.02),
     )
     focus_fig.suptitle(
-        "49024000 close-up: selected conventional bend-line instances and uncounted junction support",
+        f"{part_id} close-up: selected conventional bend-line instances and uncounted junction support",
         fontsize=15,
         fontweight="bold",
         y=0.985,
