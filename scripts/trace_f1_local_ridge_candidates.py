@@ -84,15 +84,24 @@ def _domain_atom_ids(
     decomposition: Mapping[str, Any],
     residual_interface_diagnostics: Optional[Mapping[str, Any]],
     accepted_atoms: set[str],
+    exclude_owned_bend_atoms: bool = False,
+    excluded_atom_ids: Optional[Iterable[str]] = None,
 ) -> List[str]:
+    excluded = {str(value) for value in excluded_atom_ids or ()}
+    if exclude_owned_bend_atoms:
+        excluded.update(
+            str(atom_id)
+            for region in decomposition.get("owned_bend_regions") or ()
+            for atom_id in region.get("owned_atom_ids") or ()
+        )
     if residual_interface_diagnostics:
         ids: set[str] = set()
         for candidate in residual_interface_diagnostics.get("candidates") or ():
             if candidate.get("admissible"):
                 ids.update(str(value) for value in candidate.get("atom_ids") or ())
-        return sorted(atom_id for atom_id in ids if atom_id not in accepted_atoms)
+        return sorted(atom_id for atom_id in ids if atom_id not in accepted_atoms and atom_id not in excluded)
     atoms = _atom_lookup(decomposition)
-    return sorted(atom_id for atom_id in atoms if atom_id not in accepted_atoms)
+    return sorted(atom_id for atom_id in atoms if atom_id not in accepted_atoms and atom_id not in excluded)
 
 
 def _normal_contrast(atom_id: str, atoms: Mapping[str, Mapping[str, Any]], adjacency: Mapping[str, Sequence[str]]) -> float:
@@ -219,6 +228,8 @@ def trace_local_ridge_candidates(
     feature_label_summary: Optional[Mapping[str, Any]] = None,
     residual_interface_diagnostics: Optional[Mapping[str, Any]] = None,
     score_threshold: float = 0.58,
+    exclude_owned_bend_atoms: bool = False,
+    excluded_atom_ids: Optional[Iterable[str]] = None,
 ) -> Dict[str, Any]:
     atoms = _atom_lookup(decomposition)
     atom_labels, label_types = _assignment(decomposition)
@@ -229,6 +240,8 @@ def trace_local_ridge_candidates(
         decomposition=decomposition,
         residual_interface_diagnostics=residual_interface_diagnostics,
         accepted_atoms=manual_sets["accepted"],
+        exclude_owned_bend_atoms=exclude_owned_bend_atoms,
+        excluded_atom_ids=excluded_atom_ids,
     )
     scores = _ridge_scores(atoms=atoms, adjacency=adjacency, domain_ids=domain_ids)
     ridge_ids = [
@@ -265,6 +278,8 @@ def trace_local_ridge_candidates(
         "part_id": decomposition.get("part_id"),
         "purpose": "Diagnostic-only local curvature/normal ridge tracing for missing F1 bend support.",
         "score_threshold": score_threshold,
+        "exclude_owned_bend_atoms": exclude_owned_bend_atoms,
+        "explicitly_excluded_atom_count": len({str(value) for value in excluded_atom_ids or ()}),
         "recovery_deficit": recovery_deficit,
         "domain_atom_count": len(domain_ids),
         "ridge_atom_count": len(ridge_ids),
@@ -287,7 +302,16 @@ def main() -> int:
     parser.add_argument("--residual-interface-json", type=Path, default=None)
     parser.add_argument("--output-json", required=True, type=Path)
     parser.add_argument("--score-threshold", type=float, default=0.58)
+    parser.add_argument("--exclude-owned-bend-atoms", action="store_true")
+    parser.add_argument("--exclude-atom-ids-json", type=Path, default=None)
     args = parser.parse_args()
+    excluded_atom_ids: set[str] = set()
+    if args.exclude_atom_ids_json:
+        payload = _load_json(args.exclude_atom_ids_json)
+        for key in ("atom_ids", "excluded_atom_ids"):
+            excluded_atom_ids.update(str(value) for value in payload.get(key) or ())
+        for ridge in payload.get("ridges") or ():
+            excluded_atom_ids.update(str(value) for value in ridge.get("atom_ids") or ())
 
     report = trace_local_ridge_candidates(
         decomposition=_load_json(args.decomposition_json),
@@ -295,6 +319,8 @@ def main() -> int:
         feature_label_summary=_load_json(args.feature_label_summary_json) if args.feature_label_summary_json else None,
         residual_interface_diagnostics=_load_json(args.residual_interface_json) if args.residual_interface_json else None,
         score_threshold=float(args.score_threshold),
+        exclude_owned_bend_atoms=bool(args.exclude_owned_bend_atoms),
+        excluded_atom_ids=excluded_atom_ids,
     )
     _write_json(args.output_json, report)
     print(

@@ -69,3 +69,19 @@ def test_trace_local_ridge_candidates_excludes_accepted_manual_atoms():
 
     assert report["accepted_manual_atom_count"] == 4
     assert all("A0" not in ridge["atom_ids"] for ridge in report["ridges"])
+
+
+def test_trace_local_ridge_candidates_can_exclude_owned_and_explicit_atoms():
+    atoms = [_atom(f"A{i}", i * 3.0, curvature=0.06, label="B1" if i < 4 else "residual") for i in range(10)]
+    report = tracer.trace_local_ridge_candidates(
+        decomposition=_payload(atoms),
+        feature_label_summary={"label_capacity": {"valid_conventional_region_deficit": 1}},
+        score_threshold=0.55,
+        exclude_owned_bend_atoms=True,
+        excluded_atom_ids=["A4", "A5"],
+    )
+
+    assert report["exclude_owned_bend_atoms"] is True
+    assert report["explicitly_excluded_atom_count"] == 2
+    remaining = {atom_id for ridge in report["ridges"] for atom_id in ridge["atom_ids"]}
+    assert not (remaining & {"A0", "A1", "A2", "A3", "A4", "A5"})

@@ -64,6 +64,19 @@ Strict scan-wide uncovered corridor search:
 - Admissible candidates: `0`
 - Visual verdict: top candidates are broad panel/edge bands, not separate bend supports.
 
+Low-threshold scan-wide ridge search:
+
+- Output: `47959001_current_scanwide_low_threshold_ridges_excluding_owned_and_ridge.json`
+- Render: `47959001_scanwide_low_threshold_ridges_visual_check/ridge_candidates_top_1080p.png`
+- Exclusions: current owned bend atoms plus the previous broad 48-atom ridge
+- Score threshold: `0.48`
+- Status: `partial_ridge_signal`
+- Domain atoms: `1175`
+- Ridge atoms: `793`
+- Candidate ridges: `2`
+- Admissible ridges: `1`
+- Visual verdict: the admissible ridge is a huge 792-atom broad face/edge field, not a countable bend-line support.
+
 ## Visual Verdict
 
 The 1080p arrangement render shows the selected lines clustered along one broad edge/ridge family. This is not a valid multi-bend recovery for the five-visible-bend target.
@@ -83,10 +96,11 @@ The raw-family suppression change should not be judged against the stale `F20/F2
 - local arrangement cannot recover the missing four visible bends,
 - projection-gap splitting also finds only one continuous support family,
 - strict scan-wide corridor search finds no clean independent two-sided uncovered corridor after excluding the known raw support and broad ridge,
+- low-threshold scan-wide ridge discovery floods into broad face/edge support and does not isolate missing bend lines,
 - this remains offline diagnostic evidence only.
 
 ## Next Work
 
-- The next support-creation attempt must change the atom/support discovery domain, not just rescore current ridge/corridor candidates.
+- The next support-creation attempt must change the atom/support discovery domain, likely toward thinner oriented edge/ridge tracing or better atomization around crease candidates, not just lower thresholds on current atom features.
 - Do not use stale flange-ID arrangements as regression controls.
 - Use this current-snapshot file set for future `47959001` experiments.
