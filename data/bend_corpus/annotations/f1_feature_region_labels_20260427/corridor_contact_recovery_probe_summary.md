@@ -27,6 +27,8 @@ Output folders:
 
 The `ysherman` projection render shows `12` raw owned bend projections, but the 3D overview render reports only `9` support regions after render suppression. This means the count result is promising but not yet acceptable for promotion: the ownership/render path needs to explain why three raw regions suppress from the 3D overview and whether the remaining markers cover all visible bends.
 
+Follow-up fix: the run summary now uses the actual renderable marker count from `render_decomposition_artifacts(...)`, not the raw owned-region count. If render suppression drops `12 -> 9`, the summary correctly marks the accepted render as scan-context/debug-only instead of claiming 12 accepted visible markers.
+
 ## Engineering Decision
 
 - Keep the new recovery switch diagnostic-only.

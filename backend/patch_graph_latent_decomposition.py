@@ -1702,6 +1702,9 @@ def render_decomposition_artifacts(
         "scan_context_view_paths": scan_context_view_paths,
         "atom_projection_path": str(atom_projection_path),
         "focus_paths": focus_paths,
+        "raw_f1_owned_region_count": len(result.owned_bend_regions),
+        "render_owned_region_count": len(renderable),
+        "render_suppressed_owned_region_count": max(0, len(result.owned_bend_regions) - len(renderable)),
     }
 
 

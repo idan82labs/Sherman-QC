@@ -1024,12 +1024,17 @@ def main() -> int:
             render_info=render_info,
             promotion_evidence=part_promotion_evidence,
         )
-        payload["candidate"]["render_owned_bend_region_count"] = len(render_result.owned_bend_regions)
+        payload["candidate"]["render_owned_bend_region_count"] = (
+            len(render_result.owned_bend_regions)
+            if render_info is None
+            else int(render_info.get("render_owned_region_count", len(render_result.owned_bend_regions)))
+        )
+        payload["candidate"]["render_suppressed_owned_region_count"] = 0 if render_info is None else int(render_info.get("render_suppressed_owned_region_count", 0))
         payload["candidate"]["supplemental_owned_bend_region_count"] = len(supplemental_regions)
         _attach_candidate_render_semantics(
             payload,
             render_info=render_info,
-            rendered_owned_region_count=len(render_result.owned_bend_regions),
+            rendered_owned_region_count=int(payload["candidate"]["render_owned_bend_region_count"]),
         )
         _write_json(scan_dir / "summary.json", payload)
         results.append(payload)
