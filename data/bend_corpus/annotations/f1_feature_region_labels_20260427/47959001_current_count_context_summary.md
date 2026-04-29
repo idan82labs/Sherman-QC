@@ -113,6 +113,20 @@ Raw-point to F1 bridge validation:
   - `RPC4`, rejected for axis/corridor/contact failure against best pair `F43-F5`
 - Visual verdict: bridge validation is conservative and useful. The safe green candidates sit on coherent side crease supports; the rejected red candidates are broader/scattered panel or edge texture. This is still diagnostic-only because it recovers two of four missing supports, not the full target.
 
+Raw bridge support-birth experiment:
+
+- Folder: `47959001_raw_bridge_support_birth_experiment/`
+- Inputs: bridge-safe `RPC5/RPC6` only
+- Synthetic births: `2`
+- Arrangement output: `raw_bridge_arrangement.json`
+- Render: `47959001_raw_bridge_support_birth_experiment/recovered_contact_birth_ambiguity_1080p.png`
+- Solver status: `two_bend_arrangement_candidate`
+- Best selected candidates: `RCB1`, `RCB2`
+- Duplicate status: both `unique_recovered_support`
+- Projected observed count if accepted: `1 current owned region + 2 raw bridge births = 3`
+- Target visible observed bends: `5`
+- Visual verdict: the selected births are coherent side supports and rejected texture candidates stay out. This proves the bridge can add safe support objects, but it is still an underfit partial recovery and not promotion-ready.
+
 ## Visual Verdict
 
 The 1080p arrangement render shows the selected lines clustered along one broad edge/ridge family. This is not a valid multi-bend recovery for the five-visible-bend target.
@@ -136,12 +150,13 @@ The raw-family suppression change should not be judged against the stale `F20/F2
 - thin transition-edge tracing finds only one compact local fragment plus one huge boundary flood, not the missing set of countable bend lines,
 - raw-point crease tracing below the atom graph produces four line-like candidates, which is the first promising recovery signal but still needs flange-pair/contact validation and cleaner rendering before promotion,
 - raw-point bridge validation keeps two coherent crease supports and rejects two texture-like candidates, proving that bridge validation can reduce overcount risk but is not enough to recover the full 47959001 count yet,
+- controlled raw bridge support birth selects the two safe births and projects count `3/5`, so it improves support capacity without overcounting but still underfits,
 - this remains offline diagnostic evidence only.
 
 ## Next Work
 
-- Build a controlled support-birth experiment from bridge-safe raw creases only. Convert `RPC5/RPC6` into temporary diagnostic F1 support births, then rerun local arrangement/count recovery while keeping rejected raw candidates out.
 - Investigate why `RPC3/RPC4` fail bridge validation: true texture rejection vs overly strict/flange-fragmented pair selection.
+- Add a second-stage bridge validator for rejected raw candidates that can merge fragmented flange IDs into flange families before rejecting, while preserving the current texture/corridor gates.
 - Keep scan-quality/coverage gating active for cases where raw crease candidates remain scattered or unstable.
 - Do not use stale flange-ID arrangements as regression controls.
 - Use this current-snapshot file set for future `47959001` experiments.
