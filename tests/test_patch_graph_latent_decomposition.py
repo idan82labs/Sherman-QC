@@ -27,6 +27,7 @@ from patch_graph_latent_decomposition import (
     _normalize_bend_hypotheses,
     _prune_and_refit_labels,
     _rescue_interface_birth_supports,
+    _render_region_suppression_report,
     _suppress_same_pair_marker_aliases,
     _suppress_tiny_cross_pair_marker_clusters,
     _typed_adjacency_penalty,
@@ -336,6 +337,46 @@ def test_suppress_same_pair_marker_aliases_drops_close_tiny_alias_only():
     assert [item.bend_id for item in filtered] == ["OB4", "OB6", "OB7"]
 
 
+def test_render_region_suppression_report_explains_hidden_marker_reasons():
+    def region(bend_id, pair, anchor, atom_count, support_mass, axis=(1.0, 0.0, 0.0)):
+        return OwnedBendRegion(
+            bend_id=bend_id,
+            bend_class="transition_only",
+            incident_flange_ids=pair,
+            canonical_bend_key=f"{','.join(pair)}::{bend_id}",
+            owned_atom_ids=tuple(f"{bend_id}_A{i}" for i in range(atom_count)),
+            anchor=anchor,
+            axis_direction=axis,
+            support_centroid=anchor,
+            span_endpoints=(anchor, anchor),
+            angle_deg=90.0,
+            radius_mm=None,
+            visibility_state="internal",
+            support_mass=support_mass,
+            admissible=True,
+            admissibility_reasons=(),
+            post_bend_class="transition_only",
+            debug_confidence=0.8,
+        )
+
+    kept_same_pair = region("OB4", ("F1", "F2"), (0.0, 0.0, 0.0), 24, 5000.0)
+    suppressed_alias = region("OB5", ("F2", "F1"), (18.0, 0.0, 0.0), 5, 400.0)
+    kept_cross_pair = region("OB7", ("F3", "F4"), (120.0, 0.0, 0.0), 20, 4500.0)
+    suppressed_cross_pair = region("OB9", ("F3", "F8"), (135.0, 0.0, 0.0), 3, 250.0)
+
+    report = _render_region_suppression_report(
+        [kept_same_pair, suppressed_alias, kept_cross_pair, suppressed_cross_pair],
+        [kept_same_pair, kept_cross_pair],
+        local_spacing_mm=2.0,
+    )
+
+    by_id = {item["bend_id"]: item for item in report}
+    assert by_id["OB5"]["reason_codes"] == ["same_pair_marker_alias"]
+    assert by_id["OB5"]["nearest_kept_regions"][0]["bend_id"] == "OB4"
+    assert by_id["OB9"]["reason_codes"] == ["tiny_cross_pair_marker_cluster"]
+    assert by_id["OB9"]["nearest_kept_regions"][0]["bend_id"] == "OB7"
+
+
 def test_dedupe_bend_hypotheses_collapses_overlap_even_when_flange_ids_drift():
     bend1 = _bend("B1", atom_ids=("A1", "A2", "A3", "A4"), cross_width_mm=2.0, span_mm=10.0, confidence=0.9)
     bend2 = _bend(
@@ -447,10 +488,17 @@ def test_render_decomposition_artifacts_marks_raw_f1_ownership_semantics(tmp_pat
     assert manifest["owned_region_semantics"] == "raw_f1_owned_support_regions_not_always_accepted_candidate_count"
     assert manifest["render_debug_semantics"] == "debug_raw_owned_regions_not_final_accepted_bends"
     assert manifest["raw_f1_owned_region_count"] == 1
+    assert manifest["render_owned_region_count"] == 1
+    assert manifest["all_raw_render_owned_region_count"] == 1
+    assert manifest["render_suppressed_owned_region_count"] == 0
+    assert manifest["render_suppressed_region_ids"] == []
+    assert manifest["render_suppression_details"] == []
+    assert manifest["all_raw_overview_image"] == "patch_graph_owned_region_overview_all_raw.png"
     assert "estimated_bend_count" not in manifest
     assert manifest["bends"][0]["metadata"]["render_anchor_source"] == "owned_atom_medoid"
     assert manifest["bends"][0]["anchor"] in manifest["bends"][0]["metadata"]["owned_support_points"]
     assert Path(artifacts["atom_projection_path"]).exists()
+    assert Path(artifacts["all_raw_overview_path"]).exists()
     assert (tmp_path / "patch_graph_owned_region_atom_projection.png").read_bytes().startswith(b"\x89PNG")
 
 

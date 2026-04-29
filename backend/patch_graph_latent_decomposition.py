@@ -1322,6 +1322,87 @@ def _suppress_same_pair_marker_aliases(
     return [region for index, region in enumerate(regions) if index in active]
 
 
+def _render_region_suppression_report(
+    raw_regions: Sequence[OwnedBendRegion],
+    kept_regions: Sequence[OwnedBendRegion],
+    *,
+    local_spacing_mm: float,
+) -> List[Dict[str, Any]]:
+    """Explain render-only owned-region marker suppression.
+
+    This mirrors the conservative render filters above so visual QA can inspect
+    whether a hidden raw F1 region was a true alias/tiny fragment or whether the
+    renderer suppressed a marker that should remain visible.
+    """
+    kept_ids = {region.bend_id for region in kept_regions}
+    same_pair_threshold_mm = max(35.0, 6.0 * float(local_spacing_mm or 1.0))
+    cross_pair_threshold_mm = max(35.0, 10.0 * float(local_spacing_mm or 1.0))
+
+    def pair(region: OwnedBendRegion) -> Tuple[str, ...]:
+        return tuple(sorted(str(value) for value in region.incident_flange_ids))
+
+    def anchor(region: OwnedBendRegion) -> np.ndarray:
+        return np.asarray(region.anchor, dtype=np.float64)
+
+    def axis(region: OwnedBendRegion) -> np.ndarray:
+        return _normalize_direction(np.asarray(region.axis_direction, dtype=np.float64))
+
+    report: List[Dict[str, Any]] = []
+    for region in raw_regions:
+        if region.bend_id in kept_ids:
+            continue
+
+        reason_codes: set[str] = set()
+        nearest: List[Dict[str, Any]] = []
+        region_pair = pair(region)
+        for kept in kept_regions:
+            kept_pair = pair(kept)
+            distance_mm = float(np.linalg.norm(anchor(region) - anchor(kept)))
+            min_atoms = min(len(region.owned_atom_ids), len(kept.owned_atom_ids))
+            axis_delta_deg = float(_angle_deg(axis(region), axis(kept)))
+            same_pair = len(region_pair) == 2 and region_pair == kept_pair
+            if (
+                same_pair
+                and min_atoms <= 15
+                and distance_mm <= same_pair_threshold_mm
+                and axis_delta_deg <= 18.0
+            ):
+                reason_codes.add("same_pair_marker_alias")
+            if (
+                not same_pair
+                and len(region_pair) == 2
+                and len(kept_pair) == 2
+                and min_atoms <= 5
+                and distance_mm <= cross_pair_threshold_mm
+            ):
+                reason_codes.add("tiny_cross_pair_marker_cluster")
+            nearest.append(
+                {
+                    "bend_id": kept.bend_id,
+                    "incident_flange_ids": list(kept.incident_flange_ids),
+                    "atom_count": len(kept.owned_atom_ids),
+                    "distance_mm": distance_mm,
+                    "axis_delta_deg": axis_delta_deg,
+                    "same_flange_pair": same_pair,
+                }
+            )
+
+        nearest.sort(key=lambda item: float(item["distance_mm"]))
+        report.append(
+            {
+                "bend_id": region.bend_id,
+                "incident_flange_ids": list(region.incident_flange_ids),
+                "atom_count": len(region.owned_atom_ids),
+                "support_mass": float(region.support_mass),
+                "debug_confidence": float(region.debug_confidence),
+                "anchor": [float(value) for value in region.anchor],
+                "reason_codes": sorted(reason_codes) or ["unknown_render_suppression"],
+                "nearest_kept_regions": nearest[:3],
+            }
+        )
+    return report
+
+
 def build_owned_region_renderable_objects(
     owned_bend_regions: Sequence[OwnedBendRegion],
     atom_graph: Optional[SurfaceAtomGraph] = None,
@@ -1585,6 +1666,17 @@ def render_decomposition_artifacts(
     out_dir = Path(output_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
     renderable = build_owned_region_renderable_objects(result.owned_bend_regions, atom_graph=result.atom_graph)
+    all_raw_renderable = build_owned_region_renderable_objects(
+        result.owned_bend_regions,
+        atom_graph=result.atom_graph,
+        suppress_tiny_marker_clusters=False,
+    )
+    kept_region_ids = {str(item.get("bend_id") or "") for item in renderable}
+    suppression_report = _render_region_suppression_report(
+        result.owned_bend_regions,
+        [region for region in result.owned_bend_regions if region.bend_id in kept_region_ids],
+        local_spacing_mm=float(result.atom_graph.local_spacing_mm or 1.0),
+    )
     manifest = {
         "generated_at": str(np.datetime64("now")),
         "source_kind": "patch_graph_f1",
@@ -1600,9 +1692,13 @@ def render_decomposition_artifacts(
         "raw_f1_owned_region_count": len(result.owned_bend_regions),
         "render_owned_region_count": len(renderable),
         "render_suppressed_owned_region_count": max(0, len(result.owned_bend_regions) - len(renderable)),
+        "render_suppressed_region_ids": [item["bend_id"] for item in suppression_report],
+        "render_suppression_details": suppression_report,
         "abstained": False,
         "abstain_reasons": [],
         "overview_image": "patch_graph_owned_region_overview.png",
+        "all_raw_overview_image": "patch_graph_owned_region_overview_all_raw.png",
+        "all_raw_render_owned_region_count": len(all_raw_renderable),
         "atom_projection_image": "patch_graph_owned_region_atom_projection.png",
         "bends": renderable,
     }
@@ -1622,6 +1718,23 @@ def render_decomposition_artifacts(
             show_issue_callouts=False,
             compact_bend_labels=True,
             title_override=f"Debug Raw F1 Owned Regions - {len(renderable)} support regions (not final dots)",
+        )
+    )
+    all_raw_overview_path = out_dir / "patch_graph_owned_region_overview_all_raw.png"
+    all_raw_overview_path.write_bytes(
+        renderer.render_bend_status_overlay(
+            bends=all_raw_renderable,
+            reference_mesh_path=result.scan_path,
+            view="iso",
+            width=1920,
+            height=1080,
+            focused_bend_ids=None,
+            show_issue_callouts=False,
+            compact_bend_labels=True,
+            title_override=(
+                f"Debug Raw F1 Owned Regions - all {len(all_raw_renderable)} raw support regions "
+                "(unsuppressed)"
+            ),
         )
     )
     overview_view_paths: Dict[str, str] = {"iso": str(overview_path)}
@@ -1697,6 +1810,7 @@ def render_decomposition_artifacts(
     return {
         "manifest_path": str(out_dir / "owned_region_manifest.json"),
         "overview_path": str(overview_path),
+        "all_raw_overview_path": str(all_raw_overview_path),
         "overview_view_paths": overview_view_paths,
         "scan_context_path": str(scan_context_path),
         "scan_context_view_paths": scan_context_view_paths,
@@ -1704,7 +1818,9 @@ def render_decomposition_artifacts(
         "focus_paths": focus_paths,
         "raw_f1_owned_region_count": len(result.owned_bend_regions),
         "render_owned_region_count": len(renderable),
+        "all_raw_render_owned_region_count": len(all_raw_renderable),
         "render_suppressed_owned_region_count": max(0, len(result.owned_bend_regions) - len(renderable)),
+        "render_suppressed_region_ids": [item["bend_id"] for item in suppression_report],
     }
 
 
