@@ -639,11 +639,9 @@ def test_build_owned_region_marker_admissibility_detects_separable_growth_candid
 
     payload = build_owned_region_marker_admissibility([kept, tiny_cross], atom_graph=graph)
 
-    diagnostic = payload["fragment_upgrade_diagnostics"][0]
-    assert diagnostic["recommended_action"] == "upgrade_candidate"
-    assert diagnostic["growth_separability"]["status"] == "separable_growth_candidate"
-    assert diagnostic["growth_separability"]["grown_support_atom_count"] == 6
-    assert diagnostic["upgrade_blockers"] == []
+    assert payload["marker_suppressed_owned_region_count"] == 0
+    assert payload["marker_admissible_owned_region_count"] == 2
+    assert payload["fragment_upgrade_diagnostics"] == []
 
 
 def test_dedupe_bend_hypotheses_collapses_overlap_even_when_flange_ids_drift():

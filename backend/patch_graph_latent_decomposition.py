@@ -1193,6 +1193,7 @@ def _suppress_tiny_cross_pair_marker_clusters(
     regions: Sequence[OwnedBendRegion],
     *,
     local_spacing_mm: float,
+    atom_graph: Optional[SurfaceAtomGraph] = None,
     tiny_atom_count_max: int = 5,
 ) -> List[OwnedBendRegion]:
     """Drop tiny duplicate-like cross-pair bend fragments before count/render export.
@@ -1211,6 +1212,51 @@ def _suppress_tiny_cross_pair_marker_clusters(
     def pair(index: int) -> Tuple[str, ...]:
         return tuple(sorted(str(value) for value in regions[index].incident_flange_ids))
 
+    occupied_atom_ids = {atom_id for region in regions for atom_id in region.owned_atom_ids}
+
+    def separable_growth_candidate(index: int, nearest_index: int) -> bool:
+        if atom_graph is None:
+            return False
+        region = regions[index]
+        nearest = regions[nearest_index]
+        detail = {
+            "bend_id": region.bend_id,
+            "owned_atom_ids": list(region.owned_atom_ids),
+            "axis_direction": list(region.axis_direction),
+            "nearest_kept_regions": [
+                {
+                    "bend_id": nearest.bend_id,
+                    "distance_mm": float(
+                        np.linalg.norm(
+                            np.asarray(region.anchor, dtype=np.float64)
+                            - np.asarray(nearest.anchor, dtype=np.float64)
+                        )
+                    ),
+                    "axis_delta_deg": float(
+                        _angle_deg(
+                            np.asarray(region.axis_direction, dtype=np.float64),
+                            np.asarray(nearest.axis_direction, dtype=np.float64),
+                        )
+                    ),
+                }
+            ],
+        }
+        growth_probe = _suppressed_fragment_growth_probe(
+            detail,
+            atom_graph=atom_graph,
+            occupied_atom_ids=occupied_atom_ids,
+            search_depth=2,
+        )
+        growth_separability = _suppressed_fragment_growth_separability(
+            detail,
+            growth_probe=growth_probe,
+            atom_graph=atom_graph,
+            local_spacing_mm=max(float(local_spacing_mm or 1.0), 1.0),
+            min_upgrade_atoms=6,
+            min_upgrade_distance_mm=threshold_mm,
+        )
+        return str(growth_separability.get("status") or "") == "separable_growth_candidate"
+
     while True:
         candidate_edges: List[Tuple[int, int]] = []
         ordered = sorted(active)
@@ -1228,6 +1274,10 @@ def _suppress_tiny_cross_pair_marker_clusters(
                     continue
                 rhs_anchor = np.asarray(regions[rhs].anchor, dtype=np.float64)
                 if float(np.linalg.norm(lhs_anchor - rhs_anchor)) <= threshold_mm:
+                    if atom_count(lhs) <= tiny_atom_count_max and separable_growth_candidate(lhs, rhs):
+                        continue
+                    if atom_count(rhs) <= tiny_atom_count_max and separable_growth_candidate(rhs, lhs):
+                        continue
                     candidate_edges.append((lhs, rhs))
         if not candidate_edges:
             break
@@ -1426,6 +1476,7 @@ def build_owned_region_renderable_objects(
         render_regions = _suppress_tiny_cross_pair_marker_clusters(
             render_regions,
             local_spacing_mm=float(atom_graph.local_spacing_mm or 1.0),
+            atom_graph=atom_graph,
         )
     for region in render_regions:
         owned_points = [
