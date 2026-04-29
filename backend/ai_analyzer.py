@@ -897,6 +897,8 @@ class Model3DSnapshotRenderer:
         height: int = 1200,
         focused_bend_ids: Optional[List[str]] = None,
         show_issue_callouts: bool = True,
+        compact_bend_labels: bool = False,
+        title_override: Optional[str] = None,
     ) -> bytes:
         """
         Render a CAD-first bend overlay image.
@@ -909,6 +911,12 @@ class Model3DSnapshotRenderer:
 
         o3d = self.o3d
         focused = {str(b) for b in (focused_bend_ids or [])}
+        focus_context = bool(focused)
+        owned_region_overlay = compact_bend_labels or any(
+            str(bend.get("source_kind", "")) == "patch_graph_owned_region"
+            for bend in bends
+            if isinstance(bend, dict)
+        )
         status_rgb = {
             "PASS": [0.21, 0.79, 0.46],
             "WARNING": [0.98, 0.75, 0.14],
@@ -920,19 +928,29 @@ class Model3DSnapshotRenderer:
         vis.create_window(visible=False, width=width, height=height)
 
         bbox = None
+        mesh_color = [0.56, 0.62, 0.70] if owned_region_overlay else [0.73, 0.76, 0.81]
+        wire_color = [0.30, 0.36, 0.44] if owned_region_overlay else [0.86, 0.89, 0.93]
+        point_color = [0.46, 0.52, 0.60] if owned_region_overlay else [0.68, 0.72, 0.79]
+
         if reference_mesh_path:
             try:
                 mesh = o3d.io.read_triangle_mesh(reference_mesh_path)
                 if mesh.has_triangles():
                     mesh.compute_vertex_normals()
-                    mesh.paint_uniform_color([0.73, 0.76, 0.81])
+                    mesh.paint_uniform_color(mesh_color)
                     vis.add_geometry(mesh)
                     wire = o3d.geometry.LineSet.create_from_triangle_mesh(mesh)
                     wire.colors = o3d.utility.Vector3dVector(
-                        np.tile(np.array([[0.86, 0.89, 0.93]], dtype=np.float64), (len(wire.lines), 1))
+                        np.tile(np.array([wire_color], dtype=np.float64), (len(wire.lines), 1))
                     )
                     vis.add_geometry(wire)
                     bbox = mesh.get_axis_aligned_bounding_box()
+                else:
+                    pcd = o3d.io.read_point_cloud(reference_mesh_path)
+                    if pcd.has_points():
+                        pcd.paint_uniform_color(point_color)
+                        vis.add_geometry(pcd)
+                        bbox = pcd.get_axis_aligned_bounding_box()
             except Exception as exc:
                 logger.warning("Could not load bend overlay reference mesh: %s", exc)
 
@@ -952,6 +970,8 @@ class Model3DSnapshotRenderer:
         for bend in bends:
             status = str(bend.get("status", "NOT_DETECTED")).upper()
             color = status_rgb.get(status, status_rgb["NOT_DETECTED"])
+            bend_id = str(bend.get("bend_id", ""))
+            is_focus = bend_id in focused
             cad_line = bend.get("cad_line", {}) if isinstance(bend, dict) else {}
             detected_line = bend.get("detected_line", {}) if isinstance(bend, dict) else {}
             cad_start = cad_line.get("display_start")
@@ -959,30 +979,57 @@ class Model3DSnapshotRenderer:
             det_start = detected_line.get("display_start")
             det_end = detected_line.get("display_end")
             anchor = bend.get("anchor")
+            render_color = color
+            cad_render_color = [0.80, 0.84, 0.90]
+            if focus_context and not is_focus:
+                render_color = [0.70, 0.74, 0.80]
+                cad_render_color = [0.86, 0.89, 0.93]
+            metadata = bend.get("metadata", {}) if isinstance(bend, dict) else {}
+            support_points = metadata.get("owned_support_points") if isinstance(metadata, dict) else None
+
+            if isinstance(support_points, list) and support_points:
+                try:
+                    support_np = np.asarray(support_points, dtype=np.float64)
+                    if support_np.ndim == 2 and support_np.shape[1] >= 3:
+                        support_np = support_np[:, :3]
+                        support_pcd = o3d.geometry.PointCloud()
+                        support_pcd.points = o3d.utility.Vector3dVector(support_np)
+                        support_pcd.colors = o3d.utility.Vector3dVector(
+                            np.tile(np.asarray([render_color], dtype=np.float64), (len(support_np), 1))
+                        )
+                        vis.add_geometry(support_pcd)
+                except Exception:
+                    pass
 
             if isinstance(cad_start, list) and isinstance(cad_end, list):
                 i0 = len(cad_line_points)
                 cad_line_points.extend([cad_start[:3], cad_end[:3]])
                 cad_line_indices.append([i0, i0 + 1])
-                cad_line_colors.append([0.80, 0.84, 0.90])
+                cad_line_colors.append(cad_render_color)
 
             if isinstance(det_start, list) and isinstance(det_end, list):
                 i0 = len(detected_line_points)
                 detected_line_points.extend([det_start[:3], det_end[:3]])
                 detected_line_indices.append([i0, i0 + 1])
-                detected_line_colors.append(color)
+                detected_line_colors.append(render_color)
 
             if isinstance(anchor, list) and len(anchor) >= 3:
                 anchor_np = np.asarray(anchor[:3], dtype=np.float64)
                 sphere = o3d.geometry.TriangleMesh.create_sphere(
-                    radius=sphere_radius * (1.35 if str(bend.get("bend_id")) in focused else 1.0)
+                    radius=sphere_radius
+                    * (
+                        1.45
+                        if is_focus
+                        else (0.62 if focus_context else 1.0)
+                    )
                 )
                 sphere.translate(anchor_np)
-                sphere.paint_uniform_color(color)
+                sphere.paint_uniform_color(render_color)
                 sphere.compute_vertex_normals()
                 vis.add_geometry(sphere)
-                anchor_points.append(anchor_np)
-                label_bends.append(bend)
+                if not focus_context or is_focus:
+                    anchor_points.append(anchor_np)
+                    label_bends.append(bend)
 
         if cad_line_indices:
             cad_line_set = o3d.geometry.LineSet()
@@ -999,11 +1046,16 @@ class Model3DSnapshotRenderer:
             vis.add_geometry(detected_line_set)
 
         opt = vis.get_render_option()
-        opt.background_color = np.array([0.95, 0.97, 0.99])
+        opt.background_color = np.array([0.97, 0.98, 0.99] if owned_region_overlay else [0.93, 0.95, 0.98])
         try:
             opt.line_width = 2.0
         except Exception:
             pass
+        if owned_region_overlay:
+            try:
+                opt.point_size = 4.0
+            except Exception:
+                pass
         opt.mesh_show_back_face = True
 
         ctr = vis.get_view_control()
@@ -1040,6 +1092,7 @@ class Model3DSnapshotRenderer:
         vis.destroy_window()
 
         img_array = (np.asarray(img) * 255).astype(np.uint8)
+        image_h, image_w = img_array.shape[:2]
         fig, ax = plt.subplots(figsize=(width / 100, height / 100), dpi=100)
         ax.imshow(img_array)
         ax.axis("off")
@@ -1047,14 +1100,254 @@ class Model3DSnapshotRenderer:
         intrinsic = params.intrinsic.intrinsic_matrix
         extrinsic = params.extrinsic
 
+        def marker_centers_from_render() -> List[Tuple[float, float]]:
+            """Find visible colored bend markers in the rendered image.
+
+            Patch-graph artifacts need labels attached to the visible owned-region
+            markers. The Open3D camera parameters are not always a perfect match
+            for the captured buffer, so image-space marker centers are the most
+            reliable label anchors for these offline screenshots.
+            """
+            rgb = img_array.astype(np.int16)
+            r = rgb[:, :, 0]
+            g = rgb[:, :, 1]
+            b = rgb[:, :, 2]
+            marker_mask = (
+                ((r > 135) & (g > 85) & (b < 115))
+                | ((g > 135) & (r > 40) & (r < 190) & (b < 130))
+            )
+            visited = np.zeros(marker_mask.shape, dtype=bool)
+            components: List[Tuple[int, float, float]] = []
+            height_px, width_px = marker_mask.shape
+
+            for y0, x0 in zip(*np.nonzero(marker_mask)):
+                if visited[y0, x0]:
+                    continue
+                stack = [(int(y0), int(x0))]
+                visited[y0, x0] = True
+                count = 0
+                sx = 0.0
+                sy = 0.0
+                min_x = max_x = int(x0)
+                min_y = max_y = int(y0)
+                while stack:
+                    y, x = stack.pop()
+                    count += 1
+                    sx += x
+                    sy += y
+                    min_x = min(min_x, x)
+                    max_x = max(max_x, x)
+                    min_y = min(min_y, y)
+                    max_y = max(max_y, y)
+                    for ny, nx in ((y - 1, x), (y + 1, x), (y, x - 1), (y, x + 1)):
+                        if (
+                            0 <= ny < height_px
+                            and 0 <= nx < width_px
+                            and marker_mask[ny, nx]
+                            and not visited[ny, nx]
+                        ):
+                            visited[ny, nx] = True
+                            stack.append((ny, nx))
+                bbox_w = max_x - min_x + 1
+                bbox_h = max_y - min_y + 1
+                fill_ratio = count / max(float(bbox_w * bbox_h), 1.0)
+                aspect = max(bbox_w, bbox_h) / max(float(min(bbox_w, bbox_h)), 1.0)
+                if (
+                    count < 18
+                    or bbox_w > 100
+                    or bbox_h > 100
+                    or bbox_w < 4
+                    or bbox_h < 4
+                    or fill_ratio < 0.16
+                    or aspect > 3.2
+                ):
+                    continue
+                components.append((count, sx / count, sy / count))
+
+            components.sort(key=lambda item: item[0], reverse=True)
+            centers = [(x, y) for _, x, y in components[: max(len(label_bends), 1)]]
+            centers.sort(key=lambda item: (item[1], item[0]))
+            return centers
+
+        marker_centers = marker_centers_from_render() if owned_region_overlay else []
+        available_marker_centers = list(marker_centers)
+
+        def render_content_bbox() -> Optional[Tuple[float, float, float, float]]:
+            bg = np.array([237, 242, 250], dtype=np.int16)
+            rgb = img_array.astype(np.int16)
+            mask = np.max(np.abs(rgb - bg), axis=2) > 10
+            ys, xs = np.nonzero(mask)
+            if len(xs) < 10:
+                return None
+            return float(xs.min()), float(ys.min()), float(xs.max()), float(ys.max())
+
+        content_bbox = render_content_bbox() if owned_region_overlay else None
+
+        def owned_region_project(point_3d: Sequence[float]) -> Optional[Tuple[float, float]]:
+            if bbox is None or content_bbox is None:
+                return None
+            if view == "front":
+                front_v = np.array([0.0, -1.0, 0.0], dtype=np.float64)
+                up_v = np.array([0.0, 0.0, 1.0], dtype=np.float64)
+            elif view == "side":
+                front_v = np.array([-1.0, 0.0, 0.0], dtype=np.float64)
+                up_v = np.array([0.0, 0.0, 1.0], dtype=np.float64)
+            elif view == "top":
+                front_v = np.array([0.0, 0.0, -1.0], dtype=np.float64)
+                up_v = np.array([0.0, 1.0, 0.0], dtype=np.float64)
+            else:
+                front_v = np.array([-0.52, -0.52, -0.67], dtype=np.float64)
+                up_v = np.array([0.0, 0.0, 1.0], dtype=np.float64)
+            front_v = front_v / max(float(np.linalg.norm(front_v)), 1e-9)
+            right_v = np.cross(front_v, up_v)
+            right_v = right_v / max(float(np.linalg.norm(right_v)), 1e-9)
+            up_v = np.cross(right_v, front_v)
+            up_v = up_v / max(float(np.linalg.norm(up_v)), 1e-9)
+
+            min_bound = np.asarray(bbox.get_min_bound(), dtype=np.float64)
+            max_bound = np.asarray(bbox.get_max_bound(), dtype=np.float64)
+            corners = np.asarray(
+                [
+                    [x, y, z]
+                    for x in (min_bound[0], max_bound[0])
+                    for y in (min_bound[1], max_bound[1])
+                    for z in (min_bound[2], max_bound[2])
+                ],
+                dtype=np.float64,
+            )
+            us = corners @ right_v
+            vs = corners @ up_v
+            u_min, u_max = float(np.min(us)), float(np.max(us))
+            v_min, v_max = float(np.min(vs)), float(np.max(vs))
+            if abs(u_max - u_min) < 1e-9 or abs(v_max - v_min) < 1e-9:
+                return None
+            x_min, y_min, x_max, y_max = content_bbox
+            p = np.asarray(point_3d[:3], dtype=np.float64)
+            u = float(np.dot(p, right_v))
+            v = float(np.dot(p, up_v))
+            x = x_min + ((u - u_min) / (u_max - u_min)) * (x_max - x_min)
+            y = y_max - ((v - v_min) / (v_max - v_min)) * (y_max - y_min)
+            return float(x), float(y)
+
         def project(point_3d: Sequence[float]) -> Optional[Tuple[float, float]]:
             p = np.array([point_3d[0], point_3d[1], point_3d[2], 1.0], dtype=np.float64)
             cam = extrinsic @ p
             if cam[2] <= 0:
                 return None
             px = intrinsic[0, 0] * cam[0] / cam[2] + intrinsic[0, 2]
-            py = intrinsic[1, 1] * cam[1] / cam[2] + intrinsic[1, 2]
+            # Open3D camera projection is bottom-left oriented; Matplotlib image
+            # coordinates are top-left oriented after imshow.
+            py = image_h - (intrinsic[1, 1] * cam[1] / cam[2] + intrinsic[1, 2])
             return float(px), float(py)
+
+        def visible_marker_position(projected: Tuple[float, float]) -> Tuple[float, float]:
+            if not available_marker_centers:
+                return projected
+            px, py = projected
+            projected_options = ((px, py), (px, image_h - py))
+            best_index = 0
+            best_distance = float("inf")
+            for idx, center_xy in enumerate(available_marker_centers):
+                cx, cy = center_xy
+                distance = min(
+                    float(np.hypot(cx - ox, cy - oy))
+                    for ox, oy in projected_options
+                )
+                if distance < best_distance:
+                    best_distance = distance
+                    best_index = idx
+            if best_distance > max(image_w, image_h) * 0.45:
+                return projected
+            return available_marker_centers.pop(best_index)
+
+        def callout_layout(point_2d: Tuple[float, float], bend_index: int) -> Tuple[Tuple[float, float], str, str]:
+            x, y = point_2d
+            default_dx = 16 if bend_index % 2 == 0 else -16
+            default_ha = "left" if default_dx > 0 else "right"
+            dx = default_dx
+            ha = default_ha
+            dy = 18 + (bend_index % 3) * 10
+            va = "bottom"
+            if x > width * 0.74:
+                dx = -18
+                ha = "right"
+            elif x < width * 0.26:
+                dx = 18
+                ha = "left"
+            if y < height * 0.18:
+                dy = -(20 + (bend_index % 3) * 10)
+                va = "top"
+            elif y > height * 0.84:
+                dy = 18 + (bend_index % 3) * 10
+                va = "bottom"
+            return (dx, dy), ha, va
+
+        compact_label_boxes: List[Tuple[float, float, float, float]] = []
+
+        def _box_overlap_area(lhs: Tuple[float, float, float, float], rhs: Tuple[float, float, float, float]) -> float:
+            x0 = max(lhs[0], rhs[0])
+            y0 = max(lhs[1], rhs[1])
+            x1 = min(lhs[2], rhs[2])
+            y1 = min(lhs[3], rhs[3])
+            if x1 <= x0 or y1 <= y0:
+                return 0.0
+            return float((x1 - x0) * (y1 - y0))
+
+        def compact_label_layout(point_2d: Tuple[float, float], bend_index: int) -> Tuple[Tuple[float, float], str, str]:
+            x, y = point_2d
+            # Offset labels far enough from tight bend clusters to keep the
+            # marker visible, then greedily avoid previously placed labels.
+            base_pattern = (
+                (18, -12),
+                (18, 16),
+                (-18, -12),
+                (-18, 16),
+                (30, 0),
+                (-30, 0),
+                (12, -28),
+                (-12, -28),
+                (12, 30),
+                (-12, 30),
+                (42, -18),
+                (-42, -18),
+                (42, 22),
+                (-42, 22),
+            )
+            rotated = list(base_pattern[bend_index % len(base_pattern) :]) + list(base_pattern[: bend_index % len(base_pattern)])
+            best: Optional[Tuple[float, Tuple[int, int], str, str, Tuple[float, float, float, float]]] = None
+            px_per_point = 100.0 / 72.0
+            label_w = 44.0
+            label_h = 24.0
+            for dx0, dy0 in rotated:
+                dx = -abs(dx0) if x > width * 0.84 else abs(dx0) if x < width * 0.16 else dx0
+                dy = abs(dy0) if y < height * 0.14 else -abs(dy0) if y > height * 0.86 else dy0
+                ha = "left" if dx >= 0 else "right"
+                va = "bottom" if dy < 0 else "top"
+                label_x = x + dx * px_per_point
+                label_y = y - dy * px_per_point
+                if ha == "left":
+                    box_x0, box_x1 = label_x, label_x + label_w
+                else:
+                    box_x0, box_x1 = label_x - label_w, label_x
+                if va == "bottom":
+                    box_y0, box_y1 = label_y - label_h, label_y
+                else:
+                    box_y0, box_y1 = label_y, label_y + label_h
+                box = (float(box_x0), float(box_y0), float(box_x1), float(box_y1))
+                overlap = sum(_box_overlap_area(box, existing) for existing in compact_label_boxes)
+                out_of_bounds = (
+                    max(0.0, -box_x0)
+                    + max(0.0, box_x1 - image_w)
+                    + max(0.0, -box_y0)
+                    + max(0.0, box_y1 - image_h)
+                )
+                distance_penalty = 0.01 * float(abs(dx) + abs(dy))
+                score = overlap * 8.0 + out_of_bounds * 5.0 + distance_penalty
+                if best is None or score < best[0]:
+                    best = (score, (int(dx), int(dy)), ha, va, box)
+            assert best is not None
+            compact_label_boxes.append(best[4])
+            return best[1], best[2], best[3]
 
         for idx, bend in enumerate(label_bends):
             bend_id = str(bend.get("bend_id", "?"))
@@ -1064,6 +1357,9 @@ class Model3DSnapshotRenderer:
             pos_2d = project(anchor_points[idx])
             if pos_2d is None:
                 continue
+            if owned_region_overlay:
+                pos_2d = owned_region_project(anchor_points[idx]) or pos_2d
+                pos_2d = visible_marker_position(pos_2d)
             x, y = pos_2d
             label_color = "#FFFFFF"
             badge_color = {
@@ -1076,82 +1372,151 @@ class Model3DSnapshotRenderer:
             show_callout = (show_issue_callouts and status in {"FAIL", "WARNING"}) or is_focus
             delta = bend.get("delta", {}) if isinstance(bend, dict) else {}
             delta_segments = []
+            custom_segments = bend.get("detail_segments")
+            if isinstance(custom_segments, list):
+                delta_segments = [str(segment) for segment in custom_segments if str(segment).strip()]
             angle = delta.get("angle_deg")
             radius = delta.get("radius_mm")
             center_delta = delta.get("center_mm")
-            if isinstance(angle, (int, float)):
-                delta_segments.append(f"ΔA {angle:+.1f}°")
-            if isinstance(radius, (int, float)):
-                delta_segments.append(f"ΔR {radius:+.2f}mm")
-            if isinstance(center_delta, (int, float)):
-                delta_segments.append(f"ΔC {center_delta:+.2f}mm")
-
-            ax.annotate(
-                bend_id,
-                xy=(x, y),
-                xytext=(0, -14),
-                textcoords="offset points",
-                ha="center",
-                va="bottom",
-                fontsize=8 if not is_focus else 9,
-                fontweight="bold",
-                color=label_color,
-                bbox=dict(
-                    boxstyle="round,pad=0.28",
-                    facecolor=badge_color,
-                    edgecolor="white",
-                    linewidth=0.6,
-                    alpha=0.94,
-                ),
-            )
-
-            if show_callout and delta_segments:
+            if not delta_segments:
+                if isinstance(angle, (int, float)):
+                    delta_segments.append(f"ΔA {angle:+.1f}°")
+                if isinstance(radius, (int, float)):
+                    delta_segments.append(f"ΔR {radius:+.2f}mm")
+                if isinstance(center_delta, (int, float)):
+                    delta_segments.append(f"ΔC {center_delta:+.2f}mm")
+            (dx, dy), callout_ha, callout_va = callout_layout(pos_2d, idx)
+            if not focus_context and compact_bend_labels:
+                (cdx, cdy), compact_ha, compact_va = compact_label_layout(pos_2d, idx)
+                ax.scatter(
+                    [x],
+                    [y],
+                    s=34,
+                    marker="o",
+                    color=badge_color,
+                    edgecolors="#ffffff",
+                    linewidths=0.9,
+                    alpha=0.98,
+                    zorder=8,
+                )
                 ax.annotate(
-                    "  |  ".join(delta_segments),
+                    bend_id,
                     xy=(x, y),
-                    xytext=(16 if idx % 2 == 0 else -16, 18 + (idx % 3) * 10),
+                    xytext=(cdx, cdy),
                     textcoords="offset points",
-                    ha="left" if idx % 2 == 0 else "right",
-                    va="bottom",
-                    fontsize=8,
+                    ha=compact_ha,
+                    va=compact_va,
+                    fontsize=8.2,
                     fontweight="bold",
+                    color=label_color,
+                    bbox=dict(
+                        boxstyle="round,pad=0.22",
+                        facecolor=badge_color,
+                        edgecolor="white",
+                        linewidth=0.75,
+                        alpha=0.96,
+                    ),
+                    arrowprops=dict(
+                        arrowstyle="-",
+                        color=badge_color,
+                        linewidth=0.9,
+                        alpha=0.75,
+                        shrinkA=2,
+                        shrinkB=3,
+                    ),
+                    zorder=9,
+                )
+            elif focus_context:
+                detail_text = "\n".join([bend_id, *delta_segments]) if delta_segments else bend_id
+                ax.annotate(
+                    detail_text,
+                    xy=(x, y),
+                    xytext=(dx * 1.1, dy * 1.15),
+                    textcoords="offset points",
+                    ha=callout_ha,
+                    va=callout_va,
+                    fontsize=9,
+                    fontweight="bold",
+                    linespacing=1.25,
                     color="#0f172a",
                     bbox=dict(
-                        boxstyle="round,pad=0.32",
+                        boxstyle="round,pad=0.38",
                         facecolor="#ffffff",
                         edgecolor=badge_color,
-                        linewidth=1.1,
-                        alpha=0.94,
+                        linewidth=1.4,
+                        alpha=0.97,
                     ),
-                    arrowprops=dict(arrowstyle="-", color=badge_color, linewidth=1.0, alpha=0.9),
+                    arrowprops=dict(
+                        arrowstyle="-|>",
+                        color=badge_color,
+                        linewidth=1.4,
+                        alpha=0.95,
+                        shrinkA=4,
+                        shrinkB=4,
+                    ),
+                    zorder=8,
+                )
+            else:
+                ax.annotate(
+                    bend_id,
+                    xy=(x, y),
+                    xytext=(dx * 0.65, dy * 0.55),
+                    textcoords="offset points",
+                    ha=callout_ha,
+                    va=callout_va,
+                    fontsize=8.5,
+                    fontweight="bold",
+                    color=label_color,
+                    bbox=dict(
+                        boxstyle="round,pad=0.28",
+                        facecolor=badge_color,
+                        edgecolor="white",
+                        linewidth=0.8,
+                        alpha=0.96,
+                    ),
+                    arrowprops=dict(
+                        arrowstyle="-",
+                        color=badge_color,
+                        linewidth=1.0,
+                        alpha=0.88,
+                        shrinkA=2,
+                        shrinkB=3,
+                    ),
+                    zorder=7,
                 )
 
-        legend_lines = [
-            ("CAD bend reference", "#cbd5e1"),
-            ("Detected LiDAR bend", "#38bdf8"),
-            ("In spec", "#16a34a"),
-            ("Warning", "#d97706"),
-            ("Out of spec", "#dc2626"),
-            ("Not detected", "#475569"),
-        ]
-        base_x = 0.73
-        base_y = 0.06
-        for i, (text, color_hex) in enumerate(legend_lines):
-            ax.plot([base_x - 0.03], [base_y + i * 0.037], marker="o", markersize=6, color=color_hex, transform=ax.transAxes)
-            ax.annotate(
-                text,
-                xy=(base_x, base_y + i * 0.037),
-                xycoords="axes fraction",
-                fontsize=7.5,
-                color="#334155",
-                va="center",
-                fontweight="bold" if i >= 2 else "normal",
-            )
+        if not focus_context and not compact_bend_labels:
+            legend_lines = [
+                ("CAD bend reference", "#cbd5e1"),
+                ("Detected LiDAR bend", "#38bdf8"),
+                ("In spec", "#16a34a"),
+                ("Warning", "#d97706"),
+                ("Out of spec", "#dc2626"),
+                ("Not detected", "#475569"),
+            ]
+            base_x = 0.73
+            base_y = 0.06
+            for i, (text, color_hex) in enumerate(legend_lines):
+                ax.plot([base_x - 0.03], [base_y + i * 0.037], marker="o", markersize=6, color=color_hex, transform=ax.transAxes)
+                ax.annotate(
+                    text,
+                    xy=(base_x, base_y + i * 0.037),
+                    xycoords="axes fraction",
+                    fontsize=7.5,
+                    color="#334155",
+                    va="center",
+                    fontweight="bold" if i >= 2 else "normal",
+                )
 
         measured = sum(1 for bend in bends if str(bend.get("status", "NOT_DETECTED")).upper() != "NOT_DETECTED")
         issue_count = sum(1 for bend in bends if str(bend.get("status", "NOT_DETECTED")).upper() in {"FAIL", "WARNING"})
+        title = (
+            f"Owned Bend Regions — {measured} observed ({view.capitalize()} view)"
+            if owned_region_overlay and compact_bend_labels and not focus_context
+            else f"Bend Overlay — {measured}/{len(bends)} completed, {issue_count} flagged ({view.capitalize()} view)"
+        )
         ax.set_title(
-            f"Bend Overlay — {measured}/{len(bends)} completed, {issue_count} flagged ({view.capitalize()} view)",
+            title_override or title,
             fontsize=13,
             fontweight="bold",
             color="#0f172a",

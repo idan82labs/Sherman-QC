@@ -1,0 +1,69 @@
+{
+  "part_key": "49024000",
+  "scan_name": "49024000_A.ply",
+  "scan_path": "/Users/idant/Downloads/49024000_A.ply",
+  "truth_conventional_bends": 3,
+  "truth_raised_form_features": 0,
+  "truth_total_features": 3,
+  "label_source": "manual_visual_review_2026-04-26",
+  "review_artifact_root": "/Users/idant/Library/Mobile Documents/com~apple~CloudDocs/Sherman QC/Status for Idan to test/visual_qa_after_debug_alias_patch_20260426/known/01_49024000_49024000_A",
+  "notes": "User validated this as a 3-conventional-bend part. Raw F1 OB2 is acceptable; the other raw owned regions are wrong. This is a support-capacity failure: the raw decomposition has four support regions, but only one is a validated conventional bend.",
+  "region_labels": [
+    {
+      "bend_id": "OB1",
+      "human_feature_label": "fragment_or_duplicate",
+      "suggested_role": "false_positive_large_support",
+      "diagnostic_tags": ["manual_rejected", "large_false_support", "circular_strip"],
+      "notes": "Manual review: wrong raw owned-region mark, not one of the 3 counted conventional bends.",
+      "geometry": {
+        "angle_deg": 128.955,
+        "support_mass": 4915.0,
+        "owned_atom_count": 128,
+        "incident_flange_ids": ["F27", "F32"],
+        "anchor": [-179.93954589755506, -76.12907408453685, 278.5336901806084]
+      }
+    },
+    {
+      "bend_id": "OB2",
+      "human_feature_label": "conventional_bend",
+      "suggested_role": "validated_conventional_bend",
+      "diagnostic_tags": ["manual_accepted", "valid_support"],
+      "notes": "Manual review: OB2 is acceptable and sits on a real conventional bend.",
+      "geometry": {
+        "angle_deg": 93.6878,
+        "support_mass": 1058.0,
+        "owned_atom_count": 15,
+        "incident_flange_ids": ["F11", "F14"],
+        "anchor": [-225.64218340895547, -137.41629389219585, 277.3382007033682]
+      }
+    },
+    {
+      "bend_id": "OB3",
+      "human_feature_label": "fragment_or_duplicate",
+      "suggested_role": "false_positive_fragment",
+      "diagnostic_tags": ["manual_rejected", "tiny_support", "same_zone_as_ob2"],
+      "notes": "Manual review: wrong raw owned-region mark. This is a small false support near the accepted bend zone.",
+      "geometry": {
+        "angle_deg": 168.6591,
+        "support_mass": 171.0,
+        "owned_atom_count": 5,
+        "incident_flange_ids": ["F11", "F14"],
+        "anchor": [-224.4240254486636, -137.1362813727291, 276.2929292282193]
+      }
+    },
+    {
+      "bend_id": "OB4",
+      "human_feature_label": "fragment_or_duplicate",
+      "suggested_role": "false_positive_fragment",
+      "diagnostic_tags": ["manual_rejected", "tiny_support", "cross_pair_fragment"],
+      "notes": "Manual review: wrong raw owned-region mark. Render/export suppression may hide it, but solver still counts it in raw F1.",
+      "geometry": {
+        "angle_deg": 155.6175,
+        "support_mass": 87.0,
+        "owned_atom_count": 4,
+        "incident_flange_ids": ["F12", "F14"],
+        "anchor": [-220.54298320252065, -130.9198918597525, 274.3276935384555]
+      }
+    }
+  ]
+}

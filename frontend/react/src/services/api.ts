@@ -236,7 +236,49 @@ export interface BendInspectionJob {
     bend_overlay_manifest_url?: string
     bend_report_pdf_url?: string
   }
+  pipeline_details?: BendInspectionPipelineDetails | null
   error?: string
+}
+
+export interface ScanStructuralRenderableBendObject {
+  bend_id: string
+  label?: string
+  status?: string
+  source_kind?: string
+  part_id?: string
+  profile_family?: string
+  cad_line?: {
+    raw_start?: [number, number, number] | null
+    raw_end?: [number, number, number] | null
+    display_start?: [number, number, number] | null
+    display_end?: [number, number, number] | null
+  } | null
+  detected_line?: {
+    raw_start?: [number, number, number] | null
+    raw_end?: [number, number, number] | null
+    display_start?: [number, number, number] | null
+    display_end?: [number, number, number] | null
+  } | null
+  anchor?: [number, number, number] | null
+  detail_segments?: string[] | null
+  metadata?: Record<string, unknown> | null
+}
+
+export interface ScanStructuralHypothesisPayload {
+  renderable_bend_objects?: ScanStructuralRenderableBendObject[] | null
+  bend_support_strips?: Record<string, unknown>[] | null
+  profile_family?: string | null
+  estimated_bend_count?: number | null
+  estimated_bend_count_range?: [number, number] | number[] | null
+  abstained?: boolean | null
+  abstain_reasons?: string[] | null
+}
+
+export interface BendInspectionPipelineDetails {
+  profile_mode?: string | null
+  scan_structural_hypothesis?: ScanStructuralHypothesisPayload | null
+  profile_selector_result?: Record<string, unknown> | null
+  cad_structural_target?: Record<string, unknown> | null
 }
 
 export interface BendMatch {

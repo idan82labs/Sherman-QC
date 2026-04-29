@@ -27,6 +27,7 @@ export interface BendAnnotation {
   lineCenterDeviationMm?: number | null
   toleranceAngle?: number | null
   toleranceRadius?: number | null
+  metricRows?: string[]
 }
 
 export interface DeviationStats {
@@ -51,6 +52,8 @@ interface ThreeViewerProps {
   scanPositions?: Float32Array  // Point positions for finding extremes
   focusPoint?: [number, number, number] | null
   focusAnnotationId?: number | string | null
+  onFocusAnnotationId?: (id: number | string | null) => void
+  calloutMode?: 'all' | 'focused' | 'none'
 }
 
 interface ScreenBendCallout {
@@ -205,6 +208,8 @@ function BendAnnotationGroup({
   focusPoint,
   controlsRef,
   onCalloutsChange,
+  onFocusAnnotationId,
+  calloutMode = 'all',
 }: {
   annotations: BendAnnotation[]
   transform: { center: THREE.Vector3; scale: number }
@@ -213,23 +218,22 @@ function BendAnnotationGroup({
   focusPoint?: [number, number, number] | null
   controlsRef: React.RefObject<any>
   onCalloutsChange: (callouts: ScreenBendCallout[]) => void
+  onFocusAnnotationId?: (id: number | string | null) => void
+  calloutMode?: 'all' | 'focused' | 'none'
 }) {
   const remappedAnnotations = useRemappedAnnotations(annotations, referencePositions, transform)
 
   // Recompute focusPoint from remapped annotations
   const remappedFocusPoint = useMemo<[number, number, number] | null>(() => {
-    if (!referencePositions || referencePositions.length < 9) return null
-    if (!focusPoint) return null
     const focused = remappedAnnotations.find(a => a.id === focusAnnotationId)
     if (focused) return focused.calloutAnchor ?? focused.position
-    return focusPoint
-  }, [focusPoint, focusAnnotationId, remappedAnnotations, referencePositions])
+    return focusPoint ?? null
+  }, [focusPoint, focusAnnotationId, remappedAnnotations])
 
   const focusAnnotation = remappedAnnotations.find((a) => a.id === focusAnnotationId) ?? null
 
-  // Don't render annotations until reference mesh positions are loaded —
-  // without them, clipLineToReference can't clip lines to the mesh edges
-  if (!referencePositions || referencePositions.length < 9) {
+  const needsReferencePositions = remappedAnnotations.some((annotation) => !annotation.displayGeometryCanonical)
+  if (needsReferencePositions && (!referencePositions || referencePositions.length < 9)) {
     return null
   }
 
@@ -240,11 +244,13 @@ function BendAnnotationGroup({
         transform={transform}
         referencePositions={referencePositions}
         focusAnnotationId={focusAnnotationId}
+        onFocusAnnotationId={onFocusAnnotationId}
       />
       <BendCalloutLayoutBridge
         annotations={remappedAnnotations}
         transform={transform}
         focusAnnotationId={focusAnnotationId}
+        calloutMode={calloutMode}
         onChange={onCalloutsChange}
       />
       {remappedFocusPoint && (
@@ -270,6 +276,8 @@ export default function ThreeViewer({
   scanPositions,
   focusPoint,
   focusAnnotationId,
+  onFocusAnnotationId,
+  calloutMode = 'all',
 }: ThreeViewerProps) {
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [showScan, setShowScan] = useState(true)
@@ -426,8 +434,8 @@ export default function ThreeViewer({
         </div>
       )}
 
-      {!isLoading && showAnnotations && screenCallouts.length > 0 && (
-        <BendCalloutOverlay callouts={screenCallouts} />
+      {!isLoading && showAnnotations && calloutMode !== 'none' && screenCallouts.length > 0 && (
+        <BendCalloutOverlay callouts={screenCallouts} onSelect={onFocusAnnotationId} />
       )}
 
       {/* 3D Canvas */}
@@ -469,6 +477,8 @@ export default function ThreeViewer({
               focusPoint={focusPoint}
               controlsRef={controlsRef}
               onCalloutsChange={setScreenCallouts}
+              onFocusAnnotationId={onFocusAnnotationId}
+              calloutMode={calloutMode}
             />
           )}
 
@@ -576,7 +586,13 @@ function distributeRailCards(
   return laidOut
 }
 
-function BendCalloutOverlay({ callouts }: { callouts: ScreenBendCallout[] }) {
+function BendCalloutOverlay({
+  callouts,
+  onSelect,
+}: {
+  callouts: ScreenBendCallout[]
+  onSelect?: (id: number | string | null) => void
+}) {
   const statusCardClasses: Record<BendAnnotation['status'], string> = {
     pass: 'border-emerald-300/85 bg-emerald-900/92 text-emerald-50',
     fail: 'border-red-300/90 bg-red-950/92 text-red-50',
@@ -591,12 +607,13 @@ function BendCalloutOverlay({ callouts }: { callouts: ScreenBendCallout[] }) {
   }
 
   return (
-    <div className="pointer-events-none absolute inset-0 z-10 overflow-hidden">
+    <div className="absolute inset-0 z-10 overflow-hidden pointer-events-none">
       <svg className="absolute inset-0 h-full w-full" aria-hidden="true">
         {callouts.map((callout) => {
           const exitX = callout.side === 'left' ? callout.boxX + callout.width : callout.boxX
           const exitY = callout.boxY + callout.height / 2
-          const elbowX = callout.side === 'left' ? exitX + 24 : exitX - 24
+          const elbowOffset = callout.active ? 14 : 24
+          const elbowX = callout.side === 'left' ? exitX + elbowOffset : exitX - elbowOffset
           const path = `M ${callout.anchorX.toFixed(1)} ${callout.anchorY.toFixed(1)} L ${elbowX.toFixed(1)} ${callout.anchorY.toFixed(1)} L ${elbowX.toFixed(1)} ${exitY.toFixed(1)} L ${exitX.toFixed(1)} ${exitY.toFixed(1)}`
           return (
             <path
@@ -617,7 +634,7 @@ function BendCalloutOverlay({ callouts }: { callouts: ScreenBendCallout[] }) {
         <div
           key={callout.id}
           className={clsx(
-            'absolute rounded-xl border shadow-2xl',
+            'absolute rounded-xl border shadow-2xl transition-transform pointer-events-auto cursor-pointer hover:scale-[1.01]',
             callout.active ? 'ring-2 ring-white/30' : 'ring-1 ring-white/10',
             statusCardClasses[callout.status],
           )}
@@ -626,6 +643,15 @@ function BendCalloutOverlay({ callouts }: { callouts: ScreenBendCallout[] }) {
             top: `${callout.boxY}px`,
             width: `${callout.width}px`,
             minHeight: `${callout.height}px`,
+          }}
+          onClick={() => onSelect?.(callout.id)}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+              event.preventDefault()
+              onSelect?.(callout.id)
+            }
           }}
         >
           <div className="px-3 py-2">
@@ -1106,6 +1132,7 @@ interface BendAnnotations3DProps {
   transform: { center: THREE.Vector3; scale: number }
   referencePositions?: Float32Array | null
   focusAnnotationId?: number | string | null
+  onFocusAnnotationId?: (id: number | string | null) => void
 }
 
 function percentile(values: number[], q: number): number {
@@ -1202,7 +1229,7 @@ function clipLineToReference(
   }
 }
 
-function BendAnnotations3D({ annotations, transform, referencePositions, focusAnnotationId }: BendAnnotations3DProps) {
+function BendAnnotations3D({ annotations, transform, referencePositions, focusAnnotationId, onFocusAnnotationId }: BendAnnotations3DProps) {
 
   return (
     <>
@@ -1272,9 +1299,9 @@ function BendAnnotations3D({ annotations, transform, referencePositions, focusAn
                     [cadLineEnd.x - pos.x, cadLineEnd.y - pos.y, cadLineEnd.z - pos.z],
                   ]}
                   color={isIssue ? '#cbd5e1' : '#22c55e'}
-                  lineWidth={isActive ? 4.2 : isIssue ? 2.8 : 2.0}
+                  lineWidth={isActive ? 4.8 : isIssue ? 2.2 : 1.4}
                   transparent
-                  opacity={isActive ? 0.98 : isIssue ? 0.72 : 0.55}
+                  opacity={isActive ? 0.98 : isIssue ? 0.42 : 0.24}
                 />
                 {showDetectedLine && detectedLineStart && detectedLineEnd && (
                   <Line
@@ -1283,9 +1310,9 @@ function BendAnnotations3D({ annotations, transform, referencePositions, focusAn
                       [detectedLineEnd.x - pos.x, detectedLineEnd.y - pos.y, detectedLineEnd.z - pos.z],
                     ]}
                     color={statusColor}
-                    lineWidth={lineWidth}
+                    lineWidth={isActive ? 6.2 : lineWidth}
                     transparent
-                    opacity={lineOpacity}
+                    opacity={isActive ? 1 : lineOpacity}
                   />
                 )}
                 {isActive && (
@@ -1303,21 +1330,29 @@ function BendAnnotations3D({ annotations, transform, referencePositions, focusAn
                       ],
                     ]}
                     color={annotation.status === 'pass' ? '#86efac' : annotation.status === 'warning' ? '#fde68a' : '#fca5a5'}
-                    lineWidth={7.5}
+                    lineWidth={9}
                     transparent
-                    opacity={0.24}
+                    opacity={0.34}
                   />
                 )}
               </>
             )}
 
             {(
-              <mesh scale={isActive ? 1.35 : 1}>
+              <mesh
+                scale={isActive ? 1.45 : 0.84}
+                onClick={(event) => {
+                  event.stopPropagation()
+                  onFocusAnnotationId?.(annotation.id)
+                }}
+              >
                 <sphereGeometry args={[0.08, 16, 16]} />
                 <meshStandardMaterial
                   color={statusColor}
                   emissive={statusColor}
-                  emissiveIntensity={isActive ? 0.5 : 0.32}
+                  emissiveIntensity={isActive ? 0.62 : 0.14}
+                  transparent
+                  opacity={isActive ? 1 : 0.82}
                 />
               </mesh>
             )}
@@ -1368,11 +1403,13 @@ function BendCalloutLayoutBridge({
   annotations,
   transform,
   focusAnnotationId,
+  calloutMode = 'all',
   onChange,
 }: {
   annotations: BendAnnotation[]
   transform: { center: THREE.Vector3; scale: number }
   focusAnnotationId?: number | string | null
+  calloutMode?: 'all' | 'focused' | 'none'
   onChange: (callouts: ScreenBendCallout[]) => void
 }) {
   const { camera, size } = useThree()
@@ -1381,10 +1418,20 @@ function BendCalloutLayoutBridge({
   useEffect(() => () => onChange([]), [onChange])
 
   useFrame(() => {
-    // Show callout labels for ALL bends that have line geometry, not just fail/warning
-    const candidateAnnotations = annotations.filter(
-      (annotation) => annotation.lineStart && annotation.lineEnd,
-    )
+    const marginLeft = 22
+    const marginRight = 22
+    const marginTop = 76
+    const marginBottom = 28
+    const cardGap = 10
+
+    const candidateAnnotations = annotations.filter((annotation) => {
+      if (!annotation.lineStart || !annotation.lineEnd) return false
+      if (calloutMode === 'none') return false
+      if (calloutMode === 'focused') {
+        return annotation.id === focusAnnotationId || !!annotation.active
+      }
+      return true
+    })
 
     if (!candidateAnnotations.length) {
       if (lastSerializedRef.current !== '[]') {
@@ -1421,22 +1468,43 @@ function BendCalloutLayoutBridge({
           anchorY,
           width: active ? 208 : 176,
           height: active ? 108 : 94,
-          metricRows: annotation.measuredAngle == null
-            ? ['Pending measurement']
-            : [
-                formatBendMetric('ΔA', annotation.deviation, 1, '°'),
-                formatBendMetric('ΔR', annotation.radiusDeviation, 2, 'mm'),
-                formatBendMetric('ΔC', annotation.lineCenterDeviationMm, 2, 'mm'),
-              ],
+          metricRows: annotation.metricRows?.length
+            ? annotation.metricRows
+            : annotation.measuredAngle == null
+              ? ['Pending measurement']
+              : [
+                  formatBendMetric('ΔA', annotation.deviation, 1, '°'),
+                  formatBendMetric('ΔR', annotation.radiusDeviation, 2, 'mm'),
+                  formatBendMetric('ΔC', annotation.lineCenterDeviationMm, 2, 'mm'),
+                ],
         }
       })
       .filter((value): value is Omit<ScreenBendCallout, 'boxX' | 'boxY'> => value !== null)
 
-    const marginLeft = 22
-    const marginRight = 22
-    const marginTop = 76
-    const marginBottom = 28
-    const cardGap = 10
+    if (calloutMode === 'focused' && projected.length === 1) {
+      const item = projected[0]
+      const placeRight = item.anchorX < size.width * 0.62
+      const focusedGap = 18
+      const boxX = placeRight
+        ? clamp(item.anchorX + focusedGap, marginLeft, size.width - item.width - marginRight)
+        : clamp(item.anchorX - item.width - focusedGap, marginLeft, size.width - item.width - marginRight)
+      const boxY = clamp(item.anchorY - item.height / 2, marginTop, size.height - item.height - marginBottom)
+      const callout: ScreenBendCallout = {
+        ...item,
+        side: placeRight ? 'right' : 'left',
+        anchorX: Math.round(item.anchorX),
+        anchorY: Math.round(item.anchorY),
+        boxX: Math.round(boxX),
+        boxY: Math.round(boxY),
+      }
+      const serialized = JSON.stringify([callout])
+      if (serialized !== lastSerializedRef.current) {
+        lastSerializedRef.current = serialized
+        onChange([callout])
+      }
+      return
+    }
+
     const rails = {
       left: projected.filter((item) => item.side === 'left').sort((a, b) => a.anchorY - b.anchorY),
       right: projected.filter((item) => item.side === 'right').sort((a, b) => a.anchorY - b.anchorY),
