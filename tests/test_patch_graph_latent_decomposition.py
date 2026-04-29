@@ -31,6 +31,7 @@ from patch_graph_latent_decomposition import (
     _suppress_same_pair_marker_aliases,
     _suppress_tiny_cross_pair_marker_clusters,
     _typed_adjacency_penalty,
+    build_owned_region_marker_admissibility,
     build_surface_atom_graph,
     extract_owned_bend_regions,
     generate_interface_birth_hypotheses,
@@ -375,6 +376,61 @@ def test_render_region_suppression_report_explains_hidden_marker_reasons():
     assert by_id["OB5"]["nearest_kept_regions"][0]["bend_id"] == "OB4"
     assert by_id["OB9"]["reason_codes"] == ["tiny_cross_pair_marker_cluster"]
     assert by_id["OB9"]["nearest_kept_regions"][0]["bend_id"] == "OB7"
+
+
+def test_build_owned_region_marker_admissibility_counts_and_explains_suppression():
+    def region(bend_id, pair, anchor, atom_count, support_mass, axis=(1.0, 0.0, 0.0)):
+        return OwnedBendRegion(
+            bend_id=bend_id,
+            bend_class="transition_only",
+            incident_flange_ids=pair,
+            canonical_bend_key=f"{','.join(pair)}::{bend_id}",
+            owned_atom_ids=tuple(f"{bend_id}_A{i}" for i in range(atom_count)),
+            anchor=anchor,
+            axis_direction=axis,
+            support_centroid=anchor,
+            span_endpoints=(anchor, anchor),
+            angle_deg=90.0,
+            radius_mm=None,
+            visibility_state="internal",
+            support_mass=support_mass,
+            admissible=True,
+            admissibility_reasons=(),
+            post_bend_class="transition_only",
+            debug_confidence=0.8,
+        )
+
+    kept = region("OB4", ("F1", "F2"), (0.0, 0.0, 0.0), 24, 5000.0)
+    suppressed = region("OB5", ("F2", "F1"), (18.0, 0.0, 0.0), 5, 400.0)
+    graph = SurfaceAtomGraph(
+        atoms=tuple(
+            SurfaceAtom(
+                atom_id,
+                (index, 0, 0),
+                (index,),
+                (float(index), 0.0, 0.0),
+                (0.0, 0.7, 0.7),
+                1.0,
+                0.02,
+                (1.0, 0.0, 0.0),
+                1.0,
+                1.0,
+            )
+            for index, atom_id in enumerate((*kept.owned_atom_ids, *suppressed.owned_atom_ids))
+        ),
+        adjacency={},
+        edge_weights={},
+        voxel_size_mm=1.0,
+        local_spacing_mm=2.0,
+    )
+
+    payload = build_owned_region_marker_admissibility([kept, suppressed], atom_graph=graph)
+
+    assert payload["raw_owned_region_count"] == 2
+    assert payload["marker_admissible_owned_region_count"] == 1
+    assert payload["marker_suppressed_region_ids"] == ["OB5"]
+    assert payload["marker_suppression_reason_counts"] == {"same_pair_marker_alias": 1}
+    assert payload["marker_suppression_details"][0]["bend_id"] == "OB5"
 
 
 def test_dedupe_bend_hypotheses_collapses_overlap_even_when_flange_ids_drift():

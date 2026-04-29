@@ -433,11 +433,16 @@ def run_patch_graph_latent_decomposition(
         "extract_owned_bend_regions:done seconds="
         f"{stage_timings['extract_owned_bend_regions']:.3f} owned_regions={len(owned_regions)}"
     )
+    marker_admissibility = build_owned_region_marker_admissibility(
+        owned_regions,
+        atom_graph=atom_graph,
+    )
 
     solution_payload["repair_diagnostics"] = {
         **dict(solution_payload.get("repair_diagnostics") or {}),
         "scan_family_route": route_payload,
         "solver_options": dict(solver_options),
+        "owned_region_marker_admissibility": marker_admissibility,
         "stage_timings_seconds": {key: round(float(value), 4) for key, value in stage_timings.items()},
         "cache_hit": cache_hit,
         "problem_sizes": {
@@ -1493,6 +1498,35 @@ def build_owned_region_renderable_objects(
             }
         )
     return renderable
+
+
+def build_owned_region_marker_admissibility(
+    owned_bend_regions: Sequence[OwnedBendRegion],
+    *,
+    atom_graph: SurfaceAtomGraph,
+) -> Dict[str, Any]:
+    """Compute render/count marker admissibility without rendering images."""
+    marker_admissible = build_owned_region_renderable_objects(owned_bend_regions, atom_graph=atom_graph)
+    kept_ids = {str(item.get("bend_id") or "") for item in marker_admissible}
+    kept_regions = [region for region in owned_bend_regions if region.bend_id in kept_ids]
+    suppressed_ids = [region.bend_id for region in owned_bend_regions if region.bend_id not in kept_ids]
+    suppression_details = _render_region_suppression_report(
+        owned_bend_regions,
+        kept_regions,
+        local_spacing_mm=float(atom_graph.local_spacing_mm or 1.0),
+    )
+    reason_counts: Dict[str, int] = defaultdict(int)
+    for item in suppression_details:
+        for reason in item.get("reason_codes") or ():
+            reason_counts[str(reason)] += 1
+    return {
+        "raw_owned_region_count": len(owned_bend_regions),
+        "marker_admissible_owned_region_count": len(marker_admissible),
+        "marker_suppressed_owned_region_count": len(suppressed_ids),
+        "marker_suppressed_region_ids": suppressed_ids,
+        "marker_suppression_reason_counts": dict(sorted(reason_counts.items())),
+        "marker_suppression_details": suppression_details,
+    }
 
 
 def _render_owned_region_atom_projection(
