@@ -29,6 +29,7 @@ from bend_inspection_pipeline import load_bend_runtime_config
 from patch_graph_latent_decomposition import (
     DecompositionResult,
     OwnedBendRegion,
+    build_owned_region_renderable_objects,
     render_decomposition_artifacts,
     run_patch_graph_latent_decomposition,
 )
@@ -744,7 +745,24 @@ def _entry_result_payload(
     }
 
 
-def _attach_candidate_render_semantics(payload: Dict[str, Any], *, render_info: Optional[Dict[str, Any]], rendered_owned_region_count: int) -> None:
+def _owned_region_marker_admissibility(result: DecompositionResult) -> Dict[str, Any]:
+    marker_admissible = build_owned_region_renderable_objects(result.owned_bend_regions, atom_graph=result.atom_graph)
+    kept_ids = {str(item.get("bend_id") or "") for item in marker_admissible}
+    suppressed_ids = [region.bend_id for region in result.owned_bend_regions if region.bend_id not in kept_ids]
+    return {
+        "marker_admissible_owned_region_count": len(marker_admissible),
+        "marker_suppressed_owned_region_count": len(suppressed_ids),
+        "marker_suppressed_region_ids": suppressed_ids,
+    }
+
+
+def _attach_candidate_render_semantics(
+    payload: Dict[str, Any],
+    *,
+    render_info: Optional[Dict[str, Any]],
+    rendered_owned_region_count: int,
+    marker_admissibility: Optional[Dict[str, Any]] = None,
+) -> None:
     candidate = dict(payload.get("candidate") or {})
     candidate_source = str(candidate.get("candidate_source") or "")
     candidate_exact = candidate.get("exact_bend_count")
@@ -754,7 +772,6 @@ def _attach_candidate_render_semantics(payload: Dict[str, Any], *, render_info: 
         and len(candidate_range) >= 2
         and int(candidate_range[0]) == int(candidate_range[1]) == int(candidate_exact)
     )
-    raw_markers_match_accepted = bool(singleton_exact and rendered_owned_region_count == int(candidate_exact))
     raw_marker_sources = {
         "raw_f1",
         "count_sweep_promoted_f1",
@@ -762,20 +779,40 @@ def _attach_candidate_render_semantics(payload: Dict[str, Any], *, render_info: 
         "control_aligned_f1_tiebreak",
     }
     visual_blockers: List[str] = []
-    render_suppressed_count = 0 if not render_info else int(render_info.get("render_suppressed_owned_region_count", 0))
-    render_suppressed_ids = [] if not render_info else list(render_info.get("render_suppressed_region_ids") or [])
-    render_admissible_exact = None if render_info is None else int(rendered_owned_region_count)
+    marker_payload = dict(marker_admissibility or {})
+    marker_owned_count = int(marker_payload.get("marker_admissible_owned_region_count", rendered_owned_region_count))
+    render_suppressed_count = int(
+        marker_payload.get(
+            "marker_suppressed_owned_region_count",
+            0 if not render_info else int(render_info.get("render_suppressed_owned_region_count", 0)),
+        )
+    )
+    render_suppressed_ids = list(
+        marker_payload.get(
+            "marker_suppressed_region_ids",
+            [] if not render_info else list(render_info.get("render_suppressed_region_ids") or []),
+        )
+    )
+    render_admissible_exact = marker_owned_count
+    raw_markers_match_accepted = bool(singleton_exact and marker_owned_count == int(candidate_exact))
     if render_info is None:
         visual_blockers.append("render_not_generated")
-    if singleton_exact and rendered_owned_region_count != int(candidate_exact):
+    if singleton_exact and marker_owned_count != int(candidate_exact):
         visual_blockers.append("render_marker_count_mismatch")
     if render_suppressed_count > 0:
         visual_blockers.append("owned_region_markers_suppressed")
     if candidate_source not in raw_marker_sources:
         visual_blockers.append("candidate_source_not_raw_owned_region_renderable")
+    marker_blockers: List[str] = []
+    marker_applicable = bool(singleton_exact and candidate_source in raw_marker_sources)
+    if marker_applicable:
+        if marker_owned_count != int(candidate_exact):
+            marker_blockers.append("marker_count_mismatch")
+        if render_suppressed_count > 0:
+            marker_blockers.append("owned_region_markers_suppressed")
     if raw_markers_match_accepted and candidate_source in raw_marker_sources:
         candidate["accepted_render_semantics"] = "owned_regions_match_accepted_exact"
-        candidate["accepted_render_marker_count"] = int(rendered_owned_region_count)
+        candidate["accepted_render_marker_count"] = int(marker_owned_count)
         candidate["accepted_render_overview_path"] = None if not render_info else render_info.get("overview_path")
         candidate["visual_acceptance_status"] = "render_verified"
     else:
@@ -792,6 +829,14 @@ def _attach_candidate_render_semantics(payload: Dict[str, Any], *, render_info: 
     candidate["render_admissible_delta_from_candidate_exact"] = (
         None if render_admissible_exact is None or candidate_exact is None else render_admissible_exact - int(candidate_exact)
     )
+    candidate["marker_acceptance_status"] = (
+        "not_applicable"
+        if not marker_applicable
+        else "blocked"
+        if marker_blockers
+        else "marker_verified"
+    )
+    candidate["marker_acceptance_blockers"] = sorted(set(marker_blockers))
     payload["candidate"] = candidate
 
     promotion_diagnostic = dict(payload.get("raw_f1_promotion_diagnostic") or {})
@@ -805,6 +850,8 @@ def _attach_candidate_render_semantics(payload: Dict[str, Any], *, render_info: 
     else:
         promotion_diagnostic["visual_acceptance_status"] = "render_verified"
     promotion_diagnostic["visual_acceptance_blockers"] = sorted(set(visual_blockers))
+    promotion_diagnostic["marker_acceptance_status"] = candidate["marker_acceptance_status"]
+    promotion_diagnostic["marker_acceptance_blockers"] = candidate["marker_acceptance_blockers"]
     payload["raw_f1_promotion_diagnostic"] = promotion_diagnostic
 
 
@@ -830,6 +877,7 @@ def _aggregate(results: Sequence[Dict[str, Any]]) -> Dict[str, Any]:
     by_route: Dict[str, Dict[str, Any]] = {}
     promotion_candidate_parts: List[str] = []
     render_blocked_parts: List[str] = []
+    marker_blocked_parts: List[str] = []
     for row in results:
         metrics = dict(row.get("metrics") or {})
         expected_count = (row.get("expectation") or {}).get("expected_bend_count")
@@ -847,6 +895,8 @@ def _aggregate(results: Sequence[Dict[str, Any]]) -> Dict[str, Any]:
             promotion_candidate_parts.append(str(row.get("part_key") or ""))
         if str(candidate_payload.get("visual_acceptance_status") or "") == "blocked":
             render_blocked_parts.append(str(row.get("part_key") or ""))
+        if str(candidate_payload.get("marker_acceptance_status") or "") == "blocked":
+            marker_blocked_parts.append(str(row.get("part_key") or ""))
         candidate_source_counts[candidate_source] = candidate_source_counts.get(candidate_source, 0) + 1
         if guard_reason:
             key = str(guard_reason)
@@ -945,6 +995,8 @@ def _aggregate(results: Sequence[Dict[str, Any]]) -> Dict[str, Any]:
         "raw_f1_manual_promotion_candidate_parts": sorted(value for value in promotion_candidate_parts if value),
         "render_blocked_candidate_count": len([value for value in render_blocked_parts if value]),
         "render_blocked_candidate_parts": sorted(value for value in render_blocked_parts if value),
+        "marker_blocked_candidate_count": len([value for value in marker_blocked_parts if value]),
+        "marker_blocked_candidate_parts": sorted(value for value in marker_blocked_parts if value),
         "by_route_id": dict(sorted(by_route.items())),
     }
 
@@ -1080,6 +1132,7 @@ def main() -> int:
         )
         if supplemental_regions:
             _write_json(scan_dir / "decomposition_result_with_supplemental_regions.json", render_result.to_dict())
+        marker_admissibility = _owned_region_marker_admissibility(render_result)
         render_info = None if args.no_render else render_decomposition_artifacts(result=render_result, output_dir=scan_dir / "render")
         payload = _entry_result_payload(
             entry=entry,
@@ -1088,16 +1141,21 @@ def main() -> int:
             promotion_evidence=part_promotion_evidence,
         )
         payload["candidate"]["render_owned_bend_region_count"] = (
-            len(render_result.owned_bend_regions)
+            int(marker_admissibility["marker_admissible_owned_region_count"])
             if render_info is None
             else int(render_info.get("render_owned_region_count", len(render_result.owned_bend_regions)))
         )
-        payload["candidate"]["render_suppressed_owned_region_count"] = 0 if render_info is None else int(render_info.get("render_suppressed_owned_region_count", 0))
+        payload["candidate"]["render_suppressed_owned_region_count"] = int(
+            marker_admissibility["marker_suppressed_owned_region_count"]
+            if render_info is None
+            else int(render_info.get("render_suppressed_owned_region_count", 0))
+        )
         payload["candidate"]["supplemental_owned_bend_region_count"] = len(supplemental_regions)
         _attach_candidate_render_semantics(
             payload,
             render_info=render_info,
             rendered_owned_region_count=int(payload["candidate"]["render_owned_bend_region_count"]),
+            marker_admissibility=marker_admissibility,
         )
         _write_json(scan_dir / "summary.json", payload)
         results.append(payload)

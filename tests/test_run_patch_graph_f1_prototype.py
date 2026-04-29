@@ -967,8 +967,48 @@ def test_attach_candidate_render_semantics_rejects_suppressed_marker_count():
     assert payload["candidate"]["render_admissible_exact_bend_count"] == 9
     assert payload["candidate"]["render_admissible_bend_count_range"] == [9, 9]
     assert payload["candidate"]["render_admissible_delta_from_candidate_exact"] == -3
+    assert payload["candidate"]["marker_acceptance_status"] == "blocked"
+    assert payload["candidate"]["marker_acceptance_blockers"] == [
+        "marker_count_mismatch",
+        "owned_region_markers_suppressed",
+    ]
     assert "visual_acceptance:owned_region_markers_suppressed" in payload["raw_f1_promotion_diagnostic"]["blockers"]
     assert payload["raw_f1_promotion_diagnostic"]["candidate"] is False
+
+
+def test_attach_candidate_render_semantics_uses_marker_admissibility_without_render():
+    payload = {
+        "candidate": {
+            "candidate_source": "raw_f1",
+            "exact_bend_count": 12,
+            "bend_count_range": [12, 12],
+        }
+    }
+
+    runner._attach_candidate_render_semantics(
+        payload,
+        render_info=None,
+        rendered_owned_region_count=9,
+        marker_admissibility={
+            "marker_admissible_owned_region_count": 9,
+            "marker_suppressed_owned_region_count": 3,
+            "marker_suppressed_region_ids": ["OB10", "OB11", "OB12"],
+        },
+    )
+
+    assert payload["candidate"]["visual_acceptance_status"] == "blocked"
+    assert payload["candidate"]["visual_acceptance_blockers"] == [
+        "owned_region_markers_suppressed",
+        "render_marker_count_mismatch",
+        "render_not_generated",
+    ]
+    assert payload["candidate"]["render_admissible_exact_bend_count"] == 9
+    assert payload["candidate"]["render_suppressed_region_ids"] == ["OB10", "OB11", "OB12"]
+    assert payload["candidate"]["marker_acceptance_status"] == "blocked"
+    assert payload["candidate"]["marker_acceptance_blockers"] == [
+        "marker_count_mismatch",
+        "owned_region_markers_suppressed",
+    ]
 
 
 def test_attach_candidate_render_semantics_accepts_exact_render_count():
@@ -994,6 +1034,8 @@ def test_attach_candidate_render_semantics_accepts_exact_render_count():
     assert payload["candidate"]["render_admissible_exact_bend_count"] == 12
     assert payload["candidate"]["render_admissible_bend_count_range"] == [12, 12]
     assert payload["candidate"]["render_admissible_delta_from_candidate_exact"] == 0
+    assert payload["candidate"]["marker_acceptance_status"] == "marker_verified"
+    assert payload["candidate"]["marker_acceptance_blockers"] == []
     assert payload["raw_f1_promotion_diagnostic"]["visual_acceptance_status"] == "render_verified"
 
 
@@ -1011,6 +1053,7 @@ def test_aggregate_reports_render_admissible_accuracy_separately():
                     "render_admissible_exact_bend_count": 9,
                     "render_admissible_bend_count_range": [9, 9],
                     "visual_acceptance_status": "blocked",
+                    "marker_acceptance_status": "blocked",
                 },
                 "raw_f1_candidate": {"exact_bend_count": 12, "bend_count_range": [12, 12]},
                 "raw_f1_promotion_diagnostic": {"candidate": False},
@@ -1030,3 +1073,4 @@ def test_aggregate_reports_render_admissible_accuracy_separately():
     assert aggregate["render_admissible_exact_accuracy"] == 0.0
     assert aggregate["render_admissible_range_contains_truth_rate"] == 0.0
     assert aggregate["render_blocked_candidate_parts"] == ["visual-blocked"]
+    assert aggregate["marker_blocked_candidate_parts"] == ["visual-blocked"]
