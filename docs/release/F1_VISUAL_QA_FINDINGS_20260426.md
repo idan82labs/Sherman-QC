@@ -139,6 +139,16 @@ This note records assistant visual inspection of the 1080p review renders after 
 - Visual inspection confirms the selected new line candidates mostly sit on the same lower-edge support, so this is not a valid separated-bend arrangement.
 - Decision: reject as a promotion candidate. Keep `48991006` as a poor-scan / duplicate-support fail-safe case where conflicted arrangements must block exact promotion.
 
+## Cross-Scan Junction Diagnostic: `47959001`
+
+- Ran the residual-interface, local-ridge, and junction-arrangement chain on the partial-scan `47959001` compact-neighbor blocker.
+- This case has count-level truth but no per-OB manual labels, so a count-context input was added instead of pretending region labels exist: expected visible observed bends `5`, raw F1 owned regions `4`, recovery target `1`.
+- Residual-interface result: `candidate_pool_covers_deficit`, with exactly `1` admissible candidate.
+- Local-ridge result: `ridge_candidates_cover_deficit`, with exactly `1` admissible ridge candidate.
+- Junction-arrangement result: `single_bend_arrangement_candidate`, selecting `JBL7` / `F1-F20` with no conflicts.
+- Visual inspection: the selected `F1-F20` compact line core sits on a visible diagonal bend/ridge zone and is plausible as the missing visible bend.
+- Decision: promising diagnostic-only recovery candidate. The next implementation step should aggregate current raw owned regions plus non-conflicting junction-line candidates while preserving partial-scan observed-bend semantics.
+
 ## Remaining Before Promotion
 
 - Keep `49024000` treated as a 3-bend manual-truth case; only `OB2` was manually accepted in the previous raw debug view.

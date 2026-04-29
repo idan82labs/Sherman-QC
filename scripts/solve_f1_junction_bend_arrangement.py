@@ -407,6 +407,7 @@ def solve_junction_bend_arrangement(
     feature_labels: Mapping[str, Any],
     local_ridge_payload: Mapping[str, Any],
     flange_ids: Sequence[str] = ("F1", "F11", "F14", "F17"),
+    target_new_bends: Optional[int] = None,
 ) -> Dict[str, Any]:
     atoms = _atom_lookup(decomposition)
     flanges = _flange_lookup(decomposition)
@@ -458,11 +459,16 @@ def solve_junction_bend_arrangement(
     subsets: List[Dict[str, Any]] = []
     locked_base = locked[:1]
     max_size = min(3, len(nonlocked))
-    for size in range(0, max_size + 1):
+    if target_new_bends is not None:
+        max_size = min(max_size, max(0, int(target_new_bends)))
+        min_size = max_size
+    else:
+        min_size = 0
+    for size in range(min_size, max_size + 1):
         for selected in combinations(nonlocked, size):
             subset = [*locked_base, *selected]
             row = _subset_score(subset)
-            row["hypothesis"] = f"H{size + 1}_locked_plus_{size}_new"
+            row["hypothesis"] = f"H{len(locked_base) + size}_locked_{len(locked_base)}_plus_{size}_new"
             subsets.append(row)
     subsets.sort(key=lambda item: (-float(item["subset_score"]), int(item["new_bend_count"]), item["candidate_ids"]))
     best = subsets[0] if subsets else None
@@ -470,11 +476,17 @@ def solve_junction_bend_arrangement(
     junction_atom_ids = sorted(set(ridge_atom_ids) - selected_atoms)
     status = "no_arrangement_candidate"
     if best:
-        if int(best.get("new_bend_count") or 0) == 2 and not best.get("conflicts"):
+        expected_new = int(target_new_bends) if target_new_bends is not None else 2
+        actual_new = int(best.get("new_bend_count") or 0)
+        if actual_new == expected_new and not best.get("conflicts"):
             status = "two_bend_arrangement_candidate"
-        elif int(best.get("new_bend_count") or 0) == 2:
+            if expected_new == 1:
+                status = "single_bend_arrangement_candidate"
+        elif actual_new == expected_new:
             status = "two_bend_arrangement_conflicted"
-        elif int(best.get("new_bend_count") or 0) < 2:
+            if expected_new == 1:
+                status = "single_bend_arrangement_conflicted"
+        elif actual_new < expected_new:
             status = "underfit_arrangement"
         else:
             status = "overfit_arrangement"
@@ -485,6 +497,7 @@ def solve_junction_bend_arrangement(
         "purpose": "Diagnostic-only junction-aware bend-line arrangement over the 49024000 connected ridge complex.",
         "locked_accepted_pair": list(locked_pair),
         "input_flange_ids": [flange_id for flange_id in flange_ids if flange_id in flanges],
+        "target_new_bends": target_new_bends,
         "ridge_atom_count": len(ridge_atom_ids),
         "candidate_count": len(candidates),
         "admissible_nonlocked_candidate_count": len(nonlocked),
@@ -504,6 +517,7 @@ def main() -> int:
     parser.add_argument("--local-ridge-json", required=True, type=Path)
     parser.add_argument("--output-json", required=True, type=Path)
     parser.add_argument("--flange-ids", nargs="+", default=["F1", "F11", "F14", "F17"])
+    parser.add_argument("--target-new-bends", type=int, default=None)
     args = parser.parse_args()
 
     report = solve_junction_bend_arrangement(
@@ -511,6 +525,7 @@ def main() -> int:
         feature_labels=_load_json(args.feature_labels_json),
         local_ridge_payload=_load_json(args.local_ridge_json),
         flange_ids=args.flange_ids,
+        target_new_bends=args.target_new_bends,
     )
     _write_json(args.output_json, report)
     print(

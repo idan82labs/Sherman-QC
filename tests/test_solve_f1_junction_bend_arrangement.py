@@ -124,3 +124,27 @@ def test_best_hypothesis_exports_junction_transition_atoms():
 
     assert "junction_transition_atom_ids" in report
     assert report["junction_transition_atom_count"] == len(report["junction_transition_atom_ids"])
+
+
+def test_target_new_bends_limits_subset_size():
+    first = {"candidate_id": "A", "candidate_score": 5.0, "atom_ids": ["1", "2"], "locked_accepted": False}
+    second = {"candidate_id": "B", "candidate_score": 4.9, "atom_ids": ["3", "4"], "locked_accepted": False}
+    row = solver._subset_score([first, second])
+    assert row["new_bend_count"] == 2
+
+    atoms = [_atom(f"A{i}", i * 3.0) for i in range(12)]
+    payload = _payload(atoms)
+    ridge = {
+        "ridges": [{"atom_ids": [atom["atom_id"] for atom in atoms]}],
+        "atom_scores": [{"atom_id": atom["atom_id"], "ridge_score": 0.8} for atom in atoms],
+    }
+    report = solver.solve_junction_bend_arrangement(
+        decomposition=payload,
+        feature_labels={"region_labels": []},
+        local_ridge_payload=ridge,
+        flange_ids=["F11", "F14", "F17"],
+        target_new_bends=1,
+    )
+
+    assert report["target_new_bends"] == 1
+    assert report["best_hypothesis"]["new_bend_count"] <= 1
