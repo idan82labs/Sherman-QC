@@ -44,6 +44,99 @@ def _write_json(path: Path, payload: Dict[str, Any]) -> None:
     path.write_text(json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8")
 
 
+def _write_review_banner_image(
+    *,
+    source_path: Path,
+    output_path: Path,
+    banner_text: str,
+    status: str,
+) -> Optional[str]:
+    try:
+        from PIL import Image, ImageDraw, ImageFont
+    except Exception:
+        return None
+    if not source_path.exists():
+        return None
+
+    image = Image.open(source_path).convert("RGB")
+    draw = ImageDraw.Draw(image)
+    width, _height = image.size
+    palette = {
+        "accepted": ((22, 101, 52), (240, 253, 244)),
+        "guarded": ((146, 64, 14), (255, 251, 235)),
+        "blocked": ((153, 27, 27), (254, 242, 242)),
+    }
+    border, fill = palette.get(status, palette["guarded"])
+    banner_h = max(74, int(image.size[1] * 0.055))
+    draw.rectangle((0, 0, width, banner_h), fill=fill)
+    draw.rectangle((0, 0, width - 1, banner_h - 1), outline=border, width=4)
+    try:
+        font = ImageFont.truetype("/System/Library/Fonts/Supplemental/Arial Bold.ttf", 28)
+    except Exception:
+        font = ImageFont.load_default()
+    draw.text((24, max(16, banner_h // 2 - 16)), banner_text, fill=border, font=font)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    image.save(output_path)
+    return str(output_path)
+
+
+def _write_render_review_overlays(
+    *,
+    scan_dir: Path,
+    payload: Dict[str, Any],
+    render_info: Optional[Dict[str, Any]],
+) -> Dict[str, Any]:
+    if render_info is None:
+        return {}
+    candidate = payload.get("candidate") or {}
+    source = str(candidate.get("candidate_source") or "unknown")
+    exact = candidate.get("exact_bend_count")
+    count_range = candidate.get("bend_count_range")
+    marker_count = candidate.get("accepted_render_marker_count")
+    visual_status = str(candidate.get("visual_acceptance_status") or "unknown")
+    blockers = [str(value) for value in candidate.get("visual_acceptance_blockers") or ()]
+
+    if visual_status == "render_verified":
+        status = "accepted"
+        banner = f"FINAL ACCEPTED F1 MARKERS: count={exact or count_range}, markers={marker_count}, source={source}"
+    elif source not in {"raw_f1", "count_sweep_promoted_f1", "family_residual_repair_promoted_f1"}:
+        status = "guarded"
+        banner = f"ACCEPTED COUNT IS GUARDED/CONTROL: count={exact or count_range}; raw F1 markers are diagnostic only"
+    else:
+        status = "blocked"
+        banner = f"RAW F1 DEBUG ONLY - NOT FINAL ACCEPTED: count={exact or count_range}; blockers={','.join(blockers) or 'unknown'}"
+
+    review_paths: Dict[str, str] = {}
+    candidates = {
+        "overview": render_info.get("overview_path"),
+        "side": (render_info.get("overview_view_paths") or {}).get("side"),
+        "top": (render_info.get("overview_view_paths") or {}).get("top"),
+    }
+    for label, raw_path in candidates.items():
+        if not raw_path:
+            continue
+        output = scan_dir / "render" / f"accepted_review_{label}.png"
+        review_path = _write_review_banner_image(
+            source_path=Path(raw_path),
+            output_path=output,
+            banner_text=banner,
+            status=status,
+        )
+        if review_path:
+            review_paths[label] = review_path
+
+    review_manifest = {
+        "status": status,
+        "banner": banner,
+        "candidate_source": source,
+        "visual_acceptance_status": visual_status,
+        "visual_acceptance_blockers": blockers,
+        "review_paths": review_paths,
+    }
+    _write_json(scan_dir / "render" / "accepted_review_manifest.json", review_manifest)
+    return review_manifest
+
+
 def _normalize_range(raw_range: Any, exact_count: Optional[int]) -> List[int]:
     if isinstance(raw_range, (list, tuple)) and len(raw_range) >= 2:
         try:
@@ -1186,6 +1279,13 @@ def main() -> int:
             rendered_owned_region_count=int(payload["candidate"]["render_owned_bend_region_count"]),
             marker_admissibility=marker_admissibility,
         )
+        review_manifest = _write_render_review_overlays(
+            scan_dir=scan_dir,
+            payload=payload,
+            render_info=render_info,
+        )
+        if review_manifest:
+            payload["artifacts"]["accepted_review_manifest"] = review_manifest
         _write_json(scan_dir / "summary.json", payload)
         results.append(payload)
         print(
