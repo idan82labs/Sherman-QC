@@ -137,7 +137,10 @@ This note records assistant visual inspection of the 1080p review renders after 
 - Local-ridge result: `partial_ridge_signal`, with `2` admissible ridge candidates.
 - Junction-arrangement result: `two_bend_arrangement_conflicted`, selecting locked accepted `OB4` plus `F1-F5` and `F31-F5` new line candidates, but those two candidates overlap heavily (`atom_iou=0.636364`).
 - Visual inspection confirms the selected new line candidates mostly sit on the same lower-edge support, so this is not a valid separated-bend arrangement.
-- Decision: reject as a promotion candidate. Keep `48991006` as a poor-scan / duplicate-support fail-safe case where conflicted arrangements must block exact promotion.
+- Manual follow-up: a whole middle bend is also totally unmarked, so this case is not only duplicate/alias cleanup.
+- Added `scripts/analyze_f1_uncovered_bend_corridors.py` and `scripts/render_f1_uncovered_bend_corridors.py` to test scan-wide missed-corridor discovery.
+- Scan-wide uncovered-corridor result: rejected. It finds broad top/lower bands and aliases, but does not isolate the missed middle bend as a clean countable line instance.
+- Decision: reject as a promotion candidate. Keep `48991006` as a poor-scan / duplicate-support / missed-interior-bend fail-safe case where conflicted or broad arrangements must block exact promotion.
 
 ## Cross-Scan Junction Diagnostic: `47959001`
 

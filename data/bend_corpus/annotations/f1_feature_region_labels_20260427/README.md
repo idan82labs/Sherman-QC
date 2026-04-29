@@ -18,6 +18,7 @@ Use `scripts/summarize_f1_feature_region_labels.py` to regenerate the `*_summary
 - `48991006_residual_interface_support_candidates.json`: diagnostic-only residual/flange-interface proposal search. Current result: partial candidate pool, with only 3 admissible candidates for the unresolved manual-label deficit.
 - `48991006_local_ridge_candidates.json`: diagnostic-only local curvature/normal ridge trace. Current result: partial ridge signal, with 2 admissible ridge candidates.
 - `48991006_junction_bend_arrangement.json`: diagnostic-only junction-aware arrangement. Current result: `two_bend_arrangement_conflicted`; selected new line candidates overlap heavily and are not promotion-safe.
+- `48991006_uncovered_bend_corridors.json`: scan-wide uncovered-corridor diagnostic after manual feedback that a whole middle bend is unmarked. Current result: too permissive; broad top/lower bands dominate and the missed middle bend is not isolated.
 - `47959001_count_context_region_labels.json` / `47959001_count_context_summary.json`: count-context diagnostic inputs, not per-region manual truth. They encode expected visible observed bends `5`, raw F1 owned regions `4`, and one missing-support recovery target.
 - `47959001_residual_interface_support_candidates.json`: diagnostic-only residual/flange-interface proposal search. Current result: one admissible candidate covers the one-missing-bend target.
 - `47959001_local_ridge_candidates.json`: diagnostic-only local curvature/normal ridge trace. Current result: one admissible ridge candidate covers the one-missing-bend target.
@@ -25,4 +26,5 @@ Use `scripts/summarize_f1_feature_region_labels.py` to regenerate the `*_summary
 - `49024000_residual_interface_visual_check_summary.md`: visual verdict from the 1080p candidate and sub-cluster overlays.
 - `49024000_junction_arrangement_visual_check_summary.md`: visual verdict for the junction-aware bend-line arrangement overlays. Current decision: promising diagnostic proof-of-concept, not promotion-ready.
 - `48991006_junction_arrangement_visual_check_summary.md`: visual verdict for the `48991006` junction-aware overlays. Current decision: reject as promotion candidate; keep as duplicate/poor-scan fail-safe case.
+- `48991006_uncovered_corridor_visual_check_summary.md`: visual verdict for the scan-wide uncovered-corridor overlays. Current decision: reject as promotion logic; use as evidence that this case needs interior-support discovery.
 - `47959001_junction_arrangement_visual_check_summary.md`: visual verdict for the `47959001` junction-aware overlays. Current decision: promising one-missing-bend recovery candidate, diagnostic-only.
