@@ -32,6 +32,18 @@ The deterministic gate in `scripts/evaluate_raw_crease_scan_support_quality.py` 
 
 This gate is not a count estimator. It only decides whether the evidence is sufficient for promotion, whether a partial/poor scan should abstain as limited observed support, or whether a clean scan has enough support but still needs sparse arrangement/duplicate suppression.
 
+## Sparse Arrangement Diagnostic
+
+The diagnostic solver in `scripts/solve_raw_crease_sparse_arrangement.py` groups bridge-safe raw crease candidates by unordered flange-family pair and merges same-pair aliases into one maximal countable bend-line family.
+
+| scan | sparse status | safe candidates | selected families | merged aliases | selected family IDs |
+| --- | --- | ---: | ---: | ---: | --- |
+| `37361005` | `sparse_arrangement_exact_candidate` | `6` | `4` | `2` | `STANDARD_RPC1`, `STANDARD_RPC7`, `COARSE_RPC3`, `STANDARD_RPC3` |
+| `47959001` | `sparse_arrangement_underfit` | `2` | `1` | `1` | `STANDARD_RPC5` |
+| `49001000` | `sparse_arrangement_underfit` | `2` | `1` | `1` | `COARSE_RPC3` |
+
+The `37361005` render confirms the key behavior: same-pair duplicate segments are merged into one countable family/support, producing four selected bend-line families from six bridge-safe supports. The poor/partial scans remain underfit after the same sparse arrangement, so the gate does not falsely promote them.
+
 ## Candidate-Level Notes
 
 `47959001`:
@@ -66,6 +78,7 @@ This supports the current decision:
 - `47959001`: `47959001_multiscale_raw_point_crease_family_validation_visual_check/raw_point_crease_bridge_validation_1080p.png`
 - `49001000`: `49001000_multiscale_raw_point_crease_family_validation_visual_check/raw_point_crease_bridge_validation_1080p.png`
 - `37361005`: `37361005_multiscale_raw_point_crease_family_validation_visual_check/raw_point_crease_bridge_validation_1080p.png`
+- `37361005 sparse`: `37361005_sparse_raw_crease_arrangement_visual_check/raw_crease_sparse_arrangement_1080p.png`
 
 ## Next Work
 
@@ -75,9 +88,9 @@ This supports the current decision:
    - rejected-candidate reasons,
    - F1 coverage/fragmentation,
    - partial-scan route.
-2. Wire the scan-support quality gate into the offline F1 review/evidence pipeline, not runtime promotion.
-3. Add a local sparse arrangement diagnostic for `37361005`:
-   - merge same-family/same-perimeter duplicate support,
-   - prefer maximal direct bend edges,
-   - reject non-countable perimeter/edge fragments.
+2. Wire the scan-support quality gate and sparse arrangement status into the offline F1 review/evidence pipeline, not runtime promotion.
+3. Validate sparse arrangement on more clean compact scans before promotion:
+   - same-family support merging,
+   - maximal direct bend edges,
+   - no false exact promotion on partial/poor scans.
 4. Keep `47959001` and `49001000` as abstain/limited-observed-support canaries until additional visible support is found by a new evidence source, not by weaker gates.
