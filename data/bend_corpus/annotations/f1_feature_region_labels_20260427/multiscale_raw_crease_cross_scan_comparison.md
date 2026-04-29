@@ -20,6 +20,18 @@ The question is whether the `47959001` failure is a global raw-crease threshold/
 | `49001000` | `5` visible observed | `13` | `6` | `2` | Similar underfit pattern. Safe supports exist, but most candidates are weak, off-corridor, or not line-like enough. |
 | `37361005` | `4` conventional | `16` | `6` | `6` | Raw support is available; failure mode is overfragmentation/edge-counting, not missing raw support. |
 
+## Scan-Support Quality Gate
+
+The deterministic gate in `scripts/evaluate_raw_crease_scan_support_quality.py` classifies these three cases as:
+
+| scan | gate decision | recommended gate | reason codes |
+| --- | --- | --- | --- |
+| `47959001` | `limited_observed_support` | `scan_quality_gate` | `bridge_safe_below_human_target`, `partial_or_observed_scan_support_incomplete`, `low_bridge_safe_fraction` |
+| `49001000` | `limited_observed_support` | `scan_quality_gate` | `bridge_safe_below_human_target`, `partial_or_observed_scan_support_incomplete`, `low_bridge_safe_fraction` |
+| `37361005` | `arrangement_needed` | `sparse_arrangement_gate` | `bridge_safe_exceeds_human_target`, `duplicate_flange_pair_support` |
+
+This gate is not a count estimator. It only decides whether the evidence is sufficient for promotion, whether a partial/poor scan should abstain as limited observed support, or whether a clean scan has enough support but still needs sparse arrangement/duplicate suppression.
+
 ## Candidate-Level Notes
 
 `47959001`:
@@ -63,8 +75,9 @@ This supports the current decision:
    - rejected-candidate reasons,
    - F1 coverage/fragmentation,
    - partial-scan route.
-2. Add a local sparse arrangement diagnostic for `37361005`:
+2. Wire the scan-support quality gate into the offline F1 review/evidence pipeline, not runtime promotion.
+3. Add a local sparse arrangement diagnostic for `37361005`:
    - merge same-family/same-perimeter duplicate support,
    - prefer maximal direct bend edges,
    - reject non-countable perimeter/edge fragments.
-3. Keep `47959001` and `49001000` as abstain/limited-observed-support canaries until additional visible support is found by a new evidence source, not by weaker gates.
+4. Keep `47959001` and `49001000` as abstain/limited-observed-support canaries until additional visible support is found by a new evidence source, not by weaker gates.
