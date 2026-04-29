@@ -9,6 +9,7 @@ Compare the same multiscale raw-point crease extraction and F1/flange-family bri
 - `47959001`: problematic partial/compact-neighbor case, human visible count `5`
 - `49001000`: poor-coverage partial case, human visible count `5`
 - `37361005`: cleaner compact known-count case, human count `4`
+- `48963008`: cleaner compact known-count case where current F1 is already exact `3`
 
 The question is whether the `47959001` failure is a global raw-crease threshold/support-creation failure or a scan/coverage-specific failure.
 
@@ -19,6 +20,7 @@ The question is whether the `47959001` failure is a global raw-crease threshold/
 | `47959001` | `5` visible observed | `7` | `5` | `2` | Underfit. Only two safe supports; other candidates fail corridor/axis/two-sided validation. |
 | `49001000` | `5` visible observed | `13` | `6` | `2` | Similar underfit pattern. Safe supports exist, but most candidates are weak, off-corridor, or not line-like enough. |
 | `37361005` | `4` conventional | `16` | `6` | `6` | Raw support is available; failure mode is overfragmentation/edge-counting, not missing raw support. |
+| `48963008` | `3` conventional | `11` | `2` | `0` | Raw-crease path is not useful, but current F1 is already exact 3 via existing owned-region/control-intersection logic. |
 
 ## Scan-Support Quality Gate
 
@@ -29,6 +31,7 @@ The deterministic gate in `scripts/evaluate_raw_crease_scan_support_quality.py` 
 | `47959001` | `limited_observed_support` | `scan_quality_gate` | `bridge_safe_below_human_target`, `partial_or_observed_scan_support_incomplete`, `low_bridge_safe_fraction` |
 | `49001000` | `limited_observed_support` | `scan_quality_gate` | `bridge_safe_below_human_target`, `partial_or_observed_scan_support_incomplete`, `low_bridge_safe_fraction` |
 | `37361005` | `arrangement_needed` | `sparse_arrangement_gate` | `bridge_safe_exceeds_human_target`, `duplicate_flange_pair_support` |
+| `48963008` | `insufficient_support_abstain` | `observe_only` | `no_bridge_safe_support` |
 
 This gate is not a count estimator. It only decides whether the evidence is sufficient for promotion, whether a partial/poor scan should abstain as limited observed support, or whether a clean scan has enough support but still needs sparse arrangement/duplicate suppression.
 
@@ -41,8 +44,11 @@ The diagnostic solver in `scripts/solve_raw_crease_sparse_arrangement.py` groups
 | `37361005` | `sparse_arrangement_exact_candidate` | `6` | `4` | `2` | `STANDARD_RPC1`, `STANDARD_RPC7`, `COARSE_RPC3`, `STANDARD_RPC3` |
 | `47959001` | `sparse_arrangement_underfit` | `2` | `1` | `1` | `STANDARD_RPC5` |
 | `49001000` | `sparse_arrangement_underfit` | `2` | `1` | `1` | `COARSE_RPC3` |
+| `48963008` | `no_safe_support` | `0` | `0` | `0` | none |
 
 The `37361005` render confirms the key behavior: same-pair duplicate segments are merged into one countable family/support, producing four selected bend-line families from six bridge-safe supports. The poor/partial scans remain underfit after the same sparse arrangement, so the gate does not falsely promote them.
+
+`48963008` is the negative control: current F1 already returns exact `3`, but raw-crease bridge validation has no safe support. This means the raw-crease sparse arrangement lane should be used as supplemental recovery/arrangement evidence only, not as a replacement for existing accepted F1/control-intersection outputs.
 
 ## Candidate-Level Notes
 
@@ -79,6 +85,7 @@ This supports the current decision:
 - `49001000`: `49001000_multiscale_raw_point_crease_family_validation_visual_check/raw_point_crease_bridge_validation_1080p.png`
 - `37361005`: `37361005_multiscale_raw_point_crease_family_validation_visual_check/raw_point_crease_bridge_validation_1080p.png`
 - `37361005 sparse`: `37361005_sparse_raw_crease_arrangement_visual_check/raw_crease_sparse_arrangement_1080p.png`
+- `48963008`: `48963008_multiscale_raw_point_crease_family_validation_visual_check/raw_point_crease_bridge_validation_1080p.png`
 
 ## Next Work
 
@@ -93,4 +100,5 @@ This supports the current decision:
    - same-family support merging,
    - maximal direct bend edges,
    - no false exact promotion on partial/poor scans.
-4. Keep `47959001` and `49001000` as abstain/limited-observed-support canaries until additional visible support is found by a new evidence source, not by weaker gates.
+4. Treat raw-crease sparse arrangement as supplemental evidence only; preserve existing F1/control-intersection exact outputs such as `48963008` when the raw-crease lane abstains.
+5. Keep `47959001` and `49001000` as abstain/limited-observed-support canaries until additional visible support is found by a new evidence source, not by weaker gates.
