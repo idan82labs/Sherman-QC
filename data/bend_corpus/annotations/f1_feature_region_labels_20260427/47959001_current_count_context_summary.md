@@ -53,6 +53,17 @@ Underfit ridge support split:
 - Split threshold: `10.1895 mm`
 - Interpretation: the broad ridge is continuous along projection and does not naturally split into multiple support objects.
 
+Strict scan-wide uncovered corridor search:
+
+- Output: `47959001_current_uncovered_corridors_strict_excluding_owned_and_ridge.json`
+- Render: `47959001_current_strict_uncovered_corridors_visual_check/uncovered_bend_corridors_top_candidates_1080p.png`
+- Exclusions: current owned bend atoms plus `48` atoms from the broad local ridge
+- Two-sided contact required: `true`
+- Status: `no_uncovered_corridor_candidate`
+- Candidate count: `186`
+- Admissible candidates: `0`
+- Visual verdict: top candidates are broad panel/edge bands, not separate bend supports.
+
 ## Visual Verdict
 
 The 1080p arrangement render shows the selected lines clustered along one broad edge/ridge family. This is not a valid multi-bend recovery for the five-visible-bend target.
@@ -71,10 +82,11 @@ The raw-family suppression change should not be judged against the stale `F20/F2
 - current residual/ridge diagnostics find only one broad support family,
 - local arrangement cannot recover the missing four visible bends,
 - projection-gap splitting also finds only one continuous support family,
+- strict scan-wide corridor search finds no clean independent two-sided uncovered corridor after excluding the known raw support and broad ridge,
 - this remains offline diagnostic evidence only.
 
 ## Next Work
 
-- Add a broader support-creation lane that can discover separate support families outside the current single broad ridge.
+- The next support-creation attempt must change the atom/support discovery domain, not just rescore current ridge/corridor candidates.
 - Do not use stale flange-ID arrangements as regression controls.
 - Use this current-snapshot file set for future `47959001` experiments.

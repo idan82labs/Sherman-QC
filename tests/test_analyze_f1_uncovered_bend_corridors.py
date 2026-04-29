@@ -85,3 +85,36 @@ def test_uncovered_corridor_can_exclude_existing_owned_atoms():
 
     assert report["candidate_count"] == 0
     assert report["status"] == "no_uncovered_corridor_candidate"
+
+
+def test_uncovered_corridor_can_exclude_explicit_atom_ids():
+    atoms = [_atom(f"A{i}", 0.0, y=0.0, z=i * 4.0) for i in range(8)]
+    payload = _payload(atoms)
+
+    report = analyzer.analyze_uncovered_bend_corridors(
+        decomposition=payload,
+        excluded_atom_ids=[atom["atom_id"] for atom in atoms],
+    )
+
+    assert report["explicitly_excluded_atom_count"] == 8
+    assert report["candidate_count"] == 0
+    assert report["status"] == "no_uncovered_corridor_candidate"
+
+
+def test_strict_uncovered_corridor_requires_two_sided_contact():
+    atoms = [_atom(f"A{i}", 0.0, y=0.0, z=i * 4.0) for i in range(8)]
+    payload = _payload(atoms)
+    payload["flange_hypotheses"][0]["atom_ids"] = ["FA"]
+    payload["atom_graph"]["atoms"].append(_atom("FA", 0.0, y=-2.0, z=12.0, normal=(1.0, 0.0, 0.0), label="F1"))
+    payload["assignment"]["atom_labels"]["FA"] = "F1"
+    payload["atom_graph"]["adjacency"]["A3"].append("FA")
+    payload["atom_graph"]["adjacency"]["FA"] = ["A3"]
+
+    report = analyzer.analyze_uncovered_bend_corridors(
+        decomposition=payload,
+        require_two_sided_contact=True,
+    )
+
+    assert report["require_two_sided_contact"] is True
+    assert report["admissible_candidate_count"] == 0
+    assert "missing_two_sided_flange_contact" in report["candidates"][0]["reason_codes"]

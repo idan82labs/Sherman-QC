@@ -144,6 +144,8 @@ def analyze_uncovered_bend_corridors(
     *,
     decomposition: Mapping[str, Any],
     exclude_owned_bend_atoms: bool = False,
+    excluded_atom_ids: Optional[Iterable[str]] = None,
+    require_two_sided_contact: bool = False,
     max_pairs: int = 80,
 ) -> Dict[str, Any]:
     atoms = _atom_lookup(decomposition)
@@ -160,6 +162,7 @@ def analyze_uncovered_bend_corridors(
         for region in decomposition.get("owned_bend_regions") or ()
         for atom_id in region.get("owned_atom_ids") or ()
     }
+    explicitly_excluded_atoms = {str(atom_id) for atom_id in excluded_atom_ids or ()}
 
     pair_rows: List[Tuple[float, Tuple[str, str], np.ndarray, np.ndarray]] = []
     flange_ids = sorted(flanges)
@@ -182,6 +185,8 @@ def analyze_uncovered_bend_corridors(
         pair_atoms: List[str] = []
         for atom_id, atom in atoms.items():
             if exclude_owned_bend_atoms and atom_id in owned_bend_atoms:
+                continue
+            if atom_id in explicitly_excluded_atoms:
                 continue
             label = atom_labels.get(atom_id)
             label_type = label_types.get(label, "unassigned")
@@ -223,7 +228,9 @@ def analyze_uncovered_bend_corridors(
                 reasons.append("weak_line_fit")
             if axis_delta > 45.0:
                 reasons.append("axis_mismatch")
-            if present_contacts < 1:
+            if require_two_sided_contact and present_contacts < 2:
+                reasons.append("missing_two_sided_flange_contact")
+            elif present_contacts < 1:
                 reasons.append("no_flange_contact")
             if owned_overlap > 0.65:
                 reasons.append("mostly_existing_owned_bend_support")
@@ -277,6 +284,8 @@ def analyze_uncovered_bend_corridors(
         "part_id": decomposition.get("part_id"),
         "purpose": "Diagnostic-only scan-wide search for uncovered bend corridors, including possible missed interior bends.",
         "exclude_owned_bend_atoms": exclude_owned_bend_atoms,
+        "explicitly_excluded_atom_count": len(explicitly_excluded_atoms),
+        "require_two_sided_contact": require_two_sided_contact,
         "candidate_count": len(candidates),
         "admissible_candidate_count": len(admissible),
         "top_admissible_candidate_ids": [row["candidate_id"] for row in admissible[:8]],
@@ -291,10 +300,21 @@ def main() -> int:
     parser.add_argument("--output-json", required=True, type=Path)
     parser.add_argument("--max-pairs", type=int, default=80)
     parser.add_argument("--exclude-owned-bend-atoms", action="store_true")
+    parser.add_argument("--exclude-atom-ids-json", type=Path, default=None)
+    parser.add_argument("--require-two-sided-contact", action="store_true")
     args = parser.parse_args()
+    excluded_atom_ids: set[str] = set()
+    if args.exclude_atom_ids_json:
+        payload = _load_json(args.exclude_atom_ids_json)
+        for key in ("atom_ids", "excluded_atom_ids"):
+            excluded_atom_ids.update(str(value) for value in payload.get(key) or ())
+        for ridge in payload.get("ridges") or ():
+            excluded_atom_ids.update(str(value) for value in ridge.get("atom_ids") or ())
     report = analyze_uncovered_bend_corridors(
         decomposition=_load_json(args.decomposition_json),
         exclude_owned_bend_atoms=bool(args.exclude_owned_bend_atoms),
+        excluded_atom_ids=excluded_atom_ids,
+        require_two_sided_contact=bool(args.require_two_sided_contact),
         max_pairs=int(args.max_pairs),
     )
     _write_json(args.output_json, report)
