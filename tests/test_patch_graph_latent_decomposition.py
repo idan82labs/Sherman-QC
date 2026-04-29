@@ -431,6 +431,72 @@ def test_build_owned_region_marker_admissibility_counts_and_explains_suppression
     assert payload["marker_suppressed_region_ids"] == ["OB5"]
     assert payload["marker_suppression_reason_counts"] == {"same_pair_marker_alias": 1}
     assert payload["marker_suppression_details"][0]["bend_id"] == "OB5"
+    assert payload["fragment_upgrade_action_counts"] == {"merge_alias": 1}
+    assert payload["fragment_upgrade_diagnostics"][0]["recommended_action"] == "merge_alias"
+    assert payload["fragment_upgrade_diagnostics"][0]["upgrade_blockers"] == [
+        "same_selected_flange_pair_as_kept_region"
+    ]
+
+
+def test_build_owned_region_marker_admissibility_flags_tiny_cross_pair_for_growth():
+    def region(bend_id, pair, anchor, atom_count, support_mass, axis=(1.0, 0.0, 0.0)):
+        return OwnedBendRegion(
+            bend_id=bend_id,
+            bend_class="transition_only",
+            incident_flange_ids=pair,
+            canonical_bend_key=f"{','.join(pair)}::{bend_id}",
+            owned_atom_ids=tuple(f"{bend_id}_A{i}" for i in range(atom_count)),
+            anchor=anchor,
+            axis_direction=axis,
+            support_centroid=anchor,
+            span_endpoints=(anchor, anchor),
+            angle_deg=90.0,
+            radius_mm=None,
+            visibility_state="internal",
+            support_mass=support_mass,
+            admissible=True,
+            admissibility_reasons=(),
+            post_bend_class="transition_only",
+            debug_confidence=0.8,
+        )
+
+    kept_a = region("OB3", ("F27", "F4"), (0.0, 0.0, 0.0), 18, 4007.0)
+    kept_b = region("OB4", ("F1", "F14"), (31.0, 0.0, 0.0), 16, 6021.0)
+    tiny_cross = region("OB9", ("F27", "F32"), (16.0, 0.0, 0.0), 3, 885.0)
+    graph = SurfaceAtomGraph(
+        atoms=tuple(
+            SurfaceAtom(
+                atom_id,
+                (index, 0, 0),
+                (index,),
+                (float(index), 0.0, 0.0),
+                (0.0, 0.7, 0.7),
+                1.0,
+                0.02,
+                (1.0, 0.0, 0.0),
+                1.0,
+                1.0,
+            )
+            for index, atom_id in enumerate((*kept_a.owned_atom_ids, *kept_b.owned_atom_ids, *tiny_cross.owned_atom_ids))
+        ),
+        adjacency={},
+        edge_weights={},
+        voxel_size_mm=1.0,
+        local_spacing_mm=1.5,
+    )
+
+    payload = build_owned_region_marker_admissibility([kept_a, kept_b, tiny_cross], atom_graph=graph)
+
+    assert payload["marker_suppressed_region_ids"] == ["OB9"]
+    assert payload["marker_suppression_reason_counts"] == {"tiny_cross_pair_marker_cluster": 1}
+    assert payload["fragment_upgrade_action_counts"] == {"requires_support_growth_before_counting": 1}
+    diagnostic = payload["fragment_upgrade_diagnostics"][0]
+    assert diagnostic["bend_id"] == "OB9"
+    assert diagnostic["recommended_action"] == "requires_support_growth_before_counting"
+    assert diagnostic["upgrade_blockers"] == [
+        "insufficient_atoms_for_standalone_line_instance",
+        "too_close_to_existing_kept_marker",
+    ]
 
 
 def test_dedupe_bend_hypotheses_collapses_overlap_even_when_flange_ids_drift():

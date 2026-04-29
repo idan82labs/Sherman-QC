@@ -1519,6 +1519,13 @@ def build_owned_region_marker_admissibility(
     for item in suppression_details:
         for reason in item.get("reason_codes") or ():
             reason_counts[str(reason)] += 1
+    fragment_upgrade_diagnostics = _suppressed_marker_fragment_upgrade_diagnostics(
+        suppression_details,
+        local_spacing_mm=float(atom_graph.local_spacing_mm or 1.0),
+    )
+    upgrade_action_counts: Dict[str, int] = defaultdict(int)
+    for item in fragment_upgrade_diagnostics:
+        upgrade_action_counts[str(item.get("recommended_action") or "unknown")] += 1
     return {
         "raw_owned_region_count": len(owned_bend_regions),
         "marker_admissible_owned_region_count": len(marker_admissible),
@@ -1526,7 +1533,65 @@ def build_owned_region_marker_admissibility(
         "marker_suppressed_region_ids": suppressed_ids,
         "marker_suppression_reason_counts": dict(sorted(reason_counts.items())),
         "marker_suppression_details": suppression_details,
+        "fragment_upgrade_action_counts": dict(sorted(upgrade_action_counts.items())),
+        "fragment_upgrade_diagnostics": fragment_upgrade_diagnostics,
     }
+
+
+def _suppressed_marker_fragment_upgrade_diagnostics(
+    suppression_details: Sequence[Mapping[str, Any]],
+    *,
+    local_spacing_mm: float,
+) -> List[Dict[str, Any]]:
+    """Classify suppressed raw owned regions for future solver repair.
+
+    This is intentionally diagnostic-only. A tiny cross-pair fragment should
+    only become countable after it grows into a separable support/line instance;
+    otherwise exact-count promotion should stay blocked by marker acceptance.
+    """
+    h = max(float(local_spacing_mm or 1.0), 1.0)
+    min_upgrade_atoms = 6
+    min_upgrade_distance_mm = max(35.0, 10.0 * h)
+    diagnostics: List[Dict[str, Any]] = []
+    for item in suppression_details:
+        reasons = [str(reason) for reason in item.get("reason_codes") or ()]
+        atom_count = int(item.get("atom_count") or 0)
+        nearest = list(item.get("nearest_kept_regions") or ())
+        nearest_distance = None
+        nearest_id = None
+        if nearest:
+            nearest_distance = float(nearest[0].get("distance_mm", 0.0))
+            nearest_id = str(nearest[0].get("bend_id") or "")
+
+        blockers: List[str] = []
+        recommended_action = "manual_review"
+        if "same_pair_marker_alias" in reasons:
+            recommended_action = "merge_alias"
+            blockers.append("same_selected_flange_pair_as_kept_region")
+        elif "tiny_cross_pair_marker_cluster" in reasons:
+            if atom_count < min_upgrade_atoms:
+                blockers.append("insufficient_atoms_for_standalone_line_instance")
+            if nearest_distance is not None and nearest_distance < min_upgrade_distance_mm:
+                blockers.append("too_close_to_existing_kept_marker")
+            recommended_action = "upgrade_candidate" if not blockers else "requires_support_growth_before_counting"
+        elif "unknown_render_suppression" in reasons:
+            blockers.append("unknown_suppression_reason")
+
+        diagnostics.append(
+            {
+                "bend_id": str(item.get("bend_id") or ""),
+                "incident_flange_ids": list(item.get("incident_flange_ids") or ()),
+                "atom_count": atom_count,
+                "reason_codes": reasons,
+                "nearest_kept_bend_id": nearest_id,
+                "nearest_kept_distance_mm": None if nearest_distance is None else round(float(nearest_distance), 4),
+                "min_upgrade_atoms": min_upgrade_atoms,
+                "min_upgrade_distance_mm": round(float(min_upgrade_distance_mm), 4),
+                "recommended_action": recommended_action,
+                "upgrade_blockers": sorted(set(blockers)),
+            }
+        )
+    return diagnostics
 
 
 def _render_owned_region_atom_projection(
