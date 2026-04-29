@@ -61,20 +61,70 @@ def _arrangement_path(annotations_dir: Path, part_id: str) -> Path:
     return annotations_dir / f"{part_id}_raw_crease_sparse_arrangement.json"
 
 
+def _manual_metadata_by_part(manual_validation: Mapping[str, Any] | None) -> Dict[str, Dict[str, Any]]:
+    metadata: Dict[str, Dict[str, Any]] = {}
+    if not manual_validation:
+        return metadata
+    for record in manual_validation.get("records") or ():
+        part_id = str(record.get("part_key") or "")
+        if not part_id:
+            continue
+        part_family = record.get("part_family")
+        feature_breakdown = record.get("feature_breakdown")
+        notes = record.get("notes") or ""
+        if part_id not in metadata:
+            metadata[part_id] = {
+                "part_family": part_family,
+                "feature_breakdown": feature_breakdown,
+                "notes": notes,
+            }
+        if part_family:
+            metadata[part_id]["part_family"] = part_family
+        if feature_breakdown:
+            metadata[part_id]["feature_breakdown"] = feature_breakdown
+        if notes and not metadata[part_id].get("notes"):
+            metadata[part_id]["notes"] = notes
+    return metadata
+
+
+def _is_rolled_or_mixed_transition(part_metadata: Mapping[str, Any] | None) -> bool:
+    if not part_metadata:
+        return False
+    values = [
+        str(part_metadata.get("part_family") or ""),
+        str(part_metadata.get("notes") or ""),
+    ]
+    breakdown = part_metadata.get("feature_breakdown")
+    if isinstance(breakdown, Mapping):
+        values.extend(str(value) for value in breakdown.values())
+    text = " ".join(values).lower()
+    return any(token in text for token in ("rolled", "rounded", "מעורגל", "mixed_transition"))
+
+
 def _recommendation(
     *,
     target_count: int,
     quality: Mapping[str, Any] | None,
     arrangement: Mapping[str, Any] | None,
     existing_f1_exact: int | None,
+    part_metadata: Mapping[str, Any] | None = None,
 ) -> tuple[str, list[str]]:
     reasons: list[str] = []
     quality_decision = str(quality.get("decision") if quality else "missing_quality")
     arrangement_status = str(arrangement.get("status") if arrangement else "missing_arrangement")
     selected_count = int(arrangement.get("selected_family_count") or 0) if arrangement else 0
+    rolled_or_mixed = _is_rolled_or_mixed_transition(part_metadata)
 
     if existing_f1_exact is not None and existing_f1_exact == target_count and quality_decision == "insufficient_support_abstain":
         return "preserve_existing_f1_exact_raw_lane_abstains", ["existing_f1_exact_matches_target", "raw_crease_lane_abstains"]
+
+    if rolled_or_mixed and arrangement_status != "no_safe_support":
+        reasons.append("rolled_or_mixed_transition_semantics")
+        if arrangement_status == "sparse_arrangement_underfit":
+            reasons.append("sparse_arrangement_below_target")
+        elif arrangement_status == "sparse_arrangement_exact_candidate":
+            reasons.append("conventional_bend_line_gate_not_valid_for_part_family")
+        return "hold_rolled_mixed_transition_semantics_needed", reasons
 
     if quality_decision == "limited_observed_support":
         reasons.append("scan_support_below_target")
@@ -125,6 +175,7 @@ def _case_row(
     case: Mapping[str, Any],
     annotations_dir: Path,
     existing_f1_exact_by_part: Mapping[str, int],
+    manual_metadata_by_part: Mapping[str, Mapping[str, Any]],
 ) -> Dict[str, Any]:
     part_id = str(case["part_id"])
     target_count = int(case["target_count"])
@@ -133,17 +184,21 @@ def _case_row(
     quality = _load_json(quality_file) if quality_file.exists() else None
     arrangement = _load_json(arrangement_file) if arrangement_file.exists() else None
     existing_f1_exact = existing_f1_exact_by_part.get(part_id)
+    part_metadata = manual_metadata_by_part.get(part_id) or {}
     recommendation, recommendation_reasons = _recommendation(
         target_count=target_count,
         quality=quality,
         arrangement=arrangement,
         existing_f1_exact=existing_f1_exact,
+        part_metadata=part_metadata,
     )
     return {
         "part_id": part_id,
         "target_count": target_count,
         "track": case["track"],
         "existing_f1_exact": existing_f1_exact,
+        "part_family": part_metadata.get("part_family"),
+        "feature_breakdown": part_metadata.get("feature_breakdown"),
         "quality_decision": quality.get("decision") if quality else "missing",
         "recommended_gate": quality.get("recommended_gate") if quality else "missing",
         "quality_reason_codes": quality.get("reason_codes") if quality else ["missing_quality_report"],
@@ -169,13 +224,16 @@ def summarize_raw_crease_offline_review(
     cases: Iterable[Mapping[str, Any]],
     annotations_dir: Path,
     existing_f1_exact_by_part: Mapping[str, int] | None = None,
+    manual_validation: Mapping[str, Any] | None = None,
 ) -> Dict[str, Any]:
     existing_f1_exact_by_part = existing_f1_exact_by_part or {}
+    metadata = _manual_metadata_by_part(manual_validation)
     rows = [
         _case_row(
             case=case,
             annotations_dir=annotations_dir,
             existing_f1_exact_by_part=existing_f1_exact_by_part,
+            manual_metadata_by_part=metadata,
         )
         for case in cases
     ]
@@ -243,7 +301,7 @@ def render_markdown(report: Mapping[str, Any]) -> str:
             [
                 f"### {row['part_id']}",
                 "",
-                f"- Target: `{row['target_count']}`; track: `{row['track']}`; existing F1 exact: `{row.get('existing_f1_exact')}`.",
+                f"- Target: `{row['target_count']}`; track: `{row['track']}`; existing F1 exact: `{row.get('existing_f1_exact')}`; part family: `{row.get('part_family')}`.",
                 f"- Quality gate: `{row['quality_decision']}` / `{row['recommended_gate']}`; reasons: {quality_reasons}.",
                 f"- Sparse arrangement: `{row['sparse_status']}`; selected `{row['selected_family_count']}` from `{row['safe_candidate_count']}` bridge-safe candidates; suppressed duplicates `{row['suppressed_duplicate_count']}`.",
                 f"- Final recommendation: `{row['final_offline_recommendation']}`; reasons: {reasons}.",
@@ -258,15 +316,18 @@ def main() -> int:
     parser.add_argument("--annotations-dir", type=Path, default=DEFAULT_ANNOTATIONS_DIR)
     parser.add_argument("--case", action="append", type=_parse_case, required=True, help="PART_ID:TARGET_COUNT:TRACK")
     parser.add_argument("--existing-f1-exact", action="append", type=_parse_part_count, default=[], help="PART_ID=COUNT")
+    parser.add_argument("--manual-validation-json", type=Path, default=None)
     parser.add_argument("--output-json", required=True, type=Path)
     parser.add_argument("--output-md", required=True, type=Path)
     args = parser.parse_args()
 
     existing = dict(args.existing_f1_exact)
+    manual_validation = _load_json(args.manual_validation_json) if args.manual_validation_json else None
     report = summarize_raw_crease_offline_review(
         cases=args.case,
         annotations_dir=args.annotations_dir,
         existing_f1_exact_by_part=existing,
+        manual_validation=manual_validation,
     )
     _write_json(args.output_json, report)
     _write_text(args.output_md, render_markdown(report))

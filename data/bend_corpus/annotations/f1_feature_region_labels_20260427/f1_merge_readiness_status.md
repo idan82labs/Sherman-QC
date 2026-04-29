@@ -1,6 +1,6 @@
 # F1 Merge Readiness Status
 
-Generated: `2026-04-29T17:17:16`
+Generated: `2026-04-29T17:23:45`
 
 Runtime contract: `No runtime zero-shot or product API mutation is approved by this report.`
 
@@ -39,7 +39,7 @@ Range misses:
 
 - `candidate_for_sparse_arrangement_review`: 1
 - `hold_exact_count_scan_quality_limited`: 2
-- `hold_underfit_support_creation_needed`: 1
+- `hold_rolled_mixed_transition_semantics_needed`: 1
 - `preserve_existing_f1_exact_raw_lane_abstains`: 3
 
 Sparse-arrangement review candidates:
@@ -49,7 +49,7 @@ Held or abstained cases:
 - `47959001`: `hold_exact_count_scan_quality_limited` (`limited_observed_support`, `sparse_arrangement_underfit`).
 - `49001000`: `hold_exact_count_scan_quality_limited` (`limited_observed_support`, `sparse_arrangement_underfit`).
 - `48963008`: `preserve_existing_f1_exact_raw_lane_abstains` (`insufficient_support_abstain`, `no_safe_support`).
-- `49125000`: `hold_underfit_support_creation_needed` (`promotion_needs_review`, `sparse_arrangement_underfit`).
+- `49125000`: `hold_rolled_mixed_transition_semantics_needed` (`promotion_needs_review`, `sparse_arrangement_underfit`).
 - `44211000`: `preserve_existing_f1_exact_raw_lane_abstains` (`insufficient_support_abstain`, `no_safe_support`).
 - `15651004`: `preserve_existing_f1_exact_raw_lane_abstains` (`insufficient_support_abstain`, `no_safe_support`).
 

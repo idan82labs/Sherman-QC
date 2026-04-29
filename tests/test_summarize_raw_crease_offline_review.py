@@ -110,6 +110,34 @@ def test_existing_exact_is_preserved_when_raw_lane_abstains(tmp_path):
     assert "existing_f1_exact_matches_target" in row["final_recommendation_reasons"]
 
 
+def test_rolled_or_mixed_transition_blocks_conventional_sparse_promotion(tmp_path):
+    _write_case(
+        tmp_path,
+        "rolled",
+        _quality("rolled", "promotion_needs_review", "manual_review", ["bridge_safe_matches_human_target"], safe=2, raw=5),
+        _arrangement("rolled", "sparse_arrangement_underfit", selected=1, safe=2, dupes=1),
+    )
+
+    report = summary.summarize_raw_crease_offline_review(
+        cases=[{"part_id": "rolled", "target_count": 2, "track": "known"}],
+        annotations_dir=tmp_path,
+        manual_validation={
+            "records": [
+                {
+                    "part_key": "rolled",
+                    "part_family": "rolled_or_rounded_mixed_transition",
+                    "notes": "rounded part",
+                }
+            ]
+        },
+    )
+
+    row = report["cases"][0]
+    assert row["part_family"] == "rolled_or_rounded_mixed_transition"
+    assert row["final_offline_recommendation"] == "hold_rolled_mixed_transition_semantics_needed"
+    assert "rolled_or_mixed_transition_semantics" in row["final_recommendation_reasons"]
+
+
 def test_markdown_contains_case_table(tmp_path):
     _write_case(
         tmp_path,

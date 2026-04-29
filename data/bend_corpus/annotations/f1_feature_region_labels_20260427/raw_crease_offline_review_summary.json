@@ -1,12 +1,12 @@
 {
-  "generated_at": "2026-04-29T17:17:16",
+  "generated_at": "2026-04-29T17:23:45",
   "purpose": "Offline-only review summary for raw-crease support and sparse-arrangement diagnostics.",
   "artifact_contract": "Diagnostic gating only. Does not mutate runtime zero-shot or F1 solver behavior.",
   "case_count": 7,
   "recommendation_counts": {
     "candidate_for_sparse_arrangement_review": 1,
     "hold_exact_count_scan_quality_limited": 2,
-    "hold_underfit_support_creation_needed": 1,
+    "hold_rolled_mixed_transition_semantics_needed": 1,
     "preserve_existing_f1_exact_raw_lane_abstains": 3
   },
   "quality_decision_counts": {
@@ -26,6 +26,8 @@
       "target_count": 5,
       "track": "partial",
       "existing_f1_exact": null,
+      "part_family": null,
+      "feature_breakdown": null,
       "quality_decision": "limited_observed_support",
       "recommended_gate": "scan_quality_gate",
       "quality_reason_codes": [
@@ -74,6 +76,8 @@
       "target_count": 5,
       "track": "partial",
       "existing_f1_exact": null,
+      "part_family": null,
+      "feature_breakdown": null,
       "quality_decision": "limited_observed_support",
       "recommended_gate": "scan_quality_gate",
       "quality_reason_codes": [
@@ -122,6 +126,8 @@
       "target_count": 4,
       "track": "known",
       "existing_f1_exact": null,
+      "part_family": null,
+      "feature_breakdown": null,
       "quality_decision": "arrangement_needed",
       "recommended_gate": "sparse_arrangement_gate",
       "quality_reason_codes": [
@@ -185,6 +191,8 @@
       "target_count": 3,
       "track": "known",
       "existing_f1_exact": 3,
+      "part_family": null,
+      "feature_breakdown": null,
       "quality_decision": "insufficient_support_abstain",
       "recommended_gate": "observe_only",
       "quality_reason_codes": [
@@ -222,6 +230,8 @@
       "target_count": 2,
       "track": "known",
       "existing_f1_exact": null,
+      "part_family": "rolled_or_rounded_mixed_transition",
+      "feature_breakdown": null,
       "quality_decision": "promotion_needs_review",
       "recommended_gate": "manual_review",
       "quality_reason_codes": [
@@ -255,8 +265,9 @@
           "STANDARD_RPC2"
         ]
       ],
-      "final_offline_recommendation": "hold_underfit_support_creation_needed",
+      "final_offline_recommendation": "hold_rolled_mixed_transition_semantics_needed",
       "final_recommendation_reasons": [
+        "rolled_or_mixed_transition_semantics",
         "sparse_arrangement_below_target"
       ],
       "artifact_paths": {
@@ -269,6 +280,8 @@
       "target_count": 1,
       "track": "known",
       "existing_f1_exact": 1,
+      "part_family": null,
+      "feature_breakdown": null,
       "quality_decision": "insufficient_support_abstain",
       "recommended_gate": "observe_only",
       "quality_reason_codes": [
@@ -306,6 +319,8 @@
       "target_count": 1,
       "track": "known",
       "existing_f1_exact": 1,
+      "part_family": null,
+      "feature_breakdown": null,
       "quality_decision": "insufficient_support_abstain",
       "recommended_gate": "observe_only",
       "quality_reason_codes": [
