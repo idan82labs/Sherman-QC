@@ -549,6 +549,8 @@ def _owned_region_duplicate_diagnostics(
             status = "duplicate_of_existing_owned_region"
         elif _is_same_pair_line_alias(strongest):
             status = "same_pair_line_alias"
+        elif _is_offset_parallel_same_pair_candidate(strongest):
+            status = "offset_parallel_same_pair_candidate"
         elif _is_same_pair_ambiguous(strongest):
             status = "ambiguous_near_existing_owned_region"
     return {
@@ -598,6 +600,16 @@ def _is_same_pair_ambiguous(row: Mapping[str, Any]) -> bool:
     )
 
 
+def _is_offset_parallel_same_pair_candidate(row: Mapping[str, Any]) -> bool:
+    return (
+        _float_or(row.get("atom_iou"), 1.0) <= 0.02
+        and _float_or(row.get("centroid_distance_mm"), 0.0) >= 12.0
+        and _float_or(row.get("line_distance_mm"), 0.0) >= 10.0
+        and _float_or(row.get("candidate_axis_interval_overlap"), 0.0) >= 0.40
+        and _float_or(row.get("axis_delta_deg"), 999.0) <= 25.0
+    )
+
+
 def _float_or(value: Any, fallback: float) -> float:
     if value is None:
         return fallback
@@ -612,9 +624,11 @@ def _same_pair_alias_rank(row: Mapping[str, Any]) -> int:
         return 0
     if _is_same_pair_line_alias(row):
         return 1
+    if _is_offset_parallel_same_pair_candidate(row):
+        return 3
     if _is_same_pair_ambiguous(row):
         return 2
-    return 3
+    return 4
 
 
 def _recovered_contact_birth_candidates(
@@ -678,12 +692,12 @@ def _recovered_contact_birth_candidates(
             allow_recovered_contact_counting
             and line_candidate.get("admissible")
             and row.get("status") == "recovered_contact_validated"
-            and duplicate_diagnostics.get("status") == "unique_recovered_support"
+            and duplicate_diagnostics.get("status") in {"unique_recovered_support", "offset_parallel_same_pair_candidate"}
         )
         candidates.append(line_candidate)
     candidates.sort(
         key=lambda item: (
-            item.get("duplicate_diagnostics", {}).get("status") != "unique_recovered_support",
+            item.get("duplicate_diagnostics", {}).get("status") not in {"unique_recovered_support", "offset_parallel_same_pair_candidate"},
             -float(item.get("contact_recovery_score") or 0.0),
             item.get("candidate_id"),
         )
