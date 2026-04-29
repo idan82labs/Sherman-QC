@@ -143,7 +143,8 @@ This note records assistant visual inspection of the 1080p review renders after 
 - Added `scripts/analyze_f1_interior_bend_gaps.py` and `scripts/render_f1_interior_bend_gaps.py` to test an interior-only missed-bend search that excludes already-owned bend atoms.
 - Interior-gap result: promising diagnostic signal. It finds two adjacent admissible fragments (`IBG1`, `IBG2`) on the interior panel area and merges them into one candidate hypothesis (`IBH1`), instead of repeating the lower-edge alias failure.
 - Fed `IBH1` back into the junction-aware arrangement as an interior birth input. Result: safe rejection, with `36` tested flange-pair attachments and `0` incidence-validated candidates.
-- Decision: do not promote. Keep `48991006` as a poor-scan / duplicate-support / missed-interior-bend fail-safe case. The next blocker is local flange/contact recovery around `IBH1`, not more raw interior detection.
+- Added local flange/contact recovery around the interior fragments. Result: `IBG1` validates as a recovered `F1-F5` contact candidate (`axis_delta=3.9°`, `mean_normal_arc_cost=0.106`, nearby counts `F1=134`, `F5=38`), while `IBG2` and merged `IBH1` remain rejected.
+- Decision: do not promote. Keep `48991006` as a poor-scan / duplicate-support / missed-interior-bend fail-safe case. The next step is to add `IBG1/F1-F5` to a diagnostic arrangement pass and verify it does not duplicate existing raw `F1-F5` bend regions.
 
 ## Cross-Scan Junction Diagnostic: `47959001`
 
