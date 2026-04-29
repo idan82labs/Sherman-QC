@@ -112,6 +112,14 @@ This note records assistant visual inspection of the 1080p review renders after 
 - Visual inspection confirms the sub-cluster remains one broad same-zone support patch, not two separated missing conventional bends.
 - Decision: reject this sub-cluster method as promotion logic. The next game plan needs a different support partition cue, likely local normal/curvature ridge tracing or manual/professor-guided interface-line constraints, before exact recovery on `49024000`.
 
+## Local Ridge-Tracing Visual Gate
+
+- Added `scripts/trace_f1_local_ridge_candidates.py` to trace high curvature / high normal-contrast atoms inside the residual/interface candidate domain.
+- `49024000` result: `domain_atom_count=319`, `ridge_atom_count=118`, `candidate_count=1`, `admissible_candidate_count=1`, `status=partial_ridge_signal`.
+- Generated 1080p overlays in iCloud under `feature_region_labels_20260427/49024000_local_ridge_visual_check/`.
+- Visual inspection: ridge tracing is sharper than broad residual/interface support, but the output is still one U/corner-shaped ridge around the same zone. It does not separate into the two missing conventional bend lines.
+- Decision: reject local ridge tracing alone as promotion logic. The next useful step is likely professor guidance or an explicit interface-line/support assignment formulation that can separate connected corner ridges into distinct conventional bend objects.
+
 ## Remaining Before Promotion
 
 - Keep `49024000` treated as a 3-bend manual-truth case; only `OB2` was manually accepted in the previous raw debug view.

@@ -44,8 +44,12 @@ def test_subclusters_split_large_projection_gap():
     right = [_atom(f"R{i}", 60.0 + i * 2.0) for i in range(8)]
     atoms = left + right
     payload = _payload(atoms)
-    payload["atom_graph"]["adjacency"]["L7"] = []
-    payload["atom_graph"]["adjacency"]["R0"] = []
+    payload["atom_graph"]["adjacency"]["L7"] = [
+        value for value in payload["atom_graph"]["adjacency"]["L7"] if value != "R0"
+    ]
+    payload["atom_graph"]["adjacency"]["R0"] = [
+        value for value in payload["atom_graph"]["adjacency"]["R0"] if value != "L7"
+    ]
     diagnostics = {
         "status": "ambiguous_overlapping_candidate_pool",
         "recovery_deficit": 2,
