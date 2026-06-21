@@ -211,6 +211,135 @@ export const healthApi = {
   },
 }
 
+export type ManualProfile = 'cell_operation' | 'software'
+export type ManualSupportState =
+  | 'chat_answer'
+  | 'supported'
+  | 'partial_support'
+  | 'partial_support_visual_gap'
+  | 'not_found'
+  | 'conflict'
+  | 'clarification'
+
+export interface ManualAsset {
+  kind: 'page' | 'crop'
+  manual_id: string
+  page_number: number
+  path: string
+  url: string
+  bbox?: number[] | null
+  element_type: string
+}
+
+export interface ManualEvidence {
+  citation_id: string
+  manual_id: string
+  profile: ManualProfile
+  page_number: number
+  element_type: string
+  source_text: string
+  excerpt: string
+  page_image?: ManualAsset | null
+  crop?: ManualAsset | null
+  visual_required: boolean
+  retrieval: Record<string, unknown>
+}
+
+export interface ManualChatRequest {
+  profile: ManualProfile
+  message: string
+  attachment_ids?: string[]
+  ui_language?: 'en' | 'he'
+  answer_language?: 'follow_ui' | 'same_as_question' | 'english_source'
+  retrieval_profile?: 'fast' | 'accurate'
+}
+
+export interface ManualChatResponse {
+  request_id: string
+  profile: ManualProfile
+  support_state: ManualSupportState
+  answer: string
+  citations: ManualEvidence[]
+  visual_gap: boolean
+  retrieval_trace: ManualEvidence[]
+  warnings: string[]
+  suggested_profile?: ManualProfile | null
+  model: string
+  provider?: string
+  assistant_mode: 'chat' | 'manual_rag_tool' | 'retrieval_only'
+  intent?: string | null
+  tool_calls: Array<Record<string, unknown>>
+}
+
+export interface ManualInfo {
+  manual_id: string
+  profile: ManualProfile
+  filename: string
+  page_count: number
+  indexed_pages: number
+  visual_pages: number
+}
+
+export interface ManualIngestionResponse {
+  status: string
+  manuals: ManualInfo[]
+  total_pages: number
+  rendered_pages: number
+  crop_count: number
+  cache_path: string
+  warnings: string[]
+}
+
+export interface ManualAttachmentResponse {
+  attachment_id: string
+  filename: string
+  content_type?: string | null
+  size_bytes: number
+  url?: string | null
+}
+
+export const manualAssistantApi = {
+  chat: async (data: ManualChatRequest): Promise<ManualChatResponse> => {
+    const response = await api.post('/manual-assistant/chat', data)
+    return response.data
+  },
+
+  shermanChat: async (data: ManualChatRequest): Promise<ManualChatResponse> => {
+    const response = await api.post('/sherman-chat/chat', data)
+    return response.data
+  },
+
+  uploadPhoto: async (file: File): Promise<ManualAttachmentResponse> => {
+    const form = new FormData()
+    form.append('file', file)
+    const response = await api.post('/manual-assistant/uploads/photo', form, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+      timeout: 120000,
+    })
+    return response.data
+  },
+
+  transcribe: async (file: Blob): Promise<{ text: string }> => {
+    const form = new FormData()
+    form.append('file', file, 'voice.webm')
+    const response = await api.post('/manual-assistant/transcribe', form, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+      timeout: 120000,
+    })
+    return response.data
+  },
+
+  ingest: async (force = false): Promise<ManualIngestionResponse> => {
+    const response = await api.post('/admin/manuals/ingest', null, { params: { force } })
+    return response.data
+  },
+
+  listManuals: async (): Promise<ManualIngestionResponse> => {
+    const response = await api.get('/admin/manuals')
+    return response.data
+  },
+}
+
 // Bend Inspection API
 export interface BendInspectionJob {
   job_id: string
@@ -284,7 +413,10 @@ export interface BendMatch {
   tolerance_angle: number
   tolerance_radius: number
   physical_completion_state?: 'FORMED' | 'NOT_FORMED' | 'UNKNOWN' | string
-  observability_state?: 'OBSERVED_FORMED' | 'OBSERVED_NOT_FORMED' | 'PARTIALLY_OBSERVED' | 'UNOBSERVED' | string
+  observability_state?: 'FORMED' | 'UNFORMED' | 'UNKNOWN' | string
+  observability_detail_state?: 'OBSERVED_FORMED' | 'OBSERVED_NOT_FORMED' | 'PARTIALLY_OBSERVED' | 'UNOBSERVED' | string
+  feature_family?: 'COUNTABLE_DISCRETE_BEND' | 'ROLLED_PROCESS_FEATURE' | 'NON_BEND_TRANSITION' | string
+  measurement_primitive?: 'ANGLE_RADIUS' | 'ROLLED_PROFILE' | 'PROFILE' | string
   observability_confidence?: number
   visibility_score?: number
   visibility_score_source?: string
@@ -298,6 +430,22 @@ export interface BendMatch {
   assignment_candidate_score?: number
   assignment_null_score?: number
   assignment_candidate_count?: number
+  heatmap_consistency?: {
+    status: 'SUPPORTED' | 'CONTRADICTED' | 'INSUFFICIENT_EVIDENCE' | 'NOT_APPLICABLE' | string
+    consistency_score?: number | null
+    independence_class?: 'INDEPENDENT' | 'PARTIAL' | 'NON_INDEPENDENT' | string | null
+    roi_mode?: string | null
+    axial_half_window_mm?: number | null
+    radial_radius_mm?: number | null
+    roi_point_count?: number
+    roi_coverage_ratio?: number | null
+    local_abs_mean_mm?: number | null
+    local_abs_p95_mm?: number | null
+    local_out_of_tol_ratio?: number | null
+    side_asymmetry_score?: number | null
+    signal_extent_along_flange?: number | null
+    notes?: string[]
+  }
   measurement_context?: Record<string, unknown>
 }
 
@@ -319,6 +467,7 @@ export interface ScanQualitySummary {
 
 export interface BendInspectionReport {
   part_id: string
+  alignment?: Record<string, unknown>
   summary: {
     total_bends: number
     detected: number
@@ -337,6 +486,7 @@ export interface BendInspectionReport {
     rolled_bends?: number
     folded_bends?: number
     critical_actions?: number
+    process_feature_actions?: number
     scan_quality_status?: string
     scan_coverage_pct?: number
     scan_density_pts_per_cm2?: number
@@ -348,6 +498,15 @@ export interface BendInspectionReport {
     structured_count_mean?: number
     structured_count_map?: number
     structured_count_delta_vs_match?: number
+    heatmap_consistency_summary?: {
+      status: 'SUPPORTED' | 'WEAK_SUPPORT' | 'CONTRADICTED' | 'NOT_APPLICABLE' | string
+      inconsistent_bend_count?: number
+      insufficient_evidence_bend_count?: number
+      evaluable_bend_count?: number
+      bend_roi_energy_share?: number | null
+      global_in_tolerance_rate?: number | null
+      notes?: string[]
+    }
   }
   operator_brief?: {
     headline?: string
@@ -359,6 +518,12 @@ export interface BendInspectionReport {
     }>
   }
   operator_actions?: Array<{
+    bend_id: string
+    status: 'PASS' | 'FAIL' | 'WARNING' | 'NOT_DETECTED' | string
+    location?: string
+    action?: string
+  }>
+  process_feature_actions?: Array<{
     bend_id: string
     status: 'PASS' | 'FAIL' | 'WARNING' | 'NOT_DETECTED' | string
     location?: string

@@ -8,6 +8,8 @@ import Batch from './pages/Batch'
 import BendInspection from './pages/BendInspection'
 import PartCatalog from './pages/PartCatalog'
 import LiveScan from './pages/LiveScan'
+import ManualAssistant from './pages/ManualAssistant'
+import ShermanChat from './pages/ShermanChat'
 import BenderViewPage from './pages/BenderViewPage'
 import Login from './pages/Login'
 import { useAuth } from './hooks/useAuth'
@@ -30,6 +32,8 @@ export default function App() {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
+      <Route path="/sherman-chat" element={<ShermanChat />} />
+      <Route path="/assistant" element={<ShermanChat />} />
       {/* Bender's View — standalone full-screen, no sidebar */}
       <Route path="/bender-view/:jobId" element={
         <PrivateRoute><BenderViewPage /></PrivateRoute>
@@ -50,6 +54,7 @@ export default function App() {
         <Route path="bend-inspection" element={<BendInspection />} />
         <Route path="parts" element={<PartCatalog />} />
         <Route path="live-scan" element={<LiveScan />} />
+        <Route path="assistant-dev" element={<ManualAssistant />} />
       </Route>
     </Routes>
   )

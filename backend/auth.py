@@ -20,7 +20,14 @@ from abc import ABC, abstractmethod
 logger = logging.getLogger(__name__)
 
 # Configuration
-SECRET_KEY = os.environ.get("SECRET_KEY", "change-this-to-a-secure-random-string")
+_CONFIGURED_SECRET_KEY = os.environ.get("SECRET_KEY", "")
+if os.environ.get("PRODUCTION", "").strip().lower() in {"1", "true", "yes", "on"} and _CONFIGURED_SECRET_KEY in {
+    "",
+    "change-this-to-a-secure-random-string",
+    "change-this-in-production",
+}:
+    raise RuntimeError("SECRET_KEY must be set to a non-default value in production")
+SECRET_KEY = _CONFIGURED_SECRET_KEY or secrets.token_hex(32)
 JWT_EXPIRATION_HOURS = int(os.environ.get("JWT_EXPIRATION_HOURS", "24"))
 DATABASE_PATH = Path(__file__).parent.parent / "data" / "users.db"
 DATABASE_URL = os.environ.get("DATABASE_URL", "")

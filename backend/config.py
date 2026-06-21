@@ -57,7 +57,7 @@ def get_list(key: str, default: str = "") -> List[str]:
 @dataclass
 class ServerConfig:
     """Server configuration"""
-    host: str = os.environ.get("HOST", "0.0.0.0")
+    host: str = os.environ.get("HOST", "127.0.0.1")
     port: int = get_int("PORT", 8080)
     workers: int = get_int("WORKERS", 4)
     request_timeout: int = get_int("REQUEST_TIMEOUT", 300)
@@ -150,7 +150,12 @@ class SecurityConfig:
     """Security configuration"""
     secret_key: str = os.environ.get("SECRET_KEY", "change-this-to-a-secure-random-string")
     jwt_expiration_hours: int = get_int("JWT_EXPIRATION_HOURS", 24)
-    cors_origins: List[str] = field(default_factory=lambda: get_list("CORS_ORIGINS", "*"))
+    cors_origins: List[str] = field(
+        default_factory=lambda: get_list(
+            "CORS_ORIGINS",
+            "http://localhost:3000,http://127.0.0.1:3000,http://localhost:5173,http://127.0.0.1:5173",
+        )
+    )
 
 
 @dataclass

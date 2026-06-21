@@ -573,7 +573,11 @@ function BendInspectionResults({
   const countableMatches = useMemo(() => matches.filter(isCountableBend), [matches])
   const displayBendLabels = useMemo(() => buildDisplayBendLabelMap(matches), [matches])
   const rolledProcessCount = Math.max(0, matches.length - countableMatches.length)
-  const preferredBend = useMemo(() => preferredFocusedBendId(matches, report.operator_actions), [matches, report.operator_actions])
+  const heatmapConsistencySummary = summary.heatmap_consistency_summary
+  const bendActionQueue = report.operator_brief?.actions
+    ?? (report.operator_actions ?? []).filter((action) => countableMatches.some((match) => match.bend_id === action.bend_id))
+  const processActionQueue = report.process_feature_actions ?? []
+  const preferredBend = useMemo(() => preferredFocusedBendId(matches, bendActionQueue), [matches, bendActionQueue])
   const [focusedBendId, setFocusedBendId] = useState<string | null>(preferredBend)
 
   useEffect(() => {
@@ -583,18 +587,36 @@ function BendInspectionResults({
   return (
     <div className={clsx('space-y-4', compact && 'space-y-2')}>
       {/* Operator brief */}
-      {!!report.operator_actions?.length && (
+      {(!!bendActionQueue.length || !!processActionQueue.length) && (
         <div className="bg-dark-700/40 border border-dark-600 rounded-lg p-3">
-          <p className="text-xs text-dark-400 uppercase tracking-wide">Action queue</p>
-          <ul className="mt-2 space-y-1 text-xs text-dark-300">
-            {report.operator_actions.slice(0, compact ? 2 : 4).map((a, idx) => (
-              <li key={`${a.bend_id}-${idx}`}>
-                <span className="text-dark-100 font-medium">{displayBendLabels.get(a.bend_id) ?? a.bend_id}</span>
-                {' - '}
-                {a.action}
-              </li>
-            ))}
-          </ul>
+          {!!bendActionQueue.length && (
+            <>
+              <p className="text-xs text-dark-400 uppercase tracking-wide">Action queue</p>
+              <ul className="mt-2 space-y-1 text-xs text-dark-300">
+                {bendActionQueue.slice(0, compact ? 2 : 4).map((a, idx) => (
+                  <li key={`${a.bend_id}-${idx}`}>
+                    <span className="text-dark-100 font-medium">{displayBendLabels.get(a.bend_id) ?? a.bend_id}</span>
+                    {' - '}
+                    {a.action}
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+          {!!processActionQueue.length && (
+            <div className={clsx(!!bendActionQueue.length && 'mt-3 border-t border-dark-600 pt-2')}>
+              <p className="text-[11px] uppercase tracking-wide text-dark-500">Process features</p>
+              <ul className="mt-1 space-y-1 text-[11px] text-dark-400">
+                {processActionQueue.slice(0, compact ? 1 : 3).map((a, idx) => (
+                  <li key={`process-${a.bend_id}-${idx}`}>
+                    <span className="text-dark-300 font-medium">{displayBendLabels.get(a.bend_id) ?? a.bend_id}</span>
+                    {' - '}
+                    {a.action}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
       )}
 
@@ -635,6 +657,10 @@ function BendInspectionResults({
             </div>
           </div>
         </div>
+      )}
+
+      {!compact && heatmapConsistencySummary && heatmapConsistencySummary.status !== 'NOT_APPLICABLE' && (
+        <HeatmapConsistencySummaryStrip summary={heatmapConsistencySummary} />
       )}
 
       {scanQuality && (
@@ -745,6 +771,7 @@ function BendInspectionResults({
               <th className={clsx('pb-2', compact ? 'pr-2' : 'pr-4')}>Radius (mm)</th>
               <th className={clsx('pb-2', compact ? 'pr-2' : 'pr-4')}>Edge/Arc (mm)</th>
               <th className="pb-2">Status</th>
+              <th className={clsx('pb-2', compact ? 'pr-2' : 'pr-4')}>Heatmap</th>
               {!compact && <th className="pb-2 pl-3">Action</th>}
             </tr>
           </thead>
@@ -755,7 +782,7 @@ function BendInspectionResults({
                 match={match}
                 compact={compact}
                 focused={focusedBendId === match.bend_id}
-                onFocus={() => setFocusedBendId(match.bend_id)}
+                onFocus={isCountableBend(match) ? () => setFocusedBendId(match.bend_id) : undefined}
                 displayLabel={displayBendLabels.get(match.bend_id) ?? match.bend_id}
               />
             ))}
@@ -791,7 +818,7 @@ function BendProgressStrip({
       <div className="flex items-center justify-between mb-2">
         <p className="text-xs text-dark-400 uppercase tracking-wide">Bend Progress Map</p>
         {!compact && (
-          <p className="text-xs text-dark-500">CAD bend IDs colored by inspection status</p>
+          <p className="text-xs text-dark-500">User-facing bend labels colored by inspection status</p>
         )}
       </div>
       <div className={clsx('grid gap-1', compact ? 'grid-cols-6' : 'grid-cols-8')}>
@@ -851,12 +878,12 @@ function BendCadOverlay3D({
   displayBendLabels: Map<string, string>
 }) {
   const focusPoint = useMemo<[number, number, number] | null>(() => {
-    const focused = matches.find((match) => match.bend_id === focusedBendId)
+    const focused = countableMatches.find((match) => match.bend_id === focusedBendId)
     if (!focused) return null
     return parseLinePoint(focused.callout_anchor)
       ?? midpointFromMatch(focused)
       ?? null
-  }, [focusedBendId, matches])
+  }, [focusedBendId, countableMatches])
   const focusedMatch = useMemo(
     () => countableMatches.find((match) => match.bend_id === focusedBendId) ?? null,
     [countableMatches, focusedBendId],
@@ -919,6 +946,9 @@ function BendCadOverlay3D({
                 )}>
                   {focusedMatch.status.replace('_', ' ')}
                 </span>
+                {focusedMatch.heatmap_consistency && (
+                  <HeatmapConsistencyChip consistency={focusedMatch.heatmap_consistency} />
+                )}
               </div>
               <div className="mt-2 flex flex-wrap items-center gap-3">
                 <div className="text-xl font-semibold text-dark-100">
@@ -936,6 +966,11 @@ function BendCadOverlay3D({
               <p className="mt-2 text-xs text-dark-500">
                 Viewer rotates to the selected bend’s inspection angle. Continue rotating manually to verify edge profile and detected overlay against the CAD reference.
               </p>
+              {focusedMatch.heatmap_consistency && (
+                <div className="mt-3 max-w-[720px]">
+                  <HeatmapConsistencyDetails consistency={focusedMatch.heatmap_consistency} />
+                </div>
+              )}
             </div>
             <div className="flex flex-wrap gap-2 lg:max-w-[520px] lg:justify-end">
               <FocusedMetricCard
@@ -971,12 +1006,12 @@ function BendCadOverlay3D({
               <p className="text-[11px] uppercase tracking-[0.18em] text-dark-400">Overview mode</p>
               <p className="mt-1 text-sm text-dark-200">
                 {issueMatches.length
-                  ? `${issueMatches.length} bends need attention. Select a bend chip below to isolate its diff and inspection angle.`
-                  : 'No out-of-tolerance bends are active. Select any bend below to inspect its measured vs expected geometry.'}
+                  ? `${issueMatches.length} bends need attention. Select a bend chip below to focus the camera and inspect its diff while keeping the other countable bends visible for context.`
+                  : 'No out-of-tolerance bends are active. Select any bend below to inspect its measured vs expected geometry while keeping the other countable bends visible.'}
               </p>
             </div>
             <div className="rounded-lg border border-dark-600 bg-dark-800/70 px-3 py-2 text-xs text-dark-300">
-              The viewer keeps all warning/fail bends visible at once.
+              The viewer keeps all countable bends visible at once and emphasizes the selected bend.
             </div>
           </div>
         )}
@@ -1022,6 +1057,101 @@ function FocusedMetricCard({
       <div className="text-[10px] uppercase tracking-[0.16em] text-dark-400">{label}</div>
       <div className="mt-1 text-sm font-semibold">{value}</div>
     </div>
+  )
+}
+
+function HeatmapConsistencyChip({
+  consistency,
+}: {
+  consistency: NonNullable<BendMatch['heatmap_consistency']>
+}) {
+  const status = consistency.status || 'NOT_APPLICABLE'
+  const label = status.split('_').join(' ')
+  const classes: Record<string, string> = {
+    SUPPORTED: 'border-emerald-400/40 bg-emerald-500/12 text-emerald-200',
+    CONTRADICTED: 'border-red-400/40 bg-red-500/12 text-red-200',
+    INSUFFICIENT_EVIDENCE: 'border-dark-500 bg-dark-700 text-dark-200',
+    NOT_APPLICABLE: 'border-dark-500 bg-dark-700 text-dark-300',
+  }
+  return (
+    <span className={clsx(
+      'rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em]',
+      classes[status] ?? classes.NOT_APPLICABLE,
+    )}>
+      Heatmap {label}
+    </span>
+  )
+}
+
+function HeatmapConsistencySummaryStrip({
+  summary,
+}: {
+  summary: NonNullable<BendInspectionJob['report']>['summary']['heatmap_consistency_summary']
+}) {
+  if (!summary) return null
+  const status = summary.status || 'NOT_APPLICABLE'
+  const boxClasses: Record<string, string> = {
+    SUPPORTED: 'border-emerald-400/30 bg-emerald-500/8',
+    WEAK_SUPPORT: 'border-amber-400/30 bg-amber-500/8',
+    CONTRADICTED: 'border-red-400/30 bg-red-500/8',
+    NOT_APPLICABLE: 'border-dark-600 bg-dark-800/50',
+  }
+  return (
+    <div className={clsx('rounded-lg border p-3', boxClasses[status] ?? boxClasses.NOT_APPLICABLE)}>
+      <div className="flex flex-col gap-2 lg:flex-row lg:items-start lg:justify-between">
+        <div>
+          <p className="text-xs uppercase tracking-wide text-dark-300">Heatmap Consistency</p>
+          <p className="mt-1 text-sm text-dark-100">
+            Whole-part heatmap agreement is <span className="font-semibold">{status.split('_').join(' ').toLowerCase()}</span>.
+          </p>
+          {!!summary.notes?.length && (
+            <p className="mt-1 text-xs text-dark-400">{summary.notes.join(' ')}</p>
+          )}
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <FocusedMetricCard label="Inconsistent" value={`${summary.inconsistent_bend_count ?? 0}`} tone="neutral" />
+          <FocusedMetricCard label="Insufficient" value={`${summary.insufficient_evidence_bend_count ?? 0}`} tone="neutral" />
+          <FocusedMetricCard label="ROI Energy" value={summary.bend_roi_energy_share != null ? `${(summary.bend_roi_energy_share * 100).toFixed(0)}%` : '-'} tone="neutral" />
+          <FocusedMetricCard label="Global In Tol." value={summary.global_in_tolerance_rate != null ? `${(summary.global_in_tolerance_rate * 100).toFixed(1)}%` : '-'} tone="neutral" />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function HeatmapConsistencyDetails({
+  consistency,
+}: {
+  consistency: NonNullable<BendMatch['heatmap_consistency']>
+}) {
+  const [open, setOpen] = useState(false)
+  return (
+    <details
+      open={open}
+      onToggle={(event) => setOpen((event.currentTarget as HTMLDetailsElement).open)}
+      className="rounded-lg border border-dark-600 bg-dark-800/60"
+    >
+      <summary className="flex cursor-pointer list-none items-center justify-between px-3 py-2 text-xs text-dark-300">
+        <span>Heatmap evidence details</span>
+        <span className="inline-flex items-center gap-1 text-dark-400">
+          {open ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
+          {consistency.independence_class ?? 'UNKNOWN'}
+        </span>
+      </summary>
+      <div className="grid gap-2 border-t border-dark-700 px-3 py-3 md:grid-cols-3">
+        <FocusedMetricCard label="ROI Points" value={`${consistency.roi_point_count ?? 0}`} tone="neutral" />
+        <FocusedMetricCard label="Coverage" value={consistency.roi_coverage_ratio != null ? `${(consistency.roi_coverage_ratio * 100).toFixed(0)}%` : '-'} tone="neutral" />
+        <FocusedMetricCard label="Score" value={consistency.consistency_score != null ? consistency.consistency_score.toFixed(2) : '-'} tone="neutral" />
+        <FocusedMetricCard label="Abs Mean" value={consistency.local_abs_mean_mm != null ? `${consistency.local_abs_mean_mm.toFixed(2)}mm` : '-'} tone="neutral" />
+        <FocusedMetricCard label="Abs P95" value={consistency.local_abs_p95_mm != null ? `${consistency.local_abs_p95_mm.toFixed(2)}mm` : '-'} tone="neutral" />
+        <FocusedMetricCard label="Out of Tol." value={consistency.local_out_of_tol_ratio != null ? `${(consistency.local_out_of_tol_ratio * 100).toFixed(0)}%` : '-'} tone="neutral" />
+      </div>
+      {!!consistency.notes?.length && (
+        <div className="border-t border-dark-700 px-3 py-2 text-xs text-dark-400">
+          {consistency.notes.join(' ')}
+        </div>
+      )}
+    </details>
   )
 }
 
@@ -1410,7 +1540,8 @@ function BendRow({
   return (
     <tr
       className={clsx(
-        'border-b border-dark-700/50 cursor-pointer transition-colors',
+        'border-b border-dark-700/50 transition-colors',
+        onFocus ? 'cursor-pointer' : 'cursor-default',
         focused && 'bg-primary-500/8',
       )}
       onClick={onFocus}
@@ -1507,6 +1638,20 @@ function BendRow({
         )}>
           {match.status === 'NOT_DETECTED' ? 'Not yet' : match.status}
         </span>
+      </td>
+      <td className={clsx('py-2 text-dark-300', compact ? 'pr-2' : 'pr-4')}>
+        {match.heatmap_consistency ? (
+          <div className="space-y-1">
+            <HeatmapConsistencyChip consistency={match.heatmap_consistency} />
+            {!compact && (
+              <div className="text-[11px] text-dark-500">
+                ROI {(match.heatmap_consistency.roi_coverage_ratio != null ? `${(match.heatmap_consistency.roi_coverage_ratio * 100).toFixed(0)}%` : '-')}
+              </div>
+            )}
+          </div>
+        ) : (
+          <span className="text-xs text-dark-500">-</span>
+        )}
       </td>
       {!compact && (
         <td className="py-2 pl-3 text-dark-300 max-w-[300px]">

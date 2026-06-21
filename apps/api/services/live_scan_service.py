@@ -1,0 +1,18 @@
+from __future__ import annotations
+
+from apps.api.legacy_context import legacy
+
+get_live_scan_demo_options = legacy.get_live_scan_demo_options
+load_live_scan_demo_scan = legacy.load_live_scan_demo_scan
+get_live_scan_session = legacy.get_live_scan_session
+get_live_scan_session_points = legacy.get_live_scan_session_points
+confirm_live_scan_part = legacy.confirm_live_scan_part
+complete_live_scan = legacy.complete_live_scan
+cancel_live_scan = legacy.cancel_live_scan
+reset_live_scan_session = legacy.reset_live_scan_session
+start_live_scan_manager = legacy.start_live_scan_manager
+stop_live_scan_manager = legacy.stop_live_scan_manager
+get_live_scan_status = legacy.get_live_scan_status
+get_live_scan_config = legacy.get_live_scan_config
+update_live_scan_config = legacy.update_live_scan_config
+stream_live_scan_session = legacy.stream_live_scan_session

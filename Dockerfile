@@ -1,69 +1,71 @@
-# Sherman Scan QC System - Production Dockerfile
-# Multi-stage build for optimized image size
+# ShermanChat production image for Render.
 
-# ============================================================================
-# Stage 1: Build dependencies
-# ============================================================================
-FROM python:3.11-slim as builder
+FROM node:22-slim AS frontend-builder
+
+WORKDIR /app/frontend/react
+COPY frontend/react/package*.json ./
+RUN npm ci
+COPY frontend/react/ ./
+RUN npm run build
+
+
+FROM python:3.11-slim AS python-builder
 
 WORKDIR /app
-
-# Install build dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
-    libgl1-mesa-glx \
-    libglib2.0-0 \
     && rm -rf /var/lib/apt/lists/*
-
-# Install Python dependencies
 COPY requirements.txt .
-RUN pip install --no-cache-dir --user -r requirements.txt
+RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
 
-# ============================================================================
-# Stage 2: Production image
-# ============================================================================
+
 FROM python:3.11-slim
 
 WORKDIR /app
 
-# Install runtime dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    libgl1-mesa-glx \
+    libgl1 \
     libglib2.0-0 \
+    libgomp1 \
     libsm6 \
     libxext6 \
     libxrender1 \
-    libgomp1 \
-    && rm -rf /var/lib/apt/lists/* \
-    && apt-get clean
+    && rm -rf /var/lib/apt/lists/*
 
-# Copy Python packages from builder
-COPY --from=builder /root/.local /root/.local
-ENV PATH=/root/.local/bin:$PATH
+COPY --from=python-builder /install /usr/local
 
-# Copy application code
+COPY apps/ ./apps/
 COPY backend/ ./backend/
-COPY frontend/ ./frontend/
-COPY run.py .
+COPY contracts/ ./contracts/
+COPY domains/ ./domains/
+COPY infrastructure/ ./infrastructure/
 COPY requirements.txt .
 
-# Create directories for data
-RUN mkdir -p /app/data /app/uploads /app/output /app/logs
+COPY data/manual_assistant/index/ ./data/manual_assistant/index/
+COPY data/manual_assistant/page_images/ ./data/manual_assistant/page_images/
+COPY data/manual_assistant/crops/ ./data/manual_assistant/crops/
+COPY data/manual_assistant/gold_eval_cases.json ./data/manual_assistant/gold_eval_cases.json
 
-# Environment variables
-ENV PYTHONUNBUFFERED=1
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV HOST=0.0.0.0
-ENV PORT=8080
-ENV PRODUCTION=true
-ENV LOG_LEVEL=INFO
+COPY --from=frontend-builder /app/frontend/dist/ ./frontend/
 
-# Expose port
-EXPOSE 8080
+RUN mkdir -p /app/data/manual_assistant/uploads /app/uploads /app/output /app/logs
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8080/api/health')" || exit 1
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    HOST=0.0.0.0 \
+    PORT=10000 \
+    PRODUCTION=true \
+    LOG_LEVEL=INFO \
+    SHERMAN_CHAT_PROVIDER=mock \
+    SHERMAN_CHAT_MODEL=gpt-5.5 \
+    SHERMAN_RETRIEVAL_BACKEND=local \
+    SHERMAN_MANUAL_DATA_DIR=/app/data/manual_assistant \
+    SHERMAN_CHAT_INCLUDE_RETRIEVAL_TRACE=false \
+    SHERMAN_CHAT_ALLOW_REMOTE_CODEX=false
 
-# Run the application
-CMD ["python", "run.py"]
+EXPOSE 10000
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=20s --retries=3 \
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:' + __import__('os').environ.get('PORT', '10000') + '/api/health')" || exit 1
+
+CMD ["sh", "-c", "uvicorn apps.api.main:app --host 0.0.0.0 --port ${PORT:-10000}"]

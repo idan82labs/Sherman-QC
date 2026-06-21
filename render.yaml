@@ -1,0 +1,31 @@
+services:
+  - type: web
+    name: sherman-chat
+    runtime: docker
+    plan: starter
+    region: frankfurt
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: PRODUCTION
+        value: "true"
+      - key: LOG_LEVEL
+        value: INFO
+      - key: SECRET_KEY
+        generateValue: true
+      - key: SHERMAN_CHAT_PROVIDER
+        value: mock
+      - key: SHERMAN_CHAT_MODEL
+        value: gpt-5.5
+      - key: SHERMAN_RETRIEVAL_BACKEND
+        value: local
+      - key: SHERMAN_MANUAL_DATA_DIR
+        value: /app/data/manual_assistant
+      - key: SHERMAN_CHAT_INCLUDE_RETRIEVAL_TRACE
+        value: "false"
+      - key: SHERMAN_CHAT_ALLOW_REMOTE_CODEX
+        value: "false"
+      - key: SHERMAN_CHAT_REQUIRE_AUTH
+        value: "false"
