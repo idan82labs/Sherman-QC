@@ -23,6 +23,7 @@ import logging
 import os
 from pathlib import Path
 from time import perf_counter
+import sys
 from typing import Any, Dict, List, Optional, Tuple
 import warnings
 
@@ -30,8 +31,13 @@ import numpy as np
 from scipy.spatial import cKDTree
 import open3d as o3d
 
+ROOT = Path(__file__).resolve().parent.parent
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
 from cad_import import import_cad_file
 from cad_bend_extractor import CADBendExtractor as LegacyMeshCADBendExtractor
+from domains.bend.services.part_profiling import build_cad_part_profile, build_scan_part_profile
 from domains.bend.services.runtime_semantics import normalize_observability_state
 from feature_detection import (
     BendDetector,
@@ -175,6 +181,14 @@ class BendInspectionRunDetails:
     local_alignment_seed: Optional[int] = None
     local_alignment_fitness: Optional[float] = None
     local_alignment_rmse: Optional[float] = None
+    profile_mode: Optional[str] = None
+    nominal_source_class: Optional[str] = None
+    profile_confidence: Optional[float] = None
+    cad_structural_target: Optional[Dict[str, Any]] = None
+    scan_part_profile: Optional[Dict[str, Any]] = None
+    scan_structural_hypothesis: Optional[Dict[str, Any]] = None
+    profile_selector_result: Optional[Dict[str, Any]] = None
+    scan_only_diagnostic_mismatch: Optional[Dict[str, Any]] = None
     # CAD geometry from the pipeline run (same vertices used for bend detection).
     # Used to export the reference mesh PLY in the SAME coordinate system as
     # the bend line coordinates, avoiding dual-import coordinate mismatches.
@@ -216,7 +230,142 @@ class BendInspectionRunDetails:
                 if self.local_alignment_rmse is not None
                 else None
             ),
+            "profile_mode": self.profile_mode,
+            "nominal_source_class": self.nominal_source_class,
+            "profile_confidence": (
+                round(float(self.profile_confidence), 4)
+                if self.profile_confidence is not None
+                else None
+            ),
+            "cad_structural_target": self.cad_structural_target,
+            "scan_part_profile": self.scan_part_profile,
+            "scan_structural_hypothesis": self.scan_structural_hypothesis,
+            "profile_selector_result": self.profile_selector_result,
+            "scan_only_diagnostic_mismatch": self.scan_only_diagnostic_mismatch,
         }
+
+
+def _build_scan_structural_payload_from_report(
+    report: BendInspectionReport,
+    *,
+    scan_state: str,
+    scan_quality: Optional[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
+    strips: List[Dict[str, Any]] = []
+    dominant_angles: List[float] = []
+    for index, match in enumerate(getattr(report, "matches", []) or [], start=1):
+        detected = getattr(match, "detected_bend", None)
+        cad_bend = getattr(match, "cad_bend", None)
+        if detected is None or cad_bend is None:
+            continue
+        bend_form = str(getattr(cad_bend, "bend_form", "FOLDED") or "FOLDED").upper()
+        strip_family = "rolled_transition_strip" if bend_form == "ROLLED" else "discrete_fold_strip"
+        line_center = getattr(match, "line_center_deviation_mm", None)
+        observability_status = "supported" if line_center is not None else "scan_limited"
+        direction = np.asarray(getattr(detected, "bend_line_direction", np.array([1.0, 0.0, 0.0])), dtype=np.float64)
+        direction_norm = np.linalg.norm(direction)
+        if direction_norm > 1e-8:
+            direction = direction / direction_norm
+        midpoint = (
+            np.asarray(getattr(detected, "bend_line_start", np.zeros(3)), dtype=np.float64)
+            + np.asarray(getattr(detected, "bend_line_end", np.zeros(3)), dtype=np.float64)
+        ) / 2.0
+        strips.append(
+            {
+                "strip_id": f"S{index}",
+                "strip_family": strip_family if observability_status == "supported" else "scan_limited_strip",
+                "axis_direction": [float(v) for v in direction.tolist()],
+                "axis_line_hint": {
+                    "midpoint": [float(v) for v in midpoint.tolist()],
+                    "cad_bend_id": str(getattr(cad_bend, "bend_id", "")),
+                },
+                "adjacent_flange_normals": [
+                    [float(v) for v in np.asarray(getattr(cad_bend, "flange1_normal", np.zeros(3)), dtype=np.float64).tolist()],
+                    [float(v) for v in np.asarray(getattr(cad_bend, "flange2_normal", np.zeros(3)), dtype=np.float64).tolist()],
+                ],
+                "dominant_angle_deg": float(getattr(detected, "measured_angle", 0.0) or 0.0),
+                "radius_mm": float(getattr(detected, "measured_radius", 0.0) or 0.0),
+                "support_patch_ids": [str(getattr(cad_bend, "bend_id", f"CAD_B{index}"))],
+                "support_point_count": int(getattr(detected, "inlier_count", 0) or 0),
+                "cross_fold_width_mm": float(max(1.0, getattr(detected, "measured_radius", 0.0) or 0.0)),
+                "along_axis_span_mm": float(getattr(detected, "bend_line_length", 0.0) or 0.0),
+                "support_bbox_mm": [
+                    float(abs(getattr(detected, "bend_line_end", np.zeros(3))[axis] - getattr(detected, "bend_line_start", np.zeros(3))[axis]))
+                    for axis in range(3)
+                ],
+                "observability_status": observability_status,
+                "merge_provenance": {
+                    "assignment_source": str(getattr(match, "assignment_source", "NONE") or "NONE"),
+                    "measurement_mode": str(getattr(match, "measurement_mode", "unknown") or "unknown"),
+                    "status": str(getattr(match, "status", "NOT_DETECTED") or "NOT_DETECTED"),
+                },
+                "stability_score": float(getattr(match, "match_confidence", 0.0) or 0.0),
+                "confidence": float(getattr(match, "match_confidence", 0.0) or 0.0),
+            }
+        )
+        dominant_angles.append(float(getattr(detected, "measured_angle", 0.0) or 0.0))
+    strip_confidence = (
+        float(sum(strip.get("confidence", 0.0) for strip in strips) / len(strips))
+        if strips else 0.0
+    )
+    return {
+        "profile_family": "cad_diagnostic_strip_support" if strips else "scan_limited_partial",
+        "estimated_bend_count": int(len(strips)) if strips else None,
+        "estimated_bend_count_range": [int(len(strips)), int(len(strips))] if strips else [0, 0],
+        "dominant_angle_families_deg": [round(float(np.mean(dominant_angles)), 3)] if dominant_angles else [],
+        "line_family_groups": [[strip["strip_id"]] for strip in strips],
+        "bend_support_strips": strips,
+        "strip_count_confidence": round(strip_confidence, 4) if strips else 0.0,
+        "strip_duplicate_merge_count": 0,
+        "hypothesis_confidence": round(strip_confidence, 4) if strips else 0.0,
+        "abstained": not bool(strips),
+        "abstain_reasons": [] if strips else ["no_detected_strip_support"],
+        "support_breakdown": {
+            "scan_state": str(scan_state or "unknown"),
+            "scan_quality_status": str((scan_quality or {}).get("status", "UNKNOWN")),
+            "support_strip_count": len(strips),
+            "scan_limited_strip_count": sum(1 for strip in strips if strip["observability_status"] != "supported"),
+        },
+    }
+
+
+def _build_scan_part_profile_from_report(
+    report: BendInspectionReport,
+    *,
+    scan_state: str,
+    scan_quality: Optional[Dict[str, Any]] = None,
+    scan_path: Optional[str] = None,
+    part_id: Optional[str] = None,
+) -> Dict[str, Any]:
+    payload = _build_scan_structural_payload_from_report(
+        report,
+        scan_state=scan_state,
+        scan_quality=scan_quality,
+    )
+    profile = build_scan_part_profile(
+        zero_shot_result=payload,
+        scan_path=scan_path,
+        part_id=part_id,
+    )
+    return profile.to_dict()
+
+
+def _build_scan_structural_hypothesis_from_report(
+    report: BendInspectionReport,
+    *,
+    scan_state: str,
+    scan_quality: Optional[Dict[str, Any]] = None,
+    scan_path: Optional[str] = None,
+    part_id: Optional[str] = None,
+) -> Dict[str, Any]:
+    profile_payload = _build_scan_part_profile_from_report(
+        report,
+        scan_state=scan_state,
+        scan_quality=scan_quality,
+        scan_path=scan_path,
+        part_id=part_id,
+    )
+    return dict(profile_payload.get("scan_hypothesis") or {})
 
 
 def _filter_kwargs(callable_obj: Any, kwargs: Optional[Dict[str, Any]]) -> Dict[str, Any]:
@@ -442,6 +591,35 @@ def _augment_feature_policy_from_part_truth(
             if str(key).strip() and value is not None
         }
     return effective_policy
+
+
+def load_part_truth_metadata(part_id: Optional[str]) -> Dict[str, Any]:
+    """Load best-available part truth metadata for profiling adapters."""
+    resolved_part_id = str(part_id or "").strip()
+    if not resolved_part_id:
+        return {}
+
+    metadata_path = (
+        Path(__file__).resolve().parent.parent
+        / "data"
+        / "bend_corpus"
+        / "parts"
+        / resolved_part_id
+        / "metadata.json"
+    )
+    if not metadata_path.exists():
+        return {}
+    try:
+        metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+    except Exception:
+        return {}
+
+    merged: Dict[str, Any] = {}
+    for key in ("spec_analysis", "mail_truth", "user_truth"):
+        payload = metadata.get(key)
+        if isinstance(payload, dict):
+            merged.update(payload)
+    return merged
 
 
 def load_cad_geometry(
@@ -1372,10 +1550,40 @@ def extract_cad_bend_specs_with_strategy(
     spec_schedule_type: Optional[str] = None,
     feature_policy: Optional[Dict[str, Any]] = None,
     part_id: Optional[str] = None,
+    part_profile: Optional[Any] = None,
 ) -> Tuple[List[BendSpecification], str]:
     """
     Extract CAD bend specs and return the selected strategy label.
     """
+    cad_target = getattr(part_profile, "cad_target", None)
+    if cad_target is not None:
+        expected_bend_count_hint = int(getattr(cad_target, "expected_bend_count", expected_bend_count_hint) or 0) or expected_bend_count_hint
+        expected_range = getattr(cad_target, "expected_bend_count_range", None)
+        if expected_bend_count_hint is None and isinstance(expected_range, (list, tuple)) and expected_range:
+            try:
+                expected_bend_count_hint = int(expected_range[-1])
+            except Exception:
+                pass
+        spec_bend_angles_hint = list(
+            getattr(cad_target, "dominant_angle_families_deg", spec_bend_angles_hint) or spec_bend_angles_hint or []
+        )
+        tolerance_context = getattr(cad_target, "tolerance_context", {}) or {}
+        if "spec_schedule_type" in getattr(cad_target, "provenance", {}):
+            spec_schedule_type = str(cad_target.provenance.get("spec_schedule_type") or spec_schedule_type or "")
+        feature_policy = dict(getattr(cad_target, "countable_feature_policy", feature_policy) or feature_policy or {})
+        angle_tols = tolerance_context.get("angle_tolerances_deg") if isinstance(tolerance_context, dict) else None
+        radius_tols = tolerance_context.get("radius_tolerances_mm") if isinstance(tolerance_context, dict) else None
+        if angle_tols:
+            try:
+                tolerance_angle = float(angle_tols[0])
+            except Exception:
+                pass
+        if radius_tols:
+            try:
+                tolerance_radius = float(radius_tols[0])
+            except Exception:
+                pass
+
     detector_specs = _build_detector_cad_specs(
         cad_vertices=cad_vertices,
         cad_triangles=cad_triangles,
@@ -2030,6 +2238,49 @@ def _match_has_position_verification(match: Optional[BendMatch]) -> bool:
     )
 
 
+def _can_borrow_ambiguous_local_position_signal(
+    primary: Optional[BendMatch],
+    candidate: Optional[BendMatch],
+) -> bool:
+    if primary is None or candidate is None:
+        return False
+    if not bool(primary.correspondence_ready()):
+        return False
+    if str(getattr(primary, "assignment_source", "")).upper() != "GLOBAL_DETECTION":
+        return False
+    if str(getattr(candidate, "assignment_source", "")).upper() != "CAD_LOCAL_NEIGHBORHOOD":
+        return False
+    if str(getattr(candidate, "status", "")).upper() == "NOT_DETECTED":
+        return False
+    if not _match_has_position_verification(candidate):
+        return False
+    if not bool((candidate.measurement_context or {}).get("trusted_alignment_for_release", False)):
+        return False
+    if str(getattr(candidate, "physical_completion_state", "")).upper() != "FORMED":
+        return False
+    if str(getattr(candidate, "observability_state", "")).upper() != "FORMED":
+        return False
+    claim_gate_reasons = set(candidate.claim_gate_reasons() or [])
+    if not claim_gate_reasons:
+        return False
+    if not claim_gate_reasons.issubset(
+        {
+            "correspondence_ambiguous",
+            "correspondence_close_runner_up",
+            "observability_partial",
+            "metrology_unavailable",
+        }
+    ):
+        return False
+    if int(getattr(candidate, "assignment_candidate_count", 0) or 0) > 1:
+        return False
+    if getattr(candidate, "correspondence_runner_up_gap", None) is not None:
+        return False
+    if float(getattr(candidate, "assignment_candidate_score", 0.0) or 0.0) < 0.70:
+        return False
+    return True
+
+
 def _prefer_primary_with_local_position_signal(
     primary: Optional[BendMatch],
     candidate: Optional[BendMatch],
@@ -2052,13 +2303,15 @@ def _prefer_primary_with_local_position_signal(
         return False
     if str(getattr(primary, "status", "")).upper() == "NOT_DETECTED":
         return False
-    if not bool(primary.correspondence_ready()) or not bool(candidate.correspondence_ready()):
+    if not bool(primary.correspondence_ready()):
         return False
-    if bool(primary.position_claim_eligible()) or not bool(candidate.position_claim_eligible()):
+    if bool(primary.position_claim_eligible()):
         return False
     if _match_priority(candidate) > _match_priority(primary):
         return False
-    return _match_has_position_verification(candidate)
+    if bool(candidate.correspondence_ready()) and bool(candidate.position_claim_eligible()):
+        return _match_has_position_verification(candidate)
+    return _can_borrow_ambiguous_local_position_signal(primary, candidate)
 
 
 def _merge_primary_with_local_position_signal(
@@ -2324,10 +2577,15 @@ def _dense_scan_requires_local_refinement(
     report: BendInspectionReport,
     expected_bend_count: int,
     scan_state: Optional[str] = None,
+    scan_density_pts_per_cm2: Optional[float] = None,
+    scan_quality_status: Optional[str] = None,
 ) -> bool:
     """Dense scans should prefer CAD-guided local verification over brute-force fallback."""
     point_count = int(len(scan_points))
     state = str(scan_state or "").strip().lower()
+    density = float(scan_density_pts_per_cm2 or 0.0)
+    quality = str(scan_quality_status or "").strip().upper()
+    dense_quality = quality == "GOOD" and density >= 250.0
     target = max(1, int(expected_bend_count))
     detected = int(report.detected_count)
     countable_matches = [
@@ -2344,7 +2602,7 @@ def _dense_scan_requires_local_refinement(
         return True
     if (
         state == "full"
-        and point_count >= 300000
+        and (point_count >= 300000 or dense_quality)
         and target >= 8
         and detected >= max(6, int(np.ceil(0.80 * target)))
         and engine_gap_position_unknown >= max(4, int(np.ceil(0.50 * target)))
@@ -2357,7 +2615,7 @@ def _dense_scan_requires_local_refinement(
     # complete and confident, rather than broadening refinement generally.
     if (
         state == "full"
-        and point_count >= 200000
+        and (point_count >= 200000 or dense_quality)
         and 4 <= target < 8
         and detected >= max(3, int(np.ceil(0.75 * target)))
         and engine_gap_position_unknown >= max(3, int(np.ceil(0.75 * target)))
@@ -3518,6 +3776,116 @@ def _build_not_detected_match(
     )
 
 
+def _build_surface_recovered_local_match(
+    *,
+    matcher: ProgressiveBendMatcher,
+    cad_bend: BendSpecification,
+    source_match: BendMatch,
+    recovered_measurement: Dict[str, Any],
+    recovered_observability: Dict[str, Any],
+    assignment_candidate_id: str,
+    assignment_candidate_kind: str,
+    assignment_candidate_score: float,
+    assignment_null_score: float,
+    assignment_candidate_count: int,
+    recovery_note: str,
+    measurement_context_extra: Optional[Dict[str, Any]] = None,
+) -> BendMatch:
+    recovered_confidence = _measurement_confidence_score(recovered_measurement.get("measurement_confidence"))
+    recovered_point_count = int(
+        recovered_measurement.get("point_count")
+        or (recovered_measurement.get("side1_points", 0) + recovered_measurement.get("side2_points", 0))
+    )
+    cad_mid = (cad_bend.bend_line_start + cad_bend.bend_line_end) / 2.0
+    recovered_plane1 = _placeholder_plane(
+        1,
+        cad_mid,
+        cad_bend.flange1_normal,
+        cad_bend.flange1_area,
+        recovered_point_count // 2,
+    )
+    recovered_plane2 = _placeholder_plane(
+        2,
+        cad_mid,
+        cad_bend.flange2_normal,
+        cad_bend.flange2_area,
+        recovered_point_count // 2,
+    )
+    recovered_detected = DetectedBend(
+        bend_id=f"L{cad_bend.bend_id}",
+        measured_angle=float(recovered_measurement["measured_angle"]),
+        measured_radius=float(cad_bend.target_radius),
+        bend_line_start=np.asarray(cad_bend.bend_line_start, dtype=np.float64),
+        bend_line_end=np.asarray(cad_bend.bend_line_end, dtype=np.float64),
+        bend_line_direction=np.asarray(cad_bend.bend_line_direction, dtype=np.float64),
+        confidence=recovered_confidence,
+        flange1=recovered_plane1,
+        flange2=recovered_plane2,
+        inlier_count=max(1, recovered_point_count),
+        radius_fit_error=0.0,
+    )
+    replacement = matcher._build_match(
+        cad_bend=cad_bend,
+        detected=recovered_detected,
+        cost=max(0.0, 1.0 - recovered_confidence),
+        use_position_cost=True,
+    )
+    replacement.observability_state = recovered_observability["state"]
+    replacement.observability_detail_state = recovered_observability.get("detail_state", "OBSERVED_FORMED")
+    replacement.observability_confidence = recovered_observability["confidence"]
+    replacement.physical_completion_state = "FORMED"
+    replacement.assignment_source = "CAD_LOCAL_NEIGHBORHOOD"
+    replacement.assignment_confidence = recovered_confidence
+    replacement.assignment_candidate_id = assignment_candidate_id
+    replacement.assignment_candidate_kind = assignment_candidate_kind
+    replacement.assignment_candidate_score = float(assignment_candidate_score or 0.0)
+    replacement.assignment_null_score = float(assignment_null_score or 0.0)
+    replacement.assignment_candidate_count = int(assignment_candidate_count or 0)
+    replacement.visibility_score = recovered_observability["visibility_score"]
+    replacement.visibility_score_source = recovered_observability["visibility_score_source"]
+    replacement.surface_visibility_ratio = recovered_observability["surface_visibility_ratio"]
+    replacement.local_support_score = recovered_observability["local_support_score"]
+    replacement.side_balance_score = recovered_observability["side_balance_score"]
+    replacement.observed_surface_count = recovered_observability["observed_surface_count"]
+    replacement.local_point_count = recovered_observability["point_count"]
+    replacement.local_evidence_score = recovered_observability["evidence_score"]
+    replacement.measurement_mode = "cad_local_neighborhood"
+    replacement.measurement_method = str(recovered_measurement.get("measurement_method") or "surface_classification")
+    replacement.measurement_context = {
+        **(source_match.measurement_context or {}),
+        "measurement_method": recovered_measurement.get("measurement_method"),
+        "measurement_confidence_label": recovered_measurement.get("measurement_confidence"),
+        "point_count": recovered_point_count,
+        "side1_points": int(recovered_measurement.get("side1_points") or 0),
+        "side2_points": int(recovered_measurement.get("side2_points") or 0),
+        "cad_alignment1": recovered_measurement.get("cad_alignment1"),
+        "cad_alignment2": recovered_measurement.get("cad_alignment2"),
+        "planarity1": recovered_measurement.get("planarity1"),
+        "planarity2": recovered_measurement.get("planarity2"),
+        **(measurement_context_extra or {}),
+    }
+    replacement_warnings = list(getattr(replacement, "warnings", None) or [])
+    replacement_warnings.append(recovery_note)
+    replacement.warnings = replacement_warnings
+    return replacement
+
+
+def _should_use_selected_bend_measurement(
+    *,
+    selected_bend_count: int,
+    extracted_bend_count: int,
+    feature_policy: Optional[Dict[str, Any]] = None,
+) -> bool:
+    if str((feature_policy or {}).get("countable_source") or "").strip().lower() == "legacy_folded_hybrid":
+        return True
+    if selected_bend_count <= 0 or extracted_bend_count <= 0:
+        return False
+    return (
+        selected_bend_count >= extracted_bend_count + 3
+        and extracted_bend_count <= max(8, int(0.75 * selected_bend_count))
+    )
+
+
 def refine_dense_scan_bends_via_alignment(
     cad_path: str,
     scan_path: str,
@@ -3616,12 +3984,11 @@ def refine_dense_scan_bends_via_alignment(
     if cad_extract.total_bends <= 0:
         return None, ["Dense-scan local refinement failed: CAD mesh extractor found no bends"]
 
-    use_selected_bend_measurement = (
-        len(cad_bends) >= cad_extract.total_bends + 4
-        and cad_extract.total_bends <= max(8, int(0.75 * len(cad_bends)))
+    use_selected_bend_measurement = _should_use_selected_bend_measurement(
+        selected_bend_count=len(cad_bends),
+        extracted_bend_count=int(cad_extract.total_bends),
+        feature_policy=feature_policy,
     )
-    if str((feature_policy or {}).get("countable_source") or "").strip().lower() == "legacy_folded_hybrid":
-        use_selected_bend_measurement = True
     if use_selected_bend_measurement:
         _phase(
             f"use_selected_bend_measurement selected={len(cad_bends)} extracted={cad_extract.total_bends}"
@@ -4150,6 +4517,102 @@ def refine_dense_scan_bends_via_alignment(
             cad_bend = cad_bend_by_id.get(match.cad_bend.bend_id)
             if cad_bend is None:
                 continue
+            if (
+                str(scan_state or "").strip().lower() != "partial"
+                and _trusted_parent_frame_metadata(alignment_metadata)
+                and str(match.status or "").upper() == "NOT_DETECTED"
+                and str(match.assignment_source or "").upper() in {"NONE", "CAD_LOCAL_NEIGHBORHOOD"}
+            ):
+                candidate_kind = str(
+                    match.assignment_candidate_kind
+                    or (match.measurement_context or {}).get("selected_assignment_candidate_kind")
+                    or "NULL"
+                ).upper()
+                if candidate_kind in {"", "NULL"}:
+                    recovered_measurement = measure_scan_bend_via_surface_classification(
+                        scan_points=aligned_points,
+                        cad_vertices=cad_vertices,
+                        cad_triangles=cad_triangles,
+                        surf1_face_indices=np.empty((0,), dtype=np.int32),
+                        surf2_face_indices=np.empty((0,), dtype=np.int32),
+                        cad_bend_center=np.asarray(
+                            (cad_bend.bend_line_start + cad_bend.bend_line_end) / 2.0,
+                            dtype=np.float64,
+                        ),
+                        cad_surf1_normal=np.asarray(
+                            cad_bend.flange1_normal if cad_bend.flange1_normal is not None else np.array([1.0, 0.0, 0.0]),
+                            dtype=np.float64,
+                        ),
+                        cad_surf2_normal=np.asarray(
+                            cad_bend.flange2_normal if cad_bend.flange2_normal is not None else np.array([0.0, 0.0, 1.0]),
+                            dtype=np.float64,
+                        ),
+                        cad_bend_angle=float(cad_bend.target_angle),
+                        search_radius=24.0,
+                        min_offset_mm=5.0,
+                        cad_bend_direction=np.asarray(cad_bend.bend_line_direction, dtype=np.float64),
+                        cad_bend_line_start=np.asarray(cad_bend.bend_line_start, dtype=np.float64),
+                        cad_bend_line_end=np.asarray(cad_bend.bend_line_end, dtype=np.float64),
+                        allow_line_locality=True,
+                        allow_face_recovery=True,
+                        all_face_centers=all_face_centers,
+                        all_face_normals=all_face_normals,
+                    )
+                    if bool(recovered_measurement.get("success")) and recovered_measurement.get("measured_angle") is not None:
+                        recovered_observability = _local_measurement_observability(
+                            recovered_measurement,
+                            float(cad_bend.target_angle),
+                            scan_state=scan_state,
+                            alignment_metadata=alignment_metadata,
+                        )
+                        recovered_confidence = _measurement_confidence_score(
+                            recovered_measurement.get("measurement_confidence")
+                        )
+                        if (
+                            recovered_observability["state"] != "UNKNOWN"
+                            and (
+                                recovered_confidence >= 0.45
+                                or recovered_observability["evidence_score"] >= 0.5
+                            )
+                            and (
+                                int(recovered_measurement.get("point_count") or 0) >= 18
+                                or recovered_observability["observed_surface_count"] >= 2
+                            )
+                        ):
+                            assignment_candidate_score = max(
+                                recovered_confidence,
+                                float(recovered_observability["evidence_score"]),
+                            )
+                            replacement = _build_surface_recovered_local_match(
+                                matcher=matcher,
+                                cad_bend=cad_bend,
+                                source_match=match,
+                                recovered_measurement=recovered_measurement,
+                                recovered_observability=recovered_observability,
+                                assignment_candidate_id="recovered_surface_classification",
+                                assignment_candidate_kind="RECOVERED_SURFACE",
+                                assignment_candidate_score=assignment_candidate_score,
+                                assignment_null_score=float(
+                                    match.assignment_null_score
+                                    or (match.measurement_context or {}).get("null_assignment_candidate_score")
+                                    or 0.0
+                                ),
+                                assignment_candidate_count=max(
+                                    int(match.assignment_candidate_count or 0),
+                                    len((match.measurement_context or {}).get("assignment_candidates") or []),
+                                ),
+                                recovery_note=(
+                                    "Recovered-face surface classification promoted a null-assignment local miss "
+                                    "into a trusted CAD-local bend measurement."
+                                ),
+                                measurement_context_extra={
+                                    "recovered_face_surface_classification": True,
+                                    "recovered_from_not_detected_local_null_assignment": True,
+                                    "recovered_angle_deg": round(float(recovered_measurement["measured_angle"]), 3),
+                                },
+                            )
+                            matches[idx] = replacement
+                            continue
             if str(match.assignment_source or "") != "CAD_LOCAL_NEIGHBORHOOD":
                 continue
             if str(match.measurement_method or "") != "profile_section":
@@ -4204,86 +4667,42 @@ def refine_dense_scan_bends_via_alignment(
             if recovered_gap + 0.5 >= current_gap:
                 continue
 
-            recovered_confidence = _measurement_confidence_score(recovered_measurement.get("measurement_confidence"))
-            recovered_point_count = int(
-                recovered_measurement.get("point_count")
-                or (recovered_measurement.get("side1_points", 0) + recovered_measurement.get("side2_points", 0))
-            )
-            recovered_plane1 = _placeholder_plane(
-                1,
-                (cad_bend.bend_line_start + cad_bend.bend_line_end) / 2.0,
-                cad_bend.flange1_normal,
-                cad_bend.flange1_area,
-                recovered_point_count // 2,
-            )
-            recovered_plane2 = _placeholder_plane(
-                2,
-                (cad_bend.bend_line_start + cad_bend.bend_line_end) / 2.0,
-                cad_bend.flange2_normal,
-                cad_bend.flange2_area,
-                recovered_point_count // 2,
-            )
-            recovered_detected = DetectedBend(
-                bend_id=f"L{cad_bend.bend_id}",
-                measured_angle=float(recovered_measurement["measured_angle"]),
-                measured_radius=float(cad_bend.target_radius),
-                bend_line_start=np.asarray(cad_bend.bend_line_start, dtype=np.float64),
-                bend_line_end=np.asarray(cad_bend.bend_line_end, dtype=np.float64),
-                bend_line_direction=np.asarray(cad_bend.bend_line_direction, dtype=np.float64),
-                confidence=recovered_confidence,
-                flange1=recovered_plane1,
-                flange2=recovered_plane2,
-                inlier_count=max(1, recovered_point_count),
-                radius_fit_error=0.0,
-            )
-            replacement = matcher._build_match(
+            replacement = _build_surface_recovered_local_match(
+                matcher=matcher,
                 cad_bend=cad_bend,
-                detected=recovered_detected,
-                cost=max(0.0, 1.0 - recovered_confidence),
-                use_position_cost=True,
-            )
-            replacement.observability_state = match.observability_state
-            replacement.observability_detail_state = match.observability_detail_state
-            replacement.observability_confidence = match.observability_confidence
-            replacement.physical_completion_state = match.physical_completion_state
-            replacement.assignment_source = match.assignment_source
-            replacement.assignment_confidence = recovered_confidence
-            replacement.assignment_candidate_id = match.assignment_candidate_id
-            replacement.assignment_candidate_kind = match.assignment_candidate_kind
-            replacement.assignment_candidate_score = match.assignment_candidate_score
-            replacement.assignment_null_score = match.assignment_null_score
-            replacement.assignment_candidate_count = match.assignment_candidate_count
-            replacement.visibility_score = match.visibility_score
-            replacement.visibility_score_source = match.visibility_score_source
-            replacement.surface_visibility_ratio = match.surface_visibility_ratio
-            replacement.local_support_score = match.local_support_score
-            replacement.side_balance_score = match.side_balance_score
-            replacement.observed_surface_count = match.observed_surface_count
-            replacement.local_point_count = recovered_point_count
-            replacement.local_evidence_score = match.local_evidence_score
-            replacement.measurement_mode = match.measurement_mode
-            replacement.measurement_method = str(recovered_measurement.get("measurement_method") or "surface_classification")
-            replacement.measurement_context = {
-                **(match.measurement_context or {}),
-                "measurement_method": recovered_measurement.get("measurement_method"),
-                "measurement_confidence_label": recovered_measurement.get("measurement_confidence"),
-                "point_count": recovered_point_count,
-                "side1_points": int(recovered_measurement.get("side1_points") or 0),
-                "side2_points": int(recovered_measurement.get("side2_points") or 0),
-                "cad_alignment1": recovered_measurement.get("cad_alignment1"),
-                "cad_alignment2": recovered_measurement.get("cad_alignment2"),
-                "planarity1": recovered_measurement.get("planarity1"),
-                "planarity2": recovered_measurement.get("planarity2"),
-                "recovered_face_surface_classification": True,
-                "recovered_angle_deg": round(float(recovered_measurement["measured_angle"]), 3),
-                "recovered_angle_gap_deg": round(float(recovered_gap), 3),
-                "replaced_profile_section_angle_deg": round(float(current_angle), 3),
-            }
-            if replacement.warnings is None:
-                replacement.warnings = []
-            replacement.warnings.append(
-                f"Recovered-face surface classification replaced profile section "
-                f"({current_gap:.2f}deg -> {recovered_gap:.2f}deg CAD gap)."
+                source_match=match,
+                recovered_measurement=recovered_measurement,
+                recovered_observability={
+                    "state": match.observability_state,
+                    "detail_state": match.observability_detail_state,
+                    "confidence": match.observability_confidence,
+                    "visibility_score": match.visibility_score,
+                    "visibility_score_source": match.visibility_score_source,
+                    "surface_visibility_ratio": match.surface_visibility_ratio,
+                    "local_support_score": match.local_support_score,
+                    "side_balance_score": match.side_balance_score,
+                    "observed_surface_count": match.observed_surface_count,
+                    "point_count": int(
+                        recovered_measurement.get("point_count")
+                        or (recovered_measurement.get("side1_points", 0) + recovered_measurement.get("side2_points", 0))
+                    ),
+                    "evidence_score": match.local_evidence_score,
+                },
+                assignment_candidate_id=str(match.assignment_candidate_id or "recovered_surface_classification"),
+                assignment_candidate_kind=str(match.assignment_candidate_kind or "MEASUREMENT"),
+                assignment_candidate_score=float(match.assignment_candidate_score or 0.0),
+                assignment_null_score=float(match.assignment_null_score or 0.0),
+                assignment_candidate_count=int(match.assignment_candidate_count or 0),
+                recovery_note=(
+                    f"Recovered-face surface classification replaced profile section "
+                    f"({current_gap:.2f}deg -> {recovered_gap:.2f}deg CAD gap)."
+                ),
+                measurement_context_extra={
+                    "recovered_face_surface_classification": True,
+                    "recovered_angle_deg": round(float(recovered_measurement["measured_angle"]), 3),
+                    "recovered_angle_gap_deg": round(float(recovered_gap), 3),
+                    "replaced_profile_section_angle_deg": round(float(current_angle), 3),
+                },
             )
             matches[idx] = replacement
 
@@ -4424,12 +4843,24 @@ def run_progressive_bend_inspection(
     cad_triangle_count = int(0 if cad_triangles is None else len(cad_triangles))
     overrides = load_expected_bend_overrides()
     feature_policies = load_part_feature_policies()
+    metadata_truth = load_part_truth_metadata(part_id)
     expected_bend_hint = (
         int(expected_bend_override)
         if expected_bend_override is not None and int(expected_bend_override) > 0
         else overrides.get(part_id)
     )
     feature_policy = feature_policies.get(part_id)
+    preliminary_profile = build_cad_part_profile(
+        cad_bends=[],
+        cad_path=cad_path,
+        cad_source_label=cad_source,
+        expected_bend_override=expected_bend_hint,
+        spec_bend_angles_hint=spec_bend_angles_hint,
+        spec_schedule_type=spec_schedule_type,
+        feature_policy=feature_policy,
+        metadata_truth=metadata_truth,
+    )
+    preliminary_cad_target = preliminary_profile.cad_target
 
     _emit_phase_log(f"run_progressive_bend_inspection[{part_id}] extract_cad_bend_specs begin")
     cad_bends, cad_strategy = extract_cad_bend_specs_with_strategy(
@@ -4440,23 +4871,55 @@ def run_progressive_bend_inspection(
         cad_extractor_kwargs=cfg.cad_extractor_kwargs,
         cad_detector_kwargs=cfg.cad_detector_kwargs,
         cad_detect_call_kwargs=cfg.cad_detect_call_kwargs,
-        expected_bend_count_hint=expected_bend_hint,
-        spec_bend_angles_hint=spec_bend_angles_hint,
-        spec_schedule_type=spec_schedule_type,
-        feature_policy=feature_policy,
+        expected_bend_count_hint=preliminary_cad_target.expected_bend_count if preliminary_cad_target is not None else expected_bend_hint,
+        spec_bend_angles_hint=list(preliminary_cad_target.dominant_angle_families_deg) if preliminary_cad_target is not None else spec_bend_angles_hint,
+        spec_schedule_type=(
+            str(preliminary_cad_target.provenance.get("spec_schedule_type") or spec_schedule_type or "")
+            if preliminary_cad_target is not None
+            else spec_schedule_type
+        ),
+        feature_policy=(
+            dict(preliminary_cad_target.countable_feature_policy)
+            if preliminary_cad_target is not None
+            else feature_policy
+        ),
         part_id=part_id,
+        part_profile=preliminary_profile,
     )
     _emit_phase_log(
         f"run_progressive_bend_inspection[{part_id}] extract_cad_bend_specs end "
         f"strategy={cad_strategy} bends={len(cad_bends)}"
     )
     cad_bend_count_extracted = len(cad_bends)
+    cad_profile = build_cad_part_profile(
+        cad_bends=cad_bends,
+        cad_path=cad_path,
+        cad_source_label=cad_source,
+        expected_bend_override=expected_bend_hint,
+        spec_bend_angles_hint=spec_bend_angles_hint,
+        spec_schedule_type=spec_schedule_type,
+        feature_policy=feature_policy,
+        metadata_truth=metadata_truth,
+    )
+    cad_target = cad_profile.cad_target
     if not cad_bends:
         warnings.append("No bends extracted from CAD")
-    if feature_policy:
-        cad_bends = _apply_part_feature_policy(cad_bends, feature_policy)
+    effective_feature_policy = dict(cad_target.countable_feature_policy) if cad_target is not None else (feature_policy or {})
+    if effective_feature_policy:
+        cad_bends = _apply_part_feature_policy(cad_bends, effective_feature_policy)
+        cad_profile = build_cad_part_profile(
+            cad_bends=cad_bends,
+            cad_path=cad_path,
+            cad_source_label=cad_source,
+            expected_bend_override=expected_bend_hint,
+            spec_bend_angles_hint=spec_bend_angles_hint,
+            spec_schedule_type=spec_schedule_type,
+            feature_policy=effective_feature_policy,
+            metadata_truth=metadata_truth,
+        )
+        cad_target = cad_profile.cad_target
         warnings.append(f"Applied part feature policy for {part_id}")
-    expected_bend_count = int(expected_bend_hint if expected_bend_hint is not None else len(cad_bends))
+    expected_bend_count = int(cad_target.expected_bend_count if cad_target is not None else (expected_bend_hint if expected_bend_hint is not None else len(cad_bends)))
     if expected_bend_count <= 0:
         expected_bend_count = int(len(cad_bends))
     if cad_strategy != "detector_point_cloud":
@@ -4467,6 +4930,21 @@ def run_progressive_bend_inspection(
             f"CAD bends reduced by expected baseline for {part_id}: extracted={len(cad_bends)} effective={len(effective_cad_bends)}"
         )
     cad_bends = effective_cad_bends
+    cad_profile = build_cad_part_profile(
+        cad_bends=cad_bends,
+        cad_path=cad_path,
+        cad_source_label=cad_source,
+        expected_bend_override=expected_bend_count,
+        spec_bend_angles_hint=spec_bend_angles_hint,
+        spec_schedule_type=spec_schedule_type,
+        feature_policy=effective_feature_policy,
+        metadata_truth=metadata_truth,
+    )
+    cad_target = cad_profile.cad_target
+    feature_policy = effective_feature_policy
+    warnings.append(
+        f"CAD structural target normalized: source_class={cad_profile.nominal_source_class} authority={cad_target.authority_level if cad_target is not None else 'unknown'}"
+    )
     cad_points_for_quality = _sample_points(
         cad_vertices,
         max_points=max(5000, int(cfg.scan_quality_kwargs.get("sample_points", 30000))),
@@ -4505,6 +4983,14 @@ def run_progressive_bend_inspection(
         f"run_progressive_bend_inspection[{part_id}] detect_and_match_with_fallback end "
         f"detected={report.detected_count} pass={report.pass_count} fallback_used={fallback_used}"
     )
+    pre_local_scan_quality = estimate_scan_quality(
+        scan_points=scan_points,
+        cad_points=cad_points_for_quality,
+        expected_bends=expected_bend_count,
+        completed_bends=report.detected_count,
+        passed_bends=report.pass_count,
+        quality_kwargs=cfg.scan_quality_kwargs,
+    )
     dense_local_refinement_decision: Optional[str] = "not_applicable"
     dense_local_refinement_report_ranks: Optional[Dict[str, List[int]]] = None
     dense_local_refinement_geometry_penalties: Optional[Dict[str, Optional[float]]] = None
@@ -4520,6 +5006,8 @@ def run_progressive_bend_inspection(
         report=report,
         expected_bend_count=expected_bend_count,
         scan_state=scan_state,
+        scan_density_pts_per_cm2=float(pre_local_scan_quality.get("density_pts_per_cm2", 0.0)),
+        scan_quality_status=str(pre_local_scan_quality.get("status", "UNKNOWN")),
     ) or _feature_policy_requires_local_refinement(
         cad_bends=cad_bends,
         report=report,
@@ -4693,6 +5181,13 @@ def run_progressive_bend_inspection(
             "Scan quality is FAIR; one additional sweep can improve confidence."
         )
 
+    scan_part_profile = _build_scan_part_profile_from_report(
+        report,
+        scan_state=str(scan_state or "unknown"),
+        scan_quality=scan_quality,
+        scan_path=scan_path,
+        part_id=part_id,
+    )
     details = BendInspectionRunDetails(
         cad_source=cad_source,
         cad_strategy=cad_strategy,
@@ -4719,6 +5214,20 @@ def run_progressive_bend_inspection(
         local_alignment_seed=selected_local_alignment_seed,
         local_alignment_fitness=selected_local_alignment_fitness,
         local_alignment_rmse=selected_local_alignment_rmse,
+        profile_mode=cad_profile.profile_mode,
+        nominal_source_class=cad_profile.nominal_source_class,
+        profile_confidence=cad_profile.profile_confidence,
+        cad_structural_target=cad_target.to_dict() if cad_target is not None else None,
+        scan_part_profile=scan_part_profile,
+        scan_structural_hypothesis=dict(scan_part_profile.get("scan_hypothesis") or {}),
+        profile_selector_result={
+            "mode": cad_profile.profile_mode,
+            "nominal_source_class": cad_profile.nominal_source_class,
+            "authority_level": cad_target.authority_level if cad_target is not None else None,
+            "cad_strategy": cad_strategy,
+            "diagnostic_strip_count": len(getattr(report, "matches", []) or []),
+        },
+        scan_only_diagnostic_mismatch=None,
         cad_vertices=_saved_cad_vertices,
         cad_triangles=_saved_cad_triangles,
     )

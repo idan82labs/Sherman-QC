@@ -1,0 +1,260 @@
+{
+  "generated_at": "2026-04-29T17:40:34",
+  "purpose": "Aggregate hard known F1 latent support gap diagnostic.",
+  "case_count": 2,
+  "promotion_safe": false,
+  "cases": [
+    {
+      "case_label": "10839000",
+      "part_id": "10839000",
+      "generated_at": "2026-04-29T17:40:34",
+      "purpose": "Offline T2 diagnostic for hard known F1 underfit: support creation vs contact/incidence pruning vs duplicate fragmentation.",
+      "promotion_safe": false,
+      "gap_classification": "latent_support_creation_with_contact_recovery_gap",
+      "reason_codes": [
+        "raw_bridge_safe_support_under_covers_target",
+        "many_candidates_die_on_flange_contact_or_attachment",
+        "fragment_pruning_present"
+      ],
+      "recommended_next_experiment": "prototype contact-aware latent support creation: recover candidate support first, then re-score incidence instead of pruning early",
+      "route": {
+        "route_id": "zero_shot_control_stable",
+        "solver_profile": "observe_only",
+        "reason_codes": [
+          "zero_shot_exact_stable",
+          "low_route_risk"
+        ],
+        "confidence": 0.84,
+        "applied": true,
+        "feature_snapshot": {
+          "scan_state_hint": "full",
+          "point_count": 863115,
+          "local_spacing_mm": 3.098,
+          "bbox_mm": [
+            348.7263,
+            362.3607,
+            157.2916
+          ],
+          "aspect_ratios": [
+            0.9624,
+            2.2171,
+            2.3038
+          ],
+          "dominant_angle_family_deg": 91.263,
+          "dominant_angle_family_mass": 0.82,
+          "duplicate_line_family_rate": 0.4839,
+          "single_scale_count": 12,
+          "multiscale_count": 19,
+          "union_candidate_count": 31,
+          "zero_shot_profile_family": "orthogonal_dense_sheetmetal",
+          "zero_shot_exact_count": 10,
+          "zero_shot_count_range": [
+            9,
+            10
+          ],
+          "zero_shot_confidence": 0.6452,
+          "zero_shot_abstained": false,
+          "atom_count": 1918,
+          "flange_hypothesis_count": 13,
+          "flange_orientation_family_count": 3,
+          "bend_hypothesis_count": 19,
+          "avg_candidate_attachment_pairs": 5.6842,
+          "weak_incident_bend_fraction": 0.0526,
+          "multi_attachment_bend_fraction": 1.0,
+          "density_class": "dense",
+          "repeated_near90_strength": 1.0,
+          "candidate_fragmentation": 1.9,
+          "flange_fragmentation": 1.1818,
+          "seed_incidence_risk": 0.5202,
+          "small_tight_bend_signal": 0.2258,
+          "count_range_width": 1
+        }
+      },
+      "sparse_arrangement": {
+        "status": "sparse_arrangement_underfit",
+        "target_count": 8,
+        "selected_family_count": 4,
+        "safe_candidate_count": 4,
+        "selected_underfit_gap": 4,
+        "safe_underfit_gap": 4,
+        "suppressed_duplicate_count": 0
+      },
+      "raw_support_quality": {
+        "decision": "limited_observed_support",
+        "recommended_gate": "scan_quality_gate",
+        "reason_codes": [
+          "bridge_safe_below_human_target",
+          "low_bridge_safe_fraction"
+        ],
+        "raw_admissible_before_dedupe": 29,
+        "raw_deduped_candidate_count": 9,
+        "bridge_safe_candidate_count": 4,
+        "bridge_safe_fraction": 0.4444,
+        "safe_flange_pair_count": 4
+      },
+      "decomposition_summary": {
+        "exact_bend_count": 9,
+        "bend_count_range": [
+          9,
+          9
+        ],
+        "candidate_solution_counts": [
+          9,
+          9,
+          9
+        ],
+        "owned_bend_region_count": 9,
+        "bend_hypothesis_count": 19,
+        "flange_hypothesis_count": 13,
+        "atom_count": 1918
+      },
+      "repair_pressure": {
+        "inadmissible_reason_counts": {
+          "contact_imbalance": 17,
+          "missing_designated_flange_contact": 17
+        },
+        "contact_gating_reason_total": 34,
+        "birth_reject_reason_counts": {},
+        "birth_contact_reject_total": 0,
+        "skipped_birth_reason_counts": {},
+        "inadmissible_pruned_label_count": 6,
+        "duplicate_pruned_label_count": 0,
+        "selected_pair_duplicate_candidate_count": 0,
+        "fragment_pruned_atom_count": 167,
+        "activated_bend_label_count": 0,
+        "repair_step_count": 6
+      },
+      "engineering_conclusion": "Do not promote this lane. The next implementation needs typed latent support creation/contact recovery before sparse count selection."
+    },
+    {
+      "case_label": "ysherman",
+      "part_id": "ysherman",
+      "generated_at": "2026-04-29T17:40:34",
+      "purpose": "Offline T2 diagnostic for hard known F1 underfit: support creation vs contact/incidence pruning vs duplicate fragmentation.",
+      "promotion_safe": false,
+      "gap_classification": "latent_support_creation_with_contact_recovery_gap",
+      "reason_codes": [
+        "raw_bridge_safe_support_under_covers_target",
+        "many_candidates_die_on_flange_contact_or_attachment",
+        "birth_recovery_blocked_by_active_count_cap",
+        "selected_pair_duplicate_pressure_present",
+        "fragment_pruning_present"
+      ],
+      "recommended_next_experiment": "prototype contact-aware latent support creation: recover candidate support first, then re-score incidence instead of pruning early",
+      "route": {
+        "route_id": "fragmented_repeat90_interface_birth",
+        "solver_profile": "interface_birth_enabled",
+        "reason_codes": [
+          "repeated_near90",
+          "seed_or_fragmentation_risk"
+        ],
+        "confidence": 0.78,
+        "applied": true,
+        "feature_snapshot": {
+          "scan_state_hint": "",
+          "point_count": 897663,
+          "local_spacing_mm": 2.7059,
+          "bbox_mm": [
+            263.6341,
+            251.055,
+            133.838
+          ],
+          "aspect_ratios": [
+            1.0501,
+            1.9698,
+            1.8758
+          ],
+          "dominant_angle_family_deg": 90.702,
+          "dominant_angle_family_mass": 0.82,
+          "duplicate_line_family_rate": 0.35,
+          "single_scale_count": 7,
+          "multiscale_count": 13,
+          "union_candidate_count": 20,
+          "zero_shot_profile_family": "conservative_macro",
+          "zero_shot_exact_count": null,
+          "zero_shot_count_range": [
+            10,
+            12
+          ],
+          "zero_shot_confidence": 0.7192,
+          "zero_shot_abstained": true,
+          "atom_count": 1538,
+          "flange_hypothesis_count": 11,
+          "flange_orientation_family_count": 3,
+          "bend_hypothesis_count": 13,
+          "avg_candidate_attachment_pairs": 3.6154,
+          "weak_incident_bend_fraction": 0.0769,
+          "multi_attachment_bend_fraction": 1.0,
+          "density_class": "dense",
+          "repeated_near90_strength": 0.82,
+          "candidate_fragmentation": 1.0833,
+          "flange_fragmentation": 0.8462,
+          "seed_incidence_risk": 0.5,
+          "small_tight_bend_signal": 0.3,
+          "count_range_width": 2
+        }
+      },
+      "sparse_arrangement": {
+        "status": "sparse_arrangement_underfit",
+        "target_count": 12,
+        "selected_family_count": 2,
+        "safe_candidate_count": 2,
+        "selected_underfit_gap": 10,
+        "safe_underfit_gap": 10,
+        "suppressed_duplicate_count": 0
+      },
+      "raw_support_quality": {
+        "decision": "limited_observed_support",
+        "recommended_gate": "scan_quality_gate",
+        "reason_codes": [
+          "bridge_safe_below_human_target",
+          "low_bridge_safe_fraction"
+        ],
+        "raw_admissible_before_dedupe": 18,
+        "raw_deduped_candidate_count": 11,
+        "bridge_safe_candidate_count": 2,
+        "bridge_safe_fraction": 0.1818,
+        "safe_flange_pair_count": 2
+      },
+      "decomposition_summary": {
+        "exact_bend_count": 12,
+        "bend_count_range": [
+          12,
+          12
+        ],
+        "candidate_solution_counts": [
+          12,
+          12,
+          12
+        ],
+        "owned_bend_region_count": 12,
+        "bend_hypothesis_count": 37,
+        "flange_hypothesis_count": 11,
+        "atom_count": 1538
+      },
+      "repair_pressure": {
+        "inadmissible_reason_counts": {
+          "attachment_penalty_too_high": 3,
+          "boundary_leakage": 3,
+          "contact_imbalance": 17,
+          "missing_designated_flange_contact": 17
+        },
+        "contact_gating_reason_total": 40,
+        "birth_reject_reason_counts": {
+          "boundary_leakage": 4
+        },
+        "birth_contact_reject_total": 4,
+        "skipped_birth_reason_counts": {
+          "active_count_cap": 126
+        },
+        "inadmissible_pruned_label_count": 7,
+        "duplicate_pruned_label_count": 0,
+        "selected_pair_duplicate_candidate_count": 60,
+        "fragment_pruned_atom_count": 12,
+        "activated_bend_label_count": 0,
+        "repair_step_count": 7
+      },
+      "engineering_conclusion": "Do not promote this lane. The next implementation needs typed latent support creation/contact recovery before sparse count selection."
+    }
+  ]
+}

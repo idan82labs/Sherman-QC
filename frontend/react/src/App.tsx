@@ -6,6 +6,7 @@ import Jobs from './pages/Jobs'
 import JobDetail from './pages/JobDetail'
 import Batch from './pages/Batch'
 import BendInspection from './pages/BendInspection'
+import ScanOverlayDemo from './pages/ScanOverlayDemo'
 import PartCatalog from './pages/PartCatalog'
 import LiveScan from './pages/LiveScan'
 import Login from './pages/Login'
@@ -29,6 +30,7 @@ export default function App() {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
+      <Route path="/bend-inspection/demo/scan-overlay" element={<ScanOverlayDemo />} />
       <Route
         path="/"
         element={

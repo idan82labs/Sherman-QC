@@ -29,6 +29,17 @@ def test_run_details_to_dict_includes_dense_local_refinement_diagnostics():
             "local": 12.1,
             "merged": 10.5,
         },
+        profile_mode="cad_nominal",
+        nominal_source_class="semantic_nominal_cad",
+        profile_confidence=1.0,
+        cad_structural_target={"expected_bend_count": 7},
+        scan_part_profile={
+            "profile_mode": "scan_zero_shot",
+            "nominal_source_class": "scan_only",
+            "scan_hypothesis": {"estimated_bend_count": 6},
+        },
+        scan_structural_hypothesis={"estimated_bend_count": 6, "bend_support_strips": [{"strip_id": "S1"}]},
+        profile_selector_result={"mode": "cad_nominal"},
         local_alignment_seed=101,
         local_alignment_fitness=0.89573,
         local_alignment_rmse=0.89231,
@@ -42,3 +53,8 @@ def test_run_details_to_dict_includes_dense_local_refinement_diagnostics():
     assert payload["local_alignment_seed"] == 101
     assert payload["local_alignment_fitness"] == 0.8957
     assert payload["local_alignment_rmse"] == 0.8923
+    assert payload["profile_mode"] == "cad_nominal"
+    assert payload["nominal_source_class"] == "semantic_nominal_cad"
+    assert payload["cad_structural_target"]["expected_bend_count"] == 7
+    assert payload["scan_part_profile"]["profile_mode"] == "scan_zero_shot"
+    assert payload["scan_structural_hypothesis"]["estimated_bend_count"] == 6
