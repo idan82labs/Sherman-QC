@@ -181,7 +181,7 @@ async function handleJsonCompletion(request) {
     return json({ error: "method_not_allowed" }, { status: 405 });
   }
 
-  const body = await request.text();
+  const body = ensureStreamingResponsesBody(await request.text());
   const headers = new Headers({
     "content-type": "application/json",
     accept: "text/event-stream",
@@ -220,6 +220,17 @@ function extractRequestedModel(body) {
     return typeof parsed.model === "string" ? parsed.model : undefined;
   } catch {
     return undefined;
+  }
+}
+
+function ensureStreamingResponsesBody(body) {
+  try {
+    const parsed = JSON.parse(body);
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return body;
+    parsed.stream = true;
+    return JSON.stringify(parsed);
+  } catch {
+    return body;
   }
 }
 
