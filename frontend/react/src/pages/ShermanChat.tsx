@@ -73,6 +73,12 @@ type SpeechWindow = Window &
     webkitSpeechRecognition?: SpeechRecognitionConstructor
   }
 
+type AudioContextConstructor = new () => AudioContext
+type AudioContextWindow = Window &
+  typeof globalThis & {
+    webkitAudioContext?: AudioContextConstructor
+  }
+
 interface ChatTurn {
   id: string
   role: ChatRole
@@ -123,6 +129,7 @@ const copy = {
     attachPhoto: 'Attach photo',
     startVoice: 'Start voice transcript',
     stopVoice: 'Stop voice transcript',
+    transcribingVoice: 'Transcribing...',
     voiceUnavailable: 'Voice transcript is not available in this browser.',
     voiceError: 'Voice transcript stopped before text was captured.',
     placeholder: 'Ask ShermanAI...',
@@ -165,6 +172,7 @@ const copy = {
     attachPhoto: 'צרף תמונה',
     startVoice: 'התחל תמלול קולי',
     stopVoice: 'עצור תמלול קולי',
+    transcribingVoice: 'מתמלל...',
     voiceUnavailable: 'תמלול קולי לא זמין בדפדפן הזה.',
     voiceError: 'התמלול הקולי נעצר לפני שנקלט טקסט.',
     placeholder: 'שאל את ShermanAI...',
@@ -228,6 +236,51 @@ const examples: Record<ChatMode, string[]> = {
   ],
 }
 
+function mergeAudioChunks(chunks: Float32Array[]) {
+  const totalLength = chunks.reduce((sum, chunk) => sum + chunk.length, 0)
+  const merged = new Float32Array(totalLength)
+  let offset = 0
+  chunks.forEach((chunk) => {
+    merged.set(chunk, offset)
+    offset += chunk.length
+  })
+  return merged
+}
+
+function writeAscii(view: DataView, offset: number, value: string) {
+  for (let index = 0; index < value.length; index += 1) {
+    view.setUint8(offset + index, value.charCodeAt(index))
+  }
+}
+
+function createWavBlob(chunks: Float32Array[], sampleRate: number) {
+  const samples = mergeAudioChunks(chunks)
+  const bytesPerSample = 2
+  const dataLength = samples.length * bytesPerSample
+  const buffer = new ArrayBuffer(44 + dataLength)
+  const view = new DataView(buffer)
+  writeAscii(view, 0, 'RIFF')
+  view.setUint32(4, 36 + dataLength, true)
+  writeAscii(view, 8, 'WAVE')
+  writeAscii(view, 12, 'fmt ')
+  view.setUint32(16, 16, true)
+  view.setUint16(20, 1, true)
+  view.setUint16(22, 1, true)
+  view.setUint32(24, sampleRate, true)
+  view.setUint32(28, sampleRate * bytesPerSample, true)
+  view.setUint16(32, bytesPerSample, true)
+  view.setUint16(34, 8 * bytesPerSample, true)
+  writeAscii(view, 36, 'data')
+  view.setUint32(40, dataLength, true)
+  let offset = 44
+  for (let index = 0; index < samples.length; index += 1) {
+    const sample = Math.max(-1, Math.min(1, samples[index]))
+    view.setInt16(offset, sample < 0 ? sample * 0x8000 : sample * 0x7fff, true)
+    offset += bytesPerSample
+  }
+  return new Blob([view], { type: 'audio/wav' })
+}
+
 function formatMs(value?: number) {
   if (value === undefined) return ''
   if (value < 1000) return `${Math.round(value)} ms`
@@ -268,6 +321,7 @@ export default function ShermanChat() {
   const [attachments, setAttachments] = useState<ManualAttachmentResponse[]>([])
   const [isSending, setIsSending] = useState(false)
   const [isListening, setIsListening] = useState(false)
+  const [isTranscribing, setIsTranscribing] = useState(false)
   const [llmProvider, setLlmProvider] = useState<string>('mock')
   const [chatGptSession, setChatGptSession] = useState<ChatGptSessionResponse>({ status: 'loading' })
   const [showChatGptConsent, setShowChatGptConsent] = useState(false)
@@ -277,6 +331,13 @@ export default function ShermanChat() {
   const [voiceError, setVoiceError] = useState('')
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null)
+  const audioContextRef = useRef<AudioContext | null>(null)
+  const audioSourceRef = useRef<MediaStreamAudioSourceNode | null>(null)
+  const audioProcessorRef = useRef<ScriptProcessorNode | null>(null)
+  const audioMuteRef = useRef<GainNode | null>(null)
+  const audioStreamRef = useRef<MediaStream | null>(null)
+  const audioChunksRef = useRef<Float32Array[]>([])
+  const audioSampleRateRef = useRef(44100)
   const scrollRef = useRef<HTMLDivElement | null>(null)
   const t = copy[uiLanguage]
   const requiresChatGpt = llmProvider === 'chatgpt_oauth'
@@ -389,14 +450,99 @@ export default function ShermanChat() {
     }
   }
 
-  const toggleVoice = () => {
+  const cleanupGptRecording = () => {
+    audioProcessorRef.current?.disconnect()
+    audioSourceRef.current?.disconnect()
+    audioMuteRef.current?.disconnect()
+    audioStreamRef.current?.getTracks().forEach((track) => track.stop())
+    if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
+      void audioContextRef.current.close()
+    }
+    audioProcessorRef.current = null
+    audioSourceRef.current = null
+    audioMuteRef.current = null
+    audioStreamRef.current = null
+    audioContextRef.current = null
+  }
+
+  const startGptRecording = async () => {
     setVoiceError('')
-    if (isListening) {
-      recognitionRef.current?.stop()
-      setIsListening(false)
+    setError('')
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setVoiceError(t.voiceUnavailable)
       return
     }
 
+    const audioWindow = window as AudioContextWindow
+    const AudioContextClass = window.AudioContext || audioWindow.webkitAudioContext
+    if (!AudioContextClass) {
+      setVoiceError(t.voiceUnavailable)
+      return
+    }
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      const audioContext = new AudioContextClass()
+      if (audioContext.state === 'suspended') await audioContext.resume()
+
+      const source = audioContext.createMediaStreamSource(stream)
+      const processor = audioContext.createScriptProcessor(4096, 1, 1)
+      const mute = audioContext.createGain()
+      mute.gain.value = 0
+      audioChunksRef.current = []
+      audioSampleRateRef.current = audioContext.sampleRate
+
+      processor.onaudioprocess = (event) => {
+        const input = event.inputBuffer.getChannelData(0)
+        audioChunksRef.current.push(new Float32Array(input))
+      }
+
+      source.connect(processor)
+      processor.connect(mute)
+      mute.connect(audioContext.destination)
+
+      audioContextRef.current = audioContext
+      audioSourceRef.current = source
+      audioProcessorRef.current = processor
+      audioMuteRef.current = mute
+      audioStreamRef.current = stream
+      setIsListening(true)
+    } catch {
+      cleanupGptRecording()
+      setIsListening(false)
+      setVoiceError(t.voiceError)
+    }
+  }
+
+  const stopGptRecording = async () => {
+    const chunks = audioChunksRef.current
+    const sampleRate = audioSampleRateRef.current
+    cleanupGptRecording()
+    setIsListening(false)
+
+    if (chunks.length === 0) {
+      setVoiceError(t.voiceError)
+      return
+    }
+
+    setIsTranscribing(true)
+    try {
+      const result = await manualAssistantApi.transcribe(createWavBlob(chunks, sampleRate))
+      const transcript = result.text.trim()
+      if (!transcript) {
+        setVoiceError(t.voiceError)
+        return
+      }
+      setMessage((current) => `${current}${current ? ' ' : ''}${transcript}`)
+    } catch (err: unknown) {
+      setVoiceError(getErrorMessage(err))
+    } finally {
+      audioChunksRef.current = []
+      setIsTranscribing(false)
+    }
+  }
+
+  const startBrowserSpeechRecognition = () => {
     const speechWindow = window as SpeechWindow
     const Recognition = speechWindow.SpeechRecognition || speechWindow.webkitSpeechRecognition
     if (!Recognition) {
@@ -416,7 +562,7 @@ export default function ShermanChat() {
         if (result?.isFinal && transcript) transcripts.push(transcript)
       }
       if (transcripts.length > 0) {
-        setMessage((current) => `${current} ${transcripts.join(' ')}`.trim())
+        setMessage((current) => `${current}${current ? ' ' : ''}${transcripts.join(' ')}`)
       }
     }
     recognition.onerror = () => {
@@ -431,6 +577,40 @@ export default function ShermanChat() {
     setIsListening(true)
     recognition.start()
   }
+
+  const toggleVoice = () => {
+    setVoiceError('')
+    if (isTranscribing) return
+
+    if (isListening) {
+      if (audioContextRef.current) {
+        void stopGptRecording()
+      } else {
+        recognitionRef.current?.stop()
+        setIsListening(false)
+      }
+      return
+    }
+
+    if (requiresChatGpt) {
+      if (!isChatGptAuthenticated) {
+        setError(t.chatGptRequired)
+        setShowChatGptConsent(true)
+        return
+      }
+      void startGptRecording()
+      return
+    }
+
+    startBrowserSpeechRecognition()
+  }
+
+  useEffect(() => {
+    return () => {
+      recognitionRef.current?.stop()
+      cleanupGptRecording()
+    }
+  }, [])
 
   const sendMessage = async (override?: string) => {
     const text = (override ?? message).trim()
@@ -641,6 +821,7 @@ export default function ShermanChat() {
               setMessage={setMessage}
               isSending={isSending}
               isListening={isListening}
+              isTranscribing={isTranscribing}
               attachments={attachments}
               fileInputRef={fileInputRef}
               handlePhoto={handlePhoto}
@@ -977,6 +1158,7 @@ function Composer({
   setMessage,
   isSending,
   isListening,
+  isTranscribing,
   attachments,
   fileInputRef,
   handlePhoto,
@@ -990,6 +1172,7 @@ function Composer({
   setMessage: (message: string) => void
   isSending: boolean
   isListening: boolean
+  isTranscribing: boolean
   attachments: ManualAttachmentResponse[]
   fileInputRef: React.RefObject<HTMLInputElement>
   handlePhoto: (file: File) => Promise<void>
@@ -1029,8 +1212,19 @@ function Composer({
         <RoundIconButton label={t.attachPhoto} onClick={() => fileInputRef.current?.click()}>
           <Camera className="h-5 w-5" />
         </RoundIconButton>
-        <RoundIconButton label={isListening ? t.stopVoice : t.startVoice} onClick={toggleVoice} active={isListening}>
-          {isListening ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
+        <RoundIconButton
+          label={isTranscribing ? t.transcribingVoice : isListening ? t.stopVoice : t.startVoice}
+          onClick={toggleVoice}
+          active={isListening || isTranscribing}
+          disabled={isTranscribing}
+        >
+          {isTranscribing ? (
+            <Loader2 className="h-5 w-5 animate-spin" />
+          ) : isListening ? (
+            <MicOff className="h-5 w-5" />
+          ) : (
+            <Mic className="h-5 w-5" />
+          )}
         </RoundIconButton>
         <textarea
           value={message}
@@ -1063,20 +1257,24 @@ function RoundIconButton({
   label,
   onClick,
   active = false,
+  disabled = false,
   children,
 }: {
   label: string
   onClick: () => void
   active?: boolean
+  disabled?: boolean
   children: React.ReactNode
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
+      disabled={disabled}
       className={clsx(
         'flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full transition',
-        active ? 'bg-sky-50 text-sky-700' : 'text-slate-600 hover:bg-slate-100'
+        active ? 'bg-sky-50 text-sky-700' : 'text-slate-600 hover:bg-slate-100',
+        disabled && 'cursor-not-allowed opacity-70'
       )}
       aria-label={label}
     >

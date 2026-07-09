@@ -61,8 +61,37 @@ PROFILE_LABELS = {
 _WIF_TOKEN_CACHE: dict[str, Any] = {}
 MAX_PHOTO_UPLOAD_BYTES = int(os.environ.get("SHERMAN_CHAT_MAX_PHOTO_BYTES", str(8 * 1024 * 1024)))
 MAX_PHOTO_PIXELS = int(os.environ.get("SHERMAN_CHAT_MAX_PHOTO_PIXELS", str(24_000_000)))
+MAX_AUDIO_UPLOAD_BYTES = int(os.environ.get("SHERMAN_CHAT_MAX_AUDIO_BYTES", str(12 * 1024 * 1024)))
 UPLOAD_RETENTION_SECONDS = int(os.environ.get("SHERMAN_CHAT_UPLOAD_RETENTION_SECONDS", str(24 * 60 * 60)))
 Image.MAX_IMAGE_PIXELS = MAX_PHOTO_PIXELS
+
+SUPPORTED_AUDIO_MIME_TYPES = {
+    "audio/wav",
+    "audio/x-wav",
+    "audio/wave",
+    "audio/vnd.wave",
+    "audio/mpeg",
+    "audio/mp3",
+    "audio/mp4",
+    "audio/m4a",
+    "audio/x-m4a",
+    "audio/webm",
+    "audio/ogg",
+}
+
+AUDIO_FORMAT_BY_MIME = {
+    "audio/wav": "wav",
+    "audio/x-wav": "wav",
+    "audio/wave": "wav",
+    "audio/vnd.wave": "wav",
+    "audio/mpeg": "mp3",
+    "audio/mp3": "mp3",
+    "audio/mp4": "mp4",
+    "audio/m4a": "mp4",
+    "audio/x-m4a": "mp4",
+    "audio/webm": "webm",
+    "audio/ogg": "ogg",
+}
 
 
 def _truthy(value: str | None) -> bool:
@@ -885,6 +914,7 @@ def _chatgpt_oauth_gpt55_plan(request: ManualAssistantChatRequest, http_request:
             "Use the search_manuals tool only when the user asks for operational, software, troubleshooting, procedure, safety, or manual-grounded information.",
             "The selected profile is a hard boundary. Never switch profiles inside this turn.",
             "If the selected profile appears wrong, still search only the selected profile; the server will suggest a mode switch separately.",
+            "For attached photos, use the image as planning context, but still return JSON only.",
             "Return strict JSON only.",
         ],
         "json_schema": {
@@ -1572,10 +1602,133 @@ async def upload_photo(file: UploadFile) -> ManualAttachmentResponse:
     )
 
 
-async def transcribe_audio(file: UploadFile):
+def _normalized_audio_mime(file: UploadFile) -> str:
+    guessed = mimetypes.guess_type(file.filename or "")[0]
+    content_type = (file.content_type or "").split(";", 1)[0].strip().lower()
+    if (not content_type or content_type == "application/octet-stream") and guessed:
+        content_type = guessed.lower()
+    return content_type or "application/octet-stream"
+
+
+def _audio_format_for_model(mime: str, filename: str | None) -> str:
+    direct = AUDIO_FORMAT_BY_MIME.get(mime)
+    if direct:
+        return direct
+    suffix = Path(filename or "").suffix.lower().lstrip(".")
+    if suffix in {"wav", "mp3", "mp4", "m4a", "webm", "ogg"}:
+        return "mp4" if suffix == "m4a" else suffix
+    return "wav"
+
+
+def _chatgpt_oauth_transcription_payloads(raw: bytes, mime: str, audio_format: str) -> list[dict[str, Any]]:
+    encoded = base64.b64encode(raw).decode("ascii")
+    prompt = (
+        "Transcribe the attached operator audio exactly. The audio may contain Hebrew, English, Russian, "
+        "or mixed technical terms. Preserve product names, part numbers, menu labels, and measurements. "
+        "Return only the transcript text. Do not answer the question yet and do not translate it."
+    )
+    common = {
+        "model": _configured_openai_model(),
+        "reasoning": {"effort": os.environ.get("SHERMAN_CHAT_REASONING_EFFORT", "low")},
+        "text": {"verbosity": "low"},
+    }
+    return [
+        {
+            **common,
+            "input": [
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "input_text", "text": prompt},
+                        {
+                            "type": "input_audio",
+                            "input_audio": {
+                                "data": encoded,
+                                "format": audio_format,
+                            },
+                        },
+                    ],
+                }
+            ],
+        },
+        {
+            **common,
+            "input": [
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "input_text", "text": prompt},
+                        {
+                            "type": "input_audio",
+                            "data": encoded,
+                            "format": audio_format,
+                        },
+                    ],
+                }
+            ],
+        },
+        {
+            **common,
+            "input": [
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "input_text", "text": prompt},
+                        {
+                            "type": "input_file",
+                            "filename": f"sherman-voice.{audio_format}",
+                            "file_data": f"data:{mime};base64,{encoded}",
+                        },
+                    ],
+                }
+            ],
+        },
+    ]
+
+
+def _chatgpt_oauth_transcribe_audio(
+    raw: bytes,
+    mime: str,
+    audio_format: str,
+    http_request: Request | None,
+) -> str:
+    errors: list[str] = []
+    for payload in _chatgpt_oauth_transcription_payloads(raw, mime, audio_format):
+        try:
+            text = _extract_openai_text(_call_chatgpt_oauth_responses(payload, http_request)).strip()
+            if text:
+                return text
+            errors.append("empty transcript")
+        except HTTPException:
+            raise
+        except RuntimeError as exc:
+            errors.append(str(exc))
+    detail = "ChatGPT OAuth transcription failed. The signed-in ChatGPT Responses proxy may not support audio for this account."
+    if errors:
+        detail = f"{detail} Last error: {errors[-1][:500]}"
+    raise HTTPException(status_code=502, detail=detail)
+
+
+async def transcribe_audio(file: UploadFile, http_request: Request | None = None) -> dict[str, str]:
+    raw = await file.read(MAX_AUDIO_UPLOAD_BYTES + 1)
+    if len(raw) > MAX_AUDIO_UPLOAD_BYTES:
+        raise HTTPException(status_code=413, detail="Audio is too large")
+    if not raw:
+        raise HTTPException(status_code=400, detail="Audio is empty")
+
+    mime = _normalized_audio_mime(file)
+    if mime not in SUPPORTED_AUDIO_MIME_TYPES and not mime.startswith("audio/"):
+        raise HTTPException(status_code=400, detail="Upload must be an audio recording")
+
+    provider = _active_provider()
+    if provider == CHATGPT_OAUTH_PROVIDER:
+        audio_format = _audio_format_for_model(mime, file.filename)
+        text = _chatgpt_oauth_transcribe_audio(raw, mime, audio_format, http_request)
+        return {"text": text}
+
     raise HTTPException(
         status_code=501,
-        detail="Voice transcription requires OpenAI API integration. The local mock assistant supports typed questions and photo attachment storage.",
+        detail="Voice transcription is only wired for the ChatGPT OAuth provider in ShermanChat.",
     )
 
 

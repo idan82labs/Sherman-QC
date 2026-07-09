@@ -373,7 +373,16 @@ export const manualAssistantApi = {
 
   transcribe: async (file: Blob): Promise<{ text: string }> => {
     const form = new FormData()
-    form.append('file', file, 'voice.webm')
+    const extension = file.type.includes('wav')
+      ? 'wav'
+      : file.type.includes('mp4') || file.type.includes('m4a')
+        ? 'm4a'
+        : file.type.includes('mpeg') || file.type.includes('mp3')
+          ? 'mp3'
+          : file.type.includes('ogg')
+            ? 'ogg'
+            : 'webm'
+    form.append('file', file, `voice.${extension}`)
     const response = await api.post('/manual-assistant/transcribe', form, {
       headers: { 'Content-Type': 'multipart/form-data' },
       timeout: 120000,

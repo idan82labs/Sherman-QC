@@ -41,8 +41,8 @@ async def upload_photo(file: UploadFile = File(...)):
 
 
 @router.post("/api/manual-assistant/transcribe")
-async def transcribe_audio(file: UploadFile = File(...)):
-    return await manual_assistant_service.transcribe_audio(file)
+async def transcribe_audio(request: Request, file: UploadFile = File(...)):
+    return await manual_assistant_service.transcribe_audio(file, http_request=request)
 
 
 @router.post("/api/admin/manuals/ingest")
