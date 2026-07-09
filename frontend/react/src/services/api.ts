@@ -63,6 +63,7 @@ export function getErrorCode(error: unknown): string | null {
 const api = axios.create({
   baseURL: '/api',
   timeout: 30000, // 30 second timeout
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -81,7 +82,12 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    const requestUrl = String(error.config?.url || '')
+    const isManualOrChatGptRequest =
+      requestUrl.includes('/manual-assistant/') ||
+      requestUrl.includes('/sherman-chat/') ||
+      requestUrl.includes('/chatgpt/')
+    if (error.response?.status === 401 && !isManualOrChatGptRequest) {
       localStorage.removeItem('token')
       localStorage.removeItem('user')
       window.location.href = '/login'
@@ -208,6 +214,52 @@ export const healthApi = {
   check: async () => {
     const response = await api.get('/health')
     return response.data
+  },
+}
+
+export interface ChatGptUser {
+  email?: string
+  name?: string
+  plan?: string
+}
+
+export interface ChatGptSessionResponse {
+  status: 'loading' | 'unauthenticated' | 'connecting' | 'pending' | 'authenticated' | 'expired' | 'error'
+  user?: ChatGptUser
+  userCode?: string
+  verificationUrl?: string
+  interval?: number
+  expiresAt?: number
+}
+
+export interface ChatGptModelsResponse {
+  models: string[]
+}
+
+export const chatGptAuthApi = {
+  session: async (): Promise<ChatGptSessionResponse> => {
+    const response = await api.get('/chatgpt/session')
+    return response.data
+  },
+
+  login: async (): Promise<ChatGptSessionResponse> => {
+    const response = await api.post('/chatgpt/login', {})
+    return response.data
+  },
+
+  status: async (): Promise<ChatGptSessionResponse> => {
+    const response = await api.get('/chatgpt/status')
+    return response.data
+  },
+
+  logout: async (): Promise<ChatGptSessionResponse> => {
+    const response = await api.post('/chatgpt/logout', {})
+    return response.data
+  },
+
+  models: async (): Promise<string[]> => {
+    const response = await api.get<ChatGptModelsResponse>('/chatgpt/models')
+    return response.data.models
   },
 }
 

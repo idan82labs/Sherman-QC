@@ -9,6 +9,7 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from apps.api.routes.manual_assistant import router as manual_assistant_router
+from apps.api.services import manual_assistant_service
 from infrastructure.rag.manual_store import DATA_DIR, INDEX_PATH
 
 
@@ -48,7 +49,8 @@ def create_app() -> FastAPI:
         return {
             "status": "healthy",
             "service": "sherman-chat",
-            "provider": os.environ.get("SHERMAN_CHAT_PROVIDER", "mock"),
+            "provider": manual_assistant_service.active_provider(),
+            "configured_provider": os.environ.get("SHERMAN_CHAT_PROVIDER", "mock"),
             "retrieval_backend": os.environ.get("SHERMAN_RETRIEVAL_BACKEND", "local"),
             "manual_data_dir": str(DATA_DIR),
             "index_ready": INDEX_PATH.exists(),

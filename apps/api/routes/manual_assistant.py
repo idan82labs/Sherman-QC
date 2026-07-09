@@ -21,13 +21,13 @@ router = APIRouter(tags=["Manual Assistant"], dependencies=[Depends(_manual_assi
 
 
 @router.post("/api/manual-assistant/chat")
-def chat(request: ManualAssistantChatRequest):
-    return manual_assistant_service.chat(request)
+def chat(chat_request: ManualAssistantChatRequest, request: Request):
+    return manual_assistant_service.chat(chat_request, http_request=request)
 
 
 @router.post("/api/sherman-chat/chat")
-def sherman_chat(request: ManualAssistantChatRequest):
-    return manual_assistant_service.chat(request)
+def sherman_chat(chat_request: ManualAssistantChatRequest, request: Request):
+    return manual_assistant_service.chat(chat_request, http_request=request)
 
 
 @router.post("/api/manual-assistant/retrieval-chat")

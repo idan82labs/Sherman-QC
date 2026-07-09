@@ -48,6 +48,8 @@ MOCK_MODEL = "gpt-5.5"
 MOCK_PROVIDER = "mock"
 OPENAI_PROVIDER = "openai"
 CODEX_PROVIDER = "codex"
+CHATGPT_OAUTH_PROVIDER = "chatgpt_oauth"
+LLM_PROVIDERS = {OPENAI_PROVIDER, CODEX_PROVIDER, CHATGPT_OAUTH_PROVIDER}
 OPENAI_RESPONSES_URL = "https://api.openai.com/v1/responses"
 OPENAI_WIF_TOKEN_URL = "https://auth.openai.com/oauth/token"
 OPENAI_WIF_JWT_SUBJECT_TOKEN_TYPE = "urn:ietf:params:oauth:token-type:jwt"
@@ -207,7 +209,13 @@ def _active_provider() -> str:
         return OPENAI_PROVIDER
     if provider == CODEX_PROVIDER and _codex_available():
         return CODEX_PROVIDER
+    if provider in {CHATGPT_OAUTH_PROVIDER, "oauth", "login_with_chatgpt"}:
+        return CHATGPT_OAUTH_PROVIDER
     return MOCK_PROVIDER
+
+
+def active_provider() -> str:
+    return _active_provider()
 
 
 def _asset_url(kind: str, manual_id: str, path: str | None) -> str | None:
@@ -647,6 +655,40 @@ def _call_openai_responses(payload: dict[str, Any]) -> dict[str, Any]:
         raise RuntimeError(f"OpenAI Responses API request failed: {exc}") from exc
 
 
+def _chatgpt_oauth_complete_url() -> str:
+    return os.environ.get("SHERMAN_CHATGPT_OAUTH_COMPLETE_URL", "http://127.0.0.1:10000/api/chatgpt/complete")
+
+
+def _call_chatgpt_oauth_responses(payload: dict[str, Any], http_request: Request | None) -> dict[str, Any]:
+    if http_request is None:
+        raise HTTPException(status_code=401, detail="Connect ChatGPT before using the GPT-5.5 assistant.")
+    cookie = http_request.headers.get("cookie")
+    if not cookie:
+        raise HTTPException(status_code=401, detail="Connect ChatGPT before using the GPT-5.5 assistant.")
+
+    body = json.dumps(payload).encode("utf-8")
+    request = urllib.request.Request(
+        _chatgpt_oauth_complete_url(),
+        data=body,
+        headers={
+            "Cookie": cookie,
+            "Content-Type": "application/json",
+        },
+        method="POST",
+    )
+    timeout = float(os.environ.get("SHERMAN_CHAT_OPENAI_TIMEOUT", "45"))
+    try:
+        with urllib.request.urlopen(request, timeout=timeout) as response:
+            return json.loads(response.read().decode("utf-8"))
+    except urllib.error.HTTPError as exc:
+        detail = exc.read(1000).decode("utf-8", errors="ignore")
+        if exc.code == 401:
+            raise HTTPException(status_code=401, detail="Connect ChatGPT before using the GPT-5.5 assistant.") from exc
+        raise RuntimeError(f"ChatGPT OAuth Responses proxy failed with HTTP {exc.code}: {detail}") from exc
+    except (urllib.error.URLError, TimeoutError) as exc:
+        raise RuntimeError(f"ChatGPT OAuth Responses proxy request failed: {exc}") from exc
+
+
 def _parse_json_object(text: str) -> dict[str, Any]:
     stripped = text.strip()
     try:
@@ -835,6 +877,47 @@ def _openai_gpt55_plan(request: ManualAssistantChatRequest) -> dict[str, Any]:
     return _normalize_plan(_parse_json_object(text), request)
 
 
+def _chatgpt_oauth_gpt55_plan(request: ManualAssistantChatRequest, http_request: Request | None) -> dict[str, Any]:
+    prompt = {
+        "task": "Plan one ShermanAI chat turn.",
+        "rules": [
+            "Answer normal greetings or capability questions directly.",
+            "Use the search_manuals tool only when the user asks for operational, software, troubleshooting, procedure, safety, or manual-grounded information.",
+            "The selected profile is a hard boundary. Never switch profiles inside this turn.",
+            "If the selected profile appears wrong, still search only the selected profile; the server will suggest a mode switch separately.",
+            "Return strict JSON only.",
+        ],
+        "json_schema": {
+            "intent": "short intent label",
+            "action": "chat_answer | search_manuals | needs_clarification",
+            "profile": "echo the selected profile only",
+            "tool_query": "manual search query when action is search_manuals",
+            "answer": "direct chat answer when action is chat_answer",
+        },
+        "selected_profile": request.profile,
+        "ui_language": request.ui_language,
+        "message": request.message,
+        "attachment_count": len(request.attachment_ids),
+    }
+    payload = {
+        "model": _configured_openai_model(),
+        "input": [
+            {
+                "role": "system",
+                "content": "You are ShermanAI, a production-support assistant. Plan tool use carefully and return only valid JSON.",
+            },
+            {
+                "role": "user",
+                "content": _openai_content(json.dumps(prompt, ensure_ascii=False), request.attachment_ids),
+            },
+        ],
+        "reasoning": {"effort": os.environ.get("SHERMAN_CHAT_REASONING_EFFORT", "low")},
+        "text": {"verbosity": "low"},
+    }
+    text = _extract_openai_text(_call_chatgpt_oauth_responses(payload, http_request))
+    return _normalize_plan(_parse_json_object(text), request)
+
+
 def _codex_gpt55_plan(request: ManualAssistantChatRequest) -> dict[str, Any]:
     prompt = {
         "task": "Plan one ShermanChat turn. Return one strict JSON object only.",
@@ -865,14 +948,21 @@ def _codex_gpt55_plan(request: ManualAssistantChatRequest) -> dict[str, Any]:
     return _normalize_plan(_parse_json_object(text), request)
 
 
-def _assistant_plan(request: ManualAssistantChatRequest) -> tuple[dict[str, Any], list[str]]:
+def _assistant_plan(
+    request: ManualAssistantChatRequest,
+    http_request: Request | None = None,
+) -> tuple[dict[str, Any], list[str]]:
     provider = _active_provider()
     if provider == MOCK_PROVIDER:
         return _mock_gpt55_plan(request), []
     try:
         if provider == CODEX_PROVIDER:
             return _codex_gpt55_plan(request), []
+        if provider == CHATGPT_OAUTH_PROVIDER:
+            return _chatgpt_oauth_gpt55_plan(request, http_request), []
         return _openai_gpt55_plan(request), []
+    except HTTPException:
+        raise
     except Exception:
         return _mock_gpt55_plan(request), [f"{provider} planning failed; used local mock planner instead."]
 
@@ -1074,17 +1164,81 @@ def _codex_grounded_answer(
     )
 
 
+def _chatgpt_oauth_grounded_answer(
+    request: ManualAssistantChatRequest,
+    support_state: str,
+    citations: list[ManualEvidence],
+    suggested_profile: str | None = None,
+    http_request: Request | None = None,
+) -> str | None:
+    if _active_provider() != CHATGPT_OAUTH_PROVIDER or support_state == "not_found" or not citations:
+        return None
+
+    evidence = [
+        {
+            "citation_id": item.citation_id,
+            "manual_id": item.manual_id,
+            "profile": item.profile,
+            "page_number": item.page_number,
+            "excerpt": item.excerpt,
+            "source_text": item.source_text[:1800],
+            "visual_available": bool(item.crop or item.page_image),
+        }
+        for item in citations
+    ]
+    prompt = {
+        "task": "Answer the operator from approved manual evidence only.",
+        "rules": [
+            "Do not add facts that are not present in evidence.",
+            "Be direct and concise.",
+            "If steps are present, preserve their order.",
+            "Mention visual evidence when a page or crop is available.",
+            "Use the UI language unless the source term must stay in English.",
+        ],
+        "ui_language": request.ui_language,
+        "question": request.message,
+        "support_state": support_state,
+        "suggested_profile": suggested_profile,
+        "evidence": evidence,
+    }
+    payload = {
+        "model": _configured_openai_model(),
+        "input": [
+            {
+                "role": "system",
+                "content": "You are ShermanAI. Produce a grounded answer from the supplied manual citations only.",
+            },
+            {
+                "role": "user",
+                "content": json.dumps(prompt, ensure_ascii=False),
+            },
+        ],
+        "reasoning": {"effort": os.environ.get("SHERMAN_CHAT_REASONING_EFFORT", "low")},
+        "text": {"verbosity": "low"},
+    }
+    return _extract_openai_text(_call_chatgpt_oauth_responses(payload, http_request)) or None
+
+
 def _llm_grounded_answer(
     request: ManualAssistantChatRequest,
     support_state: str,
     citations: list[ManualEvidence],
     suggested_profile: str | None = None,
+    http_request: Request | None = None,
 ) -> str | None:
     provider = _active_provider()
     if provider == OPENAI_PROVIDER:
         return _openai_grounded_answer(request, support_state, citations, suggested_profile=suggested_profile)
     if provider == CODEX_PROVIDER:
         return _codex_grounded_answer(request, support_state, citations, suggested_profile=suggested_profile)
+    if provider == CHATGPT_OAUTH_PROVIDER:
+        return _chatgpt_oauth_grounded_answer(
+            request,
+            support_state,
+            citations,
+            suggested_profile=suggested_profile,
+            http_request=http_request,
+        )
     return None
 
 
@@ -1191,9 +1345,9 @@ def retrieval_chat(request: ManualAssistantChatRequest) -> ManualAssistantChatRe
     )
 
 
-def chat(request: ManualAssistantChatRequest) -> ManualAssistantChatResponse:
+def chat(request: ManualAssistantChatRequest, http_request: Request | None = None) -> ManualAssistantChatResponse:
     provider = _active_provider()
-    model = _configured_openai_model() if provider in {OPENAI_PROVIDER, CODEX_PROVIDER} else MOCK_MODEL
+    model = _configured_openai_model() if provider in LLM_PROVIDERS else MOCK_MODEL
     request_id = new_request_id()
 
     if _needs_visual_attachment(request):
@@ -1213,7 +1367,7 @@ def chat(request: ManualAssistantChatRequest) -> ManualAssistantChatResponse:
             tool_calls=[],
         )
 
-    plan, plan_warnings = _assistant_plan(request)
+    plan, plan_warnings = _assistant_plan(request, http_request=http_request)
 
     if plan["action"] == "chat_answer":
         return ManualAssistantChatResponse(
@@ -1234,7 +1388,7 @@ def chat(request: ManualAssistantChatRequest) -> ManualAssistantChatResponse:
 
     if plan["action"] == "needs_clarification":
         warnings = []
-        if request.attachment_ids and provider not in {OPENAI_PROVIDER, CODEX_PROVIDER}:
+        if request.attachment_ids and provider not in LLM_PROVIDERS:
             warnings.append("Image reasoning is disabled in the mock GPT-5.5 provider.")
         return ManualAssistantChatResponse(
             request_id=request_id,
@@ -1276,21 +1430,24 @@ def chat(request: ManualAssistantChatRequest) -> ManualAssistantChatResponse:
     public_citations = _public_citations(citations)
     warnings: list[str] = [*plan_warnings]
     if request.attachment_ids:
-        if provider in {OPENAI_PROVIDER, CODEX_PROVIDER}:
+        if provider in LLM_PROVIDERS:
             warnings.append("Uploaded photos were sent to GPT-5.5 for planning context when possible.")
         else:
             warnings.append("Uploaded photos are stored, but image reasoning is disabled in the mock GPT-5.5 provider.")
     if visual_gap:
         warnings.append("The answer needs visual evidence, but no crop was available for the top citation.")
     grounded_answer = None
-    if citations and provider in {OPENAI_PROVIDER, CODEX_PROVIDER}:
+    if citations and provider in LLM_PROVIDERS:
         try:
             grounded_answer = _llm_grounded_answer(
                 tool_request,
                 support_state,
                 citations,
                 suggested_profile=suggested_profile,
+                http_request=http_request,
             )
+        except HTTPException:
+            raise
         except Exception:
             warnings.append(f"{provider} answer synthesis failed; used local grounded template instead.")
 
