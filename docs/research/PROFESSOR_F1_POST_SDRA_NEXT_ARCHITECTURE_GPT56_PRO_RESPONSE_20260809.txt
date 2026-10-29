@@ -1,0 +1,401 @@
+Ruling
+
+Architecture token: ANTIPODAL_MIDSURFACE_HINGE_CURRENT_V1
+
+Causal hypothesis: A true sheet bend produces a spatially coherent, line-supported rotation of the director field of a thickness-paired mid-surface; open scan boundaries, hole rims, and terminal edges should fail reciprocal skin pairing or the subsequent closed-fan interior test before bend scoring.
+
+The established machinery is limited to PCA tangent estimation on unorganized points, normal-directed opposite-surface distance as a thickness/medial proxy, and thin-shell bending represented by extrinsic normal or dihedral-angle change. 
+multires-1.cms.caltech.edu
++3
+Hugues Hoppe
++3
+Department of Computer Science
++3
+ The Sherman-specific hypothesis is that C006 contains enough reciprocal two-skin coverage for the resulting mid-surface hinge current to expose interior bends while rejecting nuisance boundaries.
+
+This is causally distinct from the retired families: no pointwise rank exponent, Gauss-space ribbon or ruling, cubical complex, persistence calculation, or graph chord deficit is computed. The architecture emits no bend evidence unless reciprocal opposite-skin support first exists.
+
+Frozen computation
+
+All constants below are frozen before opening C006. The only source-derived scales are h, sheet thickness τ, and paired-midpoint spacing g.
+
+1. Canonical points and normals
+
+Consume only finite XYZ coordinates from the already locked 200,000-point source.
+
+Numerically sort XYZ, using raw float bits only as a tie-break; remove exact duplicates.
+
+Set h to the median eighth-nearest-neighbor distance over all retained points.
+
+For each point, take the nearest 24 neighbors lying within 4h; require at least 12.
+
+Compute a Gaussian-weighted covariance about the weighted centroid, with
+w(r)=exp[−(r/(2h))
+2
+].
+
+The unoriented normal is the eigenvector of the smallest eigenvalue
+λ
+0
+	​
+
+≤λ
+1
+	​
+
+≤λ
+2
+	​
+
+.
+
+A point is normal-eligible only when λ
+0
+	​
+
+/λ
+1
+	​
+
+≤0.35.
+
+Normal signs are never globally oriented; all comparisons are projective through absolute dot products.
+
+2. Frozen thickness discovery
+
+Choose at most 8,192 eligible anchors by the lowest SHA-256 value of their canonical XYZ bytes.
+
+For every anchor p, both signs of its normal n, and
+
+t
+j
+	​
+
+=h2
+j/16
+,j=26,…,96
+
+query the eight nearest source points to p±t
+j
+	​
+
+n, accepting only points within 1.5h of the query location.
+
+For v=q−p, accept a pilot hit only when:
+
+axial distance a=∣v⋅n∣ lies in [3h,64h];
+
+lateral distance 
+∥v∥
+2
+−a
+2
+	​
+
+≤1.25h;
+
+∣n
+p
+	​
+
+⋅n
+q
+	​
+
+∣≥cos20
+∘
+;
+
+∣n
+p
+	​
+
+⋅
+v
+^
+∣≥cos15
+∘
+;
+
+∣n
+q
+	​
+
+⋅
+v
+^
+∣≥cos25
+∘
+.
+
+Retain one minimum-residual hit per anchor and sign. Histogram log
+2
+	​
+
+(a/h) in 1/16-octave bins; ties select the smaller thickness. Set τ to the median hit distance in the winning bin and its two adjacent bins.
+
+Immediate architecture STOP if:
+
+fewer than 512 pilot hits exist; or
+
+fewer than 35% of all pilot hits lie within ±1/8 octave of τ.
+
+3. Reciprocal skin pairing
+
+For every eligible point, query eight neighbors around p+τn
+p
+	​
+
+ and p−τn
+p
+	​
+
+. Apply the same angular and lateral tests, additionally requiring
+
+∣log
+2
+	​
+
+(a/τ)∣≤1/8.
+
+Select the candidate minimizing
+
+(ℓ/h)
+2
++16log
+2
+2
+	​
+
+(a/τ)+4(1−∣n
+p
+	​
+
+⋅n
+q
+	​
+
+∣)
+2
+,
+
+with canonical point index as the final tie-break.
+
+Keep only exact reciprocal selections p↔q. Each pair produces:
+
+midpoint m=(p+q)/2;
+
+projective director d=(q−p)/∥q−p∥;
+
+measured thickness a.
+
+STOP if fewer than 5,000 pairs remain, fewer than 8% of eligible source points participate, or median sixth-neighbor midpoint distance g>5h.
+
+4. Mid-surface graph and explicit boundary removal
+
+Construct a mutual 12-nearest-neighbor graph over pair midpoints. Retain an edge only when:
+
+0.5g≤∥m
+i
+	​
+
+−m
+j
+	​
+
+∥≤2.5g and ∥m
+i
+	​
+
+−m
+j
+	​
+
+∥≤8h;
+
+∣log
+2
+	​
+
+(a
+i
+	​
+
+/a
+j
+	​
+
+)∣≤1/8;
+
+for edge direction u,
+max(∣d
+i
+	​
+
+⋅u∣,∣d
+j
+	​
+
+⋅u∣)≤0.82;
+
+when its length exceeds 1.5g, a third midpoint lies within 0.75g of its geometric midpoint.
+
+For each midpoint, project all one- and two-hop neighbor directions onto the plane perpendicular to its director. It is a closed-fan interior point only when:
+
+at least eight projected directions exist;
+
+at least six of eight fixed 45° sectors are occupied;
+
+the largest circular angular gap is at most 150°.
+
+The core is the two-hop erosion of this mask: a point is core only when it and every graph vertex within two hops are closed-fan interior points.
+
+STOP if fewer than 4,000 core midpoints remain or core coverage is below 20% of reciprocal pairs.
+
+5. Hinge current
+
+For every graph edge whose endpoints are core, align the projective director signs and compute
+
+θ
+e
+	​
+
+=atan2(∥d
+i
+	​
+
+×d
+j
+′
+	​
+
+∥, d
+i
+	​
+
+⋅d
+j
+′
+	​
+
+).
+
+Partition edges by length into [0.5g,g), [g,1.75g), and [1.75g,2.5g]. Merge a bin with its nearest bin if it has fewer than 256 edges.
+
+Within each bin calculate median μ and
+σ=1.4826MAD. An edge is active only when
+
+θ
+e
+	​
+
+≥4
+∘
+andθ
+e
+	​
+
+≥μ+6max(σ,0.25
+∘
+).
+
+Active edges sharing a midpoint form components. A funded component must satisfy all of:
+
+at least 32 active edges;
+
+deterministic two-sweep graph diameter at least 24g;
+
+for at least 75% of its active-edge centers, covariance within radius 4g has
+Λ
+1
+	​
+
+/(Λ
+2
+	​
+
++(0.05g)
+2
+)≥9.
+
+STOP if active edges exceed 5% of all core edges, or if no component passes these line-support walls.
+
+Source-free regressions
+
+All analytic fixtures use unit sampling, thickness 8, deterministic coordinate jitter bounded by 0.03, and 5% hash-selected deletion:
+
+Flat double skin: pairing and core gates pass; zero retained components.
+
+Double-skin 90° cylindrical bend: mid-radius 12 with planar flanks; exactly one retained interior component of length at least 40.
+
+Single-skin version: terminates at the pairability STOP.
+
+Bent sheet with an open scan crop: crop activation is rejected; the bend remains only when at least 24g from the crop.
+
+Flat double skin with a radius-12 through-hole: zero retained hole-rim components.
+
+Flat double skin joined by a terminal end wall: zero retained terminal-edge components.
+
+Metamorphic checks: arbitrary input permutation must give identical discrete hashes; a fixed proper rotation and translation must preserve the terminal class and normalized scalar metrics within 10
+−9
+.
+
+All seven must pass before the source claim is consumed.
+
+One bounded C006 execution
+
+Run exactly once after the fresh immutable lock:
+
+BASE_A;
+
+ORDER_PERMUTED;
+
+separately implemented INDEPENDENT_VALIDATOR.
+
+Use one CPU thread per role, sequentially, with all BLAS/OpenMP thread counts fixed to one. The producer roles must be byte-identical. The validator must reproduce the pair, core, active-edge, and component-membership hashes exactly; continuous scalars may differ by at most eight ULP.
+
+Hard validity/resource STOP:
+
+global producer, validator, and rendering wall time ≥300 seconds;
+
+peak RSS ≥16 GiB;
+
+any missing role, hash disagreement, numerical non-finiteness, or artifact-cap violation;
+
+semantic non-image artifacts above 32 MiB or visual package above 256 MiB.
+
+No source point array, full pair table, or full midpoint table may be serialized. Preserve only configuration, aggregate histograms, integer-set hashes, a component table capped at 256 rows, and at most 128 retained polylines of 256 vertices each.
+
+Any failed gate is an architecture STOP. There is no scale expansion, threshold change, alternate thickness mode, or rerun rescue.
+
+Mandatory visual package
+
+Render every source point; no visual point decimation.
+
+Six deterministic orthographic full-object views at 4096-pixel long side, each in two versions: all raw high-turn edges before interior erosion, and final retained components.
+
+Eight 2048-pixel crops centered on the largest rejected non-core activations.
+
+Eight 2048-pixel crops centered on the largest retained components.
+
+One thickness-mode panel and one pair/core-coverage panel.
+
+Total: 30 hash-manifested images.
+
+The retained layer receives a co-primary visual STOP if any of these holds:
+
+long scan-boundary activation is DOMINANT;
+
+hole-rim activation is DOMINANT;
+
+terminal/end activation is DOMINANT;
+
+area-like fill is MATERIAL or DOMINANT;
+
+isolated speckles are MATERIAL or DOMINANT;
+
+no interior bend-like band is at least MATERIAL.
+
+A machine pass cannot override that visual veto. Passing all machine and visual walls yields AMHC_V1_SOURCE_ONLY_PREFLIGHT_PASS; it does not open gold.
+
+AUTHORIZE_ANTIPODAL_MIDSURFACE_HINGE_CURRENT_V1_C006_FROZEN_SOURCE_ONLY_ONE_SHOT_PREFLIGHT

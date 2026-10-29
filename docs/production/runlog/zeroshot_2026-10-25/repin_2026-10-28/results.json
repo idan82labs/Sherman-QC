@@ -1,0 +1,362 @@
+{
+ "schema": "sherman_repin_v1",
+ "date": "2026-10-28",
+ "status": "APPLIED",
+ "owner_decision": "extend the waiver, thin dense scans, go ahead",
+ "engine": {
+  "version": "e3-1.14.0",
+  "inspect_fingerprint": "8805148f636e4a4aadf6932034504c4ecd29fa1db49984c90d5a271256027933",
+  "engine_config_sha256": "4f107f5a90d4cb114a22132365aff524a1ed4f2ccd8b4ee5856c547dad6ee8d0",
+  "previous": "e3-1.13.0 f319ed5c..., config 038eb11f...",
+  "contents": "e3-1.13.0 + pose wells (8 tilted restarts, switch margin 0.03) + alternative-pose withholding (margin 0.06; never creates a PASS) + dense ingest thinning at 0.63 mm (> 15 points per cell -> one actual point per cell), the 3 M-point refusal kept after thinning; K=2 net, policy 1, serial",
+  "rc_patch_sha256": "6a9c6e002c54569684badf1681aee80bfb91640ec4c1c0449653be3b68293df7",
+  "candidate_report_sha256": "5c387d79c8c200b8cdd883418945c768ad5bef678a284eb192b5baad68729611"
+ },
+ "code_fingerprints": {
+  "engine": "8805148f636e4a4aadf6932034504c4ecd29fa1db49984c90d5a271256027933",
+  "compile": "9831f9ae396d58c9a79f3475e790aacfec90c794a0d008598e64541bb37794dd",
+  "eval": "8aa6860c78d85a2daf1d36607b52c691079378c66507a29e6827e73c0f7cae6a",
+  "contracts": "27d553338c024006f75a4251355c9c354b60e89ab6e2f004ff075b17c8afd9d9"
+ },
+ "zs": {
+  "zs_lane_v1": {
+   "code_fingerprint": "c712c15c0843d89db98eca5d8b757e75976f884520e5543933acd4fabb64555b",
+   "pin_sha256": "0087fb2383a412c3cf20b509a5cbfc6628f0d2970b3ca502229067dd952722f1",
+   "config_v1_sha256": "33d9270a821f1c22553bd635559076de4b8c7e45c4a797769be1bcb55b50968f",
+   "before": "52fd21d6... / pin 94e71f30..."
+  },
+  "zs_lane_v3_rev3": {
+   "code_fingerprint": "871f23fa0f46d7f827a31e3c3bd075572dca8adb096569541942c973c1d487b7",
+   "pin_sha256": "711bd079a04286fa89f711314cb4a60f5ae8a1fec85862275d7497263153d5be",
+   "config_v3_sha256": "b65eec59caa74c3c122dd8a8791bf67988d5b5f3a97cfdc1c77fa1d2c603f6e4",
+   "before": "49a16399... / pin 0d910b6f..."
+  },
+  "changed_shared_files": [
+   "domains/production/engine/inspect/config.py",
+   "domains/production/engine/inspect/engine.py"
+  ],
+  "default_lane": "zs_lane_v1"
+ },
+ "prereg": {
+  "file_sha256_before": "90394a42d3d6e2a650ebc875c12363743307c699b6e393d8350c6ce0fa842ba6",
+  "file_sha256_after": "60b083728f746090610e481769d0875e09062ca889542ecc50a3b49d41324289",
+  "decision_rule_sha256_unchanged": "6ae84658713c1b4e0ed9c4b363d38d424b556ff173ed2b99cf09d13a7f4f0995",
+  "flip_allowed_if_all_sha256_unchanged": "18c0aeec40a79d4f67cce343fb4c30da70f22ff1472d9dd36d490f5ac9d4bd99"
+ },
+ "gates": {
+  "G1": {
+   "result": "PASS",
+   "false_pass": "0/553",
+   "wrong_or_mirrored": "0/32",
+   "accuracy_decision_gates_identical_to_e3_1_13_0": true,
+   "runtime": {
+    "P95_s": 56.2,
+    "TIER_BUDGET": "FAIL 1426 s (e3-1.13.0 run: 1923 s under heavier load)"
+   }
+  },
+  "A1": {
+   "result": "PASS (G2(e) waived)",
+   "characteristics_identical_to_e3_1_13_0": "26/26",
+   "per_bend_all_v3_identical": true,
+   "frozen_recompile": "18/18",
+   "G2e": {
+    "p95_wall_s": 113.02,
+    "max_wall_s": 132.37,
+    "vs_candidate_e3_1_13_quiet_p95_s": 89.46,
+    "increase_pct": 26.3,
+    "note": "measured at load ~3-12 with other agents running; the extended waiver is about +21 % on a quiet host (corpus max 99.0 -> 119.7 s); this run is +26 % over the 1.13 quiet reference"
+   }
+  },
+  "tests": {
+   "e3": "317 passed, 1 skipped (18 files incl. tests/test_prod_engine_e3_1_14_pose_wells.py)",
+   "zs_overlay_contracts_production_line": "447 passed (17 files); overlay 50/50 with each pin"
+  },
+  "dense": {
+   "result": "PASS",
+   "fail_to_pass_total": 0,
+   "decided_flips_total": 0,
+   "max_wall_s": 149.07,
+   "max_rss_gib": 5.47,
+   "per_mesh": [
+    {
+     "mesh": "A_n3",
+     "wall_s": 71.39,
+     "peak_rss_gib": 1.17,
+     "validity": "VALID",
+     "summary": "REVIEW_REQUIRED",
+     "thinned": false,
+     "changes_vs_native": 3,
+     "fail_to_pass": 0,
+     "to_pass": 1,
+     "decided_flips": 0
+    },
+    {
+     "mesh": "A_n3c",
+     "wall_s": 104.7,
+     "peak_rss_gib": 1.22,
+     "validity": "VALID",
+     "summary": "REVIEW_REQUIRED",
+     "thinned": false,
+     "changes_vs_native": 3,
+     "fail_to_pass": 0,
+     "to_pass": 1,
+     "decided_flips": 0
+    },
+    {
+     "mesh": "A_n5",
+     "wall_s": 32.03,
+     "peak_rss_gib": 1.69,
+     "validity": "VALID",
+     "summary": "REVIEW_REQUIRED",
+     "thinned": true,
+     "changes_vs_native": 1,
+     "fail_to_pass": 0,
+     "to_pass": 0,
+     "decided_flips": 0
+    },
+    {
+     "mesh": "A_n6",
+     "wall_s": 41.41,
+     "peak_rss_gib": 2.27,
+     "validity": "VALID",
+     "summary": "REVIEW_REQUIRED",
+     "thinned": true,
+     "changes_vs_native": 0,
+     "fail_to_pass": 0,
+     "to_pass": 0,
+     "decided_flips": 0
+    },
+    {
+     "mesh": "A_n9",
+     "wall_s": 31.56,
+     "peak_rss_gib": 4.62,
+     "validity": "VALID",
+     "summary": "REVIEW_REQUIRED",
+     "thinned": true,
+     "changes_vs_native": 0,
+     "fail_to_pass": 0,
+     "to_pass": 0,
+     "decided_flips": 0
+    },
+    {
+     "mesh": "B_n2",
+     "wall_s": 149.07,
+     "peak_rss_gib": 1.17,
+     "validity": "VALID",
+     "summary": "OUT_OF_TOLERANCE_FOUND",
+     "thinned": false,
+     "changes_vs_native": 0,
+     "fail_to_pass": 0,
+     "to_pass": 0,
+     "decided_flips": 0
+    },
+    {
+     "mesh": "B_n2c",
+     "wall_s": 148.19,
+     "peak_rss_gib": 1.18,
+     "validity": "VALID",
+     "summary": "OUT_OF_TOLERANCE_FOUND",
+     "thinned": false,
+     "changes_vs_native": 0,
+     "fail_to_pass": 0,
+     "to_pass": 0,
+     "decided_flips": 0
+    },
+    {
+     "mesh": "B_n3",
+     "wall_s": 0.8,
+     "peak_rss_gib": 0.83,
+     "validity": "UNSUPPORTED_INPUT",
+     "summary": "INVALID_INSPECTION",
+     "thinned": false,
+     "changes_vs_native": 64,
+     "fail_to_pass": 0,
+     "to_pass": 0,
+     "decided_flips": 0
+    },
+    {
+     "mesh": "B_n5",
+     "wall_s": 95.27,
+     "peak_rss_gib": 3.12,
+     "validity": "VALID",
+     "summary": "OUT_OF_TOLERANCE_FOUND",
+     "thinned": true,
+     "changes_vs_native": 1,
+     "fail_to_pass": 0,
+     "to_pass": 0,
+     "decided_flips": 0
+    },
+    {
+     "mesh": "B_n7",
+     "wall_s": 101.38,
+     "peak_rss_gib": 5.47,
+     "validity": "VALID",
+     "summary": "OUT_OF_TOLERANCE_FOUND",
+     "thinned": true,
+     "changes_vs_native": 1,
+     "fail_to_pass": 0,
+     "to_pass": 0,
+     "decided_flips": 0
+    },
+    {
+     "mesh": "C_n2",
+     "wall_s": 103.45,
+     "peak_rss_gib": 1.53,
+     "validity": "VALID",
+     "summary": "ALL_MEASURED_IN_TOLERANCE",
+     "thinned": false,
+     "changes_vs_native": 0,
+     "fail_to_pass": 0,
+     "to_pass": 0,
+     "decided_flips": 0
+    },
+    {
+     "mesh": "C_n3",
+     "wall_s": 44.62,
+     "peak_rss_gib": 1.83,
+     "validity": "VALID",
+     "summary": "ALL_MEASURED_IN_TOLERANCE",
+     "thinned": true,
+     "changes_vs_native": 0,
+     "fail_to_pass": 0,
+     "to_pass": 0,
+     "decided_flips": 0
+    },
+    {
+     "mesh": "C_n4",
+     "wall_s": 45.37,
+     "peak_rss_gib": 2.95,
+     "validity": "VALID",
+     "summary": "ALL_MEASURED_IN_TOLERANCE",
+     "thinned": true,
+     "changes_vs_native": 0,
+     "fail_to_pass": 0,
+     "to_pass": 0,
+     "decided_flips": 0
+    },
+    {
+     "mesh": "C_n5",
+     "wall_s": 51.54,
+     "peak_rss_gib": 4.22,
+     "validity": "VALID",
+     "summary": "ALL_MEASURED_IN_TOLERANCE",
+     "thinned": true,
+     "changes_vs_native": 0,
+     "fail_to_pass": 0,
+     "to_pass": 0,
+     "decided_flips": 0
+    },
+    {
+     "mesh": "D_n2",
+     "wall_s": 36.67,
+     "peak_rss_gib": 2.14,
+     "validity": "VALID",
+     "summary": "REVIEW_REQUIRED",
+     "thinned": true,
+     "changes_vs_native": 0,
+     "fail_to_pass": 0,
+     "to_pass": 0,
+     "decided_flips": 0
+    },
+    {
+     "mesh": "D_n3",
+     "wall_s": 42.75,
+     "peak_rss_gib": 4.39,
+     "validity": "VALID",
+     "summary": "REVIEW_REQUIRED",
+     "thinned": true,
+     "changes_vs_native": 0,
+     "fail_to_pass": 0,
+     "to_pass": 0,
+     "decided_flips": 0
+    }
+   ],
+   "native": {
+    "A_n1_e3": {
+     "wall_s": 29.21,
+     "rss_gib": 0.48,
+     "summary": "REVIEW_REQUIRED",
+     "resample_check": [
+      "resample check: k=2 policy=1 parallel=0 primary 7.6s total 28.9s; s7101=VALID s7102=VALID"
+     ],
+     "thinned": null
+    },
+    "B_n1_e3": {
+     "wall_s": 107.71,
+     "rss_gib": 0.73,
+     "summary": "OUT_OF_TOLERANCE_FOUND",
+     "resample_check": [
+      "resample check: k=2 policy=1 parallel=0 primary 38.4s total 107.3s; s7101=VALID s7102=VALID",
+      "resample check withheld: bu_a756c2e2336e1530784d/INCLUDED_ANGLE bu_364d82ba11957cd31c62/FLANGE_LENGTH/A"
+     ],
+     "thinned": null
+    },
+    "C_n1_e3": {
+     "wall_s": 52.63,
+     "rss_gib": 0.73,
+     "summary": "ALL_MEASURED_IN_TOLERANCE",
+     "resample_check": [
+      "resample check: k=2 policy=1 parallel=0 primary 18.0s total 52.2s; s7101=VALID s7102=VALID"
+     ],
+     "thinned": null
+    },
+    "D_n1_e3": {
+     "wall_s": 61.4,
+     "rss_gib": 1.17,
+     "summary": "REVIEW_REQUIRED",
+     "resample_check": [
+      "resample check: k=2 policy=1 parallel=0 primary 21.0s total 61.0s; s7101=VALID s7102=VALID"
+     ],
+     "thinned": null
+    }
+   },
+   "notes": "10 thinned meshes decided (B_n5: pose well switch 1.264 -> 1.410; the 7 attempt-1 FAIL->PASS are gone); B_n3 refused by the 3 M-point criterion (4.25 M points, 13.2 pts/cell, not thinned); A_n3/A_n3c keep e3-1.12.0's REVIEW->PASS on B7 line position (not FAIL->PASS); load 3-12 during the run"
+  },
+  "zs_rehearsal": {
+   "result": "PASS",
+   "v1": {
+    "status": {
+     "OK": 50
+    },
+    "false_pass": 0,
+    "lines": 288,
+    "wall_max_s": 13.063,
+    "rss_max_gib": 3.245
+   },
+   "v3": {
+    "status": {
+     "OK": 50
+    },
+    "false_pass": 0,
+    "lines": 288,
+    "wall_max_s": 16.562,
+    "rss_max_gib": 2.608
+   },
+   "per_scan_identical_to_rev2_rehearsal": true,
+   "changed_effective_state_v1_vs_v3": []
+  },
+  "E2E": {
+   "result": "PASS (known flake only)",
+   "run": "20261028T-real-repin-e3-1-14",
+   "steps": "13/14 PASS; W3b FAIL with the ticketed known-flake signature (B7/B10 markers missing, labels [])",
+   "overlay": "every job: engine e3-1.14.0, lane zs_lane_v1 c712c15c..., verdict not lowered",
+   "direct_E3_equality": "R-full / R-scan_1 / R-scan_2 PASS"
+  }
+ },
+ "rust_adapter": {
+  "config_v3r3_rs_mismatches_now": [
+   "domains/production/engine/inspect/config.py",
+   "domains/production/engine/inspect/engine.py"
+  ],
+  "needs_freeze_config_rerun": true,
+  "note": "research/zeroshot/zs_lane_v3_rs/config_v3r3_rs.json fingerprints these E3 files (base 49a16399...); its --strict-pins now refuses until the Rust agent re-runs freeze_config (not edited here)"
+ },
+ "coordination": "another agent's E2E (20261028T-picker-final) started after the patch was applied and ran against e3-1.14.0; its own runs before 01:58 used e3-1.13.0",
+ "unverified": [
+  "Windows station runtime (+21-26 % wall, K=2 serial) and spawn RSS accounting",
+  "quiet-host timing for this exact tree (single-run quiet timings are from the candidate report)",
+  "alternative-pose withholding has no real near-tie in the corpus (synthetic tests only)",
+  "pose-well mechanism observed on one part (23553000 B)"
+ ],
+ "custody": "DEV/consumed survey and A1 scans, 4 DEV dense mesh families (N1 excluded), consumed-DEV rehearsal cohort, Gold11 dev part for E2E; no FRESH, DEV-CHECK, TEST-B, N1, HOLDOUT10, EHO4 or sealed data"
+}

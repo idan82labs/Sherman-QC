@@ -1,0 +1,716 @@
+{
+ "schema": "sherman.zeroshot.gold_adjudication.v1",
+ "batch": "T5",
+ "adjudicator": "T5/adjudicator (claude-vision-ai-v1)",
+ "created": "2026-10-25",
+ "matcher": "research/broad_baseline/score.py score_case (frozen Thresholds + strict 1.5 mm / 2 deg acceptance)",
+ "inputs_seen": "marker A/B folders, raw-scan prep/lines renders and sections, adjudicator raw point sections; FRESH labels only after the A/B adjudication; canary gold only for QC. No engine/lane/CAD/baseline output.",
+ "ab_agreement": {
+  "tp": 33,
+  "fp": 6,
+  "fn": 2,
+  "f1": 0.8918918918918919
+ },
+ "scans": {
+  "gb_040769": {
+   "scan_id": "sc_2c807204c472",
+   "portion": "DEV_CANARY",
+   "role": "CANARY",
+   "ab_match": {
+    "nA": 5,
+    "nB": 5,
+    "accepted_pairs": 5,
+    "pairs": [
+     {
+      "A": "B1",
+      "B": "B3",
+      "offset_mm": 0.0,
+      "angle_deg": 0.0
+     },
+     {
+      "A": "B2",
+      "B": "B1",
+      "offset_mm": 0.0,
+      "angle_deg": 0.0
+     },
+     {
+      "A": "B3",
+      "B": "B2",
+      "offset_mm": 0.0,
+      "angle_deg": 0.0
+     },
+     {
+      "A": "B4",
+      "B": "B4",
+      "offset_mm": 0.0,
+      "angle_deg": 0.0
+     },
+     {
+      "A": "B5",
+      "B": "B5",
+      "offset_mm": 0.0,
+      "angle_deg": 0.0
+     }
+    ],
+    "unmatched_A": [],
+    "unmatched_B": []
+   },
+   "accepted_rule": "matched pairs with offset <= 1.5 mm and angle <= 2 deg accepted; line taken from marker A (identical tool output, same support)",
+   "disagreements": [],
+   "third_marking": null,
+   "canary_gold": {
+    "path": "data/bend_corpus/annotations/ai_bend_lines_gold_v1/3f58285cd2034ea3a5c61ec5.json",
+    "f1_A": 1.0,
+    "f1_B": 1.0,
+    "f1_adjudicated": 1.0
+   },
+   "final_source": "marker_A",
+   "final_lines_sha256": "a13b103bdad8b75fa49724899f9fbbbde1fc553c02e9d457bc4b1e9e8a273a4b",
+   "n_final": 5,
+   "final_uncertain": []
+  },
+  "gb_0d41bd": {
+   "scan_id": "sc_3f6e22d70e4e",
+   "portion": "TEST_B",
+   "role": "TARGET",
+   "ab_match": {
+    "nA": 5,
+    "nB": 5,
+    "accepted_pairs": 5,
+    "pairs": [
+     {
+      "A": "B1",
+      "B": "B4",
+      "offset_mm": 0.0,
+      "angle_deg": 0.0
+     },
+     {
+      "A": "B2",
+      "B": "B3",
+      "offset_mm": 0.0,
+      "angle_deg": 0.0
+     },
+     {
+      "A": "B3",
+      "B": "B1",
+      "offset_mm": 0.0,
+      "angle_deg": 1e-06
+     },
+     {
+      "A": "B4",
+      "B": "B2",
+      "offset_mm": 0.0,
+      "angle_deg": 1e-06
+     },
+     {
+      "A": "B5",
+      "B": "B5",
+      "offset_mm": 0.0,
+      "angle_deg": 0.0
+     }
+    ],
+    "unmatched_A": [],
+    "unmatched_B": []
+   },
+   "accepted_rule": "matched pairs with offset <= 1.5 mm and angle <= 2 deg accepted; line taken from marker A (identical tool output, same support)",
+   "disagreements": [],
+   "third_marking": {
+    "source": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED/18a098f464e6a3492a96c920.json",
+    "sha256": "2e2f542cf7685f05f5129806a926d3ce0167d2176187d411a83d4de85c055452",
+    "n_fresh": 5,
+    "pre_fresh_lines": 5,
+    "differences": [],
+    "fresh_lines_judged_wrong": 0,
+    "final_vs_fresh": {
+     "gold_count": 5,
+     "prediction_count": 5,
+     "true_positive": 5,
+     "f1": 1.0
+    }
+   },
+   "canary_gold": null,
+   "final_source": "marker_A",
+   "final_lines_sha256": "b6bc7362299ee3996a36de9abc06706fe31e99e30ddbbf64d37f2a98f8db40d4",
+   "n_final": 5,
+   "final_uncertain": []
+  },
+  "gb_0f8d41": {
+   "scan_id": "sc_8700ef964309",
+   "portion": "TEST_B",
+   "role": "TARGET",
+   "ab_match": {
+    "nA": 3,
+    "nB": 3,
+    "accepted_pairs": 3,
+    "pairs": [
+     {
+      "A": "B1",
+      "B": "B1",
+      "offset_mm": 0.0,
+      "angle_deg": 0.0
+     },
+     {
+      "A": "B2",
+      "B": "B2",
+      "offset_mm": 0.0,
+      "angle_deg": 1e-06
+     },
+     {
+      "A": "B3",
+      "B": "B3",
+      "offset_mm": 0.0,
+      "angle_deg": 1e-06
+     }
+    ],
+    "unmatched_A": [],
+    "unmatched_B": []
+   },
+   "accepted_rule": "matched pairs with offset <= 1.5 mm and angle <= 2 deg accepted; line taken from marker A (identical tool output, same support)",
+   "disagreements": [],
+   "third_marking": {
+    "source": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED/95c7ed10cf0b43f9a2fd37e5.json",
+    "sha256": "9acc082081b98f4d33cbc593d1ddabe2c6d0d65061f152eea897211e9cc1bdd9",
+    "n_fresh": 13,
+    "pre_fresh_lines": 3,
+    "differences": [
+     {
+      "items": {
+       "A": [
+        "B1"
+       ],
+       "B": [
+        "B1"
+       ],
+       "FRESH": [
+        "B6",
+        "B7",
+        "B8",
+        "B9",
+        "B10"
+       ]
+      },
+      "verdict": "ACCEPT_FRESH_SPLIT",
+      "final_ids": [
+       "B1",
+       "B2",
+       "B3",
+       "B4",
+       "B5"
+      ],
+      "reason": "Raw iso render shows the side wall is 5 separate tabs (82/22/63/22/61 mm) cut full height by slits; each tab joins the web only. Disconnected tabs are separate plates, so 5 lines (same ruling as gb_6c7cd8). Markers' single 255 mm line had fold support 0.35. Lines rebuilt by the adjudicator (patches 1|tab), tab 5 extended with extent_t to the full tab (support 0.44 from the fold windows; tool flags it uncertain for that reason)."
+     },
+     {
+      "items": {
+       "A": [
+        "B2"
+       ],
+       "B": [
+        "B2"
+       ],
+       "FRESH": [
+        "B1",
+        "B2",
+        "B3",
+        "B4",
+        "B5"
+       ]
+      },
+      "verdict": "ACCEPT_FRESH_SPLIT",
+      "final_ids": [
+       "B6",
+       "B7",
+       "B8",
+       "B9",
+       "B10"
+      ],
+      "reason": "Other side wall: the same 5 separate tabs; rebuilt per tab (support 1.0 each)."
+     },
+     {
+      "items": {
+       "A": [],
+       "B": [],
+       "FRESH": [
+        "B12"
+       ]
+      },
+      "verdict": "MISSING_ADD",
+      "final_ids": [
+       "B12"
+      ],
+      "reason": "Both markers dismissed end tab 25/26 as coplanar. The raw longitudinal section at u~145 mm shows a 1.2 mm (=t) step over ~2 mm: a joggle, fold 1 web-to-ramp ~36 deg (>=10 deg). Added via plane_from_points on the ramp bottom skin, extent_t to the full 15 mm joggle width."
+     },
+     {
+      "items": {
+       "A": [],
+       "B": [],
+       "FRESH": [
+        "B13"
+       ]
+      },
+      "verdict": "MISSING_ADD",
+      "final_ids": [
+       "B13"
+      ],
+      "reason": "Joggle fold 2 (ramp-to-end-tab, ~33 deg); a joggle counts as 2. plane_from_points on the ramp top skin | patch 25."
+     }
+    ],
+    "fresh_lines_judged_wrong": 0,
+    "final_vs_fresh": {
+     "gold_count": 13,
+     "prediction_count": 13,
+     "true_positive": 13,
+     "f1": 1.0
+    }
+   },
+   "canary_gold": null,
+   "final_source": "adjudicator",
+   "final_lines_sha256": "658f22f13872002737d1ea56b80c47f17d13f191f33de98d1727eef775120287",
+   "n_final": 13,
+   "final_uncertain": [
+    "B5"
+   ]
+  },
+  "gb_10743c": {
+   "scan_id": "sc_09aaf245becb",
+   "portion": "TEST_B",
+   "role": "TARGET",
+   "ab_match": {
+    "nA": 3,
+    "nB": 3,
+    "accepted_pairs": 3,
+    "pairs": [
+     {
+      "A": "B1",
+      "B": "B1",
+      "offset_mm": 0.0,
+      "angle_deg": 0.0
+     },
+     {
+      "A": "B2",
+      "B": "B2",
+      "offset_mm": 0.0,
+      "angle_deg": 1e-06
+     },
+     {
+      "A": "B3",
+      "B": "B3",
+      "offset_mm": 0.0,
+      "angle_deg": 0.0
+     }
+    ],
+    "unmatched_A": [],
+    "unmatched_B": []
+   },
+   "accepted_rule": "matched pairs with offset <= 1.5 mm and angle <= 2 deg accepted; line taken from marker A (identical tool output, same support)",
+   "disagreements": [],
+   "third_marking": {
+    "source": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED/49760d7526736bbd3f0d6054.json",
+    "sha256": "cc288614dd50dbe11a277fd52763d4d78cca270c9edee6ddf831d0f579a39745",
+    "n_fresh": 3,
+    "pre_fresh_lines": 3,
+    "differences": [],
+    "fresh_lines_judged_wrong": 0,
+    "final_vs_fresh": {
+     "gold_count": 3,
+     "prediction_count": 3,
+     "true_positive": 3,
+     "f1": 1.0
+    }
+   },
+   "canary_gold": null,
+   "final_source": "marker_A",
+   "final_lines_sha256": "3f76b01ae06e538404dc8326ec46c3a0c1fa07a4c34b51e7b9aede3436c89d38",
+   "n_final": 3,
+   "final_uncertain": []
+  },
+  "gb_21386a": {
+   "scan_id": "sc_2d74c97bb017",
+   "portion": "TEST_B",
+   "role": "TARGET",
+   "ab_match": {
+    "nA": 1,
+    "nB": 1,
+    "accepted_pairs": 1,
+    "pairs": [
+     {
+      "A": "B1",
+      "B": "B1",
+      "offset_mm": 0.0,
+      "angle_deg": 0.0
+     }
+    ],
+    "unmatched_A": [],
+    "unmatched_B": []
+   },
+   "accepted_rule": "matched pairs with offset <= 1.5 mm and angle <= 2 deg accepted; line taken from marker A (identical tool output, same support)",
+   "disagreements": [],
+   "third_marking": {
+    "source": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED/f4f46ca1c9952f10adf3d0c1.json",
+    "sha256": "e29adffb188c5860d45f877556c89ea7c84a26c0fe2bde98a423bcb20accf855",
+    "n_fresh": 1,
+    "pre_fresh_lines": 1,
+    "differences": [],
+    "fresh_lines_judged_wrong": 0,
+    "final_vs_fresh": {
+     "gold_count": 1,
+     "prediction_count": 1,
+     "true_positive": 1,
+     "f1": 1.0
+    }
+   },
+   "canary_gold": null,
+   "final_source": "marker_A",
+   "final_lines_sha256": "ba56f8215d06610e8876a3d9ac24ced9096086d3bc9fc1ffbaeb3a3c89279c4e",
+   "n_final": 1,
+   "final_uncertain": []
+  },
+  "gb_3534de": {
+   "scan_id": "sc_deba7f81ceec",
+   "portion": "TEST_B",
+   "role": "TARGET",
+   "ab_match": {
+    "nA": 2,
+    "nB": 2,
+    "accepted_pairs": 2,
+    "pairs": [
+     {
+      "A": "B1",
+      "B": "B1",
+      "offset_mm": 0.00256,
+      "angle_deg": 0.0
+     },
+     {
+      "A": "B2",
+      "B": "B2",
+      "offset_mm": 0.00178,
+      "angle_deg": 1e-06
+     }
+    ],
+    "unmatched_A": [],
+    "unmatched_B": []
+   },
+   "accepted_rule": "matched pairs with offset <= 1.5 mm and angle <= 2 deg accepted; line taken from marker A (identical tool output, same support)",
+   "disagreements": [],
+   "third_marking": {
+    "source": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED/ececb288832b6b96317f4aa4.json",
+    "sha256": "0b0f6bb012e827a46e5f6421f115909a8e7b58aabdfdd1c67b5c24e53c9a703b",
+    "n_fresh": 2,
+    "pre_fresh_lines": 2,
+    "differences": [],
+    "fresh_lines_judged_wrong": 0,
+    "final_vs_fresh": {
+     "gold_count": 2,
+     "prediction_count": 2,
+     "true_positive": 2,
+     "f1": 1.0
+    }
+   },
+   "canary_gold": null,
+   "final_source": "marker_A",
+   "final_lines_sha256": "befd47805b66d5bc46f6983e7ade0ffd96e2a460bd823c7fed5f66e1be5cbca2",
+   "n_final": 2,
+   "final_uncertain": [
+    "B1",
+    "B2"
+   ]
+  },
+  "gb_6c7cd8": {
+   "scan_id": "sc_9b47565ad2ac",
+   "portion": "TEST_B",
+   "role": "TARGET",
+   "ab_match": {
+    "nA": 4,
+    "nB": 8,
+    "accepted_pairs": 2,
+    "pairs": [
+     {
+      "A": "B1",
+      "B": "B1",
+      "offset_mm": 0.0,
+      "angle_deg": 1e-06
+     },
+     {
+      "A": "B2",
+      "B": "B2",
+      "offset_mm": 0.0,
+      "angle_deg": 1e-06
+     }
+    ],
+    "unmatched_A": [
+     "B3",
+     "B4"
+    ],
+    "unmatched_B": [
+     "B3",
+     "B4",
+     "B5",
+     "B6",
+     "B7",
+     "B8"
+    ]
+   },
+   "accepted_rule": "matched pairs with offset <= 1.5 mm and angle <= 2 deg accepted; line taken from marker A (identical tool output, same support)",
+   "disagreements": [
+    {
+     "items": {
+      "A": [
+       "B3"
+      ],
+      "B": [
+       "B3",
+       "B4",
+       "B5"
+      ]
+     },
+     "verdict": "ACCEPT_B",
+     "reason": "Leg-3 feet are three separate ~8 mm tabs ~40 mm apart; between them the leg has a free lower edge, not a relief or window. GOLD_SET_V2 merges a fold only when windows/reliefs interrupt a fold between the SAME two plates; disconnected collinear tabs are separate plates (project rule, EXP_CAD_0010: collinearity must never merge disconnected tabs). A's single 85 mm line has fold support 0.22, i.e. ~78% of it lies on free edge. B's per-foot lines are 6.5 mm on 8 mm tabs (>=80%), 90 deg, apex on outer arc in the B4 section."
+    },
+    {
+     "items": {
+      "A": [
+       "B4"
+      ],
+      "B": [
+       "B6",
+       "B7",
+       "B8"
+      ]
+     },
+     "verdict": "ACCEPT_B",
+     "reason": "Same as leg 3, for the three feet of leg 6."
+    }
+   ],
+   "third_marking": {
+    "source": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED/d7e890326c6213599cb621ad.json",
+    "sha256": "e072a51e5561396b641d689f743ab89904a18502b71abe3db6cb9c4d66b9c7fe",
+    "n_fresh": 8,
+    "pre_fresh_lines": 8,
+    "differences": [],
+    "fresh_lines_judged_wrong": 0,
+    "final_vs_fresh": {
+     "gold_count": 8,
+     "prediction_count": 8,
+     "true_positive": 8,
+     "f1": 1.0
+    }
+   },
+   "canary_gold": null,
+   "final_source": "marker_B",
+   "final_lines_sha256": "86a9f23ed22271182dc29d978e79efaa85fd7311867a46df3bc3fa4982ad9c9f",
+   "n_final": 8,
+   "final_uncertain": []
+  },
+  "gb_7a14b6": {
+   "scan_id": "sc_fb178c492b04",
+   "portion": "TEST_B",
+   "role": "TARGET",
+   "ab_match": {
+    "nA": 4,
+    "nB": 4,
+    "accepted_pairs": 4,
+    "pairs": [
+     {
+      "A": "B1",
+      "B": "B1",
+      "offset_mm": 0.0,
+      "angle_deg": 1e-06
+     },
+     {
+      "A": "B2",
+      "B": "B2",
+      "offset_mm": 0.0,
+      "angle_deg": 0.0
+     },
+     {
+      "A": "B3",
+      "B": "B4",
+      "offset_mm": 0.0,
+      "angle_deg": 0.0
+     },
+     {
+      "A": "B4",
+      "B": "B3",
+      "offset_mm": 0.0,
+      "angle_deg": 1e-06
+     }
+    ],
+    "unmatched_A": [],
+    "unmatched_B": []
+   },
+   "accepted_rule": "matched pairs with offset <= 1.5 mm and angle <= 2 deg accepted; line taken from marker A (identical tool output, same support)",
+   "disagreements": [],
+   "third_marking": {
+    "source": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED/30199598b49bc0934b94864c.json",
+    "sha256": "1f8212eb5dcf6abc97b857a64885366dbbeae00c72d164f0756bbf2bf32c8039",
+    "n_fresh": 4,
+    "pre_fresh_lines": 4,
+    "differences": [],
+    "fresh_lines_judged_wrong": 0,
+    "final_vs_fresh": {
+     "gold_count": 4,
+     "prediction_count": 4,
+     "true_positive": 4,
+     "f1": 1.0
+    }
+   },
+   "canary_gold": null,
+   "final_source": "marker_A",
+   "final_lines_sha256": "be402e62c3f7eb12ce07b057e369586e4003646b8fb1a10bfb7fd74ea450e893",
+   "n_final": 4,
+   "final_uncertain": []
+  },
+  "gb_9f780a": {
+   "scan_id": "sc_d151c2d71804",
+   "portion": "TEST_B",
+   "role": "TARGET",
+   "ab_match": {
+    "nA": 1,
+    "nB": 1,
+    "accepted_pairs": 1,
+    "pairs": [
+     {
+      "A": "B1",
+      "B": "B1",
+      "offset_mm": 0.0,
+      "angle_deg": 0.0
+     }
+    ],
+    "unmatched_A": [],
+    "unmatched_B": []
+   },
+   "accepted_rule": "matched pairs with offset <= 1.5 mm and angle <= 2 deg accepted; line taken from marker A (identical tool output, same support)",
+   "disagreements": [],
+   "third_marking": {
+    "source": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED/562ad6b29719d1b39502a0ff.json",
+    "sha256": "3d6f1f71212d95223d598d92a163ae0d6e61664a1edd0fc63311a8b7aaf5a20e",
+    "n_fresh": 1,
+    "pre_fresh_lines": 1,
+    "differences": [],
+    "fresh_lines_judged_wrong": 0,
+    "final_vs_fresh": {
+     "gold_count": 1,
+     "prediction_count": 1,
+     "true_positive": 1,
+     "f1": 1.0
+    }
+   },
+   "canary_gold": null,
+   "final_source": "marker_A",
+   "final_lines_sha256": "2b48fc5add0232ed782a55a5203c5c62c77262e70b0226bf053a0d2e242d78d4",
+   "n_final": 1,
+   "final_uncertain": []
+  },
+  "gb_bd09ed": {
+   "scan_id": "sc_20a96de8b712",
+   "portion": "TEST_B",
+   "role": "TARGET",
+   "ab_match": {
+    "nA": 5,
+    "nB": 5,
+    "accepted_pairs": 5,
+    "pairs": [
+     {
+      "A": "B1",
+      "B": "B1",
+      "offset_mm": 0.013313,
+      "angle_deg": 0.0
+     },
+     {
+      "A": "B2",
+      "B": "B4",
+      "offset_mm": 0.0,
+      "angle_deg": 0.0
+     },
+     {
+      "A": "B3",
+      "B": "B5",
+      "offset_mm": 0.0,
+      "angle_deg": 0.0
+     },
+     {
+      "A": "B4",
+      "B": "B2",
+      "offset_mm": 0.0,
+      "angle_deg": 0.0
+     },
+     {
+      "A": "B5",
+      "B": "B3",
+      "offset_mm": 0.0,
+      "angle_deg": 1e-06
+     }
+    ],
+    "unmatched_A": [],
+    "unmatched_B": []
+   },
+   "accepted_rule": "matched pairs with offset <= 1.5 mm and angle <= 2 deg accepted; line taken from marker A (identical tool output, same support)",
+   "disagreements": [],
+   "third_marking": {
+    "source": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED/b976a298518dcb43314efeb5.json",
+    "sha256": "5908a90846453d4019640876d8e29e24c9e06e5d4c046e5e4e112f0ab8bb362c",
+    "n_fresh": 5,
+    "pre_fresh_lines": 5,
+    "differences": [],
+    "fresh_lines_judged_wrong": 0,
+    "final_vs_fresh": {
+     "gold_count": 5,
+     "prediction_count": 5,
+     "true_positive": 5,
+     "f1": 1.0
+    }
+   },
+   "canary_gold": null,
+   "final_source": "marker_A",
+   "final_lines_sha256": "063868212fea7dbf2e3519f9da87f16f271469bcbc3de633c623cb5998b587ec",
+   "n_final": 5,
+   "final_uncertain": []
+  },
+  "gb_eba9e4": {
+   "scan_id": "sc_5d1715d17af6",
+   "portion": "TEST_B",
+   "role": "TARGET",
+   "ab_match": {
+    "nA": 2,
+    "nB": 2,
+    "accepted_pairs": 2,
+    "pairs": [
+     {
+      "A": "B1",
+      "B": "B1",
+      "offset_mm": 0.0,
+      "angle_deg": 0.0
+     },
+     {
+      "A": "B2",
+      "B": "B2",
+      "offset_mm": 0.0,
+      "angle_deg": 0.0
+     }
+    ],
+    "unmatched_A": [],
+    "unmatched_B": []
+   },
+   "accepted_rule": "matched pairs with offset <= 1.5 mm and angle <= 2 deg accepted; line taken from marker A (identical tool output, same support)",
+   "disagreements": [],
+   "third_marking": {
+    "source": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED/bec8264cfd70224677ebb3fd.json",
+    "sha256": "1c2c68b372be8458907938377d716866de72aa85b1ac6c1a305cb67d614cdeb7",
+    "n_fresh": 2,
+    "pre_fresh_lines": 2,
+    "differences": [],
+    "fresh_lines_judged_wrong": 0,
+    "final_vs_fresh": {
+     "gold_count": 2,
+     "prediction_count": 2,
+     "true_positive": 2,
+     "f1": 1.0
+    }
+   },
+   "canary_gold": null,
+   "final_source": "marker_A",
+   "final_lines_sha256": "010764293b67b9f1e7cd2aadad3115f3200105ddcb25a22a9b37f597b4614e5d",
+   "n_final": 2,
+   "final_uncertain": []
+  }
+ }
+}

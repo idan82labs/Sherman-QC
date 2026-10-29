@@ -1,0 +1,794 @@
+{
+ "schema": "e3_pose_ambiguity_eval/1",
+ "date": "2026-10-28",
+ "status": "RESEARCH CANDIDATE - not applied; live e3-1.13.0 unchanged (inspect files sha-checked before/after)",
+ "engine": {
+  "candidate": "e3-1.14.0-rc",
+  "base": "live e3-1.13.0 (rc patch + K=2 net + density guard), ledger seq 27",
+  "patch": "e3_1_14_0_rc.patch (dry-run applies cleanly to the live tree)",
+  "candidate_inspect_concat_sha256": "8ccf2e9b0de7753e062c4a0a30d10c8ace8b13b812398ae56a7a1b9edddbeb4e",
+  "config_new": {
+   "pose_wells": 1,
+   "pose_well_edge_mm": 1.5,
+   "pose_well_max_deg": 2.0,
+   "pose_well_min_gap_mm": 0.5,
+   "pose_well_score_slack": 0.1,
+   "pose_well_articulate_max": 3,
+   "pose_well_switch_margin": 0.03,
+   "pose_well_alt_margin": 0.06,
+   "dense_thin": 1
+  },
+  "evaluated_tree": "identical algorithm on the rc base (survey + dense sweeps); rebased tree verified decision- and value-identical on B_n1/B_n5/B_n7; B_n3 (4.25 M points, unthinned) now refused by the live max-points guard"
+ },
+ "diagnosis": {
+  "case": "B_n5 thinned (333,827 pts)",
+  "e3_1_13_choice": {
+   "datum_score": 0.576,
+   "total": 1.264
+  },
+  "native_pose_refined_on_same_cloud": {
+   "datum_score": 0.707,
+   "total": 1.412
+  },
+  "pose_difference": "pure out-of-plane tilt 0.63 deg of the 460 mm datum (+-2.58 mm at its ends; in-plane <0.05 mm)",
+  "mechanism": "refine_datum's plane step keeps points within 0.6 mm of the current plane; a coarse start 1.08 deg off converges to a self-consistent tilted plane (local optimum). In-plane perturbations (+-1 deg, +-1.5 mm) never escape it; tilt perturbations of 0.25-1.0 deg do.",
+  "conclusion": "search failure, not an objective tie"
+ },
+ "survey": {
+  "protocol": "88 unique scans (G1 50, A1 26, DEV cohort 33; 21 shared) x 7 realizations (native, s95 9501-9505, thin 0.40 mm); 616 candidate runs, K=2 policy 1 serial, record on; budget relaxed to 890 s to keep host-load timeouts out of the decision counts (runtime measured separately)",
+  "arms": {
+   "base": {
+    "G1": {
+     "chars": 553,
+     "base_decided": 314,
+     "base_decided_all": 2198,
+     "withheld_all": 0,
+     "chars_fail_pass": 0,
+     "chars_fail_to_pass": 0,
+     "chars_any_change": 2,
+     "scans": 50,
+     "scans_fail_pass": 0,
+     "scans_fail_to_pass": 0,
+     "scans_any_change": 2,
+     "coverage_loss_native_pct": 0.0,
+     "coverage_loss_all_pct": 0.0
+    },
+    "physical": {
+     "chars": 1066,
+     "base_decided": 645,
+     "base_decided_all": 4494,
+     "withheld_all": 0,
+     "chars_fail_pass": 11,
+     "chars_fail_to_pass": 8,
+     "chars_any_change": 53,
+     "scans": 38,
+     "scans_fail_pass": 2,
+     "scans_fail_to_pass": 1,
+     "scans_any_change": 17,
+     "coverage_loss_native_pct": 0.0,
+     "coverage_loss_all_pct": 0.0
+    },
+    "all": {
+     "chars": 1619,
+     "base_decided": 959,
+     "base_decided_all": 6692,
+     "withheld_all": 0,
+     "chars_fail_pass": 11,
+     "chars_fail_to_pass": 8,
+     "chars_any_change": 55,
+     "scans": 88,
+     "scans_fail_pass": 2,
+     "scans_fail_to_pass": 1,
+     "scans_any_change": 19,
+     "coverage_loss_native_pct": 0.0,
+     "coverage_loss_all_pct": 0.0
+    },
+    "g1": {
+     "native_scored": 330,
+     "native_decided": 314,
+     "native_correct": 314,
+     "perturbed_scored": 1980,
+     "perturbed_decided": 1884,
+     "perturbed_correct": 1884
+    },
+    "g1_wrong": []
+   },
+   "c113root": {
+    "G1": {
+     "chars": 553,
+     "base_decided": 314,
+     "base_decided_all": 2198,
+     "withheld_all": 0,
+     "chars_fail_pass": 0,
+     "chars_fail_to_pass": 0,
+     "chars_any_change": 2,
+     "scans": 50,
+     "scans_fail_pass": 0,
+     "scans_fail_to_pass": 0,
+     "scans_any_change": 2,
+     "coverage_loss_native_pct": 0.0,
+     "coverage_loss_all_pct": 0.0
+    },
+    "physical": {
+     "chars": 1066,
+     "base_decided": 645,
+     "base_decided_all": 4494,
+     "withheld_all": 46,
+     "chars_fail_pass": 0,
+     "chars_fail_to_pass": 0,
+     "chars_any_change": 43,
+     "scans": 38,
+     "scans_fail_pass": 0,
+     "scans_fail_to_pass": 0,
+     "scans_any_change": 18,
+     "withheld_native": 6,
+     "coverage_loss_native_pct": 0.93,
+     "coverage_loss_all_pct": 1.024
+    },
+    "all": {
+     "chars": 1619,
+     "base_decided": 959,
+     "base_decided_all": 6692,
+     "withheld_all": 46,
+     "chars_fail_pass": 0,
+     "chars_fail_to_pass": 0,
+     "chars_any_change": 45,
+     "scans": 88,
+     "scans_fail_pass": 0,
+     "scans_fail_to_pass": 0,
+     "scans_any_change": 20,
+     "withheld_native": 6,
+     "coverage_loss_native_pct": 0.626,
+     "coverage_loss_all_pct": 0.687
+    },
+    "g1": {
+     "native_scored": 330,
+     "native_decided": 314,
+     "native_correct": 314,
+     "perturbed_scored": 1980,
+     "perturbed_decided": 1884,
+     "perturbed_correct": 1884
+    },
+    "g1_wrong": [],
+    "wall_s": {
+     "n": 616,
+     "p50": 7.7,
+     "p95": 29.3,
+     "max": 35.1
+    }
+   },
+   "c113": {
+    "G1": {
+     "chars": 553,
+     "base_decided": 314,
+     "base_decided_all": 2198,
+     "withheld_all": 2,
+     "chars_fail_pass": 0,
+     "chars_fail_to_pass": 0,
+     "chars_any_change": 2,
+     "scans": 50,
+     "scans_fail_pass": 0,
+     "scans_fail_to_pass": 0,
+     "scans_any_change": 2,
+     "coverage_loss_native_pct": 0.0,
+     "coverage_loss_all_pct": 0.091
+    },
+    "physical": {
+     "chars": 1066,
+     "base_decided": 645,
+     "base_decided_all": 4494,
+     "withheld_all": 107,
+     "chars_fail_pass": 0,
+     "chars_fail_to_pass": 0,
+     "chars_any_change": 59,
+     "scans": 38,
+     "scans_fail_pass": 0,
+     "scans_fail_to_pass": 0,
+     "scans_any_change": 18,
+     "withheld_native": 14,
+     "coverage_loss_native_pct": 2.171,
+     "coverage_loss_all_pct": 2.381
+    },
+    "all": {
+     "chars": 1619,
+     "base_decided": 959,
+     "base_decided_all": 6692,
+     "withheld_all": 109,
+     "chars_fail_pass": 0,
+     "chars_fail_to_pass": 0,
+     "chars_any_change": 61,
+     "scans": 88,
+     "scans_fail_pass": 0,
+     "scans_fail_to_pass": 0,
+     "scans_any_change": 20,
+     "withheld_native": 14,
+     "coverage_loss_native_pct": 1.46,
+     "coverage_loss_all_pct": 1.629
+    },
+    "g1": {
+     "native_scored": 330,
+     "native_decided": 314,
+     "native_correct": 314,
+     "perturbed_scored": 1980,
+     "perturbed_decided": 1882,
+     "perturbed_correct": 1882
+    },
+    "g1_wrong": [],
+    "wall_s": {
+     "n": 616,
+     "p50": 23.7,
+     "p95": 86.7,
+     "max": 102.2
+    }
+   },
+   "pwroot": {
+    "G1": {
+     "chars": 553,
+     "base_decided": 314,
+     "base_decided_all": 2198,
+     "withheld_all": 0,
+     "chars_fail_pass": 0,
+     "chars_fail_to_pass": 0,
+     "chars_any_change": 2,
+     "scans": 50,
+     "scans_fail_pass": 0,
+     "scans_fail_to_pass": 0,
+     "scans_any_change": 2,
+     "coverage_loss_native_pct": 0.0,
+     "coverage_loss_all_pct": 0.0
+    },
+    "physical": {
+     "chars": 1066,
+     "base_decided": 645,
+     "base_decided_all": 4494,
+     "withheld_all": 46,
+     "chars_fail_pass": 0,
+     "chars_fail_to_pass": 0,
+     "chars_any_change": 43,
+     "scans": 38,
+     "scans_fail_pass": 0,
+     "scans_fail_to_pass": 0,
+     "scans_any_change": 18,
+     "withheld_native": 6,
+     "coverage_loss_native_pct": 0.93,
+     "coverage_loss_all_pct": 1.024
+    },
+    "all": {
+     "chars": 1619,
+     "base_decided": 959,
+     "base_decided_all": 6692,
+     "withheld_all": 46,
+     "chars_fail_pass": 0,
+     "chars_fail_to_pass": 0,
+     "chars_any_change": 45,
+     "scans": 88,
+     "scans_fail_pass": 0,
+     "scans_fail_to_pass": 0,
+     "scans_any_change": 20,
+     "withheld_native": 6,
+     "coverage_loss_native_pct": 0.626,
+     "coverage_loss_all_pct": 0.687
+    },
+    "g1": {
+     "native_scored": 330,
+     "native_decided": 314,
+     "native_correct": 314,
+     "perturbed_scored": 1980,
+     "perturbed_decided": 1884,
+     "perturbed_correct": 1884
+    },
+    "g1_wrong": [],
+    "wall_s": {
+     "n": 616,
+     "p50": 9.9,
+     "p95": 35.0,
+     "max": 43.4
+    }
+   },
+   "pw": {
+    "G1": {
+     "chars": 553,
+     "base_decided": 314,
+     "base_decided_all": 2198,
+     "withheld_all": 2,
+     "chars_fail_pass": 0,
+     "chars_fail_to_pass": 0,
+     "chars_any_change": 2,
+     "scans": 50,
+     "scans_fail_pass": 0,
+     "scans_fail_to_pass": 0,
+     "scans_any_change": 2,
+     "coverage_loss_native_pct": 0.0,
+     "coverage_loss_all_pct": 0.091
+    },
+    "physical": {
+     "chars": 1066,
+     "base_decided": 645,
+     "base_decided_all": 4494,
+     "withheld_all": 98,
+     "chars_fail_pass": 0,
+     "chars_fail_to_pass": 0,
+     "chars_any_change": 50,
+     "scans": 38,
+     "scans_fail_pass": 0,
+     "scans_fail_to_pass": 0,
+     "scans_any_change": 18,
+     "withheld_native": 14,
+     "coverage_loss_native_pct": 2.171,
+     "coverage_loss_all_pct": 2.181
+    },
+    "all": {
+     "chars": 1619,
+     "base_decided": 959,
+     "base_decided_all": 6692,
+     "withheld_all": 100,
+     "chars_fail_pass": 0,
+     "chars_fail_to_pass": 0,
+     "chars_any_change": 52,
+     "scans": 88,
+     "scans_fail_pass": 0,
+     "scans_fail_to_pass": 0,
+     "scans_any_change": 20,
+     "withheld_native": 14,
+     "coverage_loss_native_pct": 1.46,
+     "coverage_loss_all_pct": 1.494
+    },
+    "g1": {
+     "native_scored": 330,
+     "native_decided": 314,
+     "native_correct": 314,
+     "perturbed_scored": 1980,
+     "perturbed_decided": 1882,
+     "perturbed_correct": 1882
+    },
+    "g1_wrong": [],
+    "wall_s": {
+     "n": 616,
+     "p50": 28.8,
+     "p95": 101.4,
+     "max": 128.3
+    }
+   }
+  },
+  "fail_pass_chars_candidate": [],
+  "native_changes_vs_e3_1_13": [],
+  "pose_well_events": {
+   "native_runs": 88,
+   "native_wells_ran": 87,
+   "native_other_wells": 2,
+   "native_articulated_wells": 1,
+   "perturbed_runs": 528,
+   "perturbed_wells_ran": 522,
+   "perturbed_other_wells": 12,
+   "perturbed_articulated_wells": 6,
+   "perturbed_net_incomplete": 1
+  },
+  "pose_well_articulated_runs": "only sc_c27168a2de83 (7/7 realizations): nearest well total 0.098-0.107 below the chosen, outside the 0.06 alternative margin",
+  "wells_cost": {
+   "n": 609,
+   "p50_s": 2.0,
+   "p95_s": 7.0,
+   "max_s": 11.1,
+   "share_of_primary_p50": 0.216,
+   "share_of_primary_p95": 0.3
+  },
+  "net_incomplete": "1 (sc_43a32fe3b4a3 s95_9504: resample 7101 MIRRORED_PART_SUSPECTED; identical in e3-1.13)"
+ },
+ "dense": {
+  "protocol": "16 meshes in dense_ready/meshes (N1 excluded), reference = the candidate on the native-density scan of the same part (A_n1..D_n1); K=2 net; relaxed budget 890 s",
+  "per_mesh": [
+   {
+    "mesh": "A_n3",
+    "wall_s": 115.94,
+    "rss_gib": 0.64,
+    "summary": "REVIEW_REQUIRED",
+    "changes": 3,
+    "fail_to_pass": 0,
+    "to_pass": 1,
+    "decided_flips": 0,
+    "thinned": false,
+    "switched": false,
+    "change_list": [
+     {
+      "cid": "bu_b52e38cb9fb6a8947be7/INCLUDED_ANGLE",
+      "native": [
+       "PASS",
+       90.084798,
+       0.862511
+      ],
+      "dense": [
+       "REVIEW",
+       90.153,
+       0.880628
+      ],
+      "notes": []
+     },
+     {
+      "cid": "bu_a481c4126f40dded2f52/INCLUDED_ANGLE",
+      "native": [
+       "PASS",
+       89.285587,
+       0.215252
+      ],
+      "dense": [
+       "REVIEW",
+       89.844571,
+       1.298397
+      ],
+      "notes": []
+     },
+     {
+      "cid": "bu_a481c4126f40dded2f52/BEND_LINE_POSITION",
+      "native": [
+       "REVIEW",
+       -0.442132,
+       0.126187
+      ],
+      "dense": [
+       "PASS",
+       -0.29574,
+       0.108681
+      ],
+      "notes": []
+     }
+    ]
+   },
+   {
+    "mesh": "A_n3c",
+    "wall_s": 181.55,
+    "rss_gib": 0.68,
+    "summary": "REVIEW_REQUIRED",
+    "changes": 3,
+    "fail_to_pass": 0,
+    "to_pass": 1,
+    "decided_flips": 0,
+    "thinned": false,
+    "switched": false,
+    "change_list": [
+     {
+      "cid": "bu_b52e38cb9fb6a8947be7/INCLUDED_ANGLE",
+      "native": [
+       "PASS",
+       90.084798,
+       0.862511
+      ],
+      "dense": [
+       "REVIEW",
+       90.164838,
+       0.887499
+      ],
+      "notes": []
+     },
+     {
+      "cid": "bu_a481c4126f40dded2f52/INCLUDED_ANGLE",
+      "native": [
+       "PASS",
+       89.285587,
+       0.215252
+      ],
+      "dense": [
+       "REVIEW",
+       89.861841,
+       1.243529
+      ],
+      "notes": []
+     },
+     {
+      "cid": "bu_a481c4126f40dded2f52/BEND_LINE_POSITION",
+      "native": [
+       "REVIEW",
+       -0.442132,
+       0.126187
+      ],
+      "dense": [
+       "PASS",
+       -0.317071,
+       0.121797
+      ],
+      "notes": []
+     }
+    ]
+   },
+   {
+    "mesh": "A_n5",
+    "wall_s": 67.07,
+    "rss_gib": 1.22,
+    "summary": "REVIEW_REQUIRED",
+    "changes": 1,
+    "fail_to_pass": 0,
+    "to_pass": 0,
+    "decided_flips": 0,
+    "thinned": true,
+    "switched": false,
+    "change_list": [
+     {
+      "cid": "bu_a481c4126f40dded2f52/INCLUDED_ANGLE",
+      "native": [
+       "PASS",
+       89.285587,
+       0.215252
+      ],
+      "dense": [
+       "REVIEW",
+       89.267255,
+       0.268255
+      ],
+      "notes": [
+       "RESAMPLE_CHECK_WITHHELD"
+      ]
+     }
+    ]
+   },
+   {
+    "mesh": "A_n6",
+    "wall_s": 108.26,
+    "rss_gib": 1.61,
+    "summary": "REVIEW_REQUIRED",
+    "changes": 0,
+    "fail_to_pass": 0,
+    "to_pass": 0,
+    "decided_flips": 0,
+    "thinned": true,
+    "switched": false,
+    "change_list": []
+   },
+   {
+    "mesh": "A_n9",
+    "wall_s": 136.69,
+    "rss_gib": 2.77,
+    "summary": "REVIEW_REQUIRED",
+    "changes": 0,
+    "fail_to_pass": 0,
+    "to_pass": 0,
+    "decided_flips": 0,
+    "thinned": true,
+    "switched": false,
+    "change_list": []
+   },
+   {
+    "mesh": "B_n2",
+    "wall_s": 216.43,
+    "rss_gib": 0.72,
+    "summary": "OUT_OF_TOLERANCE_FOUND",
+    "changes": 0,
+    "fail_to_pass": 0,
+    "to_pass": 0,
+    "decided_flips": 0,
+    "thinned": false,
+    "switched": false,
+    "change_list": []
+   },
+   {
+    "mesh": "B_n2c",
+    "wall_s": 327.06,
+    "rss_gib": 0.86,
+    "summary": "OUT_OF_TOLERANCE_FOUND",
+    "changes": 0,
+    "fail_to_pass": 0,
+    "to_pass": 0,
+    "decided_flips": 0,
+    "thinned": false,
+    "switched": false,
+    "change_list": []
+   },
+   {
+    "mesh": "B_n3",
+    "wall_s": 440.28,
+    "rss_gib": 1.2,
+    "summary": "OUT_OF_TOLERANCE_FOUND",
+    "changes": 0,
+    "fail_to_pass": 0,
+    "to_pass": 0,
+    "decided_flips": 0,
+    "thinned": false,
+    "switched": false,
+    "change_list": []
+   },
+   {
+    "mesh": "B_n5",
+    "wall_s": 213.61,
+    "rss_gib": 1.72,
+    "summary": "OUT_OF_TOLERANCE_FOUND",
+    "changes": 1,
+    "fail_to_pass": 0,
+    "to_pass": 0,
+    "decided_flips": 0,
+    "thinned": true,
+    "switched": true,
+    "change_list": [
+     {
+      "cid": "bu_259f9612467f7ee98a01/INCLUDED_ANGLE",
+      "native": [
+       "FAIL",
+       61.699623,
+       0.576997
+      ],
+      "dense": [
+       "REVIEW",
+       61.624372,
+       0.654949
+      ],
+      "notes": []
+     }
+    ]
+   },
+   {
+    "mesh": "B_n7",
+    "wall_s": 294.66,
+    "rss_gib": 3.22,
+    "summary": "OUT_OF_TOLERANCE_FOUND",
+    "changes": 1,
+    "fail_to_pass": 0,
+    "to_pass": 0,
+    "decided_flips": 0,
+    "thinned": true,
+    "switched": false,
+    "change_list": [
+     {
+      "cid": "bu_259f9612467f7ee98a01/INCLUDED_ANGLE",
+      "native": [
+       "FAIL",
+       61.699623,
+       0.576997
+      ],
+      "dense": [
+       "REVIEW",
+       61.517668,
+       0.62435
+      ],
+      "notes": []
+     }
+    ]
+   },
+   {
+    "mesh": "C_n2",
+    "wall_s": 114.53,
+    "rss_gib": 1.53,
+    "summary": "ALL_MEASURED_IN_TOLERANCE",
+    "changes": 0,
+    "fail_to_pass": 0,
+    "to_pass": 0,
+    "decided_flips": 0,
+    "thinned": false,
+    "switched": false,
+    "change_list": []
+   },
+   {
+    "mesh": "C_n3",
+    "wall_s": 61.67,
+    "rss_gib": 2.21,
+    "summary": "ALL_MEASURED_IN_TOLERANCE",
+    "changes": 0,
+    "fail_to_pass": 0,
+    "to_pass": 0,
+    "decided_flips": 0,
+    "thinned": true,
+    "switched": false,
+    "change_list": []
+   },
+   {
+    "mesh": "C_n4",
+    "wall_s": 73.42,
+    "rss_gib": 3.34,
+    "summary": "ALL_MEASURED_IN_TOLERANCE",
+    "changes": 0,
+    "fail_to_pass": 0,
+    "to_pass": 0,
+    "decided_flips": 0,
+    "thinned": true,
+    "switched": false,
+    "change_list": []
+   },
+   {
+    "mesh": "C_n5",
+    "wall_s": 95.42,
+    "rss_gib": 5.0,
+    "summary": "ALL_MEASURED_IN_TOLERANCE",
+    "changes": 0,
+    "fail_to_pass": 0,
+    "to_pass": 0,
+    "decided_flips": 0,
+    "thinned": true,
+    "switched": false,
+    "change_list": []
+   },
+   {
+    "mesh": "D_n2",
+    "wall_s": 52.12,
+    "rss_gib": 2.57,
+    "summary": "REVIEW_REQUIRED",
+    "changes": 0,
+    "fail_to_pass": 0,
+    "to_pass": 0,
+    "decided_flips": 0,
+    "thinned": true,
+    "switched": false,
+    "change_list": []
+   },
+   {
+    "mesh": "D_n3",
+    "wall_s": 88.52,
+    "rss_gib": 5.51,
+    "summary": "REVIEW_REQUIRED",
+    "changes": 0,
+    "fail_to_pass": 0,
+    "to_pass": 0,
+    "decided_flips": 0,
+    "thinned": true,
+    "switched": false,
+    "change_list": []
+   }
+  ],
+  "fail_to_pass_total": 0,
+  "production_limits_quiet_host": [
+   {
+    "mesh": "A_n9",
+    "wall_s": 65.38,
+    "rss_gib": 5.84,
+    "summary": "REVIEW_REQUIRED",
+    "changes": 0,
+    "fail_to_pass": 0,
+    "switched": false
+   },
+   {
+    "mesh": "B_n5",
+    "wall_s": 112.11,
+    "rss_gib": 3.51,
+    "summary": "OUT_OF_TOLERANCE_FOUND",
+    "changes": 1,
+    "fail_to_pass": 0,
+    "switched": true
+   },
+   {
+    "mesh": "B_n7",
+    "wall_s": 140.22,
+    "rss_gib": 6.26,
+    "summary": "OUT_OF_TOLERANCE_FOUND",
+    "changes": 1,
+    "fail_to_pass": 0,
+    "switched": false
+   },
+   {
+    "mesh": "D_n3",
+    "wall_s": 72.52,
+    "rss_gib": 5.51,
+    "summary": "REVIEW_REQUIRED",
+    "changes": 0,
+    "fail_to_pass": 0,
+    "switched": false
+   }
+  ]
+ },
+ "runtime": {
+  "corpus_max_pc_2714_quiet_host_net_K2": {
+   "e3_1_13": 98.97,
+   "candidate": 119.68,
+   "primary": [
+    33.9,
+    40.4
+   ],
+   "wells_s": 6.7
+  },
+  "B_full_native_net": {
+   "e3_1_13": 79.87,
+   "candidate": 92.59
+  },
+  "survey_wall_relaxed_loaded_host": {
+   "n": 616,
+   "p50": 28.8,
+   "p95": 101.4,
+   "max": 128.3
+  },
+  "note": "survey sweep ran on a host at load 2-20; P50/P95 there are not production timings"
+ },
+ "peak_rss_gib": {
+  "survey_max": "<1.1",
+  "dense_max": 6.72,
+  "note": "dense thinning holds the full cloud once; above the old 4 GiB cap, within the 32 GiB ENGINE_IO-A5 cap"
+ },
+ "tests": {
+  "named_E3_files": 18,
+  "result": "317 passed, 1 skipped",
+  "new": "tests/test_prod_engine_e3_1_14_pose_wells.py (9)"
+ }
+}

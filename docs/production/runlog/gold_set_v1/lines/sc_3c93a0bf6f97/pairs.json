@@ -1,0 +1,70 @@
+{
+  "labeler": "claude-vision-ai-v1",
+  "no_bends_present": false,
+  "notes": "GOLD v1 (gold fixer round 1, 2026-10-18), from the BENCHMARK_V3 accepted pairs for this CONSUMED full scan of part 11979003 rev C (open mesh, t ~1.48 mm). Z-section rail: plate 2, 90 deg fold down into step wall 5/6, 90 deg fold into wall 4, 90 deg fold into flange 1, plus four 90 deg tabs standing up from plate 2 (7/8 on the notch edge, 12/16 and 13/15 on the u- end edge, 17/18 on the short chamfer edge). 7 real bends. Three auditors agreed on the 7 bends and that only B1 was off (on the OML virtual sharp, ~1.27-1.30 mm outside the outer-arc apex). Fix: B1 apex_mode station_median; B2-B7 unchanged. Window rule: the step folds B2 and B3 each cross the full-height step-wall window (~14 mm) between the same plates, so each is one line; B1 crosses the ear-24 relief and the flange-1 window, also one line. CAD's 9 bend lines split B2 and B3 at that window. Not bends: ears 20 and 24 and the u- lug (coplanar with flange 1), twin skins, thin strips 25/26/27 (under-skin and arc/thickness facets), holes, notches, dimples, thickness edges. The 13/15 and 17/18 tabs are separated by a capped relief gap, so there is no bend between them.",
+  "bends": [
+    {
+      "patches": [
+        1,
+        4
+      ],
+      "note": "Long ~90 deg fold, wall 4 down into flange 1, outer skins (1 = flange outside, 4 = wall-4 top). Rounded outer arc over most of the length; no arc at the ear-24 relief (~14 mm, where the lanced ear 24 stays in the flange-1 plane and leaves a semicircular hole in wall 4) and at the flange-1 window (~63 mm, flange 1 joined around it by its far strip). Wall 4 and flange 1 are each one rigid plate, so this is ONE bend line along the whole wall-4 length (~287 mm). GOLD FIX: apex_mode station_median. In envelope mode the ear-24 face, which lies in the flange-1 outer plane and passes through the OML sharp, set the apex floor, so the line sat on the virtual sharp ~1.27 mm outside the outer arc; per-station medians put it on the outer-arc apex.",
+      "confidence": "auto",
+      "apex_mode": "station_median"
+    },
+    {
+      "patches": [
+        4,
+        [
+          5,
+          6
+        ]
+      ],
+      "note": "Lower fold of the Z-step, ~90 deg, step wall 5/6 into wall 4, inner skins (the outer skins 11/14/27 and 25 are fragmentary; 25 covers only u -98..-65). 5 and 6 are the coplanar step wall on either side of the window at u ~27..41, which removes the wall and both arcs. It is one bend line over u -121.4..165 (~286 mm).",
+      "confidence": "auto"
+    },
+    {
+      "patches": [
+        2,
+        [
+          5,
+          6
+        ]
+      ],
+      "note": "Upper fold of the Z-step, ~90 deg, plate 2 down into step wall 5/6, outer skins (2 = plate top, 5/6 = step-wall outside). It crosses the same window at u ~27..41 and is one bend line over u -121.4..165 (~286 mm).",
+      "confidence": "auto"
+    },
+    {
+      "patches": [
+        2,
+        8
+      ],
+      "note": "Upright tab 7/8 (~30 mm tall, ~35 mm wide, 3 holes), folded 90 deg up from the notch edge of plate 2 at b ~0, u -70..-34. Inner skins (2 = plate top, 8 = tab face toward the plate). The plate under-skin at the fold is barely segmented (21 and 23 only).",
+      "confidence": "auto"
+    },
+    {
+      "patches": [
+        2,
+        16
+      ],
+      "note": "End tab 12/16 (~20x20 mm, hole), folded 90 deg up from the u- end edge of plate 2 at b -9..11, inner skins. It is a separate tab from 13/15, with a 10 mm gap of bare plate edge between them.",
+      "confidence": "auto"
+    },
+    {
+      "patches": [
+        2,
+        15
+      ],
+      "note": "End tab 13/15 (~20x20 mm, hole), folded 90 deg up from the u- end edge of plate 2 at b -39.5..-19.5, inner skins. It is in line with 12/16 but is a separate tab.",
+      "confidence": "auto"
+    },
+    {
+      "patches": [
+        2,
+        18
+      ],
+      "note": "Corner tab 17/18 (~20 mm), folded 90 deg up from the short chamfer edge of plate 2 (u -122..-107.5), inner skins. A ~1 mm relief gap (capped thickness edge) separates it from 13/15, so the two tabs are not joined by a bend.",
+      "confidence": "auto"
+    }
+  ]
+}

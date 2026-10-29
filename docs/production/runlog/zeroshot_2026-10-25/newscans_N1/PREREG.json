@@ -1,0 +1,314 @@
+{
+ "arms": {
+  "primary": {
+   "command": "docs/production/runlog/zeroshot_2026-10-25/integration/run_cohort.sh docs/production/runlog/zeroshot_2026-10-25/newscans_N1/n1_scans.tsv docs/production/runlog/zeroshot_2026-10-25/newscans_N1/runs/v1 zs,z3,z2 0 1",
+   "lane": "zs_lane_v1",
+   "model_sha256": "ccc28773687b7a32c1c72e127448445794e75cee5e26f896395cc14b9eb1b052",
+   "name": "zs_lane_v1 (Z3 + Z2 pooled GBM + D1 snap)",
+   "output": "docs/production/runlog/zeroshot_2026-10-25/newscans_N1/runs/v1/zs",
+   "variant": "zs"
+  },
+  "secondary_v2": {
+   "command": "research/zeroshot/zs_lane_v2/run_cohort.sh docs/production/runlog/zeroshot_2026-10-25/newscans_N1/n1_scans.tsv docs/production/runlog/zeroshot_2026-10-25/newscans_N1/runs/v2 0 1 (--strict-pins)",
+   "lane": "zs_lane_v2",
+   "model_sha256": "91b3646653936394807b8ce665c95906fea7f61d83425e96bb7b1e0b02d8f6f6",
+   "name": "zs_lane_v2 (v1 pool + sweep evidence + split/join post-processing)",
+   "output": "docs/production/runlog/zeroshot_2026-10-25/newscans_N1/runs/v2/zs",
+   "variant": "zs"
+  },
+  "secondary_z2": {
+   "command": "docs/production/runlog/zeroshot_2026-10-25/integration/run_cohort.sh docs/production/runlog/zeroshot_2026-10-25/newscans_N1/n1_scans.tsv docs/production/runlog/zeroshot_2026-10-25/newscans_N1/runs/v1 zs,z3,z2 0 1",
+   "lane": "zs_lane_v1",
+   "model_sha256": null,
+   "name": "Z2 alone (it08 flange graph, internal D1 snap)",
+   "output": "docs/production/runlog/zeroshot_2026-10-25/newscans_N1/runs/v1/z2",
+   "variant": "z2"
+  },
+  "secondary_z3": {
+   "command": "docs/production/runlog/zeroshot_2026-10-25/integration/run_cohort.sh docs/production/runlog/zeroshot_2026-10-25/newscans_N1/n1_scans.tsv docs/production/runlog/zeroshot_2026-10-25/newscans_N1/runs/v1 zs,z3,z2 0 1",
+   "lane": "zs_lane_v1",
+   "model_sha256": "8a5455936178f0b8e02582c6ec557255eb552a9eeb09ea83259dabcabf245c43",
+   "name": "Z3 alone (GBM + D1 snap)",
+   "output": "docs/production/runlog/zeroshot_2026-10-25/newscans_N1/runs/v1/z3",
+   "variant": "z3"
+  }
+ },
+ "cad_path_E3": "NOT RUN: the customer sent SolidWorks .SLDPRT, not STEP; no conversion attempted, so E3 (CAD-assisted) has no compiled recipe for these parts.",
+ "claim_label": "one-time run on 4 never-seen part families (N1, received 2026-10-19); N=4 scans / 4 families (3 of them zero-bend rolled shells, 26 gold lines in total), too small for a headline claim",
+ "code_fingerprints": {
+  "zs_lane_v1": {
+   "files": {
+    "contracts/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "contracts/production/__init__.py": "f4470baba34366eaf39f7d3436e237031a9c72dada0c4147c99de325200b1d30",
+    "contracts/production/canonical.py": "0746c83dfde1ccc917b2e9c466127d7d42120b87706acc20108e1bfa61f7c8d9",
+    "contracts/production/characteristics.py": "09a5442d86ca11c2637170f5d0198d06f102415fc0a43998d4a9c63018fbb504",
+    "contracts/production/common.py": "31b8390afd578f7819453df54121cc50839f52b9b8e8f700af9e0023f2127a48",
+    "contracts/production/compiled_part.py": "8ec4e39a4ef32efab3775afa46df27fcf38ee5c7994cad28bc692726b0852253",
+    "contracts/production/consistency.py": "b725c34ef60920cf6c0bec73d4b2d2152c05e6aad82bca95784298aa8332e2f1",
+    "contracts/production/inspection_result.py": "124a11226142251931c4f82d61ae9b0876421083e0ce58f6913e88dfeb8cf425",
+    "contracts/production/layout.py": "0c5254ca1b2599345a9d727b1618af1a5621635668d10560b3eb73bf640c8593",
+    "contracts/production/line_job.py": "da61b98f57f1378186b48db0abf0f21e4fe34c4a1f7a451f8d275d6187130826",
+    "contracts/production/part_recipe.py": "f9734462a981f729df5eb7a034cbe52136ac37543681392c279f45c87a83b3b2",
+    "contracts/production/states.py": "04644ef74928ef91e33e38ce44ad5868e3dc6ca4c7ab4d50ab3f90c7d1f5295e",
+    "domains/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "domains/production/__init__.py": "541480f86c03cdaab34ea1c9dedaccedff24d792c4a6b98774f5d1d90815360d",
+    "domains/production/engine/__init__.py": "1dfcb438f65c1f4f9f6ea9a0c3761b09646e309ff2826822a1587155e7a05b47",
+    "domains/production/engine/inspect/__init__.py": "c5d89214ef50202a1d0d819d3656ea9cf28f5b03deda13fbf5370bd8f396569e",
+    "domains/production/engine/inspect/articulated.py": "22d38c5f4dc3a6493944434ff45aaee4156818ea21d89b31964d90aecf424858",
+    "domains/production/engine/inspect/cloud.py": "42c23cb9de3f01fa9362d6b1e3dd52ce30e9de72056677da8abbf1ed2d849f7c",
+    "domains/production/engine/inspect/config.py": "6172aed034ac346bd56191009c235fef36d8c87c6327cb2b2e06ba7bafa48769",
+    "domains/production/engine/inspect/decode.py": "102cbb167b318270dca311a7576574157993a9c2b4a92b4cc367e662aedfca07",
+    "domains/production/engine/inspect/engine.py": "3b668acd08468fd3473eb3a65be49e4f13a9ab9aa61155f72db150762f6ade0b",
+    "domains/production/engine/inspect/geom.py": "f4a1de7132ad9a66fef48995d4c6c89a3bc338a2e2233d0bfa53e29d142ded34",
+    "domains/production/engine/inspect/metrology.py": "271fa6ed03bd95d6262333d33a3791093990d424804e7668413c8dc079be1fef",
+    "domains/production/engine/inspect/outputs.py": "4d1ec3b713a00ce324abf444bf7492582c4eb97034044a517299d3397597ad1c",
+    "domains/production/engine/inspect/part.py": "8c5a25e66589d64141dd77d5d5069ddef789a39fb197acc2608b02f2d035c8d1",
+    "domains/production/engine/inspect/registration.py": "c5ac36c8299a1caf7da40fc0272e86cf23f28cb4e5d2390c26677c81cb43d6e0",
+    "domains/production/engine/inspect/result.py": "10d98c1e54b0d40bddf18b30635ad0e212d85db75987fd193815239bd136b13c",
+    "domains/production/engine/inspect/scan_io.py": "60aa7716e31b178496438698dd8c00ee94251ad8b0bbc62dda3e04ba882887f4",
+    "research/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "research/bench_labeling/__init__.py": "9cdc8da635ba7ceb413f92b78e8d030894bf0deb2b32804aa56a9170080bd9d4",
+    "research/bench_labeling/custody.py": "9ba3cf6d0f5282f976b17715bdff24ac6aa41231cec1d5fbf4cfb6a60655345e",
+    "research/broad_baseline/bb_common.py": "aca4f68583d9c88159c26bfc91308add4883f4d9084d02e7f0e3abcbf072a281",
+    "research/broad_baseline/gold11_cases.py": "0a65bdaad95f43c4b3f44c4900ab7241aa869d33894173dc6ddf6dade66c8457",
+    "research/broad_baseline/score.py": "2bacc1b7fd37f41e509261da2b0b1ddb1e243f901a74350a061533d7ec0f603f",
+    "research/broad_baseline/score_broad.py": "210d98859426ff10f81833c9e343ab6dfdb4f53d2da76692a2fd506b472e657a",
+    "research/zeroshot/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "research/zeroshot/common/__init__.py": "899db36560a71ae272444a654f28e0fc7467e8cbf8bb3165a16e7340b494d279",
+    "research/zeroshot/common/gold_guard.py": "031f1276334bc676ceaaf4d41b83b86e914f920008cf00e1dc11aca2f117d40a",
+    "research/zeroshot/d1_two_skin/__init__.py": "14faf11f824a36f5985db705dd45dc585c7a572d1c0dd1301d2131167f2cee55",
+    "research/zeroshot/d1_two_skin/custody.py": "204f8f65e0b7346f48f52be7f0563773ac7c99074d551770921443df3eec4e0c",
+    "research/zeroshot/d1_two_skin/two_skin.py": "22c571aebbd4937052846ff2bba0e7e8603393b6c14cd9008d99f5a70a8a9bf6",
+    "research/zeroshot/z2_self_recipe/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "research/zeroshot/z2_self_recipe/common.py": "d6e12fc946cc65d839b6d98f4a1d05f09d00eb1a32416d935771879e4519b1c3",
+    "research/zeroshot/z2_self_recipe/graph.py": "dabe0d5a66b81c7edf2315cc2c88ca420846bb5f26dba350a117f0da649bb2d3",
+    "research/zeroshot/z2_self_recipe/run.py": "83c4aeea172feb9abd62cbfd5dbd3ebe9f987995dfa13aeb1fb662091d431f0e",
+    "research/zeroshot/z2_self_recipe/segment.py": "2cccce3256cc5c30d84594dd2ca45c312cb26296ea23cc4c73d31677fe6135a3",
+    "research/zeroshot/z3_slicing/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "research/zeroshot/z3_slicing/custody.py": "c9a63c774b27f60c65be8880edc52e151e9068747af20e0e58d2663dd85d2341",
+    "research/zeroshot/z3_slicing/gate.py": "0b780599ca39232cc2634ee9f42de4f0426531820581fad6671e0207257cc834",
+    "research/zeroshot/z3_slicing/pooled.py": "21d7ef7d1f1d88d5d8bfcf8ac69e76ecb5094c8eee28904cc987f86b403f899e",
+    "research/zeroshot/z3_slicing/score_run.py": "43b7fda7444eb3e90e6a62c889e11589ccf39fd19ec36a04b30bf45e8fe182e5",
+    "research/zeroshot/z3_slicing/selector.py": "30cb9184c50d7d4475b5f6ee3f20dca50c4c62354ba43b5d9c6cf1a10618aae5",
+    "research/zeroshot/z3_slicing/slicer.py": "716aad6e05146c3dfc7b92ae9213966845f5d05dee074f9e17bad6d46df23095",
+    "research/zeroshot/z3_slicing/union.py": "2de202061904523b2d573e3d237a9611ea68931d5f02c8308fc75bd2d0ef4ec0",
+    "research/zeroshot/z3_slicing/zscore.py": "cb18edb23f69fed77ceb6309bf42d8dd6a5f07db27df2e787c1c8b59727542e0",
+    "research/zeroshot/zs_lane_v1/__init__.py": "9f3dc3c8858a356b43e28d739214596cb049218c432975752b781e93e6a9e050",
+    "research/zeroshot/zs_lane_v1/core.py": "7cabb061c4ababc1a41d61d47629f3696fbbee8a50a613d42d37b451bfdf8279",
+    "research/zeroshot/zs_lane_v1/fingerprint.py": "a6664ac5cc9ec7b075303d9ec7072ff1b5444525e51e5ce9134339b11aa4a0e8",
+    "research/zeroshot/zs_lane_v1/lane.py": "a4946cd52172173183d380c6f7d9ac5334b6e56a5e32292c61a4ab2121cf3f7f",
+    "scripts/evaluate_f1_against_manual_gold.py": "1e9420558b91f9b136fb32ed012b56c64cdaeecf7599ee1ef9fe336915d75c62"
+   },
+   "sha256": "af87df2f96426a9e69a46ed942ced4f19f0eb770e71e50aada43ddd27ec1441c"
+  },
+  "zs_lane_v2": {
+   "files": {
+    "contracts/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "contracts/production/__init__.py": "f4470baba34366eaf39f7d3436e237031a9c72dada0c4147c99de325200b1d30",
+    "contracts/production/canonical.py": "0746c83dfde1ccc917b2e9c466127d7d42120b87706acc20108e1bfa61f7c8d9",
+    "contracts/production/characteristics.py": "09a5442d86ca11c2637170f5d0198d06f102415fc0a43998d4a9c63018fbb504",
+    "contracts/production/common.py": "31b8390afd578f7819453df54121cc50839f52b9b8e8f700af9e0023f2127a48",
+    "contracts/production/compiled_part.py": "8ec4e39a4ef32efab3775afa46df27fcf38ee5c7994cad28bc692726b0852253",
+    "contracts/production/consistency.py": "b725c34ef60920cf6c0bec73d4b2d2152c05e6aad82bca95784298aa8332e2f1",
+    "contracts/production/inspection_result.py": "124a11226142251931c4f82d61ae9b0876421083e0ce58f6913e88dfeb8cf425",
+    "contracts/production/layout.py": "0c5254ca1b2599345a9d727b1618af1a5621635668d10560b3eb73bf640c8593",
+    "contracts/production/line_job.py": "da61b98f57f1378186b48db0abf0f21e4fe34c4a1f7a451f8d275d6187130826",
+    "contracts/production/part_recipe.py": "f9734462a981f729df5eb7a034cbe52136ac37543681392c279f45c87a83b3b2",
+    "contracts/production/states.py": "04644ef74928ef91e33e38ce44ad5868e3dc6ca4c7ab4d50ab3f90c7d1f5295e",
+    "domains/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "domains/production/__init__.py": "541480f86c03cdaab34ea1c9dedaccedff24d792c4a6b98774f5d1d90815360d",
+    "domains/production/engine/__init__.py": "1dfcb438f65c1f4f9f6ea9a0c3761b09646e309ff2826822a1587155e7a05b47",
+    "domains/production/engine/inspect/__init__.py": "c5d89214ef50202a1d0d819d3656ea9cf28f5b03deda13fbf5370bd8f396569e",
+    "domains/production/engine/inspect/articulated.py": "22d38c5f4dc3a6493944434ff45aaee4156818ea21d89b31964d90aecf424858",
+    "domains/production/engine/inspect/cloud.py": "42c23cb9de3f01fa9362d6b1e3dd52ce30e9de72056677da8abbf1ed2d849f7c",
+    "domains/production/engine/inspect/config.py": "6172aed034ac346bd56191009c235fef36d8c87c6327cb2b2e06ba7bafa48769",
+    "domains/production/engine/inspect/decode.py": "102cbb167b318270dca311a7576574157993a9c2b4a92b4cc367e662aedfca07",
+    "domains/production/engine/inspect/engine.py": "3b668acd08468fd3473eb3a65be49e4f13a9ab9aa61155f72db150762f6ade0b",
+    "domains/production/engine/inspect/geom.py": "f4a1de7132ad9a66fef48995d4c6c89a3bc338a2e2233d0bfa53e29d142ded34",
+    "domains/production/engine/inspect/metrology.py": "271fa6ed03bd95d6262333d33a3791093990d424804e7668413c8dc079be1fef",
+    "domains/production/engine/inspect/outputs.py": "4d1ec3b713a00ce324abf444bf7492582c4eb97034044a517299d3397597ad1c",
+    "domains/production/engine/inspect/part.py": "8c5a25e66589d64141dd77d5d5069ddef789a39fb197acc2608b02f2d035c8d1",
+    "domains/production/engine/inspect/registration.py": "c5ac36c8299a1caf7da40fc0272e86cf23f28cb4e5d2390c26677c81cb43d6e0",
+    "domains/production/engine/inspect/result.py": "10d98c1e54b0d40bddf18b30635ad0e212d85db75987fd193815239bd136b13c",
+    "domains/production/engine/inspect/scan_io.py": "60aa7716e31b178496438698dd8c00ee94251ad8b0bbc62dda3e04ba882887f4",
+    "research/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "research/bench_labeling/__init__.py": "9cdc8da635ba7ceb413f92b78e8d030894bf0deb2b32804aa56a9170080bd9d4",
+    "research/bench_labeling/custody.py": "9ba3cf6d0f5282f976b17715bdff24ac6aa41231cec1d5fbf4cfb6a60655345e",
+    "research/broad_baseline/bb_common.py": "aca4f68583d9c88159c26bfc91308add4883f4d9084d02e7f0e3abcbf072a281",
+    "research/broad_baseline/gold11_cases.py": "0a65bdaad95f43c4b3f44c4900ab7241aa869d33894173dc6ddf6dade66c8457",
+    "research/broad_baseline/score.py": "2bacc1b7fd37f41e509261da2b0b1ddb1e243f901a74350a061533d7ec0f603f",
+    "research/broad_baseline/score_broad.py": "210d98859426ff10f81833c9e343ab6dfdb4f53d2da76692a2fd506b472e657a",
+    "research/zeroshot/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "research/zeroshot/common/__init__.py": "899db36560a71ae272444a654f28e0fc7467e8cbf8bb3165a16e7340b494d279",
+    "research/zeroshot/common/gold_guard.py": "031f1276334bc676ceaaf4d41b83b86e914f920008cf00e1dc11aca2f117d40a",
+    "research/zeroshot/d1_two_skin/__init__.py": "14faf11f824a36f5985db705dd45dc585c7a572d1c0dd1301d2131167f2cee55",
+    "research/zeroshot/d1_two_skin/custody.py": "204f8f65e0b7346f48f52be7f0563773ac7c99074d551770921443df3eec4e0c",
+    "research/zeroshot/d1_two_skin/two_skin.py": "22c571aebbd4937052846ff2bba0e7e8603393b6c14cd9008d99f5a70a8a9bf6",
+    "research/zeroshot/z2_self_recipe/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "research/zeroshot/z2_self_recipe/common.py": "d6e12fc946cc65d839b6d98f4a1d05f09d00eb1a32416d935771879e4519b1c3",
+    "research/zeroshot/z2_self_recipe/graph.py": "dabe0d5a66b81c7edf2315cc2c88ca420846bb5f26dba350a117f0da649bb2d3",
+    "research/zeroshot/z2_self_recipe/run.py": "83c4aeea172feb9abd62cbfd5dbd3ebe9f987995dfa13aeb1fb662091d431f0e",
+    "research/zeroshot/z2_self_recipe/segment.py": "2cccce3256cc5c30d84594dd2ca45c312cb26296ea23cc4c73d31677fe6135a3",
+    "research/zeroshot/z3_slicing/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "research/zeroshot/z3_slicing/custody.py": "c9a63c774b27f60c65be8880edc52e151e9068747af20e0e58d2663dd85d2341",
+    "research/zeroshot/z3_slicing/gate.py": "0b780599ca39232cc2634ee9f42de4f0426531820581fad6671e0207257cc834",
+    "research/zeroshot/z3_slicing/pooled.py": "21d7ef7d1f1d88d5d8bfcf8ac69e76ecb5094c8eee28904cc987f86b403f899e",
+    "research/zeroshot/z3_slicing/score_run.py": "43b7fda7444eb3e90e6a62c889e11589ccf39fd19ec36a04b30bf45e8fe182e5",
+    "research/zeroshot/z3_slicing/selector.py": "30cb9184c50d7d4475b5f6ee3f20dca50c4c62354ba43b5d9c6cf1a10618aae5",
+    "research/zeroshot/z3_slicing/slicer.py": "716aad6e05146c3dfc7b92ae9213966845f5d05dee074f9e17bad6d46df23095",
+    "research/zeroshot/z3_slicing/union.py": "2de202061904523b2d573e3d237a9611ea68931d5f02c8308fc75bd2d0ef4ec0",
+    "research/zeroshot/z3_slicing/zscore.py": "cb18edb23f69fed77ceb6309bf42d8dd6a5f07db27df2e787c1c8b59727542e0",
+    "research/zeroshot/zs_lane_v2/__init__.py": "7b9553a779ab4c6cf15989b425cd7ec45e20b0dc4f9f686a723044c14f8d1777",
+    "research/zeroshot/zs_lane_v2/core.py": "52993a55dc6c02d88b5b8ecf173f07600f00346c7cd57d8deb7d40e505084fa4",
+    "research/zeroshot/zs_lane_v2/evidence.py": "0bac28a300baa4197d56df19ef3bfad6059b22bc49941240dfc093243923d316",
+    "research/zeroshot/zs_lane_v2/fingerprint.py": "fd390acd2b90ab9819adb9ffd39f21b7a9faf0ab085920154847ec1d238de16f",
+    "research/zeroshot/zs_lane_v2/lane.py": "0d6f594577af3c10bd0f16951854d39541359f5a8e65524ac4ddb7a164368427",
+    "research/zeroshot/zs_lane_v2/postproc.py": "9110ad8744d94cb926856b7e7bd31963aedcff3f503f7a40e6dd0707dce33f5b",
+    "research/zeroshot/zs_lane_v2/z3s.py": "278abbafee869f448a6c945a88ad73e36ed9f637c719e45d845e3c7287ac1cc4",
+    "scripts/evaluate_f1_against_manual_gold.py": "1e9420558b91f9b136fb32ed012b56c64cdaeecf7599ee1ef9fe336915d75c62"
+   },
+   "sha256": "39c0efb92c3c3962605168fb2cda977edff5840a2da1cd4518659e7544209097"
+  }
+ },
+ "cohort": {
+  "batch": "N1",
+  "families_group5": [
+   "41018",
+   "45351",
+   "47085",
+   "51101"
+  ],
+  "registry": "docs/production/runlog/zeroshot_2026-10-25/newscans_N1/REGISTRY.json",
+  "registry_sha256": "127d860e1cac781f8eb042260ed756b1fce9911e02ff36bf117983c7ec8aea48",
+  "rule": "NEW_UNSEEN_FAMILY_TEST: 4 never-seen part families received 2026-10-19. NOT part of DEV or TEST-B. Nothing may be tuned, calibrated or selected on these scans. Gold is marked blind in gold/N1/.",
+  "scan_ids": [
+   "sc_4d3e8c3bcaf4",
+   "sc_94da60c3c13d",
+   "sc_3d191f5f8ff8",
+   "sc_4c6fbb1f3fe5"
+  ],
+  "scan_ids_sha256": "2c8f5ea13fdd8d193dd11fa9792f25aa06c4e6dfa9f8bced84df04aed546681b",
+  "scan_list": "docs/production/runlog/zeroshot_2026-10-25/newscans_N1/n1_scans.tsv"
+ },
+ "created_at": "2026-10-25T11:13:07+00:00",
+ "decision_rule": "none (descriptive, N=4). Each arm runs exactly once per scan; no re-run, no tuning, no lane, threshold or rule change on these scans. A crash is recorded, not retried.",
+ "expected": "no numeric expectation is pre-registered for a decision; descriptive only. Context: TEST-B zs_lane_v1 0.855 micro; DEV OOF v1 0.944, v2 0.958; DEV zero-bend controls v1 5 FP lines / 5 scans, v2 1 FP line / 5 scans.",
+ "gold_of_record": {
+  "adjudication_sha256": "743131dcd72c0e5dcfd977b3376eddd2642c139525983c5a97ceb5a6a3ee91ca",
+  "gold_ledger_entries": 138,
+  "gold_ledger_last_entry_sha256": "db96dfdc4e765310f513606fd6324e40f230cfee72314db442e3e516a6d4f551",
+  "gold_ledger_sha256": "58d52588a0252b7477477fdb436d0633b6b84ebcb6f13d6d145d88250368bd43",
+  "labels": {
+   "sc_3d191f5f8ff8": {
+    "ledger_entry_sha256": "119a504ff6033c55c505d5218bca0f0633da3dac29ac055e79e50db675e67605",
+    "ledger_seq": 136,
+    "part_id": "47085000",
+    "path": "data/bend_corpus/annotations/ai_bend_lines_newscans_n1_v1/47bce7ae44bc19b53aef78aa.json",
+    "sha256": "67a537a99da85ba54f8c10914a24add1bdcbbba4194ced13ab4d38853c9dd303"
+   },
+   "sc_4c6fbb1f3fe5": {
+    "ledger_entry_sha256": "5e72262182db0a1428aa8835b1db74ee366fc92aff1d958bc973927bdd63de76",
+    "ledger_seq": 137,
+    "part_id": "51101001",
+    "path": "data/bend_corpus/annotations/ai_bend_lines_newscans_n1_v1/6a5a371d37d147656bffbb77.json",
+    "sha256": "a6fed13d754b5f19e0f5a8133014d9b528e4e527a3e0b42b810849612318aa4f"
+   },
+   "sc_4d3e8c3bcaf4": {
+    "ledger_entry_sha256": "7e38f01ed2427d65ebca72691e5cd12be67a3d7e0478b02fcc63d195f522e876",
+    "ledger_seq": 135,
+    "part_id": "41018000",
+    "path": "data/bend_corpus/annotations/ai_bend_lines_newscans_n1_v1/bcd706e1e41d6acf6281c914.json",
+    "sha256": "082105576214c934cfcc06b97da459a584c217a6f586ad2984ae778fc8576244"
+   },
+   "sc_94da60c3c13d": {
+    "ledger_entry_sha256": "db96dfdc4e765310f513606fd6324e40f230cfee72314db442e3e516a6d4f551",
+    "ledger_seq": 138,
+    "part_id": "45351000",
+    "path": "data/bend_corpus/annotations/ai_bend_lines_newscans_n1_v1/00a89bffb2d13b81195a389e.json",
+    "sha256": "245576166d81894e58521bcace8ee58321063a981caed0e1793ed8ae3efbbd96"
+   }
+  },
+  "labels_sha256": "7eafe6dd79923ea581e88fcd6a1a4f4e82bcce4762a48bfcfd82196e27492a80",
+  "provenance": "blind 2-marker marking + adjudication (gold/N1/ADJUDICATION_N1.json), canary F1 1.0/1.0, frozen in gold/GOLD_LEDGER.jsonl before any engine output",
+  "root": "data/bend_corpus/annotations/ai_bend_lines_newscans_n1_v1/"
+ },
+ "lane_configs": {
+  "zs_lane_v1": {
+   "path": "research/zeroshot/zs_lane_v1/config_v1.json",
+   "sha256": "dec044e8788a546b9de4c8367f74c9ce8d15579091a3db07c5b40ff30e849f4a"
+  },
+  "zs_lane_v2": {
+   "path": "research/zeroshot/zs_lane_v2/config_v2.json",
+   "sha256": "65502f244dac85a592617bcf5ade98309649be835d157896b7da3ca3ab990694"
+  }
+ },
+ "metrics": {
+  "angle_agreement": "for each matched line, engine 'incl' (included angle, deg) minus gold included_angle_deg from the frozen final lines (labelling tool patch fit); joggle lines flagged (production never shows a zs angle on a joggle, ANGLE_CHECK.md)",
+  "ci": "family bootstrap as testb (n 10000, seed 20261025) computed but N=4 families makes it uninformative",
+  "failed_scans": "a missing or FAILED output = empty prediction (all gold FN; on a control 0 FP); no scan is dropped",
+  "micro": "scoring.aggregate micro: summed TP/FP/FN over complete-label line scans (here gb_4dd5ba 47085000 only); also reported: 'micro incl. control FP lines' = the same sums with every line predicted on a zero-bend scan added as FP",
+  "per_scan": "TP / FP / FN and F1 from score_case. Zero-gold scans follow the frozen convention exactly: score.py gives them disposition ZERO_BEND_CONTROL (no F1), and scoring.aggregate reports them separately as FP lines (BASELINE.md, testb PREREG 'controls'). For the owner page only, a display F1 is derived: 1.0 if the control has 0 predicted lines, else 0.0 (labelled as such).",
+  "runtime": "wall time and peak RSS per process from run_record.json"
+ },
+ "programme": "zeroshot_2026-10-25",
+ "run_driver": {
+  "gold_guard_note": "gold_guard.py unchanged (pinned in both lane fingerprints); N1 scans are admitted by its existing GOLD_LEDGER_FROZEN basis after tools/gold_ledger_newscans.py registered and froze them",
+  "gold_guard_py_sha256": "031f1276334bc676ceaaf4d41b83b86e914f920008cf00e1dc11aca2f117d40a",
+  "guard": {
+   "path": "docs/production/runlog/zeroshot_2026-10-25/tools/guarded_slot.sh",
+   "sha256": "95716619e4fa3071aad2a41d360b0ac6856df8e486e2844caa4866ff611f1859"
+  },
+  "ledger_tool": {
+   "path": "docs/production/runlog/zeroshot_2026-10-25/tools/gold_ledger_newscans.py",
+   "sha256": "684b396323648320a7ec9fe86406fdf62903dce69f46551371c63e3b7e026da8"
+  },
+  "v1": {
+   "path": "docs/production/runlog/zeroshot_2026-10-25/integration/run_cohort.sh",
+   "sha256": "c19ba67dbf8f921dc57f05233da2b186a0353e61bd2280435a3dc17f7829535f"
+  },
+  "v2": {
+   "path": "research/zeroshot/zs_lane_v2/run_cohort.sh",
+   "sha256": "6f69e2151da8f07b77705245ef2289822fe09c4d5593b9960df5219e2923ed38"
+  }
+ },
+ "run_procedure": [
+  "each arm x scan through tools/guarded_slot.sh <sid> (gold guard: GOLD_LEDGER_FROZEN, one geometry slot, OMP 1); zs_lane_v2 with --strict-pins (refuses on any pin mismatch or unpinned loaded module); zs_lane_v1 records pins_ok",
+  "v1 cohort (zs,z3,z2) and v2 cohort run as 2 concurrent workers (RSS < 16 GiB)",
+  "freeze-ledger RUN entry appended before the first lane process; NOTE binds RESULTS sha"
+ ],
+ "schema": "sherman.zeroshot.newscans_prereg.v1",
+ "scorer": {
+  "driver": "research/zeroshot/zs_lane_v1/scoring.py score_scan + aggregate (unchanged), called by tools/newscans_n1_score.py",
+  "fingerprint_v1": {
+   "files": {
+    "research/broad_baseline/bb_common.py": "aca4f68583d9c88159c26bfc91308add4883f4d9084d02e7f0e3abcbf072a281",
+    "research/broad_baseline/score.py": "2bacc1b7fd37f41e509261da2b0b1ddb1e243f901a74350a061533d7ec0f603f",
+    "research/broad_baseline/score_broad.py": "210d98859426ff10f81833c9e343ab6dfdb4f53d2da76692a2fd506b472e657a",
+    "research/zeroshot/zs_lane_v1/scoring.py": "778d7e835cb319afd3bfe4f60eb1c23201c84f9d5a9770242e7b21518a81c43f",
+    "scripts/evaluate_f1_against_manual_gold.py": "1e9420558b91f9b136fb32ed012b56c64cdaeecf7599ee1ef9fe336915d75c62"
+   },
+   "sha256": "ec0dc3ae6a1ffa0b11af95973ea08ac86a16c7bc2e761674ed98596cf272831b"
+  },
+  "fingerprint_v2": {
+   "files": {
+    "research/broad_baseline/bb_common.py": "aca4f68583d9c88159c26bfc91308add4883f4d9084d02e7f0e3abcbf072a281",
+    "research/broad_baseline/score.py": "2bacc1b7fd37f41e509261da2b0b1ddb1e243f901a74350a061533d7ec0f603f",
+    "research/broad_baseline/score_broad.py": "210d98859426ff10f81833c9e343ab6dfdb4f53d2da76692a2fd506b472e657a",
+    "research/zeroshot/zs_lane_v2/scoring.py": "d13942dfc9fe0d14f625314366dabb2e4bc75755ece47097503ea67d8ffa30b1",
+    "scripts/evaluate_f1_against_manual_gold.py": "1e9420558b91f9b136fb32ed012b56c64cdaeecf7599ee1ef9fe336915d75c62"
+   },
+   "sha256": "05cc9314f471d22571cf9b108c53d11f384db89318dd4baeb31699d3c8104471"
+  },
+  "matcher": "research/broad_baseline/score.py score_case (frozen): 5 deg / 4 mm / 0.6 of both spans (gold and prediction), one-to-one Hungarian, apex locus, raw scan frame",
+  "settings": {
+   "axis_angle_deg": 5.0,
+   "gold_span_overlap": 0.6,
+   "offset_mm": 4.0,
+   "prediction_span_overlap": 0.6
+  }
+ },
+ "threshold_rules": {
+  "zs_lane_v1": "fixed 0.5 on the GBM probability for every fold and for the final model (no threshold tuning). Rationale: the Bayes decision point of a probability model, set a priori; DEV OOF with fixed 0.5 equals the fold-tuned rule within noise (zs 0.944 fixed vs 0.939 tuned; z3 0.914 vs 0.913), and the Z3 audit found fixed 0.5 = 0.929 vs fold-tuned 0.930. Replaces lane.py's undocumented 0.55.",
+  "zs_lane_v2": "fixed 0.5 on the GBM probability (as zs_lane_v1)"
+ }
+}

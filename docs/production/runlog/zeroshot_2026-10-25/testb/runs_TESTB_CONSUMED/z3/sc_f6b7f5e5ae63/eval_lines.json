@@ -1,0 +1,75 @@
+{
+ "schema": "sherman.broad_baseline.eval_lines.v1",
+ "lane": "zs_lane_v1:z3",
+ "status": "OK",
+ "frame": "scan_raw",
+ "frame_definition": "coordinates of the scan file exactly as stored (source_ply_raw == scan_raw)",
+ "units": "scan file units (mm for every Sherman scan inspected so far; not re-estimated)",
+ "scan": {
+  "path": "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260906_5b8ecf78/42821000_C.ply",
+  "sha256": "f6b7f5e5ae6346506b11561a05509ab0025c6fd2c2e7f6e16db4160859c4605a"
+ },
+ "source": {
+  "kind": "zs_lane_v1:z3",
+  "path": null,
+  "sha256": null
+ },
+ "conversion": {
+  "rule": "zs_lane_v1 variant z3",
+  "variant": "z3",
+  "threshold": 0.5,
+  "model": "docs/production/runlog/zeroshot_2026-10-25/integration/models/zs_lane_v1_z3_gbm.pkl",
+  "model_sha256": "8a5455936178f0b8e02582c6ec557255eb552a9eeb09ea83259dabcabf245c43",
+  "code_fingerprint": "af87df2f96426a9e69a46ed942ced4f19f0eb770e71e50aada43ddd27ec1441c",
+  "pins_ok": true,
+  "pin_mismatch": [],
+  "errors": {},
+  "stages": {
+   "z3": {
+    "wall": 1.195,
+    "t_mm": 1.889203667640686,
+    "n_candidates": 1
+   },
+   "pool": {
+    "wall": 0.001,
+    "n": 1
+   },
+   "snap": {
+    "wall": 0.014,
+    "n": 1,
+    "moved": 1
+   }
+  },
+  "final_testb": true,
+  "guard_basis": "GOLD_LEDGER_FROZEN"
+ },
+ "line_count": 1,
+ "owned_bend_regions": [
+  {
+   "bend_id": "ZS001",
+   "line_start": [
+    -283.9121577903823,
+    -236.81691452944477,
+    122.49547021126888
+   ],
+   "line_end": [
+    -390.2640420527235,
+    -126.04731275855046,
+    214.96212288827073
+   ],
+   "score": 0.9965258333524105,
+   "incl": 154.40021531657692,
+   "src": [
+    "z3"
+   ],
+   "d1_snap": {
+    "moved": true,
+    "locus": "outer_apex",
+    "shift_mm": 0.1852
+   }
+  }
+ ],
+ "dropped": [],
+ "failure": null,
+ "created_at": "2026-10-25T05:03:28Z"
+}

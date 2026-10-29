@@ -1,0 +1,83 @@
+--- domains/production/engine/inspect/engine.py	2026-10-28 01:58:43
++++ domains/production/engine/inspect/engine.py	2026-10-28 03:34:19
+@@ -509,7 +509,25 @@
+     # -- mirrored part check -----------------------------------------------------------------
+     suspicious = best.fit.hole_mismatch > 0 or best.explained < cfg.mirror_check_explained or \
+         best.fit.score < cfg.mirror_check_score
+-    if suspicious and budget.left() > 0:
++    # [e3-mirror research instrumentation: E3M_DIAG logs, E3M_FORCE always registers the mirrored scan,
++    #  E3M_FIX applies a candidate refusal rule; the live decision is unchanged unless E3M_FIX is set]
++    import json as _json, os as _os
++    _diag = {"sub": None if opts.subsample is None else [float(v) for v in opts.subsample],
++             "t_reg_done": round(budget.elapsed(), 2), "best_score": best.fit.score, "best_explained": best.explained,
++             "best_explained_tight": best.explained_tight, "best_total": best.total,
++             "best_hole_mismatch": int(best.fit.hole_mismatch), "suspicious": bool(suspicious),
++             "best_hole_ev": list(_hole_evidence(best, pts, vox, part, cfg, spacing)),
++             "best_bends_found": int(sum(1 for b in best.art.bends if b.found)) if best.art else None}
++    _force = bool(_os.environ.get("E3M_FORCE"))
++    _fix = _os.environ.get("E3M_FIX", "")
++    if _fix == "trigger" and not suspicious and _diag["best_hole_ev"][1] > 0:
++        _force = True  # candidate trigger: a contradicted hole on any fitted panel
++    def _e3m_write():
++        if _os.environ.get("E3M_LOG"):
++            with open(_os.environ["E3M_LOG"], "a") as _fh:
++                _fh.write(_json.dumps(_diag, default=float) + "\n")
++    if (suspicious or _force) and budget.left() > 0:
++        _t_m0 = budget.elapsed()
+         step("mirror_check", 45)
+         flip = np.array([-1.0, 1.0, 1.0])
+         mvox = _mirror_voxels(vox)
+@@ -528,6 +546,40 @@
+         mirrored.sort(key=lambda h: -h.total)
+         if any(h.free_extra for h in mirrored):
+             mirrored = _free_datum_rank(mirrored, mpts, mvox, part, model, cfg, budget, note, spacing)
++        _diag["mirror_ran"] = True
++        _diag["mirror_s"] = round(budget.elapsed() - _t_m0, 2)
++        if mirrored:
++            _mb = mirrored[0]
++            _diag.update(mirror_score=_mb.fit.score, mirror_explained=_mb.explained,
++                         mirror_explained_tight=_mb.explained_tight, mirror_total=_mb.total,
++                         mirror_hole_mismatch=int(_mb.fit.hole_mismatch),
++                         mirror_hole_ev=list(_hole_evidence(_mb, mpts, mvox, part, cfg, spacing)),
++                         mirror_bends_found=int(sum(1 for b in _mb.art.bends if b.found)) if _mb.art else None,
++                         mirror_has_art=_mb.art is not None)
++            _diag["mirror_selfmaps_decoded"] = len(_mirror_self_maps(part, _decoded_stage_id(part, _mb)))
++            def _pool(hs, P, V):
++                top = [h for h in hs if h.art is not None]
++                top = [h for h in top if h.total >= top[0].total - 0.05][:4] if top else []
++                return [[round(h.total, 4), round(h.explained, 4)] + list(_hole_evidence(h, P, V, part, cfg, spacing)) for h in top]
++            _diag["proper_pool"] = _pool(sorted(proper, key=lambda h: -h.total), pts, vox)
++            _diag["mirror_pool"] = _pool(mirrored, mpts, mvox)
++            _sid = _decoded_stage_id(part, best)
++            _diag["best_stage"] = _sid
++            _mr = [c.rms_mm for st in part.compiled.stages if st.stage_model_id == _sid for c in st.symmetry.candidates
++                   if c.kind == "MIRROR"]
++            _diag["best_stage_min_mirror_rms"] = min(_mr) if _mr else None
++            _diag["mirror_ev_s"] = round(budget.elapsed() - _t_m0, 2)
++            _diag["mirror_ev_s"] = round(budget.elapsed() - _t_m0, 2)
++        if mirrored and _fix in ("holes", "trigger"):
++            _mb = mirrored[0]
++            _pc, _px = _diag["best_hole_ev"]; _mc, _mx = _diag["mirror_hole_ev"]
++            if not _diag["mirror_selfmaps_decoded"] and (_mc - _mx) - (_pc - _px) >= cfg.hole_evidence_min_diff \
++                    and _mb.total >= best.total - cfg.mirror_margin:
++                _diag["fix_fired"] = True; _e3m_write()
++                return ctx.invalid("MIRRORED_PART_SUSPECTED", (f"MIRROR_HOLES_FIT_BETTER:{_mc - _mx}>{_pc - _px}",),
++                                   None, None, log, abstained=True)
++        if mirrored and not suspicious:
++            mirrored = []  # E3M_FORCE: measured only; the live decision did not run the check
+         if mirrored:
+             mb = mirrored[0]
+             sym_maps: list[np.ndarray] = []
+@@ -559,8 +611,12 @@
+                          f"total={best.total:.3f} explained={best.explained:.3f}")
+             why = _mirror_refusal(mb.total, best.total, mb.fit.hole_mismatch, best.fit.hole_mismatch,
+                                   symmetric=bool(sym_maps), margin=cfg.mirror_margin)
++            _diag["live_mirror_refusal"] = why
+             if why is not None:
++                _e3m_write()
+                 return ctx.invalid("MIRRORED_PART_SUSPECTED", (why,), None, None, log, abstained=True)
++    _diag["t_mirror_done"] = round(budget.elapsed(), 2)
++    _e3m_write()
+     # the pose is chosen by comparing complete articulated fits (and, when the best looks suspicious,
+     # the mirrored scan's): a budget that ran out on the way left that comparison unfinished, and a
+     # cut articulation explains less of the scan, which must never read as a wrong part. Nothing could

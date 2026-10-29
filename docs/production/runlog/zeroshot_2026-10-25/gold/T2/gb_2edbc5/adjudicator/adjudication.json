@@ -1,0 +1,68 @@
+{
+ "schema": "sherman.zeroshot.gold_adjudication.v1",
+ "batch": "T2",
+ "gid": "gb_2edbc5",
+ "scan_id": "sc_c35199ee5039",
+ "portion": "TEST_B",
+ "original_path": "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260906_74c2b3f9/44556000_A.ply",
+ "adjudicated_at": "2026-10-25T03:20:42.044509+00:00",
+ "by": "T2/adjudicator",
+ "matcher": "research/broad_baseline/score.py score_case (frozen, apex locus); accept offset<=1.5 mm, angle<=2 deg",
+ "marker_A_lines": "docs/production/runlog/zeroshot_2026-10-25/gold/T2/gb_2edbc5/adjudicator/A_lines_rerun/lines.json",
+ "marker_B_lines": "docs/production/runlog/zeroshot_2026-10-25/gold/T2/gb_2edbc5/marker_B/lines/lines.json",
+ "marker_A_note": "marker A stopped before running lines on this scan; the adjudicator ran A's own pairs.json through lines unchanged (adjudicator/A_lines_rerun); A did not verify these renders",
+ "ab": {
+  "f1": 1.0,
+  "tp": 1,
+  "n_ref": 1,
+  "n_pred": 1,
+  "ref_only": [],
+  "pred_only": [],
+  "matches": [
+   [
+    "B1",
+    "B1",
+    0.0,
+    0.0,
+    1.0,
+    1.0
+   ]
+  ]
+ },
+ "accepted_matched_pairs": [
+  {
+   "A": "B1",
+   "B": "B1",
+   "offset_mm": 0.0,
+   "angle_deg": 0.0,
+   "line_from": "B (identical to A: same patches, same deterministic prep)"
+  }
+ ],
+ "disagreements": [],
+ "fresh_third_marking": {
+  "path": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED/558c02a3a31b0e9e0b4ea5fd.json",
+  "final_vs_fresh": {
+   "f1": 1.0,
+   "tp": 1,
+   "n_ref": 1,
+   "n_pred": 1,
+   "ref_only": [],
+   "pred_only": [],
+   "matches": [
+    [
+     "B1",
+     "B1",
+     0.0,
+     0.0,
+     1.0,
+     1.0
+    ]
+   ]
+  },
+  "adjudication": {
+   "verdict": "AGREES",
+   "reason": "FRESH matches the adjudicated set one-to-one."
+  }
+ },
+ "final_source": "marker_B/lines (B covers every accepted line and the ACCEPT_B verdicts; all A/B matched lines are geometrically identical)"
+}

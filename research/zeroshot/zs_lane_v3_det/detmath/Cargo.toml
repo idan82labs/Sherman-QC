@@ -1,0 +1,20 @@
+[package]
+name = "detmath"
+version = "0.1.0"
+edition = "2021"
+description = "C ABI over zs_rust's portable math kernels (fmath.rs, num.rs, accel.rs compiled from the pinned zs_rust sources, unmodified) for the deterministic-math Python research reference"
+publish = false
+
+[lib]
+crate-type = ["cdylib"]
+path = "src/lib.rs"
+
+[dependencies]
+serde_json = { version = "1", features = ["float_roundtrip", "preserve_order"] }
+libm = "0.2"
+
+[profile.release]
+opt-level = 3
+lto = "fat"
+codegen-units = 1
+panic = "abort"

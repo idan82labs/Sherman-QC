@@ -543,6 +543,10 @@ export interface Part {
   cad_file_path: string | null
   cad_file_hash: string | null
   cad_uploaded_at: string | null
+  preview_mesh_path: string | null
+  drawing_file_path: string | null
+  drawing_file_hash: string | null
+  drawing_uploaded_at: string | null
   material: string | null
   default_tolerance_angle: number
   default_tolerance_linear: number
@@ -567,6 +571,94 @@ export interface PartBendSpec {
   bend_line_start: [number, number, number] | null
   bend_line_end: [number, number, number] | null
   notes: string | null
+}
+
+export type Point3 = [number, number, number]
+
+export interface VendorBendMark {
+  feature_id: string
+  label: string
+  source: 'cad_candidate' | 'manual'
+  status: 'active' | 'removed'
+  review_status?: 'pending' | 'confirmed'
+  issue: 'missing' | 'wrong_location' | 'not_a_bend' | null
+  corrects_feature_id?: string | null
+  note: string
+  line_start: Point3 | null
+  line_end: Point3 | null
+  target_angle?: number | null
+  target_radius?: number | null
+}
+
+export interface VendorGeneralMeasurement {
+  id: string
+  label: string
+  kind: 'bend_pair' | 'points'
+  bend_ids: string[]
+  point_start: Point3
+  point_end: Point3
+  /** Straight-line CAD coordinate distance; displayed under the existing assumed-mm boundary. */
+  cad_distance: number
+  /** Operator-entered reference from the drawing; never a scan measurement. */
+  target_mm: number | null
+  note: string
+}
+
+export interface VendorSetupDraft {
+  schema_version: 1
+  cad_file_hash: string
+  cad_uploaded_at: string | null
+  drawing_file_hash: string | null
+  candidate_generation: string
+  part_revision: string | null
+  expected_draft_revision: number
+  draft_revision?: number
+  updated_at?: string
+  is_stale?: boolean
+  marks: VendorBendMark[]
+  sequence: string[]
+  /** Optional, operator-tagged machine moves; each move contains consecutive bends from sequence. */
+  machine_moves?: string[][]
+  /** Distinguishes explicitly authored moves from old automatic singleton partitions. */
+  machine_moves_explicit?: boolean
+  general_measurements?: VendorGeneralMeasurement[]
+  operator_sequence_confirmed: boolean
+  completed_steps: number
+  matching_search: { search_radius_mm: number | null; search_angle_deg: number | null }
+}
+
+export interface VendorSetupResponse {
+  part: Part
+  candidates: VendorBendMark[]
+  draft: VendorSetupDraft | null
+  candidate_generation: string
+  flange_surfaces?: {
+    feature_id: string
+    vertices: number[]
+    triangles: number[]
+    source_face_indices: number[]
+    association: 'CAD_ADJACENT_PLANAR_FLANGE_SKINS'
+    nominal_flange_depth_mm?: number | null
+    depth_status?: 'CAD_TANGENT_TO_OUTER_EDGE' | 'UNAVAILABLE_AMBIGUOUS_BOUNDARY'
+  }[]
+  flange_surface_status?: string
+  unfold_preview?: VendorUnfoldPreview
+}
+
+/** Geometric development of one CAD skin; never a compensated cutting blank. */
+export interface VendorUnfoldPreview {
+  status: 'AVAILABLE' | 'UNAVAILABLE'
+  reason: string | null
+  model: 'SELECTED_CAD_SKIN_DEVELOPMENT'
+  units: 'assumed_mm'
+  units_verified: false
+  manufacturing_ready: false
+  source_sha256: string | null
+  vertices: number[]
+  triangles: number[]
+  bend_lines: { feature_id: string; line_start: Point3; line_end: Point3; bend_direction: 'up' | 'down' | 'unknown'; sweep_deg: number }[]
+  flange_surfaces: { feature_id: string; vertices: number[]; triangles: number[] }[]
+  diagnostics: Record<string, unknown>
 }
 
 export interface PartCatalogStats {

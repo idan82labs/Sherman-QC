@@ -1,0 +1,12 @@
+# gb_a0bfde marker B
+- Result: 13 bends, all ~90 deg and certain. Same layout family as a mirrored bracket.
+- B1: main panel 1/2 to upturned panel 3/4 (193 mm, full).
+- B2, B3: panel 3/4 to flanges 12/14 and 11/13.
+- B4/B5 (6 to 16), B6/B7 (7 to 5) and B8/B9 (10 to 20) are Z-offset steps, 2 lines each.
+- B10/B11: Z-tab 17 to 21.
+- B12, B13: lanced tabs 22 and 23 from the main panel, 44 mm.
+- Rejected:
+  - corner 12/13;
+  - thin strip 25 (edge);
+  - small piece 24.
+- Not partial. Confidence high.

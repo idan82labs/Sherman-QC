@@ -1,4 +1,4 @@
-#!/opt/homebrew/bin/python3.11
+#!/usr/bin/env python3
 """
 Apply mail-delivered truth updates to the bend corpus without rebuilding it.
 
@@ -24,21 +24,21 @@ from typing import Any, Dict, List, Optional
 from openpyxl import load_workbook
 
 
-ROOT = Path("/Users/idant/82Labs/Sherman QC/Full Project")
+ROOT = Path(__file__).resolve().parents[1]
 CORPUS_ROOT = ROOT / "data" / "bend_corpus"
 PARTS_DIR = CORPUS_ROOT / "parts"
 
-MAIL_XLSX = Path("/Users/idant/Downloads/נתונים עבור חלקים.xlsx")
+MAIL_XLSX = Path.home() / "Downloads" / "נתונים עבור חלקים.xlsx"
 MAIL_DRAWINGS = [
-    Path("/Users/idant/Downloads/שרטוט  37361005 1.PDF"),
-    Path("/Users/idant/Downloads/שרטוט  11979003.PDF"),
-    Path("/Users/idant/Downloads/שרטוט 44211000.pdf"),
-    Path("/Users/idant/Downloads/שרטוט 47266000 1.pdf"),
-    Path("/Users/idant/Downloads/שרטוט 48963008.pdf"),
-    Path("/Users/idant/Downloads/שרטוט 47959001.pdf"),
-    Path("/Users/idant/Downloads/שרטוט 49001000.pdf"),
-    Path("/Users/idant/Downloads/שרטוט 49024000.PDF"),
-    Path("/Users/idant/Downloads/שרטוט 47479000.PDF"),
+    Path.home() / "Downloads" / "שרטוט  37361005 1.PDF",
+    Path.home() / "Downloads" / "שרטוט  11979003.PDF",
+    Path.home() / "Downloads" / "שרטוט 44211000.pdf",
+    Path.home() / "Downloads" / "שרטוט 47266000 1.pdf",
+    Path.home() / "Downloads" / "שרטוט 48963008.pdf",
+    Path.home() / "Downloads" / "שרטוט 47959001.pdf",
+    Path.home() / "Downloads" / "שרטוט 49001000.pdf",
+    Path.home() / "Downloads" / "שרטוט 49024000.PDF",
+    Path.home() / "Downloads" / "שרטוט 47479000.PDF",
 ]
 
 

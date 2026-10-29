@@ -26,16 +26,13 @@ function normalizeBendResult(item: any): BendResult {
   const method = item.measurement_method ?? ''
 
   // Derive status from measurement data
-  let status: 'pass' | 'warning' | 'fail' | 'unknown' = 'unknown'
-  if (!scanMeasured) {
-    status = 'unknown'
-  } else if (Math.abs(scanDeviation) <= 1.0) {
-    status = 'pass'
-  } else if (Math.abs(scanDeviation) <= 3.0) {
-    status = 'warning'
-  } else {
-    status = 'fail'
-  }
+  const status: 'pass' | 'warning' | 'fail' | 'unknown' = !scanMeasured
+    ? 'unknown'
+    : Math.abs(scanDeviation) <= 1.0
+      ? 'pass'
+      : Math.abs(scanDeviation) <= 3.0
+        ? 'warning'
+        : 'fail'
 
   // Derive springback/overbend from deviation direction
   const springback = scanMeasured && scanDeviation > 1.0 ? Math.min(scanDeviation / 10, 1.0) : 0

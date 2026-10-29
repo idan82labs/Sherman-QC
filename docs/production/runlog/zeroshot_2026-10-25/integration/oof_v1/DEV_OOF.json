@@ -1,0 +1,730 @@
+{
+ "schema": "sherman.zeroshot.zs_lane_v1.dev_oof.v1",
+ "cohort": {
+  "scans": 125,
+  "dumped": 125,
+  "missing_dump_scored_as_empty": [],
+  "folds": "dev_folds.json (5 family-group folds; 4 pending scans at their recorded fold)"
+ },
+ "arms": {
+  "z2|none|z2snap": {
+   "scans": 120,
+   "families": 94,
+   "gold": 619,
+   "pred": 594,
+   "tp": 555,
+   "fp": 39,
+   "fn": 64,
+   "P": 0.9343,
+   "R": 0.8966,
+   "micro_f1": 0.9151,
+   "family_macro_f1": 0.8674,
+   "fn_causes": {
+    "MISSED": 39,
+    "OFFSET_GT_4MM": 12,
+    "SPAN_LT_60PCT": 10,
+    "TAKEN_BY_OTHER": 3
+   },
+   "fp_causes": {
+    "SPAN_LT_60PCT": 20,
+    "SPURIOUS": 15,
+    "OFFSET_GT_4MM": 4
+   },
+   "worst_families": [
+    [
+     0.0,
+     "23317000"
+    ],
+    [
+     0.0,
+     "28870000"
+    ],
+    [
+     0.0,
+     "37126000"
+    ],
+    [
+     0.0,
+     "38169000"
+    ],
+    [
+     0.0,
+     "46414000"
+    ]
+   ],
+   "failed_or_missing_scans": 0,
+   "controls": {
+    "scans": 5,
+    "fp_lines": 0
+   },
+   "other_dispositions": {},
+   "micro_ci95": [
+    0.8772,
+    0.9465
+   ],
+   "macro_ci95": [
+    0.8082,
+    0.9189
+   ],
+   "bootstrap": {
+    "n": 10000,
+    "seed": 20261025,
+    "unit": "family"
+   },
+   "runtime": {
+    "median_s": 3.67,
+    "mean_s": 3.67,
+    "p95_s": 7.34,
+    "max_s": 15.59,
+    "note": "single thread (OMP 1), excludes interpreter start-up and the sha256 of the scan"
+   }
+  },
+  "z3|fixed|snap": {
+   "scans": 120,
+   "families": 94,
+   "gold": 619,
+   "pred": 608,
+   "tp": 561,
+   "fp": 47,
+   "fn": 58,
+   "P": 0.9227,
+   "R": 0.9063,
+   "micro_f1": 0.9144,
+   "family_macro_f1": 0.9045,
+   "fn_causes": {
+    "MISSED": 35,
+    "OFFSET_GT_4MM": 6,
+    "SPAN_LT_60PCT": 14,
+    "TAKEN_BY_OTHER": 3
+   },
+   "fp_causes": {
+    "SPAN_LT_60PCT": 19,
+    "SPURIOUS": 20,
+    "TAKEN_BY_OTHER": 3,
+    "OFFSET_GT_4MM": 5
+   },
+   "worst_families": [
+    [
+     0.0,
+     "23317000"
+    ],
+    [
+     0.0,
+     "38898000"
+    ],
+    [
+     0.0,
+     "48389000"
+    ],
+    [
+     0.364,
+     "49191019"
+    ],
+    [
+     0.5,
+     "48565005"
+    ]
+   ],
+   "failed_or_missing_scans": 0,
+   "controls": {
+    "scans": 5,
+    "fp_lines": 5
+   },
+   "other_dispositions": {},
+   "micro_ci95": [
+    0.8846,
+    0.9395
+   ],
+   "macro_ci95": [
+    0.8598,
+    0.9417
+   ],
+   "bootstrap": {
+    "n": 10000,
+    "seed": 20261025,
+    "unit": "family"
+   },
+   "thresholds": {
+    "rule": "fixed",
+    "by_fold": 0.5,
+    "median_tuned": 0.6
+   },
+   "runtime": {
+    "median_s": 1.77,
+    "mean_s": 2.79,
+    "p95_s": 9.94,
+    "max_s": 20.31,
+    "note": "single thread (OMP 1), excludes interpreter start-up and the sha256 of the scan"
+   }
+  },
+  "z3|tuned|snap": {
+   "scans": 120,
+   "families": 94,
+   "gold": 619,
+   "pred": 601,
+   "tp": 557,
+   "fp": 44,
+   "fn": 62,
+   "P": 0.9268,
+   "R": 0.8998,
+   "micro_f1": 0.9131,
+   "family_macro_f1": 0.9056,
+   "fn_causes": {
+    "MISSED": 39,
+    "OFFSET_GT_4MM": 7,
+    "SPAN_LT_60PCT": 13,
+    "TAKEN_BY_OTHER": 3
+   },
+   "fp_causes": {
+    "SPAN_LT_60PCT": 21,
+    "TAKEN_BY_OTHER": 3,
+    "SPURIOUS": 17,
+    "OFFSET_GT_4MM": 3
+   },
+   "worst_families": [
+    [
+     0.0,
+     "23317000"
+    ],
+    [
+     0.0,
+     "38898000"
+    ],
+    [
+     0.0,
+     "48389000"
+    ],
+    [
+     0.364,
+     "49191019"
+    ],
+    [
+     0.588,
+     "47247004"
+    ]
+   ],
+   "failed_or_missing_scans": 0,
+   "controls": {
+    "scans": 5,
+    "fp_lines": 4
+   },
+   "other_dispositions": {},
+   "micro_ci95": [
+    0.8834,
+    0.9388
+   ],
+   "macro_ci95": [
+    0.8613,
+    0.9425
+   ],
+   "bootstrap": {
+    "n": 10000,
+    "seed": 20261025,
+    "unit": "family"
+   },
+   "thresholds": {
+    "rule": "tuned",
+    "by_fold": {
+     "0": 0.55,
+     "1": 0.425,
+     "2": 0.625,
+     "3": 0.6,
+     "4": 0.65
+    },
+    "median_tuned": 0.6
+   },
+   "runtime": {
+    "median_s": 1.76,
+    "mean_s": 2.79,
+    "p95_s": 9.94,
+    "max_s": 20.31,
+    "note": "single thread (OMP 1), excludes interpreter start-up and the sha256 of the scan"
+   }
+  },
+  "z3|fixed|raw": {
+   "scans": 120,
+   "families": 94,
+   "gold": 619,
+   "pred": 608,
+   "tp": 559,
+   "fp": 49,
+   "fn": 60,
+   "P": 0.9194,
+   "R": 0.9031,
+   "micro_f1": 0.9112,
+   "family_macro_f1": 0.8986,
+   "fn_causes": {
+    "MISSED": 38,
+    "OFFSET_GT_4MM": 7,
+    "SPAN_LT_60PCT": 14,
+    "TAKEN_BY_OTHER": 1
+   },
+   "fp_causes": {
+    "SPAN_LT_60PCT": 21,
+    "SPURIOUS": 21,
+    "TAKEN_BY_OTHER": 3,
+    "OFFSET_GT_4MM": 4
+   },
+   "worst_families": [
+    [
+     0.0,
+     "23317000"
+    ],
+    [
+     0.0,
+     "38898000"
+    ],
+    [
+     0.0,
+     "48389000"
+    ],
+    [
+     0.364,
+     "49191019"
+    ],
+    [
+     0.5,
+     "48565005"
+    ]
+   ],
+   "failed_or_missing_scans": 0,
+   "controls": {
+    "scans": 5,
+    "fp_lines": 5
+   },
+   "other_dispositions": {},
+   "micro_ci95": [
+    0.8808,
+    0.9402
+   ],
+   "macro_ci95": [
+    0.8556,
+    0.9382
+   ],
+   "bootstrap": {
+    "n": 2000,
+    "seed": 20261025,
+    "unit": "family"
+   },
+   "thresholds": {
+    "rule": "fixed",
+    "by_fold": 0.5,
+    "median_tuned": 0.6
+   },
+   "runtime": {
+    "median_s": 1.77,
+    "mean_s": 2.79,
+    "p95_s": 9.94,
+    "max_s": 20.31,
+    "note": "single thread (OMP 1), excludes interpreter start-up and the sha256 of the scan"
+   }
+  },
+  "z3|tuned|raw": {
+   "scans": 120,
+   "families": 94,
+   "gold": 619,
+   "pred": 596,
+   "tp": 558,
+   "fp": 38,
+   "fn": 61,
+   "P": 0.9362,
+   "R": 0.9015,
+   "micro_f1": 0.9185,
+   "family_macro_f1": 0.9055,
+   "fn_causes": {
+    "MISSED": 39,
+    "OFFSET_GT_4MM": 8,
+    "SPAN_LT_60PCT": 13,
+    "TAKEN_BY_OTHER": 1
+   },
+   "fp_causes": {
+    "SPAN_LT_60PCT": 21,
+    "SPURIOUS": 13,
+    "TAKEN_BY_OTHER": 2,
+    "OFFSET_GT_4MM": 2
+   },
+   "worst_families": [
+    [
+     0.0,
+     "23317000"
+    ],
+    [
+     0.0,
+     "38898000"
+    ],
+    [
+     0.0,
+     "48389000"
+    ],
+    [
+     0.364,
+     "49191019"
+    ],
+    [
+     0.588,
+     "47247004"
+    ]
+   ],
+   "failed_or_missing_scans": 0,
+   "controls": {
+    "scans": 5,
+    "fp_lines": 4
+   },
+   "other_dispositions": {},
+   "micro_ci95": [
+    0.8897,
+    0.9457
+   ],
+   "macro_ci95": [
+    0.863,
+    0.9433
+   ],
+   "bootstrap": {
+    "n": 2000,
+    "seed": 20261025,
+    "unit": "family"
+   },
+   "thresholds": {
+    "rule": "tuned",
+    "by_fold": {
+     "0": 0.55,
+     "1": 0.475,
+     "2": 0.6,
+     "3": 0.6,
+     "4": 0.65
+    },
+    "median_tuned": 0.6
+   },
+   "runtime": {
+    "median_s": 1.76,
+    "mean_s": 2.79,
+    "p95_s": 9.94,
+    "max_s": 20.31,
+    "note": "single thread (OMP 1), excludes interpreter start-up and the sha256 of the scan"
+   }
+  },
+  "zs|fixed|snap": {
+   "scans": 120,
+   "families": 94,
+   "gold": 619,
+   "pred": 622,
+   "tp": 586,
+   "fp": 36,
+   "fn": 33,
+   "P": 0.9421,
+   "R": 0.9467,
+   "micro_f1": 0.9444,
+   "family_macro_f1": 0.9439,
+   "fn_causes": {
+    "MISSED": 13,
+    "SPAN_LT_60PCT": 13,
+    "OFFSET_GT_4MM": 5,
+    "TAKEN_BY_OTHER": 2
+   },
+   "fp_causes": {
+    "SPAN_LT_60PCT": 22,
+    "TAKEN_BY_OTHER": 1,
+    "SPURIOUS": 8,
+    "OFFSET_GT_4MM": 5
+   },
+   "worst_families": [
+    [
+     0.0,
+     "23317000"
+    ],
+    [
+     0.526,
+     "47247004"
+    ],
+    [
+     0.667,
+     "38898000"
+    ],
+    [
+     0.667,
+     "UNKNOWN:sc_9b930fe58a1b"
+    ],
+    [
+     0.696,
+     "45141000"
+    ]
+   ],
+   "failed_or_missing_scans": 0,
+   "controls": {
+    "scans": 5,
+    "fp_lines": 5
+   },
+   "other_dispositions": {},
+   "micro_ci95": [
+    0.9187,
+    0.9664
+   ],
+   "macro_ci95": [
+    0.9137,
+    0.969
+   ],
+   "bootstrap": {
+    "n": 10000,
+    "seed": 20261025,
+    "unit": "family"
+   },
+   "thresholds": {
+    "rule": "fixed",
+    "by_fold": 0.5,
+    "median_tuned": 0.55
+   },
+   "runtime": {
+    "median_s": 5.65,
+    "mean_s": 6.46,
+    "p95_s": 16.47,
+    "max_s": 28.92,
+    "note": "single thread (OMP 1), excludes interpreter start-up and the sha256 of the scan"
+   }
+  },
+  "zs|tuned|snap": {
+   "scans": 120,
+   "families": 94,
+   "gold": 619,
+   "pred": 612,
+   "tp": 578,
+   "fp": 34,
+   "fn": 41,
+   "P": 0.9444,
+   "R": 0.9338,
+   "micro_f1": 0.9391,
+   "family_macro_f1": 0.9397,
+   "fn_causes": {
+    "MISSED": 17,
+    "SPAN_LT_60PCT": 16,
+    "OFFSET_GT_4MM": 6,
+    "TAKEN_BY_OTHER": 2
+   },
+   "fp_causes": {
+    "SPAN_LT_60PCT": 21,
+    "TAKEN_BY_OTHER": 1,
+    "SPURIOUS": 9,
+    "OFFSET_GT_4MM": 3
+   },
+   "worst_families": [
+    [
+     0.0,
+     "23317000"
+    ],
+    [
+     0.526,
+     "47247004"
+    ],
+    [
+     0.667,
+     "38898000"
+    ],
+    [
+     0.667,
+     "UNKNOWN:sc_9b930fe58a1b"
+    ],
+    [
+     0.696,
+     "45141000"
+    ]
+   ],
+   "failed_or_missing_scans": 0,
+   "controls": {
+    "scans": 5,
+    "fp_lines": 4
+   },
+   "other_dispositions": {},
+   "micro_ci95": [
+    0.9119,
+    0.9621
+   ],
+   "macro_ci95": [
+    0.909,
+    0.9648
+   ],
+   "bootstrap": {
+    "n": 10000,
+    "seed": 20261025,
+    "unit": "family"
+   },
+   "thresholds": {
+    "rule": "tuned",
+    "by_fold": {
+     "0": 0.775,
+     "1": 0.35,
+     "2": 0.5,
+     "3": 0.55,
+     "4": 0.65
+    },
+    "median_tuned": 0.55
+   },
+   "runtime": {
+    "median_s": 5.65,
+    "mean_s": 6.46,
+    "p95_s": 16.47,
+    "max_s": 28.92,
+    "note": "single thread (OMP 1), excludes interpreter start-up and the sha256 of the scan"
+   }
+  },
+  "zs|fixed|raw": {
+   "scans": 120,
+   "families": 94,
+   "gold": 619,
+   "pred": 618,
+   "tp": 583,
+   "fp": 35,
+   "fn": 36,
+   "P": 0.9434,
+   "R": 0.9418,
+   "micro_f1": 0.9426,
+   "family_macro_f1": 0.9395,
+   "fn_causes": {
+    "MISSED": 15,
+    "SPAN_LT_60PCT": 13,
+    "OFFSET_GT_4MM": 6,
+    "TAKEN_BY_OTHER": 2
+   },
+   "fp_causes": {
+    "SPAN_LT_60PCT": 23,
+    "TAKEN_BY_OTHER": 1,
+    "OFFSET_GT_4MM": 4,
+    "SPURIOUS": 7
+   },
+   "worst_families": [
+    [
+     0.0,
+     "23317000"
+    ],
+    [
+     0.526,
+     "47247004"
+    ],
+    [
+     0.667,
+     "38898000"
+    ],
+    [
+     0.667,
+     "50556000"
+    ],
+    [
+     0.667,
+     "UNKNOWN:sc_9b930fe58a1b"
+    ]
+   ],
+   "failed_or_missing_scans": 0,
+   "controls": {
+    "scans": 5,
+    "fp_lines": 4
+   },
+   "other_dispositions": {},
+   "micro_ci95": [
+    0.9167,
+    0.9661
+   ],
+   "macro_ci95": [
+    0.9098,
+    0.9659
+   ],
+   "bootstrap": {
+    "n": 2000,
+    "seed": 20261025,
+    "unit": "family"
+   },
+   "thresholds": {
+    "rule": "fixed",
+    "by_fold": 0.5,
+    "median_tuned": 0.65
+   },
+   "runtime": {
+    "median_s": 5.65,
+    "mean_s": 6.46,
+    "p95_s": 16.47,
+    "max_s": 28.92,
+    "note": "single thread (OMP 1), excludes interpreter start-up and the sha256 of the scan"
+   }
+  },
+  "zs|tuned|raw": {
+   "scans": 120,
+   "families": 94,
+   "gold": 619,
+   "pred": 607,
+   "tp": 576,
+   "fp": 31,
+   "fn": 43,
+   "P": 0.9489,
+   "R": 0.9305,
+   "micro_f1": 0.9396,
+   "family_macro_f1": 0.9378,
+   "fn_causes": {
+    "MISSED": 18,
+    "SPAN_LT_60PCT": 16,
+    "OFFSET_GT_4MM": 7,
+    "TAKEN_BY_OTHER": 2
+   },
+   "fp_causes": {
+    "SPAN_LT_60PCT": 21,
+    "OFFSET_GT_4MM": 3,
+    "SPURIOUS": 7
+   },
+   "worst_families": [
+    [
+     0.0,
+     "23317000"
+    ],
+    [
+     0.526,
+     "47247004"
+    ],
+    [
+     0.667,
+     "38898000"
+    ],
+    [
+     0.667,
+     "50556000"
+    ],
+    [
+     0.667,
+     "UNKNOWN:sc_9b930fe58a1b"
+    ]
+   ],
+   "failed_or_missing_scans": 0,
+   "controls": {
+    "scans": 5,
+    "fp_lines": 3
+   },
+   "other_dispositions": {},
+   "micro_ci95": [
+    0.9143,
+    0.9634
+   ],
+   "macro_ci95": [
+    0.9072,
+    0.9641
+   ],
+   "bootstrap": {
+    "n": 2000,
+    "seed": 20261025,
+    "unit": "family"
+   },
+   "thresholds": {
+    "rule": "tuned",
+    "by_fold": {
+     "0": 0.775,
+     "1": 0.65,
+     "2": 0.475,
+     "3": 0.575,
+     "4": 0.65
+    },
+    "median_tuned": 0.65
+   },
+   "runtime": {
+    "median_s": 5.65,
+    "mean_s": 6.46,
+    "p95_s": 16.47,
+    "max_s": 28.92,
+    "note": "single thread (OMP 1), excludes interpreter start-up and the sha256 of the scan"
+   }
+  }
+ }
+}

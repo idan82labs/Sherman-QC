@@ -1,0 +1,235 @@
+{
+ "scan_id": "sc_f2475286312b",
+ "gold11_id": "CGEBA9A869AC",
+ "catalog_case_id": "corpus/07_38172000",
+ "auditor": "auditor2",
+ "frame_check": "label display cloud (output/bend_label_07_38172000/aligned_scan.ply, 200k pts) is an exact subset of raw vertices: max NN distance 0.000000 mm -> gold is in the raw frame; offsets are not a frame error",
+ "method": [
+  "plate frame (a2_frame.json): u along M01, v across, w = plate normal (+w = wall side); plate skins at w=-0.65/+0.8 (t=1.43)",
+  "a2_folds.py: every 2 mm along each physical fold, +-0.6 mm slab, outer/inner skin lines, outer virtual sharp X, outer apex (first scan point on the bisector ray), Xi, arc centre; gold intersected per station",
+  "research.bench_labeling prep+lines (apex locus, outer-skin pairs) under the shared lock -> bl_lines_apex/lines.json (10 folds, all certain, apex offsets = expected outer offsets)",
+  "a2_match.py: frozen matcher pair_metrics/match_lines (5 deg / 4 mm midpoint transverse / 60 % both spans) gold vs A2_ and BL_ apex lines: 0 of 8 gold lines match"
+ ],
+ "coverage_definition": "% of the physical fold span covered by the gold line projected on the fold axis (offset ignored); 0 for NOT_A_BEND",
+ "lines": {
+  "M01": {
+   "verdict": "CONVENTION_OFFSET",
+   "fold": "M01-edge lip (v=-112, lip down 12.5 mm), 90.8 deg, Ro 2.9-3.0, u -135..83 = 218 mm (CAD C2/C10 90/218)",
+   "offset_from_outer_apex_mm": {
+    "median": 4.68,
+    "min": 4.45,
+    "max": 4.74,
+    "along_bisector_concave": 4.68,
+    "across": 0.09,
+    "matcher_transverse": 4.63
+   },
+   "to_outer_sharp_mm": "5.7-6.0 (convex side)",
+   "to_inner_virtual_sharp_mm": "3.5-4.0",
+   "beyond_arc_centre_mm": "1.6-1.7",
+   "angle_deg": 0.16,
+   "coverage_pct": 99.9,
+   "gold_len_mm": 275.1,
+   "overrun_mm": 57.3,
+   "gold_on_fold_pct": 79
+  },
+  "M02": {
+   "verdict": "CONVENTION_OFFSET",
+   "fold": "M02-edge lip (v=+112, lip down), 90.1 deg, u -135..83 = 218 mm",
+   "offset_from_outer_apex_mm": {
+    "median": 4.58,
+    "min": 4.26,
+    "max": 4.74,
+    "across": 0.1,
+    "matcher_transverse": 4.6
+   },
+   "angle_deg": 0.18,
+   "coverage_pct": 99.6,
+   "gold_len_mm": 274.4,
+   "overrun_mm": 57.3,
+   "gold_on_fold_pct": 79
+  },
+  "M07": {
+   "verdict": "CONVENTION_OFFSET",
+   "fold": "plate->wall bend (u=126.5, wall up 60 mm), 90.4 deg, v -111..111 = 221 mm (CAD C11 90/221)",
+   "offset_from_outer_apex_mm": {
+    "median": 5.14,
+    "min": 4.62,
+    "max": 5.75,
+    "across": -0.1,
+    "matcher_transverse": 5.1
+   },
+   "angle_deg": 0.31,
+   "coverage_pct": 93.4,
+   "gold_len_mm": 207.4,
+   "overrun_mm": 0.0
+  },
+  "M03": {
+   "verdict": "REAL_ERROR",
+   "fold": "bottom window-tab hinge (v=-81.6, tab up 14 mm), 87.3 deg, u -52.5..25.2 = 77.6 mm (CAD 90/78)",
+   "offset_from_outer_apex_mm": {
+    "median": 5.67,
+    "min": 5.57,
+    "max": 6.51,
+    "along_bisector": -5.16,
+    "side": "CONVEX (below hinge)",
+    "matcher_transverse": 5.65
+   },
+   "coverage_pct": 100,
+   "gold_len_mm": 253.5,
+   "gold_on_fold_pct": 31,
+   "elsewhere": "3.8-4.6 mm below flat plate over 176 mm",
+   "matcher_gold_overlap": 0.31
+  },
+  "M04": {
+   "verdict": "NOT_A_BEND",
+   "nearest_fold": "bottom tab hinge, 8.8 mm (8.6-10.3): lies ~9 mm up the flat tab face (0.7 mm off its +v face); tab top is a free edge at w=14.3",
+   "offset_from_outer_apex_mm": 8.82,
+   "coverage_pct": 0,
+   "elsewhere": "8.0-8.7 mm above flat plate",
+   "matcher_transverse": 8.9
+  },
+  "M05": {
+   "verdict": "REAL_ERROR",
+   "fold": "top window-tab hinge (v=+92.3), 87.9 deg, ~78 mm",
+   "offset_from_outer_apex_mm": {
+    "median": 14.79,
+    "min": 11.91,
+    "max": 17.02,
+    "matcher_transverse": 14.84
+   },
+   "coverage_pct": 100,
+   "gold_len_mm": 261.7,
+   "note": "gold at v=+78.6 = mirror of M03 (v=-79.75); the real top tab is at v=+92.3; line crosses the window gap and runs 5.2-5.8 mm below flat plate elsewhere"
+  },
+  "M06": {
+   "verdict": "NOT_A_BEND",
+   "nearest_fold": "top tab hinge 15.9 mm (15.7-18.4)",
+   "offset_from_outer_apex_mm": 15.86,
+   "coverage_pct": 0,
+   "elsewhere": "7.3-8.3 mm above flat plate"
+  },
+  "M08": {
+   "verdict": "NOT_A_BEND",
+   "note": "wall top (w=60-61) is a free cut edge (flat cap joining both skins) over v -114..113; gold 2.6-3.5 mm off the scan in free air just outside the wall top; nearest formed fold = wall bend ~57 mm below; CAD has 2 more 221 mm wall bends (C3/C4) not formed at this PARTIAL_SCAN_2 stage; 53-pt stray sliver at v=-5..0 is not a flange",
+   "coverage_pct": 0
+  }
+ },
+ "missing_formed_folds_no_gold": [
+  {
+   "fold": "left-edge lip (u=-126.5, lip down 12.5 mm)",
+   "angle_deg": 90.8,
+   "length_mm": 202,
+   "cad": "C12 90/202",
+   "raw_start": [
+    -340.6,
+    -306.1,
+    161.9
+   ],
+   "raw_end": [
+    -436.1,
+    -177.2,
+    284.7
+   ]
+  },
+  {
+   "fold": "-v wall ear (vertical bend at wall end, ear 14 mm)",
+   "angle_deg": 90.0,
+   "length_mm": 43,
+   "cad": "C1/C9 90/44",
+   "raw_start": [
+    -152.8,
+    -142.4,
+    118.6
+   ],
+   "raw_end": [
+    -130.9,
+    -158.6,
+    151.9
+   ]
+  },
+  {
+   "fold": "+v wall ear",
+   "angle_deg": 89.2,
+   "length_mm": 43.4,
+   "cad": "C1/C9 90/44",
+   "raw_start": [
+    -257.4,
+    -0.4,
+    256.4
+   ],
+   "raw_end": [
+    -235.2,
+    -16.6,
+    289.9
+   ]
+  },
+  {
+   "fold": "bottom window-tab end kink (vertical bend, last ~7 mm of tab)",
+   "angle_deg": 28.2,
+   "length_mm": 12.6,
+   "cad": "C5/C7 30/13",
+   "raw_start": [
+    -239.6,
+    -190.9,
+    152.5
+   ],
+   "raw_end": [
+    -233.5,
+    -195.3,
+    162.7
+   ]
+  },
+  {
+   "fold": "top window-tab end kink",
+   "angle_deg": 28.9,
+   "length_mm": 11.6,
+   "cad": "C5/C7 30/13",
+   "raw_start": [
+    -320.6,
+    -81.2,
+    258.3
+   ],
+   "raw_end": [
+    -314.5,
+    -85.8,
+    267.0
+   ]
+  }
+ ],
+ "formed_folds_only_erroneous_gold": [
+  {
+   "fold": "bottom window-tab hinge",
+   "angle_deg": 87.3,
+   "length_mm": 77.6,
+   "raw_start": [
+    -296.3,
+    -243.8,
+    162.9
+   ],
+   "raw_end": [
+    -240.4,
+    -191.3,
+    151.1
+   ],
+   "gold_nearby": "M03 5.65 mm (REAL_ERROR), M04 8.9 mm"
+  },
+  {
+   "fold": "top window-tab hinge",
+   "angle_deg": 87.9,
+   "length_mm": 78.5,
+   "raw_start": [
+    -378.9,
+    -133.4,
+    269.1
+   ],
+   "raw_end": [
+    -322.1,
+    -80.4,
+    257.5
+   ],
+   "gold_nearby": "M05 14.8 mm (REAL_ERROR), M06 15.9 mm"
+  }
+ ],
+ "frozen_matcher_vs_apex_lines": "TP 0 / 8 gold; M01 4.63, M02 4.60, M07 5.10 mm transverse (overlap OK); M03/M04 fail offset and gold overlap 0.31; M05/M06 14.8/15.9 mm",
+ "endpoint_check": "all gold endpoints are 2.1-13.5 mm off the scan surface (M06 end 0.36 mm); M01/M02 run the full part bounding box in u (-135..140), not the lip (-135..83)"
+}

@@ -1,0 +1,46 @@
+{
+ "config_hash": "417f580b2d9369040411137a153b96458c973a3f50401d77e20be4b01a8b9d46",
+ "rss_peak_gib": 0.91,
+ "runtime_p95_s": 19.64,
+ "broad": {
+  "scans": 26,
+  "line_f1_micro": 0.607,
+  "line_f1_family_macro": 0.667,
+  "precision": 0.85,
+  "recall": 0.472,
+  "per_bend_correct_rate": 0.7875,
+  "false_pass": 0
+ },
+ "gates": {
+  "G1": {
+   "pass": true,
+   "detail": "Synthetic regression DEV tier (50 cases, 7 families). regression_verdict PASS with 0 failed accuracy gates. Overall verdict is INCOMPLETE and non-qualifying by construction: TIER_REGRESSION, SEEDSET_DEV, SCANNER_MODEL_PARTIAL, and G1.SUITE needs at least 200 cases. Flange P95 0.103 mm, bias 0.009379 mm. Angle bias 0.0015 deg, P95 0.019 deg. Position P95 0.073 mm. Coverage 0.997. False PASS 0/553, false FAIL 0. Same as iteration 1 except bias and slope values moved in the 6th decimal and runtime noise (P95 11.04 s)."
+  },
+  "G2": {
+   "pass": false,
+   "line_f1_gold11_human": 0.467,
+   "line_f1_gold11_relabel": 0.574,
+   "precision": 1,
+   "detail": "(a) FAIL on all 9 A1 Gold11 cases. Against the relabel (gold of record) F1 is 0.574 with P 1.00, R 0.40; the best F1 lane on the same scans scores 0.547. Against human Gold11 F1 is 0.467 with P 0.677; the best lane scores 0.473. 5 of the 9 cases are refused by the amendment-7 gate and count as misses. On the 4 runnable cases: relabel 1.000 (31/31, 0 FP) vs best lane 0.561; human 0.724 vs 0.717. (b) coverage FAIL: angle 55/91, flange 108/178, but 100% on runnable cases. (c) known-good angle FAIL on coverage only: 14/32 vs legacy 16/32; MAE 0.437 deg, common-bend MAE 0.506 vs legacy 1.360 (legacy is informational). (d) known-good flange PASS: P95 0.522 mm, max 0.860 mm. (e) FAIL because all_cases_run fails on the refused cases; P95 19.64 s, max 20.36 s, 0 crashes. (f) repeatability NOT_EVALUABLE. Compile rate PASS: 24/26 = 0.923. final=false."
+  },
+  "G3": {
+   "pass": false,
+   "detail": "NOT_EVALUABLE: the frozen visual truth table required by amendment 7 does not exist yet (population 11). The ledger is unchanged since 01:08."
+  },
+  "G5": {
+   "pass": false,
+   "detail": "FAIL. Manifest, tsc, lint and vendor scripts PASS (5 NOT_RUN, matching the baseline). backend_tests FAIL with 10 NEW failures in tests/test_vendor_unfold_api_contract.py, the same 10 as iterations 0 and 1. Iteration 1 traced them to another workflow's edit of apps/api/services/vendor_setup_service.py; this run did not re-check that cause. Not engine-related: the iteration-2 diff touches only domains/production/engine/inspect/."
+  }
+ },
+ "top_failures": [
+  "Process is the biggest lever. The amendment-7 gate still refuses 13 of 26 BROAD cases and 5 of 9 G2(a) Gold11 cases because the G3 visual truth table is not frozen, and refused cases count as misses. BROAD all-26 recall is 0.472 against 0.872 on the 13 runnable scans; G2(a) relabel is 0.574 against 1.000 on the 4 runnable. G3 and G2(f) are NOT_EVALUABLE, and G2(b) and G2(e) fail on these cases.",
+  "BROAD gold-convention conflicts: 12 FP and 10 FN on the 13 runnable scans (38172000 X/V, 37361005, 11979003), although the relabel or GOLD_SET_V1 confirms all 80 published lines. The loose false-PASS proxy count of 11 comes entirely from these; the strict proxy is 0.",
+  "38172000 X/V angle FAILs (X B7 +5.4 deg, V B9 -2.8 deg, V B5 +1.9 deg, X B9 -1.7 deg): the change step's independent plane fits reproduce them, so they look like real over- or underbend, but no physical truth exists and they may be false FAILs.",
+  "50757000 sc_752e flange FAIL chain (B1 +4.9 mm, B2 side B +4.8 mm, B5 side B -2.9 mm) and sc_777c angle FAILs (B5 -1.3 deg, B6 -1.2 deg): plausible real defects, physically unverified.",
+  "5 of 80 bends are not correct against any gold, all from compile-side flange nominals that are unavailable: 50757000 B1/B4 side B on both scans, and 47266000 B1 (UNSUPPORTED_FEATURE). pc_b4719db3dd69 is compile BLOCKED.",
+  "G2(c) known-good angle coverage is 14/32 against 16/32 for the legacy arm, because of the refused cases.",
+  "Open engine risk: a joggle with a shortened riser (about 1 mm) still reads NOT_YET_FORMED. The new 0.4 mm flat window and the hinge-continuity rule have not been seen on real staged scans (10839000 joggles, 23553000 hooks).",
+  "G5 FAIL from 10 NEW backend test failures in tests/test_vendor_unfold_api_contract.py; not engine-related."
+ ],
+ "summary": "I re-measured A1 iteration 2 (engine e3-1.3.0, config 417f580b) one step at a time under the shared lock. The engine code did not change during the run (fingerprint 4b4bdb0f at start and end), and the results match the change step exactly: the four analysis files are identical and only runtime differs.\n\nEvery comparison below is against the best F1 lane on the same scans, which is the bar.\n\nBROAD frozen A1 list, all 26 cases with refused cases counted as misses: family-macro 0.667, micro 0.607 (P 0.85, R 0.47). The best lane scores 0.543 / 0.508. On the 13 scans the engine runs: 0.896 / 0.861 (P 0.85, R 0.87), against 0.649 / 0.620 for the best lane.\n\nG2(a) on all 9 Gold11 cases:\n- Relabel (gold of record): 0.574 with P 1.00, against 0.547 for the best lane.\n- Human Gold11 (historical): 0.467, against 0.473.\n- On the 4 runnable cases: relabel 1.000 against 0.561.\n\nGOLD_SET_V1 (13 A1 scans with STEP): micro 1.000 and family-macro 1.000, against 0.597 / 0.653 for the best lane.\n\nPer bend given CAD (80 bends): correct 0.788 against BROAD gold and 0.938 against any gold of record. No physical dimensional truth exists for these scans, so false PASS is measured by proxy only: the strict proxy is 0 and no bend passes without a published line. Decisions: 241 PASS, 46 REVIEW, 27 FAIL, 6 UNKNOWN. The FAILs are physically unverified.\n\nGates:\n- G1 regression DEV: PASS with 0 failed accuracy gates, but non-qualifying by construction.\n- G2: FAIL. Sub-gates (a), (b), (c) and (e) fail because of the refused cases; (d) flange P95 0.52 mm passes; (f) is NOT_EVALUABLE.\n- G3: NOT_EVALUABLE because the truth table is missing.\n- G5: FAIL from 10 backend test failures that are not in the engine.\n\nEngine P95 is 19.6 s with 0 crashes; peak RSS is 0.91 GiB for the engine run and 1.20 GiB for G5.\n\nCompared with iteration 1: BROAD family-macro rose from 0.626 to 0.667, the runnable-13 from 0.832 to 0.896, the gold set from 0.961 to 1.000, and per-bend correct from 0.713 to 0.788.\n\nThe biggest lever is process: freeze the G3 truth table so the 13 refused cases run.\n\nFiles:\n- Scorecard: /Users/idantal/ShermanQC/FullProject/docs/production/runlog/a1/iter_2/scorecard.json\n- Overlays for the 20 worst bends: /Users/idantal/ShermanQC/FullProject/docs/production/runlog/a1/iter_2/overlays/worst20/ (INDEX.json, close-up plus context image per bend). The worst 10 are BROAD-gold convention mismatches on 38172000, 11979003 and 37361005, with the 38172000 angle FAILs; ranks 11 to 20 include the 50757000 flange FAIL chain.\n- Raw outputs, logs and tools: /Users/idantal/ShermanQC/FullProject/docs/production/runlog/a1/iter_2/measure/"
+}

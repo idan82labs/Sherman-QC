@@ -7,9 +7,10 @@ from pathlib import Path
 from typing import Any, Dict, Optional
 
 import numpy as np
+from domains.bend.services.inspection_frame import validate_alignment
 
 
-HEATMAP_EVIDENCE_CACHE_VERSION = "v1"
+HEATMAP_EVIDENCE_CACHE_VERSION = "v2_shared_frame"
 
 
 def _cache_key(cad_path: str, scan_path: str, *, tolerance_angle: float, runtime_cfg: Any) -> str:
@@ -55,11 +56,11 @@ def _materialize_cached_artifacts(cache_root: Path, output_dir: Optional[Path]) 
     aligned_out = output_dir / "aligned_scan.ply"
     deviations_out = output_dir / "deviations.npy"
     stats_out = output_dir / "deviation_stats.json"
-    if aligned_cache.exists() and not aligned_out.exists():
+    if aligned_cache.exists():
         shutil.copy2(aligned_cache, aligned_out)
-    if deviations_cache.exists() and not deviations_out.exists():
+    if deviations_cache.exists():
         shutil.copy2(deviations_cache, deviations_out)
-    if stats_cache.exists() and not stats_out.exists():
+    if stats_cache.exists():
         shutil.copy2(stats_cache, stats_out)
     return {
         "aligned_scan_path": aligned_out if aligned_out.exists() else None,
@@ -76,6 +77,7 @@ def _load_cached_bundle(cache_root: Path, output_dir: Optional[Path]) -> Optiona
         return None
     try:
         meta = json.loads(meta_path.read_text(encoding="utf-8"))
+        alignment = validate_alignment(meta.get("alignment"))
         aligned_points = _load_aligned_points(aligned_cache)
         deviations = np.load(str(deviations_cache))
         materialized = _materialize_cached_artifacts(cache_root, output_dir)
@@ -87,6 +89,7 @@ def _load_cached_bundle(cache_root: Path, output_dir: Optional[Path]) -> Optiona
             "deviation_stats": meta.get("deviation_stats"),
             "cache_hit": True,
             "cache_key": cache_root.name,
+            "alignment": alignment,
         }
     except Exception:
         return None
@@ -98,6 +101,7 @@ def _write_cache_bundle(
     aligned_points: np.ndarray,
     deviations: np.ndarray,
     deviation_stats: Dict[str, Any],
+    alignment: Dict[str, Any],
 ) -> None:
     import trimesh
 
@@ -117,6 +121,7 @@ def _write_cache_bundle(
             {
                 "cache_version": HEATMAP_EVIDENCE_CACHE_VERSION,
                 "deviation_stats": deviation_stats,
+                "alignment": alignment,
             },
             indent=2,
             ensure_ascii=False,
@@ -159,7 +164,22 @@ def build_bend_heatmap_evidence(
     engine.preprocess(voxel_size=voxel_size)
 
     seed = int(getattr(runtime_cfg, 'local_refinement_kwargs', {}).get('deterministic_seed', 17))
-    engine.align(auto_scale=True, tolerance=float(tolerance_angle), random_seed=seed)
+    fitness, rmse = engine.align(auto_scale=True, tolerance=float(tolerance_angle), random_seed=seed)
+    minimum_fitness = float(getattr(runtime_cfg, 'local_refinement_kwargs', {}).get('min_alignment_fitness', .55))
+    if not np.isfinite([fitness, rmse]).all() or fitness < minimum_fitness:
+        raise ValueError('Alignment unavailable: insufficient shared registration fitness')
+    metadata = engine.alignment_metadata.to_dict()
+    alignment = validate_alignment({
+        **metadata,
+        'status': 'AVAILABLE',
+        'geometry_frame': 'reference_mesh_raw',
+        'raw_scan_to_reference_transform': np.asarray(engine.raw_scan_to_reference_transform).tolist(),
+        'source': 'REGULAR_WORKFLOW_SHARED_ALIGNMENT',
+        'fitness': float(fitness),
+        'rmse_mm': float(rmse),
+        'seed': seed,
+        'metrology_qualified': False,
+    })
     aligned_cloud = engine.aligned_scan_raw if engine.aligned_scan_raw is not None else engine.aligned_scan
     if aligned_cloud is None:
         return {'aligned_scan_path': None, 'aligned_points': None, 'deviations_path': None, 'deviations': None, 'deviation_stats': None}
@@ -185,6 +205,7 @@ def build_bend_heatmap_evidence(
             aligned_points=aligned_points,
             deviations=deviations,
             deviation_stats=deviation_stats,
+            alignment=alignment,
         )
 
     aligned_path = None
@@ -213,4 +234,5 @@ def build_bend_heatmap_evidence(
         'deviation_stats': deviation_stats,
         'cache_hit': False,
         'cache_key': cache_root.name if cache_root is not None else None,
+        'alignment': alignment,
     }

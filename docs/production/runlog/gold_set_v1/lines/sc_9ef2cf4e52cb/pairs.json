@@ -1,0 +1,79 @@
+{
+  "labeler": "claude-vision-ai-v1",
+  "no_bends_present": false,
+  "notes": "Gold set v1, gold fixer round 1: sc_9ef2cf4e52cb (45796000_A_SCAN_2.ply, part 45796000, stage PARTIAL_SCAN_2, CONSUMED in BENCHMARK_V3). Part at this stage: flat cross-shaped plate 1/2 (1 = top skin on the flange side, 2 = bottom/outer skin) with a slot and two small holes; four first-stage flanges on four plate edges, all standing on the patch-1 side: left flange 3/5 (outer face 3, ~8.5 mm, end holes), right flange 4/6 (outer 4, ~8.5 mm, end holes), back lip 7/9 (outer 7, ~4.4 mm), front lip 8/10 (outer 8, ~4.3 mm). 4 formed bends = the four wall-to-flange folds of the finished part (FULL sibling sc_1268c72dcc30 B5-B8, which sit ~36 mm above its base there). The other 4 of the 8 CAD bends, the plate-to-wall folds at the bases of the cross arms (~36 mm inboard of each line), are not formed yet: every arm is coplanar with the central square within 0.17 deg (median deviation <= 0.03 mm on both skins). Not bends: patch 11 (plate thickness edge), flange/lip tips (plain square ends, no returns or hems), hole and slot walls, the round islands in plate height maps (target-sticker holes in the bottom-skin scan). All lines are outer-skin apex (--locus apex). Changes vs benchmark_v2/label_lines_r2: B1 moved from the inner skin (pair 1-5, which sat 1.85 mm inside the outer arc) to the outer skin (pair 2-3) with an extent override, because the outer apex arc is scanned along the whole fold even where the flat patch-2 skin beside it is missing; B4 extended from 94.1 mm to the end of its scanned outer arc. B2 and B3 unchanged.",
+  "bends": [
+    {
+      "patches": [
+        [
+          2
+        ],
+        [
+          3
+        ]
+      ],
+      "confidence": "auto",
+      "extent_xyz": [
+        [
+          -330.468,
+          -107.244,
+          240.225
+        ],
+        [
+          -257.345,
+          -42.696,
+          241.81
+        ]
+      ],
+      "note": "Left-flange fold (plate -> flange 3/5, ~88 deg included), outer skins (plate bottom 2, flange outer face 3). The flat patch-2 skin beside the fold is missing over the last ~22 mm (scan gap), so the auto extent of pair 2-3 stops at ~61 mm; perpendicular sections show the outer apex arc itself scanned end to end, so extent_xyz = the outer-apex points where the scanned arc starts and ends (97.5 mm; the flange end faces lie ~0.8 mm beyond each end, edge-rounded). Same fold and reach as the r2 inner line, moved ~1.85 mm out along the bisector onto the outer arc."
+    },
+    {
+      "patches": [
+        [
+          2
+        ],
+        [
+          4
+        ]
+      ],
+      "confidence": "auto",
+      "note": "Right-flange fold (plate -> flange 4/6, ~86.5 deg included), outer skins 2-4. Auto extent 97.4 mm against the scanned outer arc s -0.5..97.5 (~99%), on the outer apex within ~0.05 mm in sections; unchanged from r2."
+    },
+    {
+      "patches": [
+        [
+          2
+        ],
+        [
+          7
+        ]
+      ],
+      "confidence": "auto",
+      "note": "Back-lip fold (plate -> lip 7/9, ~87.3 deg included), outer skins 2-7. Auto extent 100.5 mm = the full scanned outer arc (s 0..100.5), on the outer apex within ~0.05 mm in sections; unchanged from r2."
+    },
+    {
+      "patches": [
+        [
+          2
+        ],
+        [
+          8
+        ]
+      ],
+      "confidence": "auto",
+      "extent_xyz": [
+        [
+          -148.196,
+          -112.147,
+          183.349
+        ],
+        [
+          -208.736,
+          -44.696,
+          226.306
+        ]
+      ],
+      "note": "Front-lip fold (plate -> lip 8/10, ~82.7 deg included), outer skins 2-8. The auto extent stopped at 94.1 mm where the flat patch-2 skin turns ragged, but sections at s 93..100.5 show the outer apex arc on the line (within ~0.1 mm) up to s ~100.5, where the lip end face begins; extent_xyz = the auto start and s = 100.3 along the same line (~99.7% of the fold)."
+    }
+  ]
+}

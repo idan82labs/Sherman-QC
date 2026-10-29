@@ -109,15 +109,20 @@ function CoverageRing({ coverage }: { coverage: number }) {
 function ScanParticles({ totalPoints }: { totalPoints: number }) {
   const pointsRef = useRef<THREE.Points>(null)
 
-  // Generate random points within a bounding box
+  // Generate a deterministic preview so repeated renders do not move points.
   const positions = useMemo(() => {
     const count = Math.min(totalPoints / 100, 2000) // Cap at 2000 particles
     const pos = new Float32Array(count * 3)
+    let seed = Math.max(1, Math.floor(totalPoints)) >>> 0
+    const nextValue = () => {
+      seed = (Math.imul(1664525, seed) + 1013904223) >>> 0
+      return seed / 4294967296
+    }
 
     for (let i = 0; i < count; i++) {
-      pos[i * 3] = (Math.random() - 0.5) * 15
-      pos[i * 3 + 1] = (Math.random() - 0.5) * 10
-      pos[i * 3 + 2] = (Math.random() - 0.5) * 15
+      pos[i * 3] = (nextValue() - 0.5) * 15
+      pos[i * 3 + 1] = (nextValue() - 0.5) * 10
+      pos[i * 3 + 2] = (nextValue() - 0.5) * 15
     }
 
     return pos

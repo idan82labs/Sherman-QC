@@ -22,7 +22,61 @@ from scipy.optimize import least_squares
 import logging
 import warnings
 
+from domains.bend.services.runtime_semantics import (
+    feature_family_for_target,
+    is_explicit_observability_evidence,
+    legacy_observability_detail_state,
+    measurement_primitive_for_feature_family,
+    normalize_observability_state,
+)
+
 logger = logging.getLogger(__name__)
+
+# These bound additive bookkeeping, not the legacy geometry computation. A budget
+# failure clears the entire lineage ledger; it never leaves a verified prefix.
+MAX_CAD_LINEAGE_RAW_VERTICES = 200_000
+MAX_CAD_LINEAGE_CANDIDATES = 4096
+MAX_CAD_LINEAGE_SUPPORT_REFERENCES = 4_000_000
+
+
+@dataclass(frozen=True)
+class SourcePlaneSupport:
+    """One pre-coplanar-merge segment, in this detection invocation only."""
+    segment_id: str
+    source_vertex_indices: Tuple[int, ...]
+
+
+@dataclass(frozen=True)
+class SourceBendCandidate:
+    """Original finite hypothesis, never an observed or native-root identity."""
+    candidate_id: str
+    detection_pass: int
+    bend_line_start: Tuple[float, float, float]
+    bend_line_end: Tuple[float, float, float]
+    flange1_source_vertex_indices: Tuple[int, ...]
+    flange2_source_vertex_indices: Tuple[int, ...]
+    flange1_segments: Tuple[SourcePlaneSupport, ...]
+    flange2_segments: Tuple[SourcePlaneSupport, ...]
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "candidate_id": self.candidate_id,
+            "detection_pass": self.detection_pass,
+            "bend_line_start": list(self.bend_line_start),
+            "bend_line_end": list(self.bend_line_end),
+            "flange1_source_vertex_indices": list(self.flange1_source_vertex_indices),
+            "flange2_source_vertex_indices": list(self.flange2_source_vertex_indices),
+            "flange1_segments": [
+                {"segment_id": item.segment_id,
+                 "source_vertex_indices": list(item.source_vertex_indices)}
+                for item in self.flange1_segments
+            ],
+            "flange2_segments": [
+                {"segment_id": item.segment_id,
+                 "source_vertex_indices": list(item.source_vertex_indices)}
+                for item in self.flange2_segments
+            ],
+        }
 
 
 @dataclass
@@ -36,6 +90,9 @@ class PlaneSegment:
     boundary_points: np.ndarray # Points on the boundary
     area: float                 # Estimated surface area (mm²)
     inlier_count: int
+    source_vertex_indices: Tuple[int, ...] = field(default=(), repr=False)
+    source_segments: Tuple[SourcePlaneSupport, ...] = field(default=(), repr=False)
+    source_lineage_status: str = "UNAVAILABLE"
 
     def point_to_plane_distance(self, point: np.ndarray) -> float:
         """Signed distance from point to plane."""
@@ -69,6 +126,7 @@ class DetectedBend:
     # Quality metrics
     inlier_count: int = 0
     radius_fit_error: float = 0.0
+    source_candidates: Tuple[SourceBendCandidate, ...] = field(default=(), repr=False)
 
     @property
     def bend_line_length(self) -> float:
@@ -115,6 +173,7 @@ class BendSpecification:
     bend_form: str = "FOLDED"   # FOLDED | ROLLED
     feature_type: str = "DISCRETE_BEND"  # DISCRETE_BEND | ROLLED_SECTION | PROCESS_FEATURE
     countable_in_regression: bool = True
+    cad_provenance: Optional[Dict[str, Any]] = field(default=None, repr=False)
 
     @property
     def bend_line_length(self) -> float:
@@ -178,7 +237,10 @@ class BendMatch:
     issue_location: str = "none"
     action_item: str = ""
     physical_completion_state: str = "UNKNOWN"
-    observability_state: str = "UNOBSERVED"
+    observability_state: str = "UNKNOWN"
+    # Missing detail is derived from explicit observation state in __post_init__.
+    # An explicitly supplied UNOBSERVED detail must not be overwritten.
+    observability_detail_state: str = ""
     observability_confidence: float = 0.0
     visibility_score: float = 0.0
     visibility_score_source: str = "heuristic_v0"
@@ -202,9 +264,26 @@ class BendMatch:
     def __post_init__(self):
         if self.cad_bend is not None and str(self.bend_form).upper() == "FOLDED" and str(self.cad_bend.bend_form).upper() == "ROLLED":
             self.bend_form = "ROLLED"
+        original_observation_state = self.observability_state
+        self.observability_state = normalize_observability_state(
+            self.observability_state,
+            physical_completion_state=self.physical_completion_state,
+            status=self.status,
+        )
+        self.observability_detail_state = legacy_observability_detail_state(
+            self.observability_detail_state or original_observation_state,
+            physical_completion_state=self.physical_completion_state,
+            status=self.status,
+        )
 
     def to_dict(self) -> Dict[str, Any]:
-        return {
+        feature_family = feature_family_for_target(
+            feature_type=self.cad_bend.feature_type,
+            bend_form=self.bend_form,
+            countable_in_regression=bool(self.cad_bend.countable_in_regression),
+        )
+        measurement_primitive = measurement_primitive_for_feature_family(feature_family)
+        payload = {
             "bend_id": self.cad_bend.bend_id,
             "bend_form": self.bend_form,
             "target_angle": self.cad_bend.target_angle,
@@ -231,11 +310,14 @@ class BendMatch:
             "tolerance_angle": self.cad_bend.tolerance_angle,
             "tolerance_radius": self.cad_bend.tolerance_radius,
             "feature_type": self.cad_bend.feature_type,
+            "feature_family": feature_family,
+            "measurement_primitive": measurement_primitive,
             "countable_in_regression": bool(self.cad_bend.countable_in_regression),
             "issue_location": self.issue_location,
             "action_item": self.action_item,
             "physical_completion_state": self.physical_completion_state,
             "observability_state": self.observability_state,
+            "observability_detail_state": self.observability_detail_state,
             "observability_confidence": round(float(self.observability_confidence or 0.0), 3),
             "visibility_score": round(float(self.visibility_score or 0.0), 3),
             "visibility_score_source": self.visibility_score_source,
@@ -264,6 +346,24 @@ class BendMatch:
             "expected_edge_tip1": self.expected_edge_tip1.tolist() if self.expected_edge_tip1 is not None else None,
             "expected_edge_tip2": self.expected_edge_tip2.tolist() if self.expected_edge_tip2 is not None else None,
         }
+
+        reference_placeholder = self.assignment_source == "CAD_LOCAL_NEIGHBORHOOD"
+        payload["detected_line_geometry_source"] = (
+            "CAD_REFERENCE_PLACEHOLDER" if reference_placeholder else "SCAN_FIT"
+        )
+        if reference_placeholder:
+            # Local angle measurement borrows nominal geometry to satisfy the
+            # legacy DetectedBend container. It is not a measured line/radius.
+            for key in (
+                "measured_radius", "radius_deviation", "actual_line_length_mm",
+                "line_length_deviation_mm", "line_start_deviation_mm",
+                "line_end_deviation_mm", "line_center_deviation_mm",
+                "actual_arc_length_mm", "arc_length_deviation_mm",
+                "measured_edge_distance_mm", "edge_distance_deviation_mm",
+                "measured_edge_tip1", "measured_edge_tip2",
+            ):
+                payload[key] = None
+        return payload
 
 
 def compute_edge_to_edge_distance(
@@ -329,8 +429,20 @@ class BendInspectionReport:
     # Timing
     processing_time_ms: float = 0.0
 
+    # Explicit offline CAD-guided measurements have a separate output contract.
+    # They do not populate legacy completion/count/tolerance-verdict fields.
+    cad_guided_measurements: Optional[Dict[str, Any]] = field(default=None, repr=False)
+
+    def _require_legacy_summary(self):
+        if self.cad_guided_measurements is not None:
+            raise ValueError(
+                "CAD-guided offline measurements do not support legacy completion/verdict "
+                "summaries; use to_dict() for the dedicated measurement payload."
+            )
+
     def compute_summary(self):
         """Compute summary statistics."""
+        self._require_legacy_summary()
         countable_matches = [m for m in self.matches if bool(m.cad_bend.countable_in_regression)]
         self.total_feature_count = len(self.matches)
         self.detected_feature_count = sum(1 for m in self.matches if m.status != "NOT_DETECTED")
@@ -346,26 +458,43 @@ class BendInspectionReport:
         self.observed_count = sum(
             1
             for m in countable_matches
-            if str(m.observability_state).upper() in {"OBSERVED_FORMED", "OBSERVED_NOT_FORMED"}
-            or (str(m.status).upper() in {"PASS", "FAIL", "WARNING"} and str(m.observability_state).upper() == "UNOBSERVED")
+            if is_explicit_observability_evidence(
+                m.observability_state,
+                physical_completion_state=m.physical_completion_state,
+                status=m.status,
+            )
         )
         self.partial_observed_count = sum(
-            1 for m in countable_matches if str(m.observability_state).upper() == "PARTIALLY_OBSERVED"
+            1
+            for m in countable_matches
+            if normalize_observability_state(
+                m.observability_state,
+                physical_completion_state=m.physical_completion_state,
+                status=m.status,
+            ) == "UNKNOWN"
+            and str(m.status).upper() != "NOT_DETECTED"
         )
         self.unobserved_count = sum(
             1
             for m in countable_matches
-            if str(m.observability_state).upper() == "UNOBSERVED"
+            if normalize_observability_state(
+                m.observability_state,
+                physical_completion_state=m.physical_completion_state,
+                status=m.status,
+            ) == "UNKNOWN"
             and str(m.status).upper() == "NOT_DETECTED"
         )
 
     @property
     def progress_percentage(self) -> float:
+        self._require_legacy_summary()
         if self.total_cad_bends == 0:
             return 0.0
         return (self.detected_count / self.total_cad_bends) * 100
 
     def to_dict(self) -> Dict[str, Any]:
+        if self.cad_guided_measurements is not None:
+            return {**self.cad_guided_measurements, "part_id": self.part_id}
         self.compute_summary()
         concise_actions = []
         for m in self.matches:
@@ -404,12 +533,14 @@ class BendInspectionReport:
             "matches": [m.to_dict() for m in self.matches],
             "unmatched_detections": [d.to_dict() for d in self.unmatched_detections],
             "scan_quality": self.scan_quality,
+            "alignment": getattr(self, "alignment_metadata", None) or {},
             "operator_actions": concise_actions[:8],
             "processing_time_ms": round(self.processing_time_ms, 1),
         }
 
     def to_table_string(self) -> str:
         """Generate ASCII table for operator display."""
+        self._require_legacy_summary()
         self.compute_summary()
 
         lines = []
@@ -544,6 +675,122 @@ class BendDetector:
         self.dedup_angle_threshold = dedup_angle_threshold
         self.dedup_direction_threshold = dedup_direction_threshold
 
+    def _invalidate_source_lineage(self, reason: str) -> None:
+        if not getattr(self, "_source_lineage_enabled", False):
+            return
+        raw_count = self.last_source_lineage["raw_vertex_count"]
+        self.last_source_lineage = {
+            "schema_version": 1, "kind": "CAD_SUPPORT_LINEAGE_V1",
+            "status": "UNAVAILABLE", "reason": reason,
+            "raw_vertex_count": raw_count,
+            "processed_source_vertex_indices": (),
+            "preprocessing_rejected_source_vertex_indices": (),
+            "segmentation_passes": [], "candidate_count": 0,
+            "candidate_records": [],
+            "identity_scope": "DETECTION_INVOCATION_LOCAL_NOT_NATIVE_IDENTITY",
+        }
+        self._point_source_indices = None
+        self._lineage_original_candidates = []
+        self._lineage_support_references = 0
+        for bend in self._lineage_candidate_bends:
+            bend.source_candidates = ()
+            for plane in (bend.flange1, bend.flange2):
+                plane.source_vertex_indices = ()
+                plane.source_segments = ()
+                plane.source_lineage_status = "UNAVAILABLE"
+        for plane in self._lineage_planes:
+            plane.source_vertex_indices = ()
+            plane.source_segments = ()
+            plane.source_lineage_status = "UNAVAILABLE"
+
+    def _begin_source_lineage(self, points: np.ndarray, enabled: bool) -> None:
+        self._source_lineage_enabled = enabled
+        self._point_source_indices = None
+        self._lineage_planes = []
+        self._lineage_candidate_bends = []
+        self._lineage_original_candidates = []
+        self._lineage_support_references = 0
+        self._lineage_pass = -1
+        self.last_source_lineage = None
+        if not enabled:
+            return
+        self.last_source_lineage = {
+            "schema_version": 1, "kind": "CAD_SUPPORT_LINEAGE_V1",
+            "status": "COMPLETE", "reason": "EXACT_RAW_ROW_TRANSPORT",
+            "raw_vertex_count": len(points),
+            "processed_source_vertex_indices": (),
+            "preprocessing_rejected_source_vertex_indices": (),
+            "segmentation_passes": [], "candidate_count": 0,
+            "candidate_records": [],
+            "identity_scope": "DETECTION_INVOCATION_LOCAL_NOT_NATIVE_IDENTITY",
+        }
+        if (len(points) > MAX_CAD_LINEAGE_RAW_VERTICES
+                or np.asarray(points).shape != (len(points), 3)
+                or not np.isfinite(points).all()):
+            self._invalidate_source_lineage("RAW_VERTEX_INPUT_INVALID_OR_OVER_BUDGET")
+            return
+        self._point_source_indices = tuple((index,) for index in range(len(points)))
+        self.last_source_lineage["processed_source_vertex_indices"] = self._point_source_indices
+
+    def _source_rows(self, indices: np.ndarray) -> Tuple[int, ...]:
+        if getattr(self, "_point_source_indices", None) is None:
+            return ()
+        return tuple(sorted(row for index in indices
+                            for row in self._point_source_indices[int(index)]))
+
+    def _record_source_candidate(self, bend: DetectedBend) -> None:
+        if self._point_source_indices is None:
+            return
+        planes = (bend.flange1, bend.flange2)
+        start = np.asarray(bend.bend_line_start, dtype=float)
+        end = np.asarray(bend.bend_line_end, dtype=float)
+        references = sum(len(plane.source_vertex_indices) + sum(
+            len(piece.source_vertex_indices) for piece in plane.source_segments
+        ) for plane in planes)
+        if (start.shape != (3,) or end.shape != (3,)
+                or not np.isfinite(start).all() or not np.isfinite(end).all()
+                or not np.isfinite(end - start).all()
+                or not np.isfinite(np.linalg.norm(end - start))
+                or not np.linalg.norm(end - start) > 0
+                or any(plane.source_lineage_status != "COMPLETE" or
+                       not plane.source_segments or not plane.source_vertex_indices
+                       for plane in planes)):
+            self._invalidate_source_lineage("CANDIDATE_SOURCE_SUPPORT_OR_FINITE_SEGMENT_INVALID")
+            return
+        if (len(self._lineage_candidate_bends) >= MAX_CAD_LINEAGE_CANDIDATES
+                or self._lineage_support_references + references > MAX_CAD_LINEAGE_SUPPORT_REFERENCES):
+            self._invalidate_source_lineage("CANDIDATE_LINEAGE_BUDGET_EXCEEDED")
+            return
+        bend.source_candidates = (SourceBendCandidate(
+            candidate_id=f"candidate:{len(self._lineage_candidate_bends)}",
+            detection_pass=self._lineage_pass,
+            bend_line_start=tuple(float(value) for value in start),
+            bend_line_end=tuple(float(value) for value in end),
+            flange1_source_vertex_indices=planes[0].source_vertex_indices,
+            flange2_source_vertex_indices=planes[1].source_vertex_indices,
+            flange1_segments=planes[0].source_segments,
+            flange2_segments=planes[1].source_segments,
+        ),)
+        self._lineage_candidate_bends.append(bend)
+        self._lineage_original_candidates.append(bend.source_candidates[0])
+        self._lineage_support_references += references
+        self.last_source_lineage["candidate_count"] = len(self._lineage_candidate_bends)
+
+    def _finish_source_lineage(self, bends: List[DetectedBend]) -> List[DetectedBend]:
+        if getattr(self, "_source_lineage_enabled", False):
+            if self.last_source_lineage["status"] == "COMPLETE":
+                identities = [record.candidate_id for bend in bends for record in bend.source_candidates]
+                expected = {f"candidate:{index}" for index in range(len(self._lineage_candidate_bends))}
+                if len(identities) != len(expected) or set(identities) != expected:
+                    self._invalidate_source_lineage("CANDIDATE_LEDGER_PARTITION_INVALID")
+                else:
+                    self.last_source_lineage["candidate_records"] = [
+                        record.to_dict() for record in self._lineage_original_candidates]
+            if self.last_source_lineage["status"] != "COMPLETE":
+                for bend in bends:
+                    bend.source_candidates = ()
+        return bends
+
     def detect_bends(
         self,
         points: np.ndarray,
@@ -553,6 +800,7 @@ class BendDetector:
         outlier_nb_neighbors: int = 20,
         outlier_std_ratio: float = 2.0,
         multiscale: bool = False,
+        preserve_source_lineage: bool = False,
     ) -> List[DetectedBend]:
         """
         Detect all bends in the point cloud.
@@ -565,13 +813,18 @@ class BendDetector:
             outlier_nb_neighbors: Number of neighbors for outlier detection
             outlier_std_ratio: Standard deviation ratio for outlier removal
             multiscale: Enable multi-scale detection for complex parts (38+ bends)
+            preserve_source_lineage: Retain bounded raw-row transport separately
+                from geometry; this is not native identity or support coverage.
 
         Returns:
             List of detected bends
         """
+        if type(preserve_source_lineage) is not bool:
+            raise TypeError("preserve_source_lineage must be a bool")
+        self._begin_source_lineage(points, preserve_source_lineage)
         if len(points) < self.min_plane_points * 2:
             logger.warning(f"Insufficient points for bend detection: {len(points)}")
-            return []
+            return self._finish_source_lineage([])
 
         # Optional preprocessing
         if preprocess:
@@ -584,10 +837,11 @@ class BendDetector:
         # Multi-scale detection for complex parts
         if multiscale:
             logger.info("Using multi-scale detection...")
-            return self._detect_bends_multiscale(points, normals, scales=[0.5, 1.0, 2.0])
+            return self._finish_source_lineage(
+                self._detect_bends_multiscale(points, normals, scales=[0.5, 1.0, 2.0]))
 
         # Single-scale detection (standard path)
-        return self._detect_bends_single_scale(points, normals)
+        return self._finish_source_lineage(self._detect_bends_single_scale(points, normals))
 
     def _detect_bends_single_scale(
         self,
@@ -606,6 +860,8 @@ class BendDetector:
         """
         # Step 1: Segment into planes
         logger.info("Segmenting point cloud into planes...")
+        if getattr(self, "_source_lineage_enabled", False):
+            self._lineage_pass += 1
         planes = self._segment_planes(points, normals)
         if self.merge_coplanar_planes and len(planes) > 1:
             before = len(planes)
@@ -628,6 +884,8 @@ class BendDetector:
         for i, (plane1, plane2) in enumerate(adjacent_pairs):
             bend = self._analyze_bend(plane1, plane2, points, bend_id=f"B{i+1}")
             if bend is not None:
+                if getattr(self, "_source_lineage_enabled", False):
+                    self._record_source_candidate(bend)
                 bends.append(bend)
 
         merged_bends = self._merge_multiscale_bends(
@@ -736,6 +994,8 @@ class BendDetector:
                     and angle_diff < angle_threshold
                     and direction_similarity >= self.dedup_direction_threshold
                 ):
+                    if getattr(self, "_source_lineage_enabled", False):
+                        existing.source_candidates += bend.source_candidates
                     is_duplicate = True
                     break
 
@@ -743,6 +1003,16 @@ class BendDetector:
                 merged.append(bend)
 
         return merged
+
+    def _merged_plane_source_fields(self, group: List[PlaneSegment]) -> Dict[str, Any]:
+        if not group or any(plane.source_lineage_status != "COMPLETE" for plane in group):
+            return {}
+        return {
+            "source_vertex_indices": tuple(sorted(set(
+                index for plane in group for index in plane.source_vertex_indices))),
+            "source_segments": tuple(piece for plane in group for piece in plane.source_segments),
+            "source_lineage_status": "COMPLETE",
+        }
 
     def _merge_coplanar_planes(self, planes: List[PlaneSegment]) -> List[PlaneSegment]:
         """
@@ -790,6 +1060,7 @@ class BendDetector:
                         boundary_points=plane.boundary_points,
                         area=plane.area,
                         inlier_count=plane.inlier_count,
+                        **self._merged_plane_source_fields(group),
                     )
                 )
                 next_id += 1
@@ -798,6 +1069,8 @@ class BendDetector:
             merged.append(merged_plane)
             next_id += 1
 
+        if getattr(self, "_source_lineage_enabled", False):
+            self._lineage_planes.extend(merged)
         return merged
 
     def _planes_coplanar_and_adjacent(self, p1: PlaneSegment, p2: PlaneSegment) -> bool:
@@ -837,6 +1110,7 @@ class BendDetector:
                 boundary_points=ref.boundary_points,
                 area=ref.area,
                 inlier_count=ref.inlier_count,
+                **self._merged_plane_source_fields(group),
             )
 
         normal, d = self._least_squares_plane(points)
@@ -854,7 +1128,88 @@ class BendDetector:
             boundary_points=boundary,
             area=area,
             inlier_count=inlier_count,
+            **self._merged_plane_source_fields(group),
         )
+
+    def _validate_voxel_source_trace(
+        self, points: np.ndarray, voxel_size: float,
+        legacy_points: np.ndarray, legacy_normals: Optional[np.ndarray],
+        trace_points: np.ndarray, trace_normals: Optional[np.ndarray],
+        trace_rows: Any,
+    ) -> Tuple[Tuple[int, ...], ...]:
+        """Accept only a complete native trace with exact legacy output order.
+
+        Open3D's trace API takes explicit grid bounds; the ordinary API uses
+        min(points)-voxel_size/2. Never recover a changed ordering by proximity.
+        """
+        if (not np.array_equal(legacy_points, trace_points)
+                or ((legacy_normals is None) != (trace_normals is None))
+                or (legacy_normals is not None and not np.array_equal(legacy_normals, trace_normals))
+                or not np.isfinite(legacy_points).all()
+                or (legacy_normals is not None and not np.isfinite(legacy_normals).all())
+                or len(trace_rows) != len(legacy_points)
+                or len(trace_rows) > MAX_CAD_LINEAGE_RAW_VERTICES
+                or not np.isfinite(voxel_size) or voxel_size <= 0):
+            raise ValueError("trace differs from legacy voxel output")
+        minimum = np.min(points, axis=0) - voxel_size * 0.5
+        cells = np.floor((points - minimum) / voxel_size)
+        if not np.isfinite(cells).all():
+            raise ValueError("unsupported voxel coordinates")
+        visited = np.zeros(len(points), dtype=bool)
+        groups = []
+        seen_cells = set()
+        total = 0
+        for rows in trace_rows:
+            if len(rows) == 0 or total + len(rows) > len(points):
+                raise ValueError("invalid trace cardinality")
+            group = []
+            previous = -1
+            for index in rows:
+                if (isinstance(index, (bool, np.bool_)) or not isinstance(index, (int, np.integer))
+                        or index <= previous or index >= len(points) or visited[int(index)]):
+                    raise ValueError("invalid or repeated source row")
+                index = int(index)
+                visited[index] = True
+                previous = index
+                group.append(index)
+            cell = tuple(cells[group[0]])
+            if cell in seen_cells or not np.all(cells[group] == cells[group[0]]):
+                raise ValueError("source rows do not partition voxel cells")
+            if not np.array_equal(np.mean(points[group], axis=0), legacy_points[len(groups)]):
+                raise ValueError("trace row centroid differs from legacy geometry")
+            seen_cells.add(cell)
+            groups.append(tuple(group))
+            total += len(group)
+        if total != len(points) or not visited.all():
+            raise ValueError("trace omits source rows")
+        return tuple(groups)
+
+    def _retain_outlier_source_trace(
+        self, voxel_points: np.ndarray, voxel_normals: Optional[np.ndarray],
+        retained_points: np.ndarray, retained_normals: Optional[np.ndarray],
+        retained_indices: Any,
+    ) -> None:
+        if self._point_source_indices is None:
+            return
+        indices = []
+        previous = -1
+        for index in retained_indices:
+            if (isinstance(index, (bool, np.bool_)) or not isinstance(index, (int, np.integer))
+                    or index <= previous or index >= len(voxel_points)):
+                raise ValueError("invalid outlier selection indices")
+            previous = int(index)
+            indices.append(previous)
+        if (not np.array_equal(voxel_points[indices], retained_points)
+                or ((voxel_normals is None) != (retained_normals is None))
+                or (voxel_normals is not None and
+                    not np.array_equal(voxel_normals[indices], retained_normals))):
+            raise ValueError("outlier geometry differs from index selection")
+        kept = set(indices)
+        rejected = tuple(sorted(row for index, rows in enumerate(self._point_source_indices)
+                                if index not in kept for row in rows))
+        self._point_source_indices = tuple(self._point_source_indices[index] for index in indices)
+        self.last_source_lineage["processed_source_vertex_indices"] = self._point_source_indices
+        self.last_source_lineage["preprocessing_rejected_source_vertex_indices"] = rejected
 
     def _preprocess_point_cloud(
         self,
@@ -886,12 +1241,52 @@ class BendDetector:
             pcd.normals = o3d.utility.Vector3dVector(normals)
 
         # Step 1: Voxel downsampling
+        original_pcd = pcd if getattr(self, "_point_source_indices", None) is not None else None
         pcd = pcd.voxel_down_sample(voxel_size=voxel_size)
+        voxel_points = None
+        voxel_normals = None
+        if getattr(self, "_point_source_indices", None) is not None:
+            voxel_points = np.asarray(pcd.points)
+            voxel_normals = np.asarray(pcd.normals) if pcd.has_normals() else None
+            try:
+                # Exact ordinary VoxelDownSample grid (Open3D PointCloud.cpp).
+                traced, trace_cube, trace_rows = original_pcd.voxel_down_sample_and_trace(
+                    voxel_size=voxel_size,
+                    min_bound=np.min(points, axis=0) - voxel_size * 0.5,
+                    max_bound=np.max(points, axis=0) + voxel_size * 0.5,
+                    approximate_class=False,
+                )
+                self._point_source_indices = self._validate_voxel_source_trace(
+                    points, voxel_size, voxel_points, voxel_normals,
+                    np.asarray(traced.points),
+                    np.asarray(traced.normals) if traced.has_normals() else None,
+                    trace_rows,
+                )
+            except (AttributeError, TypeError, ValueError, RuntimeError, OverflowError, FloatingPointError):
+                self._invalidate_source_lineage("VOXEL_TRACE_UNAVAILABLE_OR_NOT_LEGACY_EQUIVALENT")
+            finally:
+                # Do not keep two native clouds or native trace vectors alive
+                # during the following outlier/normal computation.
+                original_pcd = None
+                traced = None
+                trace_cube = None
+                trace_rows = None
 
         # Step 2: Statistical outlier removal
-        pcd, _ = pcd.remove_statistical_outlier(
+        pcd, retained_indices = pcd.remove_statistical_outlier(
             nb_neighbors=nb_neighbors, std_ratio=std_ratio
         )
+        if getattr(self, "_point_source_indices", None) is not None:
+            try:
+                self._retain_outlier_source_trace(
+                    voxel_points, voxel_normals, np.asarray(pcd.points),
+                    np.asarray(pcd.normals) if pcd.has_normals() else None,
+                    retained_indices,
+                )
+            except (AttributeError, TypeError, ValueError, RuntimeError, OverflowError, FloatingPointError):
+                self._invalidate_source_lineage("OUTLIER_TRACE_UNAVAILABLE_OR_NOT_LEGACY_EQUIVALENT")
+        voxel_points = None
+        voxel_normals = None
 
         # Step 3: Ensure normals exist
         if not pcd.has_normals():
@@ -963,6 +1358,7 @@ class BendDetector:
         planes = []
         remaining_mask = np.ones(len(points), dtype=bool)
         plane_id = 0
+        rejected_indices = []
 
         # Compute adaptive parameters once for the whole point cloud
         if self.adaptive_threshold:
@@ -1004,6 +1400,8 @@ class BendDetector:
             if area < self.min_plane_area:
                 # Mark as used but don't add to planes
                 remaining_mask[inlier_indices] = False
+                if getattr(self, "_point_source_indices", None) is not None:
+                    rejected_indices.extend(int(index) for index in inlier_indices)
                 continue
 
             # Extract boundary points
@@ -1019,6 +1417,14 @@ class BendDetector:
                 area=area,
                 inlier_count=len(plane_points),
             )
+            if getattr(self, "_point_source_indices", None) is not None:
+                plane.source_vertex_indices = self._source_rows(inlier_indices)
+                plane.source_segments = (SourcePlaneSupport(
+                    segment_id=f"pass:{self._lineage_pass}:plane:{plane_id}",
+                    source_vertex_indices=plane.source_vertex_indices,
+                ),)
+                plane.source_lineage_status = "COMPLETE"
+                self._lineage_planes.append(plane)
             planes.append(plane)
 
             # Remove inliers from remaining points
@@ -1029,6 +1435,15 @@ class BendDetector:
             if len(planes) >= 50:
                 break
 
+        if getattr(self, "_point_source_indices", None) is not None:
+            self.last_source_lineage["segmentation_passes"].append({
+                "detection_pass": self._lineage_pass,
+                "rejected_source_vertex_indices": self._source_rows(rejected_indices),
+                "unassigned_source_vertex_indices": self._source_rows(np.where(remaining_mask)[0]),
+                "segments": tuple({"segment_id": piece.segment_id,
+                                   "source_vertex_indices": piece.source_vertex_indices}
+                                  for plane in planes for piece in plane.source_segments),
+            })
         return planes
 
     def _ransac_plane_fit(
@@ -1111,16 +1526,19 @@ class BendDetector:
 
     def _least_squares_plane(self, points: np.ndarray) -> Tuple[np.ndarray, float]:
         """
-        Least squares plane fitting using SVD.
+        Least squares plane fitting using a bounded 3x3 covariance solve.
 
         Minimizes sum of squared distances from points to plane.
         """
         centroid = np.mean(points, axis=0)
         centered = points - centroid
 
-        # SVD: the normal is the eigenvector with smallest eigenvalue
-        _, _, Vt = np.linalg.svd(centered)
-        normal = Vt[-1]  # Last row = smallest singular value direction
+        # A full SVD of an N x 3 matrix asks NumPy for an N x N U matrix by
+        # default. Large planar inlier sets can therefore consume tens of GiB.
+        # The 3 x 3 covariance has the same right-singular vectors.
+        covariance = centered.T @ centered / float(max(len(centered), 1))
+        eigenvalues, eigenvectors = np.linalg.eigh(covariance)
+        normal = eigenvectors[:, int(np.argmin(eigenvalues))]
 
         # Ensure consistent normal direction (pointing "up" on average)
         if normal[2] < 0:
@@ -1204,15 +1622,17 @@ class BendDetector:
 
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore", RuntimeWarning)
-                _, _, Vt = np.linalg.svd(normalized)
-            if not np.isfinite(Vt).all():
+                covariance = normalized.T @ normalized / float(max(len(normalized), 1))
+                eigenvalues, eigenvectors = np.linalg.eigh(covariance)
+            principal_axes = eigenvectors[:, np.argsort(eigenvalues)[::-1][:2]]
+            if not np.isfinite(principal_axes).all():
                 raise ValueError("Non-finite PCA basis")
 
             # Project onto the two principal axes
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore", RuntimeWarning)
                 with np.errstate(divide="ignore", over="ignore", invalid="ignore", under="ignore"):
-                    proj_2d = normalized @ Vt[:2].T
+                    proj_2d = normalized @ principal_axes
             if not np.isfinite(proj_2d).all():
                 raise ValueError("Non-finite projected points")
 
@@ -1252,13 +1672,15 @@ class BendDetector:
 
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore", RuntimeWarning)
-                _, _, Vt = np.linalg.svd(normalized)
-            if not np.isfinite(Vt).all():
+                covariance = normalized.T @ normalized / float(max(len(normalized), 1))
+                eigenvalues, eigenvectors = np.linalg.eigh(covariance)
+            principal_axes = eigenvectors[:, np.argsort(eigenvalues)[::-1][:2]]
+            if not np.isfinite(principal_axes).all():
                 raise ValueError("Non-finite PCA basis")
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore", RuntimeWarning)
                 with np.errstate(divide="ignore", over="ignore", invalid="ignore", under="ignore"):
-                    proj_2d = normalized @ Vt[:2].T
+                    proj_2d = normalized @ principal_axes
             if not np.isfinite(proj_2d).all():
                 raise ValueError("Non-finite projected boundary points")
 
@@ -1715,6 +2137,7 @@ class ProgressiveBendMatcher:
         line_position_fail_mm: float = 5.0,
         arc_warn_mm: float = 2.5,
         arc_fail_mm: float = 5.0,
+        strict_spatial_matching: bool = False,
     ):
         self.angle_weight = angle_weight
         self.radius_weight = radius_weight
@@ -1737,6 +2160,7 @@ class ProgressiveBendMatcher:
         self.line_position_fail_mm = line_position_fail_mm
         self.arc_warn_mm = arc_warn_mm
         self.arc_fail_mm = arc_fail_mm
+        self.strict_spatial_matching = strict_spatial_matching
 
     def match(
         self,
@@ -2044,6 +2468,27 @@ class ProgressiveBendMatcher:
 
         Lower cost = better match.
         """
+        # A shared-frame workflow must reject another bend elsewhere on the part,
+        # even when its angle/radius signature is otherwise indistinguishable.
+        if self.strict_spatial_matching:
+            if not use_position_cost:
+                return float('inf')
+            try:
+                a = np.asarray([cad.bend_line_start, cad.bend_line_end], dtype=float)
+                b = np.asarray([detected.bend_line_start, detected.bend_line_end], dtype=float)
+            except (TypeError, ValueError, AttributeError):
+                return float('inf')
+            if (a.shape != (2, 3) or b.shape != (2, 3)
+                    or not (np.isfinite(a).all() and np.isfinite(b).all())):
+                return float('inf')
+            da, db = a[1] - a[0], b[1] - b[0]
+            la, lb = np.linalg.norm(da), np.linalg.norm(db)
+            if min(la, lb) <= 1e-9:
+                return float('inf')
+            if (np.linalg.norm(a.mean(axis=0) - b.mean(axis=0)) > self.max_center_offset
+                    or abs(np.dot(da / la, db / lb)) < np.cos(np.deg2rad(15.0))):
+                return float('inf')
+
         # Angle difference (normalized by max acceptable diff)
         angle_diff = abs(detected.measured_angle - cad.target_angle)
         max_angle = self.max_angle_diff if angle_limit is None else angle_limit
@@ -2284,12 +2729,23 @@ class CADBendExtractor:
         self.detector_kwargs = detector_kwargs or {}
         self.detect_call_kwargs = detect_call_kwargs or {}
 
-    def extract_from_mesh(self, vertices: np.ndarray, faces: np.ndarray) -> List[BendSpecification]:
+    def extract_from_mesh(
+        self, vertices: np.ndarray, faces: np.ndarray, *,
+        provenance: Optional[Dict[str, Any]] = None,
+        preserve_source_lineage: bool = False,
+    ) -> List[BendSpecification]:
         """
         Extract bend specifications from mesh geometry.
 
-        Uses similar approach to BendDetector but on dense mesh vertices.
+        Uses similar approach to BendDetector but on dense mesh vertices. Passing
+        provenance opts into bounded raw-row lineage, independently of whether
+        that native sidecar is usable. Faces/owners are not inferred here. The
+        legacy selected geometry and contraction policy remain unchanged.
         """
+        if type(preserve_source_lineage) is not bool:
+            raise TypeError("preserve_source_lineage must be a bool")
+        lineage_enabled = preserve_source_lineage or provenance is not None
+        self.last_source_lineage = None
         # Use BendDetector on mesh vertices
         detector_kwargs = {
             "min_plane_points": 50,
@@ -2302,7 +2758,19 @@ class CADBendExtractor:
 
         detect_call_kwargs = {"preprocess": True}
         detect_call_kwargs.update(self.detect_call_kwargs)
+        if lineage_enabled:
+            detect_call_kwargs["preserve_source_lineage"] = True
         detected = detector.detect_bends(vertices, **detect_call_kwargs)
+        self.last_source_lineage = getattr(detector, "last_source_lineage", None)
+        if lineage_enabled and self.last_source_lineage is None:
+            self.last_source_lineage = {
+                "schema_version": 1, "kind": "CAD_SUPPORT_LINEAGE_V1",
+                "status": "UNAVAILABLE", "reason": "DETECTOR_LINEAGE_UNAVAILABLE",
+                "raw_vertex_count": len(vertices), "candidate_count": 0,
+                "candidate_records": [], "processed_source_vertex_indices": (),
+                "preprocessing_rejected_source_vertex_indices": (), "segmentation_passes": [],
+                "identity_scope": "DETECTION_INVOCATION_LOCAL_NOT_NATIVE_IDENTITY",
+            }
 
         # Convert detected bends to specifications
         specs = []
@@ -2326,12 +2794,34 @@ class CADBendExtractor:
                 flange1_area=d.flange1.area,
                 flange2_area=d.flange2.area,
                 bend_form=bend_form,
+                cad_provenance=(
+                    {"schema_version": 1, "kind": "CAD_SUPPORT_LINEAGE_V1",
+                     "status": self.last_source_lineage["status"],
+                     "reason": self.last_source_lineage["reason"],
+                     "raw_vertex_count": self.last_source_lineage["raw_vertex_count"],
+                     "candidate_records": [record.to_dict() for record in getattr(d, "source_candidates", ())]
+                     if self.last_source_lineage["status"] == "COMPLETE" else []}
+                    if self.last_source_lineage is not None else None
+                ),
             )
             specs.append(spec)
 
         specs = self._merge_rolled_specs(specs)
         for i, spec in enumerate(specs):
             spec.bend_id = f"CAD_B{i+1}"
+        if self.last_source_lineage is not None and self.last_source_lineage["status"] == "COMPLETE":
+            identities = [record["candidate_id"] for spec in specs
+                          for record in spec.cad_provenance["candidate_records"]]
+            originals = [record["candidate_id"] for record in self.last_source_lineage["candidate_records"]]
+            if len(identities) != len(originals) or set(identities) != set(originals):
+                detector._invalidate_source_lineage("SPEC_LEDGER_PARTITION_INVALID")
+                self.last_source_lineage = detector.last_source_lineage
+                for spec in specs:
+                    spec.cad_provenance = {
+                        "schema_version": 1, "kind": "CAD_SUPPORT_LINEAGE_V1",
+                        "status": "UNAVAILABLE", "reason": "SPEC_LEDGER_PARTITION_INVALID",
+                        "raw_vertex_count": len(vertices), "candidate_records": [],
+                    }
 
         return specs
 
@@ -2446,6 +2936,16 @@ class CADBendExtractor:
         target_radius = float(np.mean([s.target_radius for s in cluster]))
         flange1_area = float(sum(s.flange1_area for s in cluster))
         flange2_area = float(sum(s.flange2_area for s in cluster))
+        cad_provenance = None
+        if ref.cad_provenance is not None:
+            cad_provenance = dict(ref.cad_provenance)
+            if all(spec.cad_provenance is not None and
+                   spec.cad_provenance.get("status") == "COMPLETE" for spec in cluster):
+                cad_provenance["candidate_records"] = [
+                    record for spec in cluster for record in spec.cad_provenance["candidate_records"]]
+            else:
+                cad_provenance.update(status="UNAVAILABLE", reason="CLUSTER_LINEAGE_UNAVAILABLE",
+                                      candidate_records=[])
 
         return BendSpecification(
             bend_id=ref.bend_id,
@@ -2460,4 +2960,5 @@ class CADBendExtractor:
             flange1_area=flange1_area,
             flange2_area=flange2_area,
             bend_form="ROLLED",
+            cad_provenance=cad_provenance,
         )

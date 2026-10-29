@@ -1,0 +1,12 @@
+# gb_53e7a5 marker B
+- Result: 13 bends, all ~90 deg, all apex ok and certain.
+- B1: main panel 1/2 to the upturned panel 3/4. A window in 3/4 at mid-fold cut the auto extent to 120 mm; extent_t is extended to the full fold, 189 mm, with support 1.0.
+- B2, B3: panel 3/4 to its two flanges (12/13 long, 11/14 side). Extended to the flange ends, 190 mm and 101 mm.
+- B4/B5, B6/B7 and B8/B9 are three Z-offset steps (wall plus offset flange; 2 lines each): 7 to 15, 6 to 5, and 10 to 19/20.
+- B10/B11: a Z-tab, wall 16/17 to top 21/22.
+- B12, B13: two small lanced tabs, 23 and 24/25, bent 90 deg from the main panel, 44 mm each.
+- Rejected:
+  - flange-to-flange corners (11/12, 13/14);
+  - small inner-skin fragments 26, 27, 28 and 30;
+  - thin strip 29 (an edge).
+- Not partial. Confidence high.

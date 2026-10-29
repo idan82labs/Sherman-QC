@@ -1,0 +1,970 @@
+diff -ru -x __pycache__ before/engine/inspect/articulated.py /Users/idantal/ShermanQC/FullProject/domains/production/engine/inspect/articulated.py
+--- before/engine/inspect/articulated.py	2026-10-18 03:11:18
++++ /Users/idantal/ShermanQC/FullProject/domains/production/engine/inspect/articulated.py	2026-10-18 05:03:02
+@@ -18,7 +18,15 @@
+    the score of ``theta`` is the best two-skin line count. Support starts past
+    the bend's own arc tangent zone (every intermediate line touches the arc
+    there). The best angle is refined on a 0.1 deg grid. The inner-skin line is
+-   searched within ``hinge_rho_slack_mm`` of its nominal offset; when that
++   searched around the offset the fold kinematics give at that angle
++   (:meth:`HingeFrame.rho_iml_at`; a partially formed bend has not consumed its
++   strip), within ``hinge_rho_slack_flat_mm + hinge_rho_slack_mm |sin theta|``
++   (at most the slack, :func:`rho_window`): a bend line placed ``d`` off moves
++   the child's line by ``d sin theta`` only, so a flat continuation must be the
++   parent's own plane. A child that carries a bend parallel to its own within
++   the fine reach (a joggle's 3 mm riser) is followed by a parallel sheet about
++   one thickness off the parent; near flat, only material continuous from the
++   hinge counts for it (``continuity`` in :func:`_hough`). When that
+    leaves a bend of at least ``displaced_min_sweep_deg`` flat or partial, the
+    formed-like angles are searched again with ``hinge_rho_slack_wide_mm`` over
+    the fine reach, and a clearly better supported line (a formed flange whose
+@@ -64,7 +72,7 @@
+ from domains.production.engine.inspect.part import BendView, PartView
+ 
+ __all__ = ["PanelFit", "BendFit", "ArticulatedFit", "fit_articulated", "fold_transform", "hinge_frame", "HingeFrame",
+-           "inside_grown"]
++           "inside_grown", "rho_window"]
+ 
+ 
+ @dataclass
+@@ -119,7 +127,24 @@
+     rho_iml: float  # signed nominal offset of the child's inner skin line
+     delta: float  # rho_oml - rho_iml (signed thickness in rho)
+     band: float
++    #: ``(parent pose A, bend, inner tangent point of the child at its final pose)``: the fold kinematics
++    #: that place the child's inner skin line at any angle (:meth:`rho_iml_at`); None keeps ``rho_iml``.
++    fold: tuple | None = None
+ 
++    def rho_iml_at(self, theta: float) -> float:
++        """Expected offset of the child's inner skin line at angle ``theta`` (rad), by the fold kinematics.
++
++        Equal to ``rho_iml`` at the nominal sweep. A partially formed bend has not
++        consumed all of its strip, so its arc (and with it the child's line) sits
++        farther along the parent (:func:`fold_transform`); a flat child is the
++        parent's own plane continued.
++        """
++        if self.fold is None:
++            return float(self.rho_iml)
++        A, bend, it0 = self.fold
++        p = apply(A @ fold_transform(bend, theta), it0[None])[0] - self.o
++        return float(-math.sin(theta) * float(p @ self.u) + math.cos(theta) * float(p @ self.v))
++
+     def coords(self, pts: np.ndarray) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+         rel = np.asarray(pts, dtype=np.float64) - self.o
+         return rel @ self.a, rel @ self.u, rel @ self.v
+@@ -163,15 +188,45 @@
+ 
+     rho_i, rho_o = rho_of(it0), rho_of(ot0)
+     band = bend.ri + 2.0 * bend.t + cfg.hinge_band_extra_mm
+-    return HingeFrame(o=o, a=a, u=u, v=v, z0=bend.z0, z1=bend.z1, rho_iml=rho_i, delta=rho_o - rho_i, band=band)
++    return HingeFrame(o=o, a=a, u=u, v=v, z0=bend.z0, z1=bend.z1, rho_iml=rho_i, delta=rho_o - rho_i, band=band,
++                      fold=(np.asarray(A, dtype=np.float64), bend, np.asarray(it0, dtype=np.float64)))
+ 
+ 
+-def _hough(zc, uc, vc, frame: HingeFrame, thetas: np.ndarray, cfg: InspectConfig, s_max: float):
+-    """Best two-skin line per angle: (score, rho_iml, n_iml, n_oml) arrays."""
++def rho_window(frame: HingeFrame, theta: float, slack: float, cfg: InspectConfig) -> tuple[float, float]:
++    """(centre, half-width) of the child's inner-skin line offset searched at angle ``theta`` (rad).
++
++    The centre follows the fold kinematics (:meth:`HingeFrame.rho_iml_at`). A
++    bend line placed ``d`` off its nominal moves the child's line by ``d sin
++    theta`` only, so the half-width grows from ``hinge_rho_slack_flat_mm`` at
++    flat with ``slack |sin theta|`` up to ``slack``: a flat continuation must be
++    the parent's own plane, never a parallel sheet millimetres off it (the far
++    flange of a joggle, a return beyond a short step).
++    """
++    half = min(float(slack), float(cfg.hinge_rho_slack_flat_mm) + float(slack) * abs(math.sin(theta)))
++    return frame.rho_iml_at(theta), half
++
++
++def _hough(zc, uc, vc, frame: HingeFrame, thetas: np.ndarray, cfg: InspectConfig, s_max: float,
++           continuity: bool = False):
++    """Best two-skin line per angle: (score, rho_iml, n_iml, n_oml) arrays.
++
++    ``continuity``: at angles within ``flat_continuity_max_deg`` of flat, a
++    candidate line counts only when the material on it is continuous from the
++    hinge: every ``flat_continuity_step_mm`` sub-band of the first
++    ``flat_continuity_mm`` past the arc's tangent zone holds at least a fifth of
++    the line's mean support per sub-band (and 3 points), on either skin. A flat
++    or barely kinked strip is the parent's sheet continued; a parallel sheet one
++    thickness off (a joggle's far flange) starts millimetres out, and a shallow
++    line pair crossing it touches it far from the hinge only.
++    """
+     hb = cfg.hough_bin_mm
+     slack = cfg.hinge_rho_slack_mm
+-    lo_r = min(frame.rho_iml, frame.rho_iml + frame.delta) - slack - abs(frame.delta) - 1.0
+-    hi_r = max(frame.rho_iml, frame.rho_iml + frame.delta) + slack + abs(frame.delta) + 1.0
++    # candidate IML positions per angle: within the window of the fold kinematics' offset (rho_window)
++    win = [rho_window(frame, float(th), slack, cfg) for th in thetas]
++    centres = np.asarray([c for c, _ in win]) if win else np.asarray([frame.rho_iml])
++    halves = np.asarray([h for _, h in win]) if win else np.asarray([slack])
++    lo_r = float(np.min(np.minimum(centres, centres + frame.delta) - halves)) - abs(frame.delta) - 1.0
++    hi_r = float(np.max(np.maximum(centres, centres + frame.delta) + halves)) + abs(frame.delta) + 1.0
+     nb = int(math.ceil((hi_r - lo_r) / hb)) + 1
+     w = max(1, int(round(cfg.hough_window_mm / hb)))
+     kernel = np.ones(2 * w + 1)
+@@ -180,9 +235,6 @@
+     rhos = np.zeros(len(thetas))
+     n_i = np.zeros(len(thetas))
+     n_o = np.zeros(len(thetas))
+-    # candidate IML positions: within the slack of the nominal IML offset
+-    ci_lo = int(math.floor((frame.rho_iml - slack - lo_r) / hb))
+-    ci_hi = int(math.ceil((frame.rho_iml + slack - lo_r) / hb))
+     # every line between the parent's and the child's tangent touches the bend's own arc
+     # within sqrt(2 R window) of its tangent point: that support belongs to no angle
+     r_out = max(abs(frame.rho_iml), abs(frame.rho_iml + frame.delta))
+@@ -198,6 +250,8 @@
+         ok = (idx >= 0) & (idx < nb)
+         hist = np.bincount(idx[ok], minlength=nb).astype(np.float64)
+         sm = np.convolve(hist, kernel, mode="same")
++        ci_lo = int(math.floor((centres[k] - halves[k] - lo_r) / hb))
++        ci_hi = int(math.ceil((centres[k] + halves[k] - lo_r) / hb))
+         cand = np.arange(max(0, ci_lo), min(nb, ci_hi + 1))
+         if len(cand) == 0:
+             continue
+@@ -205,7 +259,12 @@
+         valid = (other >= 0) & (other < nb)
+         h_o = np.where(valid, sm[np.clip(other, 0, nb - 1)], 0.0)
+         comb = sm[cand] + h_o
++        if continuity and abs(th) <= math.radians(cfg.flat_continuity_max_deg):
++            comb = np.where(_continuous_at_hinge(sv[sel][ok], idx[ok], cand, shift, nb, kernel, comb, s_min, s_max, cfg),
++                            comb, 0.0)
+         j = int(np.argmax(comb))
++        if continuity and comb[j] <= 0.0:
++            continue
+         scores[k] = comb[j]
+         rhos[k] = lo_r + (cand[j] + 0.5) * hb
+         n_i[k] = sm[cand[j]]
+@@ -213,6 +272,25 @@
+     return scores, rhos, n_i, n_o
+ 
+ 
++def _continuous_at_hinge(sv: np.ndarray, idx: np.ndarray, cand: np.ndarray, shift: int, nb: int, kernel: np.ndarray,
++                         comb: np.ndarray, s_min: float, s_max: float, cfg: InspectConfig) -> np.ndarray:
++    """Per candidate rho bin: is the line's material continuous from the hinge (see :func:`_hough`)?"""
++    step = cfg.flat_continuity_step_mm
++    n_sub = max(1, int(round(cfg.flat_continuity_mm / step)))
++    sub = np.floor((sv - s_min) / step).astype(np.int64)
++    near = (sub >= 0) & (sub < n_sub)
++    grid = np.zeros((nb, n_sub))
++    np.add.at(grid, (idx[near], sub[near]), 1.0)
++    for c in range(n_sub):
++        grid[:, c] = np.convolve(grid[:, c], kernel, mode="same")
++    other = cand + shift
++    valid = (other >= 0) & (other < nb)
++    both = grid[cand] + np.where(valid[:, None], grid[np.clip(other, 0, nb - 1)], 0.0)
++    per_sub = comb * step / max(s_max - s_min, step)
++    need = np.maximum(3.0, 0.2 * per_sub)
++    return np.all(both >= need[:, None], axis=1)
++
++
+ def _displaced_formed(zc, uc, vc, frame: HingeFrame, sweep_deg: float, cfg: InspectConfig, reach: float
+                       ) -> tuple[float, float, float, float, float] | None:
+     """``(theta, rho_iml, score, n_iml, n_oml)`` of the best formed-like two-skin line whose inner skin
+@@ -237,11 +315,53 @@
+     fine = np.radians(np.arange(math.degrees(coarse[k]) - 1.5, math.degrees(coarse[k]) + 1.51, 0.1))
+     sc2, rh2, ni2, no2 = _hough(zc, uc, vc, frame, fine, wide, reach)
+     k2 = int(np.argmax(sc2))
+-    if abs(float(rh2[k2]) - frame.rho_iml) <= cfg.hinge_rho_slack_mm:
++    centre, half = rho_window(frame, float(fine[k2]), cfg.hinge_rho_slack_mm, cfg)
++    if abs(float(rh2[k2]) - centre) <= half:
+         return None
+     return float(fine[k2]), float(rh2[k2]), float(sc2[k2]), float(ni2[k2]), float(no2[k2])
+ 
+ 
++def _short_child(part: PartView, bend: BendView, reach: float) -> int | None:
++    """The nearest bend of the child parallel to this one within ``reach`` of its axis, else None.
++
++    Such a child is short (a joggle's riser, a short step between two parallel bends).
++    """
++    a0 = unit(bend.axis_dir)
++    best, best_d = None, math.inf
++    for kb in part.panels[bend.child].children:
++        gb = part.bends[kb]
++        if abs(abs(float(unit(gb.axis_dir) @ a0)) - 1.0) > 1e-3:
++            continue
++        d = gb.axis_point - bend.axis_point
++        dist = float(np.linalg.norm(d - float(d @ a0) * a0))
++        if dist <= reach and dist < best_d:
++            best, best_d = kb, dist
++    return best
++
++
++def _short_child_limit(part: PartView, bend: BendView, grand: int, parent: PanelFit, frame: HingeFrame, theta: float,
++                       flat: bool, cfg: InspectConfig) -> tuple[float, float, float]:
++    """``(s_limit, z_lo, z_hi)``: a short child grows, over the grandchild bend's axial span, only so far along its line.
++
++    Up to the grandchild bend's tangent lines on the child, placed by the fold
++    kinematics at ``theta``, plus ``short_child_margin_mm``: past them lie that
++    bend's arc and the flange beyond it, whose voxels (normals smeared over a
++    riser a few millimetres wide) would otherwise pull the riser's plane onto it.
++    The limit applies within that bend's axial span (+- the margin, along the
++    hinge frame's axis ``a``) only: beside a tab the child panel runs on to its
++    own far edge.
++    """
++    A = parent.A @ fold_transform(bend, 0.0 if flat else theta)
++    gb = part.bends[grand]
++    d = frame.line_dir(theta)
++    s_vals = [float((apply(A, np.asarray(gb.locus(name)[0], dtype=np.float64)[None])[0] - frame.o) @ d)
++              for name in ("inner_tangent_parent", "outer_tangent_parent")]
++    ends = apply(A, np.asarray(gb.locus("cylinder_axis"), dtype=np.float64))
++    zs = (ends - frame.o) @ frame.a
++    m = cfg.short_child_margin_mm
++    return max(s_vals) + m, float(zs.min()) - m, float(zs.max()) + m
++
++
+ def _band_points(pts: np.ndarray, frame: HingeFrame, margin: float, radius: float | None = None):
+     z, uc, vc = frame.coords(pts)
+     r = np.hypot(uc, vc)
+@@ -297,14 +417,20 @@
+         sweep_deg = math.degrees(bend.sweep)
+         coarse = np.radians(np.arange(cfg.theta_min_deg, sweep_deg + cfg.theta_overbend_deg + 1e-9,
+                                       cfg.theta_coarse_step_deg))
+-        sc, rh, ni, no = _hough(zc, uc, vc, frame, coarse, cfg, frame.band)
++        # a child too short to stand on its own line (a joggle's riser) is followed by a parallel sheet
++        # about one thickness off the parent: near flat, only material continuous from the hinge counts
++        grand = _short_child(part, bend, reach)
++        short = grand is not None
++        sc, rh, ni, no = _hough(zc, uc, vc, frame, coarse, cfg, frame.band, continuity=short)
+         k = int(np.argmax(sc))
+         fine = np.radians(np.arange(math.degrees(coarse[k]) - 1.5, math.degrees(coarse[k]) + 1.51, 0.1))
+-        sc2, rh2, ni2, no2 = _hough(wz, wu, wv, frame, fine, cfg, reach)
++        sc2, rh2, ni2, no2 = _hough(wz, wu, wv, frame, fine, cfg, reach, continuity=short)
+         k2 = int(np.argmax(sc2))
+         theta, rho_i = float(fine[k2]), float(rh2[k2])
+         score = float(sc2[k2])
+         detail = {"n_iml": float(ni2[k2]), "n_oml": float(no2[k2]), "coarse_profile_max": float(sc.max())}
++        if short:
++            detail["short_child"] = 1.0
+         # a formed flange whose bend line sits beyond the slack (a backgauge error, a flange cut long)
+         # leaves the narrow search on clutter at a flat or partial angle: a formed-like line found with
+         # the wide slack over the full reach replaces it when its support is clearly stronger
+@@ -312,7 +438,8 @@
+             alt = _displaced_formed(wz, wu, wv, frame, sweep_deg, cfg, reach)
+             if alt is not None and alt[2] >= cfg.displaced_support_ratio * max(score, 1.0):
+                 detail.update({"narrow_theta_deg": math.degrees(theta), "narrow_score": score,
+-                               "displaced_mm": float(alt[1] - frame.rho_iml), "n_iml": alt[3], "n_oml": alt[4]})
++                               "displaced_mm": float(alt[1] - frame.rho_iml_at(alt[0])), "n_iml": alt[3],
++                               "n_oml": alt[4]})
+                 theta, rho_i, score = alt[0], alt[1], alt[2]
+         bf.theta_deg = math.degrees(theta)
+         bf.rho_iml = rho_i
+@@ -343,8 +470,9 @@
+         bf.found = True
+         bf.flat = flat
+         seeds_full = bidx[line]
++        s_limit = None if grand is None else _short_child_limit(part, bend, grand, parent, frame, theta, flat, cfg)
+         child = _grow_child(full_reg, vox, vox_reg, vox_nrm, owner, part, bend, parent, frame, theta, rho_i,
+-                            seeds_full, flat, cfg)
++                            seeds_full, flat, cfg, s_limit=s_limit)
+         panels[bend.child] = child
+         if child.voxels.size:
+             free = owner[child.voxels] < 0
+@@ -391,9 +519,12 @@
+ 
+ def _grow_child(full_reg, vox: VoxelCloud, vox_reg, vox_nrm, owner, part: PartView, bend: BendView,
+                 parent: PanelFit, frame: HingeFrame, theta: float, rho_i: float, seeds_full: np.ndarray, flat: bool,
+-                cfg: InspectConfig) -> PanelFit:
++                cfg: InspectConfig, s_limit: tuple[float, float, float] | None = None) -> PanelFit:
+     """Region-grow the child's material slab from the Hough line seeds and fit its skins.
+ 
++    ``s_limit``: ``(s, z_lo, z_hi)``, a short child grows only up to ``s`` along
++    its line within the axial span ``z_lo .. z_hi`` (:func:`_short_child_limit`).
++
+     Skins: in the cross-section the inner (IML) line is at ``rho_i`` and the
+     outer (OML) line at ``rho_i + delta``, so along ``+n_line`` the OML lies on
+     the side of ``sign(delta)``. The bend's OML is contract skin
+@@ -417,6 +548,10 @@
+         if flat:
+             # coplanar with the parent: only the child side of the hinge
+             mask &= ((vox_reg - frame.o) @ frame.line_dir(theta)) > 0.0
++        if s_limit is not None:
++            rel = vox_reg - frame.o
++            za = rel @ frame.a
++            mask &= ~((rel @ frame.line_dir(theta) >= s_limit[0]) & (za >= s_limit[1]) & (za <= s_limit[2]))
+         region = components_of(vox.graph, mask, seeds)
+         if len(region) < 3:
+             break
+diff -ru -x __pycache__ before/engine/inspect/config.py /Users/idantal/ShermanQC/FullProject/domains/production/engine/inspect/config.py
+--- before/engine/inspect/config.py	2026-10-18 03:27:28
++++ /Users/idantal/ShermanQC/FullProject/domains/production/engine/inspect/config.py	2026-10-18 05:11:07
+@@ -32,16 +32,16 @@
+ __all__ = ["ENGINE_VERSION", "ALGORITHM_VERSIONS", "InspectConfig", "ConfigError", "load_config"]
+ 
+ #: Version of the per-scan engine (``result.engine.engine_version``).
+-ENGINE_VERSION = "e3-1.2.0"
++ENGINE_VERSION = "e3-1.3.0"
+ 
+ #: Algorithm identifiers recorded in ``result.engine.algorithm_versions``.
+ ALGORITHM_VERSIONS: dict[str, str] = {
+     "ingest": "ply_stl_explicit_unit_v1",
+-    "registration": "datum_plane_outline_fft_wall_edge_hole_polygon_v2",
+-    "articulated_fit": "hinge_hough_region_grow_skin_levels_arc_fold_displaced_v2",
++    "registration": "datum_plane_outline_fft_wall_edge_hole_polygon_flange_ends_v3",
++    "articulated_fit": "hinge_hough_region_grow_skin_levels_arc_fold_displaced_fold_window_short_child_v3",
+     "thickness": "datum_tile_two_skin_separation_v1",
+     "state_decode": "dihedral_fraction_order_prior_symmetric_twins_v1",
+-    "metrology": "station_oml_section_crease_aware_unfolded_island_station_profile_v3",
++    "metrology": "station_oml_section_crease_aware_unfolded_island_station_profile_short_side_consistency_v4",
+     "uncertainty": "station_mad_residual_pose_erosion_bias_thickness_v2",
+     "heatmap": "stage_cloud_nearest_signed_v1",
+ }
+@@ -148,6 +148,20 @@
+     degenerate_min_information: float = 3.0
+     #: ... or when the in-plane position at the outline (1 sigma) is worse than this (mm).
+     degenerate_max_sigma_mm: float = 0.25
++    #: A direction the datum leaves undetermined is fixed by the cut ends of fitted flanges reached only
++    #: through bends whose axes are parallel to it (``registration.child_edge_rows``; no bend moves
++    #: them along it, formed or flat): an edge's outward normal within this angle of that axis,
++    lateral_axis_tol_deg: float = 5.0
++    #: its rows' mean sensitivity to the free direction(s) at least this (1: it observes them fully),
++    lateral_min_sensitivity: float = 0.5
++    #: its bins consistent within this MAD-sigma (mm),
++    lateral_edge_max_spread_mm: float = 0.25
++    #: no used edge's median residual beyond this after the robust solve (mm; the worst is dropped),
++    lateral_outlier_mm: float = 0.5
++    #: at least this many consistent edges (no single cut feature fixes a direction),
++    lateral_min_edges: int = 2
++    #: and a frame shift of at most this (mm); otherwise the direction stays undetermined.
++    lateral_max_shift_mm: float = 3.0
+ 
+     # -- articulated fit ------------------------------------------------------------------
+     hinge_band_extra_mm: float = 5.0
+@@ -161,6 +175,11 @@
+     #: The fine angle search may look this many band radii along the child (sharper peak).
+     hough_fine_reach: float = 2.5
+     hinge_rho_slack_mm: float = 3.0
++    #: The child's line is searched around the fold kinematics' offset at each angle; a bend line placed
++    #: ``d`` off moves it by ``d sin(theta)`` only, so the half-width grows from this (mm, at flat) with
++    #: ``slack |sin theta|`` up to the slack: a flat continuation must be the parent's own plane, not a
++    #: parallel sheet millimetres off it (the far flange of a joggle).
++    hinge_rho_slack_flat_mm: float = 0.4
+     #: A formed child whose bend line sits beyond ``hinge_rho_slack_mm`` (a backgauge error, a flange
+     #: cut long) leaves the narrow search on clutter (the parent's own continuation, the bend arc) at a
+     #: flat or partial angle. For bends of at least ``displaced_min_sweep_deg`` the formed-like angles
+@@ -170,6 +189,15 @@
+     hinge_rho_slack_wide_mm: float = 10.0
+     displaced_support_ratio: float = 1.5
+     displaced_min_sweep_deg: float = 45.0
++    #: A child carrying a bend parallel to its own within the fine reach (a joggle's riser) is followed by
++    #: a parallel sheet about one thickness off the parent: within this angle of flat its line counts
++    #: only when its material is continuous from the hinge over the first ``flat_continuity_mm`` (every
++    #: ``flat_continuity_step_mm`` sub-band supported; ``articulated._hough``).
++    flat_continuity_max_deg: float = 10.0
++    flat_continuity_mm: float = 2.0
++    flat_continuity_step_mm: float = 0.5
++    #: ... and such a short child grows only up to the tangent lines of that parallel bend plus this (mm).
++    short_child_margin_mm: float = 1.0
+     min_child_points: int = 25
+     min_child_axial_coverage: float = 0.12
+     grow_plane_tol_mm: float = 0.35
+@@ -190,6 +218,9 @@
+     min_visible_length_mm: float = 4.0
+     #: Plane fits near a bend use points within this distance of the bend line.
+     local_fit_depth_mm: float = 40.0
++    #: A bend whose median station sweep differs from its region-wide panel planes' sweep by more than this
++    #: (deg) is not measured (AMBIGUOUS_SEGMENTATION): its stations settled on another sheet.
++    station_region_max_deg: float = 10.0
+     local_fit_min_depth_mm: float = 4.0
+     min_station_points: int = 12
+     #: A station's skin level may sit this far (mm, at most 0.4 t) from the panel plane.
+@@ -355,15 +386,21 @@
+     "edge_gap_factor": (-2.0, 2.0, False, False), "reg_wall_min_points": (1, None, False, False),
+     "reg_wall_min_points_hole": (1, None, False, False), "edge_unwalled_weight": (0.0, 1.0, True, False),
+     "degenerate_min_information": _POS, "degenerate_max_sigma_mm": _POS,
++    "lateral_axis_tol_deg": (0.0, 45.0, True, False), "lateral_min_sensitivity": _POS,
++    "lateral_edge_max_spread_mm": _POS, "lateral_outlier_mm": _POS, "lateral_min_edges": (1, None, False, False),
++    "lateral_max_shift_mm": _POS,
+     "theta_min_deg": (-45.0, 0.0, False, False), "theta_coarse_step_deg": (0.0, 10.0, True, False),
+     "hough_bin_mm": _POS, "hough_window_mm": _POS, "hough_fine_reach": (1.0, None, False, False),
+-    "hinge_rho_slack_mm": _POS, "hinge_rho_slack_wide_mm": _POS, "displaced_support_ratio": (1.0, None, False, False),
++    "hinge_rho_slack_mm": _POS, "hinge_rho_slack_flat_mm": _POS, "hinge_rho_slack_wide_mm": _POS, "displaced_support_ratio": (1.0, None, False, False),
+     "displaced_min_sweep_deg": (0.0, 180.0, False, False),
++    "flat_continuity_max_deg": (0.0, 45.0, False, False), "flat_continuity_mm": _POS, "flat_continuity_step_mm": _POS,
++    "short_child_margin_mm": _POS,
+     "min_child_points": (1, None, False, False), "min_child_axial_coverage": _FRAC,
+     "grow_plane_tol_mm": _POS, "grow_normal_tol_deg": (0.0, 90.0, True, True), "grow_iterations": (1, None, False, False),
+     "flat_fraction_max": (0.0, 1.0, False, True), "formed_fraction_min": (0.0, 1.0, True, False),
+     "stations_min": (1, None, False, False), "stations_max": (1, None, False, False), "station_target_mm": _POS,
+     "min_visible_length_mm": _POS, "local_fit_depth_mm": _POS, "local_fit_min_depth_mm": _POS,
++    "station_region_max_deg": (0.0, 180.0, True, False),
+     "min_station_points": (3, None, False, False), "station_skin_reach_mm": _POS,
+     "far_edge_rank": (1, None, False, False), "wall_skin_margin_fraction": (0.0, 0.5, False, True),
+     "wall_zone_mm": _POS, "wall_min_points": (1, None, False, False), "min_station_fraction": (0.0, 1.0, True, False),
+@@ -402,7 +439,8 @@
+     if not out:
+         pairs = (("voxel_min_mm", "voxel_max_mm"), ("stations_min", "stations_max"),
+                  ("explained_tight_min_mm", "explained_tight_max_mm"), ("erosion_min_spacing", "erosion_max_spacing"),
+-                 ("local_fit_min_depth_mm", "local_fit_depth_mm"), ("hinge_rho_slack_mm", "hinge_rho_slack_wide_mm"))
++                 ("local_fit_min_depth_mm", "local_fit_depth_mm"), ("hinge_rho_slack_mm", "hinge_rho_slack_wide_mm"),
++                 ("hinge_rho_slack_flat_mm", "hinge_rho_slack_mm"))
+         for a, b in pairs:
+             if getattr(cfg, a) > getattr(cfg, b):
+                 out.append(f"{a} must be <= {b}")
+diff -ru -x __pycache__ before/engine/inspect/engine.py /Users/idantal/ShermanQC/FullProject/domains/production/engine/inspect/engine.py
+--- before/engine/inspect/engine.py	2026-10-18 02:43:19
++++ /Users/idantal/ShermanQC/FullProject/domains/production/engine/inspect/engine.py	2026-10-18 04:21:52
+@@ -297,6 +297,12 @@
+         note(f"symmetric rival chosen by the order prior: total {chosen.total:.3f} vs {best.total:.3f}")
+         best = chosen
+     note(f"pose margin={margin:.4f} ambiguous={ambiguous}")
++    # a datum whose cut edges and holes leave an in-plane direction free: the cut ends of flanges that
++    # no bend moves along that direction fix it (the determined directions stay the datum's own)
++    if not ambiguous and best.fit.undetermined.size and budget.left() > 0:
++        refined = _refine_free_directions(best, pts, vox, part, model, cfg, budget, note, spacing)
++        if refined is not None:
++            best = refined
+     T = best.fit.T
+     reg_pts = apply(T, pts)
+     ctx.reg_pts = reg_pts
+@@ -389,6 +395,11 @@
+     detail = _stage_detail(part, states, stage_id, exact, ambiguous)
+     if part.compiled.k_factor is not None and part.compiled.k_factor.source == "SHOP_DEFAULT":
+         warnings.append("K_FACTOR_DEFAULTED: backgauge U includes sigma_K * |dN/dK|")
++    lateral = (best.fit.detail or {}).get("flange_end_edges") or {}
++    if lateral.get("resolved"):
++        warnings.append("IN_PLANE_POSE_FROM_FLANGE_ENDS: the datum's cut edges and holes leave an in-plane direction "
++                        f"free; {len(lateral.get('edges_used') or [])} cut flange ends that no bend moves along it "
++                        "fix it")
+     if reg_degenerate:
+         warnings.append("IN_PLANE_POSE_DEGENERATE: bend-line position and heatmap withheld")
+     elif in_plane_degenerate:
+@@ -629,6 +640,60 @@
+                     + 0.1 * found / max(part.n, 1))
+ 
+ 
++def _refine_free_directions(best: _Hyp, pts, vox, part: PartView, model: DatumModel, cfg: InspectConfig,
++                            budget: _Budget, note: Callable[[str], None], spacing: float) -> _Hyp | None:
++    """The chosen pose with its free in-plane directions fixed by the cut ends of fitted flanges, else None.
++
++    Rows come from :func:`~domains.production.engine.inspect.registration.child_edge_rows`
++    on the chosen hypothesis' articulated fit (its model points block an edge
++    whose band holds other material), the solution from
++    :func:`~domains.production.engine.inspect.registration.resolve_free_directions`.
++    The refined pose is articulated again and observed once more (the second
++    solution, a few hundredths at most, is applied when above 0.02 mm). It is
++    refused, and the free direction stays withheld, when the refinement changes
++    a decoded bend state, the articulated model explains less of the scan
++    (``explained`` drops by more than 0.02), the budget runs out or the second
++    observation no longer resolves the direction.
++    """
++    from domains.production.engine.inspect.registration import child_edge_rows, resolve_free_directions
++
++    base = best.fit
++    h = best
++    for it in range(2):
++        if h.art is None or budget.left() <= 0:
++            return None
++        reg = apply(h.fit.T, pts)
++        owner = h.art.owner[vox.inverse]
++        blockers = _articulated_model(part, h.art, h.decodes or [])
++        blockers = blockers[np.isfinite(blockers).all(axis=1)]
++        rows = child_edge_rows(reg, owner, part, model, h.art.panels, cfg, spacing, blockers=blockers)
++        fit, info = resolve_free_directions(base, h.fit.T, rows, model, cfg)
++        if fit is None:
++            note(f"free in-plane direction kept: {info.get('reason')}; flange ends offered "
++                 f"{info.get('edges_offered')} rejected {info.get('rejected')}")
++            return None
++        shift = float(np.linalg.norm(info["shift"]))
++        note(f"free in-plane direction fixed by flange ends (pass {it + 1}): shift "
++             f"{[round(v, 4) for v in info['shift']]} edges {info['edges_used']} rejected {info['rejected']} "
++             f"information {[round(v, 1) for v in info['information']]} sigma {info['sigma_obs']:.3f} "
++             f"scatter {info['edge_scatter']:.3f}")
++        if it == 1 and shift <= 0.02:
++            return h
++        nh = _Hyp(fit=fit, mirrored=best.mirrored)
++        _articulate(nh, pts, vox, part, model, cfg, budget)
++        if nh.art is None or budget.left() <= 0:
++            return None
++        if [d.state for d in (nh.decodes or [])] != [d.state for d in (best.decodes or [])]:
++            note("free-direction refinement changed a decoded bend state: refused")
++            return None
++        if nh.explained < best.explained - 0.02:
++            note(f"free-direction refinement explains less of the scan ({nh.explained:.3f} < {best.explained:.3f}): "
++                 "refused")
++            return None
++        h = nh
++    return h
++
++
+ def _thickness(fit: InPlaneFit, part: PartView, cfg: InspectConfig, warnings: list[str]) -> Thickness:
+     """The thickness every single-skin offset uses (the datum's measured one, else the compiled one) and its U.
+ 
+@@ -731,13 +796,12 @@
+     return out
+ 
+ 
+-def _model_explained(part: PartView, art: ArticulatedFit, decodes: list[BendDecode], vox_reg: np.ndarray,
+-                     cfg: InspectConfig) -> tuple[float, float]:
+-    """Shares of voxel points within ``explained_tol_mm`` and within a tight tolerance of the model surface.
++def _articulated_model(part: PartView, art: ArticulatedFit, decodes: list[BendDecode]) -> np.ndarray:
++    """The articulated model in the registered frame (every 2nd final-stage sample; NaN rows: not placed).
+ 
+-    The model is the final-stage sample cloud mapped to the decoded formed set
+-    (E1's ``stage_points_from_compiled``), then moved panel by panel onto the
+-    fitted articulated poses; panels the fit could not place contribute nothing.
++    The final-stage sample cloud is mapped to the decoded formed set (E1's
++    ``stage_points_from_compiled``), then moved panel by panel onto the fitted
++    articulated poses (a bend zone with its parent).
+     """
+     from domains.production.engine.compile.stages import stage_points_from_compiled
+ 
+@@ -759,6 +823,18 @@
+             continue
+         C = pf.A @ np.linalg.inv(stage_tr[pidx])
+         model[sel] = apply(C, stage_pts[sel])
++    return model
++
++
++def _model_explained(part: PartView, art: ArticulatedFit, decodes: list[BendDecode], vox_reg: np.ndarray,
++                     cfg: InspectConfig) -> tuple[float, float]:
++    """Shares of voxel points within ``explained_tol_mm`` and within a tight tolerance of the model surface.
++
++    The model is the final-stage sample cloud mapped to the decoded formed set
++    (E1's ``stage_points_from_compiled``), then moved panel by panel onto the
++    fitted articulated poses; panels the fit could not place contribute nothing.
++    """
++    model = _articulated_model(part, art, decodes)
+     ok = np.isfinite(model).all(axis=1)
+     if ok.sum() < 10:
+         return 0.0, 0.0
+diff -ru -x __pycache__ before/engine/inspect/metrology.py /Users/idantal/ShermanQC/FullProject/domains/production/engine/inspect/metrology.py
+--- before/engine/inspect/metrology.py	2026-10-18 03:00:05
++++ /Users/idantal/ShermanQC/FullProject/domains/production/engine/inspect/metrology.py	2026-10-18 04:52:49
+@@ -4,7 +4,8 @@
+ UNEXPECTED_FORMED) the visible axial length is cut into 5-11 contiguous
+ **stations**. In each station the parent's and the child's OML planes are
+ fitted locally (robust Tukey IRLS on full-resolution points, the bend region
+-excluded) and give:
++excluded, never past an adjacent bend's tangent line: a short riser is fitted
++on its own flat material, not on the arc and flange beyond it) and give:
+ 
+ - the **included angle** ``180 - angle(n_parent_out, n_child_out)``;
+ - the **OML virtual sharp**: the two OML planes intersected, evaluated at the
+@@ -35,6 +36,11 @@
+   is **truncated**: that station is dropped, and too few stations left make the
+   value UNKNOWN(AMBIGUOUS_SEGMENTATION), never a short length.
+ 
++A bend whose median station sweep disagrees with its region-wide panel planes by
++more than ``station_region_max_deg`` is not measured (AMBIGUOUS_SEGMENTATION): its
++stations settled on another sheet, and every value from them would be confidently
++wrong.
++
+ Stations are aggregated by the median (a dominant level when a minority of
+ stations sits on a notch or tab), with min/max reported. The expanded
+ uncertainty (:func:`u_budget`) combines the station scatter (standard error
+@@ -334,6 +340,12 @@
+     if valid.sum() < max(3, int(math.ceil(cfg.min_station_fraction * n))):
+         out.reason = "LOW_DENSITY"
+         return out
++    # the stations must describe the two panels the region-wide planes do: a station fit that settles on
++    # another sheet (the flange beyond a short riser, seen on one skin) disagrees with them by tens of
++    # degrees, and every value measured from it would be confidently wrong
++    if abs((180.0 - float(np.median(ang[valid]))) - sweep) > cfg.station_region_max_deg:
++        out.reason = "AMBIGUOUS_SEGMENTATION"
++        return out
+     # the bend's OML sharp line (the far boundary of its neighbours' ADJACENT_BEND lengths) is
+     # the intersection of the region-wide panel planes: fitted over whole flanges, it is more
+     # precise than the station sharps (on DEV, P95 0.058 vs 0.078 mm). When the station sharps
+@@ -379,19 +391,28 @@
+ 
+ 
+ def _flat_depth(part: PartView, bend: BendView, panel_idx: int, d_t: float, depth: float, cfg: InspectConfig) -> float:
+-    """Largest distance from the sharp (along the side) used for the plane fits."""
++    """Largest distance from the sharp (along the side) used for the plane fits.
++
++    At least ``local_fit_min_depth_mm`` of flat flange, except toward an adjacent
++    bend: the fit never runs past that bend's tangent line (its arc and the panel
++    beyond, a joggle's far flange, would tilt a short side's planes), so a side
++    shorter than the floor is fitted on what flat material it has (at least
++    0.5 mm past this bend's tangent zone).
++    """
+     side = bend.side_of_panel(panel_idx)
+     nom = part.nominals.get(f"{bend.uid}/FLANGE_LENGTH/{side}")
+     limit = d_t + depth
++    floor = d_t + 0.5 + cfg.local_fit_min_depth_mm
+     if nom is not None and nom.nominal is not None:
+         far = float(nom.nominal)
+         if nom.boundary_kind == "ADJACENT_BEND" and nom.adjacent_bend_uid in part.bend_index:
+             other = part.bends[part.bend_index[nom.adjacent_bend_uid]]
+             far -= other.ro * math.tan(min(other.sweep, math.radians(170.0)) / 2.0) + 0.5
++            floor = min(floor, max(far, d_t + 1.0))
+         else:
+             far -= 1.0
+         limit = min(limit, far)
+-    return max(limit, d_t + 0.5 + cfg.local_fit_min_depth_mm)
++    return max(limit, floor)
+ 
+ 
+ def _intersect(a: Plane, b: Plane):
+diff -ru -x __pycache__ before/engine/inspect/registration.py /Users/idantal/ShermanQC/FullProject/domains/production/engine/inspect/registration.py
+--- before/engine/inspect/registration.py	2026-10-18 03:27:28
++++ /Users/idantal/ShermanQC/FullProject/domains/production/engine/inspect/registration.py	2026-10-18 04:52:35
+@@ -42,7 +42,14 @@
+    flange lengths do not depend on the pose). The undetermined directions are
+    kept (``InPlaneFit.undetermined``): a bend-line position measured across
+    them (along the datum normal, or along the determined axis) stays trusted
+-   (:meth:`InPlaneFit.position_determined`).
++   (:meth:`InPlaneFit.position_determined`). After the articulated fit, the
++   undetermined directions are fixed, when they can be, by the **cut ends of
++   fitted flanges** that no bend moves along them (:func:`child_edge_rows`,
++   :func:`resolve_free_directions`): a flange reached from the datum only
++   through bends parallel to a direction ``a`` of the datum plane keeps, formed
++   or flat, its blank's cut edges perpendicular to ``a`` exactly where the blank
++   put them along ``a``. At least two consistent such ends are required, and
++   the directions the datum itself determines are never moved.
+ 5. **Sheet thickness** (:func:`tile_thickness`): where a 12 mm tile of the
+    registered datum shows both skins, their separation is the real sheet's
+    thickness. The second level is searched within +-25 % of the compiled ``t``,
+@@ -86,6 +93,9 @@
+     "refine_datum",
+     "fine_search",
+     "tile_thickness",
++    "ChildEdgeRows",
++    "child_edge_rows",
++    "resolve_free_directions",
+     "MIRROR",
+ ]
+ 
+@@ -1254,6 +1264,341 @@
+                 "walled_share": float(walled.mean()) if len(walled) else 0.0, "rows": int(len(walled)),
+                 "erosion_mm": float(erosion),
+                 "erosion_hole_mm": float(erosion_hole)})
++
++
++# --------------------------------------------------------------------------- free directions: flange ends
++@dataclass
++class ChildEdgeRows:
++    """In-plane pose rows observed on the cut ends of fitted child flanges (:func:`child_edge_rows`).
++
++    Row aligned: ``rows`` are the sensitivities to (rotation * L, tx, ty) in the
++    datum 2D frame (the convention of the datum's own edge rows), ``rhs`` minus
++    the observed edge offset along its outward normal (mm), ``weights`` 1 for a
++    bin observed at its cut wall and ``edge_unwalled_weight`` for a bare skin
++    edge, ``edge`` the index of the edge (into ``labels`` / ``spread``) the row
++    belongs to. ``spread`` is each edge's MAD-sigma of its bin offsets.
++    """
++
++    rows: np.ndarray
++    rhs: np.ndarray
++    weights: np.ndarray
++    walled: np.ndarray
++    edge: np.ndarray
++    labels: list
++    spread: list
++
++    @classmethod
++    def empty(cls) -> "ChildEdgeRows":
++        return cls(np.zeros((0, 3)), np.zeros(0), np.zeros(0), np.zeros(0, dtype=bool), np.zeros(0, dtype=np.int64),
++                   [], [])
++
++
++def child_edge_rows(points: np.ndarray, point_owner: np.ndarray, part: PartView, model: DatumModel, panels,
++                    cfg: InspectConfig, spacing: float, blockers: np.ndarray | None = None) -> ChildEdgeRows:
++    """Rows of the datum's in-plane pose observed on the cut ends of fitted child flanges.
++
++    A child panel reached from the datum only through bends whose axes are all
++    parallel to one direction ``a`` of the datum plane moves, whatever the
++    angles and bend-line positions of those bends, only across ``a``: the
++    blank's cut edges of that panel that are perpendicular to ``a`` (the ends
++    of a flange) stay where the blank put them along ``a``, formed or still
++    flat. Their scanned positions therefore observe the datum frame along
++    ``a`` exactly as the datum's own free edges do, and no bend-line position,
++    angle or flange length the engine reports can move them.
++
++    ``points`` are the registered full-resolution points and ``point_owner``
++    their articulated panel (-1 none; points of other panels are never used);
++    ``panels`` the articulated fit's :class:`PanelFit` list (duck-typed:
++    ``state``, ``A``, ``n0``, ``d0``, ``t``). An edge qualifies when its
++    outward in-panel normal lies within ``lateral_axis_tol_deg`` of the path's
++    common axis and it is at least ``2 edge_end_trim + edge_bin`` long. It is
++    binned like a datum free edge (``edge_bin_mm``; a bin seen at its cut wall
++    is observed at the wall, else at the ``far_edge_rank``-th extreme skin
++    point). ``blockers`` are articulated model points (registered frame) of
++    every placed panel and bend zone: model material within the band beyond an
++    edge (a slot's far side, a neighbour across a relief, the window a flat tab
++    sits in) shortens the band to 0.6 mm short of it, and an edge whose band
++    would be under 1 mm is not used.
++    """
++    if len(points) == 0 or not len(panels):
++        return ChildEdgeRows.empty()
++    tree = cKDTree(points)
++    btree = cKDTree(blockers) if blockers is not None and len(blockers) else None
++    cen2 = model.polygon.mean(axis=0)
++    L = max(10.0, 0.5 * math.sqrt(model.area))
++    gap = cfg.edge_gap_factor * spacing
++    min_seg = 2 * cfg.edge_end_trim_mm + cfg.edge_bin_mm
++    cos_tol = math.cos(math.radians(cfg.lateral_axis_tol_deg))
++    band = cfg.edge_band_mm
++    rows: list[list[float]] = []
++    rhs: list[float] = []
++    wts: list[float] = []
++    wl: list[bool] = []
++    eidx: list[int] = []
++    labels: list[str] = []
++    spread: list[float] = []
++    for c, pf in enumerate(panels):
++        if c == part.datum or c in part.rigid_followers:
++            continue
++        if getattr(pf, "state", None) not in ("FITTED", "FLAT") or pf.A is None or pf.n0 is None or pf.d0 is None:
++            continue
++        path = part.path_bends(c)
++        if not path:
++            continue
++        a0 = unit(part.bends[path[0]].axis_dir)
++        if abs(float(a0 @ model.n0)) > 1e-3:
++            continue
++        if any(abs(float(unit(part.bends[j].axis_dir) @ a0)) < 1.0 - 1e-6 for j in path):
++            continue  # a bend across ``a`` on the way moves the panel along it
++        pv = part.panels[c]
++        pm = pv.model
++        e1, e2 = orthonormal_frame(pv.n0)
++        outer = np.asarray(pm.outer_boundary_mm, dtype=np.float64)
++        poly = MplPath(np.stack([outer @ e1, outer @ e2], axis=1))
++        hole_paths = []
++        for hm in pm.holes_mm:
++            hv = np.asarray(hm, dtype=np.float64)
++            hole_paths.append(MplPath(np.stack([hv @ e1, hv @ e2], axis=1)))
++        R = np.asarray(pf.A, dtype=np.float64)[:3, :3]
++        nz = unit(np.asarray(pf.n0, dtype=np.float64))
++        d0 = float(pf.d0)
++        tc = float(pf.t if pf.t is not None else part.t)
++        for fe in pm.free_edges:
++            if not fe.registration_usable:
++                continue
++            line = np.asarray(fe.polyline_mm, dtype=np.float64)
++            for si, (a, b) in enumerate(zip(line[:-1], line[1:])):
++                d = b - a
++                length = float(np.linalg.norm(d))
++                if length < min_seg:
++                    continue
++                e = d / length
++                n_in = np.cross(pv.n0, e)
++                if float(np.linalg.norm(n_in)) < 1e-9:
++                    continue
++                n_in = unit(n_in)
++                mid = 0.5 * (a + b)
++                probes = np.array([mid + n_in * 0.5, mid - n_in * 0.5])
++                p2 = np.stack([probes @ e1, probes @ e2], axis=1)
++                ins = poly.contains_points(p2)
++                for hp in hole_paths:
++                    ins &= ~hp.contains_points(p2)
++                if bool(ins[0]) == bool(ins[1]):
++                    continue  # not a boundary of the material here
++                n_out = -n_in if ins[0] else n_in
++                if abs(float(n_out @ a0)) < cos_tol:
++                    continue
++                # the edge in the registered frame (the panel's fitted pose), normal kept in its fitted plane
++                ar = apply(pf.A, a[None])[0]
++                nr = R @ n_out
++                nr = nr - float(nr @ nz) * nz
++                if float(np.linalg.norm(nr)) < 0.5:
++                    continue
++                nr = unit(nr)
++                er = R @ e
++                er = er - float(er @ nz) * nz - float(er @ nr) * nr
++                if float(np.linalg.norm(er)) < 0.5:
++                    continue
++                er = unit(er)
++                n2 = np.array([float(nr @ model.f1), float(nr @ model.f2)])
++                if float(np.linalg.norm(n2)) < cos_tol:
++                    continue  # it must observe the datum frame within the datum plane
++                n2 = n2 / float(np.linalg.norm(n2))
++                lo, hi = cfg.edge_end_trim_mm, length - cfg.edge_end_trim_mm
++                midr = ar + er * (0.5 * length)
++                reach_out = band
++                if btree is not None:
++                    bsel = btree.query_ball_point(midr, r=0.5 * length + band + 2.0)
++                    if bsel:
++                        bq = blockers[np.asarray(bsel, dtype=np.int64)] - ar
++                        b_al, b_of = bq @ er, bq @ nr
++                        b_h = (bq + ar) @ nz - d0
++                        near = (b_al > lo - 1.0) & (b_al < hi + 1.0) & (b_of > 0.3) & (b_of < band + 0.6) & \
++                               (b_h < 0.5) & (b_h > -tc - 0.5)
++                        if near.any():
++                            reach_out = min(band, float(b_of[near].min()) - 0.6)
++                if reach_out < 1.0:
++                    continue  # material of the part lies just beyond: the extreme would be its
++                sel = tree.query_ball_point(midr, r=0.5 * length + 2.0 * band + 1.0)
++                if not sel:
++                    continue
++                sel = np.asarray(sel, dtype=np.int64)
++                q = points[sel]
++                rel = q - ar
++                along, off = rel @ er, rel @ nr
++                hh = q @ nz - d0
++                own = point_owner[sel]
++                keep = (along >= lo) & (along <= hi) & (off > -band) & (off < reach_out) & (hh < 0.5) & \
++                       (hh > -tc - 0.5) & ((own < 0) | (own == c))
++                if int(keep.sum()) < 3:
++                    continue
++                along, off, hh = along[keep], off[keep], hh[keep]
++                if tc >= cfg.wall_min_thickness_mm:
++                    margin = cfg.wall_skin_margin_fraction * tc
++                    wall_pt = (hh < -margin) & (hh > -tc + margin)
++                else:
++                    wall_pt = np.zeros(len(hh), dtype=bool)
++                bins = np.floor((along - lo) / cfg.edge_bin_mm).astype(np.int64)
++                e_rows, e_obs, e_wall = [], [], []
++                for bi in np.unique(bins):
++                    m = bins == bi
++                    cnt = int(m.sum())
++                    if cnt < 3:
++                        continue
++                    om = off[m]
++                    order = np.argsort(-om)
++                    k = min(cfg.far_edge_rank, cnt) - 1
++                    extreme = float(om[order[k]])
++                    wsel = wall_pt[m] & (om > extreme - cfg.wall_zone_mm)
++                    walled = int(wsel.sum()) >= cfg.reg_wall_min_points
++                    obs = (float(np.median(om[wsel])) if walled else extreme) + gap
++                    xb = ar + er * float(np.median(along[m])) + nr * obs
++                    xr = model.to2d(xb[None])[0] - cen2
++                    e_rows.append([float(n2 @ np.array([-xr[1], xr[0]])) / L, float(n2[0]), float(n2[1])])
++                    e_obs.append(obs)
++                    e_wall.append(walled)
++                if len(e_obs) < 2:
++                    continue
++                ov = np.asarray(e_obs)
++                k_edge = len(labels)
++                labels.append(f"{pv.panel_id}/{fe.edge_id}#{si}")
++                spread.append(float(1.4826 * np.median(np.abs(ov - np.median(ov)))))
++                for r_, o_, w_ in zip(e_rows, e_obs, e_wall):
++                    rows.append(r_)
++                    rhs.append(-o_)
++                    wts.append(1.0 if w_ else cfg.edge_unwalled_weight)
++                    wl.append(bool(w_))
++                    eidx.append(k_edge)
++    if not rows:
++        return ChildEdgeRows.empty()
++    return ChildEdgeRows(np.asarray(rows, dtype=np.float64), np.asarray(rhs, dtype=np.float64),
++                         np.asarray(wts, dtype=np.float64), np.asarray(wl, dtype=bool),
++                         np.asarray(eidx, dtype=np.int64), labels, spread)
++
++
++def resolve_free_directions(fit: InPlaneFit, T: np.ndarray, rows: ChildEdgeRows, model: DatumModel,
++                            cfg: InspectConfig) -> tuple[InPlaneFit | None, dict]:
++    """``fit`` with the in-plane directions its datum left undetermined fixed by flange-end rows.
++
++    ``rows`` (:func:`child_edge_rows`) were observed with the scan registered by
++    ``T`` (``fit.T``, or an earlier resolution of it). Only ``fit.undetermined``
++    is moved: the directions the datum's own free edges and holes determine stay
++    exactly as the datum fit left them (a flange can never pull them).
++
++    An edge is used when its rows are sensitive to the undetermined directions
++    (mean ``|row . u|`` at least ``lateral_min_sensitivity``) and consistent
++    along its length (bin MAD-sigma at most ``lateral_edge_max_spread_mm``). The
++    robust (Huber) solution is checked edge by edge: the edge whose median
++    residual is worst is dropped while it exceeds ``lateral_outlier_mm``. A
++    direction is resolved when at least ``lateral_min_edges`` consistent edges
++    observe it and the datum's and the edges' information along it reach
++    ``degenerate_min_information``; a solution moving the frame by more than
++    ``lateral_max_shift_mm`` is refused. The covariance along the resolved
++    directions is the edges' sandwich covariance plus their disagreement (the
++    blank's cut tolerance: the edges' median residuals); unwalled rows add
++    their erosion gain to ``bias_gain``. Returns ``(fit or None, detail)``.
++    """
++    U = np.asarray(fit.undetermined, dtype=np.float64).reshape(-1, 3)
++    info: dict = {"edges_offered": len(rows.labels), "rejected": []}
++    if len(U) == 0 or len(rows.rhs) == 0:
++        info["reason"] = "NO_FREE_DIRECTION" if len(U) == 0 else "NO_FLANGE_END_EDGES"
++        return None, info
++    B_all = rows.rows @ U.T
++    use: list[int] = []
++    for k_e, label in enumerate(rows.labels):
++        m = rows.edge == k_e
++        sens = float(np.mean(np.linalg.norm(B_all[m], axis=1))) if m.any() else 0.0
++        if sens < cfg.lateral_min_sensitivity:
++            continue
++        if rows.spread[k_e] > cfg.lateral_edge_max_spread_mm:
++            info["rejected"].append(f"{label}:spread={rows.spread[k_e]:.3f}")
++            continue
++        use.append(k_e)
++    info_u = U @ np.asarray(fit.information, dtype=np.float64) @ U.T
++    while True:
++        if len(use) < cfg.lateral_min_edges:
++            info["reason"] = f"TOO_FEW_CONSISTENT_EDGES:{len(use)}"
++            return None, info
++        sel = np.isin(rows.edge, use)
++        B, b, w, ed = B_all[sel], rows.rhs[sel], rows.weights[sel], rows.edge[sel]
++        M = info_u + B.T @ B
++        evals, evecs = np.linalg.eigh(M)
++        keep = evals >= cfg.degenerate_min_information
++        if not keep.any():
++            info["reason"] = f"TOO_LITTLE_INFORMATION:{float(evals.max()):.2f}"
++            return None, info
++        V = evecs[:, keep]
++        Br = B @ V
++        r = Br.shape[1]
++        wh = w.copy()
++        z = np.zeros(r)
++        for _ in range(5):
++            H = (Br * wh[:, None]).T @ Br
++            g = (Br * wh[:, None]).T @ b
++            try:
++                z = np.linalg.solve(H + 1e-9 * np.eye(r), g)
++            except np.linalg.LinAlgError:
++                info["reason"] = "SINGULAR"
++                return None, info
++            res = b - Br @ z
++            scale = max(0.05, 1.4826 * float(np.median(np.abs(res))))
++            wh = w * np.minimum(1.0, 2.5 * scale / np.maximum(np.abs(res), 1e-12))
++        res = b - Br @ z
++        med = {k_e: float(np.median(res[ed == k_e])) for k_e in use}
++        worst = max(use, key=lambda k_e: abs(med[k_e]))
++        if abs(med[worst]) > cfg.lateral_outlier_mm:
++            info["rejected"].append(f"{rows.labels[worst]}:residual={med[worst]:+.3f}")
++            use.remove(worst)
++            continue
++        break
++    Ur = U.T @ V  # 3 x r resolved pose directions (orthonormal columns)
++    delta = Ur @ z
++    if float(np.linalg.norm(delta)) > cfg.lateral_max_shift_mm:
++        info["reason"] = f"SHIFT_TOO_LARGE:{float(np.linalg.norm(delta)):.3f}"
++        return None, info
++    # covariance along the resolved directions: scan noise (sandwich) + the edges' own disagreement
++    walled_sel = rows.walled[sel]
++    rr = res[walled_sel] if int(walled_sel.sum()) >= 5 else res
++    sigma = max(0.02, 1.4826 * float(np.median(np.abs(rr - np.median(rr)))))
++    try:
++        Minv = np.linalg.inv((Br * w[:, None]).T @ Br + 1e-9 * np.eye(r))
++    except np.linalg.LinAlgError:
++        info["reason"] = "SINGULAR"
++        return None, info
++    cov_r = Minv @ ((Br * (w * w)[:, None]).T @ Br) @ Minv * sigma ** 2
++    E = np.asarray([Br[ed == k_e].mean(axis=0) for k_e in use])
++    r_e = np.asarray([med[k_e] for k_e in use])
++    s_e = max(0.02, math.sqrt(float(np.sum(r_e ** 2)) / max(1, len(use) - r)))
++    cov_sys = s_e ** 2 * np.linalg.pinv(E.T @ E)
++    cov_z = cov_r + cov_sys
++    P = np.eye(3) - Ur @ Ur.T
++    pose_cov = P @ np.asarray(fit.pose_cov, dtype=np.float64) @ P + Ur @ cov_z @ Ur.T
++    gain = Ur @ (Minv @ (Br * w[:, None]).T)
++    unw = ~walled_sel
++    bias_old = P @ fit.bias_gain if fit.bias_gain.size else np.zeros((3, 0))
++    bias_gain = np.hstack([bias_old, gain[:, unw] * float(fit.erosion_mm)])
++    remaining = (U.T @ evecs[:, ~keep]).T.copy()
++    L = float(fit.length_scale)
++    cen2 = model.polygon.mean(axis=0)
++    F = np.stack([model.f1, model.f2, model.n0], axis=1)
++    c3 = model.p0 + model.f1 * cen2[0] + model.f2 * cen2[1]
++    r3 = np.eye(3)
++    r3[:2, :2] = _rot2(float(delta[0]) / L)
++    Rm = F @ r3 @ F.T
++    T_new = rigid(Rm, c3 - Rm @ c3 + model.f1 * float(delta[1]) + model.f2 * float(delta[2])) @ np.asarray(T)
++    information = np.asarray(fit.information, dtype=np.float64) + U.T @ (B.T @ B) @ U
++    info.update({"edges_used": [rows.labels[k_e] for k_e in use], "rows": int(len(b)),
++                 "information": [float(v) for v in evals], "shift": [float(v) for v in delta],
++                 "sigma_obs": float(sigma), "edge_scatter": float(s_e),
++                 "resolved": int(r), "remaining": int(len(remaining))})
++    from dataclasses import replace
++
++    out = replace(fit, T=T_new, information=information, degenerate=bool(len(remaining)),
++                  translation_cov=pose_cov[1:, 1:].copy(),
++                  rotation_sigma_rad=float(math.sqrt(max(float(pose_cov[0, 0]), 0.0))) / L,
++                  pose_cov=pose_cov, undetermined=remaining, bias_gain=bias_gain,
++                  detail={**fit.detail, "flange_end_edges": dict(info)})
++    return out, info
+ 
+ 
+ def tile_thickness(h: np.ndarray, uv: np.ndarray, t_nominal: float, cfg: InspectConfig

@@ -1,0 +1,67 @@
+{
+  "labeler": "claude-vision-ai-v1",
+  "no_bends_present": false,
+  "notes": "GOLD v1 (gold fixer round 1, 2026-10-18) for sc_36e5d6998b9b (ysherman.ply, part ysherman, stage FULL_PRESUMED_NO_STAGE_HINT, CAD bend lines -1 = no STEP on disk; custody CONSUMED in BENCHMARK_V3, role benchmark_scan). Real scan mesh (897663 vertices on a 0.4 mm scan grid, occlusion dropouts on inner faces), not a CAD reference mesh. Prep: auditor-3 bench_labeling prep (27 patches, voxel 0.864 mm, t 1.96 mm). No machine lines existed. All 12 human lines (human_bend_lines_v1/0c33a49d0a4aafc114c84cc1.json) fail gold (3/3 auditors): M01 runs 183 mm along the 80 mm centre fold and sits 5 mm inside it; M03/M05/M06/M07 sit 4-5 mm inside their folds; M12 is 1.4-2 mm off its apex; M02/M04 each merge 3 folds at 2 heights and land on none; M08/M10 are free base edges; M09/M11 lie on flat flange plates. Part: U-channel bracket, t~1.96 mm, Ri~1.96 mm, every fold ~90 deg (90.0-90.6). Base plate 1/2 (~185 x 101 mm). Side walls 3/5 and 4/6 fold 90 deg down off the base's long edges. Each wall is ~155 mm long: it runs ~15 mm past the base's back edge to an inward end return, and overhangs the base's front edge by ~39 mm with a curved cut top edge. A centre down-flange 7/8 (80 mm) folds off the middle of the base's front edge, with an outward foot flange 9/11 at its foot (Z joggle = 2 bends). On each wall's free (bottom) edge: an inward mounting flange (14/12, 10/13) between two outward holed ears (25/23 + 17/16, 24/22 + 18/15). The ear folds sit ~10 mm closer to the base than the flange fold, and relief slots separate them. 12 formed folds. Three auditors and the fixer's own dense-mesh sections agree on all 12 folds and their extents. All 12 lines lie on the OUTER (convex) skin apex: independent per-station apex error median 0.01-0.16 mm, p90 at most 0.38 mm. Each covers 95-100% of its fold and overruns by at most 0.2 mm. Not bends: free base edges, the wall top edges (the back step and the curved overhang), the side and free edges of the down-flange and foot flange, flange and ear free edges and holes, relief slots, the notch in each end return's free edge, inner-face scan dropouts, and thickness edges.",
+  "bends": [
+    {
+      "patches": [1, 5],
+      "note": "90 deg fold from the base plate (top skin 1) down into side wall 3/5 (outside skin 5) along the base's full side edge (fold ~101 mm). Past the base's back edge the wall's top edge steps down (cut edge, no arc). Past its front edge the wall overhang has a curved cut top edge. Human M03 sat 4.6 mm inside. Inner pair [2,3] left out.",
+      "confidence": "auto"
+    },
+    {
+      "patches": [1, 4],
+      "note": "90 deg fold from the base plate (top skin 1) down into side wall 4/6 (outside skin 4) along the base's full side edge (fold ~101 mm). Past the base's back edge the wall's top edge steps down (cut edge, no arc). Past its front edge the wall overhang has a curved cut top edge. Human M05 sat 4.2 mm inside. Inner pair [2,6] left out.",
+      "confidence": "auto"
+    },
+    {
+      "patches": [1, 8],
+      "note": "Joggle bend 1 of 2: 90 deg fold from the base plate (top skin 1) down into the centre down-flange (front skin 8), 80 mm, only where the down-flange exists. The base's front edge beside it is a free edge. Human M01 was 183 mm long (103 mm overrun) and sat 5 mm inside. Inner pair [2,7] left out.",
+      "confidence": "auto"
+    },
+    {
+      "patches": [7, 9],
+      "note": "Joggle bend 2 of 2: 90 deg fold from the centre down-flange (back skin 7, the convex side of this fold) out into the outward foot flange (bottom skin 9), ~80 mm. Human M12 sat 1.4-2 mm off the apex and was 88 mm long. Inner pair [8,11] left out.",
+      "confidence": "auto"
+    },
+    {
+      "patches": [5, 20],
+      "note": "90 deg fold from side wall 3/5 (outside skin 5) inward into its end return at the back end (outer face 20), full return height (~64.5 mm). The notch in the return's free edge stays clear of the fold. The scan dropout on the return's inner face does not reach the outer arc. Human M07 sat 4.8 mm inside. Inner pair [3,26] left out (26 is cut by the dropout).",
+      "confidence": "auto"
+    },
+    {
+      "patches": [4, 21],
+      "note": "90 deg fold from side wall 4/6 (outside skin 4) inward into its end return at the back end (outer face 21), full return height (~64 mm). The notch in the return's free edge stays clear of the fold. Human M06 sat 5.3 mm inside. Inner pair [6,19] left out.",
+      "confidence": "auto"
+    },
+    {
+      "patches": [5, 14],
+      "note": "90 deg fold from side wall 3/5 (outside skin 5) inward into the mounting flange on the wall's free edge (bottom skin 14), ~62 mm between the relief slots that separate it from the two ears. The human label has no line here: M04 ran between this fold and the two ear folds (10 mm closer to the base) and lands on none of them. Inner pair [3,12] left out.",
+      "confidence": "auto"
+    },
+    {
+      "patches": [4, 10],
+      "note": "90 deg fold from side wall 4/6 (outside skin 4) inward into the mounting flange on the wall's free edge (bottom skin 10), ~61.5 mm between the relief slots that separate it from the two ears. The human label has no line here: M02 ran between this fold and the two ear folds (10 mm closer to the base) and lands on none of them. Inner pair [6,13] left out.",
+      "confidence": "auto"
+    },
+    {
+      "patches": [3, 25],
+      "note": "90 deg fold from side wall 3/5 (inside skin 3, the convex side of this outward fold) out into the holed ear at the back end (bottom skin 25), ~31 mm from the relief slot to the ear's end. It is a separate plate from flange 14 and ear 17, so it is its own bend. Inner pair [5,23] left out.",
+      "confidence": "auto"
+    },
+    {
+      "patches": [3, 17],
+      "note": "90 deg fold from side wall 3/5 (inside skin 3, the convex side of this outward fold) out into the holed ear at the overhang end (bottom skin 17), ~43 mm from the wall's front end to the relief slot. It is a separate plate from flange 14 and ear 25, so it is its own bend. Inner pair [5,16] left out.",
+      "confidence": "auto"
+    },
+    {
+      "patches": [6, 24],
+      "note": "90 deg fold from side wall 4/6 (inside skin 6, the convex side of this outward fold) out into the holed ear at the back end (bottom skin 24), ~31 mm from the relief slot to the ear's end. It is a separate plate from flange 10 and ear 18, so it is its own bend. Inner pair [4,22] left out.",
+      "confidence": "auto"
+    },
+    {
+      "patches": [6, 18],
+      "note": "90 deg fold from side wall 4/6 (inside skin 6, the convex side of this outward fold) out into the holed ear at the overhang end (bottom skin 18), ~43 mm from the wall's front end to the relief slot. It is a separate plate from flange 10 and ear 24, so it is its own bend. Inner pair [4,15] left out.",
+      "confidence": "auto"
+    }
+  ]
+}

@@ -1,0 +1,374 @@
+{
+ "schema": "cad_roll_nominal_v0",
+ "rule_version": "ROLL-RULE-0 (2026-10-25): E1 graph bend keeps E1 class unless E1 ROLLED(a); paired feature with Ri > 10 t is a ROLL; Ri <= 10 t tangent to a roll is a junction BEND; thresholds reused from E1-UNSUPPORTED-RULE-2 (2026-10-17; rule 1 thresholds, review fixes)",
+ "source": {
+  "file": "47479000_C.stp",
+  "sha256": "ada91a64c69de1badfa0a64c633d0fe428a9a178fb168ea24cb4b9bd3c1f5b1f",
+  "name": "47479000__47479000_C"
+ },
+ "frame": "cad_model_mm (STEP frame, no transform)",
+ "units": {
+  "length": "mm",
+  "angle": "deg"
+ },
+ "e1": {
+  "flange_graph_error": null,
+  "part_model_error": "DATUM_PANEL_UNDETERMINED: the CAD has no planar flange panel joined by a bend",
+  "thickness_mm": null,
+  "panels": 0,
+  "graph_bends": 0,
+  "features": []
+ },
+ "thickness": {
+  "t_mm": 1.0,
+  "source": "PAIRED_SKINS_WEIGHTED_MEDIAN (no independent source)"
+ },
+ "summary": {
+  "rolls": 1,
+  "junction_bends": 0,
+  "e1_bends": 0,
+  "solver_bends": 0,
+  "cones": 0,
+  "all_checks_pass": true,
+  "roll_faces_overlap_e1_bend_faces": []
+ },
+ "rolls": [
+  {
+   "id": "R1",
+   "kind": "ROLL",
+   "subtype": "ROLL",
+   "surface": "cylinder",
+   "is_cone": false,
+   "axis": {
+    "point_mm": [
+     207.0,
+     0.0,
+     0.0
+    ],
+    "direction": [
+     1.0,
+     0.0,
+     0.0
+    ],
+    "segment": {
+     "start_mm": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "end_mm": [
+      414.0,
+      0.0,
+      0.0
+     ]
+    }
+   },
+   "frame": {
+    "e1": [
+     0.0,
+     0.0,
+     1.0
+    ],
+    "e2": [
+     0.0,
+     -1.0,
+     0.0
+    ],
+    "note": "angles about the axis: atan2((p-axis.point)\u00b7e2, (p-axis.point)\u00b7e1), e1 x e2 = direction"
+   },
+   "r_inner_mm": 74.0,
+   "r_outer_mm": 75.0,
+   "thickness_mm": 1.0,
+   "r_inner_over_t": 74.0,
+   "r_mid_mm": 74.5,
+   "sweep_deg": 178.0,
+   "sweep_inner_deg": 178.0,
+   "sweep_outer_deg": 178.0,
+   "start_angle_deg": 181.0,
+   "closed": false,
+   "axial_length_mm": 414.0,
+   "axial_length_inner_mm": 414.0,
+   "axial_length_outer_mm": 414.0,
+   "chord_inner_mm": 147.977459,
+   "chord_outer_mm": 149.977154,
+   "opening_mm": 147.977459,
+   "opening_gap_deg": 182.0,
+   "arc_length_mid_mm": 231.448112,
+   "taper": {
+    "dr_dz": 0.0,
+    "mm_per_m": 0.0,
+    "semi_angle_deg": 0.0,
+    "r_inner_at_axis_ends_mm": [
+     74.0,
+     74.0
+    ],
+    "r_outer_at_axis_ends_mm": [
+     75.0,
+     75.0
+    ]
+   },
+   "convexity": {
+    "concave_skin": "inner",
+    "convex_skin": "outer",
+    "bulge_direction": [
+     0.0,
+     1.0,
+     0.0
+    ],
+    "note": "unit radial from the axis to the angular middle of the sweep (the convex side)"
+   },
+   "faces": {
+    "inner": [
+     22
+    ],
+    "outer": [
+     0
+    ]
+   },
+   "e1": {
+    "graph_bend_id": null,
+    "class": null,
+    "face_roles": [
+     "wall"
+    ]
+   },
+   "runouts": [
+    {
+     "which": "start",
+     "angle_deg": 181.0,
+     "inner": {
+      "start_mm": [
+       0.0,
+       1.291478,
+       -73.988729
+      ],
+      "end_mm": [
+       414.0,
+       1.291478,
+       -73.988729
+      ],
+      "length_mm": 414.0,
+      "class": "FREE_EDGE",
+      "neighbour_ids": [],
+      "neighbour_faces": [
+       15
+      ],
+      "edges": [
+       63
+      ],
+      "coverage": 1.0
+     },
+     "outer": {
+      "start_mm": [
+       0.0,
+       1.30893,
+       -74.988577
+      ],
+      "end_mm": [
+       414.0,
+       1.30893,
+       -74.988577
+      ],
+      "length_mm": 414.0,
+      "class": "FREE_EDGE",
+      "neighbour_ids": [],
+      "neighbour_faces": [
+       15
+      ],
+      "edges": [
+       20
+      ],
+      "coverage": 1.0
+     },
+     "class": "FREE_EDGE",
+     "end_type": "FREE_END"
+    },
+    {
+     "which": "end",
+     "angle_deg": 359.0,
+     "inner": {
+      "start_mm": [
+       0.0,
+       1.291478,
+       73.988729
+      ],
+      "end_mm": [
+       414.0,
+       1.291478,
+       73.988729
+      ],
+      "length_mm": 414.0,
+      "class": "FREE_EDGE",
+      "neighbour_ids": [],
+      "neighbour_faces": [
+       16
+      ],
+      "edges": [
+       65
+      ],
+      "coverage": 1.0
+     },
+     "outer": {
+      "start_mm": [
+       0.0,
+       1.30893,
+       74.988577
+      ],
+      "end_mm": [
+       414.0,
+       1.30893,
+       74.988577
+      ],
+      "length_mm": 414.0,
+      "class": "FREE_EDGE",
+      "neighbour_ids": [],
+      "neighbour_faces": [
+       16
+      ],
+      "edges": [
+       18
+      ],
+      "coverage": 1.0
+     },
+     "class": "FREE_EDGE",
+     "end_type": "FREE_END"
+    }
+   ],
+   "neighbours": [],
+   "stations": [
+    {
+     "fraction": 0.25,
+     "z_mm": 577.852351,
+     "centre_mm": [
+      103.5,
+      0.0,
+      0.0
+     ],
+     "r_inner_mm": 74.0,
+     "r_outer_mm": 75.0,
+     "start_angle_deg": 181.0,
+     "sweep_deg": 178.0
+    },
+    {
+     "fraction": 0.5,
+     "z_mm": 681.352351,
+     "centre_mm": [
+      207.0,
+      0.0,
+      0.0
+     ],
+     "r_inner_mm": 74.0,
+     "r_outer_mm": 75.0,
+     "start_angle_deg": 181.0,
+     "sweep_deg": 178.0
+    },
+    {
+     "fraction": 0.75,
+     "z_mm": 784.852351,
+     "centre_mm": [
+      310.5,
+      0.0,
+      0.0
+     ],
+     "r_inner_mm": 74.0,
+     "r_outer_mm": 75.0,
+     "start_angle_deg": 181.0,
+     "sweep_deg": 178.0
+    }
+   ],
+   "interior_generator_edges": 4,
+   "notes": [],
+   "checks": [
+    {
+     "check": "SKINS_COAXIAL_ANGLE_DEG",
+     "status": "PASS",
+     "value": 0.0,
+     "tol": 0.25,
+     "detail": ""
+    },
+    {
+     "check": "SKINS_COAXIAL_OFFSET_MM",
+     "status": "PASS",
+     "value": 0.0,
+     "tol": 0.02075,
+     "detail": ""
+    },
+    {
+     "check": "THICKNESS_CONSISTENT_MM",
+     "status": "NOT_APPLICABLE",
+     "value": null,
+     "tol": null,
+     "detail": "no independent part thickness (E1 has none and no other paired feature)"
+    },
+    {
+     "check": "SKIN_SWEEPS_AGREE_DEG",
+     "status": "PASS",
+     "value": 0.0,
+     "tol": 1.0,
+     "detail": ""
+    },
+    {
+     "check": "SKIN_AXIAL_OVERLAP_FRACTION",
+     "status": "PASS",
+     "value": 1.0,
+     "tol": 0.9,
+     "detail": ""
+    },
+    {
+     "check": "RUNOUT_TANGENT_MM",
+     "status": "NOT_APPLICABLE",
+     "value": null,
+     "tol": null,
+     "detail": "no smooth run-out (free cut ends)"
+    }
+   ],
+   "checks_pass": true
+  }
+ ],
+ "junction_bends": [],
+ "e1_bends": [],
+ "solver_bends": [],
+ "graph": {
+  "nodes": [
+   {
+    "id": "R1",
+    "type": "ROLL",
+    "source": "ROLL_SOLVER"
+   }
+  ],
+  "edges": [],
+  "components": 1,
+  "coherent": true
+ },
+ "unclassified_paired_features": [],
+ "unpaired_large_curved_skins": [],
+ "large_radius_curved_faces": [
+  {
+   "face": 0,
+   "surface": "cylinder",
+   "radius_mm": 75.0,
+   "r_over_t": 75.0,
+   "convex": true,
+   "area_mm2": 92222.007891,
+   "axial_extent_mm": 414.0,
+   "solver": "R1",
+   "e1_role": "wall"
+  },
+  {
+   "face": 22,
+   "surface": "cylinder",
+   "radius_mm": 74.0,
+   "r_over_t": 74.0,
+   "convex": false,
+   "area_mm2": 90990.493082,
+   "axial_extent_mm": 414.0,
+   "solver": "R1",
+   "e1_role": "wall"
+  }
+ ],
+ "curved_faces": {
+  "cylinder": 2,
+  "cone": 0
+ },
+ "runtime_s": 0.56
+}

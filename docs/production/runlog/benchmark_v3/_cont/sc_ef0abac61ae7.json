@@ -1,0 +1,48 @@
+{
+ "reconciler": {
+  "real_bends": 5,
+  "no_bends_present": false,
+  "unusable": false,
+  "not_a_scan": false,
+  "bends": [
+   {
+    "patches": [
+     1,
+     5
+    ],
+    "note": "90 deg downward flange at +v edge (~92 mm, two holes). Inner pair because plate top skin 2 is unscanned along most of the fold ([2,6] auto clips to 6.6 mm); the apex search lands on the scanned outer arc (apex_offset -0.88), so this line lies within 0.06-0.19 mm of the [2,6] outer-apex line. lines: certain, 91.7 mm, cov 1.00, fold support 1.00"
+   },
+   {
+    "patches": [
+     1,
+     9
+    ],
+    "note": "90 deg upward tab at +u edge near +v corner (~19 mm), outer skin; certain, 19.3 mm, cov 1.00"
+   },
+   {
+    "patches": [
+     1,
+     11
+    ],
+    "note": "90 deg upward tab at +u edge near -v corner (~19 mm), outer skin; certain, 19.4 mm, cov 1.00"
+   },
+   {
+    "patches": [
+     2,
+     8
+    ],
+    "note": "joggle fold 1: plate -> ~14.6 deg ramp of lanced offset tab at -v edge; outer = top skin; certain, 44.5 mm (full width between slits)"
+   },
+   {
+    "patches": [
+     4,
+     7
+    ],
+    "note": "joggle fold 2: ramp -> offset tab (2.9 mm below plate); outer = bottom skin; certain, 44.5 mm"
+   }
+  ],
+  "reason": "Reconciled. Blind labelers A and B agreed on all 5 pairs. My own checks confirm them: 10 point-cloud viewpoints, a height map, perpendicular sections through every fold, and a skin residual map. The scan is a real, flat 308x258x1.37 mm plate with 5 formed bends: a 90 deg downward flange [1,5]; two 90 deg upward tabs [1,9] and [1,11]; and a lanced joggle/offset tab with a ~14.6 deg ramp and a 2.9 mm drop, which makes 2 folds, [2,8] and [4,7]. Nothing else is a bend. Unsegmented off-plate points occur only at these 4 features. Both skins are planar (rms <0.06 mm), apart from a smooth, crease-free edge curl of <=0.3 mm. The bare areas on top are missing top-skin coverage, the 3 small holes are holes, and the diagonal strip is a scan gap. The only open point was inner vs outer skin for the flange. Kept [1,5]: its apex line lands on the outer arc within 0.2 mm of the [2,6] outer line, and it is certain with full coverage, whereas [2,6] needs an extent override and comes out uncertain. Ran lines under the geometry lock: rc=0, lock released, 5/5 ok, all certain, coverage 1.00, fold support 1.00, auto extents, no flags. Opened all 6 overview renders and 5 close-ups; every line lands on its fold, parallel, at about 97-100% of the visible length. Only 1 iteration was needed. Output: /Users/idantal/ShermanQC/FullProject/docs/production/runlog/benchmark_v3/label_lines/sc_ef0abac61ae7/{pairs.json,lines.json,render/}. Part 42288005 is CONSUMED (other-consumed), so it does not belong under fresh_SEALED. While confirming that, I saw that the FULL scan of this part has 6 labelled bends; this PARTIAL_SCAN_1 shows no 6th formed fold. Scratch files are in .../scratchpad/bv3/sc_ef0abac61ae7/R/."
+ },
+ "verifier1": null,
+ "verifier2": null
+}

@@ -1,0 +1,131 @@
+{
+ "schema": "sherman.zeroshot.gold_adjudication.v1",
+ "batch": "N1",
+ "gid": "gb_3f9a9c",
+ "scan_id": "sc_fee685eee4db",
+ "portion": "DEV_CANARY",
+ "part_id": null,
+ "original_path": "/Users/idantal/ShermanQC/source-assets/02_CAD_QC_3D/49125000_A00.ply",
+ "adjudicator": "N1/adjudicator (claude-vision-ai-v1)",
+ "adjudicated_at": "2026-10-25T11:11:11+00:00",
+ "protocol": "PLAN.md 2.4-2.6; frozen matcher research/broad_baseline/score.py score_case (5 deg / 4 mm / 60 % both spans); accept threshold 1.5 mm / 2 deg",
+ "inputs_seen": [
+  "marker_A and marker_B lines/pairs/notes/renders/sweeps",
+  "canary GOLD_SET_V2 gold (QC only)"
+ ],
+ "not_seen": "no engine, lane, A0, pool, E3, best_f1, CAD or baseline output",
+ "marker_A_lines_sha256": "bb54831d175d527ce75145146e7add35c81cc572d17d2aa2a67e10d0f6e24aca",
+ "marker_B_lines_sha256": "31b83fdca12cd5ad66625861bfba6f3eb7a96a1279bb7e0160e4a5992a564b64",
+ "final_lines_sha256": "036342976ee1aafe111f3f009632d40f829fd9fb284ad4df258fadb0662b450e",
+ "final_line_count": 2,
+ "no_bends_present": false,
+ "ab_match": {
+  "nA": 2,
+  "nB": 2,
+  "tp": 2,
+  "accepted": 2,
+  "matched_not_accepted": [],
+  "A_only": [],
+  "B_only": [],
+  "f1": 1.0,
+  "zero_bend_both": false,
+  "matches": [
+   [
+    "B1",
+    "B1",
+    0.0,
+    0.0,
+    1.0,
+    1.0
+   ],
+   [
+    "B2",
+    "B2",
+    0.0,
+    0.0,
+    1.0,
+    1.0
+   ]
+  ]
+ },
+ "lines": [
+  {
+   "final_id": "B1",
+   "marker_A_id": "B1",
+   "marker_B_id": "B1",
+   "from": "A",
+   "verdict": "AGREED",
+   "ab_offset_mm": 0.0,
+   "ab_angle_deg": 0.0,
+   "ab_span_overlap": [
+    1.0,
+    1.0
+   ],
+   "bend_angle_deg_A": 24.2,
+   "length_mm_A": 67.6,
+   "reason": "A/B matched within 1.5 mm / 2 deg; line from A."
+  },
+  {
+   "final_id": "B2",
+   "marker_A_id": "B2",
+   "marker_B_id": "B2",
+   "from": "A",
+   "verdict": "AGREED",
+   "ab_offset_mm": 0.0,
+   "ab_angle_deg": 0.0,
+   "ab_span_overlap": [
+    1.0,
+    1.0
+   ],
+   "bend_angle_deg_A": 17.37,
+   "length_mm_A": 67.6,
+   "reason": "A/B matched within 1.5 mm / 2 deg; line from A."
+  }
+ ],
+ "doubts_adjudicated": [
+  {
+   "lines_A": [
+    "B2"
+   ],
+   "lines_B": [
+    "B2"
+   ],
+   "doubt": "canary B2 softness",
+   "verdict": "KEEP",
+   "reason": "Clear apex ~17 deg along the full length in both markers; matches canary gold B1 (0.33 mm)."
+  }
+ ],
+ "final_vs_reference": {
+  "ref": "CANARY_GOLD",
+  "f1": 1.0,
+  "tp": 2,
+  "n_ref": 2,
+  "n_final": 2,
+  "ref_only": [],
+  "final_only": [],
+  "matches": [
+   [
+    "B1",
+    "B2",
+    0.334,
+    0.092
+   ],
+   [
+    "B2",
+    "B1",
+    0.0,
+    0.0
+   ]
+  ]
+ },
+ "canary_qc": {
+  "gold_path": "data/bend_corpus/annotations/ai_bend_lines_gold_v1/d539518a0a75dbbf9332b4be.json",
+  "gold_n_lines": 2,
+  "marker_A_f1": 1.0,
+  "marker_B_f1": 1.0,
+  "adjudicated_f1": 1.0,
+  "rule": ">= 0.95",
+  "pass": true,
+  "label_written": false
+ }
+}

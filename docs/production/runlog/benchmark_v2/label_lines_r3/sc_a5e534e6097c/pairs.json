@@ -1,0 +1,17 @@
+{
+  "labeler": "claude-vision-ai-v1",
+  "no_bends_present": false,
+  "notes": "r3 investigator: 5 real press-brake folds on a physical scan (base plate with a 17 mm lip along one long edge; at each short end one tall flange plus one 30 mm tab sharing the end edge line). Lines use the original prep; only B5 needs a per-bend margin (12 mm) because the base next to tab 11/12 is deformed over the first ~10 mm (strips 21/22 tilted ~10 deg), which starved the default 6.8 mm support zone. Patches 13-22 are bend-radius or edge strips, not folds; the ~10 deg sag next to tab 11/12 is bend-zone deformation, not a separate bend.",
+  "bends": [
+    {"patches": [1, 7], "confidence": "auto",
+     "note": "lip fold base|lip 7 (outer skin), ~90.6 deg bend, runs the full 373 mm edge"},
+    {"patches": [2, 3], "confidence": "auto",
+     "note": "tall end flange 3/4 fold (outer skin), ~90.4 deg bend, relief to lip corner"},
+    {"patches": [1, 6], "confidence": "auto",
+     "note": "tall inclined end flange 5/6 fold (~110 deg bend); inner-skin pair, apex lands on the outer arc (same locus as 2|5 within 0.1 mm)"},
+    {"patches": [1, 9], "confidence": "auto",
+     "note": "tab 9/10 fold, ~90 deg; inner-skin pair because the base bottom skin is unscanned next to this tab; apex on the outer arc (matches 2|10 within 0.05 mm)"},
+    {"patches": [2, 11], "margin_mm": 12.0, "confidence": "auto",
+     "note": "tab 11/12 fold, ~65.7 deg bend (outer skin); margin 12 so the support zone reaches past the deformed base strip next to the fold; margins 10-14 all give the same 46.9 mm line"}
+  ]
+}

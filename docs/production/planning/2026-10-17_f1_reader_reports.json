@@ -1,0 +1,1016 @@
+[
+ {
+  "area": "status-2: docs/CURRENT_STATUS.md lines 1450-2900 (CAD-guided \"cad_engine_v1\" successor chain, 2026-09-10 to 2026-09-12)",
+  "findings": "SCOPE: I read all of /Users/idantal/ShermanQC/FullProject/docs/CURRENT_STATUS.md lines 1450-2900. Entries run newest-first, from 2026-09-12 (top) back to 2026-09-10 (bottom). Every entry in this range is about the CAD-guided registration/measurement chain (cad_guided_* modules, research/cad_engine_v1_synthetic_checks/). Scan-only (zero-shot) F1 does not appear anywhere in this range. Most of the text is custody records: SHA256 hashes, PRE/POST audits, archives and \"never rerun\" rules. Very little of it is engine science.\n\nHEADLINE: In this range no physical F1 score was produced. The single real-data benchmark (Gold11 V5: 11 scans / 6 CAD / 71 reference bend lines, 22 case-arm opportunities, control vs challenger) failed terminally with no scorer run (L1696-1752, L2082). The doc says this repeatedly, e.g. \"No new F1 exists\" (L1488) and \"Do not convert missing scoring execution into an inferred zero/null F1\" (L1726-1727).\n\nGOLD11 V5 PHYSICAL RUN (L1696-1752, L1811-1900): One attempt was launched at 2026-09-12 10:10 UTC. It ran 3493.95 s wall before the outer supervisor killed it for OBSERVED_PROCESS_IDENTITY_CHANGED_OR_REUSED (L1702-1706). Source review blames a supervisor bug (benign PID reuse), not the engine (L1710-1712).\n- Of the 22 case/arm opportunities, 10 workflows began: 8 ended in registration refusals, 1 in SIGXCPU and 1 was interrupted. The other 12 never began (L1722-1725).\n- Real engine barriers found:\n  - The first three case pairs hit 64M index visits while building two-plane extrema context, before any candidate evaluation. Their raw buffers hold 817,867 / 601,144 / 738,364 rows (L1728-1730).\n  - One control failed its unchanged 0.5 mm residual gate with P95 about 0.6956 mm (L1730-1731).\n  - The challenger's first fine surface query met more than 32 possible triangle competitors (L1731-1733).\n- Frozen time limits were C1860/W3540/Sc120/Sw180/P180/R2400/T104400 s. That is about 29 h total for 22 opportunities, about 31 min CPU per case (L1886, L1990), so runtime cost is far from production.\n\nCONNECTED SYNTHETIC CURVED PACKET: This is the core accuracy evidence in the range. It uses four invented curved cases: U-R, U-A, L-R, L-A. \"U\" and \"L\" correspond to \"axially unresolved\" and \"localized\" (L2638, L2880). The R/A suffixes are not defined in this range.\n- V12 array (L2758-2789): NEGATIVE, zero published positive outputs.\n  - All six planar arms passed 8 CAD corners to an API that needs at least 36 points (a fixture error).\n  - U-R recovered 5.30 mm / 90 degree intermediate fits, but all five were vetoed for raw-role overlap (L2769-2772).\n  - Budget exhaustion left the remaining cases unobserved.\n- Support-cover V2 connected (L2664-2708): V1 passed 0/4 and V2 passed 2/4 (U-R, U-A). L-R and L-A have no finite starts: the scan-plane extractor qualifies 0/13 cores (L2675-2681).\n- Composite-plane V1 connected (L2485-2529): 2/4 vs the retained 2/4 control, so no gain. L-R: 17 planes, 3204 hypotheses, 6440 support checks, 0 starts pass (L2501-2503). Cause: the scheduler omits the flange 11/33 pairing.\n- Depth V1 connected (L2245-2284): 0/4, PAIR_ASSIGNMENT_QUOTA_EXCEEDED. The scheduler made up to 42 matches per pair, but the context allowed 4.\n- Connected V2 (L2085-2145): terminal 2/4 again. L-R and L-A fail with NO_VALID_EXISTING_SUPPORT_COVER_MEASUREMENTS because end-cap boundary rows make supports non-nested (L2128-2135).\n  - Per-case registration CPU was about 1047-1462 s (L2160-2167).\n  - Total worker CPU 5023 s (L2147-2149).\n- Native-byte diagnostic (L1995-2024): 99 PASS / 1 FAIL. The original accuracy oracle failed with the same NO_VALID_EXISTING_SUPPORT_COVER_MEASUREMENTS, at 518 s CPU for one L-R workflow. The earliest failure was later placed at the \"legacy PARTIAL guard\" (L1967). That is a measurement-status label, not partial-bend handling.\n\nSOURCE/UNIT GATES (all GREEN, but they qualify plumbing, not accuracy):\n- support-cover source 187/187 (L2731)\n- V12 source 256 pass / 1 skip (L2790-2856)\n- seeded-plane 107/107 (L2623)\n- composite source 167/11 FAIL, then the successor 11/11 (L2576-2622)\n- scheduler V2 80/80 and contact scorer V3 123/123 (L2411-2440)\n- integration V2 25/44 ERROR, then V3 69/69 (L2337-2388)\n- context V2 241 (L2213)\n- projection V1 118 and V2 237 (L2271, L1523)\n- extrema index 88/88 (L1672)\n- context V3 76/76 (L1592)\n- supervisor host V2 6/8 FAIL, then V3 8/8 (L1558, L1629)\n- integration94 21/73 FAIL: the fixture Huber 0.25 mm exceeded the fixture P95 of 0.1 mm (L1489-1500)\n- integration V2 93/94 (L1453)\n\nMost of the engineering effort in this range went to process supervision, hash custody and test harnesses, not geometry.\n\nCAD-GUIDED VS SCAN-ONLY: The whole range is CAD-guided: registering a scan to CAD planes and measuring per-role supports. There is no head-to-head against scan-only in this window. The planned \"paired\" comparison is control vs challenger, and both arms are CAD-guided (L1607-1609).\n\nPARTIAL / INCOMPLETE BEND STATE: Not addressed in this range. Nothing covers scans made mid-sequence, bend-order schedules or flat patterns. A \"schedule projection\" exists (L1523-1530), but here \"schedule\" means the candidate-pair search schedule, not the bend order.\n\nFLANGE LENGTH: Not measured or scored as a per-bend output here. The curved measurements are radius/angle fits (5.30 mm / 90 degrees, L2771). \"Flange\" appears only as a role label: flange supports and \"global flange parity\" (L1791). The scorer measures contact/axis line placement against 71 reference lines (L2441-2484, L2082).\n\nRUNTIME DEFAULTS:\n- Default prep V7 and default initializer V1 stay unchanged. New paths are opt-in (composite_v1, V12/V13) (L2435, L2644-2645).\n- \"No default product routing ... is authorized\" (L2661).\n- Production Huber default 0.25 mm, with the bound 0.25 <= 0.5 <= 2 (L1495-1496).\n- Nothing in this chain is wired into the app runtime.\n\nUSER DIRECTION / PLAN (L1584-1591): finish reliability/abort repair, then a small consumed diagnostic on 3 cases (CG08506AE97D capacity, CG4BDD1371B6 registration/ambiguity, CG4FAF273093 CPU; L1481-1486), then a full Gold11 rerun. A Chat 6 Pro consultation (L2856-2890) recommended a connected proposal/eligibility redesign. A \"40TP/.75P interim target\" was explicitly not adopted (L2882). The doc says the goal is still incomplete, and the product goal was reported paused (L1590).",
+  "versions_and_scores": [
+   {
+    "name": "Gold11 V5 physical paired benchmark",
+    "mechanism": "CAD-guided two-plane registration plus contact scoring, control vs challenger, 22 case/arm opportunities",
+    "dataset": "Gold11 physical: 11 scans / 6 CAD / 71 reference lines",
+    "score": "NO SCORE: supervisor PID-identity abort after 3493.95 s; 8 registration refusals, 1 SIGXCPU, 1 interrupted, 12 not started",
+    "source": "docs/CURRENT_STATUS.md:1696-1752",
+    "date": "2026-09-12",
+    "status": "terminal negative"
+   },
+   {
+    "name": "Connected V12 array (C0/C1/C2)",
+    "mechanism": "V12 proposal/conditional-context registration plus raw-role free-circle measurement",
+    "dataset": "synthetic 4 curved cases + 6 planar arms",
+    "score": "0 published positives; U-R got 5.30mm/90deg intermediate fits, vetoed for overlap",
+    "source": "docs/CURRENT_STATUS.md:2758-2789",
+    "date": "2026-09-10",
+    "status": "terminal negative"
+   },
+   {
+    "name": "Support-cover V2 connected",
+    "mechanism": "exact existing-support cover plus fresh scan refit",
+    "dataset": "synthetic 4 curved (U-R,U-A,L-R,L-A)",
+    "score": "V2 2/4 vs V1 0/4; L cases 0/13 plane cores qualified",
+    "source": "docs/CURRENT_STATUS.md:2664-2708",
+    "date": "2026-09-10",
+    "status": "terminal negative (2 positives retained)"
+   },
+   {
+    "name": "Composite-plane V1 connected",
+    "mechanism": "seeded plus composite scan-plane proposals",
+    "dataset": "synthetic 4 curved",
+    "score": "2/4 (no gain vs 2/4 control); L-R 3204 hypotheses, 0 starts",
+    "source": "docs/CURRENT_STATUS.md:2485-2529",
+    "date": "2026-09-10",
+    "status": "terminal negative"
+   },
+   {
+    "name": "Two-plane depth V1 connected",
+    "mechanism": "scheduler V2 residual-depth pair scheduling with context V1",
+    "dataset": "synthetic 4 curved",
+    "score": "0/4 (PAIR_ASSIGNMENT_QUOTA_EXCEEDED)",
+    "source": "docs/CURRENT_STATUS.md:2245-2284",
+    "date": "2026-09-11",
+    "status": "terminal negative"
+   },
+   {
+    "name": "Two-plane depth V2 connected",
+    "mechanism": "context V2 per-pair depth admission",
+    "dataset": "synthetic 4 curved",
+    "score": "2/4 (U-R,U-A pass; L-R,L-A NO_VALID_EXISTING_SUPPORT_COVER_MEASUREMENTS); ~5023 CPU s",
+    "source": "docs/CURRENT_STATUS.md:2085-2167",
+    "date": "2026-09-11",
+    "status": "terminal negative"
+   },
+   {
+    "name": "Native-byte diagnostic (two_plane_depth_v1_native)",
+    "mechanism": "one actual L-R byte workflow plus integrity ledger",
+    "dataset": "synthetic L-R native bytes",
+    "score": "99 PASS / 1 FAIL; accuracy oracle RED; 518 CPU s",
+    "source": "docs/CURRENT_STATUS.md:1995-2024",
+    "date": "2026-09-11",
+    "status": "terminal negative"
+   },
+   {
+    "name": "Integration94 / Integration V2",
+    "mechanism": "initializer V13 / workflow V14 context V3 binding",
+    "dataset": "invented fixtures plus 900k-row dense case",
+    "score": "21/94, then 93/94 (fixture omits scan); dense capacity pass",
+    "source": "docs/CURRENT_STATUS.md:1453-1522",
+    "date": "2026-09-12",
+    "status": "research-only"
+   },
+   {
+    "name": "Source/unit gates (seeded-plane 107, support-cover 187, V12 256, scorer 123, scheduler 80, context V3 76, projection V2 237, extrema 88)",
+    "mechanism": "plumbing/custody qualification",
+    "dataset": "invented tiny fixtures",
+    "score": "all GREEN",
+    "source": "docs/CURRENT_STATUS.md:1523-1695, 2411-2440, 2623-2663, 2731-2857",
+    "date": "2026-09-10..12",
+    "status": "research-only"
+   },
+   {
+    "name": "Production Huber default",
+    "mechanism": "registration robust loss scale",
+    "score": "0.25 mm (bound 0.25<=0.5<=2)",
+    "source": "docs/CURRENT_STATUS.md:1495-1496",
+    "status": "runtime default"
+   }
+  ],
+  "implications_for_production": [
+   "No physical accuracy number exists for the CAD-guided chain in this window. The only real-data run (Gold11 V5) failed with no score, so CAD-guided vs scan-only cannot be compared from this evidence. That is consistent with the owner seeing no gain.",
+   "Runtime cost is far from robotic-cell needs: about 1000-1500 CPU s registration per synthetic curved case, and the planned physical run budgets about 31 min CPU per case / 29 h total. Capacity blowups appear on real scans with 600k-820k points.",
+   "Localized curved cases (L-R/L-A) fail in every successor (0/4 to 2/4 plateau): the scan-plane extraction and pair scheduling yield no finite starts. Robust registration on partial or occluded geometry is unsolved.",
+   "Flange length is not a measured or scored output anywhere in this chain. Measurements are radius/angle fits and contact-line placement, so the operator's top metric is unaddressed.",
+   "Incomplete parts (first k bends formed) and the tagged bend order / \u05de\u05d4\u05dc\u05da groups are absent from this engine's design. 'Schedule' here means the candidate-search schedule, not the bend sequence. An unfolded/flat-pattern input is not used.",
+   "Opt-in paths only: defaults stay V7 prep / V1 initializer, with explicit 'No default product routing'. Nothing here is wired into the app.",
+   "Most effort went into custody/supervision gates (hash archives, PRE/POST audits) rather than geometry. A production plan should reset scope to a fast, bend-order-aware, CAD-registered per-bend measurement with flange length, scored on the Gold11 71-line set."
+  ]
+ },
+ {
+  "area": "status-1: F1 / bend-engine timeline from docs/CURRENT_STATUS.md lines 1-1450 (plus narrow lookups beyond line 1450 for the historical baseline and the zero-shot deferral)",
+  "findings": "File: /Users/idantal/ShermanQC/FullProject/docs/CURRENT_STATUS.md (4258 lines; newest entries first). I read lines 1-1450 in full and grep-checked the rest. The file does not mention \"Gold27\" or \"HOLDOUT10\" anywhere. In this range \"approved20\" means the 20-unique-STEP CAD corpus. The range covers two separate lines of work.\n\nTRACK 1: physical scan engine on Gold11 (CAD-assisted mesh development, V6 to V11), 2026-09-12 to 09-14 (lines 515-1449)\n- Dataset: Gold11 is 11 scans, 6 CADs/families and 71 reference bend lines, run in two arms (control and challenger) for 22 slots (lines 612, 1156).\n- Baseline: the historical Gold11 F1 is 0.4580152672 (30 TP / 30 FP / 41 FN, precision 0.5, recall 0.4225, minimum-family recall 0.2), reproduced from cached bytes on 2026-09-10 (line 3091). On the paired Gold11 comparison the scan-only engine scored F1 .365 with 0/11 exact counts, and the CAD-assisted engine scored .458 with 1/11 (lines 3675-3676). Every later V7-V10 entry calls .458 \"non-comparable, not beaten\".\n- On 2026-09-08 the user deferred standalone zero-shot work and made \"CAD+scan offline first\" the active priority (lines 3628-3660). Targets were set: CAD+scan exact count >= .95, P/R/F1 >= .90 each, minimum-family recall >= .80, blind PLY-only exact count >= .90, and paired CAD count uplift >= 5 pp (lines 3644-3645, 3679-3681). Line 3875 adds: \"Do not extend a universal scan-only discovery campaign before the primary CAD-assisted workflow.\"\n- Six-slot diagnostic (3 cases x 2 arms, lines 1244-1276): exit 0, all six outcomes negative (two-plane-context refusal, no supported measurement context, near-tie budget, one CPU kill), no F1.\n- V7 full11 (lines 1092-1128, 1052-1070): about 103 min, exit 0. TP0/FP0/FN71 on both arms, F1 null, zero emitted lines. Causes: 10 extrema-coordinate capacity refusals, 4 no passing finite starts, 2 membership capacity, 2 interval width, 2 near-tie, 1 residual rejection, 1 CPU kill; 5 also had INVALID_NATIVE_SOLID.\n- The work then went into compute primitives (sheared-bounds primitive40 passed; raw-extrema index V2 failed its efficacy test, with work rising from 11.4M to 19.1M and CPU from 0.099 s to 1.62 s; lines 932-1040). After that, implementation moved to Claude Code / Fable 5.1 (lines 852-944).\n- V8 (lines 808-832): TP0/FP0/FN71, F1 null. Extrema refusals were gone, but 12 slots had no passing start, there were 4 CPU kills, and all 43 measurement windows were refused by the flange policy. The pose gate had been relaxed from 0.5 to 1.0 mm.\n- V9 (lines 680-712): about 8 h, F1 null. 14 slots were CPU-killed at 1860 s. A wiring defect (kernel-V1 vs kernel-V2 feature class) meant measurement could never succeed.\n- V10 (lines 606-625): 6 h 38 min, exit 0, no CPU kills, F1 null. Every case was refused EXPLICIT_WORKFLOW_UNAVAILABLE on both arms. Of the 22 slots: 11 had NO_GEOMETRICALLY_SUPPORTED_MEASUREMENT_CONTEXTS, 4 had no finite starts, 2 had plane-init unavailable, and 6 had INVALID_NATIVE_SOLID. The POST audit accepted the null result (line 583).\n- V11 (cad_guided v18 chain, kernel V3 band-membership layer separation; lines 536-604): frozen with bundle 0a03a298 and PRE GREEN. The single execute was RUNNING as of 2026-09-14 02:33 UTC; no result is recorded in lines 1-1450. Its synthetic full-bytes fixture took 615-638 s per case (line 573) and measured radius 5.06 against the 5.0 CAD value (line 568).\n- V11 single-case candidate (lines 515-534): research-only script scripts/run_gold11_v11_single_case_candidate_v1.py, run on one part (CG4BDD1371B6 / 37361005). It recovers lines native STEP axis -> pose -> raw scan support and scored 4/4 TP, F1 1.0. This is a consumed-development result on one part; CAD radii and sweeps are nominal metadata, and only line endpoints come from the scan. It is not promoted.\n\nTRACK 2: CAD-only bend extraction and unfolding from STEP (no scans), 2026-09-29 to 10-01 (lines 1-513)\n- Fresh-upload STEP integration, 5 CADs (lines 508-513): 2/5 produced folded+flat previews (37361005 with 4 bends, 10839000 with 12). The POST audit marked geometry/manufacturing NO-GO. A V5 rerun raised this to 3/5 (38172000 recovered; lines 350-407). 49001000 (spline) and 42288005 (stepped boss/hole) still refuse.\n- Corpus: ../source-assets/02_CAD_QC_3D holds 23 STEP paths, 20 unique hashes and 1 DWG (lines 189-195). Baseline run: 127 candidate axes, 16 folded displays, 6 unfolds (lines 196-205). Explicit-frame V3: 97 candidates / 19 / 6. Metric-boundary V4: negative, 2 unfolds, caused by a NumPy float64 scalar defect. Bounded-corridor V5 and exact-trim V6: 98 / 19 / 6 with no gain (lines 221-330).\n- First scored extraction (lines 127-178): an AI technical review froze 127 verified bend regions (12 complete references, 8 partial). Score: 98/127 = 77.17% captured, precision 100%. On the 12 complete CADs: recall 79.38%, F1 88.51%, exact count 6/12. Diagnosis of the 29 misses: 24 rectangular spline-trim certificate, 3 rolled/hole, 2 curved continuation.\n- Extractor V9 / campaign V8, native curves (lines 91-125): 113/127 = 88.98%. On the 12 complete CADs: 88 TP / 0 FP / 9 FN, F1 95.14%, exact 7/12.\n- Extractor V10 / campaign V9, boundary chains (lines 57-89): 120/127 = 94.49%, 0 FP. On the 12 complete CADs: F1 98.43%, exact 10/12, macro F1 89.58%. Remaining 7 misses: 3 rolled/hole, 2 planar-to-rolled, and 2 case17 rail-join refusals (diagnosed at lines 46-55 as negative steps of about -2e-13 to -4e-13 rejected without a ULP guard; not patched). Unfolding still covers only 6/20.\n- Email transfer test (lines 1-44): one randomly drawn email STEP, MEC003744_02, unchanged V10: 12/12, F1 100%. The newest email file (SLDPRT) is unsupported without a STEP.\n- All CAD scores are exact native-face detection only. The doc states they are \"not line/angle/dimension accuracy\" (lines 155-157), and markers are \"interior core, not full bend width or manufacturing bend centerlines\" (line 118).\n\nRuntime defaults: every entry says defaults, the public site and live runtimes are unchanged. Development selectors exist: SHERMAN_VENDOR_CAD_RUNTIME=v2-development and SHERMAN_VENDOR_UNFOLD_RUNTIME=v4-development (lines 385-386). Units are assumed to be mm; there is no K-factor or bend-allowance model (lines 505-506, 512).\n\nPartial / incomplete parts: there are no physical runs on mid-sequence (partially bent) scans in lines 1-1450. \"Partial\" there refers to partial CAD references or partial ROI lists. The only partial cases are synthetic fixtures: \"partial datums\", deviated and ambiguous cases in the 66-case synthetic connected set (TP54/FP0/FN12, synthetic F1 .90; line 3546), and the 09-08 plan, which listed \"correct/deviated/partial/ambiguous\" cases as the next step (line 3651). Flange length is never reported as a measured output anywhere in this range.",
+  "versions_and_scores": [
+   {
+    "name": "Historical CAD-assisted (UNION) Gold11",
+    "mechanism": "Legacy CAD-assisted plus scan union, cached bytes reproduced",
+    "dataset": "Gold11 (11 scans / 6 CAD / 71 refs)",
+    "score": "F1 0.4580 (30TP/30FP/41FN, P .5, R .4225, min-family R .2); exact count 1/11",
+    "date": "historical; reproduced 2026-09-10",
+    "source": "docs/CURRENT_STATUS.md:3088-3095, 3675-3676",
+    "status": "historical baseline (non-comparable to later runs)"
+   },
+   {
+    "name": "Scan-only (zero-shot) Gold11",
+    "mechanism": "PLY-only bend discovery",
+    "dataset": "Gold11",
+    "score": "F1 .365, exact count 0/11",
+    "date": "pre-2026-09-08",
+    "source": "docs/CURRENT_STATUS.md:3675",
+    "status": "deferred by user 2026-09-08 (lines 3633-3638)"
+   },
+   {
+    "name": "Gold11 context V3 six-slot diagnostic",
+    "mechanism": "CAD-guided context/registration pipeline",
+    "dataset": "Gold11 subset (3 cases x 2 arms)",
+    "score": "no F1; 6/6 negative outcomes",
+    "date": "2026-09-12",
+    "source": "docs/CURRENT_STATUS.md:1244-1276",
+    "status": "terminal negative"
+   },
+   {
+    "name": "Gold11 mesh development V7",
+    "mechanism": "CAD-guided mesh offline, 70 sources, two arms",
+    "dataset": "Gold11 full11",
+    "score": "TP0/FP0/FN71, F1 null",
+    "date": "2026-09-12",
+    "source": "docs/CURRENT_STATUS.md:1052-1128",
+    "status": "terminal negative"
+   },
+   {
+    "name": "Raw extrema index V2 (sheared bounds)",
+    "mechanism": "Compute acceleration primitive",
+    "dataset": "synthetic",
+    "score": "efficacy failed (work 11.4M to 19.1M, CPU 0.099 s to 1.62 s)",
+    "date": "2026-09-12",
+    "source": "docs/CURRENT_STATUS.md:932-942",
+    "status": "terminal negative"
+   },
+   {
+    "name": "Gold11 mesh development V8",
+    "mechanism": "extrema V3, surface V4, registration V4, pose gate 1.0 mm",
+    "dataset": "Gold11",
+    "score": "TP0/FP0/FN71, F1 null; 43 windows refused by flange policy",
+    "date": "2026-09-13",
+    "source": "docs/CURRENT_STATUS.md:808-832",
+    "status": "terminal negative"
+   },
+   {
+    "name": "Gold11 mesh development V9",
+    "mechanism": "kernel V2 layer partition, completion lane, \u03b4 .03/e .04",
+    "dataset": "Gold11",
+    "score": "TP0/FP0/FN71, F1 null; 14 CPU kills; feature-class wiring defect",
+    "date": "2026-09-13",
+    "source": "docs/CURRENT_STATUS.md:680-712",
+    "status": "terminal negative"
+   },
+   {
+    "name": "Gold11 mesh development V10",
+    "mechanism": "native feature bridge V1, refinement allowance, CPU guard",
+    "dataset": "Gold11",
+    "score": "TP0/FP0/FN71, F1 null; all refused EXPLICIT_WORKFLOW_UNAVAILABLE; 6h38m",
+    "date": "2026-09-13",
+    "source": "docs/CURRENT_STATUS.md:581-625",
+    "status": "terminal negative (POST accepted)"
+   },
+   {
+    "name": "Gold11 mesh development V11 (cad_guided v18 chain)",
+    "mechanism": "kernel V3 two-mode band-membership layer separation",
+    "dataset": "Gold11",
+    "score": "no result recorded in lines 1-1450 (execute RUNNING 2026-09-14); synthetic fixture 615-638 s/case",
+    "date": "2026-09-14",
+    "source": "docs/CURRENT_STATUS.md:536-604",
+    "status": "research-only, outcome not in range"
+   },
+   {
+    "name": "V11 single-case candidate",
+    "mechanism": "native STEP axis to V11 pose to raw scan support recovery",
+    "dataset": "one Gold11 part CG4BDD1371B6 / 37361005",
+    "score": "4/4 TP, F1 1.0",
+    "date": "2026-09-14",
+    "source": "docs/CURRENT_STATUS.md:515-534",
+    "status": "research-only, not promoted"
+   },
+   {
+    "name": "Fresh-upload STEP unfold V4",
+    "mechanism": "native bend extraction plus selected-skin unfold",
+    "dataset": "5 approved CADs",
+    "score": "2/5 previews",
+    "date": "2026-09-29",
+    "source": "docs/CURRENT_STATUS.md:508-513",
+    "status": "terminal; geometry NO-GO"
+   },
+   {
+    "name": "Fresh-upload STEP unfold V5",
+    "mechanism": "finite strip intrusion test, metric oracle",
+    "dataset": "5 approved CADs",
+    "score": "3/5 previews",
+    "date": "2026-09-30",
+    "source": "docs/CURRENT_STATUS.md:350-407",
+    "status": "dev selector only (SHERMAN_VENDOR_UNFOLD_RUNTIME=v4-development)"
+   },
+   {
+    "name": "CAD corpus extraction baseline (as scored)",
+    "mechanism": "exact native-face bend extraction",
+    "dataset": "approved20 STEP (127 verified bends)",
+    "score": "98/127 = 77.17%; complete-12 F1 88.51%, exact 6/12",
+    "date": "2026-09-30",
+    "source": "docs/CURRENT_STATUS.md:127-178",
+    "status": "terminal scored"
+   },
+   {
+    "name": "Extractor V9 / campaign V8 (native curve)",
+    "mechanism": "retain original rational curves",
+    "dataset": "approved20 STEP",
+    "score": "113/127 = 88.98%; complete-12 F1 95.14%, exact 7/12",
+    "date": "2026-09-30",
+    "source": "docs/CURRENT_STATUS.md:91-125",
+    "status": "superseded"
+   },
+   {
+    "name": "Extractor V10 / campaign V9 (boundary chain)",
+    "mechanism": "native boundary chains, both-end coverage",
+    "dataset": "approved20 STEP",
+    "score": "120/127 = 94.49%, 0 FP; complete-12 F1 98.43%, exact 10/12; unfold 6/20",
+    "date": "2026-09-30",
+    "source": "docs/CURRENT_STATUS.md:57-89",
+    "status": "latest CAD extractor; not a runtime default"
+   },
+   {
+    "name": "Extractor V10 email transfer",
+    "mechanism": "unchanged V10",
+    "dataset": "MEC003744_02.step (email)",
+    "score": "12/12, F1 100%",
+    "date": "2026-10-01",
+    "source": "docs/CURRENT_STATUS.md:3-29",
+    "status": "single-CAD transfer check"
+   }
+  ],
+  "implications_for_production": [
+   "No physical scan run has produced a numeric F1 better than the historical 0.458 baseline. V7 through V10 all scored F1 null, and V11 has a result only on one part.",
+   "The 120/127 (94.49%) CAD extraction score measures which CAD faces are bend faces (exact native-face detection). It does not measure angle, flange length or position, and the doc says so explicitly (lines 155-157). It gives an expected-bend list from CAD, but not scan-measured values.",
+   "The doc confirms the owner's observation: the CAD-assisted engine (.458, 1/11 exact) is only slightly ahead of scan-only (.365, 0/11), and every later CAD-guided version scored null.",
+   "No runtime default was ever promoted. The CAD and unfold paths exist only behind development env selectors (lines 385-386), and units are assumed mm with no K-factor or bend allowance.",
+   "Incomplete (mid-sequence) scans have never been evaluated on physical data. Only synthetic 'partial datum' fixtures exist (synthetic F1 .90), so any partial-state handling still has to be designed and tested.",
+   "The approach that worked on one part (STEP bend axes from extractor V10, then scan pose, then raw scan support) suggests a production path: CAD gives the expected bends and the scan measures each one. This fits the onboarding inputs (STEP, unfolded file, tagged bend order) better than open-ended zero-shot detection.",
+   "Unfolding works on only 6 of 20 CADs. The planned onboarding upload of an unfolded/flat part file would fill this gap for the folded/flat views used when tagging bend order.",
+   "The repeated freeze/PRE/POST process and multi-hour runs (V9 about 8 h, V10 6 h 38 min) are research overhead and do not fit a production latency target."
+  ]
+ },
+ {
+  "area": "status-3: docs/CURRENT_STATUS.md lines 2900-4258 (oldest history, 2026-09-07 through 2026-09-10), F1 historian extraction",
+  "findings": "SCOPE: I read every line of /Users/idantal/ShermanQC/FullProject/docs/CURRENT_STATUS.md from 2900 to 4258 (end of file). The file is in reverse chronological order, so this section runs from 2026-09-10, near line 2900, back to the oldest companion checkpoint of 2026-09-07 (lines 4180-4258). I did not open any sealed, Gold, scan or held-out artifacts, and I did not run anything.\n\n1. ORIGIN (2026-09-07, lines 4180-4258). The repo was re-oriented \"to work optimally with Astra\" (the GPT-6 Astra agent). There were three research lanes (4198-4229):\n (a) Scan-only C14/C15, the zero-shot \"F1 train18 candidate\" line. C14 ended terminal: its geometry-alias stage \"reached all 36 records but did not pass all\". C15 localizer core/worker/parent exist at backend/f1_train18_candidate15_geometry_representation_failure_localizer_v1.py plus scripts/run_f1_train18_candidate15_*. C15 has three deliberately retained source-freeze failures (4156-4158) and is non-runnable.\n (b) CAD EXP35, which ended terminal as a \"pre-physical memory-differential nonqualification, explicitly no rerun\" (4209).\n (c) Email held-outs (EHO4), reserved.\n\"F1 research remains offline/research-only\" (4211). The roadmap is docs/research/2026-09-07_production_generalization_roadmap.md.\n\n2. ZERO-SHOT GEOMETRY BUILD-UP (2026-09-07, lines 3842-4178). This is a long series of synthetic-only seams:\n - Axis-conditioned radius prototype with 126 tests (4132). It explicitly shows \"a perfect circle fit with roughly twice the true radius under bounded errors\" (4143).\n - Plane-pair axis hypotheses and a radius bridge (4095-4130).\n - Position-only candidate birth (4065). On a 120-case matrix, mixed radii and sparse flanges abstained 30/30 (4078-4081).\n - Adaptive/mixed-radius work (4036). Under noise, only 76 of 2,502 band intervals matched truth, and the doc says \"Discovery is not stable under noise\" (4046-4052).\n - Cone-closed regions (4008): noisy associations fell from 6,282 to 262.\n - Graph envelope (3979): \"union\" reached 150/150 on constructed clouds but \"can join unrelated objects\" (4000).\n - Adjacent-bend seeds (3943): 80 to 120 matched of 144 events.\n - Same-face tangency (3911), a 2M-row stream/window bridge (3880) and a dense radius constraint for one stipulated axis (3842).\nEvery one of these is labelled \"NOT physical accuracy\" and none was promoted.\n\n3. PIVOT TO CAD-ASSISTED (2026-09-07 to 09-08, lines 3628-3664 and 3666-3700).\n - The scorecard records the last valid paired physical Gold11 development comparison: scan-only F1 .365 with 0/11 exact count, versus CAD-assisted .458 with 1/11 exact count (3675-3677). On this one comparison CAD-assisted scored about +0.09 F1 above scan-only, but both were far below target.\n - The user then explicitly put \"CAD+scan offline engine output before floor testing\" and authorized deferring zero-shot work (3633-3637).\n - Locked targets (3644, 3679-3681): P/R/F1 each \u2265.90; worst-family recall \u2265.80; blind PLY-only exact count \u2265.90; CAD+PLY count \u2265.95; paired CAD count uplift \u22655 points.\n - Source review found legacy measurement defects (3654-3658): angle-convention ambiguity, heuristic/clipped radius, padded finite extents and default CAD tolerances. \"folded legacy PASS does not even require radius agreement.\"\n - Key math finding (3719-3721): the flange-plane intersection line is NOT the bend's cylinder center axis. For perpendicular planes they differ by sqrt(2) times the radius. This matters directly for bend-line position and flange-length conventions.\n\n4. CAD-GUIDED MEASUREMENT AND REGISTRATION (2026-09-08 to 09-09, lines 3529-3627).\n - A CAD-guided measurement path (3590): CAD supplies search features and the scan measures the radius. A constructed R6 scan against R5 CAD reports +1 mm, where the legacy path copied the CAD radius and reported 0.\n - An 8,192-case stress test failed 8 cases. A \"measured_flange_tangent\" variant fixed them, cutting max radius error from 1.86% to 0.85%.\n - Native OCP STEP feature adapter (3559): 70-case matrix.\n - Registration and finite evaluator (3529): 66 constructed cases, synthetic F1 .90, not physical.\n - Rerun prep (3501) found actual corpus rerun NOT_READY.\n - AI review of 63 CAD proposals (3474-3500): 56 plausible and 7 unresolved. The review also found cyan fallback lines labelled as observed intersections.\n\n5. GOLD11 PHYSICAL REALITY (2026-09-09, lines 3451-3473 and 3222-3450).\n - Input review (3451): all 11 Gold11 scans are mesh PLYs that the R0 vertex-only schema rejects. Ten exceed 200k rows. Three CAD families, used by eight cases, exceed 128 native faces. Scan units and the scan-to-CAD pose were unverified. All 71 Gold references are direct endpoints with no carrier metadata.\n - Physical V1 run (3241-3246): both arms produced 0 lines and 71 FN. Twenty attempts were registration refusals.\n - Constructed path then progressed through V2 (1/3), the V3 Gauss-Newton attempt (worse, 1.94 to 2.24 mm error) and V4 (3/3).\n - Noisy V5/V6/V7 (V6 1/4, V7 2/4) and V8 4/4 on constructed cases (3378-3395). The noisy V8 case had pose error 0.0017 mm and radius error 0.000076 mm.\n - Physical V2 run (V8 versus V1) was also 0 lines, TP0/FP0/FN71 (3410). Nine challengers stopped at CAD-triangle arithmetic admission, one at a triangle-membership cap and one at ill-conditioned triplet search (3417-3419). None reached measurement.\n\n6. 2026-09-10 (lines 2900-3221).\n - Cached control recovered numerically (3086-3098): UNION F1 0.4580152671755725, 30TP/30FP/41FN, precision .5, recall .4225, minimum-family recall .2. This reproduces retained bytes; it is not a fresh run.\n - All 11 historical A0 prediction files were recovered (3140-3150).\n - Physical V3 run (V8/V10): again 0TP/0FP/71FN (3108), with a formal custody block from 44 extra partial files. Attribution (3115-3120): 6 cases (45 refs) passed screening but generated zero starts, 3 were CPU-killed, 1 failed membership admission and 1 had no triplet poses. Parent run time 959 s, about 2 GB peak.\n - V9 native gate CPU-terminal at 240 s. V10 face-box screening passed 4/4 constructed cases with a 90.6% cut in prefilter work (3176-3190).\n - Thin-part diagnostic (3163-3171): all 48/48 triplets rejected. Thin-cap witnesses fail the noise cone, at about 17.8 degrees against a 10 degree limit.\n - V11 two-plane initializer failed its noisy positive, 40 PASS / 1 FAIL (2985-2992). The diagnostic (2951-2983) found the exact correct pose, but closest-point ambiguity at a triangulation diagonal removed 9 rows. Support of .80/.84 then fails the .95 gate.\n - Strategic audit (3009-3016): \"Two historically productive cases supply half the cachedTP, yet modernV3 kills one and yields no start on the other.\" Within-family variation defeats a simple family-training explanation.\n - The section ends with the goal blocked on a model-choice question (2915-2927). The user had asked for GPT Astra 6 Pro; only \"Astra Ultra\" was selectable. A consultation was eventually submitted (2900-2913), with no answer evaluated yet.\n\nCROSS-CUTTING OBSERVATIONS\n - In this whole history window, no CAD-guided cad_guided_* engine produced a single physical output line on Gold11. That happened in three frozen physical runs: V1, V2 and V3.\n - The only nonzero physical number is the retained historical UNION, a fusion of A0 scan-only with gated CAD: F1 .458. The scan-only arm alone scored F1 .365.\n - This is consistent with the owner's view of \"no measurable gain\". In fact, the modern CAD-guided rewrite regressed from .458 to 0 output.\n - Flange length is never mentioned as a measured or scored quantity in this window. Gold references are bend-line endpoints (71 segments). Measurements discussed are radius, pose and endpoints only.\n - Incomplete scans (partially formed parts) never appear. The only nearby concept is the \"missing arc\" sentinel, which leads to abstention. No unfolded/flat-pattern input or bend-order/\u05de\u05d4\u05dc\u05da concept appears either.\n - Enormous process overhead: frozen bundles, PRE/POST audits, and \"do not rerun\" on every attempt. Most progress is on constructed synthetic cases.",
+  "versions_and_scores": [
+   {
+    "name": "A0 scan-only (historical zero-shot arm)",
+    "mechanism": "Scan-only PLY bend detection, no CAD",
+    "score": "F1 .365, exact count 0/11",
+    "dataset": "Gold11 physical (71 refs)",
+    "date": "pre-2026-09-08 (cited 09-08)",
+    "source": "docs/CURRENT_STATUS.md:3675-3677",
+    "status": "historical baseline"
+   },
+   {
+    "name": "Retained CAD-assisted UNION (A0 + gated CAD fusion)",
+    "mechanism": "Fusion of scan-only A0 lines with CAD-gated predictions",
+    "score": "F1 0.4580 (30TP/30FP/41FN, P .5, R .4225, min-family recall .2), exact count 1/11",
+    "dataset": "Gold11 physical",
+    "date": "historical; numerically re-scored 2026-09-10",
+    "source": "docs/CURRENT_STATUS.md:3086-3098, 3675-3677",
+    "status": "cached control (best physical number; not re-executed)"
+   },
+   {
+    "name": "C14 scan-only candidate",
+    "mechanism": "F1 train18 candidate14 geometry-alias diagnostic",
+    "score": "reached all 36 records, did not pass all",
+    "dataset": "train18 (36 records)",
+    "date": "\u22642026-09-07",
+    "source": "docs/CURRENT_STATUS.md:4205-4207",
+    "status": "terminal negative"
+   },
+   {
+    "name": "C15 failure localizer",
+    "mechanism": "12-stage scan-only geometry representation failure localizer",
+    "score": "99/36/96 tests, 3 retained source-freeze failures; never run on real input",
+    "dataset": "synthetic only",
+    "date": "2026-09-07",
+    "source": "docs/CURRENT_STATUS.md:4152-4160, 4213-4229",
+    "status": "research-only, non-runnable"
+   },
+   {
+    "name": "EXP35 CAD",
+    "mechanism": "Earlier CAD experiment",
+    "score": "pre-physical memory-differential nonqualification",
+    "dataset": "n/a",
+    "date": "2026-08-30",
+    "source": "docs/CURRENT_STATUS.md:4209-4210",
+    "status": "terminal negative"
+   },
+   {
+    "name": "Zero-shot synthetic seams (radius/axis/region/graph/adjacent/tangency)",
+    "mechanism": "Position-only plane seeds, cone-closed regions, graph envelope, radius bridge",
+    "score": "e.g. 150/150 constructed with union graph; noisy 76/2502 band intervals matched; adjacent 120/144",
+    "dataset": "constructed synthetic clouds",
+    "date": "2026-09-07",
+    "source": "docs/CURRENT_STATUS.md:3911-4178",
+    "status": "research-only"
+   },
+   {
+    "name": "Gold11 mesh development V1 (cad_guided V1)",
+    "mechanism": "CAD+scan registration then measurement",
+    "score": "0 lines both arms, 0TP/71FN; 20/22 registration refusals",
+    "dataset": "Gold11 physical",
+    "date": "2026-09-09",
+    "source": "docs/CURRENT_STATUS.md:3236-3246",
+    "status": "terminal negative"
+   },
+   {
+    "name": "Connected planes V4",
+    "mechanism": "Finite-plane triplet initializer + registration",
+    "score": "3/3 constructed curved-bend matrix",
+    "dataset": "constructed",
+    "date": "2026-09-09",
+    "source": "docs/CURRENT_STATUS.md:3299-3313",
+    "status": "research-only"
+   },
+   {
+    "name": "Connected planes V8",
+    "mechanism": "Noisy core extractor + fair rank-bin schedule",
+    "score": "4/4 constructed; noisy pose err 0.0017mm, radius err 0.000076mm",
+    "dataset": "constructed (2 clean, 1 noisy, 1 missing-arc)",
+    "date": "2026-09-09",
+    "source": "docs/CURRENT_STATUS.md:3378-3395",
+    "status": "research-only"
+   },
+   {
+    "name": "Gold11 mesh development V2 (V8 vs V1)",
+    "mechanism": "Physical paired run",
+    "score": "0 lines, TP0/FP0/FN71",
+    "dataset": "Gold11 physical",
+    "date": "2026-09-09",
+    "source": "docs/CURRENT_STATUS.md:3403-3419",
+    "status": "terminal negative"
+   },
+   {
+    "name": "Gold11 mesh development V3 (V8/V10)",
+    "mechanism": "Physical run with face-box screening",
+    "score": "0TP/0FP/71FN; 6 cases zero starts, 3 CPU-killed",
+    "dataset": "Gold11 physical",
+    "date": "2026-09-10",
+    "source": "docs/CURRENT_STATUS.md:3104-3121",
+    "status": "terminal negative, custody-blocked"
+   },
+   {
+    "name": "V11 two-plane initializer",
+    "mechanism": "Two-support slots + triplet search",
+    "score": "40 PASS / 1 FAIL (noisy positive no start; support .80/.84 vs .95)",
+    "dataset": "constructed",
+    "date": "2026-09-10",
+    "source": "docs/CURRENT_STATUS.md:2951-2992",
+    "status": "terminal negative"
+   },
+   {
+    "name": "Measured-flange-tangent radius fit",
+    "mechanism": "Scan-measured radius using flange tangency",
+    "score": "max radius err 1.86%->0.85% on 8192 constructed",
+    "dataset": "constructed",
+    "date": "2026-09-08",
+    "source": "docs/CURRENT_STATUS.md:3596-3604",
+    "status": "research-only opt-in"
+   }
+  ],
+  "implications_for_production": [
+   "No modern CAD-guided F1 variant (V1-V11) has produced any physical output on Gold11. The only physical numbers are historical: scan-only .365 and CAD+scan UNION .458. The 0 to .458 range is the real baseline, against a \u2265.90 target.",
+   "CAD guidance helped modestly in the one valid paired comparison (.365 to .458, 0/11 to 1/11 exact count). The rewrite toward full CAD registration then regressed to zero output. The owner's 'no gain' observation is consistent with this history.",
+   "Physical blockers are input and plumbing, not exotic math: mesh PLY versus a vertex-only schema, >200k-row scans, CAD faces over native caps, unverified scan units and pose, triangle-admission arithmetic, and CPU kills at 240 s. A production engine for Zeiss PLYs must handle all of these first.",
+   "Flange length, the operator's top need, is never measured or scored anywhere in this history. Gold11 references are bend-line endpoints only. A flange-length truth set and metric must be created.",
+   "Bend-line convention matters: the flange-plane intersection is not the cylinder axis (offset sqrt(2)\u00b7R for 90 degree bends). Expected-vs-actual position and flange length need an explicit convention, ideally the virtual-sharp or mold line from the flat pattern.",
+   "Incomplete scans (partly formed parts), bend order and \u05de\u05d4\u05dc\u05da groups, and unfolded/flat-pattern inputs appear nowhere in this history. The current engine only abstains on missing support, so a state-aware 'first k bends formed' mode is entirely new work.",
+   "Legacy runtime measurement has known defects: an ambiguous angle convention, clipped heuristic radius, padded extents and default CAD tolerances, and legacy PASS that ignores radius. Fix or replace these before showing operators expected-vs-actual.",
+   "Within-family variation, and two cases supplying half of the historical true positives, suggest the 11-part Gold set is too small and fragile to steer architecture. More labelled parts, including from email, are needed.",
+   "The audit and freeze process overhead is extreme relative to physical progress. A lighter, iterate-on-real-parts loop is likely needed to reach production."
+  ]
+ },
+ {
+  "area": "Theory: the intended F1 bend-state model for complete vs incomplete scans, what the \"professor\" advised, what got built vs not, and the most promising ideas not yet run (repo /Users/idantal/ShermanQC/FullProject, read-only)",
+  "findings": "CONTEXT: There are two separate lines of theory work. They use the same words but they are different engines.\n(1) A runtime bend-state model for CAD-matched bends, from March 2026: the factor model / count posterior.\n(2) The later \"F1\" bend-LINE detection research (zero-shot PLY first, then CAD-guided), scored against Gold line references.\nMost of the theory docs describe (1). Most of the recent effort and every recent F1 number belong to (2).\n\n1. INTENDED MODEL FOR COMPLETE vs INCOMPLETE SCANS (docs/BEND_STATE_FACTOR_MODEL_ARCHITECTURE.md)\n- The core idea is to stop using one flat 4-way label (FORMED/NOT_FORMED/PARTIALLY_OBSERVED/UNOBSERVED). Instead each CAD bend i gets three separate things (lines 8-12, 35-53):\n  - C_i: whether the bend is physically completed (binary in v1; a continuous hinge/angle is a later extension).\n  - rho_i: a continuous visibility score built from CAD ray-casting, local support, density and alignment stability.\n  - A_i: which local evidence candidate the bend is assigned to, with an explicit null option.\n- The four user-facing labels are derived from these, not modelled directly (lines 60-69).\n- Factorization (line 108): p(C,A|x) \u221d \u220f\u03c8_i(C_i,A_i;rho_i,g_i) \u220f\u03c8_excl(A) \u220f\u03c8_adj(C_i,C_j). It is CRF-style because the geometric features overlap and are not independent (lines 125-132).\n- Learned parts: two calibrated gradient-boosted-tree heads, one for visibility and one for formed/not-formed. Logistic regression is kept as an ablation (lines 143-153).\n- Coupling: hard exclusivity between confusable bends first; weak adjacency only later (lines 155-168).\n- Count decoding: the completed count K is read from the posterior over K using its median, not from per-bend argmax or MAP (lines 196-210).\n- Monotonicity across staged scans: count-only, through soft posterior regularization (lines 246-256).\n- A process-stage variable S is optional and explicitly NOT a primary latent in v1 (lines 57-58, 167). The reason given is that stage metadata did not exist.\n- Two principles that held up in testing (docs/MATH_PRECISION_RND_PLAN.md:125-148; docs/ONE_PAGER_PARTIAL_BEND_STATE_INFERENCE.md:34-36):\n  - UNOBSERVED is missing evidence, not evidence of absence.\n  - Global alignment quality does not prove that a given bend's neighbourhood was actually observed.\n- Rejected after testing (MATH_PRECISION_RND_PLAN.md:150-157): stricter one-sided thresholds, geometry-weighted assignment, and global optimal assignment. The last one regressed 49024000_A.\n- In this framework a complete scan is simply the case where every rho_i is high and every C_i is FORMED. No separate engine was designed for complete scans.\n\n2. WHAT THE \"PROFESSOR\" ADVISED\n- Provenance: the later packets are prompts that open \"You are the professor responsible for selecting exactly one bounded next action\u2026\" (docs/research/2026-08-16_professor_post_v70_sparse_field_architecture_packet.md:3). Some files are named *_GPT56_PRO_PROMPT. So much of the \"professor\" is a prompted AI role. The March 2026 response's provenance is not stated in the docs.\n- March 15 response (docs/PROFESSOR_RESPONSE_IMPLEMENTATION_NOTE_20260315.md:8-50):\n  - Use a CRF-style model with C_i/rho_i/A_i; no flat multiclass model and no stage latent in v1.\n  - Two calibrated GBDT heads; GBDT before neural models.\n  - Hard exclusivity over confusable evidence atoms.\n  - Count from the median of the posterior over K; no separate count head.\n  - Count-only soft monotonicity.\n  - Diagnosis (lines 72-80): the main error is wrong assignment structure when visibility is partial.\n- March 29 response, the system doctrine (docs/research/PROFESSOR_RESPONSE_SYNTHESIS_20260329.md):\n  - Split three kinds of truth: which bends exist, what nominal geometry to compare against, and what this scan can actually observe (lines 11-18).\n  - Retire three assumptions: that a good global overlay is enough for local metrology, that final geometry alone defines the targets, and that partial scans need a binary decision (lines 22-26).\n  - Truth basis: the manufacturing operation decides target inventory and progress counting; the released nominal decides acceptance (lines 41-46).\n  - Datum-island alignment (lines 48-66). For partial parts: the largest invariant flat plus holes/slots on it, then stable edges, then already-completed panels tied back to that flat. Remove unconstrained global ICP from the metrology path first.\n  - A ternary state FORMED/UNFORMED/UNKNOWN, with UNKNOWN the default on partial scans (lines 78-86).\n  - Measure each bend in multiple cross-sections orthogonal to the CAD bend line, with the frame anchored on the parent panel, and take the median (lines 116-121).\n  - Highest-value new label: a per-bend ternary state (lines 141-150).\n  - Industrial metric: operator review save rate at a fixed false-accept ceiling, not count MAE (lines 152-156).\n  - Blocker ranking: target definition, then datum policy, then partial-scan observability (lines 158-166).\n- Gap analysis (docs/research/PROFESSOR_RESPONSE_MATHEMATICAL_GAP_20260329.md:77-171): the advice was strong as a system diagnosis but weak as a specification. Still missing are formal versions of section metrology, datum-island objectives, observability thresholds and rolled-section tolerances.\n- July 15 checkpoint (docs/PROFESSOR_ENTERPRISE_F1_PROMOTION_CHECKPOINT_20260715.md):\n  - Do not promote; 4 of 16 gates pass (lines 5-21).\n  - PLY-only: 11/13 render-admissible exact count and 10/13 hard-visual, but release-visual is 0/13 (lines 35-44).\n  - The CAD+PLY blind lane runs with state=unknown and no expected counts (lines 57-61): 3/12 exact count. The \"former CAD uplift claim is withdrawn\" (lines 63-72).\n  - Open questions are about the scan-only ontology: ridge vs internal bend, alias bends (lines 153-164).\n\n3. IMPLEMENTED vs NOT\nIMPLEMENTED (runtime path):\n- Ternary states: domains/bend/services/runtime_semantics.py:6-50.\n- Two-head calibrated GBDT: backend/bend_unary_model.py:10-11, 237-331. Bundles are in output/unary_models/bootstrap_gbdt_20260315_*. The state head was trained on only 4 negatives (docs/BEND_STATE_MODEL_BACKLOG.md:181-182).\n- Confusable atoms, hard exclusivity and joint DFS decoding: bend_unary_model.py:385, 427, 548-613.\n- Count posterior: bend_unary_model.py:683-740. It is a Poisson-binomial over INDEPENDENT per-bend probabilities, with posterior median and MAP. On partial scans, UNKNOWN bends add zero count mass (lines 714-718).\n- The posterior median is wired into the worker: backend/bend_analysis_worker.py:227 \u2192 structured_count_reporting_service.py:37-97.\n- Results:\n  - Promoted baseline MAE: 1.143 total and 0.062 completed (BEND_STATE_MODEL_BACKLOG.md:6-10).\n  - The March 28 memo (PROFESSOR_MEMO\u202620260328.md:96-110) reports partial-scan MAE of 3.6 for BOTH the heuristic and the structured model. The structured model did not help partial scans at all.\nNOT IMPLEMENTED:\n- Count monotonicity / staged prior (Backlog Phase 4).\n- Any bend-order or sequence prior. rg finds no bend_order use in backend/domains except a disclaimer flag in backend/vendor_manufacturing_job.py:128.\n- Datum-island registration as a formal objective.\n- Formal section-based metrology.\n- The per-bend ternary label corpus.\n- The operator-save-rate metric.\n- Flange-length measurement.\n\nCAD-guided F1 lane:\n- Matched comparison on 11 cases: scan F1 .365 vs CAD fusion .458 (docs/research/2026-09-07_production_generalization_roadmap.md:223).\n- Gold11 mesh-path physical runs emitted 0 lines (V2/V3).\n  - Causes in V2: triangle numerical admission (9 cases), a 20M-membership cap (1 case), plane-proposal conditioning (1 case), and native ROI admission (2026-09-10_gold11_failure_factor_audit.md:45-56).\n  - In V3, 18,541 proposed poses produced 0 refinement starts (lines 239-250).\n- V11: control .4286 vs challenger .3818 (2026-09-16_gold11_v11_simple_family_failure_analysis.md:5-7). A 3-family subset reached F1 .818 at the 3 mm support gate and .917 at 5 mm (lines 68-74).\n- 49001000 root cause: CAD STEP axes sit about 3\u20135 mm off the observed bend lines, and the 3 mm support gate rejects valid axes (lines 84-95).\n- The roadmap (lines 9-26, 59-71) made CAD+scan offline the priority and deferred zero-shot. \"Coupled uncertainty and per-characteristic partial output remain offline work\" (line 71). The intended product contract has a stage-aware observed state (line 246).\n- Unfolding exists only as a CAD-extraction byproduct: 6/20 selected-skin unfolds (docs/CURRENT_STATUS.md:199, 238-239). There is no flat-pattern INPUT.\n\nWHY CAD SHOWED LITTLE GAIN (inference)\n- CAD was used as a candidate-line prior to recover Gold bend LINES. It was never used as a stage-aware nominal for a known partial state, since the blind contract forces state=unknown.\n- Native axes are systematically offset by about 3\u20135 mm, so CAD placement adds as many false positives as true positives.\n\n4. MOST PROMISING UNEXECUTED IDEAS (ranked)\n(a) Bend-order prefix hypothesis decoding for incomplete scans.\n- With a tagged order of P \u05de\u05d4\u05dc\u05da phase groups, the admissible states shrink from 2^N per-bend combinations to P+1 prefixes.\n- Replace the independent Poisson-binomial (bend_unary_model.py:683) with a likelihood per prefix hypothesis k (0..P). For each k, synthesize the intermediate nominal (flat pattern with the first k phases folded), align the scan to it with datum islands, and score the scan against each candidate. Pick by posterior, abstain if ambiguous, and allow a slack/out-of-order state.\n- The architecture doc deferred a stage latent only because there was no metadata (lines 57, 167). Onboarding will now provide that metadata.\n(b) Use the unfolded/flat file (or the CAD unfold) plus the bend order to generate the intermediate-stage CAD. This also gives each partial hypothesis its invariant datum region: the base panel plus already-formed panels.\n(c) Professor section metrology: multi-slice sections orthogonal to the CAD bend line, frame anchored on the parent panel, median aggregation. The same sections directly yield flange length (bend line to flange edge) and bend position, both currently missing.\n(d) A scan-derived centerline fit around each CAD axis (V11 analysis:97-103) to remove the 3\u20135 mm offset.\n(e) The two-plane/finite-context pose proposals (failure audit:153-158) are designed but not built.\n(f) Collect per-bend FORMED/UNFORMED/UNKNOWN labels and adopt operator review save rate as the metric. The tagged bend order plus the known stage per scan makes these labels cheap to derive.\n(g) Count monotonicity applies only if the same part is scanned at several stages.",
+  "versions_and_scores": [
+   {
+    "name": "Promoted runtime bend-count baseline (heuristic)",
+    "mechanism": "heuristic local completion + UNOBSERVED-is-missing-evidence merge rule",
+    "score": "MAE total completed 1.143; MAE completed 0.062; full-scan exact completion 0.882",
+    "dataset": "full ready-regression corpus",
+    "date": "2026-03-11",
+    "source": "docs/BEND_STATE_MODEL_BACKLOG.md:6-10",
+    "status": "runtime default (historical)"
+   },
+   {
+    "name": "Structured bend-state model (GBDT unary + exclusivity + posterior-median K)",
+    "mechanism": "two calibrated GBDT heads, hard exclusivity, Poisson-binomial count posterior median",
+    "score": "structured MAE total 1.727 vs heuristic 1.909; partial-scan MAE 3.6 vs 3.6 (no gain)",
+    "dataset": "34-scan core corpus",
+    "date": "2026-03-28",
+    "source": "docs/research/PROFESSOR_MEMO_BEND_SYSTEM_QUESTIONS_20260328.md:96-110; backend/bend_unary_model.py:683-740; backend/bend_analysis_worker.py:227",
+    "status": "runtime default (wired into worker count reporting)"
+   },
+   {
+    "name": "F1 PLY-only zero-shot schema-v5",
+    "mechanism": "scan-only plane lattice / bend-line detection with span-alias suppression",
+    "score": "render-admissible exact count 11/13 (.846); hard-visual 10/13; release-visual 0/13; P95 43 s",
+    "dataset": "13 verified PLY cases",
+    "date": "2026-07-15",
+    "source": "docs/PROFESSOR_ENTERPRISE_F1_PROMOTION_CHECKPOINT_20260715.md:35-44",
+    "status": "research-only (promotion blocked, 4/16 gates)"
+   },
+   {
+    "name": "F1 CAD+PLY blind",
+    "mechanism": "CAD-guided with state=unknown, no expected counts",
+    "score": "exact count 3/12 (.25); CAD uplift claim withdrawn",
+    "dataset": "12 CAD+PLY cases",
+    "date": "2026-07-15",
+    "source": "docs/PROFESSOR_ENTERPRISE_F1_PROMOTION_CHECKPOINT_20260715.md:63-72",
+    "status": "research-only"
+   },
+   {
+    "name": "Matched scan vs CAD fusion",
+    "mechanism": "A0 scan predictions vs conservative gated-CAD fusion",
+    "score": "scan F1 .365; CAD fusion .458; aggressive union .456",
+    "dataset": "Gold11 (71 reference lines)",
+    "date": "2026-08-27",
+    "source": "docs/research/2026-09-07_production_generalization_roadmap.md:223",
+    "status": "research-only"
+   },
+   {
+    "name": "Cached UNION control",
+    "mechanism": "A0 + gated-CAD rescue, recovered bytes",
+    "score": "F1 .4580 (TP30/FP30/FN41), P .5, R .4225, min-family recall .2",
+    "dataset": "Gold11",
+    "date": "2026-09-10",
+    "source": "docs/research/2026-09-10_gold11_failure_factor_audit.md:180-186",
+    "status": "research-only control"
+   },
+   {
+    "name": "CAD-guided mesh development V2/V3",
+    "mechanism": "cad_guided noisy-mesh planes, certificate registration, native finite features",
+    "score": "0 emitted lines, TP0/FN71, recall 0, F1 undefined (both arms)",
+    "dataset": "Gold11 physical",
+    "date": "2026-09-09/10",
+    "source": "docs/research/2026-09-10_gold11_failure_factor_audit.md:30-56,239-250",
+    "status": "terminal negative"
+   },
+   {
+    "name": "V11 full Gold11",
+    "mechanism": "control vs V2 challenger (native axis + support gate)",
+    "score": "control F1 .4286; challenger F1 .3818",
+    "dataset": "Gold11 71 lines",
+    "date": "2026-09-16",
+    "source": "docs/research/2026-09-16_gold11_v11_simple_family_failure_analysis.md:5-7",
+    "status": "research-only"
+   },
+   {
+    "name": "V11 simple-family subset + support-radius sweep",
+    "mechanism": "native STEP axes with scan support gate 3.0-5.0 mm",
+    "score": "F1 .818 @3mm; .870 @3.5-4mm; .917 @5mm; residual 3-5 mm axis offset on 49001000",
+    "dataset": "3 families/12 lines (37361005, 49001000, 49024000)",
+    "date": "2026-09-16",
+    "source": "docs/research/2026-09-16_gold11_v11_simple_family_failure_analysis.md:16-21,68-74,84-95",
+    "status": "research-only diagnostic"
+   }
+  ],
+  "implications_for_production": [
+   "Neither engine models the incomplete-scan case the user needs. The runtime count posterior assumes bends are independent (Poisson-binomial at backend/bend_unary_model.py:683), and the F1 CAD lane runs blind with state=unknown. The tagged bend order with \u05de\u05d4\u05dc\u05da phase groups is the missing piece: decoding over the P+1 phase-prefix hypotheses replaces the 2^N per-bend combinations, and is the single most promising change.",
+   "Adding the unfolded/flat-part upload to intake gives more than nicer display. Together with the bend order, it lets the engine build the intermediate-stage nominal geometry for each prefix hypothesis k. The scan can then be aligned and compared against what the part should look like after k phases, not against the finished CAD. This also gives each hypothesis its invariant datum region (base panel plus already-formed panels), which is the datum-island alignment the professor advised for partial parts.",
+   "Complete scans are just the case where the full-prefix hypothesis wins. They should share the same pipeline, with a high-coverage check and no separate engine.",
+   "Flange length, the operator's top need, is measured nowhere today. The professor's section-based metrology (multi-slice cross-sections orthogonal to the CAD bend line, frame anchored on the parent panel, median aggregation) would give flange length, angle and bend position from the same slices. It is designed but never built.",
+   "CAD-guidance showed no clear gain because CAD was used as a bend-line candidate prior scored against Gold lines, and native STEP axes sit about 3-5 mm off the observed lines (V11 analysis:84-95). Before relying on CAD axes for positions, fit a scan-derived centerline around each CAD axis.",
+   "The unary state head was trained on only 4 negatives, and partial-scan MAE stayed at 3.6 with or without the structured model. Collecting per-bend FORMED/UNFORMED/UNKNOWN labels, cheap once the bend order and stage are known, is the highest-value data step the professor named.",
+   "Measure success by operator review save rate at a fixed false-accept ceiling plus per-bend flange-length, angle and position error, not count MAE or line F1. Keep UNKNOWN as the default when a bend is not observable; never fill it from CAD.",
+   "Owner's own caveat: the existing unfolded parts were reverse-engineered from the folded CAD, so they cannot validate unfold-based stage synthesis yet. Real customer flat files (DXF/flat STEP) are needed for that."
+  ]
+ },
+ {
+  "area": "codex \u2014 owner's Codex transcripts: F1 engine timeline, scores, frustrations, latest state",
+  "findings": "SOURCES. User messages: /private/tmp/claude-501/-Users-idantal/db065cf7-f766-4885-b217-ed8d7edd7ade/scratchpad/codex_user_msgs.txt (289 lines, 12 Jul to 30 Sep). Assistant messages came from ~/.codex/sessions/2026/04/14/rollout-...019d8d9f... (April thread, 1,646 F1-related messages), ~/.codex/sessions/2026/07/13/rollout-...019f585f... (1,852 messages, covering 13 Jul to 15 Sep), 09/16 (10) and 09/27 (52). Extracts are in the scratchpad: a_apr.txt, a_jul_all.txt, a_jul_num.txt, p1.txt, p2.txt, a_sep16.txt, a_sep27.txt.\n\nNAMING TRAP: \"F1\" means two different things in these transcripts. It is the engine's name (owner's sense), and it is also the bend-line F1 metric (harmonic mean of precision and recall, with a 5\u00b0/4 mm/60%-span matching rule). For example, \"F1 0.458\" is a metric score.\n\nSTAGE 0: April to early July, April thread 019d8d9f. These are pre-migration F1 semantic checkpoints. On 8 May, on the known-9 slice: guarded candidate exact count 4/5 (80%), raw F1 exact 2/5 (40%), render-admissible exact 22.2%, visual blocked 8/9. Codex called the blocker \"semantic, not marker placement\". The engine outlines edges and perimeters and misses internal bends (48991006, 37361005). It also fixed a \"floating marker\" render bug across the CAD+PLY and zero-shot lanes.\n- The 10 Jul audit verdict was: not promotable.\n- P0 audit finding: evaluate_bend_case.py passed expected_total_bends into inference (target leakage). So the production \"88.9% exact\" claim was invalid.\n- F1 was an 8,476-line module separate from the git repo. It was merged into FullProject as an offline research lane.\n- The 12 Jul smoke on the new 128 GB rig used 74.5 GB RSS on part 10839000.\n\nSTAGE 1: 13 to 18 Jul, scan-only zero-shot push.\n- 13 Jul baseline: detector input bounded to 192k points. 13/13 jobs succeeded, but \"Scan-only exact: 0/13\". Owner: \"we need to aim for this, 0 shot using f1, and expand from 13 to 50+ (eyal examples)\".\n- Eyal's 50 packages turned out to hold PDF + SLDPRT + STL only: no PLY and no ground truth (GT).\n- 13 Jul 22:45 visual audit: 0/13 exact, 0/13 visually acceptable. Owner: \"work and fix f1 until we hit 10/13 perfect\".\n- 15 Jul: claimed 10/13 visually perfect, 11/13 count-exact. The owner rejected it (\"many bends that are not marked, some marked bends are outlines\"). The strict re-review gave 1/13 perfect, and the 10/13 claim was withdrawn.\n- Codex then hand-labelled all 13 scans (71 bend axes). This became the \"verified-13\", later Gold11 (71 lines).\n- 16 Jul: corpus-fit result 96.35% F1, 12/13 exact. Codex itself labelled it \"not zero-shot\". Honest grouped-holdout result: F1 43.87%. Blind CAD+PLY: 3/12 exact.\n- 17 Jul honest zero-shot: F1 0.488 (30 TP / 22 FP / 41 FN), 0/13 exact.\n- 18 Jul, Shaked-12 corpus: nested leave-one-part-out F1 0.826, then v18 at 0.967 (59/4/0, 9/12 exact). The original verified-13 stayed at F1 0.481, 0/13 exact.\n\nSTAGE 2: 28 Jul to 4 Aug, good/defective pairs and the \"Gold-27\" result.\n- 38172000 V/X pair: the optimized profile hit 10/10 bends on the good scan.\n- 29 Jul \"publication-grade\" frozen zero-shot baseline on 13 scans: P 0.260, R 0.268, F1 0.264, 1/13 exact.\n- Research-based optimisation reached v18-routed on 30 Jul: 10/13 exact, F1 78.3% (post-holdout diagnostic).\n- 30 Jul, 12 new Gmail scans (prospective): 1/12 count-exact, 0/12 visually cleared.\n- 3 Aug, Gold-27 (37 scans, 27 families): baseline F1 0.33, optimised v21 F1 1.000 (182/0/0, 37/37 exact). Codex labelled it \"development gold, not blind\".\n- 4 Aug, the unseen parts exposed overfit. 42288005 got 2/9, 17139000 got 3/4, and 45796000 under v23 got 3 TP / 3 FP / 5 FN.\n- The GPT-5.6 Pro \"exact solver\" plan (4 Aug), run on Gold-37: 1/37 exact, P 56%, R 23.1%, F1 32.7%. This became the locked physical baseline cited for weeks.\n- Locked promotion goal: \u226530 scans across \u226515 families, \u226590% exact count, \u226590% precision and recall, \u226599% visually admissible markers.\n\nSTAGE 3: 5 Aug to 21 Aug, the GPT-Pro consultation loop, versions V2 to V73. Pro issued formal STOP rulings. Owner frustration in this stage:\n- \"i dont understand, whats going on? why did we stop?\"\n- \"why does pro need to approve an execution packet?\"\n- \"so we didnt progress?\"\n- \"i want us to hit walls through action, not theory\"\n\nSome local wins:\n- V10 on 48811000: 4/4.\n- V16 on 35 scans / 25 families: F1 0.650 to 0.717.\n- V51 did well prospectively on 4 unseen scans (28/28, Codex labels).\n\nSynthetic LiDAR data was rejected by the owner as unrealistic. The 20 Aug Sol xhigh audit concluded that 70+ versions had not shown physical generalization: best Gold37 F1 0.327, recall 0.231, 1/37 exact, minimum-family recall 0.\n\nSTAGE 4: 22 Aug to 31 Aug, the CAD-assisted turn. Owner (22 Aug): \"if we introduce cad... does accuracy boost? Since the cad acts as \u05ea\u05e9\u05ea\u05d9\u05ea\". Same-case Gold11 results:\n\n| Lane | Precision | Recall | F1 |\n|---|---:|---:|---:|\n| Scan-only | 0.576 | 0.268 | 0.365 |\n| CAD-only | 0.455 | 0.282 | 0.348 |\n| Scan + CAD fusion | 0.500 | 0.423 | 0.458 |\n| CAD-targeted only | 0.317 | 0.183 | 0.232 |\n| Scan + CAD-targeted | 0.433 | 0.366 | 0.397 |\n\n- Fusion gave +0.093 F1. Exact count went from 0/11 to 1/11.\n- CAD-first pipeline (25 Aug): F1 0.354, P95 latency 0.88 s.\n- EXP_CAD_0002: F1 0.372 with exact count 36%.\n- EXP8: F1 0.469 and 4/11 exact count, but visually rejected. EXP9: 0.457. EXP10 multi-agent: 0.444.\n- The owner's 27 Aug \"0.518 vs 0.456, how is CAD worse?\" turned out to compare different datasets. Matched, CAD still helped.\n- 30 Aug, 28 new SharePoint scans through V51 (prospective): F1 0.197 (P 0.18, R 0.22), 2/28 exact. Owner: \"how is it so low?\" A fitted push reached 0.632, but it is not held-out. Three honest held-out attempts got 0.20, 0.196 and 0.104.\n\nSTAGE 5: 7 Sep to 16 Sep, the roadmap and V5 to V11 heavy CAD-guided engine.\n- 8 Sep: the owner explicitly deferred zero-shot: \"drop it, continue with the CAD-assisted path... tackle zero-shot later\" (codex_user_msgs.txt:190). The roadmap doc was updated accordingly (docs/research/2026-09-07_production_generalization_roadmap.md:7).\n- The rebuilt engine produced ZERO lines on the full Gold11 run 4 times: 9 Sep, then V7, V8, V9, V10 and V11 from 12 to 14 Sep. Each run was TP 0 / FP 0 / FN 71 with F1 undefined, and runs took 2.6 to 8 h each. Causes:\n  - 18,541 proposed poses, zero refinement starts.\n  - Triangle-edge uncertainty dropped a correct pose's support from 95% to 80/84%.\n  - CPU caps.\n  - A feature-type mismatch.\n  - 43/43 windows failing the first flange fit (sheet two-surface separation).\n- Fable 5.1 (Claude) was used as implementer until it ran out of credits.\n- Owner frustration:\n  - \"How did this fail? after so much work\"\n  - \"i remember it used to run through a scan in 30 sec\"\n  - \"wtf? how are we getting back null results when a lighter profile got us results\"\n  - \"i believe our pipeline is broken\"\n- 14 Sep, single case 37361005: projecting the 4 STEP bend axes through the V11 pose and validating them against raw scan gave TP 4 / FP 0 / FN 0, F1 1.0 (backend/cad_guided_v11_topology_recovery_v1.py; docs/research/gold11_v11_single_scan_luna_max_v2/CG4BDD1371B6/RESULT.json).\n- 15 Sep multi-scan \"healing\": control 24/17/47, F1 0.4286; v2 challenger 21/18/50, F1 0.3818. 7/11 scans gave output and 4 abstained. Neither beat the historical 0.4580 (30/30/41).\n- 16 Sep root cause (docs/research/2026-09-16_gold11_v11_simple_family_failure_analysis.md):\n  - Simple families (37361005, 49024000, 49001000) score 9/12, F1 0.818 at 3 mm support, and 11/12, F1 0.917 at 5 mm.\n  - The native CAD bend axis and the adjudicated scan-line convention differ by a systematic 3 to 5 mm (4.728 mm on 49001000).\n  - Proposed fix: fit a scan-derived observed centerline around each CAD axis. This is not done anywhere in the transcripts.\n\nSTAGE 6: 23 Sep to 30 Sep, focus shifts to vendor setup and CAD.\n- Vendor setup UI: SKU, CAD and PDF upload; bend tagging; order tagging; \u05de\u05d4\u05dc\u05da groups; general measurements; PDF export.\n- Codex's warning (23 Sep, docs/2026-09-23_vendor_setup_plan.md): a finished CAD and a partly bent part generally cannot be aligned with one rigid transform. Partial-scan matching needs local flange correspondence, and the \"N operations completed\" stage is operator input, not evidence.\n- Owner asked to unfold the folded CAD (29 Sep). On 30 Sep: 6/20 models produced unfold previews, plus 2/5 \u2192 3/5 on a five-part subset. Not manufacturing-ready.\n- CAD bend extraction score (docs/operations/cad-bend-native-chain-score-2026-09-30.md):\n  - 77.17% to 94.49% capture (120/127 verified bends).\n  - 100% precision.\n  - F1 98.43% on the 12 fully referenced CADs.\n  - A random email STEP (MEC003744_02) went 12/12.\n  - SLDPRT is not supported.\n\nLATEST STATE: the last F1 message is 30 Sep; the 27 Sep thread file was modified 17 Oct.\n- No audited full-corpus scan-vs-Gold score beats the 22\u201327 Aug CAD-fusion F1 0.458.\n- The physical zero-shot benchmark is weak: Gold37 F1 0.327; today-28 F1 0.197 prospective.\n- Development-fit numbers (0.967, 1.000) did not transfer.\n- CAD-side bend extraction is strong at 94.5%.\n- No transcript reports flange-length measurement accuracy, or any evaluation on incomplete (mid-sequence) scans.",
+  "versions_and_scores": [
+   {
+    "name": "F1 known-9 semantic checkpoint",
+    "mechanism": "Scan-only F1 with guarded candidate layer and manual semantic overrides",
+    "score": "Candidate exact 4/5 (80%); raw exact 2/5 (40%); render-admissible 22.2%; visual blocked 8/9",
+    "dataset": "known-9 scans",
+    "date": "2026-05-08",
+    "source": "~/.codex/sessions/2026/04/14/rollout-...019d8d9f... (assistant 2026-05-08T09:00)",
+    "status": "research-only"
+   },
+   {
+    "name": "Bounded scan-only baseline",
+    "mechanism": "Zero-shot F1 with input bounded to 192k points",
+    "score": "Exact 0/13; visually acceptable 0/13",
+    "dataset": "verified-13",
+    "date": "2026-07-13",
+    "source": "019f585f rollout, 2026-07-13T22:45",
+    "status": "research-only"
+   },
+   {
+    "name": "Corpus-fit evidence composition",
+    "mechanism": "Zero-shot rules tuned on the same corpus",
+    "score": "F1 96.35%, 12/13 exact (66/0/5); grouped holdout F1 43.87%",
+    "dataset": "verified-13 (71 lines)",
+    "date": "2026-07-16",
+    "source": "019f585f rollout, 2026-07-16T14:26 and 16:25",
+    "status": "research-only (Codex flagged as not zero-shot)"
+   },
+   {
+    "name": "Honest zero-shot grouped-holdout",
+    "mechanism": "Selector variants with holdout",
+    "score": "F1 0.488 (30/22/41), 0/13 exact",
+    "dataset": "verified-13",
+    "date": "2026-07-17",
+    "source": "019f585f rollout, 2026-07-17T11:49",
+    "status": "terminal negative"
+   },
+   {
+    "name": "Shaked-12 v18 (f1_shaked_mesh_nested_lopo_v2 lineage)",
+    "mechanism": "Nested leave-one-part-out mesh selector plus topology pruning rules",
+    "score": "F1 0.967 (59/4/0), 9/12 exact; verified-13 unchanged at F1 0.481",
+    "dataset": "Shaked 12 scans",
+    "date": "2026-07-18",
+    "source": "019f585f rollout, 2026-07-18T11:18",
+    "status": "research-only"
+   },
+   {
+    "name": "Publication-grade frozen zero-shot baseline",
+    "mechanism": "Frozen zero-shot F1",
+    "score": "P 0.260, R 0.268, F1 0.264, count 4/13, exact 1/13",
+    "dataset": "verified-13 / 71 axes",
+    "date": "2026-07-29",
+    "source": "019f585f rollout, 2026-07-29T11:12",
+    "status": "research-only baseline"
+   },
+   {
+    "name": "Routed v18 (post-holdout)",
+    "mechanism": "Crease recovery, wedge fitting and prismatic completion routing",
+    "score": "F1 0.783 (54/13/17), 10/13 exact",
+    "dataset": "verified-13",
+    "date": "2026-07-30",
+    "source": "019f585f rollout, 2026-07-30T10:12",
+    "status": "research-only (post-holdout diagnostic)"
+   },
+   {
+    "name": "Prospective Gmail 12 scans",
+    "mechanism": "Same routed F1",
+    "score": "1/12 count-exact, 0/12 visually cleared",
+    "dataset": "6 new X/V pairs",
+    "date": "2026-07-30",
+    "source": "019f585f rollout, 2026-07-30T10:52",
+    "status": "terminal negative"
+   },
+   {
+    "name": "Gold-27 v21",
+    "mechanism": "Geometry-gated routing with per-family geometry contracts (formed-end, wall-end corner etc.)",
+    "score": "F1 1.000 (182/0/0), 37/37 scans exact; baseline was 0.3316",
+    "dataset": "Gold-27 (37 scans, 27 families)",
+    "date": "2026-08-03",
+    "source": "019f585f rollout, 2026-08-03T13:36",
+    "status": "research-only (development-fit; failed on unseen parts)"
+   },
+   {
+    "name": "v23 on unseen parts",
+    "mechanism": "Frozen Gold-27 profile",
+    "score": "42288005: 2/9; 17139000: 3/4; 45796000: 3 TP / 3 FP / 5 FN",
+    "dataset": "3 unseen parts",
+    "date": "2026-08-04",
+    "source": "019f585f rollout, 2026-08-04T08:26 and 10:13",
+    "status": "terminal negative"
+   },
+   {
+    "name": "GPT-5.6 Pro exact solver plan",
+    "mechanism": "Atom-ownership exact solver",
+    "score": "P 56%, R 23.1%, F1 32.7%, 1/37 exact (42/33/140)",
+    "dataset": "Gold-37",
+    "date": "2026-08-04",
+    "source": "019f585f rollout, 2026-08-04T22:57; reconfirmed 2026-08-20T20:18",
+    "status": "research-only (locked physical baseline)"
+   },
+   {
+    "name": "V16",
+    "mechanism": "Precision pruning via routing fix",
+    "score": "F1 0.650 to 0.717, FP 98 to 60, TP 132 kept",
+    "dataset": "35 scans / 25 families",
+    "date": "2026-08-13",
+    "source": "019f585f rollout, 2026-08-13T18:51",
+    "status": "research-only"
+   },
+   {
+    "name": "V51 scan-only",
+    "mechanism": "Unified source-only route",
+    "score": "Physical dev F1 0.593; today-28 prospective F1 0.197 (P 0.18, R 0.22), 2/28 exact; expanded 65 scans F1 0.518",
+    "dataset": "dev, today-28, and expanded-65 cohorts",
+    "date": "2026-08-21 to 2026-08-30",
+    "source": "019f585f rollout, 2026-08-21T22:53 and 2026-08-30T20:54",
+    "status": "research-only scan-only baseline"
+   },
+   {
+    "name": "Today-28 fitted push",
+    "mechanism": "Precision pruning, recovery and span reconstruction",
+    "score": "F1 0.632 fitted; honest held-out attempts 0.203, 0.196, 0.104",
+    "dataset": "28 SharePoint scans",
+    "date": "2026-08-31",
+    "source": "019f585f rollout, 2026-08-31T07:01 and 10:39",
+    "status": "research-only / terminal negative on holdout"
+   },
+   {
+    "name": "Retained scan+CAD fusion",
+    "mechanism": "Scan-only plus CAD bend support fusion over automatic CAD/scan overlay",
+    "score": "P 0.500, R 0.423, F1 0.4580 (30/30/41); exact count 1/11; scan-only on same cases 0.365",
+    "dataset": "Gold11 (11 scans, 6 CADs, 71 lines)",
+    "date": "2026-08-22",
+    "source": "019f585f rollout, 2026-08-22T10:12; docs/research/2026-08-27_cad_assisted_f1_deep_dive.md",
+    "status": "research-only (best historical CAD-assisted)"
+   },
+   {
+    "name": "CAD-targeted / CAD-first / EXP_CAD_0002\u20130010",
+    "mechanism": "CAD template, then registration, then scan-localised verification",
+    "score": "CAD-first 0.354; EXP2 0.372 (exact count 36%); EXP8 0.469 (visually rejected); EXP9 0.457; EXP10 0.444",
+    "dataset": "Gold11",
+    "date": "2026-08-25 to 2026-08-27",
+    "source": "019f585f rollout, 2026-08-25T09:57, 16:00; 2026-08-27T15:06, 16:00, 22:30",
+    "status": "terminal negative / rejected"
+   },
+   {
+    "name": "cad_guided V5/V7/V8/V9/V10/V11 Gold11 runs",
+    "mechanism": "Rebuilt CAD-guided mesh engine (registration, then native features, then flange fit)",
+    "score": "Every run TP 0 / FP 0 / FN 71, F1 undefined; 2.6 to 8 h per run",
+    "dataset": "Gold11",
+    "date": "2026-09-09 to 2026-09-14",
+    "source": "019f585f rollout, 2026-09-12T19:59, 2026-09-13T23:18, 2026-09-14T10:03",
+    "status": "terminal negative"
+   },
+   {
+    "name": "V11 topology recovery v1/v2 single scan",
+    "mechanism": "Project STEP bend axes through the V11 pose and validate against raw scan support",
+    "score": "TP 4 / FP 0 / FN 0, F1 1.0",
+    "dataset": "37361005 (1 scan)",
+    "date": "2026-09-14",
+    "source": "docs/research/gold11_v11_single_scan_luna_max_v2/CG4BDD1371B6/RESULT.json",
+    "status": "research-only"
+   },
+   {
+    "name": "V11 multi-scan healing control / v2 challenger",
+    "mechanism": "CAD-axis projection with healing and abstention",
+    "score": "Control F1 0.4286 (24/17/47); v2 0.3818 (21/18/50); 7/11 produced output",
+    "dataset": "Gold11",
+    "date": "2026-09-15",
+    "source": "docs/research/gold11_v11_multi_scan_luna_max_v2_paired_run2/RESULT.json",
+    "status": "research-only (does not beat 0.458)"
+   },
+   {
+    "name": "V11 simple-family support-radius sweep",
+    "mechanism": "CAD-axis projection with 3 mm vs 5 mm scan-support corridor",
+    "score": "3 mm: F1 0.818 (9/1/3); 5 mm: F1 0.917 (11/1/1); systematic 3\u20135 mm CAD-axis offset",
+    "dataset": "3 simple families, 12 lines",
+    "date": "2026-09-16",
+    "source": "docs/research/2026-09-16_gold11_v11_simple_family_failure_analysis.md",
+    "status": "research-only diagnostic"
+   },
+   {
+    "name": "CAD native-chain bend extraction",
+    "mechanism": "STEP topology bend extraction with finite-boundary edge chains",
+    "score": "Capture 77.17% to 94.49% (120/127); precision 100%; F1 98.43% on 12 fully referenced CADs; unseen MEC003744_02 12/12",
+    "dataset": "20 corpus CADs plus 1 email CAD",
+    "date": "2026-09-30",
+    "source": "docs/operations/cad-bend-native-chain-score-2026-09-30.md",
+    "status": "research-only (strongest current component)"
+   },
+   {
+    "name": "CAD unfold preview",
+    "mechanism": "Rectangular-boundary unfolder",
+    "score": "6/20 models unfolded; 14 refusals",
+    "dataset": "20 CADs",
+    "date": "2026-09-30",
+    "source": "019f585f 09/27 rollout, 2026-09-30T02:09",
+    "status": "research-only (not manufacturing-ready)"
+   }
+  ],
+  "implications_for_production": [
+   "The only CAD-assisted lane with real benefit is the simple one: register the scan, project the CAD bend axes, then verify each against raw scan support. It gave scan+CAD F1 0.458 vs 0.365 scan-only on the same cases, and 0.82\u20130.92 F1 on simple families. Every heavy rebuild (V5 to V11) produced zero output. Production should build on the cheap projection-plus-verification path, not cad_guided v18.",
+   "The documented blocker in the CAD path is a systematic 3\u20135 mm offset between the CAD bend axis and the scan-observed bend line. The fix proposed on 16 Sep (fit a scan-derived centerline or contact line around each CAD axis) was never done. The same fix is also the basis for measuring flange length and position.",
+   "Development-fit scores (0.967 Shaked-12, 1.000 Gold-27) did not transfer: 2/9 and 3/4 on unseen parts, and F1 0.197 prospectively on 28 new scans. Any production claim needs a locked held-out cohort.",
+   "The owner's sense that CAD guidance gave 'no measurable gain' is partly a measurement artifact. The 27 Aug comparison of 0.518 vs 0.456 used different datasets. Matched, CAD fusion gained +0.093 F1, and exact count rose from 0/11 to 1/11 (EXP8 reached 4/11). Recall, not precision, is where CAD helps.",
+   "CAD-side bend extraction is now strong: 94.5% capture and 100% precision on 20 CADs, plus 12/12 on an unseen STEP. That makes CAD the right source for the expected bend list, angles and flange dimensions at onboarding. SLDPRT input is unsupported, so STEP is required.",
+   "Incomplete (mid-sequence) scans have never been evaluated. Codex flagged on 23 Sep that a finished CAD cannot be rigidly aligned to a partly bent part. Partial scans need per-flange or local registration driven by the tagged bend order and the k formed bends.",
+   "Unfold is preview-only (6/20 models). Since the owner's flat files are reverse-engineered from the folded CAD, an uploaded flat part should be treated as optional display and bend-ID aid, not as validated truth.",
+   "Process lesson: the owner repeatedly hit long audit or consultation cycles with no engine output, including multi-hour Gold11 runs that returned null. Production work needs fast single-scan end-to-end loops and visual checks before full-corpus runs. Note that a scan used to process in about 30 s; the V11 path took over 6 h for 11 scans."
+  ]
+ },
+ {
+  "area": "evals \u2014 evaluation infrastructure, labeled datasets, custody/splits, metrics, and the gap to a per-bend production benchmark",
+  "findings": "REPO: /Users/idantal/ShermanQC/FullProject (read-only). Many docs still cite the old root /Users/idant/82Labs/Sherman QC/Full Project/... (e.g. docs/BEND_REGRESSION_TESTING.md:27-56, data/bend_corpus/dataset_inventory.md:4-5, every metadata_path in ready_regression.json), so those absolute paths are out of date.\n\n1) DATASETS THAT EXIST\n(a) Canonical regression corpus, data/bend_corpus/parts/: 17 part folders (10839000, 11979003, 15651004, 23553000, 28870000, 37361005, 38172000, 40500000, 44211000, 47266000, 47479000, 47959001, 48963008, 48991006, 49001000, 49024000, 49125000). Totals from dataset_inventory.md:9-17 (generated 2026-03-18): 18 CAD, 34 scans, 24 drawings, 5 specs. 9 parts have partial scans and 13 have full scans. 12 of the 17 still need bend-count confirmation. Expected bend counts range from 1 to 16 (table at :21-39). 47479000 is rolled (\"\u05d7\u05dc\u05e7 \u05de\u05e2\u05d5\u05e8\u05d2\u05dc\"), and its count is unknown. ready_regression.json is a list of 17 entries: part_key, expected_bends_override, partial/full scan counts, drawing/spec counts, metadata and labels-template paths. It holds no per-bend truth.\n(b) Incoming drops, data/bend_corpus/incoming/ (names and counts only):\n- 2026-07-06 Eyal 50: 50 SLDPRT + 50 STL + 50 PDF. No PLY.\n- 2026-07-16 Shaked count-backed: 12 PLY.\n- 2026-07-28: 2 PLY (38172000 V/X).\n- 2026-07-29 good/defective pairs: 12 PLY + 6 PDF, 6 families.\n- 2026-08-04 scan-quality: 6 PLY.\n- 2026-08-11: 4 PLY, 2 families V/X.\n- 2026-08-13 opaque blind: 4 PLY (U01-U04).\n- 2026-08-17/20: 14 PLY + 7 SLDPRT, 7 families (N001-N014).\n- 2026-08-25: 2 PLY + 1 SLDPRT.\n- 2026-08-30 daily scans: 28 PLY.\n- 2026-08-31: manifest only.\ndocs/research/2026-08-20_physical_corpus_custody_and_30x15_readiness.md:9-21 counts 40 physical point clouds (38 non-duplicate) and at least 23 known part IDs before the opaque tranche.\n(c) /Users/idantal/ShermanQC/source-assets/ (FullProject/source-assets does not exist): 02_CAD_QC_3D holds 30 PLY, 23 STP, 15 STL, X_T/X_B/xdl, 1 DWG, 1 OBJ. Its part IDs overlap the corpus, plus 17139000, 42288005, 48811000, 49204020, 37126000 and others. wetransfer_ysherman-asc_2026-04-20_0802 holds the ysherman PLY/STL/ASC plus probe JSONs.\n(d) No DXF, flat or unfold files were found anywhere under data/ or source-assets. Flat-pattern evidence exists only as unfold previews derived from folded STEP: scripts/evaluate_vendor_cad_upload_unfold_v1/v2.py, and CURRENT_STATUS.md:85 says \"unfolding still 6/20\".\n\n2) TRUTH TYPES\n- Bend counts. Expected total bends per finished part, plus expected completed bends per partial scan, tracked as separate truths (BEND_CORPUS_DATA_CARD.md:54-60). Partial completed counts are often unknown (dataset_inventory.md:63-73).\n- Manual 3D bend lines. Each line has an endpoint segment (\"manual_bends\", span_endpoints/anchor+axis+span).\n  - Original verified-13: output/bend_label_NN_*/bend_instance_labels.json (evaluate_f1_against_manual_gold.py:26-55).\n  - Consolidated catalog: data/bend_corpus/annotations/bend_line_gold_catalog_v1.json, with promotion_eligible vs development tiers (evaluate_bend_line_gold_catalog.py:23, :46-52).\n  - data/bend_corpus/annotations/human_bend_lines_v1/: 38 hashed JSON files.\n  - Shaked-12: 59 assistant-reviewed axes. These are not independent truth, and 49 were snapped to generated mesh candidates (SHAKED_12_F1_HELD_OUT_PART_CHECKPOINT_20260718.md:9-13).\n- Gold11: 11 physical scans, 6 CADs/families, 71 reference lines (CURRENT_STATUS.md:612, :654).\n- CAD native-face bend references (approved20 STEP). Each bend is a set of inner/outer B-rep face IDs, labelled complete or partial (cad_bend_reference_scoring_v1.py:25-37). 8 of the 20 references are still partial (CURRENT_STATUS.md:64).\n- Angles. Nominal angles from CAD bend inventory, drawings and XLSX are compared with scan angles on a completed-part control pack. Countable angle MAE examples: 15651004 0.059\u00b0, 10839000 0.253\u00b0, 37361005 0.363\u00b0, 48991006 1.353\u00b0, 11979003 about 2.0\u00b0, 28870000 6.4\u00b0 as the hybrid guard (docs/research/ANGLE_TRUTH_CONTROL_SET_20260404.md:28-63). Spec sheets are trust-classified, and mixed_section_callouts are never used as hard truth (BEND_REGRESSION_TESTING.md:149-165).\n- Flange length. No flange-length truth and no flange-length metric exists in any evaluator. rg for flange_length / length_error / angle_error over scripts/evaluate_*, run_f1_accuracy_validation.py, build_f1_bend_scorecard*.py and the CAD scorer returns nothing. The CAD scorer says outright \"geometrical_location_angle_accuracy\": \"unscored\" (cad_bend_reference_scoring_v1.py:134).\n- Per-bend formed/unformed/unknown state, with completed_bend_ids. This is specified (MATH_SPEC_LABELS_AND_BENCHMARKS.md:55-71) and present in the intake template (incoming/manifest.template.csv: completed_bend_ids \"CAD_B5|CAD_B6|...\"), but most partial scans still have unknown completed counts.\n\n3) EVALUATORS AND METRICS\n(i) Count/progression regression gate.\n- Files: scripts/evaluate_bend_corpus.py (1357 lines) plus the per-scan subprocess scripts/evaluate_bend_case.py. It runs backend/bend_inspection_pipeline.py serially, thread-limited and timeout-guarded (:727-767).\n- Metrics: expected_total_error and expected_completed_error (:555-558); MAE vs total and vs completed (:1094-1110); full_scan_exact_completion_rate (:1111); staged_monotonic_pair_rate and retained_bend_rate (:710-711); heatmap support rates.\n- Last documented baseline, 29 scans: MAE vs total 1.143, MAE vs completed 0.062, full exact completion 0.882 (BEND_REGRESSION_TESTING.md:91-105).\n- An older stability baseline has 33 scans with a total and 21 with a completed count. Structured partial error mass dominates: 3.6\u00d715 for partials vs 1.727\u00d733 total (MATH_SPEC_LABELS_AND_BENCHMARKS.md:162-176).\n(ii) Bend-line localization matcher (\"4 mm matcher\").\n- File: scripts/evaluate_f1_against_manual_gold.py.\n- Thresholds: undirected axis angle \u22645\u00b0, symmetric transverse midpoint offset \u22644.0 mm, and span overlap \u22650.60 on both the gold and the prediction side (:59-64, :120-126).\n- Assignment is one-to-one by Hungarian minimum cost via linear_sum_assignment (:129-175). It outputs TP/FP/FN, P/R/F1 and exact_part_rate (:206-247).\n- The defaults deliberately reject the 4.8 mm ysherman tongue silhouette (:6-7).\n- scripts/evaluate_bend_line_gold_catalog.py reuses the same matcher (:17-21, :171-172) over catalog tiers.\n- The 5\u00b0/4 mm thresholds are known to be brittle: D010 axes about 7\u00b0 off were visually correct, and a 5/7.5\u00b0 \u00d7 4/6 mm sensitivity grid exists (2026-08-22_f1_physical15_v52_development_result.md:31).\n(iii) CAD-side extraction scorer.\n- File: backend/cad_bend_reference_scoring_v1.py. It matches by exact native face-set identity (:91-102); only complete references count toward P/R/F1, while partial references yield verified-positive recall only (:104-113, :150-159); refusals and zero-output cases stay in the denominators (:162-166).\n- This scores whether bends are found in the CAD, not the scan.\n\n4) HEADLINE SCORES (all research-only)\n- Original verified-13 scans: line F1 0.4806, 0/13 exact (SHAKED_12 checkpoint:27-29).\n- Gold11 cached control (docs/research/2026-09-10_gold11_cached_control_v2_result.md:17-30):\n  - scan-only A0: F1 0.365, recall 0.268.\n  - gated CAD: F1 0.348, recall 0.282.\n  - UNION: F1 0.4580 (30TP/30FP/41FN), with UNION exact localized sets 0/11.\n  - This reproduces the owner's observation that the CAD-guided arm gave no gain.\n  - Gold11 V3, V5 and V7\u2013V11 physical runs since then produced zero lines or a null F1, for example 0TP/0FP/71FN (CURRENT_STATUS.md:3101-3105, 584, 612-614).\n- Physical15 development: V51 F1 0.593 on 12 families, exact count 0.25, exact localized set 0.083. V52 regressed to 0.518 (physical15 result:21-29).\n- Shaked-12 nested leave-one-part-out (LOPO): F1 0.967, 59/4/0. This is development-consumed and uses assistant labels.\n- Eyal 50: operational only; 16/50 accepted exact outputs, P95 112 s, and no truth.\n- Approved20 CAD extraction: 120/127 known bends, complete-reference micro F1 98.43%. Random email STEP MEC003744_02: 12/12 (CURRENT_STATUS.md:3-12, 58-64).\n\n5) SPLIT AND CUSTODY RULES\n- Every previously opened physical scan is DEVELOPMENT_CONSUMED. U01-U04 are DEVELOPMENT_CONSUMED_EVALUATOR_OPAQUE.\n- No untouched 30-scan/15-family confirmation corpus exists.\n- New scans need opaque IDs, hashing, an evaluator-only manifest, and two independent manual annotators with adjudication (custody doc:24-43).\n- N001-N014 are an opaque mapping covering 7 families toward that gate (:55-59).\n- Eyal 50 has a locked 20/30 development/holdout split built by SHA-256 rank, independent of labels and predictions (EYAL_50_ADJUDICATION_PROTOCOL.md:15-30). Its STL files are not scans and cannot be used in PLY release gates.\n- TRAIN18/HOLDOUT10 is retrospective. EHO4 (incoming-email holdout) is reserved and unopened for prospective falsification (production_generalization_roadmap.md:368-374). Inventory tools never traverse names containing incoming, EHO or HOLDOUT10 (vendor-cad-corpus-inventory-v1:27-29).\n- Slice files live in data/bend_corpus/evaluation_slices/ (22 files), including zero_shot_development/holdout, shaked_12_selector_holdout_v1, eyal_50_locked_split_v1, cad_guided_gold13_physical_20260822 and f1_manual_partial_observed_bends. I did not open these files.\n- Roadmap M5 (:374-385) requires reporting P/R/F1, exact count, exact localized sets, toleranced measurements, abstention/coverage and worst-family results, with failures kept in the denominators.\n\n6) WHAT A PER-BEND PRODUCTION ACCEPTANCE BENCHMARK WOULD NEED (gap analysis)\n(1) Truth keyed by CAD bend ID instead of free 3D lines. Per bend: nominal flange length(s) on both sides, angle, bend-line position and inside radius, taken from STEP and drawing. Add the unfolded/flat file so bend IDs, sequence and \u05de\u05d4\u05dc\u05da groups are anchored in the flat view. None of this exists today, and real flat files are absent locally.\n(2) Measured \"actual\" truth independent of F1: per-bend flange length and angle from a reference instrument (calipers, protractor, CMM, or a Zeiss/GOM inspection report), with repeatability, so scanner noise can be separated from algorithm error.\n(3) Stage truth for incomplete scans: the tagged bend order plus completed_bend_ids per scan, with a formed/unformed/unknown state. UNKNOWN counts as abstention, not as an error.\n(4) Metrics:\n- per-bend absolute error in flange length (mm), angle (\u00b0) and bend-line position (mm), reported as MAE/P95 and the fraction within drawing tolerance;\n- state accuracy on partials;\n- abstention/coverage;\n- false-accept rate on defective (X) parts \u2014 the V/X pairs are useful here;\n- worst-family results;\n- latency.\nAssignment goes by CAD ID after registration, so the 5\u00b0/4 mm line matcher becomes a secondary localization check.\n(5) A prospective untouched cohort: at least 30 scans across at least 15 families, with complete and partial scans of the same parts, frozen before any tuning.\nCurrent evaluators cover only (3)'s count proxy and line localization. The angle MAE exists only in the older regression pipeline. Flange length is unmeasured everywhere.",
+  "versions_and_scores": [
+   {
+    "name": "Regression gate (bend_inspection_pipeline, absence fix)",
+    "mechanism": "CAD-guided progressive pipeline; count/progression scoring",
+    "dataset": "ready_regression 17 parts / 29 scans",
+    "score": "MAE vs total 1.143; MAE vs completed 0.062; full-scan exact completion 0.882; 29/29 succeeded",
+    "source": "docs/BEND_REGRESSION_TESTING.md:91-105",
+    "date": "2026-03-10",
+    "status": "runtime default (legacy pipeline)"
+   },
+   {
+    "name": "Angle control pack",
+    "mechanism": "scan-measured angle vs CAD/drawing nominal, full scans",
+    "dataset": "completed-part controls",
+    "score": "countable angle MAE 0.059 (15651004), 0.253 (10839000), 0.363 (37361005), 1.35-2.0 (48991006/11979003/48963008), 6.4 (28870000 hybrid)",
+    "source": "docs/research/ANGLE_TRUTH_CONTROL_SET_20260404.md:28-63",
+    "date": "2026-04-04",
+    "status": "research-only"
+   },
+   {
+    "name": "F1 verified-13 line accuracy",
+    "mechanism": "zero-shot scan-only F1, 5deg/4mm/0.6 overlap matcher",
+    "dataset": "original 13 manual-gold scans",
+    "score": "line F1 0.4806; 0/13 exact geometry",
+    "source": "docs/research/SHAKED_12_F1_HELD_OUT_PART_CHECKPOINT_20260718.md:27-29",
+    "date": "2026-07-18",
+    "status": "research-only"
+   },
+   {
+    "name": "Shaked-12 nested LOPO v18 surface-graph",
+    "mechanism": "scan-only mesh selector, leave-one-part-out",
+    "dataset": "Shaked 12 count-backed PLY, 59 assistant axes",
+    "score": "59TP/4FP/0FN; P 0.937 R 1.0 F1 0.967; 9/12 exact",
+    "source": "docs/research/SHAKED_12_F1_HELD_OUT_PART_CHECKPOINT_20260718.md:15-25",
+    "date": "2026-07-18",
+    "status": "research-only (development-consumed, labels not independent)"
+   },
+   {
+    "name": "Gold11 scan-only A0",
+    "mechanism": "scan-only F1 cached lines",
+    "dataset": "Gold11 11 scans/6 families/71 refs",
+    "score": "F1 0.365 (19TP/14FP/52FN)",
+    "source": "docs/research/2026-09-10_gold11_cached_control_v2_result.md:24-29",
+    "date": "2026-09-10",
+    "status": "research-only"
+   },
+   {
+    "name": "Gold11 gated CAD",
+    "mechanism": "CAD-guided cached lines",
+    "dataset": "Gold11",
+    "score": "F1 0.348 (20TP/24FP/51FN)",
+    "source": "docs/research/2026-09-10_gold11_cached_control_v2_result.md:24-29",
+    "date": "2026-09-10",
+    "status": "research-only"
+   },
+   {
+    "name": "Gold11 UNION control",
+    "mechanism": "union of scan-only and CAD lines",
+    "dataset": "Gold11",
+    "score": "F1 0.4580 (30TP/30FP/41FN); exact localized 0/11",
+    "source": "docs/research/2026-09-10_gold11_cached_control_v2_result.md:17-30",
+    "date": "2026-09-10",
+    "status": "historical baseline; later V3-V11 fresh physical runs zero-output/F1 null"
+   },
+   {
+    "name": "F1 V51 physical15",
+    "mechanism": "retained scan-only V51",
+    "dataset": "12 physical families (D001-D012) development-consumed",
+    "score": "P 0.593 R 0.593 F1 0.593; exact count 0.25; exact localized 0.083",
+    "source": "docs/research/2026-08-22_f1_physical15_v52_development_result.md:21-29",
+    "date": "2026-08-22",
+    "status": "retained physical-development reference"
+   },
+   {
+    "name": "F1 V52 physical15",
+    "mechanism": "V51 + 22 extra candidates",
+    "dataset": "same",
+    "score": "F1 0.518 (P 0.45 R 0.610)",
+    "source": "docs/research/2026-08-22_f1_physical15_v52_development_result.md:21-29",
+    "date": "2026-08-22",
+    "status": "terminal negative"
+   },
+   {
+    "name": "CAD extractor V10 (approved20)",
+    "mechanism": "native B-rep face bend extraction, exact-face matching",
+    "dataset": "20 approved STEP / 127 known bends",
+    "score": "120/127 known (94.49%); complete-ref micro F1 98.43%; exact count 10/12",
+    "source": "docs/CURRENT_STATUS.md:58-64",
+    "date": "2026-09-30",
+    "status": "research-only (CAD side, not scan)"
+   },
+   {
+    "name": "CAD email transfer MEC003744_02",
+    "mechanism": "unchanged V10 extractor",
+    "dataset": "1 random email STEP",
+    "score": "12TP/0FP/0FN",
+    "source": "docs/CURRENT_STATUS.md:3-12",
+    "date": "2026-10-01",
+    "status": "research-only"
+   },
+   {
+    "name": "Eyal 50 operational baseline",
+    "mechanism": "zero-shot F1 on STL meshes",
+    "dataset": "Eyal 50 (no scans, no truth)",
+    "score": "50/50 jobs; 16/50 accepted exact outputs; P95 112 s; peak 12.05 GiB",
+    "source": "docs/research/EYAL_50_ZERO_SHOT_BASELINE_20260713.md:38-52",
+    "date": "2026-07-13",
+    "status": "research-only, accuracy undefined"
+   }
+  ],
+  "implications_for_production": [
+   "No evaluator measures flange length, the metric the operator cares about most. cad_bend_reference_scoring_v1.py:134 marks geometry/angle as 'unscored', and the line matcher only checks placement within 5 deg / 4 mm. A per-bend error benchmark (flange length mm, angle deg, position mm) has to be built from scratch and keyed by CAD bend ID.",
+   "Released numbers back the owner's observation. On Gold11, gated CAD (F1 0.348) did not beat scan-only A0 (F1 0.365), and only their UNION reached 0.458. Every fresh Gold11 physical run since then produced zero output or a null F1. There is no evidence that CAD guidance improves detection.",
+   "The truth on hand is mostly bend counts and manual 3D bend lines, much of it single-reviewer or assistant-made. Measured actual flange lengths and angles from a reference instrument do not exist, so production accuracy claims cannot currently be validated.",
+   "Partial-scan truth is weak. Most partial scans lack a confirmed completed count or completed_bend_ids, and the count-error mass is concentrated on partials. Incomplete-scan evaluation needs the tagged bend order plus a per-stage completed_bend_ids label (the incoming manifest template already has this field).",
+   "No real unfolded/flat files exist locally; flat views today are derived by unfolding the folded STEP (6/20 succeed). Adding a flat-file upload at onboarding is a new data source and gives a stable bend-ID anchor for both tagging and evaluation. Until real flat files arrive, any flat-file evaluation would be circular, because the flats were reverse-engineered from the folded CAD.",
+   "Every local physical scan (about 40 incoming plus about 30 in source-assets) is DEVELOPMENT_CONSUMED. A credible acceptance benchmark needs a prospectively sealed cohort: at least 30 scans across at least 15 families, opaque IDs, two independent annotators, and both complete and partial scans of the same parts. EHO4 and N001-N014 are the only reserved or opaque material.",
+   "The good/defective V/X pairs from the July-August Shaked deliveries are the only basis for measuring false acceptance, which an operator-facing pass/fail per bend needs. They should be annotated with per-bend measured values.",
+   "Document paths in BEND_REGRESSION_TESTING.md and ready_regression.json point to the old /Users/idant/82Labs root, so the regression gate is not runnable as documented without remapping the paths."
+  ]
+ },
+ {
+  "area": "F1 source map: what the runtime actually runs, the retained F1 research chain, its inputs and outputs, and how CAD, bend order and partial scans are used",
+  "findings": "TERMINOLOGY CAVEAT (important for the owner conversation): inside the repo, \"F1\" is mainly the name of a research PROGRAM named after its metric, the F1-score of bend-LINE localization. The status file kind is SHERMAN_QC_F1_PROGRAM_STATUS_V2, with objective \"PRODUCTION_READY_ZERO_SHOT_SCAN_ONLY_AND_CAD_ASSISTED_BEND_INSPECTION\" (docs/research/artifacts/f1_program_status_current.json). There is no single module called \"the F1 engine\". The engine is a chain of versioned stages (V16..V73), and every reported \"F1\" number is a line-detection score. None of them measures angle, length or flange accuracy.\n\nSOURCE INVENTORY (names only)\n- backend/f1_*.py: 133 files.\n  - About 50 unversioned stage modules: completion, pruning, NMS, snap and ownership (e.g. f1_corridor_completion, f1_cylindrical_band_completion, f1_line_object_clustering, f1_line_topology_completion, f1_strip_detector_completion, f1_mesh_consensus_snap).\n  - Versioned successor stages v18..v73, e.g. v43 two_sided_parent_support_guard, v44 fragment_stitch, v47 elongated_lane, v48 nested_partial_duplicate_nms, v49 short_span_cross_source_duplicate_nms, v50 longest_incumbent_ownership, v51 single_axis_parallel_return_recovery, v52..v73 (calibrated multiview/turn consensus v58-v62, normal-cycle NMS v67/v68, multiscale variation v69-v71, annular secant v72, covariance veto v73).\n  - 3 structured modules: f1_structured_union_graph, f1_structured_residual_birth, f1_structured_birth_diagnostics.\n  - 18 f1_train18_candidate{2..15} wrappers and localizers. The newest is candidate15, dated Sep 2; these are governance and diagnostic wrappers, not new geometry.\n  - f1_zero_shot_source_router.\n- Core shared modules:\n  - backend/zero_shot_bend_profile.py (3222 lines)\n  - backend/patch_graph_latent_decomposition.py (10419 lines)\n  - backend/zero_shot_bend_overlay.py\n  - backend/bend_unary_model.py (759 lines)\n- scripts/*f1*: 472 files. The largest groups are run_f1_ (66), render_f1_ (21), build_professor_f1 (19), build_f1_ (11), audit_f1_ (10), select_f1_mesh (9), run_f1_train18 (9), run_f1_gold27 (8) and preflight_f1_train18 (8). They include the stage selectors select_f1_*_v4..v16 and scripts/solve_f1_structured_union_cpsat.py.\n\n(1) WHAT THE ACTIVE RUNTIME CALLS\n- backend/bend_analysis_worker.py:161 calls run_progressive_bend_inspection, re-exported unchanged by domains/bend/services/runtime_service.py. The worker passes spec_bend_angles_hint=None (:168), expected_bend_override=None and use_part_truth_hints=False (:171). It never passes scan_state, so it defaults to None (pipeline :3962).\n- backend/bend_inspection_pipeline.py:3952 does the following in order:\n  - load_cad_geometry (:428)\n  - extract_cad_bend_specs_with_strategy (:1429)\n  - select_cad_bends_for_expected (:1507)\n  - detect_and_match_with_fallback (:3871), which runs detect_scan_bends (:1495) with a RANSAC/dihedral BendDetector imported from backend/feature_detection/bend_detector.py (pipeline :41-50), then ProgressiveBendMatcher.match (feature_detection/bend_detector.py:2165), a greedy cost match per CAD bend\n  - an optional refine_dense_scan_bends_via_alignment (:3248)\n- backend/bend_detector.py (the top-level file, 2883 lines) is a legacy PCA/DBSCAN detector. Only tests import it (tests/test_bend_detector.py, backend/tests/test_local_bend_measurement.py). It is NOT in the runtime path.\n- The ONLY F1-program piece in the runtime is the bend_unary_model count posterior:\n  - worker :227 calls promote_structured_count_reporting.\n  - That goes through domains/bend/services/structured_count_reporting_service.py:37 and count_service.py:3 into bend_unary_model.score_case_payload.\n  - It loads output/unary_models/latest.json. Four bootstrap_gbdt_202603xx bundles exist; they are calibrated GradientBoosting visibility/state heads (bend_unary_model.py:237-331) and a Poisson-binomial count posterior (:683-743).\n  - It only rewrites summary.structured_completed_bends and the operator headline (structured_count_reporting_service.py:89-112). It does not change per-bend measurements.\n- No f1_* stage, zero_shot_bend_profile, patch_graph_latent_decomposition or zero_shot_bend_overlay is imported by backend or domains runtime code. Grep confirms this, and the Aug-20 audit states \"Runtime/main does not currently import the research F1 modules\".\n- The worker labels all output \"RESEARCH ONLY - NOT QUALIFIED\" (worker :74-80).\n\n(2) LATEST AND BEST F1 RESEARCH MECHANISM\nThe authoritative retained chain is pinned in scripts/build_f1_retained_stage_graph_v1.py:23-40.\n\nSCAN-ONLY lane:\n- scan_v16_route (scripts/select_f1_mesh_route_v16.py), then v43, v44, v50, v47, v48, v49, and finally v51 (backend/f1_single_axis_parallel_return_recovery_v51.py:56 compose_v51).\n- Upstream of V16, the candidate pool is built by scripts/build_f1_scan_only_candidate_pool.py (1375 lines):\n  - It consumes strict-blind patch-graph decomposition output: run_patch_graph_latent_decomposition (patch_graph_latent_decomposition.py:370).\n  - That in turn runs feature_detection BendDetector bundles plus run_zero_shot_bend_profile_from_geometry (zero_shot_bend_profile.py:249), and builds a surface atom graph and flange/bend hypotheses.\n  - Additional generators: plane-lattice intersections, cylindrical bands, scan-mesh adjacency (pool :641), plus augment_f1_candidate_pool_with_scan_mesh.py. The cap is 200k points (GLOBAL_POINT_BUDGET, pool :50).\n- V16 scores the pool with two joblib GBDT/selector models (v9 and v4 profiles; select_f1_mesh_route_v16.py:67-86) and routes among full-mesh, small-pool and complex lanes.\n- Status: V51 is the retained scan-only incumbent. On 12 consumed physical scans it scores P = R = F1 = 0.593, exact count 3/12 and exact localized target set 1/12. Candidate-pool ceiling recall is 0.8475, so selection/ownership loses 15 of 59 gold bends (docs/research/2026-08-25_f1_physical15_v51_candidate_ceiling_v1.md).\n- V52 regressed to F1 0.518. It was the latest physical run: P95 latency about 390 s, peak RSS about 1.53 GB (2026-08-22_f1_physical15_v52_development_result.md).\n- V53-V73 were retired on synthetic/fixture gates. The Aug-20 70-version audit calls the program \"architecture-thrashing\" and pauses V74.\n\nCAD-ASSISTED lane (build_f1_retained_stage_graph_v1.py:34-40):\n- STEP partial-cylinder axes (scripts/extract_step_topology_bend_axes.py)\n- trusted registration (run_blind_cad_ply_benchmark.py)\n- a scan-support gate (scripts/apply_f1_cad_guided_scan_frame_gate.py): 3 mm support, at least 10%, 8 mm run; each axis is cropped to its supported run\n- a union with the scan A0 baseline (diagnose_f1_cad_scan_fusion_gold11.py)\n- Result on matched Gold11: retained scan+CAD 0.458 vs scan-only control 0.365 vs pure STEP guidance 0.354 vs aggressive union 0.456 (2026-08-27_cad_assisted_f1_deep_dive.md). So conservative CAD did help (+0.093) on matched cases. The owner's \"no gain\" impression comes from comparing different corpora (0.518 vs 0.456), which that doc explicitly rejects.\n\nSTRUCTURED / OR-TOOLS lane:\n- f1_structured_union_graph.py plus scripts/solve_f1_structured_union_cpsat.py, using ortools 9.15 isolated by requirements.f1-structured-research.txt. It is a typed labelling of candidates over 7 classes (BEND / corner / perimeter / hole / junction / curve / residual) solved with exact CP-SAT.\n- Result: 1/37 exact, P 0.56, R 0.23. Disposition FALSIFIED_REPRESENTATION_NOT_PROMOTABLE. Pool RSS was 2.49 GB, solver 1.36 GB, P95 about 14.8 s per solve, and the 37-case batch took 1151 s on 12 workers (docs/research/STRUCTURED_UNION_GOLD37_E2E_20260805.md).\n\n(3) ENTRY FUNCTION, INPUTS AND OUTPUTS\n- The research chain is driven script-by-script with JSON hand-offs (pool JSON, then select_f1_mesh_route_v16.py --input/--v9-model/--v4-model/--output at :184-198, then compose_v5x(prev_result, pool)). There is no single callable entry point.\n- Input: a PLY only. Identity, expected counts and CAD are refused (pool docstring :1-8; V16 output flags expected_count_used=False, part_identity_used=False at :176-180).\n- Output per bend is ONLY a 3D segment: bend_id, line_start, line_end, source_hypothesis_id, source_kind, selection_route, selector_score (V16 :152-160). There is no angle, no radius and no flange length.\n- zero_shot_bend_profile does emit estimated_bend_count, a range and dominant_angle_families_deg (:186-220). These are angle families at part level, not per bend.\n- By contrast, the runtime BendMatch does carry per-bend target/measured angle, radius, line length/start/end/center deviations, arc length, and the edge-to-edge flange distance expected_/measured_edge_distance_mm (feature_detection/bend_detector.py:202-245, computed at :2340-2360 via compute_edge_to_edge_distance :369). That is the nearest existing thing to \"flange length\", and it lives in the runtime, not in F1.\n\n(4) EXPECTED/CAD BENDS, BEND ORDER AND PARTIAL STATE\n- F1 scan-only: none of them is consumed, by design.\n- CAD-assisted F1: uses CAD axes only as candidate lines, gated by scan support. There are no angles and no sequence.\n- Runtime: the CAD bend specs ARE the expected list, and matching is per CAD bend (match :2183).\n  - expected_bend_count equals the CAD count unless truth hints are opted in (pipeline :3996-4033).\n  - scan_state \"partial\" only alters fallback and runtime profiles (:3919-3921). The worker never supplies it, and _resolve_scan_state refuses to infer it from the filename or counts (worker :86-94).\n  - The unary count posterior estimates how many bends are completed, but NOT which ones in sequence.\n- No code consumes a tagged bend order or \u05de\u05d4\u05dc\u05da groups: grep for bend_order/bend_sequence/\u05de\u05d4\u05dc\u05da in backend and domains finds only a \"root_selection_is_not_shop_datum_or_bend_order\" disclaimer flag in backend/vendor_manufacturing_job.py:128,321.\n- No code consumes an unfolded/flat part. CURRENT_STATUS notes that unfolding covers only 6 of 20 CADs, and only as a CAD-side preview.\n\nDOCS NOTE: the top of CURRENT_STATUS.md (2026-09-30 / 10-01) is about CAD-side bend extraction (Extractor V10: 120/127 known bends, 94.49%; a random email STEP got 12/12). That work is separate from the F1 scan engine. The program status file shows production_promotion_authorized=false and both lanes RED, with the next physical intake (16 SharePoint scans) still pending download.",
+  "versions_and_scores": [
+   {
+    "name": "V51 single_axis_parallel_return_recovery (scan-only retained incumbent)",
+    "mechanism": "PLY to patch-graph/zero-shot decomposition to multi-generator candidate pool to V16 GBDT router, then V43, V44, V50, V47, V48, V49 and V51 ownership/NMS/recovery stages; outputs 3D bend line segments only",
+    "score": "P=R=F1 0.593; exact count 3/12; exact localized set 1/12; pool-ceiling recall 0.8475",
+    "dataset": "physical15 dev-consumed (12 scored scans / 59 gold bends)",
+    "source": "docs/research/2026-08-25_f1_physical15_v51_candidate_ceiling_v1.md; scripts/build_f1_retained_stage_graph_v1.py:23-32",
+    "date": "2026-08-22/25",
+    "status": "research-only (retained incumbent, not runtime)"
+   },
+   {
+    "name": "V52 post-V51 precision ownership",
+    "mechanism": "V51 plus extra candidate recovery",
+    "score": "F1 0.518 (P 0.45, R 0.61); P95 ~390 s; RSS ~1.53 GB",
+    "dataset": "physical15 dev-consumed (12 scored)",
+    "source": "docs/research/2026-08-22_f1_physical15_v52_development_result.md",
+    "date": "2026-08-22",
+    "status": "terminal negative"
+   },
+   {
+    "name": "Retained CAD-assisted lane (scan + scan-supported STEP axes)",
+    "mechanism": "STEP partial-cylinder axes, then registration, then 3mm/10%/8mm scan-support gate with crop, then union with scan A0",
+    "score": "F1 0.458 (P 0.50, R 0.42), 1/11 exact; vs scan-only control 0.365, pure STEP 0.354, aggressive union 0.456",
+    "dataset": "Gold11 matched (11 scans / 6 families)",
+    "source": "docs/research/2026-08-27_cad_assisted_f1_deep_dive.md; scripts/build_f1_retained_stage_graph_v1.py:34-40",
+    "date": "2026-08-27",
+    "status": "research-only (retained CAD incumbent)"
+   },
+   {
+    "name": "Structured typed-union CP-SAT",
+    "mechanism": "f1_structured_union_graph IR plus OR-Tools CP-SAT labelling of 7 semantic classes with residual birth",
+    "score": "1/37 exact; P 0.56, R 0.23; solver RSS 1.36 GB, pool RSS 2.49 GB",
+    "dataset": "Gold27/37 physical",
+    "source": "docs/research/STRUCTURED_UNION_GOLD37_E2E_20260805.md",
+    "date": "2026-08-05",
+    "status": "terminal negative (FALSIFIED_REPRESENTATION_NOT_PROMOTABLE)"
+   },
+   {
+    "name": "V16 unified source-only mesh route",
+    "mechanism": "GBDT v9/v4 selector over candidate pool with full/small/complex routing",
+    "score": "P 0.6875, R 0.75, F1 0.7174, 4/35 exact",
+    "dataset": "held-out fixtures (non-physical)",
+    "source": "docs/research/2026-08-20_f1_70_version_multi_agent_bigger_picture_audit.md; scripts/select_f1_mesh_route_v16.py",
+    "date": "2026-08-20 audit",
+    "status": "research-only (birth stage of retained chain)"
+   },
+   {
+    "name": "Gold37 full physical (program-level)",
+    "mechanism": "retained scan-only stack",
+    "score": "P 0.56, R 0.231, F1 0.327, 1/37 exact, min-family recall 0",
+    "dataset": "Gold37 (37 scans / 27 parts)",
+    "source": "docs/research/2026-08-20_f1_70_version_multi_agent_bigger_picture_audit.md",
+    "date": "2026-08-20",
+    "status": "research-only"
+   },
+   {
+    "name": "bend_unary_model count posterior",
+    "mechanism": "calibrated GBDT visibility/state heads plus Poisson-binomial completed-count posterior over runtime matches",
+    "score": "no accuracy metric published here",
+    "dataset": "bootstrap_gbdt_20260315 bundles",
+    "source": "backend/bend_unary_model.py:237-743; domains/bend/services/structured_count_reporting_service.py:37-112; backend/bend_analysis_worker.py:227",
+    "date": "2026-03-15 models",
+    "status": "runtime default (annotates count only)"
+   },
+   {
+    "name": "Runtime progressive bend inspection",
+    "mechanism": "CAD bend specs plus feature_detection RANSAC/dihedral BendDetector plus greedy ProgressiveBendMatcher plus optional dense local refinement",
+    "score": "no qualified accuracy; labeled RESEARCH ONLY in output",
+    "dataset": "n/a",
+    "source": "backend/bend_inspection_pipeline.py:3952-4228; backend/feature_detection/bend_detector.py:2108-2410",
+    "date": "current",
+    "status": "runtime default"
+   }
+  ],
+  "implications_for_production": [
+   "The production worker does not run the F1 research engine. It runs a separate CAD-driven RANSAC detector and greedy matcher (feature_detection/bend_detector.py). Integrating F1 means building a new adapter. It cannot be switched on with a flag.",
+   "F1 outputs only bend-line segments (start/end) and is scored only on line-localization F1. It produces no per-bend angle, radius or flange length. The operator's top need, flange length, must come from elsewhere. The closest existing code is the runtime BendMatch expected_/measured_edge_distance_mm (bend_detector.py:2340-2360).",
+   "Best physical evidence is weak: scan-only V51 reaches F1 0.593 on 12 consumed scans, and the Gold37 program-level result is 0.327. Selection/ownership, not candidate birth, is the bottleneck (pool ceiling recall 0.85).",
+   "The CAD-guided lane did help on matched cases (0.365 to 0.458 on Gold11). The owner's 'no gain' impression comes from comparing different corpora, which the Aug-27 audit rejects. CAD works as a constrained prior, not as an autonomous detector.",
+   "No code consumes bend order, \u05de\u05d4\u05dc\u05da groups, an unfolded/flat part, or an explicit partial state. scan_state is never passed by the worker, and partial-scan handling only tweaks fallback. Incomplete-scan support (first k of N bends) needs new state-conditioned matching: only bends 1..k of the CAD should be expected, and the later ones treated as legitimately unformed.",
+   "Given a known CAD, a known bend sequence and a scanner frame, the scan-only zero-shot detection problem F1 attacks is much harder than needed. A CAD-per-bend local measurement design (registered per-flange plane fits around each expected bend, gated by sequence step) fits the production target better than promoting V51.",
+   "F1 resource profile: P95 ~390 s and ~1.5 GB per scan (V52); the structured lane needs up to ~2.5 GB. The cad_guided v18 lane takes 10-20 min per scan. All of these are too slow and brittle for a per-part robotic-cell loop without redesign.",
+   "Governance: production_promotion_authorized=false, both lanes are RED, the 16 physical scans are still not downloaded, and 133 F1 backend modules plus 472 scripts are largely untracked. Freeze one candidate and retire the rest before any integration."
+  ]
+ },
+ {
+  "area": "unfold",
+  "findings": "SCOPE: read-only source/docs survey of /Users/idantal/ShermanQC/FullProject. Nothing was executed and no raw CAD or scan bytes were opened.\n\n1. WHAT EXISTS: THREE SEPARATE UNFOLD PATHS, ALL CAD-DERIVED. NONE INGESTS A USER FLAT FILE.\n(a) Visual \"selected-skin development\", the one the UI uses. backend/vendor_unfold_preview.py:1-6 says it is \"NOT a neutral-axis blank\". It has no K-factor, no allowance and unverified units. It develops one skin (inner or outer surface) of the folded STEP as a tree of planes and cylinders. In _develop_faces (vendor_unfold_preview.py:1004-1110) the root is the largest planar face. For each bend, _child_transform (lines 921-941) builds a rigid hinge transform: rotation by -delta about the cylinder axis, plus translation R*delta along the tangent. Transforms compose parent-to-child down the tree. Each bend emits bend_lines {feature_id, line_start/end, bend_direction:\"unknown\", sweep_deg} (lines 1081-1083), and the flat flange overlays keep the same feature_id. Refusal gates: PARENT/CHILD_FLANGE_EXTENDS_INTO_DEVELOPED_BEND, seam closure, overlap, cyclic graph, sweep <=175 deg. Successors V4 to V6 exist: finite-width, coplanar stitch, native V6 (vendor_unfold_preview_v6.py, vendor_unfold_native_v6.py, vendor_cad_unfold_pipeline_v4.py). The API wires only workers v1 to v4, picked by env SHERMAN_VENDOR_UNFOLD_RUNTIME (apps/api/services/vendor_setup_service.py:211-218, 252-260). Unset means the legacy v1 worker. V5/V6 and the pipelines are research-only.\n(b) Manufacturing draft, separate and offline. backend/vendor_manufacturing_job.py:1-6, 288-380 runs pinned FreeCAD 1.1.3 + SheetMetal 0.8.23 raw unfold, gated by a compensation profile with K-factor: BA = theta*(Ri + K*t). It emits analytic DXF (cut_dxf, bend_guide_dxf) and a bend_ledger with real up/down bend_direction, sweep, included angle and BA (vendor_manufacturing_freecad.py:523-546). Native markers are bound to vendor bend IDs by an exact-endpoint bijection with 1e-7 mm tolerance (vendor_manufacturing_bridge.py:41-75). It is not imported by the server. Evidence is synthetic only: V1b had 13 geometry oracles pass, V2 failed 56/57, and the V3 file workflow passed 4/4 synthetic (docs/operations/vendor-manufacturing-unfold-2026-09-29.md). manufacturing_ready and cut_release are hard false. No physical CAD has been run.\n(c) Folded flange preview (expected flange length source). backend/vendor_flange_preview.py:334-386 measures nominal_flange_depth_mm, the \"CAD_TANGENT_TO_OUTER_EDGE\" distance (lines 188-288). It requires one straight outer rail parallel to the bend axis and equal depth on both skins; otherwise it returns null with UNAVAILABLE_AMBIGUOUS_BOUNDARY. This is the only CAD-side expected-flange-length producer in the setup path. It is disabled whenever a controlled unfold runtime is set (vendor_setup_service.py:237-240).\n\n2. AVAILABILITY LIMIT.\n- 20-STEP corpus: 6/20 flat previews, unchanged across three extractor generations (docs/operations/cad-bend-native-chain-score-2026-09-30.md:20; docs/CURRENT_STATUS.md:86 \"unfolding still 6/20\"). A V6-unfold challenger fell to 5/20 because of a case05 angular-basis regression of about 2.19 mm (vendor-cad-corpus-engine-v3-2026-09-30.md:13-24).\n- Five-part upload: 1/5 (V3), then 2/5 (V4 finite-width), then 3/5 (paired V2 challenger) (vendor-unfold-production-readiness-2026-09-29.md; vendor-unfold-v5-physical-geometry-review-2026-09-30.md).\n- Typed refusals: unproven nonplanar B-spline (49001000), no connected skin covering all bends (42288005), parent-flange intrusion (38172000), and earlier hole-wall boundary failures.\n- Bend detection on folded CAD is much better than unfolding: 120/127 known bends (94.49%), Complete12 micro-F1 98.43%. So hinge axes are usually available even when full development refuses.\n\n3. INPUT FORMATS TODAY.\n- CAD upload accepts .stl/.step/.stp/.ply/.obj (_server_legacy_impl.py:3662; UI accept list at VendorSetupPage.tsx:546). Only STEP gets native bend analysis (vendor_native_step_upload_v2).\n- Drawing upload accepts pdf/png/jpg/tiff (_server_legacy_impl.py:3815-3851). The draft stores drawing_file_hash (vendor_setup_service.py:64).\n- There is no flat-pattern upload: no DXF, GEO, flat STEP or SLDPRT ingestion anywhere. The only DXF reader is read_analytic_dxf (backend/vendor_manufacturing_dxf.py:295), a strict parser for its own minimal export schema, not a general importer.\n- No *.dxf or flat-named CAD files exist under ShermanQC. Locally there are 237 .step, 151 .stp and 58 .sldprt files. data/ holds png/json/ply/stl/pdf/zip, with no STEP. The \"*.geo\" hits are gmsh tutorials in .venv, not TRUMPF GEO.\n- The shop runs TRUMPF TruBend/TruTops/BendMaster. The manual assistant indexes \"How do I import a DXF file with bending lines?\" (frontend/react/src/pages/ManualAssistant.tsx:125; apps/api/services/manual_assistant_service.py:481). So the shop's native flat is most likely DXF (or TRUMPF GEO) with a bend-line layer.\n\n4. HOW FLAT BENDS MAP TO FOLDED BENDS TODAY.\n- Only by construction: each flat bend line is produced while developing the folded CAD cylinder that carries that candidate's feature_id.\n- The frontend enables flat view only if every active mark is a cad_candidate whose feature_id appears in preview.bend_lines and whose folded endpoints still match exactly (frontend/react/src/features/part-catalog/pages/vendorUnfoldDraft.ts:17-40). A manual mark disables flat view.\n- UI toggle \"folded\" / \"unfolded_visual\" is at VendorSetupPage.tsx:555-556 and 563. Order, \u05de\u05d4\u05dc\u05da group colours and selection persist across views, and flat-view PDF export is at lines 455-458. Browser QA for this passed on 2 to 3 parts (production-readiness doc).\n- VendorUnfoldPreview type: frontend/react/src/types/index.ts:649-662. Units are assumed_mm, units_verified is false, bend_direction is usually 'unknown'.\n\n5. INCOMPLETE-SCAN STATE TODAY: NO INTERMEDIATE-GEOMETRY SYNTHESIS.\n- Partial scans are handled by counting. bend_unary_model._count_posterior_summary (backend/bend_unary_model.py:683-741) takes a Poisson-binomial over independent per-bend formed-probabilities, which ignores the tagged order. Unobserved bends on partial scans get zero mass (lines 698-720).\n- The draft has completed_steps (vendor_setup_service.py:73, validated at :201; UI stage stepper at VendorSetupPage.tsx:646). That is a planning field, not a per-scan input.\n- No code builds the expected shape after the first k bends.\n\nDESIGN PROPOSAL 1: INTAKE UI WITH FOLDED AND UNFOLDED VIEWS\n(a) Add slot 4 next to CAD and Drawing: \"Flat pattern (DXF / GEO / flat STEP)\". Use a new route POST /api/parts/{id}/flat, modelled on upload_part_drawing. Store flat_file_path, flat_file_hash and flat_uploaded_at, and bind flat_file_hash into VendorSetupDraft beside drawing_file_hash.\n(b) Parser: a bounded general DXF reader (ezdxf). Outer and inner loops come from LINE/ARC/LWPOLYLINE. Bend lines come from the TruTops layer convention plus any angle/direction TEXT/MTEXT (UP/DOWN) and radius. For flat STEP, take the single planar slab's face outline and the scribe/bend-line edges.\n(c) Flat-to-folded bend binding. Cut the flat outline along the bend lines to get a panel graph, which must be a tree. Match it to the folded CAD flange/bend graph by node and edge count, bend-line length against the cylinder axial span, and adjacency. Then refine with a 2D rigid-plus-mirror ICP against the CAD skin development when one exists (6/20). Tolerances must allow the skin-versus-neutral gap of alpha*K*t per bend: about 0.94 mm at 90 deg, t=1.5, K=0.4.\n(d) Unresolved matches (symmetric parts) go to operator confirmation: click a flat line, then the matching folded bend. A stored bijection replaces the vendorUnfoldDraft \"all marks must be cad_candidate\" rule. Precedence: uploaded flat first (it covers the 14/20 that refuse), CAD-developed flat second, folded only last.\n(e) Bonus: a shop flat is a real blank, so the measured panel-to-bend-line distances back-solve the shop's effective BA/K per bend. That yields an independent expected flange length where vendor_flange_preview returns null.\n(f) Caveat: the owner's current flats were reverse-engineered from the folded CAD, so they are circular and cannot validate any of this. Real shop DXFs are needed.\n\nDESIGN PROPOSAL 2: EXPECTED GEOMETRY AFTER THE FIRST k BENDS\nAdmissible states are prefixes of the tagged sequence, cut only at \u05de\u05d4\u05dc\u05da group boundaries. That gives at most n+1 hypotheses instead of 2^n.\n- Method A (recommended for coverage): hinge-rotate the folded CAD.\n  1. Build the face tree from the folded STEP mesh: remove each bend cylinder's triangles via tessellation FACE_OCCURRENCE_RANGES (as vendor_flange_preview already does).\n  2. Take axis and sweep from extract_step_bend_axes (94% bend capture).\n  3. For each unformed bend b, rotate b's subtree by -sweep_b about b's axis, and replace b's cylinder with a flat strip. The strip length should be the neutral arc alpha*(Ri+K*t) when K is known; otherwise use the skin arc and flag about alpha*K*t uncertainty.\n  4. Formed bends keep identity.\n  This generalises _child_transform, where the per-link transform is unfold if unformed and identity if formed. It needs no full-skin proof (no seam closure, overlap or hole certificates). Mid-sequence sheets can self-intersect, but that is physically valid, so overlap checks must be off for intermediates.\n- Method B (when a flat is uploaded and bound): fold the flat. Start from the panel tree and fold bends 1..k about their bend lines using nominal angle and radius from CAD, positioned by BA, then extrude by t. This works where CAD development refuses and is exact for the blank.\n- Method C: use (a)'s _develop_faces transforms directly, but only on the 6/20 parts.\n- Engine use: register the scan to each S_k and pick k by residual with margin, or take k from the scan job when the robot cell knows it. Then measure only bends 1..k against S_k's expected flange length, angle and bend-line position. Replace the order-free Poisson count with this prefix likelihood.",
+  "versions_and_scores": [
+   {
+    "name": "Visual unfold V1 (vendor_unfold_preview.py)",
+    "mechanism": "selected CAD skin tree development, rigid hinge transforms",
+    "score": "5-part demo: 0/5 (all UNSUPPORTED_NATIVE_TRIM_CURVE)",
+    "dataset": "5 vendor CADs",
+    "date": "2026-09-29",
+    "source": "docs/operations/vendor-unfold-preview-2026-09-29.md",
+    "status": "terminal negative"
+   },
+   {
+    "name": "Visual unfold V3 (closed-circle hole rails)",
+    "mechanism": "skin development + native circle-set hole proof",
+    "score": "1/5 available (37361005, 4 bends)",
+    "dataset": "5 vendor CADs",
+    "date": "2026-09-29",
+    "source": "docs/operations/vendor-unfold-preview-2026-09-29.md",
+    "status": "research-only"
+   },
+   {
+    "name": "Unfold worker V3 / geometry V4 finite-width",
+    "mechanism": "finite-width parent guard",
+    "score": "2/5 (37361005, 10839000 12 bends); UI QA passed",
+    "dataset": "5-part fresh upload",
+    "date": "2026-09-29",
+    "source": "docs/operations/vendor-unfold-production-readiness-2026-09-29.md",
+    "status": "runtime default only via SHERMAN_VENDOR_UNFOLD_RUNTIME=v4-development (dev)"
+   },
+   {
+    "name": "Paired V2 challenger (V5 coplanar stitch + local finite strip)",
+    "mechanism": "native coplanar chart stitching, finite-strip proof, native metric oracle",
+    "score": "challenger 3/5 vs control 2/5",
+    "dataset": "5-part fresh upload",
+    "date": "2026-09-30",
+    "source": "docs/operations/vendor-unfold-v5-physical-geometry-review-2026-09-30.md",
+    "status": "research-only"
+   },
+   {
+    "name": "Corpus V2-extractor/V5-unfold baseline",
+    "mechanism": "selected-skin development on 20-STEP corpus",
+    "score": "6/20 flats, 16 folded displays",
+    "dataset": "20 STEP hashes / 23 aliases",
+    "date": "2026-09-30",
+    "source": "docs/operations/vendor-cad-corpus-engine-v3-2026-09-30.md:13",
+    "status": "research-only"
+   },
+   {
+    "name": "V3-extractor/V6-unfold challenger",
+    "mechanism": "recomputed angular basis",
+    "score": "5/20 flats; case05 marker regression ~2.19 mm",
+    "dataset": "20 STEP corpus",
+    "date": "2026-09-30",
+    "source": "docs/operations/vendor-cad-corpus-engine-v3-2026-09-30.md:14-20",
+    "status": "terminal negative"
+   },
+   {
+    "name": "Native boundary-chain extractor V10 (bend detection on folded CAD)",
+    "mechanism": "native rational boundary chains",
+    "score": "120/127 known bends (94.49%); Complete12 micro-F1 98.43%; flats still 6/20",
+    "dataset": "20 STEP corpus vs AI technical reference",
+    "date": "2026-09-30",
+    "source": "docs/operations/cad-bend-native-chain-score-2026-09-30.md",
+    "status": "research-only"
+   },
+   {
+    "name": "Manufacturing FreeCAD SheetMetal draft (vendor_manufacturing_job.py)",
+    "mechanism": "pinned FreeCAD raw unfold + ANSI K BA + analytic DXF + exact bend-ID bijection",
+    "score": "synthetic only: V1b 13 geometry oracles pass/13 hole fails; V2 56/57; file workflow V3 4/4 synthetic; 0 physical",
+    "dataset": "synthetic oracles",
+    "date": "2026-09-29",
+    "source": "docs/operations/vendor-manufacturing-unfold-2026-09-29.md",
+    "status": "research-only (manufacturing_ready=false)"
+   },
+   {
+    "name": "Folded flange depth preview (vendor_flange_preview.py)",
+    "mechanism": "CAD tangent-to-outer-edge flange depth",
+    "score": "no accuracy score; null when rails ambiguous",
+    "source": "backend/vendor_flange_preview.py:188-288,375-377",
+    "status": "runtime default (legacy path only)"
+   }
+  ],
+  "implications_for_production": [
+   "No uploaded flat pattern is supported today. Every flat view is derived from the folded STEP, and only 6/20 corpus parts and 3/5 fresh uploads develop. A flat upload slot with a general DXF/GEO/flat-STEP parser is real missing scope, not a UI toggle.",
+   "The folded/unfolded toggle, order and \u05de\u05d4\u05dc\u05da-group parity across views, and flat PDF export already exist (VendorSetupPage.tsx:555-563, vendorUnfoldDraft.ts). An uploaded flat can feed the same VendorUnfoldPreview contract once its bend lines are bound to feature_ids. That needs a new binding step: panel-tree graph match plus 2D ICP plus operator confirmation, replacing the current exact-endpoint rule.",
+   "Intermediate expected geometry for incomplete scans should be built by hinge-rotating the subtrees of unformed bends of the folded CAD about the extracted bend axes. That uses 94% bend capture and does not depend on the 6/20 full-unfold gate. Folding the uploaded flat is the fallback. Requiring certified full skin development would leave about 70% of parts with no stage geometry.",
+   "Restrict partial-state hypotheses to prefixes of the tagged order at \u05de\u05d4\u05dc\u05da boundaries (at most n+1), and replace the order-free Poisson-binomial count in bend_unary_model.py:683-741 with residual-based stage selection. Better still, receive k from the Zeiss robot cell.",
+   "Skin-development lengths differ from the real blank by alpha*K*t per bend (about 1 mm at 90 deg, t=1.5). Unformed-bend strips and flat-to-CAD matching must use neutral-axis BA or a shop K. A real shop DXF lets us back-solve that K and gives an independent expected flange length where vendor_flange_preview returns null.",
+   "The available flats are reverse-engineered from the folded CAD, so they cannot validate flat ingestion or binding (circular). Collect real TruTops/BendMaster DXFs from the shop before claiming any gain.",
+   "Unfold V5/V6 and the FreeCAD manufacturing path are not wired into the API. Only workers v1-v4 are, behind the SHERMAN_VENDOR_UNFOLD_RUNTIME env var. Treat V5/V6/FreeCAD as research assets."
+  ]
+ }
+]

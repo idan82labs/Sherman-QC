@@ -1,0 +1,21 @@
+# Cubical-IIP-V1 lock-correction authority ledger
+
+- Authoritative consultation: GPT-5.6 Pro, conversation `6a779945-5310-83ed-a3b1-17fbfc821afc`.
+- Authoritative response artifact: `PROFESSOR_F1_CUBICAL_IIP_V1_PREFLIGHT_LOCK_V5_GPT56_PRO_RESPONSE_20260809.txt`.
+- Browser-rendered response SHA-256, including the preserved trailing newline: `f15e2d775a23405bc5f593dd1c260e6bb6d7b6d0718e6a8b635935f4d73fd23b`.
+- V5 ruling: `CUBICAL_IIP_V1_LOCK_AUDIT_REQUIRES_ONE_NONEXECUTION_CORRECTION`.
+- Authorized next step: `BUILD_ONE_CUBICAL_IIP_V1_LOCK_CORRECTION_PACKET_ONLY`.
+- Isolated contradiction: V5 simultaneously required cross-arm field-row IDs to remain byte-identical and required those IDs to bind `arm_u8`, making baseline and isotropic canonical preimages different.
+- Selected paper-only repair: retain every arm-bound identifier preimage; pair baseline and isotropic rows by `(case_token_digest_sha256, scale_u8, morton_u64)`; recompute each arm-specific field, rejection, essential-death, and interval identifier; treat copied baseline IDs or cross-arm equality for unequal preimages as terminal failures.
+- Superseded unsent staging packet: `Sherman_QC_F1_Cubical_IIP_V1_Preflight_Lock_Review_20260809_v6`; ChatGPT rewrote duplicate upload filenames with `(1)` aliases, so the staging upload was discarded before submission and this packet has no consultation authority.
+- Corrected immutable upload-safe packet: `Sherman_QC_F1_Cubical_IIP_V1_Preflight_Lock_Review_20260809_v7`.
+- V7 package ID: `SHERMAN_QC_F1_CUBICAL_IIP_V1_PREFLIGHT_LOCK_REVIEW_20260809_V7`.
+- V7 uses unique `00_V7_...` through `09_V7_...` upload names so the browser cannot silently alias them; this is a packaging-only change from V6.
+- V7 review conversation: `6a77a0dc-82e0-83eb-ba2c-140cd7002474`.
+- V7 review response artifact: `PROFESSOR_F1_CUBICAL_IIP_V1_CORRECTION_AUDIT_V7_GPT56_PRO_RESPONSE_20260809.txt`.
+- V7 review response SHA-256, including the preserved trailing newline: `415bca890417fa26f82ab9819bd097797b3d5a7e55338a204d706498e2825957`.
+- V7 ruling: `CUBICAL_IIP_V1_CORRECTION_AUDIT_PASS_NO_EXECUTION`.
+- V7 next step: `BUILD_CUBICAL_IIP_V1_PREEXECUTION_REVIEW_PACKET_ONLY`.
+- Pro found no remaining contradiction requiring family STOP.
+- Execution authority: `NONE`.
+- No implementation, raw-scan semantic processing, geometry, parameters, replay, synthetic data, gold/truth/labels, CAD/reference/render, benchmark, runtime/main, production, or promotion was authorized or performed.

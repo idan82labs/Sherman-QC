@@ -1,0 +1,181 @@
+{
+ "schema": "sherman_g4_scan_review_v1",
+ "scan_ref": "scan_cbd42e95b1",
+ "packet": "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/g4/packet_e3",
+ "packet_manifest_sha256_commitment": "a0be8bfd6ddde18cf4212909f64bc8c780bb5d427febcb693ab3a8d6f8596a35",
+ "protocol": {
+  "sha256": "cfe774d0d70a9843aa48deb9461f58cc83c368d8f43db6e3c45cc6ec521dd41f",
+  "version": "E4-G4-2 (2026-10-17)"
+ },
+ "instructions": "Two independent reviewers (max effort, did not write the engine) inspect EVERY image and append one G4VerdictV1 line per image to g4_verdicts.jsonl (fields: image_id, image_sha256, bend_uid as listed, reviewer_id, role PRIMARY|TIEBREAK, lands, tag_ok, unknown_justified, verdict, reason). Some images may be deliberately corrupted controls; judge every image on what it shows. No metrics are provided.",
+ "lands_rule": {
+  "min_length_fraction": 0.8,
+  "offset": "max(2 mm, Ri + t) from the crease",
+  "offset_floor_mm": 2.0,
+  "parallel": true
+ },
+ "images": [
+  {
+   "file": "img_21c93ac2f82d.png",
+   "image_id": "img_21c93ac2f82d",
+   "kind": "CLOSEUP",
+   "px_per_mm": 10.0,
+   "questions": [
+    "The engine reports this bend NOT YET FORMED (flat), so no measured line is drawn; the grey dashed line is where the bend will be. Is that justified: is the material along the grey dashed line really flat (unbent) in the scan? Answer unknown_justified YES or NO; lands = NOT_APPLICABLE.",
+    "TAG_OK: does the bold subject label match the RECIPE CAD label at the same spot? YES / NO / UNDETERMINABLE."
+   ],
+   "scan_ref": "scan_cbd42e95b1",
+   "sha256": "3189a54bcdab564c54165e4746d59764f6522821180dd0d8bd1b6950ada632a0",
+   "subject": {
+    "bend_uid": "bu_90544b1516c9ba4b1819",
+    "display": "2 · B2 · 90544b",
+    "label": "B2",
+    "measured_line_shown": false,
+    "sequence_index": 2,
+    "state_shown": "NOT_YET_FORMED"
+   },
+   "tile": {
+    "count": 2,
+    "index": 0
+   }
+  },
+  {
+   "file": "img_4e35d92f74de.png",
+   "image_id": "img_4e35d92f74de",
+   "kind": "CLOSEUP",
+   "px_per_mm": 10.0,
+   "questions": [
+    "The engine reports this bend NOT YET FORMED (flat), so no measured line is drawn; the grey dashed line is where the bend will be. Is that justified: is the material along the grey dashed line really flat (unbent) in the scan? Answer unknown_justified YES or NO; lands = NOT_APPLICABLE.",
+    "TAG_OK: does the bold subject label match the RECIPE CAD label at the same spot? YES / NO / UNDETERMINABLE."
+   ],
+   "scan_ref": "scan_cbd42e95b1",
+   "sha256": "122621175c1a376988e0c8dd6e745d42fa85cd49c34145ecaf1f419ba9149c7c",
+   "subject": {
+    "bend_uid": "bu_90544b1516c9ba4b1819",
+    "display": "2 · B2 · 90544b",
+    "label": "B2",
+    "measured_line_shown": false,
+    "sequence_index": 2,
+    "state_shown": "NOT_YET_FORMED"
+   },
+   "tile": {
+    "count": 2,
+    "index": 1
+   }
+  },
+  {
+   "file": "img_9ffdea4a16b3.png",
+   "image_id": "img_9ffdea4a16b3",
+   "kind": "CLOSEUP",
+   "px_per_mm": 10.0,
+   "questions": [
+    "LANDS: does the SOLID black line lie on the physical bend crease of the scan (within max(2 mm, Ri + t), parallel, over at least 80 % of its length)? Answer YES, NO, or OCCLUDED if the crease cannot be seen.",
+    "TAG_OK: does the bold label next to the solid line equal the RECIPE CAD label at the same spot? YES / NO / UNDETERMINABLE."
+   ],
+   "scan_ref": "scan_cbd42e95b1",
+   "sha256": "1fdc15313316efb2d5cb22e5c6c8bdb55dca2187301c417a3ae7751afd23b68f",
+   "subject": {
+    "bend_uid": "bu_868004b04adc5faeef0b",
+    "display": "1 · B1 · 868004",
+    "label": "B1",
+    "measured_line_shown": true,
+    "sequence_index": 1,
+    "state_shown": "FORMED"
+   },
+   "tile": {
+    "count": 2,
+    "index": 0
+   }
+  },
+  {
+   "file": "img_f5c8e9f649ad.png",
+   "image_id": "img_f5c8e9f649ad",
+   "kind": "CLOSEUP",
+   "px_per_mm": 10.0,
+   "questions": [
+    "LANDS: does the SOLID black line lie on the physical bend crease of the scan (within max(2 mm, Ri + t), parallel, over at least 80 % of its length)? Answer YES, NO, or OCCLUDED if the crease cannot be seen.",
+    "TAG_OK: does the bold label next to the solid line equal the RECIPE CAD label at the same spot? YES / NO / UNDETERMINABLE."
+   ],
+   "scan_ref": "scan_cbd42e95b1",
+   "sha256": "0a930dc62d8ebdc7763e49ff5984abaff77a4b0505941f94c325bde493c64aea",
+   "subject": {
+    "bend_uid": "bu_868004b04adc5faeef0b",
+    "display": "1 · B1 · 868004",
+    "label": "B1",
+    "measured_line_shown": true,
+    "sequence_index": 1,
+    "state_shown": "FORMED"
+   },
+   "tile": {
+    "count": 2,
+    "index": 1
+   }
+  },
+  {
+   "file": "img_36382b849fbf.png",
+   "image_id": "img_36382b849fbf",
+   "kind": "GLOBAL_FRONT",
+   "questions": [
+    "Context only: overview of the registered scan with every bend's line and label. Record a verdict only if something contradicts the close-ups (lands = NOT_APPLICABLE, tag_ok = UNDETERMINABLE)."
+   ],
+   "scan_ref": "scan_cbd42e95b1",
+   "sha256": "53bc25a6081c77db8539558d13c3da6579b4145a0f561e0f8d12139eed3e9210",
+   "subject": null
+  },
+  {
+   "file": "img_8fe62c63031a.png",
+   "image_id": "img_8fe62c63031a",
+   "kind": "GLOBAL_DIMENSIONS",
+   "questions": [
+    "Context only: overview of the registered scan with every bend's line and label. Record a verdict only if something contradicts the close-ups (lands = NOT_APPLICABLE, tag_ok = UNDETERMINABLE)."
+   ],
+   "scan_ref": "scan_cbd42e95b1",
+   "sha256": "3370426b7d4f94c4f8ac40793283c4e4666723ce536f09f375b5267b266ccc5b",
+   "subject": null
+  },
+  {
+   "file": "img_c0b533709f9e.png",
+   "image_id": "img_c0b533709f9e",
+   "kind": "GLOBAL_ISO",
+   "questions": [
+    "Context only: overview of the registered scan with every bend's line and label. Record a verdict only if something contradicts the close-ups (lands = NOT_APPLICABLE, tag_ok = UNDETERMINABLE)."
+   ],
+   "scan_ref": "scan_cbd42e95b1",
+   "sha256": "e2237b9ea3cb150d673fb7d6130f015a88dd59296bb1de40dafc8ef00406458a",
+   "subject": null
+  },
+  {
+   "file": "img_c92c28e272f9.png",
+   "image_id": "img_c92c28e272f9",
+   "kind": "GLOBAL_SIDE",
+   "questions": [
+    "Context only: overview of the registered scan with every bend's line and label. Record a verdict only if something contradicts the close-ups (lands = NOT_APPLICABLE, tag_ok = UNDETERMINABLE)."
+   ],
+   "scan_ref": "scan_cbd42e95b1",
+   "sha256": "f23380fa7b4416cbd2b1c970285ae1d2ac5e1da3e8f447afd7b3dd11a72375dc",
+   "subject": null
+  },
+  {
+   "file": "img_e91393ce4b7a.png",
+   "image_id": "img_e91393ce4b7a",
+   "kind": "GLOBAL_HEATMAP",
+   "questions": [
+    "Context only: overview of the registered scan with every bend's line and label. Record a verdict only if something contradicts the close-ups (lands = NOT_APPLICABLE, tag_ok = UNDETERMINABLE)."
+   ],
+   "scan_ref": "scan_cbd42e95b1",
+   "sha256": "a7424289075f564e160f5f16893bc69529654b9323e44ab434aba525c6d4ed65",
+   "subject": null
+  },
+  {
+   "file": "img_f50a013a8365.png",
+   "image_id": "img_f50a013a8365",
+   "kind": "GLOBAL_TOP",
+   "questions": [
+    "Context only: overview of the registered scan with every bend's line and label. Record a verdict only if something contradicts the close-ups (lands = NOT_APPLICABLE, tag_ok = UNDETERMINABLE)."
+   ],
+   "scan_ref": "scan_cbd42e95b1",
+   "sha256": "eeda39fa53f7c2788d9512f1661a75ca99a11f0e5fe78955a351b3a63156c152",
+   "subject": null
+  }
+ ]
+}

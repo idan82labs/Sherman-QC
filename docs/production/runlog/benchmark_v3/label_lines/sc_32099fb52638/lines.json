@@ -1,0 +1,909 @@
+{
+  "tool": "bench_labeling_v1",
+  "created_at": "2026-10-17T12:02:53.895033+00:00",
+  "coordinate_frame": "source_ply_raw",
+  "scan_path": "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260316_19cf5725/42288005_01_SCAN_2.ply",
+  "scan_name": "42288005_01_SCAN_2.ply",
+  "scan_sha256": "32099fb526385a3d83470d5dd913aeada79de735a048ee48ba6993a56a8f7e03",
+  "prep_dir": "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/benchmark_v3/label_prep/sc_32099fb52638",
+  "prep_image_sha256": {
+    "iso": "3588645b7262a0ca1a6674d3c1968775d323a7f10b95d8d8ada1ccbc9462c2ad",
+    "front": "86ddb1d45aea3291f8e251afbe5d12ad051c6eed834b41aa6480458fdb4eec8f",
+    "right": "8958c722b900df821661534ed44a9009a8316560690ccc04cf33b4a5bffdefcc",
+    "top": "cde6de8303f582e5a3bfa3d77af4bd0ce205ebc87fcc93c00d9917dd6ef77a97",
+    "iso_under": "328a433149aeb19fbde76ec08bfa3aed3f74a2cdf124c96e9e7d7c5697aedd87",
+    "contact_sheet": "8aee007b98c832768a0f8bf3b8ea74d81b3148618b4686571d2e7773cfc4ef35"
+  },
+  "pairs_file": "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/benchmark_v3/label_lines/sc_32099fb52638/pairs.json",
+  "pairs_sha256": "77266fee95496daace7cb5af20b92fbd36842d15b142946c16ab7001981d58a6",
+  "labeler": "claude-vision-ai-v1",
+  "locus": "apex",
+  "thickness_mm": 1.3579992522535786,
+  "ri_mm": 1.3579992522535786,
+  "line_params": {
+    "margin_mm": 3.0,
+    "fit_extra_mm": 20.0,
+    "percentile": 1.0,
+    "min_support": 30,
+    "min_length_mm": 2.0,
+    "expand_steps": 4,
+    "apex_lateral_mm": 0.6,
+    "min_parallel_deg": 2.0,
+    "fold_support_min_points": 3,
+    "fold_support_min_frac": 0.8
+  },
+  "no_bends_present": false,
+  "notes": "Reconciled from blind labelers A and B, who gave the same 6 patch pairs; they differed only in wording (which end each foot is on, wall depth). Real double-skin scan (t ~1.36 mm) of a ~280x238 mm flat plate, partial bending stage. Part frame: u toward wall 3/4, w = top-skin normal. Perpendicular sections confirm 6 rounded formed folds: (1) a 90 deg wall 3/4 along the full u+ edge (v -132.7..105.5, ~237 mm), ~9.5 mm deep, dropping to ~14.5 mm over the last ~20 mm at each end; (2) a 90 deg wall 7/8 along part of the v+ edge (wall u 37..129.4, ~15 mm deep, two ~5 mm round holes at w ~-10, well clear of the fold). Its formed arc runs only u 36.8..124.6 (~88 mm), because a relief slot separates the wall's last ~5 mm from the plate, so B2 uses extent_t to end at the arc; (3, 4) two outward 90 deg Z-return feet at the bottom of wall 3/4, one at each end (11/14 at v 85..105, beside wall 7/8; 12/13 at v -132.6..-112.6), ~20 mm long and ~13 mm deep; (5, 6) a lanced joggle tab on the v- edge (u ~66.5..111.4, slits on both sides): plate to 15 deg ramp to a flat tab offset ~3 mm, i.e. two 15 deg folds. The u- edge, the v- edge outside the tab and the v+ edge for u<37 are plain thickness edges. Both skins are flat to +-0.3 mm with smooth gradients and no kink lines. The top-skin dropouts (a square near u 58..88 and a strip near u -85..-55) and the scattered noise near patch 15 sit over a continuous flat bottom skin, so they are scan artifacts, not features. Each bend is marked once on its outer (convex) skin. Inner/mixed duplicates [1,4], [1,8], [3,14], [3,12], [1,9], [6,10] are the same folds.",
+  "bends": [
+    {
+      "bend_id": "B1",
+      "patches": [
+        [
+          2
+        ],
+        [
+          3
+        ]
+      ],
+      "note": "Main ~89 deg fold, plate to wall 3/4, along the full u+ edge (~237 mm). Outer skin: 2 = plate top, 3 = outer wall face.",
+      "locus": "apex",
+      "sharp": {
+        "start": [
+          -282.0752112163525,
+          -364.09107774675954,
+          165.05088083670555
+        ],
+        "end": [
+          -427.3198196408025,
+          -209.0434197371806,
+          267.6883890062132
+        ]
+      },
+      "apex": {
+        "start": [
+          -281.7666506749457,
+          -363.27307633572167,
+          164.25183135196298
+        ],
+        "end": [
+          -427.0112590993957,
+          -208.22541832614274,
+          266.8893395214706
+        ]
+      },
+      "direction": [
+        -0.6155856818873617,
+        0.6571336403892162,
+        0.43500534125926366
+      ],
+      "bisector": [
+        0.2605193784133892,
+        0.6906431333483689,
+        -0.6746419167453565
+      ],
+      "side_dirs": {
+        "plane_a": [
+          0.7074386973984611,
+          0.7040150294985281,
+          -0.062396535667897435
+        ],
+        "plane_b": [
+          -0.3361360824605612,
+          0.2803171263775764,
+          -0.8991300477280719
+        ]
+      },
+      "included_angle_deg": 89.10303243957365,
+      "bend_angle_deg": 90.89696756042635,
+      "dihedral_normals_deg": 89.10303243957472,
+      "length_mm": 235.94539752636177,
+      "zone_radius_mm": 5.758853888737227,
+      "zone_radius_used_mm": 5.758853888737227,
+      "support_points": {
+        "a": 3624,
+        "b": 3055
+      },
+      "coverage": 1.0,
+      "plane_a": {
+        "normal": [
+          0.34725316078980967,
+          -0.2693291980252641,
+          0.8982633385664556
+        ],
+        "point": [
+          -346.0596790646077,
+          -275.6400052750637,
+          216.3067466149021
+        ],
+        "rms_mm": 0.06920551425654176
+      },
+      "plane_b": {
+        "normal": [
+          -0.7127880486675503,
+          -0.6997125747964268,
+          0.04832711814768804
+        ],
+        "point": [
+          -352.50280768075635,
+          -289.402385896133,
+          207.6908706758122
+        ],
+        "rms_mm": 0.02276478429201692
+      },
+      "skin": "outer",
+      "apex_offset_mm": 1.184405334013891,
+      "apex_points": 3341,
+      "expected_apex_offset_mm": {
+        "outer": 1.155425349307566,
+        "inner": 0.577712674653783
+      },
+      "line_origin": [
+        -354.0761974804985,
+        -287.2305015385727,
+        215.9305788582872
+      ],
+      "t_range": [
+        -116.96338687312183,
+        118.98201065323995
+      ],
+      "t_range_auto": [
+        -116.96338687312183,
+        118.98201065323995
+      ],
+      "extent_source": "auto",
+      "status": "ok",
+      "label_line": {
+        "start": [
+          -281.7666506749457,
+          -363.27307633572167,
+          164.25183135196298
+        ],
+        "end": [
+          -427.0112590993957,
+          -208.22541832614274,
+          266.8893395214706
+        ]
+      },
+      "label_locus": "apex",
+      "confidence": "certain",
+      "auto_confidence": "certain",
+      "confidence_reasons": [],
+      "fold_support_frac": 1.0,
+      "fold_support_gaps_t": [],
+      "override_support_frac": null,
+      "margin_mm": 3.0
+    },
+    {
+      "bend_id": "B2",
+      "patches": [
+        [
+          2
+        ],
+        [
+          7
+        ]
+      ],
+      "note": "~90 deg fold, plate to wall 7/8, along the v+ edge (~88 mm). Outer skin: 2 = plate top, 7 = outer wall face. Two round holes in the wall at mid-depth, clear of the fold. The formed arc runs u 36.8..124.6. For u 124.6..129.4 the wall's last ~5 mm is cut free of the plate by a relief slot: the plate's cut edge sits at v ~104.5, the wall's top cut edge at w ~-2.7, and no arc points lie between them. The auto extent (t -120.21) ran ~3.2 mm into that slot, so extent_t ends the line at the arc end (t -117.0) and keeps the auto start (t -29.03).",
+      "locus": "apex",
+      "sharp": {
+        "start": [
+          -269.80087624276894,
+          -355.74555569489223,
+          162.65243793620323
+        ],
+        "end": [
+          -207.51778555706852,
+          -293.8500753171548,
+          157.31511431420466
+        ]
+      },
+      "apex": {
+        "start": [
+          -270.59949319895367,
+          -354.97454886923634,
+          162.2742531755151
+        ],
+        "end": [
+          -208.31640251325328,
+          -293.0790684914989,
+          156.93692955351653
+        ]
+      },
+      "direction": [
+        0.7080037590735526,
+        0.703597594381464,
+        -0.06067208846195914
+      ],
+      "bisector": [
+        -0.6809973863867603,
+        0.6574536504538684,
+        -0.32248605743393666
+      ],
+      "side_dirs": {
+        "plane_a": [
+          -0.6152631762981522,
+          0.6567202677582106,
+          0.43608452598904845
+        ],
+        "plane_b": [
+          -0.35192277996824517,
+          0.2770277176619885,
+          -0.8940950735723868
+        ]
+      },
+      "included_angle_deg": 89.5098963538974,
+      "bend_angle_deg": 90.4901036461026,
+      "dihedral_normals_deg": 89.50989635389716,
+      "length_mm": 87.97,
+      "zone_radius_mm": 5.739330878609136,
+      "zone_radius_used_mm": 5.739330878609136,
+      "support_points": {
+        "a": 4402,
+        "b": 1215
+      },
+      "coverage": 1.0,
+      "plane_a": {
+        "normal": [
+          0.34667261361303797,
+          -0.2714201818142804,
+          0.8978581089874994
+        ],
+        "point": [
+          -186.2779395237453,
+          -254.99330791862752,
+          160.86048290089875
+        ],
+        "rms_mm": 0.010561813931786452
+      },
+      "plane_b": {
+        "normal": [
+          0.6122752927214595,
+          -0.6543745630964167,
+          -0.4437486868659165
+        ],
+        "point": [
+          -242.849292669307,
+          -323.6659487540864,
+          152.53344448934925
+        ],
+        "rms_mm": 0.018922367813276636
+      },
+      "skin": "outer",
+      "apex_offset_mm": 1.1727166243942022,
+      "apex_points": 1167,
+      "expected_apex_offset_mm": {
+        "outer": 1.1415371776332712,
+        "inner": 0.5707685888166356
+      },
+      "line_origin": [
+        -186.96443643116328,
+        -273.4246371522609,
+        155.553803586154
+      ],
+      "t_range": [
+        -117.0,
+        -29.03
+      ],
+      "t_range_auto": [
+        -120.2121313319532,
+        -29.033679494200378
+      ],
+      "extent_source": "override",
+      "status": "ok",
+      "label_line": {
+        "start": [
+          -270.59949319895367,
+          -354.97454886923634,
+          162.2742531755151
+        ],
+        "end": [
+          -208.31640251325328,
+          -293.0790684914989,
+          156.93692955351653
+        ]
+      },
+      "label_locus": "apex",
+      "confidence": "certain",
+      "auto_confidence": "certain",
+      "confidence_reasons": [],
+      "fold_support_frac": 1.0,
+      "fold_support_gaps_t": [],
+      "override_support_frac": 1.0,
+      "margin_mm": 3.0,
+      "overrides": {
+        "extent_t": [
+          -117.0,
+          -29.03
+        ]
+      }
+    },
+    {
+      "bend_id": "B3",
+      "patches": [
+        [
+          4
+        ],
+        [
+          11
+        ]
+      ],
+      "note": "Outward ~90 deg Z-return foot at the bottom of wall 3/4, at the end next to wall 7/8 (v ~85..105, ~20 mm). Convex side: 4 = inner wall face, 11 = foot underside.",
+      "locus": "apex",
+      "sharp": {
+        "start": [
+          -285.72894631628606,
+          -359.1202077338646,
+          151.51138786711243
+        ],
+        "end": [
+          -297.58377122482796,
+          -346.4873912695392,
+          159.94251714017133
+        ]
+      },
+      "apex": {
+        "start": [
+          -286.04200284175073,
+          -359.9458169327633,
+          152.3082608561858
+        ],
+        "end": [
+          -297.89682775029263,
+          -347.3130004684379,
+          160.7393901292447
+        ]
+      },
+      "direction": [
+        -0.615298666168031,
+        0.6556786102209073,
+        0.43759925903801683
+      ],
+      "bisector": [
+        -0.2632082901205018,
+        -0.6941468005731994,
+        0.6699862799086505
+      ],
+      "side_dirs": {
+        "plane_a": [
+          0.3375043643890708,
+          -0.2825502134708193,
+          0.897917691598692
+        ],
+        "plane_b": [
+          -0.710675768621836,
+          -0.701597117887895,
+          0.051975340933580486
+        ]
+      },
+      "included_angle_deg": 89.71066539667343,
+      "bend_angle_deg": 90.28933460332657,
+      "dihedral_normals_deg": 89.71066539667115,
+      "length_mm": 19.266781419130368,
+      "zone_radius_mm": 5.729748613537653,
+      "zone_radius_used_mm": 5.729748613537653,
+      "support_points": {
+        "a": 1777,
+        "b": 356
+      },
+      "coverage": 1.0,
+      "plane_a": {
+        "normal": [
+          -0.712389188176071,
+          -0.7001792177480972,
+          0.04744162311199892
+        ],
+        "point": [
+          -356.598993084612,
+          -282.9766371054557,
+          211.10232195434403
+        ],
+        "rms_mm": 0.029091807311990826
+      },
+      "plane_b": {
+        "normal": [
+          -0.34109749824004343,
+          0.2790108318151233,
+          -0.8976666711113968
+        ],
+        "point": [
+          -297.00155477039283,
+          -357.96468635946695,
+          156.153936884808
+        ],
+        "rms_mm": 0.006782215633520617
+      },
+      "skin": "outer",
+      "apex_offset_mm": 1.1893870262268984,
+      "apex_points": 252,
+      "expected_apex_offset_mm": {
+        "outer": 1.1347384859397187,
+        "inner": 0.5673692429698594
+      },
+      "line_origin": [
+        -350.84292435155913,
+        -289.7330223365484,
+        197.8203270993517
+      ],
+      "t_range": [
+        -105.82499461731518,
+        -86.55821319818482
+      ],
+      "t_range_auto": [
+        -105.82499461731518,
+        -86.55821319818482
+      ],
+      "extent_source": "auto",
+      "status": "ok",
+      "label_line": {
+        "start": [
+          -286.04200284175073,
+          -359.9458169327633,
+          152.3082608561858
+        ],
+        "end": [
+          -297.89682775029263,
+          -347.3130004684379,
+          160.7393901292447
+        ]
+      },
+      "label_locus": "apex",
+      "confidence": "certain",
+      "auto_confidence": "certain",
+      "confidence_reasons": [],
+      "fold_support_frac": 1.0,
+      "fold_support_gaps_t": [],
+      "override_support_frac": null,
+      "margin_mm": 3.0
+    },
+    {
+      "bend_id": "B4",
+      "patches": [
+        [
+          4
+        ],
+        [
+          13
+        ]
+      ],
+      "note": "Outward ~90 deg Z-return foot at the bottom of wall 3/4, at the opposite end (v ~-132.6..-112.6, ~20 mm). Convex side: 4 = inner wall face, 13 = foot underside.",
+      "locus": "apex",
+      "sharp": {
+        "start": [
+          -419.7554371950455,
+          -216.37165123209724,
+          245.7440321490444
+        ],
+        "end": [
+          -431.61751412003974,
+          -203.74421481811194,
+          253.98686142379518
+        ]
+      },
+      "apex": {
+        "start": [
+          -420.0625255710632,
+          -217.18484349580467,
+          246.54786144628727
+        ],
+        "end": [
+          -431.92460249605745,
+          -204.55740708181938,
+          254.79069072103806
+        ]
+      },
+      "direction": [
+        -0.6182650944055438,
+        0.6581565113730184,
+        0.4296257436153027
+      ],
+      "bisector": [
+        -0.2593771660381871,
+        -0.6868495237098782,
+        0.6789412474710255
+      ],
+      "side_dirs": {
+        "plane_a": [
+          0.33203903025029646,
+          -0.2767292351215875,
+          0.9017599529916284
+        ],
+        "plane_b": [
+          -0.7035657098978886,
+          -0.7071003242001129,
+          0.07074194916720385
+        ]
+      },
+      "included_angle_deg": 88.51837729378205,
+      "bend_angle_deg": 91.48162270621795,
+      "dihedral_normals_deg": 88.51837729378241,
+      "length_mm": 19.18606926434937,
+      "zone_radius_mm": 5.787156041667919,
+      "zone_radius_used_mm": 5.787156041667919,
+      "support_points": {
+        "a": 1748,
+        "b": 322
+      },
+      "coverage": 1.0,
+      "plane_a": {
+        "normal": [
+          -0.712389188176071,
+          -0.7001792177480972,
+          0.04744162311199892
+        ],
+        "point": [
+          -356.598993084612,
+          -282.9766371054557,
+          211.10232195434403
+        ],
+        "rms_mm": 0.029091807311990826
+      },
+      "plane_b": {
+        "normal": [
+          -0.3503477770667097,
+          0.2585326634168151,
+          -0.900231801843849
+        ],
+        "point": [
+          -431.1007184948281,
+          -215.9575662329421,
+          250.2782516388774
+        ],
+        "rms_mm": 0.010539691775028576
+      },
+      "skin": "outer",
+      "apex_offset_mm": 1.183945297530597,
+      "apex_points": 250,
+      "expected_apex_offset_mm": {
+        "outer": 1.1756446802017264,
+        "inner": 0.5878223401008632
+      },
+      "line_origin": [
+        -366.78490436939023,
+        -272.75992449152096,
+        208.93538038971764
+      ],
+      "t_range": [
+        85.67608507251397,
+        104.86215433686334
+      ],
+      "t_range_auto": [
+        85.67608507251397,
+        104.86215433686334
+      ],
+      "extent_source": "auto",
+      "status": "ok",
+      "label_line": {
+        "start": [
+          -420.0625255710632,
+          -217.18484349580467,
+          246.54786144628727
+        ],
+        "end": [
+          -431.92460249605745,
+          -204.55740708181938,
+          254.79069072103806
+        ]
+      },
+      "label_locus": "apex",
+      "confidence": "certain",
+      "auto_confidence": "certain",
+      "confidence_reasons": [],
+      "fold_support_frac": 1.0,
+      "fold_support_gaps_t": [],
+      "override_support_frac": null,
+      "margin_mm": 3.0
+    },
+    {
+      "bend_id": "B5",
+      "patches": [
+        [
+          2
+        ],
+        [
+          10
+        ]
+      ],
+      "note": "Joggle fold 1 (~15 deg), plate to ramp, at the root of the lanced tab on the v- edge (u ~66.5..111.4, ~45 mm). Convex side is the top skin: 2 + 10.",
+      "locus": "apex",
+      "sharp": {
+        "start": [
+          -382.13990826829667,
+          -215.0785621227481,
+          248.34801123540862
+        ],
+        "end": [
+          -350.54408151100006,
+          -184.07372014574318,
+          245.47384431274804
+        ]
+      },
+      "apex": {
+        "start": [
+          -382.16457423713933,
+          -215.06166874333354,
+          248.25909325464278
+        ],
+        "end": [
+          -350.5687474798427,
+          -184.0568267663286,
+          245.3849263319822
+        ]
+      },
+      "direction": [
+        0.7122507569807822,
+        0.6989284482986806,
+        -0.06479107453269493
+      ],
+      "bisector": [
+        -0.26293706979906706,
+        0.18008194653146542,
+        -0.9478578953930379
+      ],
+      "side_dirs": {
+        "plane_a": [
+          0.6110694665152087,
+          -0.662830792353699,
+          -0.4327232924174356
+        ],
+        "plane_b": [
+          -0.6794980579868629,
+          0.7096965840811219,
+          0.18604609035308706
+        ]
+      },
+      "included_angle_deg": 165.04654034163087,
+      "bend_angle_deg": 14.953459658369127,
+      "dihedral_normals_deg": 14.953459658369729,
+      "length_mm": 44.36053798135753,
+      "zone_radius_mm": 5.715998504507157,
+      "zone_radius_used_mm": 5.715998504507157,
+      "support_points": {
+        "a": 4342,
+        "b": 972
+      },
+      "coverage": 1.0,
+      "plane_a": {
+        "normal": [
+          -0.3453881385819703,
+          0.26861564523789605,
+          -0.89919556763827
+        ],
+        "point": [
+          -323.15335199517045,
+          -159.3961505440334,
+          242.3247498306149
+        ],
+        "rms_mm": 0.040348849877343024
+      },
+      "plane_b": {
+        "normal": [
+          -0.17601490951731297,
+          0.08848605936744744,
+          -0.9804024525291808
+        ],
+        "point": [
+          -369.81550246837526,
+          -194.8767850565356,
+          247.95867772656817
+        ],
+        "rms_mm": 0.0113626249126186
+      },
+      "skin": "outer",
+      "apex_offset_mm": 0.0938094003310079,
+      "apex_points": 201,
+      "expected_apex_offset_mm": {
+        "outer": 0.023290001599538496,
+        "inner": 0.011645000799769248
+      },
+      "line_origin": [
+        -323.7592595273669,
+        -157.7898954063583,
+        243.03731843969325
+      ],
+      "t_range": [
+        -81.9664256846904,
+        -37.605887703332876
+      ],
+      "t_range_auto": [
+        -81.9664256846904,
+        -37.605887703332876
+      ],
+      "extent_source": "auto",
+      "status": "ok",
+      "label_line": {
+        "start": [
+          -382.16457423713933,
+          -215.06166874333354,
+          248.25909325464278
+        ],
+        "end": [
+          -350.5687474798427,
+          -184.0568267663286,
+          245.3849263319822
+        ]
+      },
+      "label_locus": "apex",
+      "confidence": "certain",
+      "auto_confidence": "certain",
+      "confidence_reasons": [],
+      "fold_support_frac": 1.0,
+      "fold_support_gaps_t": [],
+      "override_support_frac": null,
+      "margin_mm": 3.0
+    },
+    {
+      "bend_id": "B6",
+      "patches": [
+        [
+          9
+        ],
+        [
+          5
+        ]
+      ],
+      "note": "Joggle fold 2 (~15 deg), ramp to tab, with the tab offset ~3 mm (u ~67..111.4, ~44 mm). Convex side is the bottom skin: 9 + 5.",
+      "locus": "apex",
+      "sharp": {
+        "start": [
+          -391.1736876183977,
+          -207.0915655289332,
+          249.24584167683417
+        ],
+        "end": [
+          -359.6968901003037,
+          -176.17381334221665,
+          246.38582182028847
+        ]
+      },
+      "apex": {
+        "start": [
+          -391.14473450876267,
+          -207.1114246313918,
+          249.34981031200078
+        ],
+        "end": [
+          -359.66793699066864,
+          -176.19367244467526,
+          246.48979045545508
+        ]
+      },
+      "direction": [
+        0.7119195914385971,
+        0.6992755057853113,
+        -0.06468587430496628
+      ],
+      "bisector": [
+        0.2638416254454145,
+        -0.18097047048193665,
+        0.947437219817687
+      ],
+      "side_dirs": {
+        "plane_a": [
+          0.6800760931799552,
+          -0.7094679564451674,
+          -0.1848018567617948
+        ],
+        "plane_b": [
+          -0.6100330150503124,
+          0.6614250110542516,
+          0.4363217566206257
+        ]
+      },
+      "included_angle_deg": 164.7444392668434,
+      "bend_angle_deg": 15.255560733156614,
+      "dihedral_normals_deg": 15.255560733156921,
+      "length_mm": 44.21397851193832,
+      "zone_radius_mm": 5.715998504507157,
+      "zone_radius_used_mm": 5.715998504507157,
+      "support_points": {
+        "a": 1002,
+        "b": 921
+      },
+      "coverage": 1.0,
+      "plane_a": {
+        "normal": [
+          -0.17511996691118092,
+          0.08757274568169873,
+          -0.9806446917221322
+        ],
+        "point": [
+          -371.31578714730716,
+          -196.22116719744128,
+          246.6704295360259
+        ],
+        "rms_mm": 0.009552723573437961
+      },
+      "plane_b": {
+        "normal": [
+          0.3478939721732423,
+          -0.2711654877757055,
+          0.8974625687820563
+        ],
+        "point": [
+          -383.30023653014797,
+          -182.2302090929857,
+          253.7055437414541
+        ],
+        "rms_mm": 0.006318214655424368
+      },
+      "skin": "outer",
+      "apex_offset_mm": 0.10973670127358631,
+      "apex_points": 210,
+      "expected_apex_offset_mm": {
+        "outer": 0.024247621210372338,
+        "inner": 0.012123810605186169
+      },
+      "line_origin": [
+        -375.36971816208967,
+        -191.56828331015947,
+        247.80987391577779
+      ],
+      "t_range": [
+        -22.19909333352171,
+        22.014885178416616
+      ],
+      "t_range_auto": [
+        -22.19909333352171,
+        22.014885178416616
+      ],
+      "extent_source": "auto",
+      "status": "ok",
+      "label_line": {
+        "start": [
+          -391.14473450876267,
+          -207.1114246313918,
+          249.34981031200078
+        ],
+        "end": [
+          -359.66793699066864,
+          -176.19367244467526,
+          246.48979045545508
+        ]
+      },
+      "label_locus": "apex",
+      "confidence": "certain",
+      "auto_confidence": "certain",
+      "confidence_reasons": [],
+      "fold_support_frac": 1.0,
+      "fold_support_gaps_t": [],
+      "override_support_frac": null,
+      "margin_mm": 3.0
+    }
+  ],
+  "n_ok": 6,
+  "n_failed": 0,
+  "required_views": [
+    "iso",
+    "front",
+    "right",
+    "top"
+  ],
+  "images": {
+    "iso": "render/verify_iso.png",
+    "front": "render/verify_front.png",
+    "right": "render/verify_right.png",
+    "top": "render/verify_top.png",
+    "iso_under": "render/verify_iso_under.png",
+    "contact_sheet": "render/verify_contact_sheet.png",
+    "closeup_B1": "render/closeup_B1.png",
+    "closeup_B2": "render/closeup_B2.png",
+    "closeup_B3": "render/closeup_B3.png",
+    "closeup_B4": "render/closeup_B4.png",
+    "closeup_B5": "render/closeup_B5.png",
+    "closeup_B6": "render/closeup_B6.png"
+  },
+  "image_sha256": {
+    "iso": "acc3d026a6425de6565e7655d14bc904783165fcd7065062639c6e8c37d835e3",
+    "front": "d7242e627e4897c15f0cce247877d5dddf8678dfb954e208451d91f89833750c",
+    "right": "c360ed7ab355d0f68e7b4e1f3b7afb3fbf7b1adf73505eb035e0d6ea6c27f34e",
+    "top": "5ee35ca16ce4b548fdb01f12ba8af2658e107d5455cc382ec79c3c6aa38e202b",
+    "iso_under": "f2f25b7edfd2c3db2ccff9f5475ff4bfa6d3fca5e9b675f50fb13805aa40d4fd",
+    "contact_sheet": "75a1f82fbfa5384a5d4aea32a0d1934211f8f387431e58f0709fe713e648d5f9",
+    "closeup_B1": "3d82a75f6603a37ece2f4c760118f3d22580bb58d8da611a012b21b3d704ab11",
+    "closeup_B2": "cfa706d8d5aed36129b2831207e8fd98a4e702e839070d7fd30d17ef75bd6053",
+    "closeup_B3": "7329da7364ecf0b23dc6d0727099c551604f0ea79610e18a16cac1c31d137760",
+    "closeup_B4": "d1aa7d5ebf86c464a1e56bae87e1d12bdaaeb320b2bf5520bdcbde253584dad4",
+    "closeup_B5": "225fc17ba029f052a8c5e63e1b2c8c2ec8f2b0e5b782f329afcbcd6237a74a1b",
+    "closeup_B6": "16e9338fbc105885d0fe35de0da47788df2402c5e405eefdd2a0afbbc784feaa"
+  }
+}

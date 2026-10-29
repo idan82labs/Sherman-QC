@@ -1,0 +1,99 @@
+{
+  "schema": "sherman.broad_baseline.eval_lines.v1",
+  "lane": "best_f1",
+  "status": "A0_ONLY_NO_CAD",
+  "frame": "scan_raw",
+  "frame_definition": "coordinates of the scan file exactly as stored (source_ply_raw == scan_raw)",
+  "units": "scan file units (mm for every Sherman scan inspected so far; not re-estimated)",
+  "scan": {
+    "path": "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260726_a032a44d/49191026_00.ply",
+    "sha256": "7c6712aacca808c41f73e301497206e018e76e3fe2c224dee4388942b7c3ed33"
+  },
+  "source": {
+    "kind": "fusion",
+    "path": null,
+    "sha256": null
+  },
+  "conversion": {
+    "rule": "diagnose_f1_cad_scan_fusion_gold11 union",
+    "duplicate_rule": {
+      "axis_angle_deg_max": 5.0,
+      "transverse_offset_mm_max": 4.0,
+      "shorter_span_overlap_min": 0.6
+    },
+    "a0_lines": 4,
+    "cad_lines": 0,
+    "a0_status": "OK",
+    "cad_status": "LANE_SKIPPED_NO_CAD"
+  },
+  "line_count": 4,
+  "owned_bend_regions": [
+    {
+      "bend_id": "F1C_a6ee68dc7c4335dc",
+      "line_start": [
+        -192.87729359611347,
+        -29.99698661412463,
+        218.17541485682008
+      ],
+      "line_end": [
+        -179.76902775720748,
+        5.726305627079089,
+        226.23304340150887
+      ],
+      "fusion_source": "scan_only_a0"
+    },
+    {
+      "bend_id": "F1C_4df04263e049ffac",
+      "line_start": [
+        -182.5912186404392,
+        6.440090814883554,
+        229.13684234876163
+      ],
+      "line_end": [
+        -141.35121045208473,
+        0.9871890030932384,
+        209.84677177221653
+      ],
+      "fusion_source": "scan_only_a0"
+    },
+    {
+      "bend_id": "F1C_a6106feff1ca1184",
+      "line_start": [
+        -193.72217465217946,
+        -32.11409675800104,
+        216.57187630408282
+      ],
+      "line_end": [
+        -150.68672177465237,
+        -37.29041176932591,
+        196.1347454399736
+      ],
+      "fusion_source": "scan_only_a0"
+    },
+    {
+      "bend_id": "F1C_28ce5a8c9c9028aa",
+      "line_start": [
+        -188.45685498190602,
+        13.919387987451127,
+        214.7840836144097
+      ],
+      "line_end": [
+        -182.38146052784504,
+        6.3183871261181945,
+        230.02087340436168
+      ],
+      "fusion_source": "scan_only_a0"
+    }
+  ],
+  "dropped": [],
+  "failure": null,
+  "created_at": "2026-10-24T23:26:46Z",
+  "component_status": {
+    "a0": "OK",
+    "a0_failure": null,
+    "cad_gated": "LANE_SKIPPED_NO_CAD",
+    "cad_failure": {
+      "reason": "NO_CAD_SUPPLIED"
+    }
+  }
+}

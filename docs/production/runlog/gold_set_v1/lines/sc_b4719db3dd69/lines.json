@@ -1,0 +1,62 @@
+{
+  "tool": "bench_labeling_v1",
+  "created_at": "2026-10-17T21:43:39.825793+00:00",
+  "coordinate_frame": "source_ply_raw",
+  "scan_path": "/Users/idantal/ShermanQC/source-assets/02_CAD_QC_3D/47479000_C.ply",
+  "scan_name": "47479000_C.ply",
+  "scan_sha256": "b4719db3dd69c45f6f5396609773e2b4b58f18ea801153a8adb1a5238d19e074",
+  "prep_dir": "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/benchmark_v2/label_prep/sc_b4719db3dd69",
+  "prep_image_sha256": {
+    "iso": "c7b9ae626034a65d6cebff573e447ca3c362e0651ec30c01ccb1bdebc672d9e8",
+    "front": "ba5fd91611e012d6e64b529e0997d29e582fdbf1dba63011eb52c78936a194d3",
+    "right": "bc55608243780794536859cf4fd484615aa51e1e117ed2c5b945925d1a5749a2",
+    "top": "f07379fedd3229533cb2b8440b68c8afa6f5d7b4ed7d5e0f184da2887f2f72fa",
+    "iso_under": "ba816bc6e7e6bcef41f3a4851ac1406ace7fc3b27215edea9ab3b84d6c3c2b54",
+    "contact_sheet": "568d2ee3e69e7a05d24b828f05327fe3b8d81d9496a08f10ad6186d0cc5f7e61"
+  },
+  "pairs_file": "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/gold_set_v1/lines/sc_b4719db3dd69/pairs.json",
+  "pairs_sha256": "472bbf64c4169b0287b21f2b7708f27c1b416fbdf2b011e5f133b9d8e29daa41",
+  "labeler": "claude-vision-ai-v1",
+  "locus": "apex",
+  "thickness_mm": 1.013071823103946,
+  "ri_mm": 1.013071823103946,
+  "line_params": {
+    "margin_mm": 3.0,
+    "fit_extra_mm": 20.0,
+    "percentile": 1.0,
+    "min_support": 30,
+    "min_length_mm": 2.0,
+    "expand_steps": 4,
+    "apex_lateral_mm": 0.6,
+    "min_parallel_deg": 2.0,
+    "fold_support_min_points": 3,
+    "fold_support_min_frac": 0.8
+  },
+  "no_bends_present": true,
+  "notes": "GOLD v1 fix (round 1, heavy vision) of sc_b4719db3dd69 (47479000_C.ply, part 47479000, stage FULL_PRESUMED_NO_STAGE_HINT, CAD bend lines 0; custody CONSUMED in BENCHMARK_V3). Started from benchmark_v2/label_lines/sc_b4719db3dd69/pairs.json (0 bends), and the verdict is unchanged: zero-bend control. The file is a physical scan, not a CAD reference mesh: a Geomagic-exported mesh (645k vertices) with hole-filled scanner-target discs, about 0.2 mm noise and +/-0.5 mm roll ovality. The part is a smoothly ROLLED half-cylinder shell. Fixer cylinder fit on points_ds: outer-skin R 72.0 mm, inner 71.0 mm, t 1.0 mm, wrap 187 deg, length 415.6 mm. It has one D-shaped window (about 47 x 54 mm at the crown), one round hole of about 43 mm, and small target/holes of about 3-4 mm. Fold check on the outer skin in 10 axial bands, measuring turning over a 12 mm arc beyond the circle's own: at most 2.4 deg away from the cutouts and at most 6.5 deg next to the window/hole edges. Those edges are only a flatter free-edge land: both skins rise about 0.5 mm over the last 6 mm into a plain hole wall. A formed 15 deg fold would read 15 deg. In-section normal tilt stays within -2.0..+2.2 deg (p0.5..p99.5) away from the cutouts and edges, with no crease line along L, and there are no polygon facets from bump bending. Perpendicular sections at 5/10/25/50/75/90/95% of the length are clean two-skin arcs. Edge close-ups at 9 stations on both long edges show plain cut thickness edges, apart from a slight unrolled flat end (up to about 3 deg); there is no flange, hem or lip. Both axial ends are plain cut edges with no end flange or transverse fold. The prep's 44 strip patches, about 22 mm wide, are region-growing facets of the smooth roll (8 deg threshold) and are not folds. By the gold rules, rolled-surface curvature, hole walls, thickness edges and target patches are not bends. The CAD count of 0 agrees, and auditors 1-3 independently agree (0 lines).",
+  "bends": [],
+  "n_ok": 0,
+  "n_failed": 0,
+  "required_views": [
+    "iso",
+    "front",
+    "right",
+    "top"
+  ],
+  "images": {
+    "iso": "render/verify_iso.png",
+    "front": "render/verify_front.png",
+    "right": "render/verify_right.png",
+    "top": "render/verify_top.png",
+    "iso_under": "render/verify_iso_under.png",
+    "contact_sheet": "render/verify_contact_sheet.png"
+  },
+  "image_sha256": {
+    "iso": "2bb4289de7d3888ad1edcea635ecaa3fb73c9ffc475b874ed629fa51e9241f19",
+    "front": "84eb4485dc4143a019c01fe433aba50d570e2bc71224e87a4e5cb9a16b72da24",
+    "right": "c4b359338f850116bea2ad1c974d37344a2a648102ea181b2e7dac2a18e549e8",
+    "top": "5a13d07c5530e0f23452733b73dd8fa48a06a5a6107f7156ac13a5cccb23cc7e",
+    "iso_under": "2ba3a44f82a42306f9e2c8e379f9a27b6b70191fb2a7405bc4eb2db528376476",
+    "contact_sheet": "b8798affb34bcbc47ef9b480381de2c41017b5f63e4041f95aa1ae1cbf2c4b20"
+  }
+}

@@ -1,0 +1,21 @@
+--- a/research/f1_ciip_v1/container.py
++++ b/research/f1_ciip_v1/container.py
+@@ -381,6 +381,8 @@
+     _set_computed(built, "partition_commitment_sha256", partition_digest)
+     if "resource" not in built or not isinstance(built["resource"], dict):
+         raise ContainerValidationError("metadata.resource object is required")
++    if "serialized_bytes" in built["resource"]:
++        _u64_json(built["resource"]["serialized_bytes"], "resource.serialized_bytes")
+     _set_computed(built["resource"], "serialized_bytes", total_size)
+     if "raw_source_sha256" not in built:
+         raise ContainerValidationError("raw_source_sha256 is required")
+--- a/research/f1_ciip_v1/semantic_core.py
++++ b/research/f1_ciip_v1/semantic_core.py
+@@ -186,7 +186,6 @@
+         "wall_nanoseconds": 0,
+         "peak_process_tree_rss_bytes": 0,
+         "scratch_bytes": 0,
+-        "serialized_bytes": 0,
+         "watchdog_poll_milliseconds": 10,
+         "resource_cap_tripped": False,
+     }

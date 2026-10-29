@@ -1,0 +1,662 @@
+{
+ "decision": "GREEN_FOR_FROZEN_CONSUMED_DEVELOPMENT_RUN",
+ "bundle_sha256": "0a03a2984325c3092e2eaef21d29d5be49e2c626292bfa84984b9cc0447e4c65",
+ "reviewer": "independent-ai-pre-auditor-v11 (Claude Code, claude-fable-5-1; non-author; read-only)",
+ "blocking_findings": [],
+ "non_blocking_findings": [
+  "Waiter OVERLAP_PATTERN (run_gold11_|check_|pytest|cad_guided|_gold11_v\\d+_exact_scoring) does not name other-version execute_waiter processes or dump_fullbytes; this PRE's two independent ps checks (02:17:54Z, 02:24:33Z) covered those names and found none. Defense-in-depth note only.",
+  "The consumer-chain Codex audit pinned an earlier runner draft (e8de63e4...) in its source-closure sections; the frozen runner (8432203e...) was accepted by root in the coordination record (01:22-01:28 UTC section) and matches the review-response closure table; the frozen runner text carries the bridge-V2/kernel-V3 identifiers the audit required (ARM_DEFINITIONS lines 181-195, COMPARATOR line 198).",
+  "Auditors' explicitly non-blocking prose items remain open: kernel header :16 'fit quality never selects'; full-bytes fixture prose (lines 32, 42, 348-350, 437) broader than its executable contract (fixture file not in the frozen bundle); author narrative '24 invalid cases' versus 26 in the contact-V5 test parameter list. Wording only; no frozen runtime contract is affected.",
+  "Stale runner comment at lines 441-443 ('request context V3') contradicts the constants and FROZEN.json (context V4: context_selection BOTH_SUCCESSOR_ARMS_EXPLICIT_CONTEXT_V4, mode v4); values verified, comment only.",
+  "The full-bytes real-connected fixture exercised the control lane (scan-plane v7 / schedule v1) only; the challenger lane modules (composite surface roles v1, two-plane schedule v2, seeded/composite budgets) are byte-identical to the terminal V10 frozen bundle (all 96 common source entries unchanged) and V11 changes nothing in that lane.",
+  "FROZEN.json runtime_metadata.python_executable is the resolved uv interpreter path (/Users/idantal/.local/share/uv/python/cpython-3.11.15-macos-aarch64-none/bin/python3.11); .venv/bin/python is a symlink via cpython-3.11-macos-aarch64-none to that path. Any change to the uv-managed interpreter or the three pinned distributions before --execute makes verify_bundle refuse (FROZEN_RUNTIME_METADATA_CHANGED). Advisory.",
+  "Archive metadata: tar members carry a single mtime 1789352170 (2026-09-14T02:16:10Z), uid/gid 501/20, mode 0600, directories 0755; manifest written 2026-09-14T02:17:14Z; attempt directory mode 0755 versus archive directory 0700. Reported, no action.",
+  "The runner's verify_pre_run_audit reads PRE_RUN_AUDIT.json from inside the attempt directory (<=256 KiB) and requires decision, bundle_sha256 == digest(encoded(bundle)), a non-empty reviewer string and blocking_findings == []; this file is written outside the repository and must be copied there by the author unchanged (its sha256 is printed in this report) before the waiter's pristine-tree check (FROZEN.json, PRE_RUN_AUDIT.json, source)."
+ ],
+ "checks": {
+  "check_1_frozen_bundle": {
+   "frozen_json_path": "docs/research/gold11_mesh_development_v11_attempt/FROZEN.json",
+   "frozen_json_bytes": 61999,
+   "frozen_json_sha256": "b4260576f1d6024233c410fd628958446bdea1cea1b5fdfa67394a885e2a86f5",
+   "schema": "GOLD11_MESH_DEVELOPMENT_V11",
+   "decode_mirror_unique_keys_finite_ok": true,
+   "canonical_bundle_sha256": "0a03a2984325c3092e2eaef21d29d5be49e2c626292bfa84984b9cc0447e4c65",
+   "source_sha256_entries": 107,
+   "three_way_agree": 107,
+   "three_way_disagree": 0,
+   "snapshot_file_set_equals_keys": true,
+   "keyset_equals_runner_SOURCES": true,
+   "SOURCES_len": 107,
+   "SOURCES_first_is_SOURCE_BASIS": true,
+   "SOURCE_BASIS": "scripts/run_gold11_mesh_development_v10.py",
+   "SOURCE_BASIS_SHA": "f7fd083f8b74a22e7fd1afe872ae8b9b2bfbc94f4b7024fc8c2b46494208da92",
+   "frozen_basis_sha": "f7fd083f8b74a22e7fd1afe872ae8b9b2bfbc94f4b7024fc8c2b46494208da92",
+   "working_tree_basis_sha": "f7fd083f8b74a22e7fd1afe872ae8b9b2bfbc94f4b7024fc8c2b46494208da92",
+   "snapshot_basis_sha": "f7fd083f8b74a22e7fd1afe872ae8b9b2bfbc94f4b7024fc8c2b46494208da92",
+   "v10_terminal_frozen_basis_sha": "f7fd083f8b74a22e7fd1afe872ae8b9b2bfbc94f4b7024fc8c2b46494208da92",
+   "v10_basis_byte_identical": true,
+   "v10_frozen_entries": 96,
+   "common_entries": 96,
+   "common_entries_changed": [],
+   "only_in_v11": [
+    "backend/cad_guided_context_measurement_v4.py",
+    "backend/cad_guided_measurement_v3.py",
+    "backend/cad_guided_mesh_offline_v18.py",
+    "backend/cad_guided_native_feature_bridge_v2.py",
+    "backend/cad_guided_support_cover_measurement_v5.py",
+    "docs/research/2026-09-14_gold11_mesh_development_v11_delta_design.md",
+    "docs/research/2026-09-14_gold11_mesh_development_v11_protocol.md",
+    "scripts/gold11_contact_scoring_v5.py",
+    "scripts/gold11_schedule_projection_v6.py",
+    "scripts/gold11_v11_execute_waiter.py",
+    "scripts/run_gold11_mesh_development_v11.py"
+   ],
+   "only_in_v10": [],
+   "runner_constants_match": {
+    "arm_definitions": true,
+    "arm_requests": true,
+    "arms": true,
+    "artifact_policy": true,
+    "catalog_sha256": true,
+    "certificate_caps": true,
+    "comparator": true,
+    "config": true,
+    "config_delta_from_v10": true,
+    "historical_comparability": true,
+    "limits": true,
+    "measurement_policy_declaration": true,
+    "pose_admission_declaration": true,
+    "position_error_declaration": true,
+    "production_use_allowed": true,
+    "retained_control_policy": true,
+    "schema": true,
+    "scoring_transport": true,
+    "selected_reference_sha256": true,
+    "source_profile": true,
+    "two_plane_declaration": true
+   },
+   "all_runner_constants_match": true,
+   "bundle_keyset_matches_freeze": true,
+   "arm_requests_sha256": {
+    "challenger": "49fc41dabc2b4c97aae55193d4433df2c738c73d073def865ee900637963dd19",
+    "control": "9ef36d73e228ffe31244bea873644f82f916ce2a66b18b4b1f6fcf4a064d57ea"
+   },
+   "arm_modes": {
+    "challenger": {
+     "context_mode": "v4",
+     "scan_plane_mode": "composite_v1",
+     "schedule_mode": "v2",
+     "two_plane_context_mode": "v4"
+    },
+    "control": {
+     "context_mode": "v4",
+     "scan_plane_mode": "v7",
+     "schedule_mode": "v1",
+     "two_plane_context_mode": "v4"
+    }
+   },
+   "runner_sha256": "8432203ec6c475644b2f4bf25aaf12f613a6451bdfed48355997a8b279f2d978",
+   "extra_pins": {
+    "ARTIFACT_SOURCE": "scripts/gold11_terminal_artifacts_v4.py",
+    "ARTIFACT_SOURCE_SHA": "3f4c575458b5033cf3d99baaeb980fb8591c03a54c55cbff0fbc881858115838",
+    "STAGE_SAMPLER_SHA": "80316d0026bcc2fabcf1d8861d010d5f434f720c303f5969384cc45f7809b6b0",
+    "STAGE_SAMPLER_SOURCE": "scripts/gold11_engine_stage_sampler_v1.py",
+    "artifact_policy_helper_sha": "3f4c575458b5033cf3d99baaeb980fb8591c03a54c55cbff0fbc881858115838",
+    "frozen_artifact_sha": "3f4c575458b5033cf3d99baaeb980fb8591c03a54c55cbff0fbc881858115838",
+    "frozen_sampler_sha": "80316d0026bcc2fabcf1d8861d010d5f434f720c303f5969384cc45f7809b6b0"
+   },
+   "SUPERVISION_SOURCE_SHA_constant": "9eec779c6ba14c969fb37950aac2e7aab8af844d3f573233b1b22c92991472ea",
+   "frozen_supervision_sha": "9eec779c6ba14c969fb37950aac2e7aab8af844d3f573233b1b22c92991472ea",
+   "method": "ast-selected top-level Assign nodes (lines 55-533) exec'd in an inert namespace after a call allowlist scan; arm_request re-implemented from the read source; freeze/execute/main never called"
+  },
+  "check_2_config_delta": {
+   "v10_basis_snapshot_sha256": "f7fd083f8b74a22e7fd1afe872ae8b9b2bfbc94f4b7024fc8c2b46494208da92",
+   "limits_identical": true,
+   "certificate_caps_identical": true,
+   "config_leaf_diffs": {
+    "changed": {},
+    "leaves_v10": 183,
+    "leaves_v11": 188,
+    "only_in_v10": [],
+    "only_in_v11": {
+     "/layer_policy/layer_membership_band_mm": 0.1,
+     "/layer_policy/layer_mode_ambiguity_fraction": 0.25,
+     "/layer_policy/layer_mode_bin_mm": 0.05,
+     "/layer_policy/layer_refit_iterations": 6,
+     "/layer_policy/max_bridging_row_fraction": 0.35
+    }
+   },
+   "limits_leaf_diffs": {
+    "changed": {},
+    "leaves_v10": 19,
+    "leaves_v11": 19,
+    "only_in_v10": [],
+    "only_in_v11": {}
+   },
+   "caps_leaf_diffs": {
+    "changed": {},
+    "leaves_v10": 3,
+    "leaves_v11": 3,
+    "only_in_v10": [],
+    "only_in_v11": {}
+   },
+   "v10_layer_policy": {
+    "enabled": true,
+    "layer_split_gap_mm": 0.3,
+    "max_layer_gap_mm": 6.0,
+    "max_layer_normal_angle_deg": 3.0,
+    "max_layer_rms_mm": 0.1,
+    "max_layers_reported": 8,
+    "min_layer_rows": 12,
+    "min_projected_interval_overlap": 0.5
+   },
+   "v11_layer_policy": {
+    "enabled": true,
+    "layer_membership_band_mm": 0.1,
+    "layer_mode_ambiguity_fraction": 0.25,
+    "layer_mode_bin_mm": 0.05,
+    "layer_refit_iterations": 6,
+    "layer_split_gap_mm": 0.3,
+    "max_bridging_row_fraction": 0.35,
+    "max_layer_gap_mm": 6.0,
+    "max_layer_normal_angle_deg": 3.0,
+    "max_layer_rms_mm": 0.1,
+    "max_layers_reported": 8,
+    "min_layer_rows": 12,
+    "min_projected_interval_overlap": 0.5
+   },
+   "v11_layer_policy_fields": 13,
+   "refinement_allowance": {
+    "case_cpu": 1860,
+    "cpu_budget": 1860.0,
+    "equal_budget_case_cpu": true,
+    "guard": 1500.0
+   },
+   "v11_constants_equal_frozen": {
+    "config": true,
+    "limits": true,
+    "caps": true
+   }
+  },
+  "check_3_case_authority": {
+   "review_snapshot_sha256": "41a79da155cf9955bf231fd3374baa5a9e4c79c1a0e6002af6f6a1dab4592955",
+   "review_bytes": 25616,
+   "expected_review_sha256": "41a79da155cf9955bf231fd3374baa5a9e4c79c1a0e6002af6f6a1dab4592955",
+   "n_cases": 11,
+   "distinct_scan_sha256": 11,
+   "distinct_cad_sha256": 6,
+   "distinct_raw_paths": 17,
+   "raw17_map_sha256": "2459f4e93fe4204889ade6f8a4150d3543ec9f96625f39aaec811f003db4d157",
+   "expected_raw17_map_sha256": "2459f4e93fe4204889ade6f8a4150d3543ec9f96625f39aaec811f003db4d157",
+   "cases_array_sha256": "943268be4ee3d33301ab44dfb3e6f85fb0d34de852f788464f1d438ffe43813e",
+   "frozen_cases_array_sha256": "943268be4ee3d33301ab44dfb3e6f85fb0d34de852f788464f1d438ffe43813e",
+   "frozen_cases_equal_and_ordered": true,
+   "case_tokens": [
+    "CG08506AE97D",
+    "CG191DEC7F81",
+    "CG1E0BBA2933",
+    "CG4BDD1371B6",
+    "CG4FAF273093",
+    "CG64C412CC73",
+    "CG65CD575B1C",
+    "CG84C8FA12D2",
+    "CGE4B0549E41",
+    "CGEBA9A869AC",
+    "CGF41F49066A"
+   ],
+   "catalog_sha256": "4ad243c1f8d7332749c854f32729607f156cd2e0f47454acd4b0ff61f1793b36",
+   "selected_reference_sha256": "d16390b2c05157874444f4c3507558bddf28e93b54ccb148228f75248c2b45dc",
+   "raw_files_opened": false
+  },
+  "check_4_runtime": {
+   "equal": true,
+   "live": {
+    "attestation": "VERSION_METADATA_NOT_BINARY_ATTESTATION",
+    "distributions": {
+     "cadquery-ocp": "7.9.3.1.1",
+     "numpy": "2.4.6",
+     "scipy": "1.17.1"
+    },
+    "machine": "arm64",
+    "platform": "darwin",
+    "python_executable": "/Users/idantal/.local/share/uv/python/cpython-3.11.15-macos-aarch64-none/bin/python3.11",
+    "python_version": "3.11.15 (main, Jun 23 2026, 15:46:51) [Clang 22.1.3 ]"
+   },
+   "frozen": {
+    "attestation": "VERSION_METADATA_NOT_BINARY_ATTESTATION",
+    "distributions": {
+     "cadquery-ocp": "7.9.3.1.1",
+     "numpy": "2.4.6",
+     "scipy": "1.17.1"
+    },
+    "machine": "arm64",
+    "platform": "darwin",
+    "python_executable": "/Users/idantal/.local/share/uv/python/cpython-3.11.15-macos-aarch64-none/bin/python3.11",
+    "python_version": "3.11.15 (main, Jun 23 2026, 15:46:51) [Clang 22.1.3 ]"
+   },
+   "distribution_counts": {
+    "cadquery-ocp": 1,
+    "numpy": 1,
+    "scipy": 1
+   },
+   "venv_python_symlink": "/Users/idantal/.local/share/uv/python/cpython-3.11-macos-aarch64-none/bin/python3.11"
+  },
+  "check_5_attempt_tree_and_limits": {
+   "top_level_entries": [
+    "FROZEN.json",
+    "source"
+   ],
+   "regular_files": 108,
+   "directories": 7,
+   "symlinks": 0,
+   "file_modes": [
+    "0o600"
+   ],
+   "dir_modes": [
+    "0o755"
+   ],
+   "attempt_dir_mode": "0o755",
+   "outer_records_present": {
+    "docs/research/gold11_mesh_development_v11_attempt_outer_exit.json": false,
+    "docs/research/gold11_mesh_development_v11_attempt_outer_pid.txt": false,
+    "docs/research/gold11_mesh_development_v11_attempt_outer_stdout.txt": false
+   },
+   "started_completed_markers_present": false,
+   "protocol_limits_table": {
+    "case_wall_seconds": 3540,
+    "case_cpu_seconds": 1860,
+    "refinement_allowance.cpu_guard_seconds": 1500,
+    "sampled_worker_tree_rss_bytes": 8589934592,
+    "coordinator_rss_bytes": 4294967296,
+    "global_tree_rss_bytes": 12884901888,
+    "max_scan_bytes": 67108864,
+    "max_cad_bytes": 8388608,
+    "case_log_bytes": 1048576,
+    "case_result_bytes": 134217728,
+    "compact_case_bytes": 8388608,
+    "scorer_wall_seconds": 180,
+    "scorer_cpu_seconds": 120,
+    "scorer_rss_bytes": 2147483648,
+    "scorer_request_bytes": 201326592,
+    "scorer_result_bytes": 33554432,
+    "coordinator_log_bytes": 2097152,
+    "parent_read_seconds": 180,
+    "total_wall_seconds": 104400,
+    "terminalization_reserve_seconds": 2400
+   },
+   "frozen_values": {
+    "case_wall_seconds": 3540,
+    "case_cpu_seconds": 1860,
+    "refinement_allowance.cpu_guard_seconds": 1500.0,
+    "sampled_worker_tree_rss_bytes": 8589934592,
+    "coordinator_rss_bytes": 4294967296,
+    "global_tree_rss_bytes": 12884901888,
+    "max_scan_bytes": 67108864,
+    "max_cad_bytes": 8388608,
+    "case_log_bytes": 1048576,
+    "case_result_bytes": 134217728,
+    "compact_case_bytes": 8388608,
+    "scorer_wall_seconds": 180,
+    "scorer_cpu_seconds": 120,
+    "scorer_rss_bytes": 2147483648,
+    "scorer_request_bytes": 201326592,
+    "scorer_result_bytes": 33554432,
+    "coordinator_log_bytes": 2097152,
+    "parent_read_seconds": 180,
+    "total_wall_seconds": 104400,
+    "terminalization_reserve_seconds": 2400
+   },
+   "limits_match_protocol": true,
+   "arm_requests_match_protocol": true
+  },
+  "check_6_external_archive": {
+   "archive_directories": [
+    "docs/research/gold11_mesh_development_v11_physical_frozen.b9bcd723"
+   ],
+   "archive_directory_count": 1,
+   "archive_dir_entries": [
+    "SOURCE.tar",
+    "SOURCE.tar.members.sha256.json"
+   ],
+   "archive_dir_mode": "0o700",
+   "tar_mode": "0o600",
+   "manifest_mode": "0o600",
+   "any_symlink": false,
+   "tar_sha256": "94601f14ed4276cab8b01c7f1afa040d56a4432aa2b51f23319cf32b5ed54e3c",
+   "tar_bytes": 4389376,
+   "manifest_sha256": "34ecdcc64f0883e546299bb025cfe350e2b962014cf8a592eca891dd152d5d31",
+   "manifest_bytes": 41667,
+   "tar_entries_total": 114,
+   "tar_file_members": 108,
+   "tar_dir_members": 6,
+   "tar_other_members": [],
+   "expected_members": 108,
+   "members_ok": 108,
+   "missing": [],
+   "extra": [],
+   "mismatches": [],
+   "frozen_json_in_tar_sha256": "b4260576f1d6024233c410fd628958446bdea1cea1b5fdfa67394a885e2a86f5",
+   "frozen_json_archived_match": true,
+   "member_modes": [
+    "0o600"
+   ],
+   "member_owner": [
+    [
+     501,
+     20
+    ]
+   ],
+   "member_mtimes": [
+    1789352170
+   ],
+   "manifest_schema": "GOLD11_V11_FROZEN_SOURCE_ARCHIVE_MEMBER_PAYLOAD_MANIFEST_V1",
+   "manifest_written_utc": "2026-09-14T02:17:14Z",
+   "manifest_member_count": 108,
+   "manifest_agree": 108,
+   "manifest_disagree": [],
+   "manifest_names_not_in_tar": [],
+   "manifest_self_report": {
+    "archive": "SOURCE.tar",
+    "attempt": "docs/research/gold11_mesh_development_v11_attempt",
+    "bundle_sha256_canonical": "0a03a2984325c3092e2eaef21d29d5be49e2c626292bfa84984b9cc0447e4c65",
+    "directories": [
+     "source",
+     "source/tests",
+     "source/backend",
+     "source/docs",
+     "source/scripts",
+     "source/docs/research"
+    ],
+    "extra_in_archive": [],
+    "frozen_json_archived": true,
+    "frozen_json_file_sha256": "b4260576f1d6024233c410fd628958446bdea1cea1b5fdfa67394a885e2a86f5",
+    "mismatches": [],
+    "missing_from_archive": [],
+    "source_count_archived": 107,
+    "source_count_declared": 107,
+    "unexpected": []
+   }
+  },
+  "check_7_documents": {
+   "protocol_sha256": {
+    "bytes": 13162,
+    "sha256": "987e6a165c820ff5a77918dcf64ee2d04b86167556ec2ae8a050e238324ef1e9"
+   },
+   "delta_design_sha256": {
+    "bytes": 11583,
+    "sha256": "468fbfc509893e5ac060ed326d731e6993819c46e4706ddfbac35b9169139f35"
+   },
+   "protocol_names_mechanism_and_basis": true,
+   "delta_design_names_mechanism_and_basis": true,
+   "review_response_sha256": {
+    "bytes": 27707,
+    "sha256": "af0bda6872a92872c56312c030f24ac0e4cfd4795ead3f6966b1553c47ad71de"
+   },
+   "closure_table_rows": 24,
+   "closure_table_rows_matching_working_tree": 24,
+   "closure_rows": [
+    {
+     "path": "backend/cad_guided_measurement_v3.py",
+     "sha256": "8fd5c3e6a7f6437638f068052d8c71e085980b25fa7d14cca955cf5f66c5d6e6",
+     "bytes": 71573,
+     "match": true,
+     "in_frozen_bundle": true,
+     "frozen_matches": true
+    },
+    {
+     "path": "backend/cad_guided_native_feature_bridge_v2.py",
+     "sha256": "ecac003e07b5cb7e91432352c6d88fe6b4bfd46f7fcfbeab19addaba671380a4",
+     "bytes": 5947,
+     "match": true,
+     "in_frozen_bundle": true,
+     "frozen_matches": true
+    },
+    {
+     "path": "backend/cad_guided_context_measurement_v4.py",
+     "sha256": "7d12b92204334bce27e0012886fa41b75bc8b256f3c5c31de83cebdd243666b2",
+     "bytes": 51403,
+     "match": true,
+     "in_frozen_bundle": true,
+     "frozen_matches": true
+    },
+    {
+     "path": "backend/cad_guided_support_cover_measurement_v5.py",
+     "sha256": "7a0b40cfb888811a039bc677e9c186c415195823db709525d702d76b349d95a6",
+     "bytes": 29737,
+     "match": true,
+     "in_frozen_bundle": true,
+     "frozen_matches": true
+    },
+    {
+     "path": "backend/cad_guided_mesh_offline_v18.py",
+     "sha256": "57ae0310135c915bab4820ed55bd0d7595ca069ac47e10e74978933163374fe6",
+     "bytes": 50892,
+     "match": true,
+     "in_frozen_bundle": true,
+     "frozen_matches": true
+    },
+    {
+     "path": "scripts/gold11_contact_scoring_v5.py",
+     "sha256": "dd0963c2cbc8173fe94ce686b9fbe04f9bac9998ce1881afd5d4ec7cc1f000c7",
+     "bytes": 60121,
+     "match": true,
+     "in_frozen_bundle": true,
+     "frozen_matches": true
+    },
+    {
+     "path": "scripts/gold11_schedule_projection_v6.py",
+     "sha256": "b419903ca8d7e1aa8d934d3e2e4088568db8c39391b8d7118b7f45e4f549bf9d",
+     "bytes": 19899,
+     "match": true,
+     "in_frozen_bundle": true,
+     "frozen_matches": true
+    },
+    {
+     "path": "scripts/run_gold11_mesh_development_v11.py",
+     "sha256": "8432203ec6c475644b2f4bf25aaf12f613a6451bdfed48355997a8b279f2d978",
+     "bytes": 193724,
+     "match": true,
+     "in_frozen_bundle": true,
+     "frozen_matches": true
+    },
+    {
+     "path": "scripts/gold11_v11_execute_waiter.py",
+     "sha256": "1a7be9fda3d9551e0606764f178f69967c68dfce9d5be576fcee8c6a883e84b9",
+     "bytes": 9213,
+     "match": true,
+     "in_frozen_bundle": true,
+     "frozen_matches": true
+    },
+    {
+     "path": "tests/test_cad_guided_measurement_v3.py",
+     "sha256": "9bf3cb07d517951e64ba237642aababf45e7b800194d6ffbb179a8514a3085c5",
+     "bytes": 39083,
+     "match": true,
+     "in_frozen_bundle": false,
+     "frozen_matches": null
+    },
+    {
+     "path": "tests/test_cad_guided_context_measurement_v4.py",
+     "sha256": "7105136f89a58d360bf8370e8db0b19e97149c296cdfa18c0eab870e46efcc57",
+     "bytes": 59290,
+     "match": true,
+     "in_frozen_bundle": false,
+     "frozen_matches": null
+    },
+    {
+     "path": "tests/test_cad_guided_support_cover_measurement_v5.py",
+     "sha256": "0385a2dac5d236ae186b2945fabd03c8f22746309d1e1ddc5e74ad98231280a8",
+     "bytes": 31317,
+     "match": true,
+     "in_frozen_bundle": false,
+     "frozen_matches": null
+    },
+    {
+     "path": "tests/test_gold11_contact_scoring_v5.py",
+     "sha256": "12e9944a0c77a4ec34e9b7df7abd22f3c2e6013d01426152086e6dd08222abdb",
+     "bytes": 46313,
+     "match": true,
+     "in_frozen_bundle": false,
+     "frozen_matches": null
+    },
+    {
+     "path": "tests/test_gold11_schedule_projection_v6.py",
+     "sha256": "7d56061c5ad70981265353e52189958030cbe1ebdd0d897b79de32375bf976c8",
+     "bytes": 31977,
+     "match": true,
+     "in_frozen_bundle": false,
+     "frozen_matches": null
+    },
+    {
+     "path": "tests/test_cad_guided_v11_connected_chain_v1.py",
+     "sha256": "aa5901f2151e2241cebe5d4d85129b6695d64bf865d4b27700239e823be41891",
+     "bytes": 47556,
+     "match": true,
+     "in_frozen_bundle": false,
+     "frozen_matches": null
+    },
+    {
+     "path": "tests/test_cad_guided_completion_v1_engine_integration_v18.py",
+     "sha256": "623692465ce6fa81dc36cc44b079b796e5f03a951eb7ed00e3ed855353948623",
+     "bytes": 61437,
+     "match": true,
+     "in_frozen_bundle": false,
+     "frozen_matches": null
+    },
+    {
+     "path": "tests/test_cad_guided_native_feature_bridge_v1_factory_to_measurement_v18.py",
+     "sha256": "a87d06d249e475817e80cf1b3632e0faeb16c5d139d4895c92e535edbcb5d38a",
+     "bytes": 30510,
+     "match": true,
+     "in_frozen_bundle": false,
+     "frozen_matches": null
+    },
+    {
+     "path": "tests/test_cad_guided_v11_full_bytes_connected_v1.py",
+     "sha256": "8b0556ccfa2f152887a88505e0760f307c99f773c43fe02abcd811803204335a",
+     "bytes": 38716,
+     "match": true,
+     "in_frozen_bundle": false,
+     "frozen_matches": null
+    },
+    {
+     "path": "tests/test_gold11_mesh_development_v11_source.py",
+     "sha256": "7c14ecf53df0adc124c57a1357b175bb028712bb8c4c85b58a77015cf868456d",
+     "bytes": 21062,
+     "match": true,
+     "in_frozen_bundle": false,
+     "frozen_matches": null
+    },
+    {
+     "path": "tests/test_gold11_v11_execute_waiter.py",
+     "sha256": "4ee1448153f39d5ca5aaf7c833e944ebeb19f4f62d0c90ad25705335922e9e2f",
+     "bytes": 8751,
+     "match": true,
+     "in_frozen_bundle": false,
+     "frozen_matches": null
+    },
+    {
+     "path": "docs/research/2026-09-14_fable51_v11_diagnosis.md",
+     "sha256": "664a7a37ca39576513dee6c83563b69807fd79725506b0ea3a292abf8652334b",
+     "bytes": 17770,
+     "match": true,
+     "in_frozen_bundle": false,
+     "frozen_matches": null
+    },
+    {
+     "path": "docs/research/2026-09-14_gold11_mesh_development_v11_delta_design.md",
+     "sha256": "468fbfc509893e5ac060ed326d731e6993819c46e4706ddfbac35b9169139f35",
+     "bytes": 11583,
+     "match": true,
+     "in_frozen_bundle": true,
+     "frozen_matches": true
+    },
+    {
+     "path": "docs/research/2026-09-14_gold11_mesh_development_v11_protocol.md",
+     "sha256": "987e6a165c820ff5a77918dcf64ee2d04b86167556ec2ae8a050e238324ef1e9",
+     "bytes": 13162,
+     "match": true,
+     "in_frozen_bundle": true,
+     "frozen_matches": true
+    },
+    {
+     "path": "docs/research/2026-09-13_gold11_mesh_development_v10_result.md",
+     "sha256": "ca11f41abb8b8f5c76df9e2e66ba21ab9dd3e4afd66482b8f0c544a1d2f7d1ae",
+     "bytes": 15707,
+     "match": true,
+     "in_frozen_bundle": false,
+     "frozen_matches": null
+    }
+   ],
+   "coordination_sha256": {
+    "bytes": 40786,
+    "sha256": "716ea68231e4fda11e3f0fbe0595fab75cda2f08fcc06835c34a5d1c5b26f218"
+   },
+   "coordination_records_bounded_source_closure_acceptance": true,
+   "coordination_review_response_pin": "af0bda6872a92872c56312c030f24ac0e4cfd4795ead3f6966b1553c47ad71de",
+   "coordination_runner_pin": "8432203ec6c475644b2f4bf25aaf12f613a6451bdfed48355997a8b279f2d978",
+   "coordination_waiter_pin": "1a7be9fda3d9551e0606764f178f69967c68dfce9d5be576fcee8c6a883e84b9",
+   "layer_kernel_audit_sha256": {
+    "bytes": 21031,
+    "sha256": "f0f12ce875af085a7c7ba8967046787908b74e5bee979d5be1d03f11793d3b22"
+   },
+   "layer_kernel_audit_unresolved_blocking": [],
+   "consumer_chain_audit_sha256": {
+    "bytes": 43116,
+    "sha256": "b6ba7bf9e9b2821cf80feb36141e85cf5398095aecf5bcd019d25f59fdeca890"
+   },
+   "consumer_chain_audit_unresolved_blocking": [],
+   "audits_non_blocking_open_items": [
+    "kernel header :16 'fit quality never selects' prose (auditor: interpret as no downstream measurement/nominal/Gold selection)",
+    "full-bytes fixture prose at lines 32, 42, 348-350, 437 broader than the executable contract (fixture not in the frozen bundle)",
+    "author narrative '24 invalid cases' vs 26 in tests/test_gold11_contact_scoring_v5.py parameter list"
+   ]
+  },
+  "check_8_waiter_contract": {
+   "sha256": "1a7be9fda3d9551e0606764f178f69967c68dfce9d5be576fcee8c6a883e84b9",
+   "working_tree_equals_snapshot": true,
+   "o_excl_reservation": "lines 62-66 _write_exclusive(O_WRONLY|O_CREAT|O_EXCL, 0o644); lines 101-103 reserve pid/exit/stdout; FileExistsError -> 96; any pre-existing record -> 97 (line 96-98)",
+   "flock": "line 143 fcntl.flock(LOCK_EX|LOCK_NB) on the reservation fd for the waiter's whole life; locked -> 92",
+   "one_time_token": "line 99 secrets.token_hex(16); passed via env GOLD11_V11_WAITER_TOKEN (108); waiter requires it (131-134 -> 94) and the RESERVED line nonce + pending exit record nonce to equal it (155-159 -> 91)",
+   "atomic_exit_record": "lines 68-72 temp file + os.replace; line 175 code = proc.wait(); lines 181-183 record returncode=code, observation OBSERVED_BY_WAITING_PARENT, runner_pid, observed_by WAITING_PARENT_PROCESS_<pid>",
+   "unobserved_on_failure": "lines 119-122 UNOBSERVED_WAITER_LAUNCH_FAILED on spawn failure; lines 176-180 UNOBSERVED_WAITING_PARENT_FAILED:<Exception> then re-raise; default record observation UNOBSERVED_PENDING with returncode None (75-80)",
+   "direct_waiter_refusal": "lines 131-134 no token/config -> 94 without touching records; 138-141 no reservation -> 93; 143-147 locked -> 92; 155-159 not pending for token -> 91",
+   "command": [
+    "<ROOT>/.venv/bin/python",
+    "-I",
+    "-S",
+    "-B",
+    "-u",
+    "scripts/run_gold11_mesh_development_v11.py",
+    "--execute"
+   ],
+   "command_env": "OMP_NUM_THREADS=1 (line 166), cwd=<ROOT> (169), stdin DEVNULL, stdout/stderr -> the reserved outer_stdout record",
+   "pristine_tree": [
+    "FROZEN.json",
+    "PRE_RUN_AUDIT.json",
+    "source"
+   ],
+   "overlap_pattern": "run_gold11_|check_|pytest|cad_guided|_gold11_v\\d+_exact_scoring (excluding the V11 waiter's own line)",
+   "records_location": "beside, never inside, the attempt directory (lines 46-47)"
+  },
+  "check_9_no_overlap": {
+   "snapshot_1_utc": "2026-09-14T02:17:54Z",
+   "snapshot_1_matching_lines": [
+    "81241 81241 03-13:05:14 849824 /Users/idantal/tavnit/.venv/bin/python3 .venv/bin/tavnit serve --port 9017"
+   ],
+   "snapshot_2_utc": "2026-09-14T02:24:33Z",
+   "snapshot_2_matching_lines": [
+    "81241 81241 03-13:11:53 849824 /Users/idantal/tavnit/.venv/bin/python3 .venv/bin/tavnit serve --port 9017"
+   ],
+   "seconds_apart": 399,
+   "sherman_geometry_or_benchmark_process_live": false,
+   "pattern": "run_gold11_|check_|pytest|cad_guided|execute_waiter|dump_fullbytes|exact_scoring|python",
+   "hw_memsize_bytes": 137438953472,
+   "hw_memsize_gib": 128.0,
+   "repository_ceiling_gib": 16,
+   "campaign_outer_limit_gib": 12,
+   "memsize_sufficient": true
+  }
+ },
+ "written_utc": "2026-09-14T02:28:14Z"
+}

@@ -1,0 +1,1778 @@
+{
+ "schema": "sherman_a1_iteration_scorecard_v1",
+ "iteration": 1,
+ "phase": "MEASURE",
+ "created": "2026-10-18",
+ "label": "consumed development (engineering ledger); never unseen-family accuracy. Iteration 1 = engine e3-1.2.0 after the iter-1 change (CHANGE.md): non-round datum holes, per-direction pose trust, station-profile flange nominal, displaced-flange search. Re-measured independently, serially under the shared lock.",
+ "comparator_policy": "bar = best F1 lane (old research lane) on the SAME scans; the shipped runtime engine is discarded as a comparator; the legacy control arm appears only as informational G2 context.",
+ "engine": {
+  "engine_version": "e3-1.2.0",
+  "config": "default (no --config)",
+  "config_sha256": "74c0305091bf0fb900ce1e137603ec1b3176361ca61f6d94a29c72fed044dcc7",
+  "runner_fingerprints_G1": {
+   "compile": "d4e870e8071856f22869a323f5f574ae72e05907dca87ad0278fdb078895b71a",
+   "engine": "4e63a0644d554990d2689d002e9c8b8d21b27c8d5ee23500c874a8e49ed65cf6",
+   "eval": "8aa6860c78d85a2daf1d36607b52c691079378c66507a29e6827e73c0f7cae6a"
+  },
+  "freeze_style_fingerprints_start": {
+   "engine": "213f782fdb739279bd9fc3c08a910c104d7fdf4a9eeb3c7c77e390959ecdbd6c",
+   "compile": "6147b43c87596a79b98e340b171f76a6e213b134770fc31d67224e4c24f460df",
+   "eval": "8aa6860c78d85a2daf1d36607b52c691079378c66507a29e6827e73c0f7cae6a",
+   "contracts": "5f7e6a8c98bcbba98ef694ed5663b3afd5ab1556a90f7733ed8d6569526eedbf"
+  },
+  "freeze_style_fingerprints_end": {
+   "engine": "213f782fdb739279bd9fc3c08a910c104d7fdf4a9eeb3c7c77e390959ecdbd6c",
+   "compile": "6147b43c87596a79b98e340b171f76a6e213b134770fc31d67224e4c24f460df",
+   "eval": "8aa6860c78d85a2daf1d36607b52c691079378c66507a29e6827e73c0f7cae6a",
+   "contracts": "5f7e6a8c98bcbba98ef694ed5663b3afd5ab1556a90f7733ed8d6569526eedbf"
+  },
+  "code_unchanged_during_measure": true,
+  "matches_change_step_G1_fingerprint": true,
+  "reproduces_change_step": "subset_scores.json is byte-for-byte equal in content to the change step's raw/subset_scores.json; overlay INDEX identical",
+  "note": "runner fingerprints hash compile+contracts together (d4e870e8); freeze-style split gives compile 6147b43c = freeze value, so compile code is unchanged since the freeze; eval 8aa6860c unchanged (frozen)"
+ },
+ "ledger": {
+  "anchor": "cf01e709079c0fcc348758c5196884bff7d20f7836b88c7616883c0dcec67e67",
+  "ledger_check_ok": true,
+  "anchor_checked": true,
+  "g1_ledger_check_ok": true,
+  "physical_final": false,
+  "physical_qualifying": false,
+  "g1_qualifying": false,
+  "g1_not_qualifying_reasons": [
+   "TIER_REGRESSION",
+   "SEEDSET_DEV",
+   "SCANNER_MODEL_PARTIAL"
+  ]
+ },
+ "G1_synthetic_regression_DEV": {
+  "tier": "regression DEV, 50 cases / 7 families, e2-synthetic-1.1.1 (iter-0 generated tier reused; generator unchanged), scanner model card (PARTIAL)",
+  "verdict": "INCOMPLETE",
+  "regression_verdict": "PASS",
+  "failed_gates": [],
+  "gates": {
+   "G1.ACC.FLANGE_LENGTH.BIAS": {
+    "verdict": "PASS",
+    "value": 0.009377,
+    "threshold": 0.05,
+    "n": 115
+   },
+   "G1.ACC.FLANGE_LENGTH.P95": {
+    "verdict": "PASS",
+    "value": 0.103252,
+    "threshold": 0.2,
+    "n": 115
+   },
+   "G1.ACC.INCLUDED_ANGLE.BIAS": {
+    "verdict": "PASS",
+    "value": 0.001521,
+    "threshold": 0.1,
+    "n": 58
+   },
+   "G1.ACC.INCLUDED_ANGLE.P95": {
+    "verdict": "PASS",
+    "value": 0.019033,
+    "threshold": 0.3,
+    "n": 58
+   },
+   "G1.ACC.BEND_LINE_POSITION.P95": {
+    "verdict": "PASS",
+    "value": 0.072959,
+    "threshold": 0.3,
+    "n": 58
+   },
+   "G1.COVERAGE": {
+    "verdict": "PASS",
+    "value": 0.996894,
+    "threshold": 0.9,
+    "n": 322
+   },
+   "G1.FALSE_PASS": {
+    "verdict": "PASS",
+    "value": 0,
+    "threshold": 0,
+    "n": 553
+   },
+   "G1.FALSE_FAIL": {
+    "verdict": "PASS",
+    "value": 0.0,
+    "threshold": 0.005,
+    "n": 269
+   },
+   "G1.U_CALIBRATION": {
+    "verdict": "PASS",
+    "value": 0.984424,
+    "threshold": 0.95,
+    "n": 321
+   },
+   "G1.MEDIAN_U.mm": {
+    "verdict": "PASS",
+    "value": 0.106348,
+    "threshold": 0.15,
+    "n": 240
+   },
+   "G1.MEDIAN_U.deg": {
+    "verdict": "PASS",
+    "value": 0.115927,
+    "threshold": 0.25,
+    "n": 81
+   },
+   "G1.DECISIVENESS": {
+    "verdict": "PASS",
+    "value": 0.983333,
+    "threshold": 0.9,
+    "n": 300
+   },
+   "G1.SLOPE.FLANGE_LENGTH": {
+    "verdict": "PASS",
+    "value": 1.007851,
+    "threshold": [
+     0.95,
+     1.05
+    ],
+    "n": 146
+   },
+   "G1.SLOPE.INCLUDED_ANGLE": {
+    "verdict": "PASS",
+    "value": 1.000042,
+    "threshold": [
+     0.95,
+     1.05
+    ],
+    "n": 81
+   },
+   "G1.SLOPE.BEND_LINE_POSITION": {
+    "verdict": "PASS",
+    "value": 0.993447,
+    "threshold": [
+     0.95,
+     1.05
+    ],
+    "n": 81
+   },
+   "G1.SLOPE.BACKGAUGE_LENGTH": {
+    "verdict": "NOT_EVALUABLE",
+    "value": 0.987282,
+    "threshold": [
+     0.95,
+     1.05
+    ],
+    "n": 13
+   },
+   "G1.STAGE_STATE": {
+    "verdict": "PASS",
+    "value": 1.0,
+    "threshold": 0.98,
+    "n": 67
+   },
+   "G1.SYMMETRIC_NO_WRONG_ID": {
+    "verdict": "PASS",
+    "value": 0,
+    "threshold": 0,
+    "n": 2
+   },
+   "G1.LINE_ON_OWN_BEND": {
+    "verdict": "PASS",
+    "value": 1.0,
+    "threshold": 1.0,
+    "n": 81
+   },
+   "G1.POSE_CHECK": {
+    "verdict": "PASS",
+    "value": 1.0,
+    "threshold": 1.0,
+    "n": 48
+   },
+   "G1.AMBIGUOUS_ON_UNAMBIGUOUS": {
+    "verdict": "PASS",
+    "value": 0,
+    "threshold": 0,
+    "n": 47
+   },
+   "G1.BACKGAUGE_DETECTION": {
+    "verdict": "PASS",
+    "value": 1.0,
+    "threshold": 1.0,
+    "n": 2
+   },
+   "G1.NOT_YET_FORMED_NEVER_FAIL": {
+    "verdict": "PASS",
+    "value": 0,
+    "threshold": 0,
+    "n": 176
+   },
+   "G1.WRONG_OR_MIRRORED_NEVER_PASS": {
+    "verdict": "PASS",
+    "value": 0,
+    "threshold": 0,
+    "n": 32
+   },
+   "G1.SUMMARY_NEVER": {
+    "verdict": "PASS",
+    "value": 0,
+    "threshold": 0,
+    "n": 50
+   },
+   "G1.MUST_BE_UNKNOWN": {
+    "verdict": "PASS",
+    "value": 0,
+    "threshold": 0,
+    "n": 13
+   },
+   "G1.ENGINE_FAILURES": {
+    "verdict": "PASS",
+    "value": 0,
+    "threshold": 0,
+    "n": 50
+   },
+   "G1.OCCLUSION_RAISES_UNKNOWN": {
+    "verdict": "NOT_EVALUABLE",
+    "value": {
+     "engine_failures": 0,
+     "false_pass": 0,
+     "u_calibration": null
+    },
+    "threshold": {
+     "engine_failures": 0,
+     "false_pass": 0,
+     "u_calibration_min": 0.95
+    },
+    "n": 0
+   },
+   "G1.RUNTIME.P95": {
+    "verdict": "NOT_EVALUABLE",
+    "value": 11.39195,
+    "threshold": 45.0,
+    "n": 50
+   },
+   "G1.RUNTIME.RSS": {
+    "verdict": "NOT_EVALUABLE",
+    "value": 892960768,
+    "threshold": 4294967296,
+    "n": 50
+   },
+   "G1.TIER_BUDGET": {
+    "verdict": "PASS",
+    "value": 285.7,
+    "threshold": 1200.0,
+    "n": 50
+   },
+   "G1.SUITE": {
+    "verdict": "FAIL",
+    "value": {
+     "cases": 50,
+     "families": 7,
+     "feature_gaps": {}
+    },
+    "threshold": {
+     "min_cases": 200,
+     "min_families": 7
+    },
+    "n": 50
+   }
+  },
+  "vs_iter0": "identical gate-for-gate except flange bias 0.009329 -> 0.009377 mm and runtime noise (P95 10.93 -> 11.39 s)",
+  "note": "G1.SUITE FAIL is by construction on the regression tier (needs >= 200 cases); runtime gates need the runtime tier"
+ },
+ "G2": {
+  "verdict": "FAIL",
+  "final": false,
+  "gates": {
+   "a_line_metric": "FAIL",
+   "b_angle_coverage": "FAIL",
+   "b_flange_coverage": "FAIL",
+   "c_angle_known_good": "FAIL",
+   "compile_rate": "PASS",
+   "d_flange_known_good": "PASS",
+   "e_runtime_and_failures": "FAIL",
+   "f_repeatability": "NOT_EVALUABLE"
+  },
+  "a_line_metric": {
+   "gate_of_record_per_freeze": "HUMAN_GOLD11 (owner 2026-10-17: gold11_relabel_v1 adopted as gold of record; both reported)",
+   "thresholds": {
+    "f1_min": 0.8,
+    "precision_min": 0.9,
+    "matcher": "5 deg / 4 mm / 0.6 span, one-to-one, apex locus, raw frame"
+   },
+   "all_9_A1_gold11_cases": {
+    "human": {
+     "engine": {
+      "f1": 0.4666666666666666,
+      "precision": 0.6774193548387096,
+      "recall": 0.3559322033898305,
+      "true_positive": 21,
+      "false_positive": 10,
+      "false_negative": 38,
+      "case_count": 9
+     },
+     "best_f1": {
+      "f1": 0.4727272727272727,
+      "precision": 0.5098039215686274,
+      "recall": 0.4406779661016949,
+      "true_positive": 26,
+      "false_positive": 25,
+      "false_negative": 33,
+      "case_count": 9
+     }
+    },
+    "relabel": {
+     "engine": {
+      "f1": 0.5740740740740741,
+      "precision": 1.0,
+      "recall": 0.4025974025974026,
+      "true_positive": 31,
+      "false_positive": 0,
+      "false_negative": 46,
+      "case_count": 9
+     },
+     "best_f1": {
+      "f1": 0.546875,
+      "precision": 0.6862745098039216,
+      "recall": 0.45454545454545453,
+      "true_positive": 35,
+      "false_positive": 16,
+      "false_negative": 42,
+      "case_count": 9
+     }
+    }
+   },
+   "same_scans_engine_ran_4": {
+    "cases": [
+     "pc_d1732de18023",
+     "pc_70b39f530f00",
+     "pc_4f8188b4d1a8",
+     "pc_2714fb7e0c0b"
+    ],
+    "human": {
+     "engine": {
+      "f1": 0.7241379310344828,
+      "precision": 0.6774193548387096,
+      "recall": 0.7777777777777778,
+      "true_positive": 21,
+      "false_positive": 10,
+      "false_negative": 6,
+      "case_count": 4
+     },
+     "best_f1": {
+      "f1": 0.7169811320754716,
+      "precision": 0.7307692307692307,
+      "recall": 0.7037037037037037,
+      "true_positive": 19,
+      "false_positive": 7,
+      "false_negative": 8,
+      "case_count": 4
+     }
+    },
+    "relabel": {
+     "engine": {
+      "f1": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "true_positive": 31,
+      "false_positive": 0,
+      "false_negative": 0,
+      "case_count": 4
+     },
+     "best_f1": {
+      "f1": 0.5614035087719298,
+      "precision": 0.6153846153846154,
+      "recall": 0.5161290322580645,
+      "true_positive": 16,
+      "false_positive": 10,
+      "false_negative": 15,
+      "case_count": 4
+     }
+    }
+   },
+   "legacy_arm_informational": {
+    "human": {
+     "f1": 0.08823529411764705,
+     "precision": 0.3333333333333333,
+     "recall": 0.05084745762711865,
+     "true_positive": 3,
+     "false_positive": 6,
+     "false_negative": 56
+    },
+    "relabel": {
+     "f1": 0.13953488372093023,
+     "precision": 0.6666666666666666,
+     "recall": 0.07792207792207792,
+     "true_positive": 6,
+     "false_positive": 3,
+     "false_negative": 71
+    }
+   },
+   "relabel_changed_since_freeze": false,
+   "relabel_snapshot_sha256": "63565ba7eec9f47039aac0c4795caa7fc47af6c57fc4717dbf1318d16762ac5d",
+   "bar": "best F1 lane: 0.510 Gold11 relabel (11 scans; 2 are outside A1); on the 9 A1 Gold11 cases it scores 0.547 relabel / 0.473 human",
+   "verdict_relabel": "FAIL",
+   "verdict_human": "FAIL",
+   "why_fail": "5 of 9 Gold11 cases are refused by the amendment-7 gate (no frozen G3 truth table) and count as misses; on the 4 that run, relabel F1 = 1.000 (31/31, 0 FP)"
+  },
+  "b_coverage": {
+   "angle": {
+    "gate": "FAIL",
+    "measured": 55,
+    "planned": 91,
+    "rate": 0.6043956043956044,
+    "rule_excluded": 0
+   },
+   "flange_sides": {
+    "gate": "FAIL",
+    "measured": 108,
+    "planned": 178,
+    "rate": 0.6067415730337079,
+    "rule_excluded": 4
+   }
+  },
+  "c_angle_known_good": {
+   "common_bends": 8,
+   "common_e3_mae_deg": 0.502750125,
+   "common_legacy_mae_deg": 1.3599174544655668,
+   "e3_coverage": 0.4375,
+   "e3_mae_deg": 0.43506999999999996,
+   "e3_measured": 14,
+   "gate": "FAIL",
+   "gates": {
+    "coverage_at_least_legacy": "FAIL",
+    "mae_all_measured": "PASS",
+    "mae_common": "PASS",
+    "no_worse_than_legacy": "PASS"
+   },
+   "legacy_coverage": 0.5,
+   "legacy_delta_definition": "legacy measured_angle - E1 included nominal folded like the worker (max(theta, 180 - theta)); both arms against the same nominal",
+   "legacy_measured": 16,
+   "planned_bends": 32
+  },
+  "d_flange_known_good": {
+   "exclusions": "none (amendment 6d)",
+   "gate": "PASS",
+   "large_deviations": [],
+   "max_abs_mm": 0.847487,
+   "measured_sides": 28,
+   "p95_abs_mm": 0.5175861999999999
+  },
+  "e_runtime": {
+   "crashes": [],
+   "explicit_refusals": [
+    {
+     "case_ref": "pc_b4719db3dd69",
+     "detail": "COMPILE_BLOCKED",
+     "status": "ENGINE_EXIT_2"
+    }
+   ],
+   "gate": "FAIL",
+   "gates": {
+    "all_cases_run": "FAIL",
+    "crashes": "PASS",
+    "p95_wall": "PASS"
+   },
+   "legacy_control_p95_s": 46.0,
+   "max_wall_s": 23.028,
+   "not_run": [
+    "pc_71cf0b216f43",
+    "pc_927a2fa13067",
+    "pc_8dfdab44605d",
+    "pc_6eba02723d4b",
+    "pc_38091ac91d9d"
+   ],
+   "p95_wall_s": 21.264899999999994,
+   "runs": 10
+  },
+  "f_repeatability": {
+   "e3_p95_angle_deg": null,
+   "e3_p95_flange_mm": null,
+   "gate": "NOT_EVALUABLE",
+   "gates": {
+    "angle_better_than_legacy": "NOT_EVALUABLE",
+    "flange_better_than_legacy_edge_proxy": "NOT_EVALUABLE",
+    "p95_angle": "NOT_EVALUABLE",
+    "p95_flange": "NOT_EVALUABLE"
+   },
+   "legacy_flange_note": "legacy has no OML flange length; its tip-to-tip edge distance is the proxy",
+   "legacy_p95_angle_deg": null,
+   "legacy_p95_edge_proxy_mm": null
+  },
+  "f_repeatability_note": "NOT_EVALUABLE: the 15651004 repeat set has 3 scans, 2 refused by the amendment-7 gate, so 0 E3 pairs",
+  "compile_rate": {
+   "rate": 0.9230769230769231,
+   "gate": "PASS"
+  },
+  "population_note": "5 of 15 G2 cases refused by the amendment-7 gate, 1 compile BLOCKED (pc_b4719db3dd69); refused cases stay in the denominators"
+ },
+ "G3": {
+  "population": 11,
+  "reason": "the frozen visual truth table (amendment 7) does not exist yet",
+  "truth_table": "MISSING",
+  "verdict": "NOT_EVALUABLE"
+ },
+ "BROAD": {
+  "bar": "best F1 lane 0.458 on broad-57 (old definition, engine not run there); on the frozen A1 BROAD gold the same lane scores family-macro 0.543 / micro 0.508",
+  "verdict": "REPORT_ONLY",
+  "target_status": "NOT_MET",
+  "all_26_cases_frozen_scorer": {
+   "engine": {
+    "true_positive": 62,
+    "false_positive": 12,
+    "false_negative": 82,
+    "precision": 0.8378378378378378,
+    "recall": 0.4305555555555556,
+    "micro_f1": 0.5688073394495412,
+    "family_macro_f1": 0.6258884588318087,
+    "line_cases": 24,
+    "families": 14
+   },
+   "best_f1": {
+    "true_positive": 65,
+    "false_positive": 47,
+    "false_negative": 79,
+    "precision": 0.5803571428571429,
+    "recall": 0.4513888888888889,
+    "micro_f1": 0.5078125,
+    "family_macro_f1": 0.5434347974094519,
+    "line_cases": 24,
+    "families": 14
+   }
+  },
+  "same_13_scans_engine_ran": {
+   "cases": [
+    "pc_03395097cd96",
+    "pc_2714fb7e0c0b",
+    "pc_361fc1049e39",
+    "pc_4f8188b4d1a8",
+    "pc_70b39f530f00",
+    "pc_752e2bd54aad",
+    "pc_777c64c88967",
+    "pc_828bc34d9c8b",
+    "pc_9b9fd762f361",
+    "pc_d1732de18023",
+    "pc_d45186653eed",
+    "pc_e080ae094f35",
+    "pc_ff1667a2a80a"
+   ],
+   "engine": {
+    "true_positive": 62,
+    "false_positive": 12,
+    "false_negative": 16,
+    "precision": 0.8378378378378378,
+    "recall": 0.7948717948717948,
+    "micro_f1": 0.8157894736842105,
+    "family_macro_f1": 0.8320247933884297,
+    "line_cases": 13,
+    "families": 11
+   },
+   "best_f1": {
+    "true_positive": 44,
+    "false_positive": 20,
+    "false_negative": 34,
+    "precision": 0.6875,
+    "recall": 0.5641025641025641,
+    "micro_f1": 0.619718309859155,
+    "family_macro_f1": 0.6488095238095238,
+    "line_cases": 13,
+    "families": 11
+   }
+  },
+  "per_family_f1": {
+   "engine": {
+    "10839000": 0.0,
+    "11979003": 0.6250000000000001,
+    "15651004": 0.2857142857142857,
+    "23553000": 0.0,
+    "28870000": 0.0,
+    "34499000": 1.0,
+    "37361005": 0.5,
+    "38172000": 0.5517241379310345,
+    "44211000": 1.0,
+    "47266000": 1.0,
+    "48811000": 1.0,
+    "49024000": 1.0,
+    "49204020": 0.8,
+    "50757000": 1.0
+   },
+   "best_f1": {
+    "10839000": 0.22857142857142856,
+    "11979003": 0.125,
+    "15651004": 0.923076923076923,
+    "23553000": 0.4888888888888889,
+    "28870000": 0.0,
+    "34499000": 1.0,
+    "37361005": 0.5714285714285715,
+    "38172000": 0.5806451612903226,
+    "44211000": 1.0,
+    "47266000": 0.0,
+    "48811000": 0.8571428571428571,
+    "49024000": 0.6666666666666666,
+    "49204020": 0.6666666666666666,
+    "50757000": 0.5
+   }
+  },
+  "per_case": [
+   {
+    "case_id": "pc_03395097cd96",
+    "family": "15651004",
+    "ran": true,
+    "engine": {
+     "gold_count": 3,
+     "prediction_count": 1,
+     "true_positive": 1,
+     "false_positive": 0,
+     "false_negative": 2,
+     "disposition": "SCORED_COMPLETE_LABEL"
+    },
+    "best_f1": {
+     "gold_count": 3,
+     "prediction_count": 3,
+     "true_positive": 3,
+     "false_positive": 0,
+     "false_negative": 0
+    }
+   },
+   {
+    "case_id": "pc_07062eee17aa",
+    "family": "38172000",
+    "ran": false,
+    "engine": {
+     "gold_count": 6,
+     "prediction_count": 0,
+     "true_positive": 0,
+     "false_positive": 0,
+     "false_negative": 6,
+     "disposition": "SCORED_COMPLETE_LABEL"
+    },
+    "best_f1": {
+     "gold_count": 6,
+     "prediction_count": 2,
+     "true_positive": 2,
+     "false_positive": 0,
+     "false_negative": 4
+    }
+   },
+   {
+    "case_id": "pc_08686dc1d5d4",
+    "family": "10839000",
+    "ran": false,
+    "engine": {
+     "gold_count": 4,
+     "prediction_count": 0,
+     "true_positive": 0,
+     "false_positive": 0,
+     "false_negative": 4,
+     "disposition": "SCORED_COMPLETE_LABEL"
+    },
+    "best_f1": {
+     "gold_count": 4,
+     "prediction_count": 2,
+     "true_positive": 2,
+     "false_positive": 0,
+     "false_negative": 2
+    }
+   },
+   {
+    "case_id": "pc_186463746daa",
+    "family": "23553000",
+    "ran": false,
+    "engine": {
+     "gold_count": 9,
+     "prediction_count": 0,
+     "true_positive": 0,
+     "false_positive": 0,
+     "false_negative": 9,
+     "disposition": "SCORED_COMPLETE_LABEL"
+    },
+    "best_f1": {
+     "gold_count": 9,
+     "prediction_count": 5,
+     "true_positive": 3,
+     "false_positive": 2,
+     "false_negative": 6
+    }
+   },
+   {
+    "case_id": "pc_2714fb7e0c0b",
+    "family": "38172000",
+    "ran": true,
+    "engine": {
+     "gold_count": 10,
+     "prediction_count": 12,
+     "true_positive": 8,
+     "false_positive": 4,
+     "false_negative": 2,
+     "disposition": "SCORED_COMPLETE_LABEL"
+    },
+    "best_f1": {
+     "gold_count": 10,
+     "prediction_count": 9,
+     "true_positive": 7,
+     "false_positive": 2,
+     "false_negative": 3
+    }
+   },
+   {
+    "case_id": "pc_361fc1049e39",
+    "family": "44211000",
+    "ran": true,
+    "engine": {
+     "gold_count": 1,
+     "prediction_count": 1,
+     "true_positive": 1,
+     "false_positive": 0,
+     "false_negative": 0,
+     "disposition": "SCORED_COMPLETE_LABEL"
+    },
+    "best_f1": {
+     "gold_count": 1,
+     "prediction_count": 1,
+     "true_positive": 1,
+     "false_positive": 0,
+     "false_negative": 0
+    }
+   },
+   {
+    "case_id": "pc_38091ac91d9d",
+    "family": "28870000",
+    "ran": false,
+    "engine": {
+     "gold_count": 2,
+     "prediction_count": 0,
+     "true_positive": 0,
+     "false_positive": 0,
+     "false_negative": 2,
+     "disposition": "SCORED_COMPLETE_LABEL"
+    },
+    "best_f1": {
+     "gold_count": 2,
+     "prediction_count": 3,
+     "true_positive": 0,
+     "false_positive": 3,
+     "false_negative": 2
+    }
+   },
+   {
+    "case_id": "pc_3bde9996f14d",
+    "family": "28870000",
+    "ran": false,
+    "engine": {
+     "gold_count": null,
+     "prediction_count": 0,
+     "true_positive": null,
+     "false_positive": null,
+     "false_negative": null,
+     "disposition": "ZERO_BEND_CONTROL"
+    },
+    "best_f1": {
+     "gold_count": null,
+     "prediction_count": 3,
+     "true_positive": null,
+     "false_positive": null,
+     "false_negative": null
+    }
+   },
+   {
+    "case_id": "pc_4f8188b4d1a8",
+    "family": "38172000",
+    "ran": true,
+    "engine": {
+     "gold_count": 10,
+     "prediction_count": 12,
+     "true_positive": 8,
+     "false_positive": 4,
+     "false_negative": 2,
+     "disposition": "SCORED_COMPLETE_LABEL"
+    },
+    "best_f1": {
+     "gold_count": 10,
+     "prediction_count": 11,
+     "true_positive": 8,
+     "false_positive": 3,
+     "false_negative": 2
+    }
+   },
+   {
+    "case_id": "pc_5a1ecd7a4db3",
+    "family": "23553000",
+    "ran": false,
+    "engine": {
+     "gold_count": 4,
+     "prediction_count": 0,
+     "true_positive": 0,
+     "false_positive": 0,
+     "false_negative": 4,
+     "disposition": "SCORED_COMPLETE_LABEL"
+    },
+    "best_f1": {
+     "gold_count": 4,
+     "prediction_count": 4,
+     "true_positive": 3,
+     "false_positive": 1,
+     "false_negative": 1
+    }
+   },
+   {
+    "case_id": "pc_6eba02723d4b",
+    "family": "23553000",
+    "ran": false,
+    "engine": {
+     "gold_count": 16,
+     "prediction_count": 0,
+     "true_positive": 0,
+     "false_positive": 0,
+     "false_negative": 16,
+     "disposition": "SCORED_COMPLETE_LABEL"
+    },
+    "best_f1": {
+     "gold_count": 16,
+     "prediction_count": 7,
+     "true_positive": 5,
+     "false_positive": 2,
+     "false_negative": 11
+    }
+   },
+   {
+    "case_id": "pc_70b39f530f00",
+    "family": "49024000",
+    "ran": true,
+    "engine": {
+     "gold_count": 3,
+     "prediction_count": 3,
+     "true_positive": 3,
+     "false_positive": 0,
+     "false_negative": 0,
+     "disposition": "SCORED_COMPLETE_LABEL"
+    },
+    "best_f1": {
+     "gold_count": 3,
+     "prediction_count": 3,
+     "true_positive": 2,
+     "false_positive": 1,
+     "false_negative": 1
+    }
+   },
+   {
+    "case_id": "pc_71cf0b216f43",
+    "family": "10839000",
+    "ran": false,
+    "engine": {
+     "gold_count": 8,
+     "prediction_count": 0,
+     "true_positive": 0,
+     "false_positive": 0,
+     "false_negative": 8,
+     "disposition": "SCORED_COMPLETE_LABEL"
+    },
+    "best_f1": {
+     "gold_count": 8,
+     "prediction_count": 11,
+     "true_positive": 2,
+     "false_positive": 9,
+     "false_negative": 6
+    }
+   },
+   {
+    "case_id": "pc_752e2bd54aad",
+    "family": "50757000",
+    "ran": true,
+    "engine": {
+     "gold_count": 9,
+     "prediction_count": 9,
+     "true_positive": 9,
+     "false_positive": 0,
+     "false_negative": 0,
+     "disposition": "SCORED_COMPLETE_LABEL"
+    },
+    "best_f1": {
+     "gold_count": 9,
+     "prediction_count": 8,
+     "true_positive": 4,
+     "false_positive": 4,
+     "false_negative": 5
+    }
+   },
+   {
+    "case_id": "pc_777c64c88967",
+    "family": "50757000",
+    "ran": true,
+    "engine": {
+     "gold_count": 9,
+     "prediction_count": 9,
+     "true_positive": 9,
+     "false_positive": 0,
+     "false_negative": 0,
+     "disposition": "SCORED_COMPLETE_LABEL"
+    },
+    "best_f1": {
+     "gold_count": 9,
+     "prediction_count": 6,
+     "true_positive": 4,
+     "false_positive": 2,
+     "false_negative": 5
+    }
+   },
+   {
+    "case_id": "pc_828bc34d9c8b",
+    "family": "34499000",
+    "ran": true,
+    "engine": {
+     "gold_count": 3,
+     "prediction_count": 3,
+     "true_positive": 3,
+     "false_positive": 0,
+     "false_negative": 0,
+     "disposition": "SCORED_COMPLETE_LABEL"
+    },
+    "best_f1": {
+     "gold_count": 3,
+     "prediction_count": 3,
+     "true_positive": 3,
+     "false_positive": 0,
+     "false_negative": 0
+    }
+   },
+   {
+    "case_id": "pc_8dfdab44605d",
+    "family": "15651004",
+    "ran": false,
+    "engine": {
+     "gold_count": 1,
+     "prediction_count": 0,
+     "true_positive": 0,
+     "false_positive": 0,
+     "false_negative": 1,
+     "disposition": "SCORED_COMPLETE_LABEL"
+    },
+    "best_f1": {
+     "gold_count": 1,
+     "prediction_count": 1,
+     "true_positive": 1,
+     "false_positive": 0,
+     "false_negative": 0
+    }
+   },
+   {
+    "case_id": "pc_927a2fa13067",
+    "family": "15651004",
+    "ran": false,
+    "engine": {
+     "gold_count": 2,
+     "prediction_count": 0,
+     "true_positive": 0,
+     "false_positive": 0,
+     "false_negative": 2,
+     "disposition": "SCORED_COMPLETE_LABEL"
+    },
+    "best_f1": {
+     "gold_count": 2,
+     "prediction_count": 3,
+     "true_positive": 2,
+     "false_positive": 1,
+     "false_negative": 0
+    }
+   },
+   {
+    "case_id": "pc_9b9fd762f361",
+    "family": "47266000",
+    "ran": true,
+    "engine": {
+     "gold_count": 1,
+     "prediction_count": 1,
+     "true_positive": 1,
+     "false_positive": 0,
+     "false_negative": 0,
+     "disposition": "SCORED_COMPLETE_LABEL"
+    },
+    "best_f1": {
+     "gold_count": 1,
+     "prediction_count": 1,
+     "true_positive": 0,
+     "false_positive": 1,
+     "false_negative": 1
+    }
+   },
+   {
+    "case_id": "pc_cec08dfca9ab",
+    "family": "10839000",
+    "ran": false,
+    "engine": {
+     "gold_count": 6,
+     "prediction_count": 0,
+     "true_positive": 0,
+     "false_positive": 0,
+     "false_negative": 6,
+     "disposition": "SCORED_COMPLETE_LABEL"
+    },
+    "best_f1": {
+     "gold_count": 6,
+     "prediction_count": 4,
+     "true_positive": 0,
+     "false_positive": 4,
+     "false_negative": 6
+    }
+   },
+   {
+    "case_id": "pc_d1732de18023",
+    "family": "37361005",
+    "ran": true,
+    "engine": {
+     "gold_count": 4,
+     "prediction_count": 4,
+     "true_positive": 2,
+     "false_positive": 2,
+     "false_negative": 2,
+     "disposition": "SCORED_COMPLETE_LABEL"
+    },
+    "best_f1": {
+     "gold_count": 4,
+     "prediction_count": 3,
+     "true_positive": 2,
+     "false_positive": 1,
+     "false_negative": 2
+    }
+   },
+   {
+    "case_id": "pc_d45186653eed",
+    "family": "11979003",
+    "ran": true,
+    "engine": {
+     "gold_count": 9,
+     "prediction_count": 7,
+     "true_positive": 5,
+     "false_positive": 2,
+     "false_negative": 4,
+     "disposition": "SCORED_COMPLETE_LABEL"
+    },
+    "best_f1": {
+     "gold_count": 9,
+     "prediction_count": 7,
+     "true_positive": 1,
+     "false_positive": 6,
+     "false_negative": 8
+    }
+   },
+   {
+    "case_id": "pc_e080ae094f35",
+    "family": "49204020",
+    "ran": true,
+    "engine": {
+     "gold_count": 12,
+     "prediction_count": 8,
+     "true_positive": 8,
+     "false_positive": 0,
+     "false_negative": 4,
+     "disposition": "SCORED_COMPLETE_LABEL"
+    },
+    "best_f1": {
+     "gold_count": 12,
+     "prediction_count": 6,
+     "true_positive": 6,
+     "false_positive": 0,
+     "false_negative": 6
+    }
+   },
+   {
+    "case_id": "pc_f2475286312b",
+    "family": "38172000",
+    "ran": false,
+    "engine": {
+     "gold_count": 8,
+     "prediction_count": 0,
+     "true_positive": 0,
+     "false_positive": 0,
+     "false_negative": 8,
+     "disposition": "SCORED_COMPLETE_LABEL"
+    },
+    "best_f1": {
+     "gold_count": 8,
+     "prediction_count": 6,
+     "true_positive": 1,
+     "false_positive": 5,
+     "false_negative": 7
+    }
+   },
+   {
+    "case_id": "pc_f99d883f2754",
+    "family": "11979003",
+    "ran": false,
+    "engine": {
+     "gold_count": null,
+     "prediction_count": 0,
+     "true_positive": null,
+     "false_positive": null,
+     "false_negative": null,
+     "disposition": "ZERO_BEND_CONTROL"
+    },
+    "best_f1": {
+     "gold_count": null,
+     "prediction_count": 0,
+     "true_positive": null,
+     "false_positive": null,
+     "false_negative": null
+    }
+   },
+   {
+    "case_id": "pc_ff1667a2a80a",
+    "family": "48811000",
+    "ran": true,
+    "engine": {
+     "gold_count": 4,
+     "prediction_count": 4,
+     "true_positive": 4,
+     "false_positive": 0,
+     "false_negative": 0,
+     "disposition": "SCORED_COMPLETE_LABEL"
+    },
+    "best_f1": {
+     "gold_count": 4,
+     "prediction_count": 3,
+     "true_positive": 3,
+     "false_positive": 0,
+     "false_negative": 1
+    }
+   }
+  ],
+  "recipe_ceiling_family_macro": 0.9672619047619048,
+  "coverage_complete_broad": {
+   "angle": {
+    "gate": "FAIL",
+    "measured": 80,
+    "planned": 115,
+    "rate": 0.6956521739130435,
+    "rule_excluded": 0
+   },
+   "flange_sides": {
+    "gate": "FAIL",
+    "measured": 154,
+    "planned": 226,
+    "rate": 0.6814159292035398,
+    "rule_excluded": 4
+   }
+  },
+  "engine_bend_states": {
+   "FORMED": 80
+  },
+  "characteristic_decisions": {
+   "FAIL": 27,
+   "PASS": 236,
+   "REVIEW": 45,
+   "UNKNOWN": 12
+  },
+  "staged_states": {
+   "population": 8,
+   "reason": "the frozen visual truth table (amendment 7) does not exist yet",
+   "truth_table": "MISSING",
+   "verdict": "NOT_EVALUABLE"
+  },
+  "runtime": {
+   "p95_wall_s": 20.677199999999992,
+   "max_wall_s": 23.028,
+   "runs": 13,
+   "crashes": []
+  },
+  "fp_analysis": "all 12 BROAD FP lines (38172000 X/V 4+4, 37361005 2, 11979003 2) are matched by the Gold11 relabel and/or GOLD_SET_V1: gold-convention differences in the BROAD gold, not spurious lines",
+  "per_bend_given_cad": {
+   "definition": "complete-label COMPLETE BROAD scans the engine ran; every recipe bend assumed formed (complete scan); correct = engine state FORMED-like AND its apex line matches a gold line (frozen 5deg/4mm/0.6 matcher) AND angle + both flange sides MEASURED. False PASS proxy = any PASS decision on a bend whose line matches no gold line (no physical dimensional truth exists; report-only)",
+   "bends": 80,
+   "correct": 57,
+   "correct_rate": 0.7125,
+   "formed_rate": 1.0,
+   "line_match_rate": 0.775,
+   "angle_measured_rate": 1.0,
+   "false_pass_proxy": 17,
+   "false_pass_proxy_split": {
+    "pass_on_published_line_matching_no_gold": 11,
+    "pass_without_published_line": 6,
+    "pass_decisions_on_gold_confirmed_bends": 187,
+    "pass_decisions_total": 236
+   },
+   "decision_counts": {
+    "FAIL": 27,
+    "PASS": 236,
+    "REVIEW": 45,
+    "UNKNOWN": 12
+   },
+   "state_counts": {
+    "FORMED": 80
+   },
+   "extended": {
+    "bends": 80,
+    "correct_vs_broad_gold": 57,
+    "correct_vs_any_gold_of_record": 69,
+    "line_confirmed_any_rate": 0.925,
+    "rows_with_relabel_gold": 31,
+    "relabel_match": 31,
+    "rows_with_goldset_gold": 80,
+    "goldset_match": 74,
+    "false_pass_proxy_strict": 0,
+    "false_pass_proxy_strict_bends": [],
+    "pass_without_published_line": 6,
+    "pass_without_published_line_bends": [
+     "pc_03395097cd96:B1",
+     "pc_03395097cd96:B2",
+     "pc_e080ae094f35:B3",
+     "pc_e080ae094f35:B4",
+     "pc_e080ae094f35:B6",
+     "pc_e080ae094f35:B12"
+    ],
+    "angle_sanity": {
+     "measured": 80,
+     "abs_dev_gt_1deg": 19,
+     "abs_dev_gt_2deg": 5,
+     "abs_dev_gt_5deg": 1,
+     "p50_abs_deg": 0.5021909999999963,
+     "p95_abs_deg": 2.172694000000007
+    },
+    "flange_sanity": {
+     "measured_sides": 154,
+     "abs_dev_gt_0p5mm": 10,
+     "abs_dev_gt_1mm": 8,
+     "abs_dev_gt_3mm": 5,
+     "p50_abs_mm": 0.1374799999999965,
+     "p95_abs_mm": 2.004043000000003
+    },
+    "decision_counts": {
+     "PASS": 236,
+     "UNKNOWN": 12,
+     "REVIEW": 45,
+     "FAIL": 27
+    }
+   },
+   "false_pass_definitions": {
+    "loose_proxy (frozen iter-0 definition)": "PASS on a bend whose line matches no BROAD gold line: 17 = 11 convention cases (all confirmed by relabel / gold set) + 6 PASS with position withheld",
+    "strict_proxy": "PASS on a published line that no gold of record (BROAD, Gold11 relabel, GOLD_SET_V1) confirms: 0",
+    "pass_without_published_line": "6 bends (49204020 B3/B4/B6/B12, 15651004 B1/B2): FORMED, angle + flanges measured and PASS, position UNKNOWN(REGISTRATION_UNTRUSTED); the bend exists per gold",
+    "caveat": "no physical dimensional truth exists for these scans; FAIL decisions (27) on 38172000 angles and the 50757000 sc_752e flange chain are unverified and could be false FAILs"
+   }
+  }
+ },
+ "GOLD_SET_V1": {
+  "scope": "GOLD_SET_V1 scans that are A1 cases with STEP and an OK engine run (13 scans / 11 families); DEV-CHECK never read; 12 A1 gold-set scans not run (amendment-7 gate)",
+  "e3": {
+   "scans": 13,
+   "families": 11,
+   "tp": 74,
+   "fp": 0,
+   "fn": 6,
+   "precision": 1.0,
+   "recall": 0.925,
+   "micro_f1": 0.961038961038961,
+   "family_macro_f1": 0.9363636363636364,
+   "zero_bend_controls": 0,
+   "control_fp_lines": 0,
+   "other_dispositions": []
+  },
+  "best_f1": {
+   "scans": 13,
+   "families": 11,
+   "tp": 43,
+   "fp": 21,
+   "fn": 37,
+   "precision": 0.671875,
+   "recall": 0.5375,
+   "micro_f1": 0.5972222222222222,
+   "family_macro_f1": 0.653482880755608,
+   "zero_bend_controls": 0,
+   "control_fp_lines": 0,
+   "other_dispositions": []
+  },
+  "skipped_a1_cases": 12
+ },
+ "G5": {
+  "verdict": "FAIL",
+  "manifest": "PASS (1 allowlisted add: scripts/run_production_line_checks.sh)",
+  "tsc": "PASS (new=0)",
+  "lint": "PASS (new=0)",
+  "vendor_scripts": "PASS (5 NOT_RUN matching baseline)",
+  "backend_tests": "FAIL: 10 NEW failures in tests/test_vendor_unfold_api_contract.py (same 10 as iter 0)",
+  "cause": "apps/api/services/vendor_setup_service.py (mtime 2026-10-18 02:05, another workflow) now calls module helper _natural_label_key; the test AST-extracts get_vendor_setup alone -> NameError. Not engine-related; the A1 engine change touches no backend/, domains/bend/ or scripts/ file.",
+  "report": "measure/raw/g5_report.json"
+ },
+ "runtime_rss": {
+  "physical_e3_p95_wall_s_G2": 21.264899999999994,
+  "physical_e3_p95_wall_s_BROAD": 20.677199999999992,
+  "physical_e3_max_wall_s": 23.028,
+  "physical_run_peak_rss_gib": 0.953,
+  "synthetic_p95_wall_s": 11.39195,
+  "synthetic_engine_peak_rss_gib": 0.832,
+  "g1_runner_peak_rss_gib": 0.832,
+  "compile_frozen_peak_rss_gib": 0.74,
+  "g5_peak_rss_gib": 1.209,
+  "lock": "every heavy step serial under /private/tmp/claude-501/sherman_geom.lock, OMP_NUM_THREADS=1"
+ },
+ "vs_iter0": {
+  "BROAD_all26_family_macro": [
+   0.3188364055299539,
+   0.6258884588318087
+  ],
+  "BROAD_all26_micro": [
+   0.2823529411764706,
+   0.5688073394495412
+  ],
+  "BROAD_13_family_macro": [
+   0.405791788856305,
+   0.8320247933884297
+  ],
+  "G2a_relabel_all9": [
+   0.0,
+   0.5740740740740741
+  ],
+  "G2a_human_all9": [
+   0.0,
+   0.4666666666666666
+  ],
+  "goldset_micro": [
+   0.4905660377358491,
+   0.961038961038961
+  ],
+  "per_bend_correct_rate": [
+   0.25,
+   0.7125
+  ],
+  "d_flange_known_good_p95_mm": [
+   1.22306435,
+   0.5175861999999999
+  ]
+ },
+ "overlays": {
+  "dir": "docs/production/runlog/a1/iter_1/overlays",
+  "index": "overlays/INDEX.json",
+  "count": 20,
+  "selection": "per_bend badness rank, max 3 bends per case, complete-label COMPLETE BROAD scans the engine ran",
+  "legend": "NN_<case>_<bend>_closeup.png = frozen G4 close-up; NN_<case>_<bend>_context.png = raw frame, gold green, engine this bend red, other engine lines orange, best lane dotted blue",
+  "bends": [
+   {
+    "rank": 1,
+    "case_id": "pc_4f8188b4d1a8",
+    "family": "38172000",
+    "label": "B7",
+    "engine_state": "FORMED",
+    "line_matches_gold": false,
+    "angle_dev_deg": 5.435403000000008,
+    "flange_devs_mm": [
+     -0.17659599999998932,
+     0.032556999999999725
+    ],
+    "decisions": [
+     "FAIL",
+     "REVIEW",
+     "PASS",
+     "REVIEW"
+    ],
+    "closeup": "01_pc_4f8188b4d1a8_B7_closeup.png",
+    "context": "01_pc_4f8188b4d1a8_B7_context.png"
+   },
+   {
+    "rank": 2,
+    "case_id": "pc_2714fb7e0c0b",
+    "family": "38172000",
+    "label": "B9",
+    "engine_state": "FORMED",
+    "line_matches_gold": false,
+    "angle_dev_deg": -2.806904000000003,
+    "flange_devs_mm": [
+     0.3144420000000139,
+     0.13617099999999915
+    ],
+    "decisions": [
+     "FAIL",
+     "PASS",
+     "PASS",
+     "PASS"
+    ],
+    "closeup": "02_pc_2714fb7e0c0b_B9_closeup.png",
+    "context": "02_pc_2714fb7e0c0b_B9_context.png"
+   },
+   {
+    "rank": 3,
+    "case_id": "pc_4f8188b4d1a8",
+    "family": "38172000",
+    "label": "B9",
+    "engine_state": "FORMED",
+    "line_matches_gold": false,
+    "angle_dev_deg": -1.692492999999999,
+    "flange_devs_mm": [
+     0.33902499999999236,
+     -0.22530300000000025
+    ],
+    "decisions": [
+     "FAIL",
+     "PASS",
+     "PASS",
+     "PASS"
+    ],
+    "closeup": "03_pc_4f8188b4d1a8_B9_closeup.png",
+    "context": "03_pc_4f8188b4d1a8_B9_context.png"
+   },
+   {
+    "rank": 4,
+    "case_id": "pc_2714fb7e0c0b",
+    "family": "38172000",
+    "label": "B5",
+    "engine_state": "FORMED",
+    "line_matches_gold": false,
+    "angle_dev_deg": 1.918486999999999,
+    "flange_devs_mm": [
+     -0.01854699999999987,
+     -0.1624039999999951
+    ],
+    "decisions": [
+     "FAIL",
+     "PASS",
+     "PASS",
+     "PASS"
+    ],
+    "closeup": "04_pc_2714fb7e0c0b_B5_closeup.png",
+    "context": "04_pc_2714fb7e0c0b_B5_context.png"
+   },
+   {
+    "rank": 5,
+    "case_id": "pc_2714fb7e0c0b",
+    "family": "38172000",
+    "label": "B7",
+    "engine_state": "FORMED",
+    "line_matches_gold": false,
+    "angle_dev_deg": 1.458469000000008,
+    "flange_devs_mm": [
+     -0.10406299999999646,
+     -0.07544199999999979
+    ],
+    "decisions": [
+     "REVIEW",
+     "PASS",
+     "PASS",
+     "PASS"
+    ],
+    "closeup": "05_pc_2714fb7e0c0b_B7_closeup.png",
+    "context": "05_pc_2714fb7e0c0b_B7_context.png"
+   },
+   {
+    "rank": 6,
+    "case_id": "pc_4f8188b4d1a8",
+    "family": "38172000",
+    "label": "B1",
+    "engine_state": "FORMED",
+    "line_matches_gold": false,
+    "angle_dev_deg": -0.8649070000000023,
+    "flange_devs_mm": [
+     -0.09743600000000008,
+     0.283851999999996
+    ],
+    "decisions": [
+     "REVIEW",
+     "PASS",
+     "PASS",
+     "PASS"
+    ],
+    "closeup": "06_pc_4f8188b4d1a8_B1_closeup.png",
+    "context": "06_pc_4f8188b4d1a8_B1_context.png"
+   },
+   {
+    "rank": 7,
+    "case_id": "pc_d45186653eed",
+    "family": "11979003",
+    "label": "B3",
+    "engine_state": "FORMED",
+    "line_matches_gold": false,
+    "angle_dev_deg": -0.807547999999997,
+    "flange_devs_mm": [
+     0.06296800000000147,
+     0.2077379999999991
+    ],
+    "decisions": [
+     "REVIEW",
+     "PASS",
+     "PASS",
+     "PASS"
+    ],
+    "closeup": "07_pc_d45186653eed_B3_closeup.png",
+    "context": "07_pc_d45186653eed_B3_context.png"
+   },
+   {
+    "rank": 8,
+    "case_id": "pc_03395097cd96",
+    "family": "15651004",
+    "label": "B2",
+    "engine_state": "FORMED",
+    "line_matches_gold": false,
+    "angle_dev_deg": 0.6355709999999988,
+    "flange_devs_mm": [
+     -0.1374799999999965,
+     -0.0680720000000008
+    ],
+    "decisions": [
+     "REVIEW",
+     "PASS",
+     "PASS",
+     "UNKNOWN"
+    ],
+    "closeup": "08_pc_03395097cd96_B2_closeup.png",
+    "context": "08_pc_03395097cd96_B2_context.png"
+   },
+   {
+    "rank": 9,
+    "case_id": "pc_03395097cd96",
+    "family": "15651004",
+    "label": "B1",
+    "engine_state": "FORMED",
+    "line_matches_gold": false,
+    "angle_dev_deg": 0.35536399999999446,
+    "flange_devs_mm": [
+     -0.2853619999999992,
+     -0.07371099999999942
+    ],
+    "decisions": [
+     "PASS",
+     "PASS",
+     "PASS",
+     "UNKNOWN"
+    ],
+    "closeup": "09_pc_03395097cd96_B1_closeup.png",
+    "context": "09_pc_03395097cd96_B1_context.png"
+   },
+   {
+    "rank": 10,
+    "case_id": "pc_d1732de18023",
+    "family": "37361005",
+    "label": "B4",
+    "engine_state": "FORMED",
+    "line_matches_gold": false,
+    "angle_dev_deg": -0.6435390000000041,
+    "flange_devs_mm": [
+     0.004110000000025593,
+     0.0018849999999996925
+    ],
+    "decisions": [
+     "REVIEW",
+     "PASS",
+     "PASS",
+     "PASS"
+    ],
+    "closeup": "10_pc_d1732de18023_B4_closeup.png",
+    "context": "10_pc_d1732de18023_B4_context.png"
+   },
+   {
+    "rank": 11,
+    "case_id": "pc_e080ae094f35",
+    "family": "49204020",
+    "label": "B12",
+    "engine_state": "FORMED",
+    "line_matches_gold": false,
+    "angle_dev_deg": -0.2646119999999996,
+    "flange_devs_mm": [
+     0.15377499999999955,
+     -0.10889099999999985
+    ],
+    "decisions": [
+     "PASS",
+     "PASS",
+     "PASS",
+     "UNKNOWN"
+    ],
+    "closeup": "11_pc_e080ae094f35_B12_closeup.png",
+    "context": "11_pc_e080ae094f35_B12_context.png"
+   },
+   {
+    "rank": 12,
+    "case_id": "pc_d1732de18023",
+    "family": "37361005",
+    "label": "B2",
+    "engine_state": "FORMED",
+    "line_matches_gold": false,
+    "angle_dev_deg": -0.24201100000000508,
+    "flange_devs_mm": [
+     0.017872000000011212,
+     0.13047899999999935
+    ],
+    "decisions": [
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS"
+    ],
+    "closeup": "12_pc_d1732de18023_B2_closeup.png",
+    "context": "12_pc_d1732de18023_B2_context.png"
+   },
+   {
+    "rank": 13,
+    "case_id": "pc_e080ae094f35",
+    "family": "49204020",
+    "label": "B4",
+    "engine_state": "FORMED",
+    "line_matches_gold": false,
+    "angle_dev_deg": -0.1634870000000035,
+    "flange_devs_mm": [
+     0.12441499999999905,
+     -0.04433699999999874
+    ],
+    "decisions": [
+     "PASS",
+     "PASS",
+     "PASS",
+     "UNKNOWN"
+    ],
+    "closeup": "13_pc_e080ae094f35_B4_closeup.png",
+    "context": "13_pc_e080ae094f35_B4_context.png"
+   },
+   {
+    "rank": 14,
+    "case_id": "pc_e080ae094f35",
+    "family": "49204020",
+    "label": "B6",
+    "engine_state": "FORMED",
+    "line_matches_gold": false,
+    "angle_dev_deg": -0.16322200000000464,
+    "flange_devs_mm": [
+     0.10747200000000134,
+     -9.900000000584441e-05
+    ],
+    "decisions": [
+     "PASS",
+     "PASS",
+     "PASS",
+     "UNKNOWN"
+    ],
+    "closeup": "14_pc_e080ae094f35_B6_closeup.png",
+    "context": "14_pc_e080ae094f35_B6_context.png"
+   },
+   {
+    "rank": 15,
+    "case_id": "pc_d45186653eed",
+    "family": "11979003",
+    "label": "B4",
+    "engine_state": "FORMED",
+    "line_matches_gold": false,
+    "angle_dev_deg": 0.03573000000000093,
+    "flange_devs_mm": [
+     0.10061699999999973,
+     0.02937299999999965
+    ],
+    "decisions": [
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS"
+    ],
+    "closeup": "15_pc_d45186653eed_B4_closeup.png",
+    "context": "15_pc_d45186653eed_B4_context.png"
+   },
+   {
+    "rank": 16,
+    "case_id": "pc_752e2bd54aad",
+    "family": "50757000",
+    "label": "B1",
+    "engine_state": "FORMED",
+    "line_matches_gold": true,
+    "angle_dev_deg": -0.2821339999999992,
+    "flange_devs_mm": [
+     4.897881999999999
+    ],
+    "decisions": [
+     "PASS",
+     "FAIL",
+     "UNKNOWN",
+     "FAIL"
+    ],
+    "closeup": "16_pc_752e2bd54aad_B1_closeup.png",
+    "context": "16_pc_752e2bd54aad_B1_context.png"
+   },
+   {
+    "rank": 17,
+    "case_id": "pc_752e2bd54aad",
+    "family": "50757000",
+    "label": "B2",
+    "engine_state": "FORMED",
+    "line_matches_gold": true,
+    "angle_dev_deg": -0.0672129999999953,
+    "flange_devs_mm": [
+     0.18763899999999012,
+     4.8269079999999995
+    ],
+    "decisions": [
+     "PASS",
+     "PASS",
+     "FAIL",
+     "PASS"
+    ],
+    "closeup": "17_pc_752e2bd54aad_B2_closeup.png",
+    "context": "17_pc_752e2bd54aad_B2_context.png"
+   },
+   {
+    "rank": 18,
+    "case_id": "pc_752e2bd54aad",
+    "family": "50757000",
+    "label": "B5",
+    "engine_state": "FORMED",
+    "line_matches_gold": true,
+    "angle_dev_deg": -0.8189310000000063,
+    "flange_devs_mm": [
+     0.3174589999999995,
+     -2.9310270000000003
+    ],
+    "decisions": [
+     "PASS",
+     "PASS",
+     "FAIL",
+     "FAIL"
+    ],
+    "closeup": "18_pc_752e2bd54aad_B5_closeup.png",
+    "context": "18_pc_752e2bd54aad_B5_context.png"
+   },
+   {
+    "rank": 19,
+    "case_id": "pc_d45186653eed",
+    "family": "11979003",
+    "label": "B1",
+    "engine_state": "FORMED",
+    "line_matches_gold": true,
+    "angle_dev_deg": -0.855277000000001,
+    "flange_devs_mm": [
+     -0.05786300000000111,
+     0.847487000000001
+    ],
+    "decisions": [
+     "REVIEW",
+     "PASS",
+     "REVIEW",
+     "PASS"
+    ],
+    "closeup": "19_pc_d45186653eed_B1_closeup.png",
+    "context": "19_pc_d45186653eed_B1_context.png"
+   },
+   {
+    "rank": 20,
+    "case_id": "pc_70b39f530f00",
+    "family": "49024000",
+    "label": "B2",
+    "engine_state": "FORMED",
+    "line_matches_gold": true,
+    "angle_dev_deg": 0.8897680000000037,
+    "flange_devs_mm": [
+     -0.3820790000000045,
+     -0.42384699999999853
+    ],
+    "decisions": [
+     "REVIEW",
+     "REVIEW",
+     "REVIEW",
+     "PASS"
+    ],
+    "closeup": "20_pc_70b39f530f00_B2_closeup.png",
+    "context": "20_pc_70b39f530f00_B2_context.png"
+   }
+  ]
+ },
+ "custody": "only cases_A1.json cases were run or scored; GOLD_SET_V1 rows only for A1 scans; never read DEV-CHECK, *SEALED*, FRESH, HOLDOUT10, N001-N016, EHO4; no credentials touched; no repo code edited (work dir outside the repo).",
+ "files": {
+  "raw": "measure/raw/ (physical_scorecard, subset_scores, goldset_scores, per_bend, per_bend_ext, g1_regression_scorecard.json/.md, g5_report)",
+  "tools": "measure/tools/ (measure.sh, analyse_iter1.py, goldset_iter1.py, overlays_iter1.py, per_bend_ext.py, build_scorecard.py)",
+  "logs": "measure/logs/",
+  "work_dir": "/private/tmp/claude-501/-Users-idantal/db065cf7-f766-4885-b217-ed8d7edd7ade/scratchpad/a1_iter1m"
+ },
+ "top_failures": [
+  "PROCESS: amendment-7 gate refuses 13/26 BROAD cases and 5/9 G2(a) Gold11 cases (no frozen G3 visual truth table); they count as misses: BROAD all-26 recall 0.431 vs 0.795 on the runnable 13; G2(a) relabel 0.574 vs 1.000 on the 4 runnable; G3 NOT_EVALUABLE; G2(f) NOT_EVALUABLE",
+  "6 bends with position withheld (REGISTRATION_UNTRUSTED along the free datum direction) yet angle/flange PASS: 49204020 B3/B4/B6/B12, 15651004 B1/B2 (-6 BROAD TPs); needs a decision rule and/or stronger datum-hole information",
+  "38172000 X/V angle FAILs: 8 bends at -1.7 to -2.8 deg consistent across both scans, plus V B5 +4.8 deg / flange B -9.17 mm (REVIEW) and V B7 +5.4 deg FAIL: unverified, possible false FAILs; need section-level visual check",
+  "50757000 sc_752e flange FAIL chain (B1 +4.9 mm, P6 +4.8 mm, four tabs about -3 mm): plausible real defect, physically unverified",
+  "BROAD gold-convention conflicts: 12 FP / 6 FN on 38172000 X/V, 37361005, 11979003 vs the BROAD gold although relabel / GOLD_SET_V1 confirm every published line; 11979003 has 9 gold lines vs 7 recipe bends (ceiling 0.875)",
+  "G2(c) angle known-good coverage 14/32 vs legacy 16/32 (refused cases); G2(b) coverage 0.60 angle / 0.61 flange overall but 100% on runnable cases",
+  "G5 FAIL from 10 NEW backend failures in tests/test_vendor_unfold_api_contract.py caused by another workflow's vendor_setup_service.py edit (not engine)"
+ ]
+}

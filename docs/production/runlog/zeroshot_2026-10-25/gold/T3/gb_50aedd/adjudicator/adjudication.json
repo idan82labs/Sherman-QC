@@ -1,0 +1,81 @@
+{
+ "schema": "sherman.zeroshot.gold_adjudication.v1",
+ "batch": "T3",
+ "gid": "gb_50aedd",
+ "scan_id": "sc_f7b2a638e246",
+ "portion": "TEST_B",
+ "original_path": "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260901_1101e2ab/23976000_C.ply",
+ "adjudicated_at": "2026-10-25T03:25:41.191307+00:00",
+ "by": "T3/adjudicator",
+ "matcher": "research/broad_baseline/score.py score_case (frozen, apex locus); accept offset<=1.5 mm, angle<=2 deg",
+ "marker_A_lines": "docs/production/runlog/zeroshot_2026-10-25/gold/T3/gb_50aedd/marker_A/lines/lines.json",
+ "marker_B_lines": "docs/production/runlog/zeroshot_2026-10-25/gold/T3/gb_50aedd/marker_B/lines/lines.json",
+ "ab": {
+  "f1": 0.6666666666666666,
+  "true_positive": 1,
+  "gold_count": 2,
+  "prediction_count": 1,
+  "unmatched_gold_ids": [
+   "B2"
+  ],
+  "unmatched_prediction_ids": [],
+  "matches": [
+   [
+    "B1",
+    "B1",
+    0.0,
+    0.0,
+    1.0,
+    1.0
+   ]
+  ]
+ },
+ "accepted_matched_pairs": [
+  {
+   "A": "B1",
+   "B": "B1",
+   "offset_mm": 0.0,
+   "angle_deg": 0.0,
+   "accepted": true,
+   "line_from": "B"
+  }
+ ],
+ "disagreements": [
+  {
+   "line": "A:B2 (patches 2|5, plate to holed tab 5)",
+   "verdict": "NOT_A_BEND",
+   "reason": "Measured by the adjudicator on the raw prep points (2 mm strips across the fold, PCA planes): the flat centre band (rms 0.05 mm) vs tab 5 near the fold and at its far end (rms 0.009 mm) is 8.0-8.3 deg in four independent strip choices. A's 11.0 deg came from the patch-2 fit, which also contains the opposite holed finger beyond a second ~5.9 deg crease (plane_a rms 0.26 mm, flagged); A's own local-plane probe gave 9.0 deg and B measured 8.9 deg on the top skin. All honest local measures are < 10 deg, so under GOLD_SET_V2 (formed folds >= 10 deg) it is not a gold bend. B is right: 1 line."
+  }
+ ],
+ "final_source": "marker_B/lines: A's extra B2 judged NOT_A_BEND (see disagreements); B1 identical in A and B.",
+ "fresh_third_marking": {
+  "path": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED/2471b51fd8252ffb8a9c7898.json",
+  "final_vs_fresh": {
+   "f1": 0.5,
+   "true_positive": 1,
+   "gold_count": 3,
+   "prediction_count": 1,
+   "unmatched_gold_ids": [
+    "B2",
+    "B3"
+   ],
+   "unmatched_prediction_ids": [],
+   "matches": [
+    [
+     "B1",
+     "B1",
+     0.001318,
+     7e-06,
+     0.964878,
+     1.0
+    ]
+   ]
+  },
+  "adjudication": {
+   "verdict": "NOT_A_BEND (FRESH B2, B3 rejected)",
+   "fresh_wrong_lines": 2,
+   "fresh_missing_lines": 0,
+   "reason": "FRESH marks the two finger-root creases as bends at its own stated 8.9 deg and 5.7 deg. Both are below the GOLD_SET_V2 10 deg floor (adjudicator measured 8.0-8.3 deg for the larger one; A measured 5.9 deg for the other). FRESH B1 matches the final B1."
+  }
+ }
+}

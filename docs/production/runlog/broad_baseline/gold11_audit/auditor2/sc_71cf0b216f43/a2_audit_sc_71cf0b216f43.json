@@ -1,0 +1,245 @@
+{
+ "auditor": "auditor2",
+ "scan_id": "sc_71cf0b216f43",
+ "gold11_id": "CG84C8FA12D2",
+ "part": "10839000",
+ "catalog_case": "corpus/01_10839000",
+ "method": "independent: own loader + plane-fitted part frame; per-5mm perpendicular sections fit outer/inner skins, virtual sharps, outer apex; gold expressed as (u,v) depth from wall / face-flange outer planes. Light numpy only (no engine/bench runs, no lock needed).",
+ "part_geometry": "rectangular box frame ~314x208x42 mm, t~1.4-1.5 mm, R_outer~2.4-2.8 mm: continuous top frame face (window) + 4 walls; C-section on all sides; short sides have ~12 mm bottom flanges; long sides have ~35 mm bottom flanges each with a full-length ~1.9 mm joggle ~22 mm in from the wall; open relief seams at the 4 vertical corners, no tabs, no hems.",
+ "lines": [
+  {
+   "gold_id": "M01",
+   "fold": "e1-min short side, bottom bend (wall->short flange)",
+   "verdict": "CONVENTION_OFFSET",
+   "offset_mm_median": 4.19,
+   "offset_mm_range": [
+    4.01,
+    4.91
+   ],
+   "coverage_of_fold_pct": 95.3,
+   "fold_len_mm": 202.0,
+   "gold_len_mm": 192.4,
+   "frac_fold_within_4mm": 0.0,
+   "angle_vs_fold_deg": 0.19,
+   "reason": "parallel (0.19 deg), full-length, constant 4.0-4.2 mm (4.9 at corner ends) on the concave side: sits on the inner (top) skin of the short bottom flange, u~4.8 mm from the wall outer plane, ~2.2 mm past the inner tangent line. Not toward the outer virtual sharp (5.1 mm away). Just over the 4 mm matcher limit."
+  },
+  {
+   "gold_id": "M02",
+   "fold": "e1-max short side, bottom bend (wall->short flange)",
+   "verdict": "CONVENTION_OFFSET",
+   "offset_mm_median": 4.77,
+   "offset_mm_range": [
+    4.64,
+    5.27
+   ],
+   "coverage_of_fold_pct": 97.7,
+   "fold_len_mm": 202.0,
+   "gold_len_mm": 197.5,
+   "frac_fold_within_4mm": 0.0,
+   "angle_vs_fold_deg": 0.16,
+   "reason": "parallel (0.16 deg), full-length, constant 4.6-4.8 mm (5.3 at ends) on the concave/flange side: u~5.5 mm from the wall outer plane inside the flange thickness (inner skin unscanned there), ~2.9 mm past the inner tangent. Same inside-of-bend placement as M01; larger than any canonical locus (<=2.6 mm) so it is a click-placement convention, not a mold-line one. Borderline."
+  },
+  {
+   "gold_id": "M03",
+   "fold": "e1-min short side, top bend (wall->frame face)",
+   "verdict": "OK",
+   "offset_mm_median": 2.77,
+   "offset_mm_range": [
+    2.32,
+    3.22
+   ],
+   "coverage_of_fold_pct": 90.6,
+   "fold_len_mm": 202.0,
+   "gold_len_mm": 183.0,
+   "frac_fold_within_4mm": 0.9,
+   "angle_vs_fold_deg": 0.31,
+   "reason": "inner-skin locus: on the wall inner skin 0.3-1.2 mm below the inner tangent; 2.3-3.2 mm from the outer apex, parallel (0.31 deg); within the 4 mm limit over its whole length."
+  },
+  {
+   "gold_id": "M04",
+   "fold": "e1-max short side, top bend (wall->frame face)",
+   "verdict": "OK",
+   "offset_mm_median": 1.7,
+   "offset_mm_range": [
+    1.57,
+    2.0
+   ],
+   "coverage_of_fold_pct": 96.8,
+   "fold_len_mm": 204.0,
+   "gold_len_mm": 197.5,
+   "frac_fold_within_4mm": 1.0,
+   "angle_vs_fold_deg": 0.28,
+   "reason": "inside the bend arc (inner side), 1.6-2.0 mm from the outer apex, parallel (0.28 deg), full length."
+  },
+  {
+   "gold_id": "M05",
+   "fold": "e2-min long side, top bend (wall->frame face)",
+   "verdict": "REAL_ERROR",
+   "offset_mm_median": 11.6,
+   "offset_mm_range": [
+    5.47,
+    17.91
+   ],
+   "coverage_of_fold_pct": 99.5,
+   "fold_len_mm": 308.0,
+   "gold_len_mm": 306.8,
+   "frac_fold_within_4mm": 0.0,
+   "angle_vs_fold_deg": 2.37,
+   "reason": "slanted 2.37 deg: runs down the inner face of the e2-min wall from 6.4 mm to 18.4 mm below the top-face plane (d_apex 5.5-17.9, median 11.6); never within 4 mm. Endpoints sit on the inner vertical box-corner edges (1.8 mm in plan) at heights 14.7 and 3.1 vs top bend ~20: wrong pick depth."
+  },
+  {
+   "gold_id": "M06",
+   "fold": "e2-min long side, bottom bend (wall->joggled flange)",
+   "verdict": "REAL_ERROR",
+   "offset_mm_median": 5.86,
+   "offset_mm_range": [
+    1.85,
+    10.14
+   ],
+   "coverage_of_fold_pct": 99.9,
+   "fold_len_mm": 306.0,
+   "gold_len_mm": 306.0,
+   "frac_fold_within_4mm": 0.28,
+   "angle_vs_fold_deg": 1.64,
+   "reason": "slanted 1.64 deg: starts 10.7 mm up the e2-min wall at the +e1 corner (endpoint e3=-11.0), converges to the bottom bend at the -e1 corner (d_apex 10.1 -> 1.9, median 5.9); within 4 mm on only 28% of the fold."
+  },
+  {
+   "gold_id": "M07",
+   "fold": "e2-max long side, top bend (wall->frame face)",
+   "verdict": "REAL_ERROR",
+   "offset_mm_median": 6.82,
+   "offset_mm_range": [
+    3.16,
+    10.92
+   ],
+   "coverage_of_fold_pct": 99.3,
+   "fold_len_mm": 310.0,
+   "gold_len_mm": 308.6,
+   "frac_fold_within_4mm": 0.13,
+   "angle_vs_fold_deg": 1.63,
+   "reason": "slanted 1.63 deg: near the top bend at the +e1 corner (3.2 mm), descends to 11.7 mm below it at the -e1 corner (endpoint e3=8.9); within 4 mm on only 13% of the fold; median 6.8 mm."
+  },
+  {
+   "gold_id": "M08",
+   "fold": "e2-max long side, bottom bend (wall->joggled flange)",
+   "verdict": "REAL_ERROR",
+   "offset_mm_median": 7.54,
+   "offset_mm_range": [
+    6.27,
+    8.79
+   ],
+   "coverage_of_fold_pct": 99.2,
+   "fold_len_mm": 310.0,
+   "gold_len_mm": 307.6,
+   "frac_fold_within_4mm": 0.0,
+   "angle_vs_fold_deg": 0.59,
+   "reason": "parallel within 0.59 deg but displaced 6.7-9.6 mm up the inner face of the e2-max wall from the bottom bend (d_apex 6.3-8.8, median 7.5), in air 0.2-1.3 mm in front of the unscanned inner skin; offset is away from both virtual sharps, so not a locus convention. Right bend identity, wrong height."
+  }
+ ],
+ "missing_bends": [
+  {
+   "side": "e2min",
+   "bend": "lower (wall-side) joggle bend",
+   "frame_refined": {
+    "e1": [
+     -147,
+     160
+    ],
+    "e2": -77.0,
+    "e3_outer_skin": -20.89
+   },
+   "raw_start": [
+    -264.89,
+    -0.62,
+    256.72
+   ],
+   "raw_end": [
+    -447.43,
+    -244.61,
+    219.33
+   ],
+   "angle_deg_approx": 54.5,
+   "joggle_rise_mm": 1.85
+  },
+  {
+   "side": "e2min",
+   "bend": "upper (far-side) joggle bend",
+   "frame_refined": {
+    "e1": [
+     -147,
+     160
+    ],
+    "e2": -75.9,
+    "e3_outer_skin": -19.64
+   },
+   "raw_start": [
+    -263.73,
+    -1.59,
+    257.41
+   ],
+   "raw_end": [
+    -446.27,
+    -245.58,
+    220.03
+   ],
+   "angle_deg_approx": 54.5,
+   "joggle_rise_mm": 1.85
+  },
+  {
+   "side": "e2max",
+   "bend": "lower (wall-side) joggle bend",
+   "frame_refined": {
+    "e1": [
+     -148,
+     160
+    ],
+    "e2": 85.0,
+    "e3_outer_skin": -21.35
+   },
+   "raw_start": [
+    -141.04,
+    -81.99,
+    191.27
+   ],
+   "raw_end": [
+    -324.17,
+    -326.78,
+    153.76
+   ],
+   "angle_deg_approx": 54.9,
+   "joggle_rise_mm": 1.78
+  },
+  {
+   "side": "e2max",
+   "bend": "upper (far-side) joggle bend",
+   "frame_refined": {
+    "e1": [
+     -148,
+     160
+    ],
+    "e2": 83.8,
+    "e3_outer_skin": -20.17
+   },
+   "raw_start": [
+    -141.65,
+    -81.77,
+    192.83
+   ],
+   "raw_end": [
+    -324.78,
+    -326.56,
+    155.32
+   ],
+   "angle_deg_approx": 54.9,
+   "joggle_rise_mm": 1.78
+  }
+ ],
+ "counts": {
+  "gold": 8,
+  "OK": 2,
+  "CONVENTION_OFFSET": 2,
+  "REAL_ERROR": 4,
+  "missing": 4,
+  "physical_formed_bends_owner_convention": 12
+ }
+}

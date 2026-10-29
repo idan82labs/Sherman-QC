@@ -1,0 +1,30 @@
+(version 1)
+
+; Frozen detector boundary for V51_NEW_UNTOUCHED_CORPUS_BLIND_ONCE_LOCKED.
+; The detector may read its code, models, opaque scan inputs, and source-only
+; candidate/result trees.  Truth, family maps, historical evaluation stores,
+; CAD/drawings, and the consumed Gold37 tree remain unreadable even when the
+; launcher account itself has broader repository access.
+(allow default)
+
+(deny file-read*
+  (subpath "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/annotations"))
+(deny file-read*
+  (subpath "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/evaluation"))
+(deny file-read*
+  (subpath "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/evaluation_slices"))
+(deny file-read*
+  (subpath "/Users/idantal/ShermanQC/FullProject/output/research/f1-gold27-20260803"))
+(deny file-read*
+  (subpath "/Users/idantal/ShermanQC/FullProject/output/research/f1-v51-gold37-blind-once-20260814"))
+(deny file-read*
+  (subpath "/Users/idantal/ShermanQC/FullProject/output/research/f1-v51-new-untouched-corpus-20260814/custody"))
+(deny file-read*
+  (subpath "/Users/idantal/ShermanQC/FullProject/output/research/f1-v51-new-untouched-corpus-20260814/truth"))
+(deny file-read*
+  (subpath "/Users/idantal/ShermanQC/FullProject/output/research/f1-v51-new-untouched-corpus-20260814/family_map"))
+(deny file-read*
+  (subpath "/Users/idantal/ShermanQC/FullProject/output/research/f1-v51-new-untouched-corpus-20260814/scoring"))
+
+(deny file-read*
+  (regex #"(?i).*/[^/]*\.(stp|step|sldprt|sldasm|dxf|dwg|pdf)$"))

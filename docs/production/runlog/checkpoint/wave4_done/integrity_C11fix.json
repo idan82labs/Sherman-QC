@@ -1,0 +1,65 @@
+{
+ "status": "done",
+ "summary": "The integrity step is green. After the fixes, `run_production_line_checks.sh --engine` passes 78 of 78 steps in 830 s, the G5 gate passes, and the app E2E passes with 0 failures. Neither of your two results exists yet. The new engine results come from the wave-4 A1 accuracy loop, which can start now that this step is green. The Jev-assisted vs non-Jev comparison (`research/jev/broad_ab_v1.py`) is being built by another workflow: it was edited at 21:21 and its smoke export was queued on the shared lock during this step.\n\n**Before the fixes:** the first full run gave 77 of 78. The one failure was in `tests/test_prod_e2e_fast.py` (22 passed, 1 failed), test `test_runner_killed_mid_job_is_recovered_by_its_restarted_successor`. The resumed C02 run changed the runner's lease-owner format to `<instance_id>@<host>:<pid>`, but the test still faked a dead predecessor as `runner@e2e-fast:<pid>`, so the successor never reclaimed the job. The test now builds the owner with `lease_owner_for()`.\n\n**Other drift from the resumed run that no test caught yet:**\n- **Station UI out of step with the contracts.** The C01 re-review moved UNDETERMINED below the REVIEW stage flags and added the summary reasons OPTIONAL_FAIL / OPTIONAL_REVIEW. The station's TypeScript copy (`stationView.ts`) recomputes both and compares them with the result. So it would have refused valid results, for example a FINAL part with one occluded bend and one unformed bend. I fixed the copy and added the three new contract rules. The station check now also runs Python parity on 7 new documents and on all 3000 stage-decision combinations of a 3-bend part. 6 of 6 deliberate mutants are caught.\n- **PDF lost the job identity.** The re-run stopped passing `--context` to the engine (E3). The render step (C06) never filled `result.context` from `input/context.json`, although the contract (`ENGINE_IO` \u00a75) requires it. So the PDF lost job id, serial and scan file name, and the runner patched it afterwards with a CONTEXT_FILLED_BY_RUNNER warning. C06 now fills it, with a new test and a mutant check. In the new E2E run the PDF shows the scan file name and job id.\n- **E3 still accepted `--context`.** Amendment 4 and `ENGINE_IO` \u00a74 forbid it. I removed the option, so E3 is blind to job identity by construction, and replaced the old test with one that asserts the option is refused.\n\n**C11 review fixes:** the earlier fix:C11 agent stopped on a usage limit after applying all 9 findings. Its K2 rewrite had broken the E2E with `ReferenceError: job is not defined` (run 20261017T122151Z). I fixed that and a null-dereference in K9.\n- The new E2E run is 20261017T183745Z: 23 PASS, 1 API_ASSIST, 1 NOT_RUN (R1, real part, by custody), 0 FAIL. All 93 assertions passed, 40 screenshots, 168 s.\n- Not code: the C09 loading-state issue is recorded under open issues. For the G5 owner: C11 added `scripts/run_production_line_checks.sh` to the G5 allowlist (`docs/production/runlog/g5_baseline/allowlist.txt`); it is a licensed C11 file.\n\n**Shared lock:** `sherman_geom.lock` was stale. A check run created it at 20:41:44 and died at about 20:43, and four waiters, mine included, were blocked. No process held it, so I removed it. Every heavy run after that went under the lock.\n\n**What the resumed run did not touch:** the re-implement/review/fix of E1 and E2 changed no repo files after the stop (the fix:E2 and review:E1 agents only wrote to their scratchpads). Nothing was committed or pushed.",
+ "checks": [
+  {
+   "cmd": "bash scripts/run_production_line_checks.sh --engine (run 1, as found, under the shared lock)",
+   "passed": false,
+   "note": "77 of 78 steps passed in 815 s. FAIL: tests/test_prod_e2e_fast.py, 22 passed and 1 failed (test_runner_killed_mid_job_is_recovered_by_its_restarted_successor: 'running' == 'queued'). Cause: the lease-owner format drift from the resumed C02 run. G5, the gated engine E2E and every frontend step passed."
+  },
+  {
+   "cmd": "env PYTHONDONTWRITEBYTECODE=1 PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=.:backend OMP_NUM_THREADS=1 .venv/bin/python -m pytest -c /dev/null --noconftest -p no:cacheprovider tests/test_prod_postprocess_cli.py tests/test_prod_inspection_ingest.py tests/test_prod_runner.py tests/test_prod_shopfloor_pdf.py tests/test_prod_viewer_assets.py tests/test_prod_e2e_fast.py tests/test_prod_contract_parity.py -q (under the lock)",
+   "passed": true,
+   "note": "First run: 180 passed and 1 failed. The failure was my new C06 test: the fake engine output is built from the post-C06 examples, which already carry a context. I fixed the test fixture; test_prod_postprocess_cli.py then gave 17 passed."
+  },
+  {
+   "cmd": "PYT tests/test_prod_engine_inspect_cli.py -k 'engine_never_receives or deterministic_and_blind' (under the lock)",
+   "passed": true,
+   "note": "2 passed in 38.9 s, max RSS 0.72 GB."
+  },
+  {
+   "cmd": "mutation checks (scratch mirror of frontend/react/src/features/station + check scripts; in-place C06 mutant restored byte-identical, cmp OK)",
+   "passed": true,
+   "note": "Station mirror: 6 of 6 mutants caught (precedence, OPTIONAL_FAIL, OPTIONAL_REVIEW, general-measurement tolerance, NOT_APPLICABLE_AT_STAGE, ambiguous-pose heatmap). Python parity alone catches the precedence and optional-reason mutants. C06 fill_context=False mutant: the new test fails."
+  },
+  {
+   "cmd": "bash scripts/run_production_line_checks.sh --engine (run 2, after fixes, under the shared lock)",
+   "passed": true,
+   "note": "78 of 78 steps passed (0 retried, 0 failed) in 830 s. 70 tests/test_prod_*.py files, 1580 tests in total; the gated engine E2E passed (1 test, 55 s, engine peak RSS 0.52 GB, test process 1.15 GB). tsc and lint clean. check-station-view-model: 882 assertions, Python agrees on 55 documents and 3000 stage decisions. check-onboarding-model: 690 assertions. check-station-layout: 19 steps. check-onboarding-ui: 17 of 17. Vite build into $TMPDIR. G5 PASS."
+  },
+  {
+   "cmd": ".venv/bin/python scripts/production/g5_check.py --json <scratch>/g5_final.json",
+   "passed": true,
+   "note": "G5 gate PASS. Baseline integrity matches the pinned hashes. Manifest: 1 licensed addition (scripts/run_production_line_checks.sh), 0 unexpected. tsc and lint: 0 new. Backend vendor tests: 121 passed, 0 new failures. Vendor scripts: 3 PASS and 5 NOT_RUN, the same as the baseline."
+  },
+  {
+   "cmd": "node scripts/production/run_e2e_app.mjs (servers from a temporary C04 --profile app copy, under the shared lock)",
+   "passed": true,
+   "note": "Run 20261017T183745Z, exit 0, 168 s. 23 PASS, 1 API_ASSIST (W4, Vendor Setup draft through its API route), 1 NOT_RUN (R1, real 10839000 part: custody in C11 scope), 0 FAIL. 93 of 93 assertions OK, 40 screenshots. K2: in-progress state captured, station updated 1.19 s after the job finished, injected B2 flange and B3 angle both MEASURED FAIL. K6: PDF Hebrew in logical order, helper ok, the PDF carries the scan file name and job id. K8: FINAL_INCOMPLETE / REVIEW_REQUIRED with a backgauge row. K10: kill and restart recovered the job. No CONTEXT_FILLED_BY_RUNNER warnings in the service logs."
+  }
+ ],
+ "files": [
+  "/Users/idantal/ShermanQC/FullProject/tests/test_prod_e2e_fast.py",
+  "/Users/idantal/ShermanQC/FullProject/scripts/production/run_e2e_app.mjs",
+  "/Users/idantal/ShermanQC/FullProject/frontend/react/src/features/station/model/stationView.ts",
+  "/Users/idantal/ShermanQC/FullProject/frontend/react/scripts/check-station-view-model.mjs",
+  "/Users/idantal/ShermanQC/FullProject/domains/production/inspection/engine_output.py",
+  "/Users/idantal/ShermanQC/FullProject/domains/production/inspection/adapter.py",
+  "/Users/idantal/ShermanQC/FullProject/domains/production/inspection/postprocess_cli.py",
+  "/Users/idantal/ShermanQC/FullProject/domains/production/reporting/render_cli.py",
+  "/Users/idantal/ShermanQC/FullProject/tests/test_prod_postprocess_cli.py",
+  "/Users/idantal/ShermanQC/FullProject/domains/production/engine/inspect/cli.py",
+  "/Users/idantal/ShermanQC/FullProject/tests/test_prod_engine_inspect_cli.py",
+  "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/e2e/20261017T183745Z/steps.json"
+ ],
+ "open_issues": [
+  "C09 (C11 review finding 1, recorded, not fixed): while the wizard loads its data, the release checklist and the route rail show CAD_MISSING / DRAWING_MISSING / TOLERANCES_MISSING blockers and 'to do' states. They should show a loading or unknown state. W9 in the E2E now waits for the loaded state, so its screenshot is correct.",
+  "E1 (resumed impl:E1): the Method B fold-flat compile for bound flats has no completed review (review:E1 was interrupted). Its own open issue: E3 metrology.py:878 still uses k_factor.value for the neutral radius under Method B. Worth an E1 review before A1 freezes the engine.",
+  "E2 (resumed review:E2, verdict ship; fix:E2 interrupted with no repo edits): minor findings remain open: unknown_sku is a byte copy of nominal; regression-tier coverage flags claim more than the tier exercises; the 12 / 300 mm feature thresholds have no tolerance; an existing manifest.json is overwritten silently; an empty --cases / --limit 0 selection fails with a misleading error; scan.ply header comments say 'synthetic' (against the blindness intent of amendment 4); no density-convergence flag; the scanner-model card statistics are under-documented. The findings are in journal.jsonl, line 129.",
+  "There are no station / PDF labels for OPTIONAL_FAIL, OPTIONAL_REVIEW or STAGE_APPLICABILITY_MISMATCH. The station banner does not show summary reasons, and the PDF prints them as raw codes. The C01 reviewer's request to list every non-CONSISTENT stage flag in summary.reasons was deferred by C01 as a coordinated change.",
+  "R1 in the app E2E (real 10839000 STEP + FULL scan, plan \u00a76 + amendment 10) is still NOT_RUN by design; V1, with authorization for source-assets, must add it. The 5 browser check-vendor scripts are still NOT_RUN in G5, as in the baseline.",
+  "For the G5 owner: C11 added scripts/run_production_line_checks.sh to docs/production/runlog/g5_baseline/allowlist.txt. It is a licensed C11 file (C11 review finding 7).",
+  "The E4 offline oracle (domains/production/engine/eval/oracle.py) still has a --context option. The runner never passes it; it should mirror E3 in a later E4 change.",
+  "Shared lock: I removed a stale /private/tmp/claude-501/sherman_geom.lock. A check run created it at 20:41:44 and died at about 20:43; no process held it, and 4 waiters were blocked. A lock with no owner record can go stale again whenever a holder is killed."
+ ]
+}

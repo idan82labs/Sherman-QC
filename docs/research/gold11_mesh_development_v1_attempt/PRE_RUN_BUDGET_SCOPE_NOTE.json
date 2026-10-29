@@ -1,0 +1,13 @@
+{
+  "schema": "PRE_RUN_BUDGET_INTERPRETATION_NOT_PARAMETER_CHANGE_V1",
+  "bundle_sha256": "facecee17870701a2aa3eb9812099ee07cd745152abac17b5773649fa550d33a",
+  "independent_audit_file_sha256": "d6adf08a8f00967df4522a508606adb89759145542b60406be2f08e525b1bd63",
+  "independent_reviewer": "/root/astra_repo_guidance_review",
+  "reviewer_conclusion": "ACCEPTED, GREEN unchanged before execution",
+  "native_case_timer": "The frozen180s timer budgets preparation plus native inference supervision, not all-in case receipt completion.",
+  "postprocessing": "Successful result retrieval has a separate20s deadline, and result copy/decode another20s deadline. Monitoring, receipt persistence and cleanup are outside that native-worker timer under outer supervision.",
+  "global_budget": "Coordinator supervision4170s plus30s reserved terminalization; declared total4200s. Sampled complete-run RSS12GiB includes the outer supervisor.",
+  "no_change": "No frozen source, configuration, input, reference, scoring threshold, actual limit or failure rule was changed.",
+  "reporting_rule": "Do not claim all-in180s case compliance from worker timing; retain parent_wall_seconds and all individual supervisor receipts.",
+  "timing": "Recorded before STARTED and before any physical inference in this attempt. Original exclusive independent audit remains unchanged."
+}

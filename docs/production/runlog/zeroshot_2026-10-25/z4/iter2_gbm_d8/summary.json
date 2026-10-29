@@ -1,0 +1,141 @@
+{
+ "tags": [
+  "base"
+ ],
+ "model": "gbm",
+ "dedupe_mm": 8.0,
+ "n_features": 77,
+ "features": [
+  "apex_side_over_t",
+  "bbox_min_dist_mm",
+  "bbox_min_dist_rel",
+  "ctx_collinear_count",
+  "ctx_near_duplicate_count",
+  "ctx_nearest_parallel_offset_mm",
+  "ctx_parallel_6_to_40mm_count",
+  "ctx_parallel_within_6mm_count",
+  "d_corridor_point_count",
+  "d_corridor_points_per_mm",
+  "d_endpoint_support_fraction",
+  "d_finite_support_fraction",
+  "d_finite_support_longest_run_fraction",
+  "d_median_corridor_radius_mm",
+  "d_median_line_distance_mm",
+  "d_normal_second_eigenvalue",
+  "d_normal_spread_deg_scan",
+  "d_p90_line_distance_mm",
+  "d_tight_normal_second_eigenvalue_r2mm",
+  "d_tight_normal_second_eigenvalue_r6mm",
+  "d_tight_to_wide_normal_second_ratio",
+  "d_transverse_angular_bin_fraction",
+  "d_transverse_angular_span_deg",
+  "d_two_sided_min_support_fraction",
+  "d_two_sided_normal_angle_deg",
+  "d_two_sided_normal_coherence",
+  "d_two_sided_support_balance",
+  "d_two_sided_transition_score",
+  "gen_bend_hypothesis",
+  "gen_control_support_strip",
+  "gen_cylindrical_standard",
+  "gen_cylindrical_wide",
+  "gen_line_object",
+  "gen_plane_lattice",
+  "gen_strict_blind_owned",
+  "generator_count",
+  "length_mm",
+  "length_rel",
+  "member_count",
+  "nearest_parallel_over_dup",
+  "pool_angle_median_deg",
+  "pool_member_count",
+  "radius_median_mm",
+  "rank_corridor_point_count",
+  "rank_finite_support_fraction",
+  "rank_length_mm",
+  "rank_member_count",
+  "rank_two_sided_normal_coherence",
+  "rank_two_sided_transition_score",
+  "scan_cluster_count",
+  "scan_extent_mm",
+  "scan_point_spacing_mm",
+  "t_conf",
+  "t_mm",
+  "two_skin_dup_mm",
+  "vote_max",
+  "x_empty_slice_fraction",
+  "x_enclosed_slice_fraction",
+  "x_included_angle_iqr_deg",
+  "x_included_angle_stable_fraction",
+  "x_median_apex_side_mm",
+  "x_median_bend_angle_deg",
+  "x_median_corner_gap_mm",
+  "x_median_flange_balance_ratio",
+  "x_median_flatter_flange_fit_rms_mm",
+  "x_median_included_angle_deg",
+  "x_median_line_to_corner_mm",
+  "x_median_longer_flange_width_mm",
+  "x_median_rougher_flange_fit_rms_mm",
+  "x_median_shorter_flange_width_mm",
+  "x_median_surface_distance_mm",
+  "x_multi_flange_slice_fraction",
+  "x_near_support_fraction",
+  "x_near_support_longest_run_fraction",
+  "x_one_flange_slice_fraction",
+  "x_two_flange_slice_fraction",
+  "x_two_flange_slices_count"
+ ],
+ "candidates": 66631,
+ "positives": 2427,
+ "oof_auc": 0.9802,
+ "thresholds": {
+  "0": {
+   "threshold": 0.325,
+   "inner_f1": 0.6823238566131026
+  },
+  "1": {
+   "threshold": 0.4,
+   "inner_f1": 0.6861499364675985
+  },
+  "2": {
+   "threshold": 0.125,
+   "inner_f1": 0.6860215053763441
+  },
+  "3": {
+   "threshold": 0.275,
+   "inner_f1": 0.6926829268292684
+  },
+  "4": {
+   "threshold": 0.275,
+   "inner_f1": 0.6695842450765864
+  }
+ },
+ "oof": {
+  "scans": 116,
+  "families": 91,
+  "gold_lines": 586,
+  "tp": 362,
+  "fp": 121,
+  "fn": 224,
+  "P": 0.749,
+  "R": 0.618,
+  "micro_f1": 0.677,
+  "family_macro_f1": 0.616,
+  "zero_bend_controls": 5,
+  "control_fp_lines": 6,
+  "empty_output_scans": 14,
+  "micro_f1_ci": [
+   0.621,
+   0.729
+  ],
+  "family_macro_f1_ci": [
+   0.543,
+   0.689
+  ]
+ },
+ "wall_s": 84.5,
+ "pool_any_match_recall": {
+  "gold_lines": 586,
+  "hit_one_to_one": 476,
+  "recall": 0.8123
+ }
+}

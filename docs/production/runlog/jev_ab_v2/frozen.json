@@ -1,0 +1,20 @@
+{
+  "schema": "jev_v2_frozen_operating_points_v1",
+  "source": "docs/production/runlog/jev_ab_v2/results.json (thresholds fitted on calibration families only)",
+  "pool": {
+    "score": "clf_logreg",
+    "threshold": 0.9785895158986075,
+    "dedupe": "nms 5deg/4mm/0.6"
+  },
+  "filter": {
+    "score": "best_feature",
+    "feature": "pool.pool_two_sided_transition_score",
+    "sign": 1.0,
+    "threshold": 0.2576574115346552,
+    "note": "a line with no matching pool cluster has no value and is dropped, as in the study"
+  },
+  "jev": {
+    "design": "composite",
+    "use": "diagnostic only; not part of the keep decision (see JEV_INPUT_OPT.md)"
+  }
+}

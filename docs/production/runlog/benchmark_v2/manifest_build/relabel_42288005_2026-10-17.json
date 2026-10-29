@@ -1,0 +1,43 @@
+{
+ "schema": "sherman.benchmark_v2.relabel_r3.v1",
+ "generated_at": "2026-10-17",
+ "authority": "Owner request 2026-10-17: fix the confirmed AI-gold label error found by the broad_baseline CAD cross-check (docs/production/runlog/broad_baseline/cad_crosscheck.json, verdict AI_LABEL_ERROR_MISSED_BENDS). AI-adjudicated (claude-vision-ai-v1, single reviewer with own renders and sections), not human.",
+ "results": [
+  {
+   "scan_id": "sc_2233372b8df7",
+   "part_id": "42288005",
+   "path": "~/ShermanQC/source-assets/02_CAD_QC_3D/42288005_01_FULL_SCAN.ply",
+   "lines_dir": "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/benchmark_v2/label_lines_r3/sc_2233372b8df7",
+   "lines_json_sha256": "8bd3cb94536213dff705c4ee877926b81d4e8e589f6cb06534130636b79e7a3d",
+   "pairs_json_sha256": "00e96648d92722f411280ace981442b76d71cf0ac67fae5b47f8b956cd04d507",
+   "n_bends_before": 6,
+   "n_bends": 8,
+   "added": [
+    "B7",
+    "B8"
+   ],
+   "reason": "FULL scan missed the two formed 15 deg joggle bends (CAD C5/C6, 45 mm long, 11.7 mm apart; scan measured 14.1/15.1 deg, flat controls 0.3-1.1 deg). lines r3 on prep patches: B7 = 4|12 (outer, included 165.63 deg = 14.4 deg bend, 44.8 mm), B8 = 8|13 (outer, included 165.04 deg = 15.0 deg bend, 43.8 mm); both fold_support_frac 1.0, confidence certain, no overrides needed. Each runs slit-to-slit across the 45 mm joggle window (97-100% of the CAD span), parallel to the registered CAD axis within 0.4 deg and 1.2/1.4 mm from it. Own sections at 6 stations show each line on the outer-skin kink (opposite skins for the two bends, as a joggle should); outside the slits the wall is straight. B1-B6 bit-identical to r2 (0.000 mm endpoint shift).",
+   "evidence_dir": "/private/tmp/claude-501/-Users-idantal/db065cf7-f766-4885-b217-ed8d7edd7ade/scratchpad/joggle42288005",
+   "tsv_override": {
+    "n_bends": 8,
+    "agree": 8,
+    "lines_yes": 8,
+    "lines_no": 0,
+    "lines_unclear": 0,
+    "missed_bends_visible": 0,
+    "verifier_saw_images": true,
+    "missed_basis": "images",
+    "verifier_summary": "r3 owner relabel: 6 r2 lines unchanged + 2 joggle bends (CAD C5/C6) added; all 8 land (fold support 1.0, >=80% coverage) on the r3 renders and own perpendicular sections; no missed bends"
+   },
+   "studio_label": {
+    "written": true,
+    "asset_id": "ae525e4954effa70d87ba8eb",
+    "asset_path": "~/ShermanQC/source-assets/02_CAD_QC_3D/42288005_01_FULL_SCAN.ply",
+    "label_path": "data/bend_corpus/annotations/ai_bend_lines_v1/ae525e4954effa70d87ba8eb.json",
+    "bends": 8,
+    "revision": 2,
+    "exit_status": 0
+   }
+  }
+ ]
+}

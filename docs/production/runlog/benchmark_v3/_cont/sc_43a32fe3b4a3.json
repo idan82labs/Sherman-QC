@@ -1,0 +1,27 @@
+{
+ "reconciler": {
+  "real_bends": 2,
+  "bends": [
+   {
+    "patches": [
+     1,
+     3
+    ],
+    "note": "Long 90 deg flange fold (incl 90.42 deg) along the full ~155 mm long edge. The flange folds away from the patch-1 side. Outer skin is base top 1 plus flange outside 3. A formed radius shows in my sections from x=-74 to +74. Auto extent is 153.3 mm (apex points span about 154.7 mm), fold_support 1.0, certain."
+   },
+   {
+    "patches": [
+     2,
+     5
+    ],
+    "note": "End-flange 90 deg fold (incl 90.66 deg) at the short end, about 29-30 mm long. The flange folds toward the patch-1 side. Outer skin is base underside 2 plus end-flange outside 5. A formed radius shows in my sections from y=-17 to +9. Auto extent is 28.6 mm (apex points span about 28.9 mm; about 0.5 mm short at the corner relief), fold_support 1.0, certain."
+   }
+  ],
+  "no_bends_present": false,
+  "unusable": false,
+  "not_a_scan": false,
+  "reason": "Both blind labelers found the same 2 bends, [1,3] and [2,5], both on the outer skin. The only difference was that A wrote margin_mm 3, which is the default, so I left it out. The part is 15651004, split CONSUMED (Gold37 in BENCHMARK_V2), not FRESH, so the non-sealed label_lines dir is the right place. It is a real scan, not CAD: the planes show rms of 0.01-0.04 mm and a smooth 0.15 mm bow, the scanner stripes are visible, and the hole edges are ragged. I checked 20 of my own viewpoints, close-ups of the end and corner, 12 sections across fold 1, 10 across fold 2, 4 longitudinal sections and residual plots. The base is flat, with no kink or joggle. The in-plane tab at the far end, the chamfered corner, the diagonal corner relief, the holes and the thickness edges are not bends. [2,4] and [1,6] are the inner skins of the same two folds. I wrote label_lines/sc_43a32fe3b4a3/pairs.json (sha256 0c7e9f81ffb8...) and ran lines once under the geometry lock: lines rc=0, n_ok 2, n_failed 0. B1 is 153.3 mm and B2 is 28.6 mm, both status ok, outer, certain, fold_support_frac 1.0, auto extents and margin 3.0. I opened verify_contact_sheet, verify_iso, closeup_B1 and closeup_B2. Both lines sit on the outer fold arcs (the apex dot is on the arc in each section) and cover 98-99% of the fold length, so nothing was clipped or off the fold. No overrides or reruns were needed. write-label was not run."
+ },
+ "verifier1": null,
+ "verifier2": null
+}

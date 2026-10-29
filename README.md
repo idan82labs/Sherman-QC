@@ -1,188 +1,196 @@
 # Sherman QC
 
-AI-assisted quality control for sheet-metal parts using CAD references, 3D scans, bend inspection, and operator-facing reporting.
+AI-assisted quality control for sheet-metal parts using CAD references, 3D scans, bend inspection, live scanning, and operator-facing reporting.
 
-Sherman QC now includes two connected tracks in one repo:
-- a production-oriented inspection product: upload, analyze, live scan, Bend Inspection UI, PDF/reporting, structured bend counts
-- a research/regression track: labeled bend corpus, staged partial-scan evaluation, observability-aware bend-state modeling, and benchmark docs
+The repo is now being reordered toward an enterprise architecture without rewriting product behavior. The active migration pattern is a strangler refactor: preserve current flows, freeze contracts, introduce new module boundaries, then retire old entrypoints only after the new seams are validated.
 
-## What This Repo Does
+For agent work, start with [AGENTS.md](AGENTS.md), the dated
+[current checkpoint](docs/CURRENT_STATUS.md), and the
+[actual runtime map](docs/REPO_MAP.md). The
+[production generalization roadmap](docs/research/2026-09-07_production_generalization_roadmap.md)
+separates research evidence from production requirements. Research remains
+unqualified for autonomous part acceptance/rejection.
 
-### Production capabilities
-- General scan-vs-CAD analysis with alignment, deviation measurement, and reporting
-- Bend Inspection workflow for partial and full scans
-- 3D CAD bend overlay with per-bend status and deltas
-- Structured completed-bend count reporting alongside direct evidence counts
-- Live Scan monitoring and job detail workflows
-- PDF and JSON report generation
+## Current Capabilities
 
-### Research and regression capabilities
-- Organized bend corpus under `data/bend_corpus`
-- Corpus evaluator and case evaluator for real industrial parts
-- Bend observability fields, candidate/null assignment plumbing, and unary-model infrastructure
-- Research docs for the current factor-model direction
+### Product/runtime
+- general scan-vs-CAD analysis
+- Bend Inspection for partial and full scans
+- 3D CAD/scan overlay with bend annotations and callouts
+- structured bend count reporting alongside direct evidence counts
+- live scan/session workflows
+- JSON/PDF reporting
 
-## Current Direction
+### Research/regression
+- organized bend corpus under `data/bend_corpus`
+- corpus and case evaluators
+- unary-model and structured count experimentation
+- benchmark and methodology docs
 
-The main technical problem being worked in this repo is:
-- reliable bend progression inference from partial industrial scans
+## Enterprise Reordering Direction
 
-The current architectural direction is:
-- separate physical bend completion, observability, and evidence assignment
-- keep operator-facing labels derived from those internals
-- use structured count decoding rather than relying only on raw heuristic matches
+The codebase is being reordered around these top-level concerns:
 
-This is documented in:
-- `docs/BEND_STATE_FACTOR_MODEL_ARCHITECTURE.md`
-- `docs/BEND_STATE_MODEL_BACKLOG.md`
-- `docs/BEND_REGRESSION_TESTING.md`
+```text
+apps/
+  api/          FastAPI assembly, route groups, dependency wiring
+  worker/       background job entrypoints
+
+domains/
+  bend/         bend inspection and structured count logic
+  reporting/    report assembly/export
+  qc/           general QC analysis
+  dimensions/   specs and dimensions
+  catalog/      part/live-session catalog behavior
+  auth/         auth domain
+
+infrastructure/
+  geometry/     CAD/scan loading, transforms, clipping, alignment helpers
+  persistence/  artifact/file persistence
+  ai/           AI provider adapters
+  queue/        worker transport
+  telemetry/    logging/metrics/tracing
+
+contracts/
+  api/
+  jobs/
+  ui/
+
+research/
+  corpus/
+  evaluation/
+  models/
+  docs/
+```
+
+See:
+- `docs/ENTERPRISE_REARCHITECTURE_PLAN.md`
+- `docs/architecture/system-overview.md`
+- `docs/architecture/runtime-flows.md`
+- `docs/architecture/contracts.md`
+- `docs/architecture/module-classification.md`
 
 ## Repository Layout
 
 ```text
-Full Project/
-├── backend/                         FastAPI server, QC pipeline, bend runtime
-├── frontend/react/                  React + TypeScript product UI
-├── data/bend_corpus/                Corpus metadata, labels, specs, drawings references
-├── docs/                            Research notes, architecture, regression docs
-├── scripts/                         Corpus builders, evaluators, training/annotation scripts
-├── tests/                           Portable regression and math tests
-├── run.py                           Backend startup helper
-└── requirements.txt                 Root Python dependency set
+FullProject/
+├── apps/                          New application entrypoints and route groups
+├── backend/                       Legacy runtime modules retained during strangler migration
+├── contracts/                     Stable API/job/UI contracts
+├── domains/                       Extracted domain logic
+├── frontend/react/                React product UI
+├── infrastructure/                Shared technical adapters and geometry helpers
+├── research/                      Research-model, corpus, and evaluator homes
+├── scripts/                       Deterministic corpus/build/eval/train scripts
+├── data/bend_corpus/              Corpus metadata and labels
+├── docs/                          Architecture, product, research, operations docs
+├── tests/                         Portable regression and math tests
+└── requirements.txt
 ```
 
-Key files and entry points:
-- `backend/server.py`: API surface
-- `backend/bend_inspection_pipeline.py`: bend runtime and staged inspection logic
-- `backend/bend_analysis_worker.py`: bend-job processing and structured count reporting
-- `frontend/react/src/pages/BendInspection.tsx`: bend operator workflow
-- `frontend/react/src/pages/LiveScan.tsx`: live monitoring flow
-- `scripts/evaluate_bend_corpus.py`: corpus benchmark runner
-- `scripts/train_bend_unary_models.py`: unary-model training bootstrap
+## Primary Entry Points
+
+### Backend
+- bootstrap: `backend/server.py`
+- assembled app: `apps/api/main.py`
+- legacy implementation host during migration: `backend/_server_legacy_impl.py`
+- active bend subprocess: `backend/bend_analysis_worker.py`
+- bend application wrapper (migration seam, not yet the active worker path): `domains/bend/application/analyze_bend_job.py`
+
+### Frontend
+- Bend Inspection feature page: `frontend/react/src/features/bend-inspection/pages/BendInspectionPage.tsx`
+- bend annotation mapping seam: `frontend/react/src/features/bend-inspection/model/annotationMapper.ts`
+- shared 3D host: `frontend/react/src/shared/3d/ThreeViewer.tsx`
+- legacy page routes under `frontend/react/src/pages/*` remain compatibility wrappers where needed
+
+### Research
+- corpus evaluator: `scripts/evaluate_bend_corpus.py`
+- unary model training: `scripts/train_bend_unary_models.py`
+- annotation pass: `scripts/annotate_bend_unary_predictions.py`
 
 ## Quick Start
 
+Run from this Git root (`FullProject/`). These are runtime/setup commands, not
+permission to open research inputs. See [local development](docs/operations/local-dev.md)
+for source-only checks and environment isolation; reuse an existing environment.
+
 ### Backend
 
-From repo root:
-
 ```bash
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-python3 run.py
+# Only when creating a new application environment:
+python3.11 -m venv .venv
+.venv/bin/python -m pip install -r requirements.txt
+OMP_NUM_THREADS=1 .venv/bin/python run.py --port 9000
 ```
-
-Backend default URL:
-- `http://localhost:8080`
-
-Notes:
-- On macOS, `run.py` prefers Python `3.11+` for Open3D stability.
-- Additional macOS runtime notes are in `docs/open3d_macos_runtime.md`.
 
 ### Frontend
 
 ```bash
-cd frontend/react
-npm ci
-npm run dev
+npm --prefix frontend/react ci
+npm --prefix frontend/react run dev
 ```
 
-Frontend default URL:
-- `http://localhost:5173`
+### Validation
 
-Production build check:
+Choose the tier relevant to the change. Do not run broad tests or benchmarks under
+a source-only gate; inspect imports/fixtures first. Frontend commands preserve cwd:
 
 ```bash
-cd frontend/react
-npm run build
+npm --prefix frontend/react run lint
+npm --prefix frontend/react run build
 ```
 
-## Core Workflows
+The isolated synthetic Python smoke command is in
+[local development](docs/operations/local-dev.md#source-only-validation).
 
-### 1. General QC analysis
-Use the upload/product flow to compare a scan against a CAD reference and inspect:
-- alignment
-- regional deviation
-- dimensions
-- AI-assisted summaries
-- downloadable reports
+## Documentation Map
 
-### 2. Bend Inspection
-Use Bend Inspection for staged or final sheet-metal scans when you need:
-- completed bend count
-- remaining bend count
-- in-spec / warning / out-of-spec bend status
-- per-bend deltas
-- 3D bend overlay on the original CAD
-- structured count vs direct evidence count
+### Architecture
+- `docs/architecture/system-overview.md`
+- `docs/architecture/runtime-flows.md`
+- `docs/architecture/backend-modules.md`
+- `docs/architecture/frontend-modules.md`
+- `docs/architecture/contracts.md`
 
-### 3. Corpus and regression evaluation
-Use the corpus tooling to evaluate runtime changes on real part families:
+### Product
+- `docs/product/bend-inspection.md`
+- `docs/product/live-scan.md`
+- `docs/product/reports.md`
 
-```bash
-python3 scripts/evaluate_bend_corpus.py
-```
+### Research
+- `docs/research/corpus-data-card.md`
+- `docs/research/regression-framework.md`
+- `docs/research/bend-state-model.md`
+- `docs/research/benchmark-history.md`
 
-Useful related scripts:
-- `scripts/evaluate_bend_case.py`
-- `scripts/build_bend_corpus.py`
-- `scripts/enrich_bend_corpus_from_specs.py`
-- `scripts/annotate_bend_unary_predictions.py`
-- `scripts/train_bend_unary_models.py`
+### Operations
+- `docs/operations/local-dev.md`
+- `docs/operations/deployment.md`
+- `docs/operations/troubleshooting.md`
 
-## Recommended Reading Order
+### ADRs
+- `docs/adr/ADR-001-domain-boundaries.md`
+- `docs/adr/ADR-002-canonical-bend-detector.md`
+- `docs/adr/ADR-003-report-contract.md`
+- `docs/adr/ADR-004-research-runtime-separation.md`
 
-If you are entering the repo for product work:
-1. `README.md`
-2. `backend/server.py`
-3. `frontend/react/src/pages/BendInspection.tsx`
-4. `frontend/react/src/pages/LiveScan.tsx`
+## Current Technical Direction
 
-If you are entering the repo for the bend-model/research track:
-1. `docs/BEND_REGRESSION_TESTING.md`
-2. `docs/BEND_STATE_FACTOR_MODEL_ARCHITECTURE.md`
-3. `docs/BEND_STATE_MODEL_BACKLOG.md`
-4. `docs/ONE_PAGER_PARTIAL_BEND_STATE_INFERENCE.md`
-5. `docs/PROFESSOR_RESPONSE_IMPLEMENTATION_NOTE_20260315.md`
+The main hard problem is still reliable bend progression inference from partial industrial scans. The current runtime/research direction is:
+- separate physical bend completion, observability, and assignment
+- keep operator-facing labels derived from those internal states
+- use structured count decoding instead of raw heuristic count alone
 
-Additional useful docs:
-- `docs/BEND_CORPUS_DATA_CARD.md`
-- `docs/RESEARCH_POSITIONING_BEND_WORK.md`
-- `docs/MATH_PRECISION_RND_PLAN.md`
-- `docs/OPEN_RESEARCH_QUESTION_FOR_PROFESSOR.md`
-- `docs/PROFESSOR_MEETING_QUESTIONS_20260315.md`
+Primary references:
+- `docs/BEND_STATE_FACTOR_MODEL_ARCHITECTURE.md`
+- `docs/BEND_STATE_MODEL_BACKLOG.md`
+- `docs/PROFESSOR_RESPONSE_IMPLEMENTATION_NOTE_20260315.md`
+- `docs/BEND_REGRESSION_TESTING.md`
 
-## Testing
-
-### Backend validation
-Portable backend/regression suite used in the clean integration merge:
-
-```bash
-OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 NUMEXPR_NUM_THREADS=1 VECLIB_MAXIMUM_THREADS=1 \
-pytest -q \
-  backend/tests/test_bend_report_generator.py \
-  backend/tests/test_bend_analysis_worker.py \
-  backend/tests/test_bend_unary_model.py \
-  backend/tests/test_bend_detector.py \
-  backend/tests/test_bend_inspection_pipeline.py \
-  tests/test_evaluate_bend_corpus.py \
-  tests/test_bend_improvement_loop_math.py \
-  tests/test_feature_measurement.py
-```
-
-### Frontend validation
-
-```bash
-cd frontend/react
-npm run build
-```
-
-## Data and Artifact Policy
+## Artifact Policy
 
 Tracked in git:
-- runtime/backend code
-- frontend source
+- source code
 - tests
 - deterministic scripts
 - corpus metadata and labels
@@ -193,38 +201,10 @@ Not tracked in git:
 - `output/`
 - `data/bend_corpus/evaluation/`
 - local FAISS indexes
-- local status logs and scratchpads
-- downloaded/generated scan and CAD binaries that are not intended source assets
-
-This is deliberate. The repo tracks reproducible source, not local runtime output.
-
-## Current Benchmark Signal
-
-The current regression work established that structured bend-count decoding materially improves staged partial-scan accuracy over the earlier heuristic-only path.
-
-The exact benchmark history and methodology live in:
-- `docs/BEND_REGRESSION_TESTING.md`
-- `data/bend_corpus/ready_regression.json`
-
-## API Surface
-
-Representative endpoints:
-- `POST /api/analyze`
-- `GET /api/jobs/{id}`
-- `GET /api/result/{id}`
-- `POST /api/bend-inspection/analyze`
-- `GET /api/bend-inspection/{id}`
-- `GET /api/bend-inspection/{id}/table`
-- `GET /api/parts`
-
-Read `backend/server.py` for the full current surface.
+- runtime logs/scratchpads
+- downloaded/generated binaries that are not intended source assets
 
 ## Notes
 
-- The repo now reflects the unified merge of product work, bend runtime work, and research/docs.
-- The old dirty feature worktree was intentionally cleaned after merge; a backup snapshot of its dirty state was preserved outside the repo before cleanup.
-- If you want to continue the bend-model work, start from `main` and the docs listed above rather than reviving the pre-merge feature branch.
-
-## License
-
-MIT License. See `LICENSE`.
+- This repo is in an active enterprise reordering phase; maintain behavior first, simplify structure second, and delete old seams last.
+- If you change Bend Inspection or the 3D annotation path, keep the bend-domain assembly in the feature layer rather than the generic viewer.

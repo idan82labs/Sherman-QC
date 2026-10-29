@@ -1,0 +1,261 @@
+{
+ "schema": "sherman.broad_baseline.eval_lines.v1",
+ "lane": "zs_lane_v3:zs",
+ "status": "OK",
+ "frame": "scan_raw",
+ "frame_definition": "coordinates of the scan file exactly as stored (source_ply_raw == scan_raw)",
+ "units": "scan file units (mm for every Sherman scan inspected so far; not re-estimated)",
+ "scan": {
+  "path": "/Users/idantal/Downloads/50552000_04.ply",
+  "sha256": "9567d0d3f33d80f7c9150a33252623b6557cbcd54aebf86e5baaf18a9e04c7da"
+ },
+ "source": {
+  "kind": "zs_lane_v3:zs",
+  "path": null,
+  "sha256": null
+ },
+ "conversion": {
+  "rule": "zs_lane_v3 variant zs",
+  "variant": "zs",
+  "threshold": 0.5,
+  "model": "docs/production/runlog/zeroshot_2026-10-25/v3/models/zs_lane_v3_zs_gbm.pkl",
+  "model_sha256": "ade6cde44ede85dbf8195d0f6c093a2eea50eb4a481a21ec99fa9f17cd49ffeb",
+  "z3_model": "docs/production/runlog/zeroshot_2026-10-25/v3/models/zs_lane_v3_z3_gbm.pkl",
+  "z3_model_sha256": "62e99d13ccf0945d4b6932b85f19879e757e09ca7f493041c3ce53503e74e28c",
+  "post": {
+   "dedupe_join": true,
+   "join": true,
+   "join_low": 0.0,
+   "sweep_min": 0.25
+  },
+  "fix": {
+   "ext": true,
+   "ext_dedupe": true,
+   "ext_min_in": 0.6,
+   "ext_ratio": 1.3,
+   "z3r": true,
+   "z3r_sweep_min": 0.25,
+   "z3r_tau": 0.9
+  },
+  "z3_params": {
+   "fallback_frac_only": true
+  },
+  "z2_fallback": true,
+  "code_fingerprint": "dc23a905bc2cf83a2fff2a4e1270ca654e95b8d3d6f2077db97c50559c85476f",
+  "pins_ok": true,
+  "pin_mismatch": [],
+  "errors": {},
+  "stages": {
+   "budget": {
+    "applied": false,
+    "faces": 322216,
+    "max_faces": 3000000
+   },
+   "z2": {
+    "wall": 3.154,
+    "t_mm": 1.468,
+    "n_lines": 7
+   },
+   "z3": {
+    "wall": 1.344,
+    "t_mm": 1.4668769240379333,
+    "n_candidates": 12,
+    "area_total": 29701.39473020834,
+    "n_families": 3,
+    "family_fallback": false
+   },
+   "pool": {
+    "wall": 0.003,
+    "n": 12
+   },
+   "snap_all": {
+    "wall": 0.05,
+    "n": 12
+   },
+   "evidence": {
+    "wall": 0.067
+   },
+   "select_post": {
+    "wall": 0.005,
+    "n": 7,
+    "ops": {
+     "keep": 7,
+     "split": 0,
+     "join": 0
+    },
+    "fixes": {
+     "EXT": 0,
+     "Z3R": 0
+    }
+   }
+  },
+  "guard_basis": "SPLIT_FROZEN_DEV_GOLD_OF_RECORD"
+ },
+ "line_count": 7,
+ "owned_bend_regions": [
+  {
+   "bend_id": "ZS001",
+   "line_start": [
+    -89.15888343371229,
+    -133.5799537865808,
+    191.12489132499095
+   ],
+   "line_end": [
+    -168.34619893849606,
+    -189.06938302410663,
+    194.44407913947708
+   ],
+   "score": 0.996588375626832,
+   "incl": 89.62099240104612,
+   "src": [
+    "z2",
+    "z3"
+   ],
+   "op": "keep",
+   "parts": [
+    0
+   ]
+  },
+  {
+   "bend_id": "ZS002",
+   "line_start": [
+    -208.6610636257745,
+    -130.1831658659022,
+    228.14062792785543
+   ],
+   "line_end": [
+    -166.5155620161647,
+    -191.34789652407972,
+    212.058217333034
+   ],
+   "score": 0.9986681714671888,
+   "incl": 89.57637723906232,
+   "src": [
+    "z2",
+    "z3"
+   ],
+   "op": "keep",
+   "parts": [
+    1
+   ]
+  },
+  {
+   "bend_id": "ZS003",
+   "line_start": [
+    -130.84541624983768,
+    -71.20615150162952,
+    207.50231281594716
+   ],
+   "line_end": [
+    -87.66227735019505,
+    -134.0075350084741,
+    190.9130365471629
+   ],
+   "score": 0.9975007357209486,
+   "incl": 90.0055397172523,
+   "src": [
+    "z2",
+    "z3"
+   ],
+   "op": "keep",
+   "parts": [
+    2
+   ]
+  },
+  {
+   "bend_id": "ZS004",
+   "line_start": [
+    -211.24859738577672,
+    -127.06559574248729,
+    210.78554224525948
+   ],
+   "line_end": [
+    -168.7145846899708,
+    -188.8342795744766,
+    194.4745664083712
+   ],
+   "score": 0.9971773494171944,
+   "incl": 90.05872542517409,
+   "src": [
+    "z2",
+    "z3"
+   ],
+   "op": "keep",
+   "parts": [
+    3
+   ]
+  },
+  {
+   "bend_id": "ZS005",
+   "line_start": [
+    -132.8006260067322,
+    -71.11548498784998,
+    207.78011554282864
+   ],
+   "line_end": [
+    -210.91742715645006,
+    -125.96259620843978,
+    210.9374765364498
+   ],
+   "score": 0.9784414595206606,
+   "incl": 89.66854850105669,
+   "src": [
+    "z2",
+    "z3"
+   ],
+   "op": "keep",
+   "parts": [
+    4
+   ]
+  },
+  {
+   "bend_id": "ZS006",
+   "line_start": [
+    -93.69274030536049,
+    -123.7991063854524,
+    211.79300385101203
+   ],
+   "line_end": [
+    -86.02646637856658,
+    -134.8310555476702,
+    208.86166390063855
+   ],
+   "score": 0.994236720018685,
+   "incl": 89.28611499459308,
+   "src": [
+    "z2",
+    "z3"
+   ],
+   "op": "keep",
+   "parts": [
+    6
+   ]
+  },
+  {
+   "bend_id": "ZS007",
+   "line_start": [
+    -128.1495918193074,
+    -73.67780316866804,
+    225.04351422236144
+   ],
+   "line_end": [
+    -120.47592565943566,
+    -84.66772528248906,
+    221.96677134468314
+   ],
+   "score": 0.9888761912528652,
+   "incl": 88.90385525982897,
+   "src": [
+    "z2",
+    "z3"
+   ],
+   "op": "keep",
+   "parts": [
+    8
+   ]
+  }
+ ],
+ "dropped": [],
+ "failure": null,
+ "created_at": "2026-10-25T22:24:06Z"
+}

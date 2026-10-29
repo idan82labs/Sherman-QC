@@ -1,0 +1,76 @@
+{
+ "labeler": "claude-vision-ai-v1",
+ "no_bends_present": false,
+ "notes": "GOLD v2 initial label (2026-10-18), sc_3435e688d344, 38173000_02_X.ply, part 38173000 (ISAC EtherCAT base, AL5052 2.0 mm; drawing 38173000_02.pdf Section A-A/B-B), stage DEFECTIVE_X, CONSUMED in BENCHMARK_V3, t 1.97 mm. Base plate 1/2 (~300x225 mm). Six real formed ~90 deg bends, each checked on perpendicular sections along its length: B1 front side flange 3/4 (~36 mm, full edge); B2 and B3 the two back tabs 5/6 and 8/9 (coplanar, separated by a ~90 mm full-height cutout where no flange exists: two separate collinear folds of different tabs = 2 lines, as in gold v1 50539000_05); B4 plate to the upper leg 7/10 of the joggled side flange; B5+B6 the joggle (Z step: upper leg 7/10 -> step 13/19 ~8 mm -> lower leg 11/12) = 2 bends, matching drawing Section A-A. Legacy catalog count 4 omitted the 2 joggle bends. Not bends: thin arc/facet strips 14/15/16/17/20, end/thickness faces 18, hole walls, the tab cutout and perimeter edges.",
+ "bends": [
+  {
+   "patches": [
+    1,
+    3
+   ],
+   "note": "base plate to front side flange (~90 deg; outer skins 1 and 3); auto extent matches flange 3/4 ends",
+   "confidence": "auto"
+  },
+  {
+   "patches": [
+    1,
+    6
+   ],
+   "note": "base plate to back-left tab (~90 deg; outer skins 1 and 6). Extent set to the tab's real ends (auto stopped ~15 mm short at the corner end; sections at t -116.5..-105 show the full fold arc)",
+   "confidence": "auto",
+   "extent_t": [
+    -117.0,
+    -10.3
+   ]
+  },
+  {
+   "patches": [
+    1,
+    9
+   ],
+   "note": "base plate to back-right tab (~90 deg; outer skins 1 and 9); auto extent matches tab 8/9 ends",
+   "confidence": "auto"
+  },
+  {
+   "patches": [
+    1,
+    7
+   ],
+   "note": "base plate to upper leg of the joggled side flange (~88.5 deg; outer skins 1 and 7). Extent set to flange 7 end (auto stopped ~13 mm short; sections at t 95..105 show the full fold arc)",
+   "confidence": "auto",
+   "extent_t": [
+    -96.1,
+    105.3
+   ]
+  },
+  {
+   "patches": [
+    7,
+    13
+   ],
+   "note": "joggle bend 1: upper leg 7/10 to step 13 (~90 deg; outer skins 7 and 13 underside)",
+   "confidence": "auto"
+  },
+  {
+   "patches": [
+    {
+     "plane_from_points": {
+      "seed_xyz": [
+       -387.8154,
+       -155.3335,
+       276.5338
+      ],
+      "radius_mm": 5.0
+     }
+    },
+    12
+   ],
+   "note": "joggle bend 2: step to lower leg 11/12 (~88.7 deg). Outer skins are the step's top face (scanned only at its end as patch 19, used via plane_from_points; parallel to 13 within 1.1 deg, offset 2.0 mm = t) and lower-leg face 12. Line direction within 0.13 deg of B5. Extent set to the lower leg's ends (t -90.5..98). Outer arc scanned on the wall side up to the apex; apex offset 1.71 vs expected 1.69 mm",
+   "confidence": "auto",
+   "extent_t": [
+    -90.5,
+    98.0
+   ]
+  }
+ ]
+}

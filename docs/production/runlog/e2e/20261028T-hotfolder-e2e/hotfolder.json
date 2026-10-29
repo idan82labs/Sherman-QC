@@ -1,0 +1,1785 @@
+{
+ "cases": {
+  "H3_ambiguous": {
+   "id": "H3_ambiguous",
+   "file_name": "10839000_01 23553000 FULL_SCAN 1.ply",
+   "sha256": "633445fd683876f7544e98f086799ce433df58ed5df2af98f4a8f4cbe4869f5a",
+   "dropped_at": "2026-10-27T23:43:34.081Z",
+   "held_after_s": 4,
+   "scan": {
+    "scan_file_id": "scan_633445fd683876f7544e98f0",
+    "original_name": "10839000_01 23553000 FULL_SCAN 1.ply",
+    "ingest_state": "enqueued",
+    "quarantine_reason": "AMBIGUOUS_SKU",
+    "resolution": "assigned",
+    "stored_rel_path": "archive/scans/2026/10/633445fd683876f7544e98f086799ce433df58ed5df2af98f4a8f4cbe4869f5a.ply",
+    "stored_exists": true,
+    "match": {
+     "reason": "OPERATOR_ASSIGNED",
+     "recipe_id": "10839000@v1",
+     "recipe_sha256": "c66122e9bc9b89a592690d9f1078d1217e33a8dfa3888f4e84fba7cef5693334",
+     "recipe_version": 1,
+     "status": "MATCHED"
+    },
+    "declared_stage": null,
+    "jobs": [
+     {
+      "job_id": "line_ef2fd8ba18094cf487c4200b18e0927a",
+      "execution_status": "completed",
+      "attempts": 2,
+      "failure_code": null,
+      "created_at": "2026-10-27T23:45:43.168Z",
+      "started_at": "2026-10-27T23:45:47.124Z",
+      "finished_at": "2026-10-27T23:47:13.364Z",
+      "result_summary": {
+       "bends_total": 12,
+       "inspection_validity": "VALID",
+       "required_fail": 4,
+       "required_review": 23,
+       "required_unknown": 4,
+       "stage_status": "CONSISTENT",
+       "summary_state": "OUT_OF_TOLERANCE_FOUND"
+      },
+      "declared_stage": null
+     }
+    ],
+    "events": [
+     {
+      "id": 54,
+      "ts": "2026-10-27T23:43:37.774Z",
+      "kind": "SCAN_RECEIVED",
+      "job_id": null,
+      "principal": null,
+      "payload": {
+       "format": "PLY_BINARY_LE",
+       "original_name": "10839000_01 23553000 FULL_SCAN 1.ply",
+       "size_bytes": 42835012
+      }
+     },
+     {
+      "id": 55,
+      "ts": "2026-10-27T23:43:37.775Z",
+      "kind": "SCAN_QUARANTINED",
+      "job_id": null,
+      "principal": null,
+      "payload": {
+       "original_name": "10839000_01 23553000 FULL_SCAN 1.ply",
+       "reason": "AMBIGUOUS_SKU"
+      }
+     },
+     {
+      "id": 69,
+      "ts": "2026-10-27T23:45:43.168Z",
+      "kind": "JOB_QUEUED",
+      "job_id": "line_ef2fd8ba18094cf487c4200b18e0927a",
+      "principal": {
+       "id": "2",
+       "kind": "user",
+       "role": "admin"
+      },
+      "payload": {
+       "kind": "inspect",
+       "priority": 100,
+       "recipe_id": "10839000@v1",
+       "retry_of": null
+      }
+     },
+     {
+      "id": 70,
+      "ts": "2026-10-27T23:45:43.168Z",
+      "kind": "QUARANTINE_ASSIGNED",
+      "job_id": "line_ef2fd8ba18094cf487c4200b18e0927a",
+      "principal": {
+       "id": "2",
+       "kind": "user",
+       "role": "admin"
+      },
+      "payload": {
+       "assigned_at": "2026-10-27T23:45:43.168Z",
+       "compiled_part_sha256": "afca89962d312f0ce50b60c50e955ab121bfd1643bab837d96d15140cc901106",
+       "declared_stage": null,
+       "from_detail": "MULTIPLE_KNOWN_SKUS: 10839000, 23553000",
+       "from_outcome": "AMBIGUOUS",
+       "job_created": true,
+       "operator_name": "e2e-admin",
+       "original_name": "10839000_01 23553000 FULL_SCAN 1.ply",
+       "previous_reason": "AMBIGUOUS_SKU",
+       "recipe_id": "10839000@v1",
+       "recipe_sha256": "c66122e9bc9b89a592690d9f1078d1217e33a8dfa3888f4e84fba7cef5693334",
+       "recipe_version": 1,
+       "sku": "10839000"
+      }
+     },
+     {
+      "id": 77,
+      "ts": "2026-10-27T23:45:44.029Z",
+      "kind": "JOB_STARTED",
+      "job_id": "line_ef2fd8ba18094cf487c4200b18e0927a",
+      "principal": null,
+      "payload": {
+       "attempt": 1,
+       "max_attempts": 2,
+       "owner": "runner@Mac@Mac.bbrouter:65105"
+      }
+     },
+     {
+      "id": 79,
+      "ts": "2026-10-27T23:45:47.123Z",
+      "kind": "JOB_RECOVERED",
+      "job_id": "line_ef2fd8ba18094cf487c4200b18e0927a",
+      "principal": null,
+      "payload": {
+       "action": "requeued",
+       "attempts": 1,
+       "max_attempts": 2,
+       "previous_owner": "runner@Mac@Mac.bbrouter:65105",
+       "stage": "engine"
+      }
+     },
+     {
+      "id": 80,
+      "ts": "2026-10-27T23:45:47.125Z",
+      "kind": "JOB_STARTED",
+      "job_id": "line_ef2fd8ba18094cf487c4200b18e0927a",
+      "principal": null,
+      "payload": {
+       "attempt": 2,
+       "max_attempts": 2,
+       "owner": "runner@Mac@Mac.bbrouter:69437"
+      }
+     },
+     {
+      "id": 105,
+      "ts": "2026-10-27T23:47:13.364Z",
+      "kind": "JOB_COMPLETED",
+      "job_id": "line_ef2fd8ba18094cf487c4200b18e0927a",
+      "principal": null,
+      "payload": {
+       "duration_s": 86.237,
+       "inspection_validity": "VALID",
+       "kind": "inspect",
+       "summary_state": "OUT_OF_TOLERANCE_FOUND"
+      }
+     }
+    ]
+   },
+   "ui_text": "10839000_01 23553000 FULL_SCAN 1.ply File name matches several parts · 01:43",
+   "assigned": true,
+   "job_id": "line_ef2fd8ba18094cf487c4200b18e0927a",
+   "result": {
+    "validity": "VALID",
+    "reasons": [],
+    "summary": "OUT_OF_TOLERANCE_FOUND",
+    "stage": "CONSISTENT",
+    "declared": null,
+    "inferred": 12
+   },
+   "overlay_status": 200,
+   "overlay_effective": "OUT_OF_TOLERANCE_FOUND",
+   "ui": {
+    "verdict": "FIX",
+    "state": "OUT_OF_TOLERANCE_FOUND",
+    "text": "FIX 4 to fix 8 to check Out of tolerance found"
+   }
+  },
+  "H4a_revision": {
+   "id": "H4a_revision",
+   "file_name": "10839000_02_FULL_SCAN 1.ply",
+   "sha256": "141c200d1bf0b45d073f15911d12b0e9c2815a29d4e415c0bceded3fe53c1297",
+   "dropped_at": "2026-10-27T23:43:34.108Z",
+   "held_after_s": 4,
+   "scan": {
+    "scan_file_id": "scan_141c200d1bf0b45d073f1591",
+    "original_name": "10839000_02_FULL_SCAN 1.ply",
+    "ingest_state": "quarantined",
+    "quarantine_reason": "REVISION_MISMATCH",
+    "resolution": null,
+    "stored_rel_path": "archive/scans/2026/10/141c200d1bf0b45d073f15911d12b0e9c2815a29d4e415c0bceded3fe53c1297.ply",
+    "stored_exists": true,
+    "match": {
+     "reason": "name revision '02' != recipe revision '01'",
+     "recipe_id": null,
+     "recipe_sha256": null,
+     "recipe_version": null,
+     "status": "REVISION_MISMATCH"
+    },
+    "declared_stage": null,
+    "jobs": [],
+    "events": [
+     {
+      "id": 59,
+      "ts": "2026-10-27T23:43:37.862Z",
+      "kind": "SCAN_RECEIVED",
+      "job_id": null,
+      "principal": null,
+      "payload": {
+       "format": "PLY_BINARY_LE",
+       "original_name": "10839000_02_FULL_SCAN 1.ply",
+       "size_bytes": 42835011
+      }
+     },
+     {
+      "id": 60,
+      "ts": "2026-10-27T23:43:37.863Z",
+      "kind": "SCAN_QUARANTINED",
+      "job_id": null,
+      "principal": null,
+      "payload": {
+       "original_name": "10839000_02_FULL_SCAN 1.ply",
+       "reason": "REVISION_MISMATCH"
+      }
+     }
+    ]
+   },
+   "ui_text": "10839000_02_FULL_SCAN 1.ply Revision differs from the released recipe · 01:43",
+   "dismissed": 200
+  },
+  "H4b_not_released": {
+   "id": "H4b_not_released",
+   "file_name": "23553000_B_FULL_SCAN 1.ply",
+   "sha256": "227e848f53465af7eb5a4f9da3ecc7fbf5d44dd4053bb97e400f958cdf3847b4",
+   "dropped_at": "2026-10-27T23:43:34.134Z",
+   "held_after_s": 4,
+   "scan": {
+    "scan_file_id": "scan_227e848f53465af7eb5a4f9d",
+    "original_name": "23553000_B_FULL_SCAN 1.ply",
+    "ingest_state": "quarantined",
+    "quarantine_reason": "PART_NOT_READY",
+    "resolution": null,
+    "stored_rel_path": "archive/scans/2026/10/227e848f53465af7eb5a4f9da3ecc7fbf5d44dd4053bb97e400f958cdf3847b4.ply",
+    "stored_exists": true,
+    "match": {
+     "reason": "NO_ACTIVE_RECIPE",
+     "recipe_id": null,
+     "recipe_sha256": null,
+     "recipe_version": null,
+     "status": "PART_NOT_READY"
+    },
+    "declared_stage": null,
+    "jobs": [],
+    "events": [
+     {
+      "id": 61,
+      "ts": "2026-10-27T23:43:37.886Z",
+      "kind": "SCAN_RECEIVED",
+      "job_id": null,
+      "principal": null,
+      "payload": {
+       "format": "PLY_BINARY_LE",
+       "original_name": "23553000_B_FULL_SCAN 1.ply",
+       "size_bytes": 41757147
+      }
+     },
+     {
+      "id": 62,
+      "ts": "2026-10-27T23:43:37.887Z",
+      "kind": "SCAN_QUARANTINED",
+      "job_id": null,
+      "principal": null,
+      "payload": {
+       "original_name": "23553000_B_FULL_SCAN 1.ply",
+       "reason": "PART_NOT_READY"
+      }
+     }
+    ]
+   },
+   "ui_text": "23553000_B_FULL_SCAN 1.ply Part recipe not ready · 01:43",
+   "assign_attempt": "409 PART_NOT_READY",
+   "dismissed": 200
+  },
+  "H7_duplicate": {
+   "id": "H7_duplicate",
+   "file_name": "10839000_01_FULL_SCAN 1 (1).ply",
+   "sha256": "71cf0b216f43284e401c891091cd56c10321aa3eebccde204f8d206683999215",
+   "dropped_at": "2026-10-27T23:43:34.161Z",
+   "scan": {
+    "scan_file_id": "scan_71cf0b216f43284e401c8910",
+    "original_name": "10839000_01_FULL_SCAN 1.ply",
+    "ingest_state": "enqueued",
+    "quarantine_reason": null,
+    "resolution": null,
+    "stored_rel_path": "archive/scans/2026/10/71cf0b216f43284e401c891091cd56c10321aa3eebccde204f8d206683999215.ply",
+    "stored_exists": true,
+    "match": {
+     "reason": null,
+     "recipe_id": "10839000@v1",
+     "recipe_sha256": "c66122e9bc9b89a592690d9f1078d1217e33a8dfa3888f4e84fba7cef5693334",
+     "recipe_version": 1,
+     "status": "MATCHED"
+    },
+    "declared_stage": null,
+    "jobs": [
+     {
+      "job_id": "line_d8c3410296d241d9b6b7d21d8ccc6389",
+      "execution_status": "completed",
+      "attempts": 1,
+      "failure_code": null,
+      "created_at": "2026-10-27T23:31:30.665Z",
+      "started_at": "2026-10-27T23:31:31.563Z",
+      "finished_at": "2026-10-27T23:32:53.961Z",
+      "result_summary": {
+       "bends_total": 12,
+       "inspection_validity": "VALID",
+       "required_fail": 4,
+       "required_review": 23,
+       "required_unknown": 4,
+       "stage_status": "CONSISTENT",
+       "summary_state": "OUT_OF_TOLERANCE_FOUND"
+      },
+      "declared_stage": null
+     }
+    ],
+    "events": [
+     {
+      "id": 3,
+      "ts": "2026-10-27T23:31:30.663Z",
+      "kind": "SCAN_RECEIVED",
+      "job_id": null,
+      "principal": null,
+      "payload": {
+       "format": "PLY_BINARY_LE",
+       "original_name": "10839000_01_FULL_SCAN 1.ply",
+       "size_bytes": 42834991
+      }
+     },
+     {
+      "id": 4,
+      "ts": "2026-10-27T23:31:30.665Z",
+      "kind": "JOB_QUEUED",
+      "job_id": "line_d8c3410296d241d9b6b7d21d8ccc6389",
+      "principal": null,
+      "payload": {
+       "kind": "inspect",
+       "priority": 100,
+       "recipe_id": "10839000@v1",
+       "retry_of": null
+      }
+     },
+     {
+      "id": 5,
+      "ts": "2026-10-27T23:31:31.565Z",
+      "kind": "JOB_STARTED",
+      "job_id": "line_d8c3410296d241d9b6b7d21d8ccc6389",
+      "principal": null,
+      "payload": {
+       "attempt": 1,
+       "max_attempts": 2,
+       "owner": "runner@Mac@Mac.bbrouter:65105"
+      }
+     },
+     {
+      "id": 13,
+      "ts": "2026-10-27T23:32:53.961Z",
+      "kind": "JOB_COMPLETED",
+      "job_id": "line_d8c3410296d241d9b6b7d21d8ccc6389",
+      "principal": null,
+      "payload": {
+       "duration_s": 82.392,
+       "inspection_validity": "VALID",
+       "kind": "inspect",
+       "summary_state": "OUT_OF_TOLERANCE_FOUND"
+      }
+     },
+     {
+      "id": 56,
+      "ts": "2026-10-27T23:43:37.799Z",
+      "kind": "SCAN_DUPLICATE",
+      "job_id": null,
+      "principal": null,
+      "payload": {
+       "existing_job_id": "line_d8c3410296d241d9b6b7d21d8ccc6389",
+       "existing_original_name": "10839000_01_FULL_SCAN 1.ply",
+       "existing_state": "enqueued",
+       "original_name": "10839000_01_FULL_SCAN 1 (1).ply"
+      }
+     }
+    ]
+   }
+  },
+  "H8_truncated": {
+   "id": "H8_truncated",
+   "file_name": "10839000_01_FULL_SCAN 4.ply",
+   "sha256": "3c54132924beb82e6f2aa0969af21c3d522bfcb692fc0c77c294cb7a697278ae",
+   "dropped_at": "2026-10-27T23:43:34.178Z",
+   "held_after_s": 62,
+   "scan": {
+    "scan_file_id": "scan_3c54132924beb82e6f2aa096",
+    "original_name": "10839000_01_FULL_SCAN 4.ply",
+    "ingest_state": "quarantined",
+    "quarantine_reason": "PLY_TRUNCATED",
+    "resolution": null,
+    "stored_rel_path": "quarantine/2026-10-27/3c54132924beb82e6f2aa0969af21c3d522bfcb692fc0c77c294cb7a697278ae.ply",
+    "stored_exists": true,
+    "match": {
+     "reason": null,
+     "recipe_id": "10839000@v1",
+     "recipe_sha256": "c66122e9bc9b89a592690d9f1078d1217e33a8dfa3888f4e84fba7cef5693334",
+     "recipe_version": 1,
+     "status": "MATCHED"
+    },
+    "declared_stage": null,
+    "jobs": [],
+    "events": [
+     {
+      "id": 63,
+      "ts": "2026-10-27T23:44:35.306Z",
+      "kind": "SCAN_RECEIVED",
+      "job_id": null,
+      "principal": null,
+      "payload": {
+       "format": null,
+       "original_name": "10839000_01_FULL_SCAN 4.ply",
+       "size_bytes": 25700994
+      }
+     },
+     {
+      "id": 64,
+      "ts": "2026-10-27T23:44:35.306Z",
+      "kind": "SCAN_QUARANTINED",
+      "job_id": null,
+      "principal": null,
+      "payload": {
+       "original_name": "10839000_01_FULL_SCAN 4.ply",
+       "reason": "PLY_TRUNCATED"
+      }
+     }
+    ]
+   },
+   "ui_text": "10839000_01_FULL_SCAN 4.ply Scan file is incomplete · 01:44",
+   "assign_attempt": "409 NOT_RESOLVABLE",
+   "dismissed": 200
+  },
+  "H9_not_ply": {
+   "id": "H9_not_ply",
+   "file_name": "10839000_01_FULL_SCAN 5.ply",
+   "sha256": "751b12476c3bfef226f48b95b72736a2de8fb985efd79b71dbec476a950278ac",
+   "dropped_at": "2026-10-27T23:43:34.178Z",
+   "held_after_s": 62,
+   "scan": {
+    "scan_file_id": "scan_751b12476c3bfef226f48b95",
+    "original_name": "10839000_01_FULL_SCAN 5.ply",
+    "ingest_state": "quarantined",
+    "quarantine_reason": "UNSUPPORTED_FORMAT",
+    "resolution": null,
+    "stored_rel_path": "quarantine/2026-10-27/751b12476c3bfef226f48b95b72736a2de8fb985efd79b71dbec476a950278ac.ply",
+    "stored_exists": true,
+    "match": {
+     "reason": null,
+     "recipe_id": "10839000@v1",
+     "recipe_sha256": "c66122e9bc9b89a592690d9f1078d1217e33a8dfa3888f4e84fba7cef5693334",
+     "recipe_version": 1,
+     "status": "MATCHED"
+    },
+    "declared_stage": null,
+    "jobs": [],
+    "events": [
+     {
+      "id": 65,
+      "ts": "2026-10-27T23:44:35.308Z",
+      "kind": "SCAN_RECEIVED",
+      "job_id": null,
+      "principal": null,
+      "payload": {
+       "format": null,
+       "original_name": "10839000_01_FULL_SCAN 5.ply",
+       "size_bytes": 8203
+      }
+     },
+     {
+      "id": 66,
+      "ts": "2026-10-27T23:44:35.308Z",
+      "kind": "SCAN_QUARANTINED",
+      "job_id": null,
+      "principal": null,
+      "payload": {
+       "original_name": "10839000_01_FULL_SCAN 5.ply",
+       "reason": "UNSUPPORTED_FORMAT"
+      }
+     }
+    ]
+   },
+   "ui_text": "10839000_01_FULL_SCAN 5.ply Unsupported scan format · 01:44",
+   "dismissed": 200
+  },
+  "H8_zero_byte": {
+   "id": "H8_zero_byte",
+   "file_name": "10839000_01_FULL_SCAN 6.ply",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "held_after_s": 121,
+   "scan": {
+    "scan_file_id": "scan_e3b0c44298fc1c149afbf4c8",
+    "original_name": "10839000_01_FULL_SCAN 6.ply",
+    "ingest_state": "quarantined",
+    "quarantine_reason": "EMPTY_SCAN",
+    "resolution": null,
+    "stored_rel_path": "quarantine/2026-10-27/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855.ply",
+    "stored_exists": true,
+    "match": {
+     "reason": null,
+     "recipe_id": "10839000@v1",
+     "recipe_sha256": "c66122e9bc9b89a592690d9f1078d1217e33a8dfa3888f4e84fba7cef5693334",
+     "recipe_version": 1,
+     "status": "MATCHED"
+    },
+    "declared_stage": null,
+    "jobs": [],
+    "events": [
+     {
+      "id": 67,
+      "ts": "2026-10-27T23:45:34.784Z",
+      "kind": "SCAN_RECEIVED",
+      "job_id": null,
+      "principal": null,
+      "payload": {
+       "format": null,
+       "original_name": "10839000_01_FULL_SCAN 6.ply",
+       "size_bytes": 0
+      }
+     },
+     {
+      "id": 68,
+      "ts": "2026-10-27T23:45:34.784Z",
+      "kind": "SCAN_QUARANTINED",
+      "job_id": null,
+      "principal": null,
+      "payload": {
+       "original_name": "10839000_01_FULL_SCAN 6.ply",
+       "reason": "EMPTY_SCAN"
+      }
+     }
+    ]
+   },
+   "ui_text": "10839000_01_FULL_SCAN 6.ply Scan file is empty · 01:45",
+   "dismissed": 200
+  },
+  "H9_foreign_txt": {
+   "id": "H9_foreign_txt",
+   "file_name": "10839000_01_FULL_SCAN 1.txt",
+   "left_untouched": true
+  },
+  "H9_sidecar_mismatch": {
+   "id": "H9_sidecar_mismatch",
+   "file_name": "10839000_01_SCAN_1 8.ply",
+   "sha256": "aa79d0d91f416464719b81420cd241c989773232e0de7e30d5827c4654ebfb63",
+   "held_after_s": 62,
+   "scan": {
+    "scan_file_id": "scan_aa79d0d91f416464719b8142",
+    "original_name": "10839000_01_SCAN_1 8.ply",
+    "ingest_state": "quarantined",
+    "quarantine_reason": "SIDECAR_INVALID",
+    "resolution": null,
+    "stored_rel_path": "quarantine/2026-10-27/aa79d0d91f416464719b81420cd241c989773232e0de7e30d5827c4654ebfb63.ply",
+    "stored_exists": true,
+    "match": {
+     "reason": null,
+     "recipe_id": "10839000@v1",
+     "recipe_sha256": "c66122e9bc9b89a592690d9f1078d1217e33a8dfa3888f4e84fba7cef5693334",
+     "recipe_version": 1,
+     "status": "MATCHED"
+    },
+    "declared_stage": null,
+    "jobs": [],
+    "events": [
+     {
+      "id": 57,
+      "ts": "2026-10-27T23:43:37.838Z",
+      "kind": "SCAN_RECEIVED",
+      "job_id": null,
+      "principal": null,
+      "payload": {
+       "format": "PLY_BINARY_LE",
+       "original_name": "10839000_01_SCAN_1 8.ply",
+       "size_bytes": 41757146
+      }
+     },
+     {
+      "id": 58,
+      "ts": "2026-10-27T23:43:37.838Z",
+      "kind": "SCAN_QUARANTINED",
+      "job_id": null,
+      "principal": null,
+      "payload": {
+       "original_name": "10839000_01_SCAN_1 8.ply",
+       "reason": "SIDECAR_INVALID"
+      }
+     }
+    ]
+   },
+   "ui_text": "10839000_01_SCAN_1 8.ply Scan sidecar file is invalid · 01:43",
+   "assign_attempt": "409 NOT_RESOLVABLE",
+   "dismissed": 200
+  },
+  "H5_wrong_part": {
+   "id": "H5_wrong_part",
+   "file_name": "10839000_01_FULL_SCAN 11.ply",
+   "sha256": "7d42cb7385807b8c9308017ac84d8b4184efe94f75a23778f646f53fb9e84240",
+   "scan": {
+    "scan_file_id": "scan_7d42cb7385807b8c9308017a",
+    "original_name": "10839000_01_FULL_SCAN 11.ply",
+    "ingest_state": "enqueued",
+    "quarantine_reason": null,
+    "resolution": null,
+    "stored_rel_path": "archive/scans/2026/10/7d42cb7385807b8c9308017ac84d8b4184efe94f75a23778f646f53fb9e84240.ply",
+    "stored_exists": true,
+    "match": {
+     "reason": null,
+     "recipe_id": "10839000@v1",
+     "recipe_sha256": "c66122e9bc9b89a592690d9f1078d1217e33a8dfa3888f4e84fba7cef5693334",
+     "recipe_version": 1,
+     "status": "MATCHED"
+    },
+    "declared_stage": null,
+    "jobs": [
+     {
+      "job_id": "line_951c4085cfd64168908bbe41f2880bd5",
+      "execution_status": "completed",
+      "attempts": 1,
+      "failure_code": null,
+      "created_at": "2026-10-27T23:45:50.183Z",
+      "started_at": "2026-10-27T23:48:40.037Z",
+      "finished_at": "2026-10-27T23:49:03.466Z",
+      "result_summary": {
+       "bends_total": 12,
+       "inspection_validity": "UNTRUSTED_REGISTRATION",
+       "required_fail": 0,
+       "required_review": 0,
+       "required_unknown": 48,
+       "stage_status": "NOT_EVALUATED",
+       "summary_state": "INVALID_INSPECTION"
+      },
+      "declared_stage": null
+     }
+    ],
+    "events": [
+     {
+      "id": 84,
+      "ts": "2026-10-27T23:45:50.182Z",
+      "kind": "SCAN_RECEIVED",
+      "job_id": null,
+      "principal": null,
+      "payload": {
+       "format": "PLY_BINARY_LE",
+       "original_name": "10839000_01_FULL_SCAN 11.ply",
+       "size_bytes": 4803113
+      }
+     },
+     {
+      "id": 85,
+      "ts": "2026-10-27T23:45:50.183Z",
+      "kind": "JOB_QUEUED",
+      "job_id": "line_951c4085cfd64168908bbe41f2880bd5",
+      "principal": null,
+      "payload": {
+       "kind": "inspect",
+       "priority": 100,
+       "recipe_id": "10839000@v1",
+       "retry_of": null
+      }
+     },
+     {
+      "id": 116,
+      "ts": "2026-10-27T23:48:40.037Z",
+      "kind": "JOB_STARTED",
+      "job_id": "line_951c4085cfd64168908bbe41f2880bd5",
+      "principal": null,
+      "payload": {
+       "attempt": 1,
+       "max_attempts": 2,
+       "owner": "runner@Mac@Mac.bbrouter:69437"
+      }
+     },
+     {
+      "id": 120,
+      "ts": "2026-10-27T23:49:03.466Z",
+      "kind": "JOB_COMPLETED",
+      "job_id": "line_951c4085cfd64168908bbe41f2880bd5",
+      "principal": null,
+      "payload": {
+       "duration_s": 23.428,
+       "inspection_validity": "UNTRUSTED_REGISTRATION",
+       "kind": "inspect",
+       "summary_state": "INVALID_INSPECTION"
+      }
+     }
+    ]
+   },
+   "verdict": {
+    "bends_total": 12,
+    "inspection_validity": "UNTRUSTED_REGISTRATION",
+    "required_fail": 0,
+    "required_review": 0,
+    "required_unknown": 48,
+    "stage_status": "NOT_EVALUATED",
+    "summary_state": "INVALID_INSPECTION"
+   },
+   "job_id": "line_951c4085cfd64168908bbe41f2880bd5",
+   "result": {
+    "validity": "UNTRUSTED_REGISTRATION",
+    "reasons": [
+     "NO_DATUM_PLANE_MATCHED"
+    ],
+    "summary": "INVALID_INSPECTION",
+    "stage": "NOT_EVALUATED",
+    "declared": null,
+    "inferred": null
+   },
+   "overlay_status": 200,
+   "overlay_effective": "INVALID_INSPECTION",
+   "ui": {
+    "verdict": "RESCAN",
+    "state": "INVALID_INSPECTION",
+    "text": "Rescan 12 not measured Invalid inspection Scan could not be aligned to the CAD"
+   }
+  },
+  "H6_mirrored": {
+   "id": "H6_mirrored",
+   "file_name": "10839000_01_FULL_SCAN 12.ply",
+   "sha256": "b5804be833bb9842c43b5cd9417e2ddf0e5a358be8761e1c331ff921356c7dd1",
+   "scan": {
+    "scan_file_id": "scan_b5804be833bb9842c43b5cd9",
+    "original_name": "10839000_01_FULL_SCAN 12.ply",
+    "ingest_state": "enqueued",
+    "quarantine_reason": null,
+    "resolution": null,
+    "stored_rel_path": "archive/scans/2026/10/b5804be833bb9842c43b5cd9417e2ddf0e5a358be8761e1c331ff921356c7dd1.ply",
+    "stored_exists": true,
+    "match": {
+     "reason": null,
+     "recipe_id": "10839000@v1",
+     "recipe_sha256": "c66122e9bc9b89a592690d9f1078d1217e33a8dfa3888f4e84fba7cef5693334",
+     "recipe_version": 1,
+     "status": "MATCHED"
+    },
+    "declared_stage": null,
+    "jobs": [
+     {
+      "job_id": "line_aee0dba4092b4cd18796af21fce7540f",
+      "execution_status": "completed",
+      "attempts": 1,
+      "failure_code": null,
+      "created_at": "2026-10-27T23:45:50.208Z",
+      "started_at": "2026-10-27T23:49:03.468Z",
+      "finished_at": "2026-10-27T23:50:35.763Z",
+      "result_summary": {
+       "bends_total": 12,
+       "inspection_validity": "VALID",
+       "required_fail": 4,
+       "required_review": 22,
+       "required_unknown": 4,
+       "stage_status": "CONSISTENT",
+       "summary_state": "OUT_OF_TOLERANCE_FOUND"
+      },
+      "declared_stage": null
+     }
+    ],
+    "events": [
+     {
+      "id": 86,
+      "ts": "2026-10-27T23:45:50.207Z",
+      "kind": "SCAN_RECEIVED",
+      "job_id": null,
+      "principal": null,
+      "payload": {
+       "format": "PLY_BINARY_LE",
+       "original_name": "10839000_01_FULL_SCAN 12.ply",
+       "size_bytes": 42835032
+      }
+     },
+     {
+      "id": 87,
+      "ts": "2026-10-27T23:45:50.208Z",
+      "kind": "JOB_QUEUED",
+      "job_id": "line_aee0dba4092b4cd18796af21fce7540f",
+      "principal": null,
+      "payload": {
+       "kind": "inspect",
+       "priority": 100,
+       "recipe_id": "10839000@v1",
+       "retry_of": null
+      }
+     },
+     {
+      "id": 121,
+      "ts": "2026-10-27T23:49:03.468Z",
+      "kind": "JOB_STARTED",
+      "job_id": "line_aee0dba4092b4cd18796af21fce7540f",
+      "principal": null,
+      "payload": {
+       "attempt": 1,
+       "max_attempts": 2,
+       "owner": "runner@Mac@Mac.bbrouter:69437"
+      }
+     },
+     {
+      "id": 130,
+      "ts": "2026-10-27T23:50:35.763Z",
+      "kind": "JOB_COMPLETED",
+      "job_id": "line_aee0dba4092b4cd18796af21fce7540f",
+      "principal": null,
+      "payload": {
+       "duration_s": 92.292,
+       "inspection_validity": "VALID",
+       "kind": "inspect",
+       "summary_state": "OUT_OF_TOLERANCE_FOUND"
+      }
+     }
+    ]
+   },
+   "verdict": {
+    "bends_total": 12,
+    "inspection_validity": "VALID",
+    "required_fail": 4,
+    "required_review": 22,
+    "required_unknown": 4,
+    "stage_status": "CONSISTENT",
+    "summary_state": "OUT_OF_TOLERANCE_FOUND"
+   },
+   "job_id": "line_aee0dba4092b4cd18796af21fce7540f",
+   "result": {
+    "validity": "VALID",
+    "reasons": [],
+    "summary": "OUT_OF_TOLERANCE_FOUND",
+    "stage": "CONSISTENT",
+    "declared": null,
+    "inferred": 12
+   },
+   "overlay_status": 200,
+   "overlay_effective": "OUT_OF_TOLERANCE_FOUND",
+   "ui": {
+    "verdict": "FIX",
+    "state": "OUT_OF_TOLERANCE_FOUND",
+    "text": "FIX 3 to fix 9 to check Out of tolerance found"
+   }
+  },
+  "H10_density": {
+   "id": "H10_density",
+   "file_name": "10839000_01_FULL_SCAN 13.ply",
+   "sha256": "453b22a1ff0bc2f8a23835ad7bc51000ad2143d03d8ae00206891709ca125305",
+   "scan": {
+    "scan_file_id": "scan_453b22a1ff0bc2f8a23835ad",
+    "original_name": "10839000_01_FULL_SCAN 13.ply",
+    "ingest_state": "enqueued",
+    "quarantine_reason": null,
+    "resolution": null,
+    "stored_rel_path": "archive/scans/2026/10/453b22a1ff0bc2f8a23835ad7bc51000ad2143d03d8ae00206891709ca125305.ply",
+    "stored_exists": true,
+    "match": {
+     "reason": null,
+     "recipe_id": "10839000@v1",
+     "recipe_sha256": "c66122e9bc9b89a592690d9f1078d1217e33a8dfa3888f4e84fba7cef5693334",
+     "recipe_version": 1,
+     "status": "MATCHED"
+    },
+    "declared_stage": null,
+    "jobs": [
+     {
+      "job_id": "line_d68920caea1a4dd0b10ac9840d57152d",
+      "execution_status": "completed",
+      "attempts": 1,
+      "failure_code": null,
+      "created_at": "2026-10-27T23:45:50.258Z",
+      "started_at": "2026-10-27T23:50:35.766Z",
+      "finished_at": "2026-10-27T23:51:36.382Z",
+      "result_summary": {
+       "bends_total": 12,
+       "inspection_validity": "UNSUPPORTED_INPUT",
+       "required_fail": 0,
+       "required_review": 0,
+       "required_unknown": 48,
+       "stage_status": "NOT_EVALUATED",
+       "summary_state": "INVALID_INSPECTION"
+      },
+      "declared_stage": null
+     }
+    ],
+    "events": [
+     {
+      "id": 88,
+      "ts": "2026-10-27T23:45:50.257Z",
+      "kind": "SCAN_RECEIVED",
+      "job_id": null,
+      "principal": null,
+      "payload": {
+       "format": "PLY_BINARY_LE",
+       "original_name": "10839000_01_FULL_SCAN 13.ply",
+       "size_bytes": 82859292
+      }
+     },
+     {
+      "id": 89,
+      "ts": "2026-10-27T23:45:50.258Z",
+      "kind": "JOB_QUEUED",
+      "job_id": "line_d68920caea1a4dd0b10ac9840d57152d",
+      "principal": null,
+      "payload": {
+       "kind": "inspect",
+       "priority": 100,
+       "recipe_id": "10839000@v1",
+       "retry_of": null
+      }
+     },
+     {
+      "id": 131,
+      "ts": "2026-10-27T23:50:35.766Z",
+      "kind": "JOB_STARTED",
+      "job_id": "line_d68920caea1a4dd0b10ac9840d57152d",
+      "principal": null,
+      "payload": {
+       "attempt": 1,
+       "max_attempts": 2,
+       "owner": "runner@Mac@Mac.bbrouter:69437"
+      }
+     },
+     {
+      "id": 135,
+      "ts": "2026-10-27T23:51:36.382Z",
+      "kind": "JOB_COMPLETED",
+      "job_id": "line_d68920caea1a4dd0b10ac9840d57152d",
+      "principal": null,
+      "payload": {
+       "duration_s": 60.613,
+       "inspection_validity": "UNSUPPORTED_INPUT",
+       "kind": "inspect",
+       "summary_state": "INVALID_INSPECTION"
+      }
+     }
+    ]
+   },
+   "verdict": {
+    "bends_total": 12,
+    "inspection_validity": "UNSUPPORTED_INPUT",
+    "required_fail": 0,
+    "required_review": 0,
+    "required_unknown": 48,
+    "stage_status": "NOT_EVALUATED",
+    "summary_state": "INVALID_INSPECTION"
+   },
+   "job_id": "line_d68920caea1a4dd0b10ac9840d57152d",
+   "result": {
+    "validity": "UNSUPPORTED_INPUT",
+    "reasons": [
+     "DENSITY_ABOVE_VALIDATED_RANGE:points=3452460>3000000"
+    ],
+    "summary": "INVALID_INSPECTION",
+    "stage": "NOT_EVALUATED",
+    "declared": null,
+    "inferred": null
+   },
+   "overlay_status": 200,
+   "overlay_effective": "INVALID_INSPECTION",
+   "ui": {
+    "verdict": "RESCAN",
+    "state": "INVALID_INSPECTION",
+    "text": "Rescan 12 not measured Invalid inspection Scan file not supported"
+   }
+  },
+  "H11_before_bending": {
+   "id": "H11_before_bending",
+   "file_name": "BEFORE BENDING  10839000_01.ply",
+   "sha256": "165a8cf72062f04fd286d11a905ac8e9e91e98d50fd9e8cc74e5df8d3d91c924",
+   "scan": {
+    "scan_file_id": "scan_165a8cf72062f04fd286d11a",
+    "original_name": "BEFORE BENDING  10839000_01.ply",
+    "ingest_state": "enqueued",
+    "quarantine_reason": null,
+    "resolution": null,
+    "stored_rel_path": "archive/scans/2026/10/165a8cf72062f04fd286d11a905ac8e9e91e98d50fd9e8cc74e5df8d3d91c924.ply",
+    "stored_exists": true,
+    "match": {
+     "reason": null,
+     "recipe_id": "10839000@v1",
+     "recipe_sha256": "c66122e9bc9b89a592690d9f1078d1217e33a8dfa3888f4e84fba7cef5693334",
+     "recipe_version": 1,
+     "status": "MATCHED"
+    },
+    "declared_stage": null,
+    "jobs": [
+     {
+      "job_id": "line_a1df36d1a32d4de28c9bbe2c882a34f9",
+      "execution_status": "completed",
+      "attempts": 1,
+      "failure_code": null,
+      "created_at": "2026-10-27T23:45:50.309Z",
+      "started_at": "2026-10-27T23:53:05.474Z",
+      "finished_at": "2026-10-27T23:54:36.931Z",
+      "result_summary": {
+       "bends_total": 12,
+       "inspection_validity": "VALID",
+       "required_fail": 3,
+       "required_review": 12,
+       "required_unknown": 4,
+       "stage_status": "FINAL_INCOMPLETE",
+       "summary_state": "OUT_OF_TOLERANCE_FOUND"
+      },
+      "declared_stage": null
+     }
+    ],
+    "events": [
+     {
+      "id": 94,
+      "ts": "2026-10-27T23:45:50.308Z",
+      "kind": "SCAN_RECEIVED",
+      "job_id": null,
+      "principal": null,
+      "payload": {
+       "format": "PLY_BINARY_LE",
+       "original_name": "BEFORE BENDING  10839000_01.ply",
+       "size_bytes": 41757149
+      }
+     },
+     {
+      "id": 95,
+      "ts": "2026-10-27T23:45:50.309Z",
+      "kind": "JOB_QUEUED",
+      "job_id": "line_a1df36d1a32d4de28c9bbe2c882a34f9",
+      "principal": null,
+      "payload": {
+       "kind": "inspect",
+       "priority": 100,
+       "recipe_id": "10839000@v1",
+       "retry_of": null
+      }
+     },
+     {
+      "id": 150,
+      "ts": "2026-10-27T23:53:05.474Z",
+      "kind": "JOB_STARTED",
+      "job_id": "line_a1df36d1a32d4de28c9bbe2c882a34f9",
+      "principal": null,
+      "payload": {
+       "attempt": 1,
+       "max_attempts": 2,
+       "owner": "runner@Mac@Mac.bbrouter:69437"
+      }
+     },
+     {
+      "id": 158,
+      "ts": "2026-10-27T23:54:36.931Z",
+      "kind": "JOB_COMPLETED",
+      "job_id": "line_a1df36d1a32d4de28c9bbe2c882a34f9",
+      "principal": null,
+      "payload": {
+       "duration_s": 91.459,
+       "inspection_validity": "VALID",
+       "kind": "inspect",
+       "summary_state": "OUT_OF_TOLERANCE_FOUND"
+      }
+     }
+    ]
+   },
+   "job_id": "line_a1df36d1a32d4de28c9bbe2c882a34f9",
+   "result": {
+    "validity": "VALID",
+    "reasons": [],
+    "summary": "OUT_OF_TOLERANCE_FOUND",
+    "stage": "FINAL_INCOMPLETE",
+    "declared": null,
+    "inferred": 8
+   },
+   "overlay_status": 200,
+   "overlay_effective": "OUT_OF_TOLERANCE_FOUND",
+   "ui": {
+    "verdict": "FIX",
+    "state": "OUT_OF_TOLERANCE_FOUND",
+    "text": "FIX 2 to fix 5 to check Out of tolerance found"
+   }
+  },
+  "H14_hebrew_space": {
+   "id": "H14_hebrew_space",
+   "file_name": "10839000_01 סריקה מלאה 1.ply",
+   "sha256": "40c2ca770c202e4d5aba711f8d59cb9ec2cfb5d86d3cce0b9b78bf4b6562a8c0",
+   "scan": {
+    "scan_file_id": "scan_40c2ca770c202e4d5aba711f",
+    "original_name": "10839000_01 סריקה מלאה 1.ply",
+    "ingest_state": "enqueued",
+    "quarantine_reason": null,
+    "resolution": null,
+    "stored_rel_path": "archive/scans/2026/10/40c2ca770c202e4d5aba711f8d59cb9ec2cfb5d86d3cce0b9b78bf4b6562a8c0.ply",
+    "stored_exists": true,
+    "match": {
+     "reason": null,
+     "recipe_id": "10839000@v1",
+     "recipe_sha256": "c66122e9bc9b89a592690d9f1078d1217e33a8dfa3888f4e84fba7cef5693334",
+     "recipe_version": 1,
+     "status": "MATCHED"
+    },
+    "declared_stage": null,
+    "jobs": [
+     {
+      "job_id": "line_c20e6afa40514059bf62b09372b49343",
+      "execution_status": "completed",
+      "attempts": 1,
+      "failure_code": null,
+      "created_at": "2026-10-27T23:45:50.173Z",
+      "started_at": "2026-10-27T23:47:13.367Z",
+      "finished_at": "2026-10-27T23:48:40.034Z",
+      "result_summary": {
+       "bends_total": 12,
+       "inspection_validity": "VALID",
+       "required_fail": 4,
+       "required_review": 23,
+       "required_unknown": 4,
+       "stage_status": "CONSISTENT",
+       "summary_state": "OUT_OF_TOLERANCE_FOUND"
+      },
+      "declared_stage": null
+     }
+    ],
+    "events": [
+     {
+      "id": 82,
+      "ts": "2026-10-27T23:45:50.172Z",
+      "kind": "SCAN_RECEIVED",
+      "job_id": null,
+      "principal": null,
+      "payload": {
+       "format": "PLY_BINARY_LE",
+       "original_name": "10839000_01 סריקה מלאה 1.ply",
+       "size_bytes": 42835009
+      }
+     },
+     {
+      "id": 83,
+      "ts": "2026-10-27T23:45:50.173Z",
+      "kind": "JOB_QUEUED",
+      "job_id": "line_c20e6afa40514059bf62b09372b49343",
+      "principal": null,
+      "payload": {
+       "kind": "inspect",
+       "priority": 100,
+       "recipe_id": "10839000@v1",
+       "retry_of": null
+      }
+     },
+     {
+      "id": 106,
+      "ts": "2026-10-27T23:47:13.367Z",
+      "kind": "JOB_STARTED",
+      "job_id": "line_c20e6afa40514059bf62b09372b49343",
+      "principal": null,
+      "payload": {
+       "attempt": 1,
+       "max_attempts": 2,
+       "owner": "runner@Mac@Mac.bbrouter:69437"
+      }
+     },
+     {
+      "id": 115,
+      "ts": "2026-10-27T23:48:40.034Z",
+      "kind": "JOB_COMPLETED",
+      "job_id": "line_c20e6afa40514059bf62b09372b49343",
+      "principal": null,
+      "payload": {
+       "duration_s": 86.665,
+       "inspection_validity": "VALID",
+       "kind": "inspect",
+       "summary_state": "OUT_OF_TOLERANCE_FOUND"
+      }
+     }
+    ]
+   },
+   "job_id": "line_c20e6afa40514059bf62b09372b49343",
+   "result": {
+    "validity": "VALID",
+    "reasons": [],
+    "summary": "OUT_OF_TOLERANCE_FOUND",
+    "stage": "CONSISTENT",
+    "declared": null,
+    "inferred": 12
+   },
+   "overlay_status": 200,
+   "overlay_effective": "OUT_OF_TOLERANCE_FOUND",
+   "ui": {
+    "verdict": "FIX",
+    "state": "OUT_OF_TOLERANCE_FOUND",
+    "text": "FIX 4 to fix 8 to check Out of tolerance found"
+   }
+  },
+  "H9b_stl_named_ply": {
+   "id": "H9b_stl_named_ply",
+   "file_name": "10839000_01_FULL_SCAN 15.ply",
+   "sha256": "e63a52f77cddd4184dceaa9678c4da14b76146018f23298fca906689b059d26b",
+   "scan": {
+    "scan_file_id": "scan_e63a52f77cddd4184dceaa96",
+    "original_name": "10839000_01_FULL_SCAN 15.ply",
+    "ingest_state": "enqueued",
+    "quarantine_reason": null,
+    "resolution": null,
+    "stored_rel_path": "archive/scans/2026/10/e63a52f77cddd4184dceaa9678c4da14b76146018f23298fca906689b059d26b.stl",
+    "stored_exists": true,
+    "match": {
+     "reason": null,
+     "recipe_id": "10839000@v1",
+     "recipe_sha256": "c66122e9bc9b89a592690d9f1078d1217e33a8dfa3888f4e84fba7cef5693334",
+     "recipe_version": 1,
+     "status": "MATCHED"
+    },
+    "declared_stage": null,
+    "jobs": [
+     {
+      "job_id": "line_fd4209f72de24076bca4bf87e0f06e0c",
+      "execution_status": "completed",
+      "attempts": 1,
+      "failure_code": null,
+      "created_at": "2026-10-27T23:45:50.261Z",
+      "started_at": "2026-10-27T23:51:36.385Z",
+      "finished_at": "2026-10-27T23:51:39.645Z",
+      "result_summary": {
+       "bends_total": 12,
+       "inspection_validity": "INSUFFICIENT_CAPTURE",
+       "required_fail": 0,
+       "required_review": 0,
+       "required_unknown": 48,
+       "stage_status": "NOT_EVALUATED",
+       "summary_state": "INVALID_INSPECTION"
+      },
+      "declared_stage": null
+     }
+    ],
+    "events": [
+     {
+      "id": 90,
+      "ts": "2026-10-27T23:45:50.260Z",
+      "kind": "SCAN_RECEIVED",
+      "job_id": null,
+      "principal": null,
+      "payload": {
+       "format": "STL_ASCII",
+       "original_name": "10839000_01_FULL_SCAN 15.ply",
+       "size_bytes": 3860
+      }
+     },
+     {
+      "id": 91,
+      "ts": "2026-10-27T23:45:50.261Z",
+      "kind": "JOB_QUEUED",
+      "job_id": "line_fd4209f72de24076bca4bf87e0f06e0c",
+      "principal": null,
+      "payload": {
+       "kind": "inspect",
+       "priority": 100,
+       "recipe_id": "10839000@v1",
+       "retry_of": null
+      }
+     },
+     {
+      "id": 136,
+      "ts": "2026-10-27T23:51:36.385Z",
+      "kind": "JOB_STARTED",
+      "job_id": "line_fd4209f72de24076bca4bf87e0f06e0c",
+      "principal": null,
+      "payload": {
+       "attempt": 1,
+       "max_attempts": 2,
+       "owner": "runner@Mac@Mac.bbrouter:69437"
+      }
+     },
+     {
+      "id": 140,
+      "ts": "2026-10-27T23:51:39.645Z",
+      "kind": "JOB_COMPLETED",
+      "job_id": "line_fd4209f72de24076bca4bf87e0f06e0c",
+      "principal": null,
+      "payload": {
+       "duration_s": 3.259,
+       "inspection_validity": "INSUFFICIENT_CAPTURE",
+       "kind": "inspect",
+       "summary_state": "INVALID_INSPECTION"
+      }
+     }
+    ]
+   },
+   "verdict": {
+    "bends_total": 12,
+    "inspection_validity": "INSUFFICIENT_CAPTURE",
+    "required_fail": 0,
+    "required_review": 0,
+    "required_unknown": 48,
+    "stage_status": "NOT_EVALUATED",
+    "summary_state": "INVALID_INSPECTION"
+   },
+   "job_id": "line_fd4209f72de24076bca4bf87e0f06e0c",
+   "result": {
+    "validity": "INSUFFICIENT_CAPTURE",
+    "reasons": [
+     "SCAN_POINTS:3"
+    ],
+    "summary": "INVALID_INSPECTION",
+    "stage": "NOT_EVALUATED",
+    "declared": null,
+    "inferred": null
+   },
+   "overlay_status": 200,
+   "overlay_effective": "INVALID_INSPECTION",
+   "ui": {
+    "verdict": "RESCAN",
+    "state": "INVALID_INSPECTION",
+    "text": "Rescan 12 not measured Invalid inspection Not enough of the part was scanned"
+   }
+  },
+  "H1c_sidecar": {
+   "id": "H1c_sidecar",
+   "file_name": "10839000_01_SCAN_2 5.ply",
+   "sidecar": {
+    "sha256": "9543a60e6a5c964565124dcc273ae7903597710b74aae1a7ddee22d3a119d161",
+    "size_bytes": 40735916,
+    "declared_stage": 10
+   },
+   "sha256": "9543a60e6a5c964565124dcc273ae7903597710b74aae1a7ddee22d3a119d161",
+   "scan": {
+    "scan_file_id": "scan_9543a60e6a5c964565124dcc",
+    "original_name": "10839000_01_SCAN_2 5.ply",
+    "ingest_state": "enqueued",
+    "quarantine_reason": null,
+    "resolution": null,
+    "stored_rel_path": "archive/scans/2026/10/9543a60e6a5c964565124dcc273ae7903597710b74aae1a7ddee22d3a119d161.ply",
+    "stored_exists": true,
+    "match": {
+     "reason": null,
+     "recipe_id": "10839000@v1",
+     "recipe_sha256": "c66122e9bc9b89a592690d9f1078d1217e33a8dfa3888f4e84fba7cef5693334",
+     "recipe_version": 1,
+     "status": "MATCHED"
+    },
+    "declared_stage": {
+     "source": "SIDECAR",
+     "stage_index": 10
+    },
+    "jobs": [
+     {
+      "job_id": "line_70c3e94ca3d9450a805a6c21274e50f1",
+      "execution_status": "completed",
+      "attempts": 1,
+      "failure_code": null,
+      "created_at": "2026-10-27T23:45:50.284Z",
+      "started_at": "2026-10-27T23:51:39.646Z",
+      "finished_at": "2026-10-27T23:53:05.471Z",
+      "result_summary": {
+       "bends_total": 12,
+       "inspection_validity": "VALID",
+       "required_fail": 3,
+       "required_review": 15,
+       "required_unknown": 4,
+       "stage_status": "FINAL_INCOMPLETE",
+       "summary_state": "OUT_OF_TOLERANCE_FOUND"
+      },
+      "declared_stage": {
+       "source": "SIDECAR",
+       "stage_index": 10
+      }
+     }
+    ],
+    "events": [
+     {
+      "id": 92,
+      "ts": "2026-10-27T23:45:50.283Z",
+      "kind": "SCAN_RECEIVED",
+      "job_id": null,
+      "principal": null,
+      "payload": {
+       "format": "PLY_BINARY_LE",
+       "original_name": "10839000_01_SCAN_2 5.ply",
+       "size_bytes": 40735916
+      }
+     },
+     {
+      "id": 93,
+      "ts": "2026-10-27T23:45:50.284Z",
+      "kind": "JOB_QUEUED",
+      "job_id": "line_70c3e94ca3d9450a805a6c21274e50f1",
+      "principal": null,
+      "payload": {
+       "kind": "inspect",
+       "priority": 100,
+       "recipe_id": "10839000@v1",
+       "retry_of": null
+      }
+     },
+     {
+      "id": 141,
+      "ts": "2026-10-27T23:51:39.647Z",
+      "kind": "JOB_STARTED",
+      "job_id": "line_70c3e94ca3d9450a805a6c21274e50f1",
+      "principal": null,
+      "payload": {
+       "attempt": 1,
+       "max_attempts": 2,
+       "owner": "runner@Mac@Mac.bbrouter:69437"
+      }
+     },
+     {
+      "id": 149,
+      "ts": "2026-10-27T23:53:05.471Z",
+      "kind": "JOB_COMPLETED",
+      "job_id": "line_70c3e94ca3d9450a805a6c21274e50f1",
+      "principal": null,
+      "payload": {
+       "duration_s": 85.821,
+       "inspection_validity": "VALID",
+       "kind": "inspect",
+       "summary_state": "OUT_OF_TOLERANCE_FOUND"
+      }
+     }
+    ]
+   },
+   "job_id": "line_70c3e94ca3d9450a805a6c21274e50f1",
+   "result": {
+    "validity": "VALID",
+    "reasons": [],
+    "summary": "OUT_OF_TOLERANCE_FOUND",
+    "stage": "FINAL_INCOMPLETE",
+    "declared": 10,
+    "inferred": 10
+   },
+   "overlay_status": 200,
+   "overlay_effective": "OUT_OF_TOLERANCE_FOUND",
+   "ui": {
+    "verdict": "FIX",
+    "state": "OUT_OF_TOLERANCE_FOUND",
+    "text": "FIX 2 to fix 6 to check Out of tolerance found"
+   }
+  },
+  "H1b_slow_write": {
+   "id": "H1b_slow_write",
+   "file_name": "10839000_01_FULL_SCAN 14.ply",
+   "sha256": "58f9a6b6c12717cd454682050fca45fab80e0ce6ce6bb6b8c9694de63048599c",
+   "scan": {
+    "scan_file_id": "scan_58f9a6b6c12717cd45468205",
+    "original_name": "10839000_01_FULL_SCAN 14.ply",
+    "ingest_state": "enqueued",
+    "quarantine_reason": null,
+    "resolution": null,
+    "stored_rel_path": "archive/scans/2026/10/58f9a6b6c12717cd454682050fca45fab80e0ce6ce6bb6b8c9694de63048599c.ply",
+    "stored_exists": true,
+    "match": {
+     "reason": null,
+     "recipe_id": "10839000@v1",
+     "recipe_sha256": "c66122e9bc9b89a592690d9f1078d1217e33a8dfa3888f4e84fba7cef5693334",
+     "recipe_version": 1,
+     "status": "MATCHED"
+    },
+    "declared_stage": null,
+    "jobs": [
+     {
+      "job_id": "line_25a3c9dcd3ed4d23b4ec183b0909ff1c",
+      "execution_status": "completed",
+      "attempts": 1,
+      "failure_code": null,
+      "created_at": "2026-10-27T23:46:03.440Z",
+      "started_at": "2026-10-27T23:54:36.935Z",
+      "finished_at": "2026-10-27T23:56:06.985Z",
+      "result_summary": {
+       "bends_total": 12,
+       "inspection_validity": "VALID",
+       "required_fail": 4,
+       "required_review": 23,
+       "required_unknown": 4,
+       "stage_status": "CONSISTENT",
+       "summary_state": "OUT_OF_TOLERANCE_FOUND"
+      },
+      "declared_stage": null
+     }
+    ],
+    "events": [
+     {
+      "id": 96,
+      "ts": "2026-10-27T23:46:03.439Z",
+      "kind": "SCAN_RECEIVED",
+      "job_id": null,
+      "principal": null,
+      "payload": {
+       "format": "PLY_BINARY_LE",
+       "original_name": "10839000_01_FULL_SCAN 14.ply",
+       "size_bytes": 42835013
+      }
+     },
+     {
+      "id": 97,
+      "ts": "2026-10-27T23:46:03.440Z",
+      "kind": "JOB_QUEUED",
+      "job_id": "line_25a3c9dcd3ed4d23b4ec183b0909ff1c",
+      "principal": null,
+      "payload": {
+       "kind": "inspect",
+       "priority": 100,
+       "recipe_id": "10839000@v1",
+       "retry_of": null
+      }
+     },
+     {
+      "id": 159,
+      "ts": "2026-10-27T23:54:36.935Z",
+      "kind": "JOB_STARTED",
+      "job_id": "line_25a3c9dcd3ed4d23b4ec183b0909ff1c",
+      "principal": null,
+      "payload": {
+       "attempt": 1,
+       "max_attempts": 2,
+       "owner": "runner@Mac@Mac.bbrouter:69437"
+      }
+     },
+     {
+      "id": 169,
+      "ts": "2026-10-27T23:56:06.985Z",
+      "kind": "JOB_COMPLETED",
+      "job_id": "line_25a3c9dcd3ed4d23b4ec183b0909ff1c",
+      "principal": null,
+      "payload": {
+       "duration_s": 90.047,
+       "inspection_validity": "VALID",
+       "kind": "inspect",
+       "summary_state": "OUT_OF_TOLERANCE_FOUND"
+      }
+     }
+    ]
+   },
+   "job_id": "line_25a3c9dcd3ed4d23b4ec183b0909ff1c",
+   "result": {
+    "validity": "VALID",
+    "reasons": [],
+    "summary": "OUT_OF_TOLERANCE_FOUND",
+    "stage": "CONSISTENT",
+    "declared": null,
+    "inferred": 12
+   },
+   "overlay_status": 200,
+   "overlay_effective": "OUT_OF_TOLERANCE_FOUND",
+   "ui": {
+    "verdict": "FIX",
+    "state": "OUT_OF_TOLERANCE_FOUND",
+    "text": "FIX 4 to fix 8 to check Out of tolerance found"
+   }
+  },
+  "H15_permission_denied": {
+   "id": "H15_permission_denied",
+   "file_name": "10839000_02_SCAN_2 3.ply",
+   "sha256": "76f455c73a0c863c6bd75f977d1a423ca054291777bc9653ff1c9faa869037ce",
+   "during": {
+    "in_inbox": true,
+    "row": {
+     "state": "received",
+     "stored_exists": false
+    }
+   },
+   "scan": {
+    "scan_file_id": "scan_76f455c73a0c863c6bd75f97",
+    "original_name": "10839000_02_SCAN_2 3.ply",
+    "ingest_state": "quarantined",
+    "quarantine_reason": "REVISION_MISMATCH",
+    "resolution": null,
+    "stored_rel_path": "archive/scans/2026/10/76f455c73a0c863c6bd75f977d1a423ca054291777bc9653ff1c9faa869037ce.ply",
+    "stored_exists": true,
+    "match": {
+     "reason": "name revision '02' != recipe revision '01'",
+     "recipe_id": null,
+     "recipe_sha256": null,
+     "recipe_version": null,
+     "status": "REVISION_MISMATCH"
+    },
+    "declared_stage": null,
+    "jobs": [],
+    "events": [
+     {
+      "id": 170,
+      "ts": "2026-10-27T23:56:39.670Z",
+      "kind": "SCAN_RECEIVED",
+      "job_id": null,
+      "principal": null,
+      "payload": {
+       "format": "PLY_BINARY_LE",
+       "original_name": "10839000_02_SCAN_2 3.ply",
+       "size_bytes": 40735919
+      }
+     },
+     {
+      "id": 171,
+      "ts": "2026-10-27T23:57:46.292Z",
+      "kind": "SCAN_QUARANTINED",
+      "job_id": null,
+      "principal": null,
+      "payload": {
+       "original_name": "10839000_02_SCAN_2 3.ply",
+       "reason": "REVISION_MISMATCH"
+      }
+     }
+    ]
+   },
+   "inbox_after": false
+  },
+  "H4c_retired": {
+   "id": "H4c_retired",
+   "file_name": "10839000_01_SCAN_2 7.ply",
+   "sha256": "dde0292f141c4f1da918431b559e3ee1ff843f29e63d452142ad304829dfb7da",
+   "scan": {
+    "scan_file_id": "scan_dde0292f141c4f1da918431b",
+    "original_name": "10839000_01_SCAN_2 7.ply",
+    "ingest_state": "dismissed",
+    "quarantine_reason": "PART_NOT_READY",
+    "resolution": "dismissed",
+    "stored_rel_path": "archive/scans/2026/10/dde0292f141c4f1da918431b559e3ee1ff843f29e63d452142ad304829dfb7da.ply",
+    "stored_exists": true,
+    "match": {
+     "reason": "NO_ACTIVE_RECIPE",
+     "recipe_id": null,
+     "recipe_sha256": null,
+     "recipe_version": null,
+     "status": "PART_NOT_READY"
+    },
+    "declared_stage": null,
+    "jobs": [],
+    "events": [
+     {
+      "id": 174,
+      "ts": "2026-10-27T23:58:02.429Z",
+      "kind": "SCAN_RECEIVED",
+      "job_id": null,
+      "principal": null,
+      "payload": {
+       "format": "PLY_BINARY_LE",
+       "original_name": "10839000_01_SCAN_2 7.ply",
+       "size_bytes": 40735916
+      }
+     },
+     {
+      "id": 175,
+      "ts": "2026-10-27T23:58:02.430Z",
+      "kind": "SCAN_QUARANTINED",
+      "job_id": null,
+      "principal": null,
+      "payload": {
+       "original_name": "10839000_01_SCAN_2 7.ply",
+       "reason": "PART_NOT_READY"
+      }
+     },
+     {
+      "id": 176,
+      "ts": "2026-10-27T23:58:05.937Z",
+      "kind": "QUARANTINE_DISMISSED",
+      "job_id": null,
+      "principal": {
+       "id": "2",
+       "kind": "user",
+       "role": "admin"
+      },
+      "payload": {
+       "dismiss_reason": "OTHER",
+       "dismissed_at": "2026-10-27T23:58:05.937Z",
+       "from_outcome": "PART_NOT_READY",
+       "note": "recipe retired; engineering to release a new revision",
+       "operator_name": "e2e-admin",
+       "original_name": "10839000_01_SCAN_2 7.ply",
+       "reason": "PART_NOT_READY"
+      }
+     }
+    ]
+   },
+   "released_parts": [],
+   "assign_attempt": "409 PART_NOT_READY; by recipe_id: 409 RECIPE_RETIRED",
+   "ui_rows": 0
+  },
+  "H1a_clean_name": {
+   "id": "H1a_clean_name",
+   "file_name": "10839000_01_FULL_SCAN 1.ply",
+   "job_id": "line_d8c3410296d241d9b6b7d21d8ccc6389",
+   "result": {
+    "validity": "VALID",
+    "stage": "CONSISTENT",
+    "inferred_stage": 12,
+    "summary": "OUT_OF_TOLERANCE_FOUND"
+   },
+   "note": "R-full step of this run (temp name + rename)"
+  },
+  "H2_unknown_pick": {
+   "id": "H2_unknown_pick",
+   "file_name": "10839 000_01_FULL_SCAN 9.ply",
+   "note": "P1 step of this run (picker.json)"
+  }
+ },
+ "expected": {},
+ "killed_job": "line_ef2fd8ba18094cf487c4200b18e0927a",
+ "restart": {
+  "why": "SIGKILL mid-job and mid-write",
+  "killed_pid": 65105,
+  "at": "2026-10-27T23:45:44.330Z",
+  "new_pid": 69437
+ },
+ "slow_write_finished": "2026-10-27T23:45:59.872Z",
+ "intervals": [
+  [
+   "2026-10-27T23:45:44.029Z",
+   "2026-10-27T23:45:47.123Z",
+   "line_ef2fd8ba18094cf487c4200b18e0927a",
+   "JOB_RECOVERED"
+  ],
+  [
+   "2026-10-27T23:45:47.125Z",
+   "2026-10-27T23:47:13.364Z",
+   "line_ef2fd8ba18094cf487c4200b18e0927a",
+   "JOB_COMPLETED"
+  ],
+  [
+   "2026-10-27T23:47:13.367Z",
+   "2026-10-27T23:48:40.034Z",
+   "line_c20e6afa40514059bf62b09372b49343",
+   "JOB_COMPLETED"
+  ],
+  [
+   "2026-10-27T23:48:40.037Z",
+   "2026-10-27T23:49:03.466Z",
+   "line_951c4085cfd64168908bbe41f2880bd5",
+   "JOB_COMPLETED"
+  ],
+  [
+   "2026-10-27T23:49:03.468Z",
+   "2026-10-27T23:50:35.763Z",
+   "line_aee0dba4092b4cd18796af21fce7540f",
+   "JOB_COMPLETED"
+  ],
+  [
+   "2026-10-27T23:50:35.766Z",
+   "2026-10-27T23:51:36.382Z",
+   "line_d68920caea1a4dd0b10ac9840d57152d",
+   "JOB_COMPLETED"
+  ],
+  [
+   "2026-10-27T23:51:36.385Z",
+   "2026-10-27T23:51:39.645Z",
+   "line_fd4209f72de24076bca4bf87e0f06e0c",
+   "JOB_COMPLETED"
+  ],
+  [
+   "2026-10-27T23:51:39.647Z",
+   "2026-10-27T23:53:05.471Z",
+   "line_70c3e94ca3d9450a805a6c21274e50f1",
+   "JOB_COMPLETED"
+  ],
+  [
+   "2026-10-27T23:53:05.474Z",
+   "2026-10-27T23:54:36.931Z",
+   "line_a1df36d1a32d4de28c9bbe2c882a34f9",
+   "JOB_COMPLETED"
+  ],
+  [
+   "2026-10-27T23:54:36.935Z",
+   "2026-10-27T23:56:06.985Z",
+   "line_25a3c9dcd3ed4d23b4ec183b0909ff1c",
+   "JOB_COMPLETED"
+  ]
+ ],
+ "killed_job_events": [
+  "2026-10-27T23:45:44.029Z JOB_STARTED",
+  "2026-10-27T23:45:44.030Z JOB_PROGRESS",
+  "2026-10-27T23:45:47.123Z JOB_RECOVERED",
+  "2026-10-27T23:45:47.125Z JOB_STARTED",
+  "2026-10-27T23:45:47.142Z JOB_PROGRESS",
+  "2026-10-27T23:46:04.570Z JOB_PROGRESS",
+  "2026-10-27T23:46:11.162Z JOB_PROGRESS",
+  "2026-10-27T23:46:14.203Z JOB_PROGRESS",
+  "2026-10-27T23:47:09.697Z JOB_PROGRESS",
+  "2026-10-27T23:47:10.799Z JOB_PROGRESS",
+  "2026-10-27T23:47:11.847Z JOB_PROGRESS",
+  "2026-10-27T23:47:12.890Z JOB_PROGRESS",
+  "2026-10-27T23:47:13.364Z JOB_COMPLETED"
+ ],
+ "zero_false_pass": true
+}

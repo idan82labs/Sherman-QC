@@ -1,0 +1,30 @@
+{
+  "labeler": "claude-vision-ai-v1",
+  "no_bends_present": false,
+  "notes": "Gold11 parallel AI relabel of sc_152f1b1aacb2 (40500000_0_SCAN2 1.ply, CG64C412CC73); human gold untouched. SCAN2 is an intermediate forming stage: base + two 44 mm side walls (one with a 49 mm inward top flange, the other with two 13-14 mm inward top tabs at its ends) + two 10 mm up-turned end tabs on the base short edges; the finished part's end walls are not bent yet. 7 formed folds, all ~90 deg, t~1.0 mm, Ri~1.3 mm (patch renders + 3 independent auditors; no joggles or shallow bends). Locus = outer-skin arc apex. Conventions: each base|wall fold is ONE line from wall end to wall end across its two ~29 mm ear windows (same two plates, collinear); the two top tabs are separate tab plates ~100 mm apart, so they are two lines (not a window-interrupted fold). Human lines M03-M06 run along flat wall faces / vertical cut edges (no fold), so they have no AI counterpart. Prep run once for this audit (no earlier bench_labeling prep of this scan existed).",
+  "thickness_mm": 1.0,
+  "ri_mm": 1.3,
+  "bends": [
+    {"patches": [1, 5], "extent_t": [-64.34, 63.16],
+     "note": "F_A base|wall (human M01 fold). INNER-skin pair on purpose: with the outer pair 2|6 the tool's apex landed on the flat ears that continue the base through the two wall windows (offset -0.35 mm = 1.3 mm outside the outer arc). With t~1 mm the inner-pair apex search lands on the outer arc (-0.45 mm behind the inner sharp = 0.98 mm in from the outer sharp, the measured outer apex), within 0.3 mm of auditors 1/2. Extent = auto wall end to wall end (127.5 mm); override only bridges the windows by convention. Fold support in the windows comes from the flat ears crossing the bisector plane, not from a fold (patch-pair coverage 0.55).",
+     "confidence": "auto"},
+    {"patches": [1, 3], "extent_t": [-63.25, 64.34],
+     "note": "F_B base|wall (human M02 fold). INNER-skin pair on purpose (same ear/window reason as B1; outer pair 2|4 gave apex -0.32 mm). Label is on the outer arc apex (0.98 mm in from the outer sharp), within 0.25 mm of auditors 1/2. Extent = auto wall end to wall end (127.6 mm); windows bridged by convention; window fold support comes from flat ears, not a fold (patch-pair coverage 0.55).",
+     "confidence": "auto"},
+    {"patches": [6, 7],
+     "note": "F_C wall|inward top flange (human M07 fold, but only where the flange exists: ~49 mm, not the human 112.7 mm). Outer pair: wall outer skin 6 + flange top skin 7. Auto extent matches auditors within 1 mm.",
+     "confidence": "auto"},
+    {"patches": [4, 12],
+     "note": "F_D1 wall|inward top tab at the human-M04 end of the M02 wall (no human line). Outer pair: wall outer skin 4 + tab top skin 12. Auto extent 12.6 mm (auditors 14-16 mm; <=0.8 mm short at each end).",
+     "confidence": "auto"},
+    {"patches": [4, 13],
+     "note": "F_D2 wall|inward top tab at the human-M03 end of the M02 wall (no human line). Outer pair: wall outer skin 4 + tab top skin 13. Auto extent 13.5 mm (auditors 14-16 mm).",
+     "confidence": "auto"},
+    {"patches": [2, 11],
+     "note": "F_E1 base|up-turned end tab (~10 mm tall, ~21 mm wide) on the base short edge near patch 8/11 (no human line). Outer pair: base bottom skin 2 + tab outer skin 11.",
+     "confidence": "auto"},
+    {"patches": [2, 10],
+     "note": "F_E2 base|up-turned end tab (~10 mm tall, ~21 mm wide) on the opposite base short edge, patch 9/10 (no human line). Outer pair: base bottom skin 2 + tab outer skin 10.",
+     "confidence": "auto"}
+  ]
+}

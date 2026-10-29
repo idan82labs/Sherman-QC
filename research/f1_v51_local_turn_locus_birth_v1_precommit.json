@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "kind": "sherman_qc_f1_v51_local_turn_locus_birth_v1_parameter_precommit",
+  "status": "LOCKED_BEFORE_CASE_OUTCOME_EVALUATION",
+  "locked_at": "2026-08-31T13:08:00+03:00",
+  "evidence_scope": "consumed_2026_08_30_development_scans_only",
+  "source_only": true,
+  "forbidden_runtime_inputs": [
+    "manual_labels",
+    "expected_bend_count",
+    "part_identity",
+    "cad",
+    "drawing"
+  ],
+  "algorithm": "voxelized_local_normal_moment_ridges_with_supported_longitudinal_split_and_normal_cross_axis_snap",
+  "parameters": {
+    "voxel_size_mm": 1.5,
+    "maximum_working_points": 200000,
+    "local_neighbor_count": 32,
+    "local_radius_mm": 6.0,
+    "minimum_local_neighbors": 12,
+    "minimum_normal_change_deg": 18.0,
+    "minimum_normal_second_eigenvalue": 0.025,
+    "component_cell_mm": 3.0,
+    "minimum_component_points": 12,
+    "longitudinal_bin_mm": 4.0,
+    "maximum_supported_gap_mm": 8.0,
+    "minimum_supported_bin_count": 4,
+    "minimum_span_mm": 12.0,
+    "maximum_locus_rms_mm": 4.0,
+    "maximum_transverse_q80_mm": 8.0,
+    "minimum_locus_linearity": 0.85,
+    "axis_snap_maximum_angle_deg": 10.0,
+    "maximum_radial_angular_span_deg": 220.0,
+    "maximum_births_per_scan": 12,
+    "duplicate_angle_deg": 5.0,
+    "duplicate_offset_mm": 4.0,
+    "duplicate_shorter_span_overlap": 0.60
+  },
+  "physical_basis": {
+    "offset_unit_mm": 4.0,
+    "angle_unit_deg": 5.0,
+    "voxel_size": "scanner-scale support cell below one half of scorer offset tolerance",
+    "local_radius": "one and one half scorer offset tolerances",
+    "longitudinal_bin": "one scorer offset tolerance",
+    "supported_gap": "two scorer offset tolerances",
+    "axis_snap": "two scorer angular tolerances",
+    "duplicate_tolerances": "exact scorer ownership tolerances"
+  },
+  "retention_gate": {
+    "strict_outer_case_group_f1_must_exceed": 0.483333,
+    "baseline_true_positive_regression_allowed": false,
+    "if_gate_fails": "reject_without_successor_freeze_or_production_claim"
+  },
+  "parameter_search_after_lock_allowed": false,
+  "promotion_eligible": false,
+  "generalization_evidence": false
+}

@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react'
+import { Component, lazy, Suspense, useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   Upload,
@@ -11,29 +11,70 @@ import {
   ChevronDown,
   ChevronRight,
   Activity,
-  Download,
   Image as ImageIcon,
 } from 'lucide-react'
 import clsx from 'clsx'
 import {
+  api,
   bendInspectionApi,
   getErrorMessage,
   type BendInspectionJob,
+  type BendInstanceLabels,
+  type BendMarkerReviewDecision,
   type BendMatch,
   type ScanQualitySummary,
 } from '../../../shared/api'
-import type { BendAnnotation } from '../../../shared/3d'
+import type { BendAnnotation, ManualBendSegment } from '../../../shared/3d'
 import {
   buildBendAnnotations,
+  hasValidatedDisplayGeometry,
   buildDisplayBendLabelMap,
   isCountableBend,
   midpointFromMatch,
   parseLinePoint,
   preferredFocusedBendId,
 } from '../model/annotationMapper'
+import { decisionLabel, presentBendDecision } from '../model/decisionContract'
 import { Link } from 'react-router-dom'
+import BendLabelingStudio from '../components/BendLabelingStudio'
+import { AuthenticatedArtifactDownload, AuthenticatedArtifactImage } from '../../../components/AuthenticatedArtifact'
 
 const ThreeViewer = lazy(() => import('../../../shared/3d/ThreeViewer'))
+
+class BendViewerBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
+  state = { failed: false }
+
+  static getDerivedStateFromError() {
+    return { failed: true }
+  }
+
+  render() {
+    if (this.state.failed) {
+      return (
+        <div role="status" className="flex h-[560px] items-center justify-center rounded-lg border border-dark-600 bg-dark-900 p-6">
+          <div className="max-w-md text-sm text-dark-200">
+            <p className="font-semibold">3D view unavailable</p>
+            <p className="mt-2">Rendering could not be completed. The report and evidence states remain available; this is not evidence of a part defect.</p>
+            <p className="mt-2">No render qualification is established; registration remains unverified. Reload the inspection to retry the viewer.</p>
+          </div>
+        </div>
+      )
+    }
+    return this.props.children
+  }
+}
+
+function emptyBendInstanceLabels(jobId: string): BendInstanceLabels {
+  return {
+    schema_version: 1,
+    kind: 'sherman_qc_bend_instance_labels',
+    job_id: jobId,
+    coordinate_frame: 'reference_mesh_raw',
+    review_status: 'in_progress',
+    manual_bends: [],
+    marker_reviews: [],
+  }
+}
 
 export default function BendInspection() {
   const [cadFile, setCadFile] = useState<File | null>(null)
@@ -47,6 +88,12 @@ export default function BendInspection() {
   const [expandedJobs, setExpandedJobs] = useState<Set<string>>(new Set())
 
   const queryClient = useQueryClient()
+
+  const { data: readiness, isError: readinessUnavailable } = useQuery({
+    queryKey: ['bend-inspection-readiness'],
+    queryFn: bendInspectionApi.readiness,
+    staleTime: 60_000,
+  })
 
   // List bend inspection jobs
   const { data: jobsData, isLoading: jobsLoading, refetch: refetchJobs } = useQuery({
@@ -138,6 +185,18 @@ export default function BendInspection() {
           Refresh
         </button>
       </div>
+
+      {!readiness?.production_use_allowed && (
+        <div className="rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
+          <div className="font-semibold">Research-only inspection — production QC promotion is blocked</div>
+          <div className="mt-1 text-amber-100/80">
+            Results are deterministic research evidence, not an accept/reject decision. Generalization grade:{' '}
+            {readinessUnavailable
+              ? 'readiness unavailable (fail-closed)'
+              : readiness?.generalization_progress_indicator.cad_assisted || 'not qualified'}.
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Upload Form */}
@@ -290,13 +349,13 @@ export default function BendInspection() {
           <div className="card p-4 mt-4 bg-amber-500/5 border-amber-500/20">
             <h3 className="text-sm font-medium text-amber-400 mb-2">Progressive Inspection</h3>
             <p className="text-xs text-dark-400">
-              This tool compares a partial scan (after some bends) against the complete CAD model.
-              It identifies which bends have been made and verifies they are within tolerance.
+              Compare experimental scan measurements with CAD expectations.
+              Scan coverage and manufacturing stage are separate: an unseen bend is not evidence of an unformed bend.
             </p>
             <ul className="text-xs text-dark-400 mt-2 space-y-1">
-              <li>• Works at any stage of bending (2/11 bends, 5/11 bends, etc.)</li>
-              <li>• Detects bend angles and matches to CAD specifications</li>
-              <li>• No need for global alignment - bends are matched by angle</li>
+              <li>• Observed formed, observed unformed and unknown states stay separate</li>
+              <li>• Angle and count estimates require independent operator review</li>
+              <li>• Registration and render evidence must be verified before disposition</li>
             </ul>
           </div>
         </div>
@@ -444,10 +503,7 @@ function JobListItem({
   onToggleExpand: () => void
   onDelete: () => void
 }) {
-  const summary = job.report?.summary
-  const completedBends = summary ? (summary.completed_bends ?? summary.detected) : null
-  const expectedBends = summary ? (summary.expected_bends ?? summary.total_bends) : null
-  const structuredCompletedBends = summary?.structured_completed_bends ?? null
+  const decision = job.report ? presentBendDecision(job.report) : null
 
   return (
     <div
@@ -459,7 +515,7 @@ function JobListItem({
       )}
     >
       <div
-        className="flex items-center p-3 cursor-pointer"
+        className="flex flex-wrap items-center p-3 cursor-pointer"
         onClick={onSelect}
       >
         <button
@@ -497,22 +553,25 @@ function JobListItem({
           </p>
         </div>
 
-        {job.status === 'completed' && summary && completedBends !== null && expectedBends !== null && (
-          <div className="text-right mr-4">
+        {job.status === 'completed' && decision && (
+          <div className="order-4 mt-2 w-full pl-10 text-left sm:order-none sm:mt-0 sm:mr-4 sm:w-auto sm:pl-0 sm:text-right">
             <p className="text-sm font-medium text-dark-100">
-              {(structuredCompletedBends ?? completedBends)}/{expectedBends}
+              {decision.observedFormedRatio ?? 'Evidence unavailable'}
             </p>
             <p className="text-xs text-dark-400">
-              {structuredCompletedBends != null ? 'model/expected' : 'completed/expected'}
+              {decision.available ? 'observed formed / mapped targets' : 'Physical state unknown'}
             </p>
-            {structuredCompletedBends != null && structuredCompletedBends !== completedBends && (
-              <p className="text-[11px] text-dark-500">evidence {completedBends}</p>
+            {decision.available && (
+              <p className="text-xs text-dark-400">{decision.counts.unformed} observed unformed · {decision.counts.unknown} unknown</p>
+            )}
+            {decision.modelEstimate != null && (
+              <p className="text-xs text-dark-400">model estimate {decision.modelEstimate}</p>
             )}
           </div>
         )}
 
         {job.status === 'running' && (
-          <div className="text-right mr-4">
+          <div className="order-4 mt-2 w-full pl-10 text-left sm:order-none sm:mt-0 sm:mr-4 sm:w-auto sm:pl-0 sm:text-right">
             <p className="text-sm font-medium text-amber-400">{job.progress}%</p>
             <p className="text-xs text-dark-400">processing</p>
           </div>
@@ -523,7 +582,7 @@ function JobListItem({
             e.stopPropagation()
             onDelete()
           }}
-          className="p-2 text-dark-400 hover:text-red-400 transition-colors"
+          className="order-3 p-2 text-dark-400 hover:text-red-400 transition-colors sm:order-none"
         >
           <Trash2 className="w-4 h-4" />
         </button>
@@ -545,53 +604,65 @@ function JobListItem({
   )
 }
 
-// Bend inspection results component
-function BendInspectionResults({
-  report,
-  jobId,
-  referenceMeshUrl,
-  artifacts,
-  compact = false,
-}: {
+type BendInspectionResultsProps = {
   report: BendInspectionJob['report']
   jobId?: string
   referenceMeshUrl?: string
   artifacts?: BendInspectionJob['artifacts']
   compact?: boolean
-}) {
-  if (!report) return null
+}
 
-  const { summary, matches } = report
-  const completedBends = summary.completed_bends ?? summary.detected
-  const structuredCompletedBends = summary.structured_completed_bends
-  const displayedCompletedBends = structuredCompletedBends ?? completedBends
-  const completedInSpec = summary.completed_in_spec ?? summary.passed
-  const completedOutOfSpec = summary.completed_out_of_spec ?? (completedBends - completedInSpec)
-  const remainingBends = summary.remaining_bends ?? Math.max(0, summary.total_bends - completedBends)
-  const structuredRemainingBends = summary.structured_remaining_bends
+// Keep the nullable boundary outside the hook-owning component.
+function BendInspectionResults(props: BendInspectionResultsProps) {
+  if (!props.report) return null
+  return <BendInspectionResultsContent {...props} report={props.report} />
+}
+
+function BendInspectionResultsContent({
+  report,
+  jobId,
+  referenceMeshUrl,
+  artifacts,
+  compact = false,
+}: Omit<BendInspectionResultsProps, 'report'> & { report: NonNullable<BendInspectionJob['report']> }) {
+  const { summary } = report
+  const decision = useMemo(() => presentBendDecision(report), [report])
+  const matches = decision.matches
+  const structuredCompletedBends = decision.modelEstimate
   const scanQuality = report.scan_quality
   const countableMatches = useMemo(() => matches.filter(isCountableBend), [matches])
   const displayBendLabels = useMemo(() => buildDisplayBendLabelMap(matches), [matches])
   const rolledProcessCount = Math.max(0, matches.length - countableMatches.length)
   const heatmapConsistencySummary = summary.heatmap_consistency_summary
-  const bendActionQueue = report.operator_brief?.actions
-    ?? (report.operator_actions ?? []).filter((action) => countableMatches.some((match) => match.bend_id === action.bend_id))
-  const processActionQueue = report.process_feature_actions ?? []
+  // Raw corrective actions may have been generated from an unverified verdict.
+  // Surface review actions from the same conservative presentation as the chips.
+  const bendActionQueue = countableMatches.map((match) => ({ bend_id: match.bend_id, action: match.action_item }))
+  const processActionQueue = matches.filter((match) => !isCountableBend(match))
+    .map((match) => ({ bend_id: match.bend_id, action: match.action_item }))
   const preferredBend = useMemo(() => preferredFocusedBendId(matches, bendActionQueue), [matches, bendActionQueue])
-  const [focusedBendId, setFocusedBendId] = useState<string | null>(preferredBend)
-
-  useEffect(() => {
-    setFocusedBendId(preferredBend)
-  }, [preferredBend])
+  const [focusedBendSelection, setFocusedBendId] = useState<string | null>(null)
+  const focusedBendId = focusedBendSelection && matches.some((match) => match.bend_id === focusedBendSelection)
+    ? focusedBendSelection
+    : preferredBend
 
   return (
     <div className={clsx('space-y-4', compact && 'space-y-2')}>
+      <div role="note" className="rounded-lg border border-amber-400/40 bg-dark-800 px-3 py-3 text-sm text-dark-100">
+        <p className="font-semibold">Research evidence only — no production accept/reject decision</p>
+        <p className="mt-1 text-dark-300">
+          {decision.available ? 'Observed states are not a manufacturing disposition.' : 'Decision evidence is unavailable or invalid; physical state remains unknown.'}
+          {' '}Registration: {decision.registration === 'ABSTAINED' ? 'abstained' : 'unverified'}.
+          {' '}Render evidence: {decision.renderEvidence === 'UNAVAILABLE' ? 'unavailable' : 'unverified'}.
+          {' '}Review coverage, registration and manufacturing stage before acting. Partial visibility does not mean partial formation.
+        </p>
+        {!compact && <p className="mt-1 text-dark-300">Raw measurements, heatmaps and downloadable artifacts are experimental; a count estimate is not direct bend evidence.</p>}
+      </div>
       {/* Operator brief */}
       {(!!bendActionQueue.length || !!processActionQueue.length) && (
         <div className="bg-dark-700/40 border border-dark-600 rounded-lg p-3">
           {!!bendActionQueue.length && (
             <>
-              <p className="text-xs text-dark-400 uppercase tracking-wide">Action queue</p>
+              <p className="text-xs text-dark-400 uppercase tracking-wide">Evidence review queue</p>
               <ul className="mt-2 space-y-1 text-xs text-dark-300">
                 {bendActionQueue.slice(0, compact ? 2 : 4).map((a, idx) => (
                   <li key={`${a.bend_id}-${idx}`}>
@@ -626,11 +697,12 @@ function BendInspectionResults({
             <div>
               <p className="text-xs text-primary-300 uppercase tracking-wide">Structured Count Model</p>
               <p className="mt-1 text-sm text-dark-100">
-                Posterior median estimates <span className="font-semibold">{structuredCompletedBends}</span> completed bends
-                {summary.expected_bends != null ? ` out of ${summary.expected_bends}` : ''}.
+                Posterior median estimates <span className="font-semibold">{structuredCompletedBends}</span> formed bends
+                {summary.expected_bends != null ? ` (reported CAD expectation: ${summary.expected_bends})` : ''}.
               </p>
               <p className="text-xs text-dark-400 mt-1">
-                Direct bend evidence currently supports {completedBends} explicit bend matches.
+                {decision.available ? `Direct observations report ${decision.counts.formed} formed bends and ${decision.counts.unknown} unknown states.` : 'Direct decision evidence is unavailable.'}
+                {' '}The estimate does not resolve unknown states.
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -641,12 +713,12 @@ function BendInspectionResults({
               />
               <FocusedMetricCard
                 label="Direct Evidence"
-                value={`${completedBends}`}
+                value={decision.available ? `${decision.counts.formed}` : 'Unavailable'}
                 tone="neutral"
               />
               <FocusedMetricCard
-                label="Delta"
-                value={formatSignedMetric(summary.structured_count_delta_vs_match, 0)}
+                label="Model minus observed"
+                value={decision.available ? formatSignedMetric(structuredCompletedBends - decision.counts.formed, 0) : '-'}
                 tone="neutral"
               />
               <FocusedMetricCard
@@ -699,50 +771,29 @@ function BendInspectionResults({
       {/* Summary */}
       <div className={clsx(
         'grid gap-3',
-        compact ? 'grid-cols-4' : 'grid-cols-2 md:grid-cols-7'
+        compact ? 'grid-cols-2' : 'grid-cols-2 md:grid-cols-4'
       )}>
         <SummaryCard
-          label="Completed"
-          value={`${displayedCompletedBends}/${summary.expected_bends ?? summary.total_bends}`}
-          subValue={`${summary.progress_pct.toFixed(0)}%`}
+          label="Observed Formed"
+          value={decision.observedFormedRatio ?? 'Unavailable'}
+          subValue="of mapped targets; not acceptance"
           compact={compact}
         />
         <SummaryCard
-          label="In Spec"
-          value={completedInSpec.toString()}
-          color="emerald"
+          label="Observed Unformed"
+          value={decision.available ? decision.counts.unformed.toString() : 'Unavailable'}
+          subValue="stage needs review"
           compact={compact}
         />
         <SummaryCard
-          label="Out of Spec"
-          value={completedOutOfSpec.toString()}
-          color="red"
+          label="Unknown"
+          value={decision.available ? decision.counts.unknown.toString() : 'All states'}
           compact={compact}
         />
         <SummaryCard
-          label="Remaining"
-          value={(structuredRemainingBends ?? remainingBends).toString()}
-          color={(structuredRemainingBends ?? remainingBends) === 0 ? 'emerald' : undefined}
-          compact={compact}
-        />
-        {!compact && structuredCompletedBends != null && (
-          <SummaryCard
-            label="Evidence Count"
-            value={completedBends.toString()}
-            subValue="explicit bends"
-            compact={compact}
-          />
-        )}
-        <SummaryCard
-          label="Failed"
-          value={summary.failed.toString()}
-          color="red"
-          compact={compact}
-        />
-        <SummaryCard
-          label="Warnings"
-          value={summary.warnings.toString()}
-          color="amber"
+          label="Partly Observed"
+          value={decision.available ? decision.counts.partially_observed.toString() : 'Unavailable'}
+          subValue="included in unknown"
           compact={compact}
         />
         {!compact && (
@@ -818,7 +869,7 @@ function BendProgressStrip({
       <div className="flex items-center justify-between mb-2">
         <p className="text-xs text-dark-400 uppercase tracking-wide">Bend Progress Map</p>
         {!compact && (
-          <p className="text-xs text-dark-500">User-facing bend labels colored by inspection status</p>
+          <p className="text-xs text-dark-400">Observation states; tolerance disposition remains unverified</p>
         )}
       </div>
       <div className={clsx('grid gap-1', compact ? 'grid-cols-6' : 'grid-cols-8')}>
@@ -830,7 +881,8 @@ function BendProgressStrip({
               statusClasses[match.status] || statusClasses.NOT_DETECTED,
               focusedBendId === match.bend_id && 'ring-2 ring-primary-400/80 border-primary-300'
             )}
-            title={`${displayBendLabels.get(match.bend_id) ?? match.bend_id} - ${match.status}`}
+            title={`${displayBendLabels.get(match.bend_id) ?? match.bend_id} - ${decisionLabel(match)}`}
+            aria-label={`${displayBendLabels.get(match.bend_id) ?? match.bend_id}: ${decisionLabel(match)}`}
             onClick={() => onFocusBend?.(match.bend_id)}
             type="button"
           >
@@ -877,12 +929,23 @@ function BendCadOverlay3D({
   focusedBendId?: string | null
   displayBendLabels: Map<string, string>
 }) {
+  const heatmap = useQuery({
+    queryKey: ['bend-inspection-deviations', jobId],
+    queryFn: async () => {
+      const { data } = await api.get<{ count: number; deviations: number[] }>(`/deviations/${jobId}`)
+      if (!Array.isArray(data.deviations) || data.count !== data.deviations.length
+        || !data.deviations.every((value) => typeof value === 'number' && Number.isFinite(value))) {
+        throw new Error('Invalid heatmap data')
+      }
+      return data.deviations
+    },
+    staleTime: Infinity,
+    retry: false,
+  })
   const focusPoint = useMemo<[number, number, number] | null>(() => {
     const focused = countableMatches.find((match) => match.bend_id === focusedBendId)
     if (!focused) return null
-    return parseLinePoint(focused.callout_anchor)
-      ?? midpointFromMatch(focused)
-      ?? null
+    return midpointFromMatch(focused)
   }, [focusedBendId, countableMatches])
   const focusedMatch = useMemo(
     () => countableMatches.find((match) => match.bend_id === focusedBendId) ?? null,
@@ -894,14 +957,147 @@ function BendCadOverlay3D({
   )
 
   const bendAnnotations = useMemo<BendAnnotation[]>(() => buildBendAnnotations(matches, focusedBendId), [focusedBendId, matches])
-  const completed = countableMatches.filter((match) => match.status !== 'NOT_DETECTED').length
-  const inSpec = countableMatches.filter((match) => match.status === 'PASS').length
-  const remaining = Math.max(0, countableMatches.length - completed)
+  const [labelingEnabled, setLabelingEnabled] = useState(false)
+  const [draftLabelPoint, setDraftLabelPoint] = useState<[number, number, number] | null>(null)
+  const [instanceLabels, setInstanceLabels] = useState<BendInstanceLabels>(() => emptyBendInstanceLabels(jobId))
+  const [labelsLoading, setLabelsLoading] = useState(true)
+  const [labelsSaving, setLabelsSaving] = useState(false)
+  const [labelsSaved, setLabelsSaved] = useState(false)
+  const [labelsError, setLabelsError] = useState<string | null>(null)
+
+  useEffect(() => {
+    let active = true
+    queueMicrotask(() => {
+      if (!active) return
+      setLabelsLoading(true)
+      setLabelsSaved(false)
+      setLabelsError(null)
+      setDraftLabelPoint(null)
+    })
+    bendInspectionApi.getLabels(jobId)
+      .then((payload) => {
+        if (!active) return
+        setInstanceLabels(payload)
+      })
+      .catch((error) => {
+        if (!active) return
+        setInstanceLabels(emptyBendInstanceLabels(jobId))
+        setLabelsError(getErrorMessage(error))
+      })
+      .finally(() => {
+        if (active) setLabelsLoading(false)
+      })
+    return () => {
+      active = false
+    }
+  }, [jobId])
+
+  const manualBendSegments = useMemo<ManualBendSegment[]>(
+    () => instanceLabels.manual_bends.map((bend) => ({
+      id: bend.bend_id,
+      lineStart: bend.line_start,
+      lineEnd: bend.line_end,
+    })),
+    [instanceLabels.manual_bends],
+  )
+
+  const labelStudioMarkers = useMemo(
+    () => countableMatches.map((match) => ({
+      bendId: match.bend_id,
+      label: displayBendLabels.get(match.bend_id) ?? match.bend_id,
+    })),
+    [countableMatches, displayBendLabels],
+  )
+
+  const handleLabelPointPick = useCallback((point: [number, number, number]) => {
+    setLabelsSaved(false)
+    setLabelsError(null)
+    if (!draftLabelPoint) {
+      setDraftLabelPoint(point)
+      return
+    }
+    const length = Math.hypot(
+      point[0] - draftLabelPoint[0],
+      point[1] - draftLabelPoint[1],
+      point[2] - draftLabelPoint[2],
+    )
+    if (length < 1e-6) {
+      setLabelsError('The two bend endpoints must be different surface points.')
+      return
+    }
+    setInstanceLabels((current) => {
+      const used = new Set(current.manual_bends.map((bend) => bend.bend_id))
+      let index = current.manual_bends.length + 1
+      while (used.has(`GT_B${index}`)) index += 1
+      return {
+        ...current,
+        review_status: 'in_progress',
+        updated_at: new Date().toISOString(),
+        manual_bends: [
+          ...current.manual_bends,
+          {
+            bend_id: `GT_B${index}`,
+            line_start: draftLabelPoint,
+            line_end: point,
+            semantic: 'conventional_bend',
+            source: 'human_two_point',
+          },
+        ],
+      }
+    })
+    setDraftLabelPoint(null)
+  }, [draftLabelPoint])
+
+  const handleMarkerDecision = useCallback((bendId: string, decision: BendMarkerReviewDecision) => {
+    setLabelsSaved(false)
+    setInstanceLabels((current) => {
+      const existing = current.marker_reviews.find((review) => review.bend_id === bendId)
+      const remaining = current.marker_reviews.filter((review) => review.bend_id !== bendId)
+      return {
+        ...current,
+        review_status: 'in_progress',
+        updated_at: new Date().toISOString(),
+        marker_reviews: existing?.decision === decision
+          ? remaining
+          : [...remaining, { bend_id: bendId, decision }],
+      }
+    })
+  }, [])
+
+  const handleDeleteManualBend = useCallback((bendId: string) => {
+    setLabelsSaved(false)
+    setInstanceLabels((current) => ({
+      ...current,
+      review_status: 'in_progress',
+      updated_at: new Date().toISOString(),
+      manual_bends: current.manual_bends.filter((bend) => bend.bend_id !== bendId),
+    }))
+  }, [])
+
+  const handleSaveLabels = useCallback(async () => {
+    setLabelsSaving(true)
+    setLabelsSaved(false)
+    setLabelsError(null)
+    try {
+      const saved = await bendInspectionApi.saveLabels(jobId, instanceLabels)
+      setInstanceLabels(saved)
+      setLabelsSaved(true)
+    } catch (error) {
+      setLabelsError(getErrorMessage(error))
+    } finally {
+      setLabelsSaving(false)
+    }
+  }, [instanceLabels, jobId])
+
+  const formed = countableMatches.filter((match) => match.observability_state === 'FORMED').length
+  const unformed = countableMatches.filter((match) => match.observability_state === 'UNFORMED').length
+  const unknown = countableMatches.length - formed - unformed
   const rolledProcessCount = Math.max(0, matches.length - countableMatches.length)
 
-  if (!bendAnnotations.length) return null
-
-  const referenceUrl = referenceMeshUrl || `/api/reference-mesh/${jobId}.ply`
+  // Persisted jobs expose this URL only when a reference mesh actually exists.
+  // Keeping scan-only adjudication jobs reference-free avoids a misleading CAD
+  // toggle and a permanent 404 overlay over the geometry being labeled.
+  const referenceUrl = referenceMeshUrl
   const alignedScanUrl = `/api/aligned-scan/${jobId}.ply`
 
   return (
@@ -910,24 +1106,21 @@ function BendCadOverlay3D({
         <div>
           <p className="text-xs text-dark-400 uppercase tracking-wide">3D CAD Bend Overlay</p>
           <p className="text-xs text-dark-500 mt-1">
-            Aligned scan over original CAD with bend lines colored by inspection status
+            Experimental CAD/scan overlay; registration and render evidence are unverified
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2 text-[11px] text-dark-400">
-          <LegendPill color="bg-primary-500" label={`${completed}/${countableMatches.length} complete`} />
-          <LegendPill color="bg-emerald-500" label={`${inSpec} in spec`} />
-          <LegendPill color="bg-slate-500" label={`${remaining} remaining`} />
-          <LegendPill color="bg-emerald-500" label="In spec" />
-          <LegendPill color="bg-amber-500" label="Warning" />
-          <LegendPill color="bg-red-500" label="Out of spec" />
-          <LegendPill color="bg-slate-500" label="Not detected" />
+          <LegendPill color="bg-slate-500" label={`${formed} observed formed`} />
+          <LegendPill color="bg-slate-500" label={`${unformed} observed unformed`} />
+          <LegendPill color="bg-slate-500" label={`${unknown} unknown`} />
+          <LegendPill color="bg-slate-500" label="All tolerance verdicts unverified" />
         </div>
       </div>
 
       {rolledProcessCount > 0 && (
         <div className="mb-3 rounded-lg border border-dark-600 bg-dark-900/55 px-3 py-2 text-[11px] text-dark-300">
-          Separate process geometry detected: {rolledProcessCount} rolled/process feature{rolledProcessCount === 1 ? '' : 's'}.
-          Bend IDs and bend progress below refer only to the two discrete flange bends.
+          Separate process targets: {rolledProcessCount} rolled/process feature{rolledProcessCount === 1 ? '' : 's'}.
+          Bend IDs and observed counts below refer only to explicitly countable targets.
         </div>
       )}
 
@@ -944,7 +1137,7 @@ function BendCadOverlay3D({
                   focusedMatch.status === 'FAIL' && 'border-red-400/50 bg-red-500/12 text-red-200',
                   focusedMatch.status === 'NOT_DETECTED' && 'border-dark-500 bg-dark-700 text-dark-300',
                 )}>
-                  {focusedMatch.status.replace('_', ' ')}
+                  {decisionLabel(focusedMatch)}
                 </span>
                 {focusedMatch.heatmap_consistency && (
                   <HeatmapConsistencyChip consistency={focusedMatch.heatmap_consistency} />
@@ -1007,7 +1200,7 @@ function BendCadOverlay3D({
               <p className="mt-1 text-sm text-dark-200">
                 {issueMatches.length
                   ? `${issueMatches.length} bends need attention. Select a bend chip below to focus the camera and inspect its diff while keeping the other countable bends visible for context.`
-                  : 'No out-of-tolerance bends are active. Select any bend below to inspect its measured vs expected geometry while keeping the other countable bends visible.'}
+                  : 'Tolerance disposition is unverified. Select any bend to inspect its experimental measured vs expected geometry.'}
               </p>
             </div>
             <div className="rounded-lg border border-dark-600 bg-dark-800/70 px-3 py-2 text-xs text-dark-300">
@@ -1017,6 +1210,40 @@ function BendCadOverlay3D({
         )}
       </div>
 
+      <BendLabelingStudio
+        enabled={labelingEnabled}
+        labels={instanceLabels}
+        markers={labelStudioMarkers}
+        draftPoint={draftLabelPoint}
+        loading={labelsLoading}
+        saving={labelsSaving}
+        saved={labelsSaved}
+        error={labelsError}
+        onEnabledChange={(enabled) => {
+          setLabelingEnabled(enabled)
+          if (!enabled) setDraftLabelPoint(null)
+        }}
+        onSave={handleSaveLabels}
+        onUndoDraft={() => setDraftLabelPoint(null)}
+        onDeleteManualBend={handleDeleteManualBend}
+        onMarkerDecision={handleMarkerDecision}
+        onReviewStatusChange={(reviewStatus) => {
+          setLabelsSaved(false)
+          setInstanceLabels((current) => ({
+            ...current,
+            review_status: reviewStatus,
+            updated_at: new Date().toISOString(),
+          }))
+        }}
+      />
+
+      <BendViewerBoundary key={jobId}>
+      {heatmap.isPending && <p className="mb-2 text-xs text-dark-400">Loading surface heatmap…</p>}
+      {heatmap.isError && (
+        <p className="mb-2 text-xs text-amber-300">
+          Surface heatmap unavailable. <button type="button" className="underline" onClick={() => heatmap.refetch()}>Retry</button>
+        </p>
+      )}
       <Suspense fallback={
         <div className="h-[560px] rounded-lg bg-dark-900 flex items-center justify-center">
           <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary-500" />
@@ -1025,12 +1252,18 @@ function BendCadOverlay3D({
         <ThreeViewer
           modelUrl={alignedScanUrl}
           referenceUrl={referenceUrl}
+          deviations={heatmap.data}
           bendAnnotations={bendAnnotations}
           focusPoint={focusPoint}
           focusAnnotationId={focusedBendId}
+          labelingMode={labelingEnabled}
+          manualBendSegments={manualBendSegments}
+          draftLabelPoint={draftLabelPoint}
+          onLabelPointPick={handleLabelPointPick}
           className="h-[560px]"
         />
       </Suspense>
+      </BendViewerBoundary>
     </div>
   )
 }
@@ -1170,7 +1403,7 @@ function BendArtifactsPanel({
         <div>
           <p className="text-xs text-dark-400 uppercase tracking-wide">Report Artifacts</p>
           <p className="text-xs text-dark-500 mt-1">
-            Backend-generated overview and bend-inspection PDF aligned with the current overlay
+            Experimental backend snapshots and PDF; alignment and physical render evidence are unverified
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -1183,29 +1416,19 @@ function BendArtifactsPanel({
             </Link>
           )}
           {artifacts.bend_report_pdf_url && (
-            <a
-              href={artifacts.bend_report_pdf_url}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center gap-2 rounded-lg border border-primary-500/40 bg-primary-500/10 px-3 py-2 text-xs font-medium text-primary-300 hover:bg-primary-500/15"
-            >
-              <Download className="w-3.5 h-3.5" />
-              Download PDF
-            </a>
+            <AuthenticatedArtifactDownload url={artifacts.bend_report_pdf_url} filename={`${jobId ?? 'inspection'}-research-report.pdf`} />
           )}
         </div>
       </div>
 
       {artifacts.bend_overlay_overview_url && (
-        <a href={artifacts.bend_overlay_overview_url} target="_blank" rel="noreferrer" className="block">
           <div className="overflow-hidden rounded-lg border border-dark-600 bg-dark-900/70">
-            <img
+            <AuthenticatedArtifactImage
               src={artifacts.bend_overlay_overview_url}
               alt="Bend overlay overview"
               className="w-full h-auto object-cover"
             />
           </div>
-        </a>
       )}
 
       <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-dark-400">
@@ -1258,10 +1481,11 @@ function normalize2D(
 function viewBounds(matches: BendMatch[], view: AxisView) {
   const pts: Array<[number, number]> = []
   for (const m of matches) {
-    const c0 = parseLinePoint(m.display_cad_line_start ?? m.cad_line_start)
-    const c1 = parseLinePoint(m.display_cad_line_end ?? m.cad_line_end)
-    const s0 = parseLinePoint(m.display_detected_line_start ?? m.detected_line_start)
-    const s1 = parseLinePoint(m.display_detected_line_end ?? m.detected_line_end)
+    if (!hasValidatedDisplayGeometry(m)) continue
+    const c0 = parseLinePoint(m.display_cad_line_start)
+    const c1 = parseLinePoint(m.display_cad_line_end)
+    const s0 = parseLinePoint(m.display_detected_line_start)
+    const s1 = parseLinePoint(m.display_detected_line_end)
     if (c0) pts.push(projectToView(c0, view))
     if (c1) pts.push(projectToView(c1, view))
     if (s0) pts.push(projectToView(s0, view))
@@ -1298,9 +1522,10 @@ function BendGeometryCue({
   displayBendLabels: Map<string, string>
 }) {
   if (!matches.length) return null
-  const hasCadGeometry = matches.some((m) => {
-    const c0 = parseLinePoint(m.display_cad_line_start ?? m.cad_line_start)
-    const c1 = parseLinePoint(m.display_cad_line_end ?? m.cad_line_end)
+  const validatedMatches = matches.filter(hasValidatedDisplayGeometry)
+  const hasCadGeometry = validatedMatches.some((m) => {
+    const c0 = parseLinePoint(m.display_cad_line_start)
+    const c1 = parseLinePoint(m.display_cad_line_end)
     return !!c0 && !!c1
   })
   const views: AxisView[] = compact ? ['XY'] : ['XY', 'XZ', 'YZ']
@@ -1326,7 +1551,7 @@ function BendGeometryCue({
       ) : (
       <div className={clsx('grid gap-2', compact ? 'grid-cols-1' : 'grid-cols-3')}>
         {views.map((view) => {
-          const bounds = viewBounds(matches, view)
+          const bounds = viewBounds(validatedMatches, view)
           return (
             <div key={view} className="rounded border border-dark-600 bg-dark-900/60 p-2">
               <div className="text-[11px] text-dark-400 mb-1">{view} projection</div>
@@ -1336,9 +1561,9 @@ function BendGeometryCue({
                 role="img"
                 aria-label={`Bend geometry ${view}`}
               >
-                {matches.map((m) => {
-                  const c0 = parseLinePoint(m.display_cad_line_start ?? m.cad_line_start)
-                  const c1 = parseLinePoint(m.display_cad_line_end ?? m.cad_line_end)
+                {validatedMatches.map((m) => {
+                  const c0 = parseLinePoint(m.display_cad_line_start)
+                  const c1 = parseLinePoint(m.display_cad_line_end)
                   if (!c0 || !c1) return null
                   const [x1, y1] = normalize2D(projectToView(c0, view), bounds, width, height, padding)
                   const [x2, y2] = normalize2D(projectToView(c1, view), bounds, width, height, padding)
@@ -1347,8 +1572,8 @@ function BendGeometryCue({
                   const midY = (y1 + y2) / 2
                   const isFocused = focusedBendId === m.bend_id
 
-                  const d0 = parseLinePoint(m.display_detected_line_start ?? m.detected_line_start)
-                  const d1 = parseLinePoint(m.display_detected_line_end ?? m.detected_line_end)
+                  const d0 = parseLinePoint(m.display_detected_line_start)
+                  const d1 = parseLinePoint(m.display_detected_line_end)
                   const hasDetected = !!d0 && !!d1
 
                   return (
@@ -1395,24 +1620,12 @@ function BendGeometryCue({
 
       <div className="mt-2 flex flex-wrap gap-2 text-[11px] text-dark-400">
         <span className="inline-flex items-center gap-1">
-          <span className="inline-block w-3 h-0.5 bg-emerald-400" />
-          In spec
-        </span>
-        <span className="inline-flex items-center gap-1">
-          <span className="inline-block w-3 h-0.5 bg-amber-400" />
-          Warning
-        </span>
-        <span className="inline-flex items-center gap-1">
-          <span className="inline-block w-3 h-0.5 bg-red-400" />
-          Out of spec
-        </span>
-        <span className="inline-flex items-center gap-1">
           <span className="inline-block w-3 h-0.5 bg-slate-400" />
-          Not detected
+          CAD target · unverified
         </span>
         <span className="inline-flex items-center gap-1">
           <span className="inline-block w-3 h-0.5 bg-sky-400 border-b border-dashed border-sky-300" />
-          Detected overlay
+          Experimental detected overlay
         </span>
       </div>
     </div>
@@ -1559,7 +1772,8 @@ function BendRow({
           <div className="text-dark-200">Exp {match.target_angle.toFixed(1)}</div>
           <div>Act {match.measured_angle !== null ? match.measured_angle.toFixed(1) : '-'}</div>
           <div className={clsx(
-            (match.angle_deviation !== null && Math.abs(match.angle_deviation) > match.tolerance_angle)
+            match.status === 'NOT_DETECTED' ? 'text-dark-300'
+            : (match.angle_deviation !== null && Math.abs(match.angle_deviation) > match.tolerance_angle)
               ? 'text-red-400'
               : 'text-emerald-400'
           )}>
@@ -1572,7 +1786,8 @@ function BendRow({
           <div>Exp {match.target_radius.toFixed(2)}</div>
           <div>Act {match.measured_radius !== null ? match.measured_radius.toFixed(2) : '-'}</div>
           <div className={clsx(
-            (match.radius_deviation !== null && Math.abs(match.radius_deviation) > match.tolerance_radius)
+            match.status === 'NOT_DETECTED' ? 'text-dark-300'
+            : (match.radius_deviation !== null && Math.abs(match.radius_deviation) > match.tolerance_radius)
               ? 'text-red-400'
               : 'text-emerald-400'
           )}>
@@ -1593,7 +1808,8 @@ function BendRow({
               : '-'}
           </div>
           <div className={clsx(
-            (match.line_length_deviation_mm !== null && match.line_length_deviation_mm !== undefined && Math.abs(match.line_length_deviation_mm) > match.tolerance_radius)
+            match.status === 'NOT_DETECTED' ? 'text-dark-300'
+            : (match.line_length_deviation_mm !== null && match.line_length_deviation_mm !== undefined && Math.abs(match.line_length_deviation_mm) > match.tolerance_radius)
               ? 'text-red-400'
               : 'text-emerald-400'
           )}>
@@ -1612,7 +1828,8 @@ function BendRow({
               : '-'}
           </div>
           <div className={clsx(
-            (match.arc_length_deviation_mm !== null && match.arc_length_deviation_mm !== undefined && Math.abs(match.arc_length_deviation_mm) > match.tolerance_radius)
+            match.status === 'NOT_DETECTED' ? 'text-dark-300'
+            : (match.arc_length_deviation_mm !== null && match.arc_length_deviation_mm !== undefined && Math.abs(match.arc_length_deviation_mm) > match.tolerance_radius)
               ? 'text-red-400'
               : 'text-emerald-400'
           )}>
@@ -1621,7 +1838,8 @@ function BendRow({
               : '-'}
           </div>
           <div className={clsx(
-            (match.line_center_deviation_mm !== null && match.line_center_deviation_mm !== undefined && Math.abs(match.line_center_deviation_mm) > match.tolerance_radius)
+            match.status === 'NOT_DETECTED' ? 'text-dark-300'
+            : (match.line_center_deviation_mm !== null && match.line_center_deviation_mm !== undefined && Math.abs(match.line_center_deviation_mm) > match.tolerance_radius)
               ? 'text-red-400'
               : 'text-emerald-400'
           )}>
@@ -1636,7 +1854,7 @@ function BendRow({
           'px-2 py-0.5 rounded text-xs font-medium',
           statusColors[match.status]
         )}>
-          {match.status === 'NOT_DETECTED' ? 'Not yet' : match.status}
+          {decisionLabel(match)}
         </span>
       </td>
       <td className={clsx('py-2 text-dark-300', compact ? 'pr-2' : 'pr-4')}>

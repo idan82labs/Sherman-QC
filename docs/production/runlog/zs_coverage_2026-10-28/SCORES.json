@@ -1,0 +1,700 @@
+{
+ "schema": "sherman.zs_coverage.scores.v1",
+ "matcher": "frozen 5 deg / 4 mm / 0.6 / 0.6 apex (broad_baseline score_case)",
+ "bootstrap": {
+  "n": 10000,
+  "seed": 20261018,
+  "unit": "family (part_id)"
+ },
+ "T1_heldout_by_engine": {
+  "zs_lane_v1": {
+   "TEST-B (61, re-audit gold; one-time 2026-10-25, ledger seq 13-14)": {
+    "scans": 61,
+    "families": 50,
+    "gold": 317,
+    "pred": 305,
+    "tp": 266,
+    "fp": 39,
+    "fn": 51,
+    "P": 0.8721,
+    "R": 0.8391,
+    "micro_f1": 0.8553,
+    "micro_ci95": [
+     0.7617,
+     0.9271
+    ],
+    "family_macro_f1": 0.8549,
+    "macro_ci95": [
+     0.7816,
+     0.9175
+    ],
+    "failed_or_missing_scans": 0,
+    "controls": {
+     "scans": 0,
+     "fp_lines": 0
+    },
+    "fn_causes": {
+     "SPAN_LT_60PCT": 28,
+     "OFFSET_GT_4MM": 7,
+     "MISSED": 16
+    },
+    "fp_causes": {
+     "SPAN_LT_60PCT": 24,
+     "TAKEN_BY_OTHER": 2,
+     "SPURIOUS": 13
+    }
+   },
+   "N1 (4: 1 line scan + 3 zero-bend controls; one-time 2026-10-25, ledger seq 18-19)": {
+    "scans": 1,
+    "families": 1,
+    "gold": 26,
+    "pred": 23,
+    "tp": 21,
+    "fp": 2,
+    "fn": 5,
+    "P": 0.913,
+    "R": 0.8077,
+    "micro_f1": 0.8571,
+    "micro_ci95": [
+     0.8571,
+     0.8571
+    ],
+    "family_macro_f1": 0.8571,
+    "macro_ci95": [
+     0.8571,
+     0.8571
+    ],
+    "failed_or_missing_scans": 0,
+    "controls": {
+     "scans": 3,
+     "fp_lines": 0
+    },
+    "fn_causes": {
+     "SPAN_LT_60PCT": 2,
+     "OFFSET_GT_4MM": 1,
+     "MISSED": 2
+    },
+    "fp_causes": {
+     "SPAN_LT_60PCT": 2
+    }
+   },
+   "TEST-B + N1 pooled (families disjoint)": {
+    "scans": 62,
+    "families": 51,
+    "gold": 343,
+    "pred": 328,
+    "tp": 287,
+    "fp": 41,
+    "fn": 56,
+    "P": 0.875,
+    "R": 0.8367,
+    "micro_f1": 0.8554,
+    "micro_ci95": [
+     0.7704,
+     0.9231
+    ],
+    "family_macro_f1": 0.8549,
+    "macro_ci95": [
+     0.7834,
+     0.9158
+    ],
+    "failed_or_missing_scans": 0,
+    "controls": {
+     "scans": 3,
+     "fp_lines": 0
+    },
+    "fn_causes": {
+     "SPAN_LT_60PCT": 30,
+     "OFFSET_GT_4MM": 8,
+     "MISSED": 18
+    },
+    "fp_causes": {
+     "SPAN_LT_60PCT": 26,
+     "TAKEN_BY_OTHER": 2,
+     "SPURIOUS": 13
+    }
+   }
+  },
+  "zs_lane_v3": "none: v3 was developed after TEST-B and N1 (FE1 adds it later)"
+ },
+ "T2_posthoc_gold_labelled": {
+  "label": "POST-HOC on consumed data; DEV = in-sample for both lanes (production GBMs fit on all 125 DEV); not held-out",
+  "allow_sealed": false,
+  "lanes": {
+   "zs_lane_v1": {
+    "ALL_SCORED": {
+     "scans": 104,
+     "families": 79,
+     "gold": 553,
+     "pred": 548,
+     "tp": 534,
+     "fp": 14,
+     "fn": 19,
+     "P": 0.9745,
+     "R": 0.9656,
+     "micro_f1": 0.97,
+     "micro_ci95": [
+      0.953,
+      0.9849
+     ],
+     "family_macro_f1": 0.976,
+     "macro_ci95": [
+      0.958,
+      0.9906
+     ],
+     "failed_or_missing_scans": 0,
+     "controls": {
+      "scans": 7,
+      "fp_lines": 0
+     },
+     "fn_causes": {
+      "MISSED": 7,
+      "SPAN_LT_60PCT": 5,
+      "TAKEN_BY_OTHER": 1,
+      "OFFSET_GT_4MM": 6
+     },
+     "fp_causes": {
+      "SPAN_LT_60PCT": 4,
+      "TAKEN_BY_OTHER": 10
+     }
+    },
+    "DEV (all scored)": {
+     "scans": 103,
+     "families": 78,
+     "gold": 527,
+     "pred": 525,
+     "tp": 513,
+     "fp": 12,
+     "fn": 14,
+     "P": 0.9771,
+     "R": 0.9734,
+     "micro_f1": 0.9753,
+     "micro_ci95": [
+      0.961,
+      0.9878
+     ],
+     "family_macro_f1": 0.9776,
+     "macro_ci95": [
+      0.9591,
+      0.9918
+     ],
+     "failed_or_missing_scans": 0,
+     "controls": {
+      "scans": 4,
+      "fp_lines": 0
+     },
+     "fn_causes": {
+      "MISSED": 5,
+      "SPAN_LT_60PCT": 3,
+      "TAKEN_BY_OTHER": 1,
+      "OFFSET_GT_4MM": 5
+     },
+     "fp_causes": {
+      "SPAN_LT_60PCT": 2,
+      "TAKEN_BY_OTHER": 10
+     }
+    },
+    "DEV/DEV (A1 tuning + other consumed)": {
+     "scans": 90,
+     "families": 71,
+     "gold": 444,
+     "pred": 442,
+     "tp": 435,
+     "fp": 7,
+     "fn": 9,
+     "P": 0.9842,
+     "R": 0.9797,
+     "micro_f1": 0.9819,
+     "micro_ci95": [
+      0.9684,
+      0.9935
+     ],
+     "family_macro_f1": 0.9817,
+     "macro_ci95": [
+      0.962,
+      0.996
+     ],
+     "failed_or_missing_scans": 0,
+     "controls": {
+      "scans": 4,
+      "fp_lines": 0
+     },
+     "fn_causes": {
+      "MISSED": 2,
+      "SPAN_LT_60PCT": 2,
+      "OFFSET_GT_4MM": 5
+     },
+     "fp_causes": {
+      "SPAN_LT_60PCT": 1,
+      "TAKEN_BY_OTHER": 6
+     }
+    },
+    "DEV/DEV-CHECK": {
+     "scans": 10,
+     "families": 7,
+     "gold": 59,
+     "pred": 59,
+     "tp": 57,
+     "fp": 2,
+     "fn": 2,
+     "P": 0.9661,
+     "R": 0.9661,
+     "micro_f1": 0.9661,
+     "micro_ci95": [
+      0.9474,
+      1.0
+     ],
+     "family_macro_f1": 0.9825,
+     "macro_ci95": [
+      0.9619,
+      1.0
+     ],
+     "failed_or_missing_scans": 0,
+     "controls": {
+      "scans": 0,
+      "fp_lines": 0
+     },
+     "fn_causes": {
+      "MISSED": 2
+     },
+     "fp_causes": {
+      "TAKEN_BY_OTHER": 2
+     }
+    },
+    "DEV/FRESH (in DEV)": {
+     "scans": 3,
+     "families": 3,
+     "gold": 24,
+     "pred": 24,
+     "tp": 21,
+     "fp": 3,
+     "fn": 3,
+     "P": 0.875,
+     "R": 0.875,
+     "micro_f1": 0.875,
+     "micro_ci95": [
+      0.8,
+      1.0
+     ],
+     "family_macro_f1": 0.8857,
+     "macro_ci95": [
+      0.8,
+      1.0
+     ],
+     "failed_or_missing_scans": 0,
+     "controls": {
+      "scans": 0,
+      "fp_lines": 0
+     },
+     "fn_causes": {
+      "TAKEN_BY_OTHER": 1,
+      "SPAN_LT_60PCT": 1,
+      "MISSED": 1
+     },
+     "fp_causes": {
+      "SPAN_LT_60PCT": 1,
+      "TAKEN_BY_OTHER": 2
+     }
+    },
+    "N1": {
+     "scans": 1,
+     "families": 1,
+     "gold": 26,
+     "pred": 23,
+     "tp": 21,
+     "fp": 2,
+     "fn": 5,
+     "P": 0.913,
+     "R": 0.8077,
+     "micro_f1": 0.8571,
+     "micro_ci95": [
+      0.8571,
+      0.8571
+     ],
+     "family_macro_f1": 0.8571,
+     "macro_ci95": [
+      0.8571,
+      0.8571
+     ],
+     "failed_or_missing_scans": 0,
+     "controls": {
+      "scans": 3,
+      "fp_lines": 0
+     },
+     "fn_causes": {
+      "SPAN_LT_60PCT": 2,
+      "OFFSET_GT_4MM": 1,
+      "MISSED": 2
+     },
+     "fp_causes": {
+      "SPAN_LT_60PCT": 2
+     }
+    }
+   },
+   "zs_lane_v3": {
+    "ALL_SCORED": {
+     "scans": 104,
+     "families": 79,
+     "gold": 553,
+     "pred": 548,
+     "tp": 536,
+     "fp": 12,
+     "fn": 17,
+     "P": 0.9781,
+     "R": 0.9693,
+     "micro_f1": 0.9737,
+     "micro_ci95": [
+      0.9599,
+      0.9858
+     ],
+     "family_macro_f1": 0.9752,
+     "macro_ci95": [
+      0.9581,
+      0.9896
+     ],
+     "failed_or_missing_scans": 0,
+     "controls": {
+      "scans": 7,
+      "fp_lines": 0
+     },
+     "fn_causes": {
+      "MISSED": 7,
+      "SPAN_LT_60PCT": 4,
+      "TAKEN_BY_OTHER": 1,
+      "OFFSET_GT_4MM": 5
+     },
+     "fp_causes": {
+      "SPAN_LT_60PCT": 3,
+      "TAKEN_BY_OTHER": 9
+     }
+    },
+    "DEV (all scored)": {
+     "scans": 103,
+     "families": 78,
+     "gold": 527,
+     "pred": 524,
+     "tp": 512,
+     "fp": 12,
+     "fn": 15,
+     "P": 0.9771,
+     "R": 0.9715,
+     "micro_f1": 0.9743,
+     "micro_ci95": [
+      0.9599,
+      0.9869
+     ],
+     "family_macro_f1": 0.9754,
+     "macro_ci95": [
+      0.9584,
+      0.9897
+     ],
+     "failed_or_missing_scans": 0,
+     "controls": {
+      "scans": 4,
+      "fp_lines": 0
+     },
+     "fn_causes": {
+      "MISSED": 5,
+      "SPAN_LT_60PCT": 4,
+      "TAKEN_BY_OTHER": 1,
+      "OFFSET_GT_4MM": 5
+     },
+     "fp_causes": {
+      "SPAN_LT_60PCT": 3,
+      "TAKEN_BY_OTHER": 9
+     }
+    },
+    "DEV/DEV (A1 tuning + other consumed)": {
+     "scans": 90,
+     "families": 71,
+     "gold": 444,
+     "pred": 441,
+     "tp": 434,
+     "fp": 7,
+     "fn": 10,
+     "P": 0.9841,
+     "R": 0.9775,
+     "micro_f1": 0.9808,
+     "micro_ci95": [
+      0.9671,
+      0.9926
+     ],
+     "family_macro_f1": 0.9793,
+     "macro_ci95": [
+      0.9612,
+      0.9939
+     ],
+     "failed_or_missing_scans": 0,
+     "controls": {
+      "scans": 4,
+      "fp_lines": 0
+     },
+     "fn_causes": {
+      "MISSED": 2,
+      "SPAN_LT_60PCT": 3,
+      "OFFSET_GT_4MM": 5
+     },
+     "fp_causes": {
+      "SPAN_LT_60PCT": 2,
+      "TAKEN_BY_OTHER": 5
+     }
+    },
+    "DEV/DEV-CHECK": {
+     "scans": 10,
+     "families": 7,
+     "gold": 59,
+     "pred": 59,
+     "tp": 57,
+     "fp": 2,
+     "fn": 2,
+     "P": 0.9661,
+     "R": 0.9661,
+     "micro_f1": 0.9661,
+     "micro_ci95": [
+      0.9474,
+      1.0
+     ],
+     "family_macro_f1": 0.9825,
+     "macro_ci95": [
+      0.9619,
+      1.0
+     ],
+     "failed_or_missing_scans": 0,
+     "controls": {
+      "scans": 0,
+      "fp_lines": 0
+     },
+     "fn_causes": {
+      "MISSED": 2
+     },
+     "fp_causes": {
+      "TAKEN_BY_OTHER": 2
+     }
+    },
+    "DEV/FRESH (in DEV)": {
+     "scans": 3,
+     "families": 3,
+     "gold": 24,
+     "pred": 24,
+     "tp": 21,
+     "fp": 3,
+     "fn": 3,
+     "P": 0.875,
+     "R": 0.875,
+     "micro_f1": 0.875,
+     "micro_ci95": [
+      0.8,
+      1.0
+     ],
+     "family_macro_f1": 0.8857,
+     "macro_ci95": [
+      0.8,
+      1.0
+     ],
+     "failed_or_missing_scans": 0,
+     "controls": {
+      "scans": 0,
+      "fp_lines": 0
+     },
+     "fn_causes": {
+      "TAKEN_BY_OTHER": 1,
+      "SPAN_LT_60PCT": 1,
+      "MISSED": 1
+     },
+     "fp_causes": {
+      "SPAN_LT_60PCT": 1,
+      "TAKEN_BY_OTHER": 2
+     }
+    },
+    "N1": {
+     "scans": 1,
+     "families": 1,
+     "gold": 26,
+     "pred": 24,
+     "tp": 24,
+     "fp": 0,
+     "fn": 2,
+     "P": 1.0,
+     "R": 0.9231,
+     "micro_f1": 0.96,
+     "micro_ci95": [
+      0.96,
+      0.96
+     ],
+     "family_macro_f1": 0.96,
+     "macro_ci95": [
+      0.96,
+      0.96
+     ],
+     "failed_or_missing_scans": 0,
+     "controls": {
+      "scans": 3,
+      "fp_lines": 0
+     },
+     "fn_causes": {
+      "MISSED": 2
+     },
+     "fp_causes": {}
+    }
+   }
+  },
+  "sealed_gold_not_opened": {
+   "n": 79,
+   "by_group": {
+    "DEV/FRESH (in DEV)": 18,
+    "TEST-B": 61
+   },
+   "scan_ids": [
+    "sc_afd4de0698d8",
+    "sc_ead8e407c174",
+    "sc_c0ce5ecd2ba3",
+    "sc_147d3123a21d",
+    "sc_741c10b768dc",
+    "sc_4d62195d4e2d",
+    "sc_1f1d06c24e9f",
+    "sc_c54444e2c7df",
+    "sc_7bde16010a96",
+    "sc_d4b9d13966bb",
+    "sc_217cfc0f4c57",
+    "sc_cfe91a0336d4",
+    "sc_5dadc4b00c47",
+    "sc_7c6712aacca8",
+    "sc_6fa053514df8",
+    "sc_ead69b8181a8",
+    "sc_2476a49b0278",
+    "sc_3baf989b1612",
+    "sc_0e5dd5f6490e",
+    "sc_ccdb74afbde5",
+    "sc_ba2286ee9c19",
+    "sc_216c636d3bcb",
+    "sc_41d9f652df57",
+    "sc_90688c5ab7be",
+    "sc_90257b128d80",
+    "sc_e36194d827bf",
+    "sc_fb178c492b04",
+    "sc_daeb617ca8ae",
+    "sc_f7b2a638e246",
+    "sc_8700ef964309",
+    "sc_be73cab0e96e",
+    "sc_077889c8aeab",
+    "sc_0e5eca6fd886",
+    "sc_c75fb685efcd",
+    "sc_c768328a70e6",
+    "sc_f5655bd1908e",
+    "sc_3bf77708bb82",
+    "sc_4dd0e37dd764",
+    "sc_1bfde19a4430",
+    "sc_8a4a24043800",
+    "sc_92f57084d4c5",
+    "sc_c11b80b6d2af",
+    "sc_fc2657f59d20",
+    "sc_f6b7f5e5ae63",
+    "sc_5d7b61913ee0",
+    "sc_ec663db9d917",
+    "sc_1d920838b34b",
+    "sc_5a382360b59f",
+    "sc_705ec5de123b",
+    "sc_c35199ee5039",
+    "sc_3f6e22d70e4e",
+    "sc_d094d32acc76",
+    "sc_938e948c1d00",
+    "sc_23754ce82e06",
+    "sc_5d1715d17af6",
+    "sc_0412d642d936",
+    "sc_76b89855765e",
+    "sc_20a96de8b712",
+    "sc_2d74c97bb017",
+    "sc_92207963e00b",
+    "sc_bff1526135fb",
+    "sc_b0fb59a69e99",
+    "sc_1dd687fd8ff8",
+    "sc_deba7f81ceec",
+    "sc_09aaf245becb",
+    "sc_3f6a4a32ffdc",
+    "sc_bfabcec897fd",
+    "sc_57f3d5a23f60",
+    "sc_0f7ac8e49e99",
+    "sc_2fc703f32b3b",
+    "sc_03b571de167d",
+    "sc_f86e40f38a37",
+    "sc_c7aa4f510d75",
+    "sc_9b47565ad2ac",
+    "sc_4f72b44afd5a",
+    "sc_528766342080",
+    "sc_d02d75eaff89",
+    "sc_d338ed2dced8",
+    "sc_d151c2d71804"
+   ]
+  },
+  "no_frozen_gold": [
+   "sc_f279de7ca616",
+   "sc_f81ebf011f82"
+  ]
+ },
+ "T3_ran_on_coverage": {
+  "zs_lane_v1": {
+   "scans_in_manifest": 192,
+   "statuses": {
+    "OK": 192
+   },
+   "success_rate": 1.0,
+   "wall_s": {
+    "p50": 10.72,
+    "p95": 25.18,
+    "max": 74.463,
+    "n": 191
+   },
+   "peak_rss_gib": {
+    "p50": 1.36,
+    "p95": 2.49,
+    "max": 5.543
+   },
+   "lines_per_ok_scan": {
+    "mean": 4.96,
+    "p50": 4.0,
+    "max": 23,
+    "total": 953,
+    "zero_line_scans": 10
+   },
+   "by_split_ok": {
+    "DEV": 125,
+    "N1": 4,
+    "OTHER_CONSUMED": 2,
+    "TEST-B": 61
+   },
+   "failures": []
+  },
+  "zs_lane_v3": {
+   "scans_in_manifest": 192,
+   "statuses": {
+    "OK": 192
+   },
+   "success_rate": 1.0,
+   "wall_s": {
+    "p50": 6.88,
+    "p95": 21.88,
+    "max": 36.277,
+    "n": 192
+   },
+   "peak_rss_gib": {
+    "p50": 1.28,
+    "p95": 2.46,
+    "max": 2.757
+   },
+   "lines_per_ok_scan": {
+    "mean": 4.95,
+    "p50": 4.0,
+    "max": 24,
+    "total": 950,
+    "zero_line_scans": 10
+   },
+   "by_split_ok": {
+    "DEV": 125,
+    "N1": 4,
+    "OTHER_CONSUMED": 2,
+    "TEST-B": 61
+   },
+   "failures": []
+  }
+ }
+}

@@ -1,0 +1,805 @@
+{
+ "schema": "sherman_g4_scan_review_v1",
+ "scan_ref": "scan_e857143822",
+ "packet": "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/g4/packet_e3",
+ "packet_manifest_sha256_commitment": "a0be8bfd6ddde18cf4212909f64bc8c780bb5d427febcb693ab3a8d6f8596a35",
+ "protocol": {
+  "sha256": "cfe774d0d70a9843aa48deb9461f58cc83c368d8f43db6e3c45cc6ec521dd41f",
+  "version": "E4-G4-2 (2026-10-17)"
+ },
+ "instructions": "Two independent reviewers (max effort, did not write the engine) inspect EVERY image and append one G4VerdictV1 line per image to g4_verdicts.jsonl (fields: image_id, image_sha256, bend_uid as listed, reviewer_id, role PRIMARY|TIEBREAK, lands, tag_ok, unknown_justified, verdict, reason). Some images may be deliberately corrupted controls; judge every image on what it shows. No metrics are provided.",
+ "lands_rule": {
+  "min_length_fraction": 0.8,
+  "offset": "max(2 mm, Ri + t) from the crease",
+  "offset_floor_mm": 2.0,
+  "parallel": true
+ },
+ "images": [
+  {
+   "file": "img_1022eab2dfed.png",
+   "image_id": "img_1022eab2dfed",
+   "kind": "CLOSEUP",
+   "px_per_mm": 10.0,
+   "questions": [
+    "The engine reports this bend NOT YET FORMED (flat), so no measured line is drawn; the grey dashed line is where the bend will be. Is that justified: is the material along the grey dashed line really flat (unbent) in the scan? Answer unknown_justified YES or NO; lands = NOT_APPLICABLE.",
+    "TAG_OK: does the bold subject label match the RECIPE CAD label at the same spot? YES / NO / UNDETERMINABLE."
+   ],
+   "scan_ref": "scan_e857143822",
+   "sha256": "d6003361302cd460d82094e489b4ebe82b5fe5a19de2dd9c30ade121033fe96f",
+   "subject": {
+    "bend_uid": "bu_175890c26625be04f424",
+    "display": "9 · B9 · 175890",
+    "label": "B9",
+    "measured_line_shown": false,
+    "sequence_index": 9,
+    "state_shown": "NOT_YET_FORMED"
+   },
+   "tile": {
+    "count": 3,
+    "index": 2
+   }
+  },
+  {
+   "file": "img_1044185206c9.png",
+   "image_id": "img_1044185206c9",
+   "kind": "CLOSEUP",
+   "px_per_mm": 10.0,
+   "questions": [
+    "LANDS: does the SOLID black line lie on the physical bend crease of the scan (within max(2 mm, Ri + t), parallel, over at least 80 % of its length)? Answer YES, NO, or OCCLUDED if the crease cannot be seen.",
+    "TAG_OK: does the bold label next to the solid line equal the RECIPE CAD label at the same spot? YES / NO / UNDETERMINABLE."
+   ],
+   "scan_ref": "scan_e857143822",
+   "sha256": "20073f111ad172189862b69bf21bcba8f9c4df13a037cb8838d90eb9a820bd99",
+   "subject": {
+    "bend_uid": "bu_0eb02c66f399d0c29de4",
+    "display": "10 · B10 · 0eb02c",
+    "label": "B10",
+    "measured_line_shown": true,
+    "sequence_index": 10,
+    "state_shown": "UNEXPECTED_FORMED"
+   },
+   "tile": {
+    "count": 2,
+    "index": 0
+   }
+  },
+  {
+   "file": "img_10e5a1a9c3db.png",
+   "image_id": "img_10e5a1a9c3db",
+   "kind": "CLOSEUP",
+   "px_per_mm": 10.0,
+   "questions": [
+    "LANDS: does the SOLID black line lie on the physical bend crease of the scan (within max(2 mm, Ri + t), parallel, over at least 80 % of its length)? Answer YES, NO, or OCCLUDED if the crease cannot be seen.",
+    "TAG_OK: does the bold label next to the solid line equal the RECIPE CAD label at the same spot? YES / NO / UNDETERMINABLE."
+   ],
+   "scan_ref": "scan_e857143822",
+   "sha256": "837b07e43798321be98895a31870e78d04982434c5a99cd7d43c914b752f9720",
+   "subject": {
+    "bend_uid": "bu_f8b4276e65667e8e72a9",
+    "display": "4 · B4 · f8b427",
+    "label": "B4",
+    "measured_line_shown": true,
+    "sequence_index": 4,
+    "state_shown": "FORMED"
+   },
+   "tile": {
+    "count": 3,
+    "index": 0
+   }
+  },
+  {
+   "file": "img_25ab644a9add.png",
+   "image_id": "img_25ab644a9add",
+   "kind": "CLOSEUP",
+   "px_per_mm": 10.0,
+   "questions": [
+    "LANDS: does the SOLID black line lie on the physical bend crease of the scan (within max(2 mm, Ri + t), parallel, over at least 80 % of its length)? Answer YES, NO, or OCCLUDED if the crease cannot be seen.",
+    "TAG_OK: does the bold label next to the solid line equal the RECIPE CAD label at the same spot? YES / NO / UNDETERMINABLE."
+   ],
+   "scan_ref": "scan_e857143822",
+   "sha256": "acf9a25dec9f042e03d36a8ca105a5933789ed1b0642f6a0cb52ec91fdfc0de6",
+   "subject": {
+    "bend_uid": "bu_804398b5da35f5713eac",
+    "display": "5 · B5 · 804398",
+    "label": "B5",
+    "measured_line_shown": true,
+    "sequence_index": 5,
+    "state_shown": "FORMED"
+   },
+   "tile": {
+    "count": 1,
+    "index": 0
+   }
+  },
+  {
+   "file": "img_351bb9e63d5a.png",
+   "image_id": "img_351bb9e63d5a",
+   "kind": "CLOSEUP",
+   "px_per_mm": 10.0,
+   "questions": [
+    "The engine reports this bend NOT YET FORMED (flat), so no measured line is drawn; the grey dashed line is where the bend will be. Is that justified: is the material along the grey dashed line really flat (unbent) in the scan? Answer unknown_justified YES or NO; lands = NOT_APPLICABLE.",
+    "TAG_OK: does the bold subject label match the RECIPE CAD label at the same spot? YES / NO / UNDETERMINABLE."
+   ],
+   "scan_ref": "scan_e857143822",
+   "sha256": "af52091bfc40cd0bc7f71f3f813bdc2bd3bfa437ab896f69d99732c4e9107e21",
+   "subject": {
+    "bend_uid": "bu_dc997c2861d3325a8bca",
+    "display": "8 · B8 · dc997c",
+    "label": "B8",
+    "measured_line_shown": false,
+    "sequence_index": 8,
+    "state_shown": "NOT_YET_FORMED"
+   },
+   "tile": {
+    "count": 3,
+    "index": 1
+   }
+  },
+  {
+   "file": "img_3e03bebe2f66.png",
+   "image_id": "img_3e03bebe2f66",
+   "kind": "CLOSEUP",
+   "px_per_mm": 10.0,
+   "questions": [
+    "LANDS: does the SOLID black line lie on the physical bend crease of the scan (within max(2 mm, Ri + t), parallel, over at least 80 % of its length)? Answer YES, NO, or OCCLUDED if the crease cannot be seen.",
+    "TAG_OK: does the bold label next to the solid line equal the RECIPE CAD label at the same spot? YES / NO / UNDETERMINABLE."
+   ],
+   "scan_ref": "scan_e857143822",
+   "sha256": "a708068d3e024cfda8a8b801fbf188dcf0a5db22cccc04ecb7b936e4823b4fd4",
+   "subject": {
+    "bend_uid": "bu_471f3e0d637e8d205cd1",
+    "display": "2 · B2 · 471f3e",
+    "label": "B2",
+    "measured_line_shown": true,
+    "sequence_index": 2,
+    "state_shown": "FORMED"
+   },
+   "tile": {
+    "count": 3,
+    "index": 0
+   }
+  },
+  {
+   "file": "img_435693974a97.png",
+   "image_id": "img_435693974a97",
+   "kind": "CLOSEUP",
+   "px_per_mm": 10.0,
+   "questions": [
+    "LANDS: does the SOLID black line lie on the physical bend crease of the scan (within max(2 mm, Ri + t), parallel, over at least 80 % of its length)? Answer YES, NO, or OCCLUDED if the crease cannot be seen.",
+    "TAG_OK: does the bold label next to the solid line equal the RECIPE CAD label at the same spot? YES / NO / UNDETERMINABLE."
+   ],
+   "scan_ref": "scan_e857143822",
+   "sha256": "4ca416d208aa4d3295d9d78c8b3bc2d9c3484a732ac3fdca4074a4b72c0029b3",
+   "subject": {
+    "bend_uid": "bu_471f3e0d637e8d205cd1",
+    "display": "2 · B2 · 471f3e",
+    "label": "B2",
+    "measured_line_shown": true,
+    "sequence_index": 2,
+    "state_shown": "FORMED"
+   },
+   "tile": {
+    "count": 3,
+    "index": 2
+   }
+  },
+  {
+   "file": "img_53407cde5b11.png",
+   "image_id": "img_53407cde5b11",
+   "kind": "CLOSEUP",
+   "px_per_mm": 10.0,
+   "questions": [
+    "LANDS: does the SOLID black line lie on the physical bend crease of the scan (within max(2 mm, Ri + t), parallel, over at least 80 % of its length)? Answer YES, NO, or OCCLUDED if the crease cannot be seen.",
+    "TAG_OK: does the bold label next to the solid line equal the RECIPE CAD label at the same spot? YES / NO / UNDETERMINABLE."
+   ],
+   "scan_ref": "scan_e857143822",
+   "sha256": "1d4a876ff3a9b042d690ad89648767db2b8dfdc306df923d7ed58d028ae5df1d",
+   "subject": {
+    "bend_uid": "bu_471f3e0d637e8d205cd1",
+    "display": "2 · B2 · 471f3e",
+    "label": "B2",
+    "measured_line_shown": true,
+    "sequence_index": 2,
+    "state_shown": "FORMED"
+   },
+   "tile": {
+    "count": 3,
+    "index": 1
+   }
+  },
+  {
+   "file": "img_623228a95cef.png",
+   "image_id": "img_623228a95cef",
+   "kind": "CLOSEUP",
+   "px_per_mm": 10.0,
+   "questions": [
+    "LANDS: does the SOLID black line lie on the physical bend crease of the scan (within max(2 mm, Ri + t), parallel, over at least 80 % of its length)? Answer YES, NO, or OCCLUDED if the crease cannot be seen.",
+    "TAG_OK: does the bold label next to the solid line equal the RECIPE CAD label at the same spot? YES / NO / UNDETERMINABLE."
+   ],
+   "scan_ref": "scan_e857143822",
+   "sha256": "3fb3cb441339aabed4e4db5fb89d617c334da9e49e6092cb9830c7c4cd49e661",
+   "subject": {
+    "bend_uid": "bu_74f4d0a7cdc657854d17",
+    "display": "11 · B11 · 74f4d0",
+    "label": "B11",
+    "measured_line_shown": true,
+    "sequence_index": 11,
+    "state_shown": "UNEXPECTED_FORMED"
+   },
+   "tile": {
+    "count": 3,
+    "index": 2
+   }
+  },
+  {
+   "file": "img_6c6a8f16b85c.png",
+   "image_id": "img_6c6a8f16b85c",
+   "kind": "CLOSEUP",
+   "px_per_mm": 10.0,
+   "questions": [
+    "LANDS: does the SOLID black line lie on the physical bend crease of the scan (within max(2 mm, Ri + t), parallel, over at least 80 % of its length)? Answer YES, NO, or OCCLUDED if the crease cannot be seen.",
+    "TAG_OK: does the bold label next to the solid line equal the RECIPE CAD label at the same spot? YES / NO / UNDETERMINABLE."
+   ],
+   "scan_ref": "scan_e857143822",
+   "sha256": "4c4201837d700d37d2d960a20c7aeaea5784b6f99216c2a9ad666355b3e5ba1b",
+   "subject": {
+    "bend_uid": "bu_eb06b19a6b0b0962f505",
+    "display": "6 · B6 · eb06b1",
+    "label": "B6",
+    "measured_line_shown": true,
+    "sequence_index": 6,
+    "state_shown": "FORMED"
+   },
+   "tile": {
+    "count": 3,
+    "index": 2
+   }
+  },
+  {
+   "file": "img_6d110ce300e8.png",
+   "image_id": "img_6d110ce300e8",
+   "kind": "CLOSEUP",
+   "px_per_mm": 10.0,
+   "questions": [
+    "LANDS: does the SOLID black line lie on the physical bend crease of the scan (within max(2 mm, Ri + t), parallel, over at least 80 % of its length)? Answer YES, NO, or OCCLUDED if the crease cannot be seen.",
+    "TAG_OK: does the bold label next to the solid line equal the RECIPE CAD label at the same spot? YES / NO / UNDETERMINABLE."
+   ],
+   "scan_ref": "scan_e857143822",
+   "sha256": "a5cdbc48d2e4c03178a752b974f37176bd27f793f4c02bbc8346a2c9ffb6ed75",
+   "subject": {
+    "bend_uid": "bu_5eca734ef4d696175d6b",
+    "display": "7 · B7 · 5eca73",
+    "label": "B7",
+    "measured_line_shown": true,
+    "sequence_index": 7,
+    "state_shown": "FORMED"
+   },
+   "tile": {
+    "count": 1,
+    "index": 0
+   }
+  },
+  {
+   "file": "img_6f58f81f7424.png",
+   "image_id": "img_6f58f81f7424",
+   "kind": "CLOSEUP",
+   "px_per_mm": 10.0,
+   "questions": [
+    "LANDS: does the SOLID black line lie on the physical bend crease of the scan (within max(2 mm, Ri + t), parallel, over at least 80 % of its length)? Answer YES, NO, or OCCLUDED if the crease cannot be seen.",
+    "TAG_OK: does the bold label next to the solid line equal the RECIPE CAD label at the same spot? YES / NO / UNDETERMINABLE."
+   ],
+   "scan_ref": "scan_e857143822",
+   "sha256": "5983b5f9a0f713550957932bfbeaca4746b5cd9806df77976bb725f82aaa798e",
+   "subject": {
+    "bend_uid": "bu_23e7ee132b5bb25fa277",
+    "display": "12 · B12 · 23e7ee",
+    "label": "B12",
+    "measured_line_shown": true,
+    "sequence_index": 12,
+    "state_shown": "UNEXPECTED_FORMED"
+   },
+   "tile": {
+    "count": 2,
+    "index": 1
+   }
+  },
+  {
+   "file": "img_76550c399eea.png",
+   "image_id": "img_76550c399eea",
+   "kind": "CLOSEUP",
+   "px_per_mm": 10.0,
+   "questions": [
+    "LANDS: does the SOLID black line lie on the physical bend crease of the scan (within max(2 mm, Ri + t), parallel, over at least 80 % of its length)? Answer YES, NO, or OCCLUDED if the crease cannot be seen.",
+    "TAG_OK: does the bold label next to the solid line equal the RECIPE CAD label at the same spot? YES / NO / UNDETERMINABLE."
+   ],
+   "scan_ref": "scan_e857143822",
+   "sha256": "b0dc9741a03cefc51c50368591c19be84403d94926023479fe6f54e32a276f62",
+   "subject": {
+    "bend_uid": "bu_23e7ee132b5bb25fa277",
+    "display": "12 · B12 · 23e7ee",
+    "label": "B12",
+    "measured_line_shown": true,
+    "sequence_index": 12,
+    "state_shown": "UNEXPECTED_FORMED"
+   },
+   "tile": {
+    "count": 2,
+    "index": 0
+   }
+  },
+  {
+   "file": "img_8bcfd3558401.png",
+   "image_id": "img_8bcfd3558401",
+   "kind": "CLOSEUP",
+   "px_per_mm": 10.0,
+   "questions": [
+    "LANDS: does the SOLID black line lie on the physical bend crease of the scan (within max(2 mm, Ri + t), parallel, over at least 80 % of its length)? Answer YES, NO, or OCCLUDED if the crease cannot be seen.",
+    "TAG_OK: does the bold label next to the solid line equal the RECIPE CAD label at the same spot? YES / NO / UNDETERMINABLE."
+   ],
+   "scan_ref": "scan_e857143822",
+   "sha256": "133bd5c6ab6a9df603e705fd2eedf79ae94b9b61cea82aa6340b91c25ee18653",
+   "subject": {
+    "bend_uid": "bu_2823718e12cd89b5276c",
+    "display": "1 · B1 · 282371",
+    "label": "B1",
+    "measured_line_shown": true,
+    "sequence_index": 1,
+    "state_shown": "FORMED"
+   },
+   "tile": {
+    "count": 3,
+    "index": 1
+   }
+  },
+  {
+   "file": "img_8d70599a2dd5.png",
+   "image_id": "img_8d70599a2dd5",
+   "kind": "CLOSEUP",
+   "px_per_mm": 10.0,
+   "questions": [
+    "The engine reports this bend NOT YET FORMED (flat), so no measured line is drawn; the grey dashed line is where the bend will be. Is that justified: is the material along the grey dashed line really flat (unbent) in the scan? Answer unknown_justified YES or NO; lands = NOT_APPLICABLE.",
+    "TAG_OK: does the bold subject label match the RECIPE CAD label at the same spot? YES / NO / UNDETERMINABLE."
+   ],
+   "scan_ref": "scan_e857143822",
+   "sha256": "87059b2f80b6cde206b5621e68d327fc1a4cb357bf42677ccabd186fa46a995a",
+   "subject": {
+    "bend_uid": "bu_dc997c2861d3325a8bca",
+    "display": "8 · B8 · dc997c",
+    "label": "B8",
+    "measured_line_shown": false,
+    "sequence_index": 8,
+    "state_shown": "NOT_YET_FORMED"
+   },
+   "tile": {
+    "count": 3,
+    "index": 2
+   }
+  },
+  {
+   "file": "img_9c16959e52b2.png",
+   "image_id": "img_9c16959e52b2",
+   "kind": "CLOSEUP",
+   "px_per_mm": 10.0,
+   "questions": [
+    "LANDS: does the SOLID black line lie on the physical bend crease of the scan (within max(2 mm, Ri + t), parallel, over at least 80 % of its length)? Answer YES, NO, or OCCLUDED if the crease cannot be seen.",
+    "TAG_OK: does the bold label next to the solid line equal the RECIPE CAD label at the same spot? YES / NO / UNDETERMINABLE."
+   ],
+   "scan_ref": "scan_e857143822",
+   "sha256": "3b97d5544c841b501b35d0d974acfbc892e5eb67170b196cd76bd5ce9518cf41",
+   "subject": {
+    "bend_uid": "bu_74f4d0a7cdc657854d17",
+    "display": "11 · B11 · 74f4d0",
+    "label": "B11",
+    "measured_line_shown": true,
+    "sequence_index": 11,
+    "state_shown": "UNEXPECTED_FORMED"
+   },
+   "tile": {
+    "count": 3,
+    "index": 0
+   }
+  },
+  {
+   "file": "img_9fea8f32c888.png",
+   "image_id": "img_9fea8f32c888",
+   "kind": "CLOSEUP",
+   "px_per_mm": 10.0,
+   "questions": [
+    "LANDS: does the SOLID black line lie on the physical bend crease of the scan (within max(2 mm, Ri + t), parallel, over at least 80 % of its length)? Answer YES, NO, or OCCLUDED if the crease cannot be seen.",
+    "TAG_OK: does the bold label next to the solid line equal the RECIPE CAD label at the same spot? YES / NO / UNDETERMINABLE."
+   ],
+   "scan_ref": "scan_e857143822",
+   "sha256": "5dc11ceae21ab65fd380f7c54a4c157b7f312514dd29682296233c4a6ea2ce46",
+   "subject": {
+    "bend_uid": "bu_f8b4276e65667e8e72a9",
+    "display": "4 · B4 · f8b427",
+    "label": "B4",
+    "measured_line_shown": true,
+    "sequence_index": 4,
+    "state_shown": "FORMED"
+   },
+   "tile": {
+    "count": 3,
+    "index": 2
+   }
+  },
+  {
+   "file": "img_ad77b5379cef.png",
+   "image_id": "img_ad77b5379cef",
+   "kind": "CLOSEUP",
+   "px_per_mm": 10.0,
+   "questions": [
+    "LANDS: does the SOLID black line lie on the physical bend crease of the scan (within max(2 mm, Ri + t), parallel, over at least 80 % of its length)? Answer YES, NO, or OCCLUDED if the crease cannot be seen.",
+    "TAG_OK: does the bold label next to the solid line equal the RECIPE CAD label at the same spot? YES / NO / UNDETERMINABLE."
+   ],
+   "scan_ref": "scan_e857143822",
+   "sha256": "c6eb971043440e1dc41cacf5635d14e70ee9bb81d85edc0fdcbe1c916837ac48",
+   "subject": {
+    "bend_uid": "bu_2823718e12cd89b5276c",
+    "display": "1 · B1 · 282371",
+    "label": "B1",
+    "measured_line_shown": true,
+    "sequence_index": 1,
+    "state_shown": "FORMED"
+   },
+   "tile": {
+    "count": 3,
+    "index": 0
+   }
+  },
+  {
+   "file": "img_b70a2b156201.png",
+   "image_id": "img_b70a2b156201",
+   "kind": "CLOSEUP",
+   "px_per_mm": 10.0,
+   "questions": [
+    "LANDS: does the SOLID black line lie on the physical bend crease of the scan (within max(2 mm, Ri + t), parallel, over at least 80 % of its length)? Answer YES, NO, or OCCLUDED if the crease cannot be seen.",
+    "TAG_OK: does the bold label next to the solid line equal the RECIPE CAD label at the same spot? YES / NO / UNDETERMINABLE."
+   ],
+   "scan_ref": "scan_e857143822",
+   "sha256": "4a0d451b3f652ebf8951b6d4237d2d19b954ce4a949816016de8c13e52e984ae",
+   "subject": {
+    "bend_uid": "bu_5994c186ea06e7d3f94d",
+    "display": "3 · B3 · 5994c1",
+    "label": "B3",
+    "measured_line_shown": true,
+    "sequence_index": 3,
+    "state_shown": "FORMED"
+   },
+   "tile": {
+    "count": 3,
+    "index": 1
+   }
+  },
+  {
+   "file": "img_bbfa5bd513bb.png",
+   "image_id": "img_bbfa5bd513bb",
+   "kind": "CLOSEUP",
+   "px_per_mm": 10.0,
+   "questions": [
+    "LANDS: does the SOLID black line lie on the physical bend crease of the scan (within max(2 mm, Ri + t), parallel, over at least 80 % of its length)? Answer YES, NO, or OCCLUDED if the crease cannot be seen.",
+    "TAG_OK: does the bold label next to the solid line equal the RECIPE CAD label at the same spot? YES / NO / UNDETERMINABLE."
+   ],
+   "scan_ref": "scan_e857143822",
+   "sha256": "b559084afb35fb3285e0436c4a1d51702e4c231c9e5c4c57c41e7f8c77595d39",
+   "subject": {
+    "bend_uid": "bu_2823718e12cd89b5276c",
+    "display": "1 · B1 · 282371",
+    "label": "B1",
+    "measured_line_shown": true,
+    "sequence_index": 1,
+    "state_shown": "FORMED"
+   },
+   "tile": {
+    "count": 3,
+    "index": 2
+   }
+  },
+  {
+   "file": "img_be307e3a2177.png",
+   "image_id": "img_be307e3a2177",
+   "kind": "CLOSEUP",
+   "px_per_mm": 10.0,
+   "questions": [
+    "LANDS: does the SOLID black line lie on the physical bend crease of the scan (within max(2 mm, Ri + t), parallel, over at least 80 % of its length)? Answer YES, NO, or OCCLUDED if the crease cannot be seen.",
+    "TAG_OK: does the bold label next to the solid line equal the RECIPE CAD label at the same spot? YES / NO / UNDETERMINABLE."
+   ],
+   "scan_ref": "scan_e857143822",
+   "sha256": "baa565021316af13d6872722eb62bb3b772e7c7580ca56188e038621783f6b91",
+   "subject": {
+    "bend_uid": "bu_5994c186ea06e7d3f94d",
+    "display": "3 · B3 · 5994c1",
+    "label": "B3",
+    "measured_line_shown": true,
+    "sequence_index": 3,
+    "state_shown": "FORMED"
+   },
+   "tile": {
+    "count": 3,
+    "index": 2
+   }
+  },
+  {
+   "file": "img_c17954511f66.png",
+   "image_id": "img_c17954511f66",
+   "kind": "CLOSEUP",
+   "px_per_mm": 10.0,
+   "questions": [
+    "LANDS: does the SOLID black line lie on the physical bend crease of the scan (within max(2 mm, Ri + t), parallel, over at least 80 % of its length)? Answer YES, NO, or OCCLUDED if the crease cannot be seen.",
+    "TAG_OK: does the bold label next to the solid line equal the RECIPE CAD label at the same spot? YES / NO / UNDETERMINABLE."
+   ],
+   "scan_ref": "scan_e857143822",
+   "sha256": "85ae5dca7402d45106fd62f39b4a00ebb31b71194bedbd54c78b36dc484ee55c",
+   "subject": {
+    "bend_uid": "bu_f8b4276e65667e8e72a9",
+    "display": "4 · B4 · f8b427",
+    "label": "B4",
+    "measured_line_shown": true,
+    "sequence_index": 4,
+    "state_shown": "FORMED"
+   },
+   "tile": {
+    "count": 3,
+    "index": 1
+   }
+  },
+  {
+   "file": "img_c47f8466703b.png",
+   "image_id": "img_c47f8466703b",
+   "kind": "CLOSEUP",
+   "px_per_mm": 10.0,
+   "questions": [
+    "LANDS: does the SOLID black line lie on the physical bend crease of the scan (within max(2 mm, Ri + t), parallel, over at least 80 % of its length)? Answer YES, NO, or OCCLUDED if the crease cannot be seen.",
+    "TAG_OK: does the bold label next to the solid line equal the RECIPE CAD label at the same spot? YES / NO / UNDETERMINABLE."
+   ],
+   "scan_ref": "scan_e857143822",
+   "sha256": "bba974eda36e9919caf885b2b933ca2295bd309c4b26d95c4d2022592ef80045",
+   "subject": {
+    "bend_uid": "bu_74f4d0a7cdc657854d17",
+    "display": "11 · B11 · 74f4d0",
+    "label": "B11",
+    "measured_line_shown": true,
+    "sequence_index": 11,
+    "state_shown": "UNEXPECTED_FORMED"
+   },
+   "tile": {
+    "count": 3,
+    "index": 1
+   }
+  },
+  {
+   "file": "img_c76d73fa3dbd.png",
+   "image_id": "img_c76d73fa3dbd",
+   "kind": "CLOSEUP",
+   "px_per_mm": 10.0,
+   "questions": [
+    "LANDS: does the SOLID black line lie on the physical bend crease of the scan (within max(2 mm, Ri + t), parallel, over at least 80 % of its length)? Answer YES, NO, or OCCLUDED if the crease cannot be seen.",
+    "TAG_OK: does the bold label next to the solid line equal the RECIPE CAD label at the same spot? YES / NO / UNDETERMINABLE."
+   ],
+   "scan_ref": "scan_e857143822",
+   "sha256": "c272458633bd2a30015d65fa39ae87e3ef24081f45e96ea57dd7d1fda632d655",
+   "subject": {
+    "bend_uid": "bu_eb06b19a6b0b0962f505",
+    "display": "6 · B6 · eb06b1",
+    "label": "B6",
+    "measured_line_shown": true,
+    "sequence_index": 6,
+    "state_shown": "FORMED"
+   },
+   "tile": {
+    "count": 3,
+    "index": 1
+   }
+  },
+  {
+   "file": "img_c80073e96c16.png",
+   "image_id": "img_c80073e96c16",
+   "kind": "CLOSEUP",
+   "px_per_mm": 10.0,
+   "questions": [
+    "LANDS: does the SOLID black line lie on the physical bend crease of the scan (within max(2 mm, Ri + t), parallel, over at least 80 % of its length)? Answer YES, NO, or OCCLUDED if the crease cannot be seen.",
+    "TAG_OK: does the bold label next to the solid line equal the RECIPE CAD label at the same spot? YES / NO / UNDETERMINABLE."
+   ],
+   "scan_ref": "scan_e857143822",
+   "sha256": "811993b5000396ccc0cd789438dda729392ca924d785619111f9b8ad1b27581b",
+   "subject": {
+    "bend_uid": "bu_eb06b19a6b0b0962f505",
+    "display": "6 · B6 · eb06b1",
+    "label": "B6",
+    "measured_line_shown": true,
+    "sequence_index": 6,
+    "state_shown": "FORMED"
+   },
+   "tile": {
+    "count": 3,
+    "index": 0
+   }
+  },
+  {
+   "file": "img_d8122a2ddbbd.png",
+   "image_id": "img_d8122a2ddbbd",
+   "kind": "CLOSEUP",
+   "px_per_mm": 10.0,
+   "questions": [
+    "The engine reports this bend NOT YET FORMED (flat), so no measured line is drawn; the grey dashed line is where the bend will be. Is that justified: is the material along the grey dashed line really flat (unbent) in the scan? Answer unknown_justified YES or NO; lands = NOT_APPLICABLE.",
+    "TAG_OK: does the bold subject label match the RECIPE CAD label at the same spot? YES / NO / UNDETERMINABLE."
+   ],
+   "scan_ref": "scan_e857143822",
+   "sha256": "c8fbf7268a0ba6b3da1a5ed7b30ef85453098332fd4e2efeb4d797cac7e94dd8",
+   "subject": {
+    "bend_uid": "bu_175890c26625be04f424",
+    "display": "9 · B9 · 175890",
+    "label": "B9",
+    "measured_line_shown": false,
+    "sequence_index": 9,
+    "state_shown": "NOT_YET_FORMED"
+   },
+   "tile": {
+    "count": 3,
+    "index": 1
+   }
+  },
+  {
+   "file": "img_da8437fab0e8.png",
+   "image_id": "img_da8437fab0e8",
+   "kind": "CLOSEUP",
+   "px_per_mm": 10.0,
+   "questions": [
+    "The engine reports this bend NOT YET FORMED (flat), so no measured line is drawn; the grey dashed line is where the bend will be. Is that justified: is the material along the grey dashed line really flat (unbent) in the scan? Answer unknown_justified YES or NO; lands = NOT_APPLICABLE.",
+    "TAG_OK: does the bold subject label match the RECIPE CAD label at the same spot? YES / NO / UNDETERMINABLE."
+   ],
+   "scan_ref": "scan_e857143822",
+   "sha256": "b7c269ba8dabecc623587b03c878085709137f844b72715d0d58645524bada27",
+   "subject": {
+    "bend_uid": "bu_175890c26625be04f424",
+    "display": "9 · B9 · 175890",
+    "label": "B9",
+    "measured_line_shown": false,
+    "sequence_index": 9,
+    "state_shown": "NOT_YET_FORMED"
+   },
+   "tile": {
+    "count": 3,
+    "index": 0
+   }
+  },
+  {
+   "file": "img_e4e7527f44f7.png",
+   "image_id": "img_e4e7527f44f7",
+   "kind": "CLOSEUP",
+   "px_per_mm": 10.0,
+   "questions": [
+    "LANDS: does the SOLID black line lie on the physical bend crease of the scan (within max(2 mm, Ri + t), parallel, over at least 80 % of its length)? Answer YES, NO, or OCCLUDED if the crease cannot be seen.",
+    "TAG_OK: does the bold label next to the solid line equal the RECIPE CAD label at the same spot? YES / NO / UNDETERMINABLE."
+   ],
+   "scan_ref": "scan_e857143822",
+   "sha256": "b65cb559a7c6ad5ec1bd2cf32ab48a87b6d7a0f0be895b66c37a78be38b86e99",
+   "subject": {
+    "bend_uid": "bu_5994c186ea06e7d3f94d",
+    "display": "3 · B3 · 5994c1",
+    "label": "B3",
+    "measured_line_shown": true,
+    "sequence_index": 3,
+    "state_shown": "FORMED"
+   },
+   "tile": {
+    "count": 3,
+    "index": 0
+   }
+  },
+  {
+   "file": "img_f2b151c4b618.png",
+   "image_id": "img_f2b151c4b618",
+   "kind": "CLOSEUP",
+   "px_per_mm": 10.0,
+   "questions": [
+    "The engine reports this bend NOT YET FORMED (flat), so no measured line is drawn; the grey dashed line is where the bend will be. Is that justified: is the material along the grey dashed line really flat (unbent) in the scan? Answer unknown_justified YES or NO; lands = NOT_APPLICABLE.",
+    "TAG_OK: does the bold subject label match the RECIPE CAD label at the same spot? YES / NO / UNDETERMINABLE."
+   ],
+   "scan_ref": "scan_e857143822",
+   "sha256": "3dd8e1bb4c73c686206fc00ecb6724c59ecdc572fbfe848ba83a2da929f9d6a3",
+   "subject": {
+    "bend_uid": "bu_dc997c2861d3325a8bca",
+    "display": "8 · B8 · dc997c",
+    "label": "B8",
+    "measured_line_shown": false,
+    "sequence_index": 8,
+    "state_shown": "NOT_YET_FORMED"
+   },
+   "tile": {
+    "count": 3,
+    "index": 0
+   }
+  },
+  {
+   "file": "img_fa38538c5840.png",
+   "image_id": "img_fa38538c5840",
+   "kind": "CLOSEUP",
+   "px_per_mm": 10.0,
+   "questions": [
+    "LANDS: does the SOLID black line lie on the physical bend crease of the scan (within max(2 mm, Ri + t), parallel, over at least 80 % of its length)? Answer YES, NO, or OCCLUDED if the crease cannot be seen.",
+    "TAG_OK: does the bold label next to the solid line equal the RECIPE CAD label at the same spot? YES / NO / UNDETERMINABLE."
+   ],
+   "scan_ref": "scan_e857143822",
+   "sha256": "7018a5ec11a49d0f9d896ea1c800086034009f590a5ec1f972cdfc632c0eda43",
+   "subject": {
+    "bend_uid": "bu_0eb02c66f399d0c29de4",
+    "display": "10 · B10 · 0eb02c",
+    "label": "B10",
+    "measured_line_shown": true,
+    "sequence_index": 10,
+    "state_shown": "UNEXPECTED_FORMED"
+   },
+   "tile": {
+    "count": 2,
+    "index": 1
+   }
+  },
+  {
+   "file": "img_63b974a8a005.png",
+   "image_id": "img_63b974a8a005",
+   "kind": "GLOBAL_HEATMAP",
+   "questions": [
+    "Context only: overview of the registered scan with every bend's line and label. Record a verdict only if something contradicts the close-ups (lands = NOT_APPLICABLE, tag_ok = UNDETERMINABLE)."
+   ],
+   "scan_ref": "scan_e857143822",
+   "sha256": "e0776b44a094242201a250ec1b9ebdc5ef2915867f40e7a13b17ccf34eef9560",
+   "subject": null
+  },
+  {
+   "file": "img_6fd2656dfcca.png",
+   "image_id": "img_6fd2656dfcca",
+   "kind": "GLOBAL_ISO",
+   "questions": [
+    "Context only: overview of the registered scan with every bend's line and label. Record a verdict only if something contradicts the close-ups (lands = NOT_APPLICABLE, tag_ok = UNDETERMINABLE)."
+   ],
+   "scan_ref": "scan_e857143822",
+   "sha256": "221a89137dc4c2e5cc3d993171073e30895a51268585b2ea1e3ea391f239aa98",
+   "subject": null
+  },
+  {
+   "file": "img_7b254524bf21.png",
+   "image_id": "img_7b254524bf21",
+   "kind": "GLOBAL_SIDE",
+   "questions": [
+    "Context only: overview of the registered scan with every bend's line and label. Record a verdict only if something contradicts the close-ups (lands = NOT_APPLICABLE, tag_ok = UNDETERMINABLE)."
+   ],
+   "scan_ref": "scan_e857143822",
+   "sha256": "3d6f1f1c9577f82437725678d757dff0979b700b7409ca288aabe9b98bfc0a9e",
+   "subject": null
+  },
+  {
+   "file": "img_f4e30e2f15b2.png",
+   "image_id": "img_f4e30e2f15b2",
+   "kind": "GLOBAL_TOP",
+   "questions": [
+    "Context only: overview of the registered scan with every bend's line and label. Record a verdict only if something contradicts the close-ups (lands = NOT_APPLICABLE, tag_ok = UNDETERMINABLE)."
+   ],
+   "scan_ref": "scan_e857143822",
+   "sha256": "d1c5052cd0340bebcfb8de98f982a1cc0f40ff398683dfb966d681e1ab3ea3f9",
+   "subject": null
+  },
+  {
+   "file": "img_f6b13fc579ea.png",
+   "image_id": "img_f6b13fc579ea",
+   "kind": "GLOBAL_DIMENSIONS",
+   "questions": [
+    "Context only: overview of the registered scan with every bend's line and label. Record a verdict only if something contradicts the close-ups (lands = NOT_APPLICABLE, tag_ok = UNDETERMINABLE)."
+   ],
+   "scan_ref": "scan_e857143822",
+   "sha256": "0e755a45ae07fd38646892b42641f4814993cafa6b775e5faef5d6a11e8cf4b6",
+   "subject": null
+  },
+  {
+   "file": "img_ff650f6389f5.png",
+   "image_id": "img_ff650f6389f5",
+   "kind": "GLOBAL_FRONT",
+   "questions": [
+    "Context only: overview of the registered scan with every bend's line and label. Record a verdict only if something contradicts the close-ups (lands = NOT_APPLICABLE, tag_ok = UNDETERMINABLE)."
+   ],
+   "scan_ref": "scan_e857143822",
+   "sha256": "6512132586aa2549ea3c7446b12891b7d939927095d9f104993ae6539b3c806a",
+   "subject": null
+  }
+ ]
+}

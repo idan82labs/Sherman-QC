@@ -1,0 +1,166 @@
+{
+ "schema": "sherman.zeroshot.gold_adjudication.v1",
+ "batch": "T2",
+ "gid": "gb_d2aa20",
+ "scan_id": "sc_d338ed2dced8",
+ "portion": "TEST_B",
+ "original_path": "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260909_0e85265a/50278001_A.1 (X).ply",
+ "adjudicated_at": "2026-10-25T03:20:42.044509+00:00",
+ "by": "T2/adjudicator",
+ "matcher": "research/broad_baseline/score.py score_case (frozen, apex locus); accept offset<=1.5 mm, angle<=2 deg",
+ "marker_A_lines": "docs/production/runlog/zeroshot_2026-10-25/gold/T2/gb_d2aa20/marker_A/lines/lines.json",
+ "marker_B_lines": "docs/production/runlog/zeroshot_2026-10-25/gold/T2/gb_d2aa20/marker_B/lines/lines.json",
+ "marker_A_note": null,
+ "ab": {
+  "f1": 1.0,
+  "tp": 5,
+  "n_ref": 5,
+  "n_pred": 5,
+  "ref_only": [],
+  "pred_only": [],
+  "matches": [
+   [
+    "B1",
+    "B1",
+    0.0,
+    0.0,
+    1.0,
+    1.0
+   ],
+   [
+    "B2",
+    "B2",
+    0.0,
+    0.0,
+    1.0,
+    1.0
+   ],
+   [
+    "B3",
+    "B3",
+    0.0,
+    0.0,
+    1.0,
+    1.0
+   ],
+   [
+    "B4",
+    "B4",
+    0.0,
+    0.0,
+    1.0,
+    1.0
+   ],
+   [
+    "B5",
+    "B5",
+    0.0,
+    0.0,
+    1.0,
+    1.0
+   ]
+  ]
+ },
+ "accepted_matched_pairs": [
+  {
+   "A": "B1",
+   "B": "B1",
+   "offset_mm": 0.0,
+   "angle_deg": 0.0,
+   "line_from": "B (identical to A: same patches, same deterministic prep)"
+  },
+  {
+   "A": "B2",
+   "B": "B2",
+   "offset_mm": 0.0,
+   "angle_deg": 0.0,
+   "line_from": "B (identical to A: same patches, same deterministic prep)"
+  },
+  {
+   "A": "B3",
+   "B": "B3",
+   "offset_mm": 0.0,
+   "angle_deg": 0.0,
+   "line_from": "B (identical to A: same patches, same deterministic prep)"
+  },
+  {
+   "A": "B4",
+   "B": "B4",
+   "offset_mm": 0.0,
+   "angle_deg": 0.0,
+   "line_from": "B (identical to A: same patches, same deterministic prep)"
+  },
+  {
+   "A": "B5",
+   "B": "B5",
+   "offset_mm": 0.0,
+   "angle_deg": 0.0,
+   "line_from": "B (identical to A: same patches, same deterministic prep)"
+  }
+ ],
+ "disagreements": [],
+ "fresh_third_marking": {
+  "path": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED/07accc2a2cb2009d2b52dc67.json",
+  "final_vs_fresh": {
+   "f1": 0.42857142857142855,
+   "tp": 3,
+   "n_ref": 9,
+   "n_pred": 5,
+   "ref_only": [
+    "B2",
+    "B3",
+    "B4",
+    "B5",
+    "B6",
+    "B7"
+   ],
+   "pred_only": [
+    "B2",
+    "B3"
+   ],
+   "matches": [
+    [
+     "B1",
+     "B1",
+     0.0,
+     0.0,
+     1.0,
+     1.0
+    ],
+    [
+     "B8",
+     "B4",
+     0.0,
+     0.0,
+     1.0,
+     1.0
+    ],
+    [
+     "B9",
+     "B5",
+     0.0,
+     0.0,
+     1.0,
+     1.0
+    ]
+   ]
+  },
+  "adjudication": {
+   "verdict": "KEEP_MARKERS (FRESH split rejected)",
+   "fresh_lines": [
+    "B2",
+    "B3",
+    "B4",
+    "B5",
+    "B6",
+    "B7"
+   ],
+   "final_lines": [
+    "B2",
+    "B3"
+   ],
+   "reason": "FRESH labels the web-to-lipped-wall fold and the wall-to-lip fold as 3 segments each (68.8/255.2/68.9 mm and 68.5/255.0/68.2 mm). Marker B closeup_B2 face-on shows the wall is one coplanar plate interrupted by two relief notches that reach the fold; the support gaps (-145.6..-127.6, 130.2..148.1) are exactly the notches; same two plates, same angle (89.3 / 89.1 deg). GOLD_SET_V2: a fold interrupted by windows or reliefs that fold the same two plates is ONE line. Both blind markers independently gave 1 line each. FRESH over-split: 6 FRESH lines replaced by 2."
+  }
+ },
+ "final_source": "marker_B/lines (B covers every accepted line and the ACCEPT_B verdicts; all A/B matched lines are geometrically identical)"
+}

@@ -13,6 +13,8 @@ from sklearn.feature_extraction import DictVectorizer
 from sklearn.metrics import brier_score_loss, log_loss, roc_auc_score
 from sklearn.model_selection import GroupShuffleSplit
 
+from domains.bend.services.runtime_semantics import normalize_observability_state
+
 
 @dataclass
 class UnaryExample:
@@ -140,8 +142,12 @@ def extract_match_features(case_payload: Dict[str, Any], match: Dict[str, Any], 
 
 
 def _visibility_example(case_payload: Dict[str, Any], match: Dict[str, Any]) -> UnaryExample:
-    observability_state = str(match.get("observability_state") or "UNOBSERVED").upper()
-    label = 0 if observability_state == "UNOBSERVED" else 1
+    observability_state = normalize_observability_state(
+        match.get("observability_state"),
+        physical_completion_state=match.get("physical_completion_state"),
+        status=match.get("status"),
+    )
+    label = 1 if observability_state in {"FORMED", "UNFORMED"} else 0
     return UnaryExample(
         head="visibility",
         label=label,
@@ -158,7 +164,11 @@ def _state_example(case_payload: Dict[str, Any], match: Dict[str, Any]) -> Optio
     expectation = case_payload.get("expectation") or {}
     scan_state = str(expectation.get("state") or "unknown").lower()
     status = str(match.get("status") or "NOT_DETECTED").upper()
-    observability_state = str(match.get("observability_state") or "UNOBSERVED").upper()
+    observability_state = normalize_observability_state(
+        match.get("observability_state"),
+        physical_completion_state=match.get("physical_completion_state"),
+        status=status,
+    )
     physical_state = str(match.get("physical_completion_state") or "UNKNOWN").upper()
     expected_total = expectation.get("expected_total_bends")
     expected_completed = expectation.get("expected_completed_bends")
@@ -170,11 +180,11 @@ def _state_example(case_payload: Dict[str, Any], match: Dict[str, Any]) -> Optio
         label = 1
         weight = 2.0
         source = "full_scan_completion_truth"
-    elif physical_state == "NOT_FORMED" or observability_state == "OBSERVED_NOT_FORMED":
+    elif physical_state == "NOT_FORMED" or observability_state == "UNFORMED":
         label = 0
         weight = 1.25
         source = "runtime_observed_not_formed"
-    elif status in {"PASS", "FAIL", "WARNING"}:
+    elif status in {"PASS", "FAIL", "WARNING"} and observability_state == "FORMED":
         label = 1
         weight = 0.8 if scan_state == "partial" else 1.0
         source = "runtime_detected_positive"
@@ -187,6 +197,7 @@ def _state_example(case_payload: Dict[str, Any], match: Dict[str, Any]) -> Optio
         if (
             scan_state == "partial"
             and status == "NOT_DETECTED"
+            and observability_state == "UNKNOWN"
             and null_score >= selected_score
             and (
                 visibility >= 0.45
@@ -195,7 +206,7 @@ def _state_example(case_payload: Dict[str, Any], match: Dict[str, Any]) -> Optio
         ):
             label = 0
             weight = 0.6
-            source = "partial_support_null_bootstrap"
+            source = "partial_unknown_null_bootstrap"
 
     if label is None or source is None:
         return None
@@ -684,16 +695,33 @@ def _poisson_binomial_distribution(probs: Sequence[float]) -> List[float]:
     return dist
 
 
-def _count_posterior_summary(matches: Sequence[Dict[str, Any]]) -> Dict[str, Any]:
-    probs = [
-        _safe_float(
-            (match.get("structured_predictions") or {}).get(
-                "joint_exclusive_formed_probability",
-                (match.get("structured_predictions") or {}).get("exclusive_formed_probability"),
-            )
+def _count_probability_for_match(match: Dict[str, Any], scan_state: str) -> float:
+    if not bool(match.get("countable_in_regression", True)):
+        return 0.0
+    prob = _safe_float(
+        (match.get("structured_predictions") or {}).get(
+            "joint_exclusive_formed_probability",
+            (match.get("structured_predictions") or {}).get("exclusive_formed_probability"),
         )
-        for match in matches
-    ]
+    )
+    if (
+        str(scan_state or "").lower() == "partial"
+        and str(match.get("status") or "").upper() == "NOT_DETECTED"
+        and normalize_observability_state(
+            match.get("observability_state"),
+            physical_completion_state=match.get("physical_completion_state"),
+            status=match.get("status"),
+        ) == "UNKNOWN"
+    ):
+        # On partial scans, fully unobserved bends should not add positive count mass.
+        # This keeps missing evidence from masquerading as formed-state evidence.
+        return 0.0
+    return prob
+
+
+def _count_posterior_summary(matches: Sequence[Dict[str, Any]], scan_state: str = "unknown") -> Dict[str, Any]:
+    countable_matches = [match for match in matches if bool(match.get("countable_in_regression", True))]
+    probs = [_count_probability_for_match(match, scan_state) for match in countable_matches]
     dist = _poisson_binomial_distribution(probs)
     cumulative = 0.0
     median_k = 0
@@ -726,5 +754,6 @@ def score_case_payload(case_payload: Dict[str, Any], bundle: Dict[str, Any]) -> 
     payload = _apply_hard_exclusivity(payload)
     payload = _apply_joint_candidate_exclusivity(payload)
     payload.setdefault("structured_context", {})
-    payload["structured_context"]["count_posterior"] = _count_posterior_summary(matches)
+    scan_state = str((payload.get("expectation") or {}).get("state") or "unknown")
+    payload["structured_context"]["count_posterior"] = _count_posterior_summary(matches, scan_state=scan_state)
     return payload

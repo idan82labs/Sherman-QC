@@ -14,10 +14,23 @@ export interface BendAnnotation {
   detectedLineEnd?: [number, number, number]
   active?: boolean
   displayGeometryCanonical?: boolean
+  coordinateFrame?: 'reference_mesh_raw'
+  geometryProvenance?: string
   radiusDeviation?: number | null
   lineCenterDeviationMm?: number | null
   toleranceAngle?: number | null
   toleranceRadius?: number | null
+}
+
+export interface ManualBendSegment {
+  id: string
+  lineStart: [number, number, number]
+  lineEnd: [number, number, number]
+  label?: string
+  accessibleLabel?: string
+  color?: string
+  selected?: boolean
+  groupLabel?: string
 }
 
 export interface DeviationStats {

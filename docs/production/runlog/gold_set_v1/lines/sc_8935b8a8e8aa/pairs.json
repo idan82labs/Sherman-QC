@@ -1,0 +1,79 @@
+{
+ "labeler": "claude-vision-ai-v1",
+ "no_bends_present": false,
+ "notes": "GOLD_SET_V1 vision fix (round 1, 2026-10-18) of sc_8935b8a8e8aa (47247004_03.ply, part 47247004, CONSUMED, no STEP). Conventions: outer-skin apex locus (outer-skin sides), joggle = 2 bends, formed small bends of 15-30 deg count, a fold interrupted by windows/reliefs folding the same two plates = one line. Part: perforated channel ~423 x 41 mm, t 1.17: flat base (2 top / 1 underside) with a star lattice of windows; far wall (+w, 4/3, ~11 mm, one plate over the full length); near wall split by two U-slots (u -76.6..-67.8 and 23.3..32.1, through the full wall and into the base) into 3 tabs (8/7, 9/10, 5/6, ~15 mm); end walls 15/16 (+u) and 17/18 (-u), ~11 mm deep, ~28 mm wide, closed corner against the far wall and a relief toward the near wall. 6 formed bends = 4 long folds (B1 far wall, B2-B4 one per near-wall tab) + 2 end-wall folds (B5, B6). Not labelled (below the 15 deg floor of the small-bend convention; backend cad_bend_extractor min_bend_angle is also 15 deg): each near-wall tab ends in a ~3.8 mm lip turned ~10.7 deg inward (median 10.7 deg, 9.3-12.8 deg over 61 raw-scan stations on both skins; kink 11.0 mm below the base top = the depth of the far and end walls; fillet R ~10 mm; patches 12/13, 14/19, 11). It is a deliberate formed lip; if the owner extends the convention below 15 deg it adds 3 lines (one per tab, outer -w skin at n ~ -11.0 below the base top). Apex: the long folds carry bend-relief slots and windows; the slots' cut edges stand ~0.5 mm closer to the virtual sharp than the fold arc, so the default envelope apex put B1-B4 ~0.45 mm in air above the arc; apex_mode station_median is used on B1-B4 so the lines sit on the arc. B2/B3 wall sides are plane_from_points on the upper tab skin (tol 0.15) because patches 5 and 9 also hold the lip, which tilted their plane fit ~2 deg.",
+ "bends": [
+  {
+   "patches": [
+    2,
+    4
+   ],
+   "confidence": "auto",
+   "apex_mode": "station_median",
+   "note": "base top 2 x far wall outer 4, ~91 deg, one plate over the full length; fold interrupted by lattice windows and relief slots (same two plates, one line); station_median apex (slot cut edges pulled the envelope ~0.4 mm off the arc)"
+  },
+  {
+   "patches": [
+    2,
+    {
+     "plane_from_points": {
+      "seed_xyz": [
+       -128.265,
+       -97.158,
+       214.597
+      ],
+      "radius_mm": 4.0,
+      "tol_mm": 0.15
+     }
+    }
+   ],
+   "confidence": "auto",
+   "apex_mode": "station_median",
+   "note": "base top 2 x near-wall tab u 32.5..207 outer skin (plane seeded at mid-height u~120; tol 0.15 stops it at the 10.7 deg lip kink, patch 5 also holds the lip); ~91 deg; windows/relief slots interrupt the fold"
+  },
+  {
+   "patches": [
+    2,
+    {
+     "plane_from_points": {
+      "seed_xyz": [
+       -265.865,
+       -114.558,
+       246.239
+      ],
+      "radius_mm": 4.0,
+      "tol_mm": 0.15
+     }
+    }
+   ],
+   "confidence": "auto",
+   "apex_mode": "station_median",
+   "note": "base top 2 x middle near-wall tab u -67.8..23.3 outer skin (plane seeded at mid-height u~-22; patch 9 also holds the lip); ~91.5 deg; windows/relief slots interrupt the fold"
+  },
+  {
+   "patches": [
+    2,
+    8
+   ],
+   "confidence": "auto",
+   "apex_mode": "station_median",
+   "note": "base top 2 x near-wall tab u -211.3..-76.6 outer skin 8 (its lip is patch 12); ~92.3 deg; windows/relief slots interrupt the fold"
+  },
+  {
+   "patches": [
+    2,
+    15
+   ],
+   "confidence": "certain",
+   "note": "base top 2 x +u end wall outer 15, ~91.5 deg; a rectangular base window next to the fold (w ~-3.5..12.5) removes the arc over ~45% of the length, hence auto coverage 0.43; the line spans the end wall's full width; one fold of the same two plates (checked in sections)"
+  },
+  {
+   "patches": [
+    2,
+    17
+   ],
+   "confidence": "auto",
+   "note": "base top 2 x -u end wall outer 17, ~92.4 deg; a ~7 mm relief window interrupts the fold"
+  }
+ ]
+}

@@ -1,0 +1,36 @@
+{
+  "scan_id": "sc_f2475286312b",
+  "gold11_id": "CGEBA9A869AC",
+  "catalog_case_id": "corpus/07_38172000",
+  "status": "complete",
+  "prep": {
+    "reused_not_rerun": true,
+    "dir": "docs/production/runlog/broad_baseline/gold11_audit/prep/sc_f2475286312b",
+    "record": "prep/sc_f2475286312b/reused_from.json (byte-for-byte copy of auditor2 bl_prep, hashes verified)"
+  },
+  "lines": {
+    "runs": 1,
+    "rc": 0,
+    "lock_log": "lines_run1.log",
+    "why_not_copied_from_auditor2": [
+      "auditor-2 bl_lines_apex is a reference run (labeler claude-auditor2-gold11-audit, notes 'Not a label submission')",
+      "its B2/B3/B4 auto extents stop short (173.6/164.0/169.9 mm vs measured folds 218-219/221-222/202-204 mm)",
+      "its B6 override ran 7 mm past the tab end kink into the kinked tip (86.0 mm vs 78.5 mm straight hinge)"
+    ],
+    "same_sides_as_auditor2": true,
+    "pairs_sha256": "a7cbe42fe7f1c2551cd774d8f5c756bbde402547949d8435f197bee2f18b05d4",
+    "lines_sha256": "725ff66727a98388a5751649822968536f7979a2dc6719c9d829e5fd9ec2cd0a"
+  },
+  "label": {
+    "path": "data/bend_corpus/annotations/ai_bend_lines_gold11_relabel_v1/a6a0b1c3f8052cb3a45412e8.json",
+    "sha256": "eb79eada1e291ccabac81d20b9e7bf0af5a1526938e42b54c9f179a7761d75a3",
+    "revision": 1,
+    "bends": 10,
+    "write_log": "write_label.log"
+  },
+  "checks": [
+    "apex_verification.json (vs auditor-1/3 apex lines: 0.003-0.08 mm transverse, 93.5-100% fold coverage; fold_support 1.0 on all 10)",
+    "mapping_vs_human.json (frozen matcher human-as-gold: TP 0 / FP 10 / FN 8)"
+  ],
+  "written_at": "2026-10-17T18:48:29.263053+00:00"
+}

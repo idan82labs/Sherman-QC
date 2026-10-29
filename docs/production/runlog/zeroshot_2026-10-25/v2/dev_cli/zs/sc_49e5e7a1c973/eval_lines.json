@@ -1,0 +1,88 @@
+{
+ "schema": "sherman.broad_baseline.eval_lines.v1",
+ "lane": "zs_lane_v2:zs",
+ "status": "OK",
+ "frame": "scan_raw",
+ "frame_definition": "coordinates of the scan file exactly as stored (source_ply_raw == scan_raw)",
+ "units": "scan file units (mm for every Sherman scan inspected so far; not re-estimated)",
+ "scan": {
+  "path": "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/incoming/2026-08-30_shaked_daily_scans/source_download/48565022_A.ply",
+  "sha256": "49e5e7a1c973a94acca656b84f42c5f63b71d1c352237c4ec3bbae103d63525b"
+ },
+ "source": {
+  "kind": "zs_lane_v2:zs",
+  "path": null,
+  "sha256": null
+ },
+ "conversion": {
+  "rule": "zs_lane_v2 variant zs",
+  "variant": "zs",
+  "threshold": 0.5,
+  "model": "docs/production/runlog/zeroshot_2026-10-25/v2/models/zs_lane_v2_zs_gbm.pkl",
+  "model_sha256": "91b3646653936394807b8ce665c95906fea7f61d83425e96bb7b1e0b02d8f6f6",
+  "post": {
+   "dedupe_join": true,
+   "join": true,
+   "join_low": 0.0,
+   "sweep_min": 0.25
+  },
+  "z3_params": {
+   "fallback_frac_only": true
+  },
+  "z2_fallback": true,
+  "code_fingerprint": "39c0efb92c3c3962605168fb2cda977edff5840a2da1cd4518659e7544209097",
+  "pins_ok": true,
+  "pin_mismatch": [],
+  "errors": {},
+  "stages": {
+   "z3": {
+    "wall": 2.117,
+    "t_mm": 2.0497140884399414,
+    "n_candidates": 10,
+    "area_total": 37807.98883117609,
+    "n_families": 1,
+    "family_fallback": false
+   },
+   "z2": {
+    "wall": 8.676,
+    "t_mm": 2.051,
+    "n_lines": 0,
+    "fallback": {
+     "diag_mm": 228.0,
+     "spacing": 0.227,
+     "min_region_area_mm2": 12.0,
+     "min_seed_points": 30,
+     "min_span_mm": 8.0,
+     "n_lines": 0
+    }
+   },
+   "pool": {
+    "wall": 0.002,
+    "n": 10
+   },
+   "snap_all": {
+    "wall": 0.071,
+    "n": 10
+   },
+   "evidence": {
+    "wall": 0.133
+   },
+   "select_post": {
+    "wall": 0.003,
+    "n": 0,
+    "ops": {
+     "keep": 0,
+     "split": 0,
+     "join": 0
+    }
+   }
+  },
+  "posthoc_consumed_testb": false,
+  "guard_basis": "SPLIT_FROZEN_DEV_GOLD_OF_RECORD"
+ },
+ "line_count": 0,
+ "owned_bend_regions": [],
+ "dropped": [],
+ "failure": null,
+ "created_at": "2026-10-25T08:40:36Z"
+}

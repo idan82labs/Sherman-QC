@@ -1,0 +1,195 @@
+........................................................................................FFFF............................................s
+=================================== FAILURES ===================================
+_ test_retained_usage_counts_partials_without_traversing_unlisted_directories[None] _
+
+runner = <module '_invented_cached_control_functions'>
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10aa3ca50>
+fault = None
+
+    @pytest.mark.parametrize("fault", (None, "unknown_directory", "symlink", "entries"))
+    def test_retained_usage_counts_partials_without_traversing_unlisted_directories(runner, monkeypatch, fault):
+        rows = {
+            "": [_entry("inputs", 0, stat.S_IFDIR), _entry("checks", 0, stat.S_IFDIR),
+                 _entry("LIVE_OUTPUT.txt", 999), _entry(".WORKER_COMPLETED.json.partial-x", 999),
+                 _entry("SCORER_REPORT.json", 7), _entry(".SCORER_REPORT.json.partial-x", 7)],
+            "inputs": [_entry("a0", 0, stat.S_IFDIR), _entry("cad", 0, stat.S_IFDIR)],
+            "inputs/a0": [_entry("invented.json", 3)], "inputs/cad": [], "checks": [_entry("check.json", 5)]}
+        if fault == "unknown_directory": rows[""] += [_entry("undeclared", 0, stat.S_IFDIR)]
+        if fault == "symlink": rows["inputs/a0"] = [_entry("link", 3, stat.S_IFLNK)]
+        if fault == "entries": rows["inputs/cad"] = [_entry(f"invented_{i}.json", 1) for i in range(129)]
+        visited = []
+        def scan(path):
+            relative = str(path.relative_to(runner.RUN/"work"))
+            relative = "" if relative == "." else relative
+            visited.append(relative)
+            return _Entries(rows[relative])
+        monkeypatch.setattr(runner, "os", types.SimpleNamespace(scandir=scan))
+        if fault:
+            with pytest.raises(ValueError): runner.retained_scientific_usage(runner.RUN/"work")
+        else:
+>           result = runner.retained_scientific_usage(runner.RUN/"work")
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_gold11_cached_control_v1.py:526: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+cache = PosixPath('/private/var/folders/yp/yrd9ss4s73zdt3d4_2221h580000gn/T/cad-guided-tests-leqm2l2f/pytest-of-idantal/pytest-0/test_retained_usage_counts_par0/invented_attempt/work')
+
+    def retained_scientific_usage(cache):
+        """Owned, fixed output directories only; count partial files conservatively."""
+        files = {}
+        for relative in ("", "inputs", "inputs/a0", "inputs/cad", "checks"):
+            try:
+                entries = os.scandir(cache / relative)
+            except FileNotFoundError:
+                continue
+            with entries:
+>               for entry in entries:
+E               TypeError: '_Entries' object is not iterable
+
+scripts/run_gold11_cached_control_v1.py:599: TypeError
+_ test_retained_usage_counts_partials_without_traversing_unlisted_directories[unknown_directory] _
+
+runner = <module '_invented_cached_control_functions'>
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10af5cd50>
+fault = 'unknown_directory'
+
+    @pytest.mark.parametrize("fault", (None, "unknown_directory", "symlink", "entries"))
+    def test_retained_usage_counts_partials_without_traversing_unlisted_directories(runner, monkeypatch, fault):
+        rows = {
+            "": [_entry("inputs", 0, stat.S_IFDIR), _entry("checks", 0, stat.S_IFDIR),
+                 _entry("LIVE_OUTPUT.txt", 999), _entry(".WORKER_COMPLETED.json.partial-x", 999),
+                 _entry("SCORER_REPORT.json", 7), _entry(".SCORER_REPORT.json.partial-x", 7)],
+            "inputs": [_entry("a0", 0, stat.S_IFDIR), _entry("cad", 0, stat.S_IFDIR)],
+            "inputs/a0": [_entry("invented.json", 3)], "inputs/cad": [], "checks": [_entry("check.json", 5)]}
+        if fault == "unknown_directory": rows[""] += [_entry("undeclared", 0, stat.S_IFDIR)]
+        if fault == "symlink": rows["inputs/a0"] = [_entry("link", 3, stat.S_IFLNK)]
+        if fault == "entries": rows["inputs/cad"] = [_entry(f"invented_{i}.json", 1) for i in range(129)]
+        visited = []
+        def scan(path):
+            relative = str(path.relative_to(runner.RUN/"work"))
+            relative = "" if relative == "." else relative
+            visited.append(relative)
+            return _Entries(rows[relative])
+        monkeypatch.setattr(runner, "os", types.SimpleNamespace(scandir=scan))
+        if fault:
+>           with pytest.raises(ValueError): runner.retained_scientific_usage(runner.RUN/"work")
+                                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_gold11_cached_control_v1.py:524: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+cache = PosixPath('/private/var/folders/yp/yrd9ss4s73zdt3d4_2221h580000gn/T/cad-guided-tests-leqm2l2f/pytest-of-idantal/pytest-0/test_retained_usage_counts_par1/invented_attempt/work')
+
+    def retained_scientific_usage(cache):
+        """Owned, fixed output directories only; count partial files conservatively."""
+        files = {}
+        for relative in ("", "inputs", "inputs/a0", "inputs/cad", "checks"):
+            try:
+                entries = os.scandir(cache / relative)
+            except FileNotFoundError:
+                continue
+            with entries:
+>               for entry in entries:
+E               TypeError: '_Entries' object is not iterable
+
+scripts/run_gold11_cached_control_v1.py:599: TypeError
+_ test_retained_usage_counts_partials_without_traversing_unlisted_directories[symlink] _
+
+runner = <module '_invented_cached_control_functions'>
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10b124490>
+fault = 'symlink'
+
+    @pytest.mark.parametrize("fault", (None, "unknown_directory", "symlink", "entries"))
+    def test_retained_usage_counts_partials_without_traversing_unlisted_directories(runner, monkeypatch, fault):
+        rows = {
+            "": [_entry("inputs", 0, stat.S_IFDIR), _entry("checks", 0, stat.S_IFDIR),
+                 _entry("LIVE_OUTPUT.txt", 999), _entry(".WORKER_COMPLETED.json.partial-x", 999),
+                 _entry("SCORER_REPORT.json", 7), _entry(".SCORER_REPORT.json.partial-x", 7)],
+            "inputs": [_entry("a0", 0, stat.S_IFDIR), _entry("cad", 0, stat.S_IFDIR)],
+            "inputs/a0": [_entry("invented.json", 3)], "inputs/cad": [], "checks": [_entry("check.json", 5)]}
+        if fault == "unknown_directory": rows[""] += [_entry("undeclared", 0, stat.S_IFDIR)]
+        if fault == "symlink": rows["inputs/a0"] = [_entry("link", 3, stat.S_IFLNK)]
+        if fault == "entries": rows["inputs/cad"] = [_entry(f"invented_{i}.json", 1) for i in range(129)]
+        visited = []
+        def scan(path):
+            relative = str(path.relative_to(runner.RUN/"work"))
+            relative = "" if relative == "." else relative
+            visited.append(relative)
+            return _Entries(rows[relative])
+        monkeypatch.setattr(runner, "os", types.SimpleNamespace(scandir=scan))
+        if fault:
+>           with pytest.raises(ValueError): runner.retained_scientific_usage(runner.RUN/"work")
+                                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_gold11_cached_control_v1.py:524: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+cache = PosixPath('/private/var/folders/yp/yrd9ss4s73zdt3d4_2221h580000gn/T/cad-guided-tests-leqm2l2f/pytest-of-idantal/pytest-0/test_retained_usage_counts_par2/invented_attempt/work')
+
+    def retained_scientific_usage(cache):
+        """Owned, fixed output directories only; count partial files conservatively."""
+        files = {}
+        for relative in ("", "inputs", "inputs/a0", "inputs/cad", "checks"):
+            try:
+                entries = os.scandir(cache / relative)
+            except FileNotFoundError:
+                continue
+            with entries:
+>               for entry in entries:
+E               TypeError: '_Entries' object is not iterable
+
+scripts/run_gold11_cached_control_v1.py:599: TypeError
+_ test_retained_usage_counts_partials_without_traversing_unlisted_directories[entries] _
+
+runner = <module '_invented_cached_control_functions'>
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10ae79850>
+fault = 'entries'
+
+    @pytest.mark.parametrize("fault", (None, "unknown_directory", "symlink", "entries"))
+    def test_retained_usage_counts_partials_without_traversing_unlisted_directories(runner, monkeypatch, fault):
+        rows = {
+            "": [_entry("inputs", 0, stat.S_IFDIR), _entry("checks", 0, stat.S_IFDIR),
+                 _entry("LIVE_OUTPUT.txt", 999), _entry(".WORKER_COMPLETED.json.partial-x", 999),
+                 _entry("SCORER_REPORT.json", 7), _entry(".SCORER_REPORT.json.partial-x", 7)],
+            "inputs": [_entry("a0", 0, stat.S_IFDIR), _entry("cad", 0, stat.S_IFDIR)],
+            "inputs/a0": [_entry("invented.json", 3)], "inputs/cad": [], "checks": [_entry("check.json", 5)]}
+        if fault == "unknown_directory": rows[""] += [_entry("undeclared", 0, stat.S_IFDIR)]
+        if fault == "symlink": rows["inputs/a0"] = [_entry("link", 3, stat.S_IFLNK)]
+        if fault == "entries": rows["inputs/cad"] = [_entry(f"invented_{i}.json", 1) for i in range(129)]
+        visited = []
+        def scan(path):
+            relative = str(path.relative_to(runner.RUN/"work"))
+            relative = "" if relative == "." else relative
+            visited.append(relative)
+            return _Entries(rows[relative])
+        monkeypatch.setattr(runner, "os", types.SimpleNamespace(scandir=scan))
+        if fault:
+>           with pytest.raises(ValueError): runner.retained_scientific_usage(runner.RUN/"work")
+                                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_gold11_cached_control_v1.py:524: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+cache = PosixPath('/private/var/folders/yp/yrd9ss4s73zdt3d4_2221h580000gn/T/cad-guided-tests-leqm2l2f/pytest-of-idantal/pytest-0/test_retained_usage_counts_par3/invented_attempt/work')
+
+    def retained_scientific_usage(cache):
+        """Owned, fixed output directories only; count partial files conservatively."""
+        files = {}
+        for relative in ("", "inputs", "inputs/a0", "inputs/cad", "checks"):
+            try:
+                entries = os.scandir(cache / relative)
+            except FileNotFoundError:
+                continue
+            with entries:
+>               for entry in entries:
+E               TypeError: '_Entries' object is not iterable
+
+scripts/run_gold11_cached_control_v1.py:599: TypeError
+=========================== short test summary info ============================
+FAILED ../../../../dev::test_retained_usage_counts_partials_without_traversing_unlisted_directories[None]
+FAILED ../../../../dev::test_retained_usage_counts_partials_without_traversing_unlisted_directories[unknown_directory]
+FAILED ../../../../dev::test_retained_usage_counts_partials_without_traversing_unlisted_directories[symlink]
+FAILED ../../../../dev::test_retained_usage_counts_partials_without_traversing_unlisted_directories[entries]
+4 failed, 132 passed, 1 skipped in 1.56s
+{"worker_cpu_seconds": 1.6143109999999998, "worker_peak_rss_bytes": 56344576}

@@ -1,0 +1,42 @@
+--- /private/tmp/claude-501/-Users-idantal/db065cf7-f766-4885-b217-ed8d7edd7ade/scratchpad/fixes2/orig/domains/production/engine/inspect/engine.py	2026-10-19 17:29:52
++++ /private/tmp/claude-501/-Users-idantal/db065cf7-f766-4885-b217-ed8d7edd7ade/scratchpad/fixes2/attempt_49207/engine.py	2026-10-19 18:25:45
+@@ -637,7 +637,10 @@
+     # expensive edge/hole fit (the coarse raster cannot see small holes)
+     searched = []
+     edge = math.radians(max(0.0, cfg.fine_search_deg - 0.25))
+-    for h in list(hyps[: cfg.coarse_candidates_fine]) + holes:
++    # the global best peaks, then every candidate plane's own best peak that ranked below them (coarse_hypotheses)
++    glob = [h for h in hyps if not h.segment_seed]
++    seeds = [h for h in hyps if h.segment_seed]
++    for h in list(glob[: cfg.coarse_candidates_fine]) + seeds + holes:
+         if budget.left() <= 0:
+             break
+         Tf, sc = fine_search(pts, h.T, model, cfg, with_score=True, walks=0)
+@@ -673,10 +676,26 @@
+         if budget.left() <= 0 or len(fits) >= cfg.pose_hypotheses:
+             break
+         fit = refine_datum(pts, Tf, model, cfg, spacing)
++        if fit.undetermined.size and budget.left() > 0:
++            # the datum leaves in-plane directions to the raster search, and that search ran at the hypothesis'
++            # guessed skin height and tilt: with the plane refined it is run once more and the fit redone
++            Tr = fine_search(pts, fit.T, model, cfg, walks=0)
++            fit = refine_datum(pts, Tr, model, cfg, spacing)
+         if any(_close(fit.T, o.T, dist=min(1.0, 0.4 * part.t)) for o in fits):
+             continue
+         fits.append(fit)
+-    fits.sort(key=lambda f: -f.score)
++    # a datum whose material maps onto itself under an in-plane rotation cannot tell those images of a refined pose
++    # apart: each image is refined too, and the articulated fit (the flanges) decides between them
++    images: list[InPlaneFit] = []
++    for f in list(fits):
++        for Ti in model.symmetric_images(f.T):
++            if budget.left() <= 0 or any(_close(Ti, o.T, ang=1.5, dist=min(1.5, 0.4 * part.t)) for o in fits + images):
++                continue
++            fi = refine_datum(pts, Ti, model, cfg, spacing)
++            if any(_close(fi.T, o.T, dist=min(1.0, 0.4 * part.t)) for o in fits + images):
++                continue
++            images.append(fi)
++    fits = sorted(fits + images, key=lambda f: -f.score)
+     return [_Hyp(fit=f, mirrored=mirrored) for f in fits]
+ 
+ 

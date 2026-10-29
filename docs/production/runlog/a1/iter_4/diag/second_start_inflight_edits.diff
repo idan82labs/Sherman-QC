@@ -1,0 +1,749 @@
+diff -ru --exclude=__pycache__ /private/tmp/claude-501/-Users-idantal/db065cf7-f766-4885-b217-ed8d7edd7ade/scratchpad/a1i4/snapcmp/domains/production/engine/inspect/articulated.py domains/production/engine/inspect/articulated.py
+--- /private/tmp/claude-501/-Users-idantal/db065cf7-f766-4885-b217-ed8d7edd7ade/scratchpad/a1i4/snapcmp/domains/production/engine/inspect/articulated.py	2026-10-18 08:18:09
++++ domains/production/engine/inspect/articulated.py	2026-10-18 10:40:24
+@@ -79,13 +79,14 @@
+     rigid,
+     robust_plane,
+     rotation_about_line,
++    rotation_between,
+     skin_peaks,
+     unit,
+ )
+ from domains.production.engine.inspect.part import BendView, PartView
+ 
+ __all__ = ["PanelFit", "BendFit", "ArticulatedFit", "fit_articulated", "fold_transform", "hinge_frame", "HingeFrame",
+-           "inside_grown", "in_footprint", "rho_window"]
++           "inside_grown", "in_footprint", "rho_window", "pose_on_plane"]
+ 
+ 
+ @dataclass
+@@ -733,17 +734,42 @@
+         n0, d0 = sig * nrm, sig * d_oml
+     else:
+         n0, d0 = -sig * nrm, -sig * d_iml
+-    # hinge kinematics for grandchildren
++    # hinge kinematics for grandchildren, moved onto the fitted plane (a riser's plane, a few millimetres up to
++    # the next parallel bend, does not turn it)
+     A = parent.A @ fold_transform(bend, 0.0 if flat else theta)
+-    # move A along the child normal so its skin 0 lies on the fitted plane
+-    ref_pt = apply(A, part.panels[bend.child].p0[None])[0]
+-    n0_pred = unit(apply_dir(A, part.panels[bend.child].n0[None])[0])
+-    if float(n0_pred @ n0) > 0.9:
+-        A = rigid(np.eye(3), n0 * (float(d0) - float(ref_pt @ n0))) @ A
++    riser = s_limit is not None and s_limit[0] < cfg.child_orient_min_depth_mm
++    A = pose_on_plane(A, part.panels[bend.child].p0, part.panels[bend.child].n0, n0, float(d0), frame.o,
++                      0.0 if riser else cfg.child_orient_max_deg)
+     fit = PanelFit(bend.child, "FLAT" if flat else "FITTED", A, n0=n0, d0=float(d0), t=t, skins_seen=seen)
+     fit.voxels = _restrict_to_footprint(vox_reg, region, part, bend.child, A, n0, grow=3.0)
+     fit.region = region
+     return fit
++
++
++def pose_on_plane(A: np.ndarray, p0: np.ndarray, n0_cad: np.ndarray, n0: np.ndarray, d0: float, hinge: np.ndarray,
++                  max_turn_deg: float) -> np.ndarray:
++    """The kinematic pose ``A`` of a child (final pose -> registered frame) moved onto its fitted skin-0 plane.
++
++    ``n0 . x = d0`` is the fitted plane, ``p0`` / ``n0_cad`` the panel's skin-0
++    reference point and normal at its final pose. The fold kinematics take the
++    hinge's Hough angle (none at all for a flat child), so a kink of a
++    not-yet-formed bend, springback or the angle's quantisation, carried down
++    the tree, would put a grandchild's hinge a millimetre off its sheet across
++    a wide panel: when the kinematic normal lies within ``max_turn_deg`` of the
++    fitted one, ``A`` is first turned about ``hinge`` (a point on the bend's
++    axis) onto it. Then ``A`` is moved along the normal so that ``p0`` lies on
++    the plane. A kinematic normal more than ~25 deg off the fitted one is left
++    as it is (the fit and the kinematics disagree; nothing is moved).
++    """
++    n_pred = unit(apply_dir(A, np.asarray(n0_cad, dtype=np.float64)[None])[0])
++    if float(n_pred @ n0) <= 0.9:
++        return A
++    if max_turn_deg > 0.0 and float(n_pred @ n0) > math.cos(math.radians(max_turn_deg)):
++        R = rotation_between(n_pred, n0)
++        hinge = np.asarray(hinge, dtype=np.float64)
++        A = rigid(R, hinge - R @ hinge) @ A
++    ref_pt = apply(A, np.asarray(p0, dtype=np.float64)[None])[0]
++    return rigid(np.eye(3), n0 * (float(d0) - float(ref_pt @ n0))) @ A
+ 
+ 
+ def fold_transform(bend: BendView, theta: float) -> np.ndarray:
+diff -ru --exclude=__pycache__ /private/tmp/claude-501/-Users-idantal/db065cf7-f766-4885-b217-ed8d7edd7ade/scratchpad/a1i4/snapcmp/domains/production/engine/inspect/config.py domains/production/engine/inspect/config.py
+--- /private/tmp/claude-501/-Users-idantal/db065cf7-f766-4885-b217-ed8d7edd7ade/scratchpad/a1i4/snapcmp/domains/production/engine/inspect/config.py	2026-10-18 08:18:14
++++ domains/production/engine/inspect/config.py	2026-10-18 12:05:42
+@@ -32,17 +32,17 @@
+ __all__ = ["ENGINE_VERSION", "ALGORITHM_VERSIONS", "InspectConfig", "ConfigError", "load_config"]
+ 
+ #: Version of the per-scan engine (``result.engine.engine_version``).
+-ENGINE_VERSION = "e3-1.4.0"
++ENGINE_VERSION = "e3-1.5.0"
+ 
+ #: Algorithm identifiers recorded in ``result.engine.algorithm_versions``.
+ ALGORITHM_VERSIONS: dict[str, str] = {
+     "ingest": "ply_stl_explicit_unit_v1",
+-    "registration": "datum_plane_outline_fft_wall_edge_hole_polygon_flange_ends_v3",
+-    "articulated_fit": "hinge_hough_region_grow_skin_levels_arc_fold_displaced_fold_window_short_child_window_support_tabs_one_skin_v4",
++    "registration": "datum_plane_outline_fft_wall_edge_hole_polygon_flange_ends_hole_pairs_weak_dirs_walk_distinct_v4",
++    "articulated_fit": "hinge_hough_region_grow_skin_levels_arc_fold_displaced_fold_window_short_child_window_support_tabs_one_skin_pose_on_plane_v5",
+     "thickness": "datum_tile_two_skin_separation_v1",
+     "state_decode": "dihedral_fraction_order_prior_symmetric_near_twins_v2",
+     "metrology": "station_oml_section_crease_aware_unfolded_island_station_profile_short_side_consistency_footprint_edge_v5",
+-    "uncertainty": "station_mad_residual_pose_erosion_bias_thickness_v2",
++    "uncertainty": "station_mad_residual_pose_erosion_bias_thickness_station_spread_v3",
+     "heatmap": "stage_cloud_nearest_signed_v1",
+ }
+ 
+@@ -101,6 +101,15 @@
+     fine_search_mm: float = 20.0
+     fine_search_deg: float = 2.0
+     fine_search_pixel_mm: float = 0.5
++    #: A best angle on the edge of the fine search's window re-centres the window there, at most this many
++    #: times, while the score improves (``registration.fine_search``), for the ``fine_walk_candidates``
++    #: best-scoring searches that stopped on their window's edge.
++    fine_search_walks: int = 2
++    fine_walk_candidates: int = 3
++    #: Registration kernels penalise a hole's open core where it lies farther than this (mm) from compiled
++    #: stage material inside the hole (a stepped or countersunk hole's bore, the gap around a tab flat in its
++    #: window): open in every stage, so scan material there is a wrong pose.
++    hole_core_clearance_mm: float = 0.75
+     #: Forbidden band outside each free edge (mm) and its penalty weight.
+     free_edge_band_mm: float = 8.0
+     violation_weight: float = 2.0
+@@ -110,6 +119,10 @@
+     #: Coarse peaks that get the fine (hole-weighted) search, and the best of those that
+     #: get the full edge/hole fit.
+     coarse_candidates_fine: int = 14
++    #: Datums with 2 to ``hole_pair_max_holes`` round holes also get poses from pairs of their holes found in
++    #: the scan (``registration.hole_pair_hypotheses``), at most this many, next to the coarse peaks.
++    hole_pair_hypotheses: int = 4
++    hole_pair_max_holes: int = 8
+     pose_hypotheses: int = 6
+     #: Best refined hypotheses that also get an articulated fit (pose ambiguity, selection).
+     articulated_hypotheses: int = 3
+@@ -146,6 +159,10 @@
+     #: In-plane pose is degenerate when the weakest constrained direction has
+     #: fewer than this many effective edge/hole observations.
+     degenerate_min_information: float = 3.0
++    #: The in-plane refinement moves every direction with at least this many effective observations to its
++    #: least-squares optimum (a weakly determined one included: it still counts as undetermined above);
++    #: directions with less keep the fine search's pose.
++    refine_min_information: float = 1.0
+     #: ... or when the in-plane position at the outline (1 sigma) is worse than this (mm).
+     degenerate_max_sigma_mm: float = 0.25
+     #: A direction the datum leaves undetermined is fixed by the cut ends of fitted flanges reached only
+@@ -208,6 +225,12 @@
+     grow_plane_tol_mm: float = 0.35
+     grow_normal_tol_deg: float = 12.0
+     grow_iterations: int = 8
++    #: A fitted child's pose is turned about its hinge onto its fitted plane's normal when the two differ by at
++    #: most this (deg): the fold kinematics alone take the Hough angle (none for a flat child), and the error
++    #: carried down the tree moves every grandchild's hinge frame (``articulated._grow_child``).
++    child_orient_max_deg: float = 10.0
++    #: ... unless it is a riser: a child whose next parallel bend's tangent lines lie within this (mm) of its hinge.
++    child_orient_min_depth_mm: float = 8.0
+ 
+     # -- state decode (formed fraction = measured sweep / nominal sweep) ---------------------
+     flat_fraction_max: float = 0.12
+@@ -392,13 +415,16 @@
+     "datum_min_area_fraction": (0.0, 1.0, True, False), "datum_candidates": (1, None, False, False),
+     "coarse_pixel_mm": _POS, "coarse_angle_step_deg": (0.0, 90.0, True, False), "fine_pixel_mm": _POS,
+     "fine_search_pixel_mm": _POS, "free_edge_band_mm": _POS, "registration_decimate_mm": _POS,
++    "fine_search_walks": (0, 10, False, False), "fine_walk_candidates": (0, 64, False, False),
++    "hole_core_clearance_mm": _POS,
+     "coarse_candidates_fine": (1, None, False, False), "pose_hypotheses": (1, None, False, False),
++    "hole_pair_hypotheses": (0, 32, False, False), "hole_pair_max_holes": (2, 64, False, False),
+     "articulated_hypotheses": (1, None, False, False), "skin_tile_mm": _POS, "wall_side_band_mm": _POS,
+     "wall_side_min_points": (1, None, False, False), "edge_bin_mm": _POS, "edge_band_mm": _POS,
+     "hole_annulus_mm": _POS, "hole_angular_bins": (8, None, False, False), "refine_iterations": (1, None, False, False),
+     "edge_gap_factor": (-2.0, 2.0, False, False), "reg_wall_min_points": (1, None, False, False),
+     "reg_wall_min_points_hole": (1, None, False, False), "edge_unwalled_weight": (0.0, 1.0, True, False),
+-    "degenerate_min_information": _POS, "degenerate_max_sigma_mm": _POS,
++    "degenerate_min_information": _POS, "degenerate_max_sigma_mm": _POS, "refine_min_information": _POS,
+     "lateral_axis_tol_deg": (0.0, 45.0, True, False), "lateral_min_sensitivity": _POS,
+     "lateral_edge_max_spread_mm": _POS, "lateral_outlier_mm": _POS, "lateral_min_edges": (1, None, False, False),
+     "lateral_max_shift_mm": _POS,
+@@ -410,6 +436,7 @@
+     "short_child_margin_mm": _POS, "one_skin_fraction": _FRAC, "one_skin_tie_fraction": _FRAC,
+     "min_child_points": (1, None, False, False), "min_child_axial_coverage": _FRAC,
+     "grow_plane_tol_mm": _POS, "grow_normal_tol_deg": (0.0, 90.0, True, True), "grow_iterations": (1, None, False, False),
++    "child_orient_max_deg": (0.0, 25.0, False, False), "child_orient_min_depth_mm": _POS,
+     "flat_fraction_max": (0.0, 1.0, False, True), "formed_fraction_min": (0.0, 1.0, True, False),
+     "stations_min": (1, None, False, False), "stations_max": (1, None, False, False), "station_target_mm": _POS,
+     "min_visible_length_mm": _POS, "local_fit_depth_mm": _POS, "local_fit_min_depth_mm": _POS,
+diff -ru --exclude=__pycache__ /private/tmp/claude-501/-Users-idantal/db065cf7-f766-4885-b217-ed8d7edd7ade/scratchpad/a1i4/snapcmp/domains/production/engine/inspect/engine.py domains/production/engine/inspect/engine.py
+--- /private/tmp/claude-501/-Users-idantal/db065cf7-f766-4885-b217-ed8d7edd7ade/scratchpad/a1i4/snapcmp/domains/production/engine/inspect/engine.py	2026-10-18 06:54:16
++++ domains/production/engine/inspect/engine.py	2026-10-18 12:05:42
+@@ -22,7 +22,8 @@
+    (its datum outline, holes and articulated fit) than any proper pose. The
+    improper transform is never published.
+ 6. ``WRONG_PART_SUSPECTED``: the datum's holes are filled with material, or too
+-   little of the scan is explained by the fitted flanges.
++   little of the scan is explained by the fitted flanges, after every refined
++   datum pose (not only the best few) got its articulated fit.
+ 7. ``TIMEOUT``: the internal budget ran out before the registration finished:
+    the datum fit, or the pose selection (every competing pose's articulated
+    fit, and the mirrored scan's when the best pose looked suspicious). A cut
+@@ -107,6 +108,7 @@
+     InPlaneFit,
+     coarse_hypotheses,
+     fine_search,
++    hole_pair_hypotheses,
+     refine_datum,
+ )
+ from domains.production.engine.inspect.result import BendOutcome, ResultInputs, build_result
+@@ -262,6 +264,12 @@
+         if budget.left() <= 0:
+             break
+         _articulate(h, pts, vox, part, model, cfg, budget)
++    # before the scan is called a wrong part, every refined datum pose gets its articulated fit: the best few
++    # by datum score can all be one wrong image of a datum that barely tells its poses apart
++    if max(h.explained for h in scored) < cfg.wrong_part_explained_min:
++        for h in proper:
++            if h.art is None and budget.left() > 0:
++                _articulate(h, pts, vox, part, model, cfg, budget)
+     proper = sorted(proper, key=lambda h: -h.total)
+     best = proper[0]
+     note(f"best datum score={best.fit.score:.3f} explained={best.explained:.3f} total={best.total:.3f}")
+@@ -278,6 +286,10 @@
+             if budget.left() <= 0:
+                 break
+             _articulate(h, mpts, mvox, part, model, cfg, budget)
++        if mirrored and max(h.explained for h in mirrored[:cfg.articulated_hypotheses]) < cfg.wrong_part_explained_min:
++            for h in mirrored:  # the same chance the proper poses had
++                if h.art is None and budget.left() > 0:
++                    _articulate(h, mpts, mvox, part, model, cfg, budget)
+         mirrored.sort(key=lambda h: -h.total)
+         if mirrored:
+             mb = mirrored[0]
+@@ -570,22 +582,49 @@
+ 
+ def _register(pts, vox, part, model, cfg, budget, note, spacing: float, *, mirrored: bool) -> list[_Hyp]:
+     hyps, segs = coarse_hypotheses(vox, part, model, cfg, mirrored=False, budget_left=budget.left)
+-    note(f"{'mirrored ' if mirrored else ''}planes={len(segs)} coarse hypotheses={len(hyps)}")
++    # poses from pairs of the datum's round holes found in the scan join the coarse peaks: the coarse
++    # raster cannot see them, and on a datum whose outline barely fixes the pose they are what does
++    holes = hole_pair_hypotheses(pts, segs, part, model, cfg, spacing, mirrored=False) if budget.left() > 0 else []
++    note(f"{'mirrored ' if mirrored else ''}planes={len(segs)} coarse hypotheses={len(hyps)} hole-pair hypotheses="
++         f"{len(holes)}")
+     # every coarse peak gets the fine (hole-weighted) search; its score ranks them for the
+     # expensive edge/hole fit (the coarse raster cannot see small holes)
+     searched = []
+-    for h in hyps[: cfg.coarse_candidates_fine]:
++    edge = math.radians(max(0.0, cfg.fine_search_deg - 0.25))
++    for h in list(hyps[: cfg.coarse_candidates_fine]) + holes:
+         if budget.left() <= 0:
+             break
+-        Tf, sc = fine_search(pts, h.T, model, cfg, with_score=True)
++        Tf, sc = fine_search(pts, h.T, model, cfg, with_score=True, walks=0)
+         # the two skin heights of one in-plane pose are one thickness apart: keep both
+         if any(_close(Tf, o[0], ang=1.5, dist=min(1.5, 0.4 * part.t)) for o in searched):
+             continue
+-        searched.append((Tf, sc))
++        searched.append((Tf, sc, _turn(Tf, h.T) >= edge))
+     searched.sort(key=lambda r: -r[1])
++    # the best few that stopped on the edge of their angle window walk on (``fine_search_walks``): a coarse peak
++    # several degrees off, on a datum whose outline barely fixes the rotation, would otherwise stay there
++    walked = []
++    n_walk = 0
++    for Tf, sc, at_edge in searched:
++        if at_edge and n_walk < cfg.fine_walk_candidates and cfg.fine_search_walks > 0 and budget.left() > 0:
++            n_walk += 1
++            Tw, sw = fine_search(pts, Tf, model, cfg, with_score=True, walks=cfg.fine_search_walks - 1)
++            if sw > sc:
++                Tf, sc = Tw, sw
++        if any(_close(Tf, o[0], ang=1.5, dist=min(1.5, 0.4 * part.t)) for o in walked):
++            continue
++        walked.append((Tf, sc))
++    searched = sorted(walked, key=lambda r: -r[1])
++    # the refinement slots go to distinct poses: candidates that the fine search left a degree or two and a
++    # millimetre or two apart converge onto one pose, and six of them could crowd out every other one (a strip
++    # datum's face-down image outscoring its true pose on the raster); one candidate per cluster is refined, in
++    # score order, until ``pose_hypotheses`` distinct poses are found
++    reps: list[np.ndarray] = []
++    for Tf, _ in searched:
++        if not any(_same_cluster(Tf, o, model, part.t) for o in reps):
++            reps.append(Tf)
+     fits: list[InPlaneFit] = []
+-    for Tf, _ in searched[: cfg.pose_hypotheses]:
+-        if budget.left() <= 0:
++    for Tf in reps:
++        if budget.left() <= 0 or len(fits) >= cfg.pose_hypotheses:
+             break
+         fit = refine_datum(pts, Tf, model, cfg, spacing)
+         if any(_close(fit.T, o.T, dist=min(1.0, 0.4 * part.t)) for o in fits):
+@@ -593,6 +632,24 @@
+         fits.append(fit)
+     fits.sort(key=lambda f: -f.score)
+     return [_Hyp(fit=f, mirrored=mirrored) for f in fits]
++
++
++def _same_cluster(a: np.ndarray, b: np.ndarray, model: DatumModel, t: float, ang_deg: float = 3.0,
++                  in_plane_mm: float = 2.0) -> bool:
++    """Two candidate poses the refinement would bring together: within ``ang_deg``, their frames within
++    ``in_plane_mm`` in the datum plane and on the same skin height (``0.4 t``) at the datum's reference point."""
++    if math.degrees(_turn(a, b)) > ang_deg:
++        return False
++    q = np.asarray(model.p0, dtype=np.float64)
++    d = apply(a @ np.linalg.inv(b), q[None])[0] - q
++    dn = float(d @ model.n0)
++    return abs(dn) < 0.4 * t and float(np.linalg.norm(d - dn * model.n0)) < in_plane_mm
++
++
++def _turn(a: np.ndarray, b: np.ndarray) -> float:
++    """Rotation angle (rad) between two poses."""
++    r = a[:3, :3] @ b[:3, :3].T
++    return math.acos(max(-1.0, min(1.0, (float(np.trace(r)) - 1.0) / 2.0)))
+ 
+ 
+ def _close(a: np.ndarray, b: np.ndarray, ang: float = 1.0, dist: float = 1.0) -> bool:
+diff -ru --exclude=__pycache__ /private/tmp/claude-501/-Users-idantal/db065cf7-f766-4885-b217-ed8d7edd7ade/scratchpad/a1i4/snapcmp/domains/production/engine/inspect/metrology.py domains/production/engine/inspect/metrology.py
+--- /private/tmp/claude-501/-Users-idantal/db065cf7-f766-4885-b217-ed8d7edd7ade/scratchpad/a1i4/snapcmp/domains/production/engine/inspect/metrology.py	2026-10-18 06:54:22
++++ domains/production/engine/inspect/metrology.py	2026-10-18 10:38:56
+@@ -428,6 +428,12 @@
+ 
+ def robust_location(values: np.ndarray) -> tuple[float, float, str]:
+     """(value, MAD-sigma, method): the dominant level when a majority shares one, else the median."""
++    value, sigma, how, _ = robust_levels(values)
++    return value, sigma, how
++
++
++def robust_levels(values: np.ndarray) -> tuple[float, float, str, np.ndarray]:
++    """:func:`robust_location` and the station values it stands for (the dominant level's, else all)."""
+     v = np.sort(np.asarray(values, dtype=np.float64))
+     med = float(np.median(v))
+     mad = float(np.median(np.abs(v - med))) * 1.4826
+@@ -442,10 +448,27 @@
+     if len(top) >= 0.6 * len(v) and len(top) < len(v):
+         lv = np.asarray(top)
+         m = float(np.median(lv))
+-        return m, float(np.median(np.abs(lv - m))) * 1.4826, "DOMINANT_LEVEL"
+-    return med, mad, "MEDIAN"
++        return m, float(np.median(np.abs(lv - m))) * 1.4826, "DOMINANT_LEVEL", lv
++    return med, mad, "MEDIAN", v
+ 
+ 
++def station_spread(used: np.ndarray) -> float:
++    """Standard uncertainty of a station median that stands for the whole visible bend: ``(q90 - q10) / (2 sqrt 3)``.
++
++    The station values a median stands for can disagree systematically (a
++    trend or a crowning along the bend, real or from the plane fits of a narrow
++    flange); the standard error of the median covers random scatter only. A
++    tolerance holds along the whole bend, so the 10-90 % range of those values,
++    taken as a uniform bound, joins U (a lone outlier station, outside the
++    dominant level or beyond the quantiles, does not).
++    """
++    u = np.asarray(used, dtype=np.float64)
++    if len(u) < 3:
++        return 0.0
++    q10, q90 = np.quantile(u, [0.1, 0.9])
++    return float(max(0.0, q90 - q10) / (2.0 * math.sqrt(3.0)))
++
++
+ def _se_median(sigma: float, n: int) -> float:
+     return 1.2533 * sigma / math.sqrt(max(n, 1))
+ 
+@@ -460,6 +483,8 @@
+ 
+     ``comps`` holds the unit components (standard uncertainties before their
+     calibration factors): ``station`` (standard error of the station median),
++    ``spread`` (the systematic disagreement of the stations the median stands
++    for, :func:`station_spread`; factor 1),
+     ``tilt_deg`` (plane residual over fit extent, both flanges), ``sharp_mm``
+     and ``far_sharp_mm`` (the other plane's residual over ``sin(sweep)``: where
+     the OML intersection moves when a plane is off), ``edge_mm`` (the scan
+@@ -473,6 +498,7 @@
+     """
+     terms = [
+         comps.get("station", 0.0),
++        comps.get("spread", 0.0),
+         cfg.u_plane_tilt_factor * comps.get("tilt_deg", 0.0),
+         cfg.u_sharp_factor * comps.get("sharp_mm", 0.0),
+         cfg.u_sharp_factor * comps.get("far_sharp_mm", 0.0),
+@@ -523,10 +549,11 @@
+ 
+ def angle_measurement(bm: BendMeasure, cfg: InspectConfig) -> Measurement:
+     vals = bm.angles[bm.valid]
+-    value, sig, how = robust_location(vals)
++    value, sig, how, used = robust_levels(vals)
+     comps = {"station": _se_median(sig, len(vals)),
+              "tilt_deg": math.degrees(math.hypot(_rms(bm.rms_parent, cfg) / max(bm.depth_parent, 1.0),
+-                                                 _rms(bm.rms_child, cfg) / max(bm.depth_child, 1.0)))}
++                                                 _rms(bm.rms_child, cfg) / max(bm.depth_child, 1.0))),
++             "spread": station_spread(used)}
+     return Measurement(value=value, u=u_budget("angle", comps, cfg), count=int(len(vals)), median=float(np.median(vals)),
+                        vmin=float(vals.min()), vmax=float(vals.max()), method="STATION_OML_PLANES_" + how,
+                        support=bm.support_parent + bm.support_child, coverage=bm.coverage, fit_rms=bm.fit_rms,
+diff -ru --exclude=__pycache__ /private/tmp/claude-501/-Users-idantal/db065cf7-f766-4885-b217-ed8d7edd7ade/scratchpad/a1i4/snapcmp/domains/production/engine/inspect/registration.py domains/production/engine/inspect/registration.py
+--- /private/tmp/claude-501/-Users-idantal/db065cf7-f766-4885-b217-ed8d7edd7ade/scratchpad/a1i4/snapcmp/domains/production/engine/inspect/registration.py	2026-10-18 06:46:27
++++ domains/production/engine/inspect/registration.py	2026-10-18 11:00:38
+@@ -93,6 +93,9 @@
+     "InPlaneFit",
+     "extract_planes",
+     "coarse_hypotheses",
++    "datum_hole_targets",
++    "scan_holes",
++    "hole_pair_hypotheses",
+     "refine_datum",
+     "fine_search",
+     "tile_thickness",
+@@ -443,11 +446,12 @@
+             cache[which] = cKDTree(pts)
+         return cache[which]
+ 
+-    def kernel_cached(self, pixel: float, band: float, weight: float, hole_weight: float = 0.0):
+-        key = (round(pixel, 6), round(band, 6), round(weight, 6), round(hole_weight, 6))
++    def kernel_cached(self, pixel: float, band: float, weight: float, hole_weight: float = 0.0,
++                      clearance: float = 1.5):
++        key = (round(pixel, 6), round(band, 6), round(weight, 6), round(hole_weight, 6), round(clearance, 6))
+         cache = self.__dict__.setdefault("_kernels", {})
+         if key not in cache:
+-            cache[key] = self.kernel(pixel, band, weight, 4.0, hole_weight=hole_weight)
++            cache[key] = self.kernel(pixel, band, weight, 4.0, hole_weight=hole_weight, clearance=clearance)
+         return cache[key]
+ 
+     def to2d(self, pts: np.ndarray) -> np.ndarray:
+@@ -469,11 +473,15 @@
+             out.append((a, b, np.array([d[1], -d[0]]) / length))
+         return out
+ 
+-    def kernel(self, pixel: float, band: float, weight: float, margin: float, hole_weight: float = 0.0):
++    def kernel(self, pixel: float, band: float, weight: float, margin: float, hole_weight: float = 0.0,
++               clearance: float = 1.5):
+         """Rasterised score kernel and its grid origin (see module docstring).
+ 
+         With ``hole_weight`` > 0 the hole cores get their own normalised penalty
+-        (small holes otherwise vanish against the free-edge bands).
++        (small holes otherwise vanish against the free-edge bands). A hole's core
++        counts where it lies farther than ``clearance`` from compiled stage
++        material inside the hole (:meth:`open_cells`): a stepped or countersunk
++        hole's bore is open in every stage.
+         """
+         x0, y0, x1, y1 = self.bbox
+         pad = band + margin
+@@ -494,7 +502,7 @@
+                 dist = _distance_to_polyline(cells[hin], np.vstack([hp, hp[:1]]))
+                 core = np.zeros(len(cells), dtype=bool)
+                 idx = np.nonzero(hin)[0][dist > max(0.75, pixel)]
+-                core[idx[self.open_cells(k, cells[idx])]] = True  # only where the hole is open at every stage
++                core[idx[self.open_cells(k, cells[idx], clearance)]] = True  # only where open at every stage
+                 forb |= core
+         for a, b, nout in self.free_segments():
+             d = b - a
+@@ -517,7 +525,7 @@
+                 if hin.any():
+                     dist = _distance_to_polyline(cells[hin], np.vstack([hp, hp[:1]]))
+                     idx = np.nonzero(hin)[0][dist > max(0.5, pixel)]
+-                    core[idx[self.open_cells(k, cells[idx])]] = True
++                    core[idx[self.open_cells(k, cells[idx], clearance)]] = True
+             kh = core.reshape(h, w).astype(np.float64)
+             if kh.sum() > 0:
+                 kernel = kernel - hole_weight * kh / kh.sum()
+@@ -761,8 +769,10 @@
+     if not cands:
+         return [], segments
+     pix = cfg.coarse_pixel_mm
+-    kc, ok_c, _, _ = model.kernel(pix, cfg.free_edge_band_mm, cfg.violation_weight, 4.0)
+-    _, ok_f, kin_f, kf_f = model.kernel_cached(cfg.fine_pixel_mm, cfg.free_edge_band_mm, cfg.violation_weight)
++    kc, ok_c, _, _ = model.kernel(pix, cfg.free_edge_band_mm, cfg.violation_weight, 4.0,
++                                  clearance=cfg.hole_core_clearance_mm)
++    _, ok_f, kin_f, kf_f = model.kernel_cached(cfg.fine_pixel_mm, cfg.free_edge_band_mm, cfg.violation_weight,
++                                               clearance=cfg.hole_core_clearance_mm)
+     pooled: list[tuple[float, int, int, float, np.ndarray]] = []
+     prepared: dict[tuple[int, int], tuple[np.ndarray, np.ndarray, tuple[int, int], np.ndarray]] = {}
+     for si, seg in enumerate(cands):
+@@ -826,8 +836,191 @@
+     return _dedupe(hyps), segments
+ 
+ 
++def datum_hole_targets(model: DatumModel) -> list[tuple[np.ndarray, float]]:
++    """``(centre, open radius)`` of every round datum hole: the radius of the disc open in every stage.
++
++    A through-hole is open to its loop; a stepped or countersunk hole only to its
++    bore, where the compiled stage material inside the loop (:meth:`DatumModel.blocked_points`)
++    begins. That open disc is what a scan of the datum plane shows empty.
++    """
++    out = []
++    for k, hp in enumerate(model.holes):
++        if len(hp) < 3 or not _round_hole(hp):
++            continue
++        c = hp.mean(axis=0)
++        r = _hole_radius(hp)
++        blocked = model.blocked_points(k)
++        if len(blocked):
++            r = min(r, float(np.min(np.linalg.norm(blocked - c, axis=1))))
++        out.append((c, float(r)))
++    return out
++
++
++def scan_holes(uv: np.ndarray, spacing: float, r_lo: float, r_hi: float, pixel: float = 0.4
++               ) -> list[tuple[np.ndarray, float]]:
++    """Round empty discs enclosed by 2D scan points: ``(centre, radius)`` with ``r_lo <= radius <= r_hi``.
++
++    A cell is empty when no point lies within ``max(0.8, 2 spacing)`` of it.
++    Every empty region that does not reach the raster's border is a candidate;
++    its radius is the largest distance from a cell to the nearest point (the
++    inscribed disc), its centre the centroid of the cells within 60 % of that.
++    A slot or a gap between panels holds far more cells than a disc of that
++    radius and is dropped.
++    """
++    from scipy import ndimage
++
++    uv = np.asarray(uv, dtype=np.float64)
++    if len(uv) < 50 or r_hi <= 0:
++        return []
++    gap = max(0.8, 2.0 * float(spacing))
++    lo = uv.min(axis=0) - 2.0 * pixel
++    hi = uv.max(axis=0) + 2.0 * pixel
++    nx = int(math.ceil((hi[0] - lo[0]) / pixel)) + 1
++    ny = int(math.ceil((hi[1] - lo[1]) / pixel)) + 1
++    if nx * ny > 6_000_000:
++        pixel *= math.sqrt(nx * ny / 6_000_000)
++        nx = int(math.ceil((hi[0] - lo[0]) / pixel)) + 1
++        ny = int(math.ceil((hi[1] - lo[1]) / pixel)) + 1
++    gx = lo[0] + (np.arange(nx) + 0.5) * pixel
++    gy = lo[1] + (np.arange(ny) + 0.5) * pixel
++    xx, yy = np.meshgrid(gx, gy)
++    cells = np.stack([xx.ravel(), yy.ravel()], axis=1)
++    cap = r_hi + 1.0
++    d, _ = cKDTree(uv).query(cells, k=1, distance_upper_bound=cap, workers=1)
++    d = np.where(np.isfinite(d), d, cap).reshape(ny, nx)
++    lab, n = ndimage.label(d > gap)
++    if n == 0:
++        return []
++    border = set(np.unique(np.concatenate([lab[0], lab[-1], lab[:, 0], lab[:, -1]])).tolist())
++    out = []
++    for i, sl in enumerate(ndimage.find_objects(lab), start=1):
++        if sl is None or i in border:
++            continue
++        comp = lab[sl] == i
++        dv = d[sl]
++        r = float(dv[comp].max())
++        if r < r_lo or r > r_hi:
++            continue
++        if comp.sum() * pixel * pixel > 2.5 * math.pi * max(r - gap + pixel, pixel) ** 2:
++            continue  # elongated: a slot or a gap, not a hole
++        core = comp & (dv >= 0.6 * r)
++        jy, jx = np.nonzero(core)
++        centre = np.array([gx[sl[1]][jx].mean(), gy[sl[0]][jy].mean()])
++        out.append((centre, r))
++    return out
++
++
++def hole_pair_hypotheses(points: np.ndarray, segments: list[PlaneSegment], part: PartView, model: DatumModel,
++                         cfg: InspectConfig, spacing: float, *, mirrored: bool) -> list[PoseHypothesis]:
++    """Datum poses from pairs of the datum's round holes found in the scan (stage independent: plane + holes).
++
++    The coarse raster cannot see holes of a few millimetres; on a datum whose
++    outline barely fixes the pose (a strip bounded by bends, scanned while its
++    neighbours still lie flat beside it) its peaks can sit degrees and
++    millimetres off. For each candidate plane and each way it can map onto the
++    datum (``family``), the scan's round holes (:func:`scan_holes`, slab points
++    of the plane) are matched to the datum's (:func:`datum_hole_targets`, open
++    radius within ``max(0.6, 25 %)``): a pair of datum holes and a pair of scan
++    holes the same distance apart (within 0.8 mm) fix the in-plane pose. Every
++    pose is counted by how many datum holes land on a scan hole (1 mm); among
++    the best-supported distinct poses (at least two holes) the
++    ``hole_pair_hypotheses`` best by the datum kernel's score (as the coarse
++    peaks are scored) are returned. Used for datums with 2 to
++    ``hole_pair_max_holes`` round holes.
++    """
++    targets = datum_hole_targets(model)
++    if len(targets) < 2 or len(targets) > cfg.hole_pair_max_holes or cfg.hole_pair_hypotheses <= 0:
++        return []
++    radii = np.array([r for _, r in targets])
++    tol_r = np.maximum(0.6, 0.25 * radii)
++    r_lo = float(max(0.5, np.min(radii - tol_r)))
++    r_hi = float(np.max(radii + tol_r))
++    cad = np.array([c for c, _ in targets])
++    _, ok_f, kin_f, kf_f = model.kernel_cached(cfg.fine_pixel_mm, cfg.free_edge_band_mm, cfg.violation_weight,
++                                               clearance=cfg.hole_core_clearance_mm)
++    found: list[tuple[int, float, int, int, float, np.ndarray]] = []
++    for si, seg in enumerate(segments[: cfg.datum_candidates]):
++        q, e1, e2, n = _scan_frame(seg)
++        dist = points @ n - float(seg.d)
++        slab = np.abs(dist) < model.t + 0.8
++        if slab.sum() < 50:
++            continue
++        p = points[slab] - q
++        uv = np.stack([p @ e1, p @ e2], axis=1)
++        holes = scan_holes(uv, spacing, r_lo, r_hi)
++        if len(holes) < 2 or len(holes) > 4 * cfg.hole_pair_max_holes:
++            continue
++        hc = np.array([c for c, _ in holes])
++        hr = np.array([r for _, r in holes])
++        compat = np.abs(hr[:, None] - radii[None, :]) <= tol_r[None, :]  # scan hole x datum hole
++        for family in (1, -1):
++            sc2 = hc.copy()
++            sc2[:, 1] *= family
++            for i in range(len(cad)):
++                for j in range(i + 1, len(cad)):
++                    dij = cad[j] - cad[i]
++                    lij = float(np.linalg.norm(dij))
++                    if lij < 3.0:
++                        continue
++                    for a in np.nonzero(compat[:, i])[0]:
++                        for b in np.nonzero(compat[:, j])[0]:
++                            if a == b:
++                                continue
++                            dab = sc2[b] - sc2[a]
++                            if abs(float(np.linalg.norm(dab)) - lij) > 0.8:
++                                continue
++                            th = math.atan2(dij[1], dij[0]) - math.atan2(dab[1], dab[0])
++                            rot = _rot2(th)
++                            tau = 0.5 * (cad[i] + cad[j]) - rot @ (0.5 * (sc2[a] + sc2[b]))
++                            mapped = sc2 @ rot.T + tau
++                            dd = np.linalg.norm(mapped[:, None, :] - cad[None, :, :], axis=2)
++                            hits = int(np.sum(np.any((dd <= 1.0) & compat, axis=0)))
++                            if hits >= 2:
++                                found.append((hits, th, si, family, 0.0, tau))
++    if not found:
++        return []
++    found.sort(key=lambda r: -r[0])
++    best_hits = found[0][0]
++    # the best-supported distinct poses, ranked by the datum kernel's score (a spurious pair of empty discs
++    # the right distance apart has the same two hits as the true pair)
++    kept: list[tuple[float, float, float, float, int, int, float, np.ndarray]] = []
++    slabs: dict[tuple[int, int], np.ndarray] = {}
++    for hits, th, si, family, _, tau in found:
++        if hits < best_hits or len(kept) >= 64:
++            break
++        if any(k[4] == si and k[5] == family and _angle_diff(th, k[6]) < math.radians(2.0)
++               and float(np.linalg.norm(tau - k[7])) < 2.0 for k in kept):
++            continue
++        if (si, family) not in slabs:
++            seg = segments[si]
++            q, e1, e2, _n = _scan_frame(seg)
++            pv = np.asarray(points) - q
++            near = np.abs(np.asarray(points) @ seg.n - float(seg.d)) < model.t + 0.8
++            slabs[(si, family)] = np.stack([pv[near] @ e1, pv[near] @ e2 * family], axis=1)
++        sc, cov, viol = _score_direct(kin_f, kf_f, ok_f, cfg.fine_pixel_mm, slabs[(si, family)] @ _rot2(th).T + tau,
++                                      cfg.violation_weight)
++        kept.append((sc, cov, viol, float(hits), si, family, th, tau))
++    kept.sort(key=lambda k: -k[0])
++    hyps: list[PoseHypothesis] = []
++    for sc, cov, viol, hits, si, family, th, tau in kept[: cfg.hole_pair_hypotheses]:
++        seg = segments[si]
++        partner = _partner_side(seg, segments, part.t)
++        heights = [0.0, -model.t]
++        if partner is not None:
++            face_is_skin0 = (partner < 0) == (family > 0)
++            heights = [0.0] if face_is_skin0 else [-model.t]
++        for h in heights:
++            t_raw = _build_transform(model, seg, family, th, tau, h)
++            T = t_raw @ MIRROR if mirrored else t_raw
++            hyps.append(PoseHypothesis(T=T, score=sc, segment=si, family=family, height=h, mirrored=mirrored,
++                                       theta_deg=math.degrees(th), coverage=cov, violation=viol,
++                                       partner=partner is not None, info={"hole_pair_hits": int(hits)}))
++    hyps.sort(key=lambda hp: -hp.score)
++    return _dedupe(hyps)
++
++
+ def fine_search(points: np.ndarray, T: np.ndarray, model: DatumModel, cfg: InspectConfig,
+-                with_score: bool = False):
++                with_score: bool = False, walks: int | None = None):
+     """Exhaustive in-plane search around ``T`` on a fine raster (holes weighted).
+ 
+     The coarse raster cannot see holes of a few millimetres, and when the
+@@ -835,7 +1028,12 @@
+     way only, scanned mid-sequence inside a larger flat region) the coarse peak
+     can sit anywhere along it. This search correlates the datum-plane scan
+     points with a 0.5 mm kernel that penalises occupied hole cores, over
+-    +-``fine_search_mm`` and +-``fine_search_deg``.
++    +-``fine_search_mm`` and +-``fine_search_deg``. A best angle on the edge of
++    that window is followed: the window is centred on it again, up to
++    ``fine_search_walks`` times while the score improves (a coarse peak several
++    degrees off, on a datum whose outline barely fixes the rotation, would
++    otherwise leave the search, and the pose, on its window's edge). ``walks``
++    overrides that count (0: the window around ``T`` only).
+     """
+     pc = apply(T, points)
+     h = (pc - model.p0) @ model.n0
+@@ -850,30 +1048,46 @@
+     if len(uv) < 30:
+         return (T, -np.inf) if with_score else T
+     pix = cfg.fine_search_pixel_mm
+-    kern, ok, _, _ = model.kernel_cached(pix, cfg.free_edge_band_mm, cfg.violation_weight, hole_weight=1.0)
++    kern, ok, _, _ = model.kernel_cached(pix, cfg.free_edge_band_mm, cfg.violation_weight, hole_weight=1.0,
++                                         clearance=cfg.hole_core_clearance_mm)
+     cen2 = model.polygon.mean(axis=0)
+     rel = uv - cen2
+     win = int(math.ceil(cfg.fine_search_mm / pix))
+     ns = int(math.ceil((rel.max(axis=0) - rel.min(axis=0)).max() / pix)) + 8 + 2 * win
+     shape = (_fft_size(kern.shape[0] + ns), _fft_size(kern.shape[1] + ns))
+     kfft = np.fft.rfft2(kern, s=shape)
+-    best = (-np.inf, 0.0, np.zeros(2))
+-    for dth in np.radians(np.arange(-cfg.fine_search_deg, cfg.fine_search_deg + 1e-9, 0.5)):
+-        rp = rel @ _rot2(float(dth)).T + cen2
+-        img, lo = _raster(rp, pix)
+-        corr = _correlate(img, kfft, shape)
+-        # lag that leaves the points where they are (tau = 0)
+-        base = (lo + 0.5 * pix - ok) / pix
+-        bi, bj = int(round(base[1])), int(round(base[0]))
+-        ii = (np.arange(bi - win, bi + win + 1)) % shape[0]
+-        jj = (np.arange(bj - win, bj + win + 1)) % shape[1]
+-        sub = corr[np.ix_(ii, jj)]
+-        k = int(np.argmax(sub))
+-        a, b = divmod(k, sub.shape[1])
+-        val = float(sub[a, b])
+-        if val > best[0]:
+-            tau = np.array([(b - win) * pix, (a - win) * pix]) - (base - np.array([bj, bi])) * pix
+-            best = (val, float(dth), tau)
++
++    def window(centre: float) -> tuple[float, float, np.ndarray]:
++        out = (-np.inf, centre, np.zeros(2))
++        for dth in centre + np.radians(np.arange(-cfg.fine_search_deg, cfg.fine_search_deg + 1e-9, 0.5)):
++            rp = rel @ _rot2(float(dth)).T + cen2
++            img, lo = _raster(rp, pix)
++            corr = _correlate(img, kfft, shape)
++            # lag that leaves the points where they are (tau = 0)
++            base = (lo + 0.5 * pix - ok) / pix
++            bi, bj = int(round(base[1])), int(round(base[0]))
++            ii = (np.arange(bi - win, bi + win + 1)) % shape[0]
++            jj = (np.arange(bj - win, bj + win + 1)) % shape[1]
++            sub = corr[np.ix_(ii, jj)]
++            k = int(np.argmax(sub))
++            a, b = divmod(k, sub.shape[1])
++            val = float(sub[a, b])
++            if val > out[0]:
++                tau = np.array([(b - win) * pix, (a - win) * pix]) - (base - np.array([bj, bi])) * pix
++                out = (val, float(dth), tau)
++        return out
++
++    centre = 0.0
++    best = window(centre)
++    edge = math.radians(max(0.0, cfg.fine_search_deg - 0.25))
++    for _ in range(int(cfg.fine_search_walks if walks is None else walks)):
++        if abs(best[1] - centre) < edge or not math.isfinite(best[0]):
++            break
++        centre = best[1]
++        nxt = window(centre)
++        if nxt[0] <= best[0]:
++            break
++        best = nxt
+     val, dth, tau = best
+     r3 = np.eye(3)
+     r3[:2, :2] = _rot2(dth)
+@@ -1164,9 +1378,13 @@
+             delta = np.linalg.lstsq(H + 1e-9 * np.eye(3), g, rcond=None)[0]
+         except np.linalg.LinAlgError:
+             break
+-        # only update constrained directions
++        # only update constrained directions. A direction the rows determine only weakly (fewer than
++        # ``degenerate_min_information`` effective observations: a strip datum whose rotation rests on two
++        # holes) is still moved to its least-squares optimum once it has ``refine_min_information``: left
++        # frozen, it kept the fine search's raster pose, up to that search's window (2 deg) off. It stays
++        # undetermined below (degenerate, position trust), so no position depends on it unchecked.
+         evals, evecs = np.linalg.eigh(info)
+-        keep = evals >= cfg.degenerate_min_information
++        keep = evals >= min(cfg.refine_min_information, cfg.degenerate_min_information)
+         delta = evecs @ (np.where(keep, evecs.T @ delta, 0.0))
+         dth = float(delta[0]) / L
+         dtx, dty = float(delta[1]), float(delta[2])
+@@ -1243,7 +1461,8 @@
+                           if _hole_radius(hp) >= 1.0 and _round_hole(hp))
+     hole_hits = sum(1 for g in con["hole_groups"] for r in g if abs(r - float(np.mean(g))) < 0.45 and abs(r) < 1.5)
+     hole_in = (hole_hits / hole_bins_total) if hole_bins_total else None
+-    _, ok_f, kin_f, kf_f = model.kernel_cached(cfg.fine_pixel_mm, cfg.free_edge_band_mm, cfg.violation_weight)
++    _, ok_f, kin_f, kf_f = model.kernel_cached(cfg.fine_pixel_mm, cfg.free_edge_band_mm, cfg.violation_weight,
++                                               clearance=cfg.hole_core_clearance_mm)
+     _, cov_raster, viol = _score_direct(kin_f, kf_f, ok_f, cfg.fine_pixel_mm, uv, cfg.violation_weight)
+     if hole_in is None:
+         score = 0.55 * cov_raster + 0.45 * min(1.0, edge_in) - cfg.violation_weight * viol

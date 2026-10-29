@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from typing import Any, Dict, List, Literal, Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 
 class StructuredCountResult(BaseModel):
@@ -75,9 +75,72 @@ class ReportSummaryResult(BaseModel):
     payload: Dict[str, Any] = Field(default_factory=dict)
 
 
+class BendObservedCounts(BaseModel):
+    formed: int = Field(ge=0, strict=True)
+    unformed: int = Field(ge=0, strict=True)
+    unknown: int = Field(ge=0, strict=True)
+    total: int = Field(ge=0, strict=True)
+    partially_observed: int = Field(ge=0, strict=True)
+
+    @model_validator(mode="after")
+    def validate_partition(self):
+        if self.formed + self.unformed + self.unknown != self.total:
+            raise ValueError("observed counts must partition the countable targets")
+        if self.partially_observed > self.unknown:
+            raise ValueError("partial observation is a subset of unknown physical state")
+        return self
+
+
+class BendDecisionRow(BaseModel):
+    bend_id: str
+    state: Literal["FORMED", "UNFORMED", "UNKNOWN"]
+    observation_detail: str
+    reasons: List[str] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def validate_observation_detail(self):
+        details = {"FORMED": {"FORMED", "OBSERVED_FORMED"}, "UNFORMED": {"UNFORMED", "OBSERVED_NOT_FORMED"}}
+        if self.state in details and self.observation_detail not in details[self.state]:
+            raise ValueError("a positive observation requires consistent explicit detail")
+        return self
+
+
+class BendDecisionContract(BaseModel):
+    schema_version: Literal[1]
+    kind: Literal["BEND_DECISION_CONTRACT_V1"]
+    observed_counts: BendObservedCounts
+    registration: Literal["ABSTAINED", "UNVERIFIED"]
+    render_evidence: Literal["UNAVAILABLE", "UNVERIFIED"]
+    production_disposition: Literal["NOT_AUTHORIZED"]
+    reasons: List[str] = Field(default_factory=list)
+    bends: List[BendDecisionRow] = Field(default_factory=list)
+
+    @field_validator("schema_version", mode="before")
+    @classmethod
+    def validate_schema_version(cls, value):
+        if type(value) is not int or value != 1:
+            raise ValueError("schema_version must be the explicit integer 1")
+        return value
+
+    @model_validator(mode="after")
+    def validate_evidence_rows(self):
+        identities = [row.bend_id for row in self.bends]
+        if any(not identity.strip() for identity in identities) or len(set(identities)) != len(identities):
+            raise ValueError("decision rows require nonempty unique identities")
+        if self.registration == "ABSTAINED" and any(row.state != "UNKNOWN" for row in self.bends):
+            raise ValueError("abstained registration cannot support a physical observation")
+        if self.observed_counts.total > len(self.bends):
+            raise ValueError("countable targets cannot exceed decision rows")
+        for field, state in (("formed", "FORMED"), ("unformed", "UNFORMED"), ("unknown", "UNKNOWN")):
+            if getattr(self.observed_counts, field) > sum(row.state == state for row in self.bends):
+                raise ValueError("counts cannot exceed corresponding evidence rows")
+        return self
+
+
 class BendInspectionResult(BaseModel):
     part_id: str
     summary: ReportSummaryResult
     matches: List[BendMatchResult] = Field(default_factory=list)
     alignment: Optional[Dict[str, Any]] = None
+    decision_contract: Optional[BendDecisionContract] = None
     report_payload: Dict[str, Any] = Field(default_factory=dict)

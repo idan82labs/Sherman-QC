@@ -1,0 +1,231 @@
+{
+ "scan_id": "sc_d1732de18023",
+ "gold11_id": "CG4BDD1371B6",
+ "catalog_case_id": "corpus/05_37361005",
+ "auditor": "auditor2 (independent; did not read triage_results or other auditors)",
+ "method": [
+  "true bend axis from local skin normals (not gold direction); stations every 2 mm, +-0.75 mm slabs",
+  "outer apex = convex-skin points whose normal is within 12 deg of the bisector (median); cross-checked by circle fit (median diff 0.04-0.07 mm)",
+  "fold extent = outer-arc points (normal within 20 deg of bisector, <1.2 mm from apex line), gaps >3 mm split runs",
+  "cross-check: research.bench_labeling prep+lines --locus apex on outer-skin pairs [1,9],[2,4],[2,5],[1,8]: tool apex lines within 0.01-0.08 mm of audit apex lines",
+  "frozen matcher scripts/evaluate_f1_against_manual_gold pair_metrics/is_match (5 deg / 4 mm / 60%)"
+ ],
+ "part": {
+  "sheet_thickness_mm": 1.42,
+  "R_outer_mm": "2.7-2.8 (circle fit)",
+  "bend_angles_deg": [
+   89.3,
+   90.4,
+   90.5,
+   89.7
+  ],
+  "formed_folds": 4,
+  "non_bend_features": [
+   "6 rectangular 10x5.1 mm slots in M04 flange (ceilings 5.8 mm below plate mid-plane)",
+   "4 holes ~4 mm in each long flange (M02,M03)",
+   "2 holes ~6 mm + large rectangular window in plate",
+   "flange-end chamfers, notches at M04 end"
+  ],
+  "plate_flatness": "plane rms 0.20 mm, 20-mm cell residual +-0.6 mm, 0.4-0.5% normals tilted 3-12 deg: no joggle/shallow bend"
+ },
+ "lines": {
+  "M01": {
+   "verdict": "REAL_ERROR",
+   "gold_to_outer_apex_mm": {
+    "median": 4.36,
+    "min": 3.77,
+    "max": 4.95,
+    "frac_stations_within_4mm": 0.16
+   },
+   "gold_to_inner_apex_median_mm": 3.33,
+   "gold_mid_to_lines_mm": {
+    "outer_apex": 4.41,
+    "inner_apex": 3.36,
+    "outer_virtual_sharp": 5.41,
+    "inner_virtual_sharp": 3.85
+   },
+   "angle_gold_vs_apex_deg": 0.33,
+   "fold_len_mm": 203.2,
+   "gold_len_mm": 192.8,
+   "coverage_of_fold_pct": 94.9,
+   "uncovered_fold_mm_each_end": [
+    9.1,
+    1.3
+   ],
+   "frozen_matcher_vs_ideal_full_fold_line": {
+    "outer_apex": {
+     "offset_mm": 4.41,
+     "match": false
+    },
+    "inner_apex": {
+     "offset_mm": 3.36,
+     "match": true
+    },
+    "outer_virtual_sharp": {
+     "offset_mm": 5.41,
+     "match": false
+    },
+    "inner_virtual_sharp": {
+     "offset_mm": 3.85,
+     "match": true
+    }
+   },
+   "n_stations": 88,
+   "where": "on the inner face of the 9.6 mm down-flange at mid-height: |dist to inner-face plane|<=0.2 mm, 3.3-4.2 mm below plate underside, 1.8-2.9 mm past inner tangent line"
+  },
+  "M02": {
+   "verdict": "CONVENTION_OFFSET",
+   "gold_to_outer_apex_mm": {
+    "median": 1.61,
+    "min": 1.32,
+    "max": 1.88,
+    "frac_stations_within_4mm": 1.0
+   },
+   "gold_to_inner_apex_median_mm": 0.38,
+   "gold_mid_to_lines_mm": {
+    "outer_apex": 1.59,
+    "inner_apex": 0.32,
+    "outer_virtual_sharp": 2.83,
+    "inner_virtual_sharp": 0.87
+   },
+   "angle_gold_vs_apex_deg": 0.22,
+   "fold_len_mm": 257.0,
+   "gold_len_mm": 248.5,
+   "coverage_of_fold_pct": 96.7,
+   "uncovered_fold_mm_each_end": [
+    1.3,
+    7.1
+   ],
+   "frozen_matcher_vs_ideal_full_fold_line": {
+    "outer_apex": {
+     "offset_mm": 1.59,
+     "match": true
+    },
+    "inner_apex": {
+     "offset_mm": 0.32,
+     "match": true
+    },
+    "outer_virtual_sharp": {
+     "offset_mm": 2.83,
+     "match": true
+    },
+    "inner_virtual_sharp": {
+     "offset_mm": 0.87,
+     "match": true
+    }
+   },
+   "n_stations": 125,
+   "where": "concave (inner-skin) crease of the bend, 0.32 mm from inner apex line"
+  },
+  "M03": {
+   "verdict": "CONVENTION_OFFSET",
+   "gold_to_outer_apex_mm": {
+    "median": 1.08,
+    "min": 0.8,
+    "max": 1.46,
+    "frac_stations_within_4mm": 1.0
+   },
+   "gold_to_inner_apex_median_mm": 0.33,
+   "gold_mid_to_lines_mm": {
+    "outer_apex": 1.05,
+    "inner_apex": 0.33,
+    "outer_virtual_sharp": 2.33,
+    "inner_virtual_sharp": 0.32
+   },
+   "angle_gold_vs_apex_deg": 0.28,
+   "fold_len_mm": 257.0,
+   "gold_len_mm": 252.3,
+   "coverage_of_fold_pct": 98.2,
+   "uncovered_fold_mm_each_end": [
+    0.6,
+    4.1
+   ],
+   "frozen_matcher_vs_ideal_full_fold_line": {
+    "outer_apex": {
+     "offset_mm": 1.06,
+     "match": true
+    },
+    "inner_apex": {
+     "offset_mm": 0.33,
+     "match": true
+    },
+    "outer_virtual_sharp": {
+     "offset_mm": 2.33,
+     "match": true
+    },
+    "inner_virtual_sharp": {
+     "offset_mm": 0.33,
+     "match": true
+    }
+   },
+   "n_stations": 127,
+   "where": "concave (inner-skin) crease, 0.32-0.33 mm from inner apex / inner virtual sharp"
+  },
+  "M04": {
+   "verdict": "REAL_ERROR",
+   "gold_to_outer_apex_mm": {
+    "median": 5.2,
+    "min": 4.71,
+    "max": 5.62,
+    "frac_stations_within_4mm": 0.0
+   },
+   "gold_to_inner_apex_median_mm": 4.04,
+   "gold_mid_to_lines_mm": {
+    "outer_apex": 5.18,
+    "inner_apex": 4.02,
+    "outer_virtual_sharp": 6.25,
+    "inner_virtual_sharp": 4.48
+   },
+   "angle_gold_vs_apex_deg": 0.4,
+   "fold_len_mm": 149.1,
+   "gold_len_mm": 124.9,
+   "coverage_of_fold_pct": 83.8,
+   "uncovered_fold_mm_each_end": [
+    16.4,
+    7.9
+   ],
+   "frozen_matcher_vs_ideal_full_fold_line": {
+    "outer_apex": {
+     "offset_mm": 5.21,
+     "match": false
+    },
+    "inner_apex": {
+     "offset_mm": 4.06,
+     "match": false
+    },
+    "outer_virtual_sharp": {
+     "offset_mm": 6.28,
+     "match": false
+    },
+    "inner_virtual_sharp": {
+     "offset_mm": 4.5,
+     "match": false
+    }
+   },
+   "n_stations": 63,
+   "where": "0.6 mm in front of the 14.9 mm down-flange inner face along the slot-ceiling row; start at slot-1 top corner (ds 0.43, dB 0.08 mm), end near slot-6 top corner (ds 0.47, dB 0.95 mm)"
+  }
+ },
+ "perfect_apex_labeling_vs_this_gold_frozen_matcher": {
+  "tp": 2,
+  "fp": 2,
+  "fn": 2,
+  "f1": 0.5,
+  "unmatched_gold": [
+   "M01",
+   "M04"
+  ],
+  "source": "bl_lines_apex/lines.json (bench_labeling apex lines B1..B4)"
+ },
+ "missing_bends": [],
+ "renders": [
+  "a2_xsec_M01.png",
+  "a2_xsec_M02.png",
+  "a2_xsec_M03.png",
+  "a2_xsec_M04.png",
+  "a2_flange_maps.png",
+  "bl_lines_apex/render/closeup_B1.png",
+  "bl_lines_apex/render/closeup_B4.png",
+  "bl_prep/render/patches_contact_sheet.png"
+ ]
+}

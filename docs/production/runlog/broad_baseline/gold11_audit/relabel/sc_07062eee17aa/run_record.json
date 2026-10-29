@@ -1,0 +1,106 @@
+{
+  "schema": "sherman.gold11_audit.relabel_run_record.v1",
+  "status": "complete",
+  "scan_id": "sc_07062eee17aa",
+  "scan": "/Users/idantal/ShermanQC/source-assets/02_CAD_QC_3D/38172000_01_SCAN_1.ply",
+  "scan_sha256": "07062eee17aa4e41721b93cdb69ddb4b752e6713a16c5aab0a10df9c86d07880",
+  "recorded_at": "2026-10-17T19:01:57.433838+00:00",
+  "do_not_redo": "All four steps finished with exit code 0. A rerun of this workflow step should detect this record (or the label file) and reuse the outputs instead of re-running prep/lines/write-label.",
+  "steps": [
+    {
+      "step": "prep",
+      "rc": 0,
+      "out": "docs/production/runlog/broad_baseline/gold11_audit/prep/sc_07062eee17aa",
+      "note": "run once under the geometry lock; no earlier bench_labeling prep of this scan existed anywhere in the repo",
+      "files": {
+        "prep_manifest.json": "eb2d9ceb46eec7208d7bbe39ae4945be79f5d43f1d114a970a6af6cd500afcf7",
+        "patches.json": "b621d0b2e2602fd8b356fdf2aeaeb36489cb9465d68b7229b3f3b626ceb4cf17",
+        "points_ds.npz": "5ee9102d164196a0a15942b90a2f82bf8130a95b72a9f951d6331575ce7fcc56"
+      }
+    },
+    {
+      "step": "lines (exploratory)",
+      "rc": [
+        0,
+        0,
+        0
+      ],
+      "out": [
+        "docs/production/runlog/broad_baseline/gold11_audit/relabel/sc_07062eee17aa/explore_run1",
+        "docs/production/runlog/broad_baseline/gold11_audit/relabel/sc_07062eee17aa/explore_run2",
+        "docs/production/runlog/broad_baseline/gold11_audit/relabel/sc_07062eee17aa/explore_run3"
+      ],
+      "note": "variant comparison only (tab-B web side; bowed -Y flange web side); not used for the label"
+    },
+    {
+      "step": "lines (final)",
+      "rc": 0,
+      "out": "docs/production/runlog/broad_baseline/gold11_audit/relabel/sc_07062eee17aa",
+      "pairs": "docs/production/runlog/broad_baseline/gold11_audit/relabel/sc_07062eee17aa/pairs.json",
+      "pairs_sha256": "05da4499b658ea26a1ce8e5fc98111f79edd8bb89d82340fe2f5167746c68557",
+      "lines_json_sha256": "24ebb2e196139b4c1c5f58affa771fab162c5a0ae6d7449b320be9267f96cb64",
+      "n_ok": 6,
+      "n_failed": 0
+    },
+    {
+      "step": "write-label",
+      "rc": 0,
+      "labels_root": "data/bend_corpus/annotations/ai_bend_lines_gold11_relabel_v1",
+      "label": "data/bend_corpus/annotations/ai_bend_lines_gold11_relabel_v1/a962166c3019434c10628722.json",
+      "label_sha256": "d7f7f057e20be4db716ad7c61dcf8e69ba6c284e3c3fcdcd15cfad29c46f236b",
+      "provenance": "data/bend_corpus/annotations/ai_bend_lines_gold11_relabel_v1/provenance/a962166c3019434c10628722.json",
+      "provenance_sha256": "ac3b6010edbe3363e909b2b050d6ab41bcc5cb26e6fe83b3226867f1b3813d7e",
+      "annotator": "claude-vision-ai-v1",
+      "revision": 1
+    },
+    {
+      "step": "checks",
+      "files": [
+        "docs/production/runlog/broad_baseline/gold11_audit/relabel/sc_07062eee17aa/mapping_vs_human.json",
+        "docs/production/runlog/broad_baseline/gold11_audit/relabel/sc_07062eee17aa/apex_stations_final.txt"
+      ],
+      "scripts": [
+        "docs/production/runlog/broad_baseline/gold11_audit/relabel/sc_07062eee17aa/compare_human.py",
+        "docs/production/runlog/broad_baseline/gold11_audit/relabel/sc_07062eee17aa/apex_stations.py"
+      ]
+    }
+  ],
+  "human_gold_untouched": {
+    "path": "data/bend_corpus/annotations/human_bend_lines_v1/a962166c3019434c10628722.json",
+    "sha256": "15f2f1288e9fa33e84b0bb9f47630ee8db19076d8303dbe87a85e72404fa6620"
+  },
+  "line_count": {
+    "relabel": 6,
+    "human": 6
+  },
+  "mapping": {
+    "M01": {
+      "relabel": "B3",
+      "kind": "same bend, moved (extent cut from 295.5 mm across flat web to the 77.9 mm tab-A fold; 0.49 deg, 0.96 mm, gold-span overlap 0.26)"
+    },
+    "M02": {
+      "relabel": "B1",
+      "kind": "same bend (frozen-matcher TP: 0.24 deg, 0.22 mm, overlap 1.00/0.97)"
+    },
+    "M03": {
+      "relabel": null,
+      "kind": "removed (copy of M02 shifted 14 mm onto the flange's free cut edge; not a bend)"
+    },
+    "M04": {
+      "relabel": "B4",
+      "kind": "same bend, moved (extent cut from 300.5 mm across flat web to the 77.5 mm tab-B fold; 0.35 deg, 1.04 mm, gold-span overlap 0.26)"
+    },
+    "M05": {
+      "relabel": "B2",
+      "kind": "same bend (frozen-matcher TP: 0.38 deg, 0.57 mm, overlap 1.00/0.95)"
+    },
+    "M06": {
+      "relabel": null,
+      "kind": "removed (copy of M05 shifted 14 mm onto the flange's free cut edge; not a bend)"
+    },
+    "added": {
+      "B5": "ear A 31 deg bend at the -X end of tab A (12.0 mm)",
+      "B6": "ear B 31 deg bend at the -X end of tab B (11.6 mm)"
+    }
+  }
+}

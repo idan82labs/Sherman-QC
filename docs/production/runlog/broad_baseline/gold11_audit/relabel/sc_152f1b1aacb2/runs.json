@@ -1,0 +1,49 @@
+{
+  "scan_id": "sc_152f1b1aacb2",
+  "gold11_id": "CG64C412CC73",
+  "scan": "/Users/idantal/ShermanQC/source-assets/02_CAD_QC_3D/40500000_0_SCAN2 1.ply",
+  "scan_sha256": "152f1b1aacb20920a601f7a8197d4c89a111688325bcf557a6a731641f306614",
+  "prep": {
+    "dir": "docs/production/runlog/broad_baseline/gold11_audit/prep/sc_152f1b1aacb2",
+    "ran_once": true,
+    "reason": "no bench_labeling prep of this scan existed anywhere in the repo or /private/tmp/claude-501 (searched prep_manifest.json for 152f1b1aacb2)",
+    "args": "--thickness 1.0 --ri 1.3 (defaults otherwise)",
+    "rc": 0
+  },
+  "runs": [
+    {
+      "dir": "run1",
+      "pairs": "run1/pairs.json (written as pairs_run1.json, moved)",
+      "rc": 0,
+      "result": "7/7 ok; B1/B2 outer-skin pairs 2|6, 2|4: apex_offset -0.350/-0.317 mm (expected +0.94): apex pulled onto the flat ears that continue the base through the two wall windows; labels 1.05-1.39 mm from auditor 1/2 apex lines. B3-B7 fine."
+    },
+    {
+      "dir": "run2",
+      "pairs": "run2/pairs.json (written as pairs_run2.json, moved)",
+      "rc": 0,
+      "result": "probe: B1/B2 on inner-skin pairs 1|5, 1|3: apex_offset -0.454 mm from the inner sharp = 0.98-0.99 mm in from the outer sharp along the bisector (lateral <= 0.09 mm) = measured outer arc apex; 0.05-0.33 mm from auditor 1/2 apex lines; coverage 0.55 (windows)."
+    },
+    {
+      "dir": ".",
+      "pairs": "pairs.json",
+      "rc": 0,
+      "log": "lines_final.log",
+      "result": "final: B1/B2 inner pairs + extent_t = their auto extents (wall end to wall end, bridges the windows by convention; fold support 1.00 comes from the flat ears, not a fold); B3-B7 outer pairs, auto extents. 7/7 ok, all certain."
+    }
+  ],
+  "write_label": {
+    "rc": 0,
+    "log": "write_label.log",
+    "label": "data/bend_corpus/annotations/ai_bend_lines_gold11_relabel_v1/8370b5e44945adfba2f2fb34.json",
+    "label_sha256": "e9c0821a70780dd071038c3118eb64168037d1259ebc6da0f2b14f7d5dc08774"
+  },
+  "human_gold_untouched": {
+    "path": "data/bend_corpus/annotations/human_bend_lines_v1/8370b5e44945adfba2f2fb34.json",
+    "sha256_before_and_after": "6fd3f1a124ccd8025517ece7e0f7892b61477d4c660b987f11712fcdfc887f22"
+  },
+  "mapping": "mapping_vs_human.json (frozen matcher scripts/evaluate_f1_against_manual_gold.match_lines, default Thresholds)",
+  "probe_scripts": [
+    "scripts/xsec_probe.py",
+    "scripts/extent_probe.py"
+  ]
+}

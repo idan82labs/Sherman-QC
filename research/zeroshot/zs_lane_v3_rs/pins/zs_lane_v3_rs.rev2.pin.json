@@ -1,0 +1,236 @@
+{
+ "schema": "sherman.zs_lane_v3_rs.pin.v1",
+ "lane": "zs_lane_v3_rs",
+ "revision": 2,
+ "reference": "the portable zs_rust binary (since 2026-10-26); the frozen Python lane is a comparison",
+ "base": {
+  "lane": "zs_lane_v3",
+  "code_fingerprint": "ab31d061c6231f5f7581f4cf03d451e77dbc5667e0193e66f3acac955e30a03d",
+  "config_sha256": "1c3f8cb7787185f33a61922dda8a2fced900c2e3011ea0105612f4fd5cc0fc53"
+ },
+ "binary": {
+  "path": "bin/zs_rust.exe",
+  "station_target": "x86_64-pc-windows-msvc+x86-64-v2",
+  "sha256_signed": null,
+  "sha256_unsigned": null,
+  "note": "the station build's sha256 is recorded by station/build_install.ps1 (not buildable on the Mac without the MSVC linker / Windows SDK); every other target below is built",
+  "rustc": "1.99.0",
+  "cargo_lock_sha256": "56a44631771e52911e073aebdeb09b3c58b5a4c3493832adf60cc8fff3631d51",
+  "profile": {
+   "opt": 3,
+   "lto": "fat",
+   "codegen_units": 1,
+   "panic": "abort",
+   "target_cpu": {
+    "aarch64-apple-darwin": "generic",
+    "x86_64": "x86-64-v2 (station default; x86-64-v3 not cleared, PORTABLE.md)"
+   }
+  },
+  "features": [],
+  "math": "pure Rust: libm crate for every transcendental, explicit fma only, LAPACK 3.9 ports for eigh / solve / det, Jacobi-SVD lstsq; no Accelerate, no CommonCrypto",
+  "reference_build": {
+   "target": "aarch64-apple-darwin",
+   "sha256": "5767bf697884a60a240442cbe684db0bf6b385f490582dbbaf01cb0f3ea56478",
+   "bytes": 2037760
+  }
+ },
+ "binaries": {
+  "aarch64-apple-darwin": {
+   "path": "research/zeroshot/zs_rust/target/release/zs_rust",
+   "target_cpu": "generic",
+   "sha256": "5767bf697884a60a240442cbe684db0bf6b385f490582dbbaf01cb0f3ea56478",
+   "bytes": 2037760,
+   "status": "reference; DEV+dense identical at 1/16 threads"
+  },
+  "x86_64-apple-darwin": {
+   "path": "research/zeroshot/zs_rust/target/x86_64-apple-darwin/release/zs_rust",
+   "target_cpu": "generic",
+   "sha256": "a7a738b294b678b1631af81109f2f87c7082d9c14f839a385f1a932f626301e9",
+   "bytes": 2324592,
+   "status": "generic: DEV rev2/rev3 + dense identical to arm64 at 16 threads (Rosetta)"
+  },
+  "x86_64-apple-darwin+x86-64-v2": {
+   "path": "research/zeroshot/zs_rust/target/x86_64-v2/x86_64-apple-darwin/release/zs_rust",
+   "target_cpu": "x86-64-v2",
+   "sha256": "ab65b3b3ef4b4c581427cb2d0c827f8fa5430c82652d212fff1e3d3b11ce88fd",
+   "bytes": 2353360,
+   "status": "DEV rev3 + dense identical to arm64 at 1 and 16 threads, DEV rev2 at 16, OOF files identical (Rosetta)"
+  },
+  "x86_64-apple-darwin+x86-64-v3": {
+   "path": "research/zeroshot/zs_rust/target/x86_64-v3/x86_64-apple-darwin/release/zs_rust",
+   "target_cpu": "x86-64-v3",
+   "sha256": "b1252219a968b4e47ce6a84ba561c499f1351c133b5065c0050fdb16a8d7fb01",
+   "bytes": 2396896,
+   "status": "NOT cleared: 121/122 DEV (sc_766be04dc456 differs, rev2 and rev3; OOF fixed arm 597/19/22) under Rosetta; dense 18/18"
+  },
+  "x86_64-pc-windows-msvc+x86-64-v2": {
+   "path": "research/zeroshot/zs_rust/target/x86_64-pc-windows-msvc/release/zs_rust.exe",
+   "target_cpu": "x86-64-v2",
+   "sha256": null,
+   "bytes": null,
+   "status": "not built here (needs MSVC linker + Windows SDK); built and golden-checked by station/build_install.ps1"
+  }
+ },
+ "models": {
+  "z3": {
+   "path": "research/zeroshot/zs_lane_v3_rs/models/zs_lane_v3_z3_gbm.gbm.json",
+   "sha256": "8dfbcfbfb6dfb85c0cf5916d76dc3e8854a1e25deceb083b218233bde539f65e",
+   "format": "sherman.zs_gbm.v1",
+   "source_sha256": "62e99d13ccf0945d4b6932b85f19879e757e09ca7f493041c3ce53503e74e28c"
+  },
+  "zs": {
+   "path": "research/zeroshot/zs_lane_v3_rs/models/zs_lane_v3_zs_gbm.gbm.json",
+   "sha256": "0489df880e347b568a70456ed6cf7c0e665c03fb7e8618eda9369ec274b9144e",
+   "format": "sherman.zs_gbm.v1",
+   "source_sha256": "ade6cde44ede85dbf8195d0f6c093a2eea50eb4a481a21ec99fa9f17cd49ffeb"
+  }
+ },
+ "config": {
+  "path": "research/zeroshot/zs_lane_v3_rs/config_v3_rs.json",
+  "sha256": "a4e0a6444613f5942657a885e211cc75731180cce595bcbb04918cf4366adb13",
+  "code_fingerprint": "96dbde32cc3817637eed4ffcdcac60d54006e1eee27f2f45d81a285bca82e16d"
+ },
+ "golden": {
+  "dir": "research/zeroshot/zs_rust/golden",
+  "golden_json_sha256": "57790e430d5c59eafd913240c1f9e3f08c29ca2983bc3bbcbdd78f881ea36f52",
+  "meshes": {
+   "g1_channel.ply": "a62fe207eb9b860a0c951f24fbfea12639d1c8c8e2d969879f9b87c4f2db554c",
+   "g2_zprofile_rot.ply": "0ad5e5e5f4f71a10481c331e120191357a312bfbe067a1e295b1c9a5d724e628",
+   "g3_hat.ply": "a070877b1c572dec916f332fd5939912bd87d44ed02eba640682a490515e13a3",
+   "g4_channel_soup.stl": "5304c6ea11085bcc70ee9220835863c1a6d1c6fb25656eb769a22e0203b372a3"
+  },
+  "check": "zs_rust selftest --golden DIR --config CFG --repo ROOT --threads N: exit 0 pass, 3 refuse; at install and at every start (station/build_install.ps1)"
+ },
+ "runtime": {
+  "threads": "physical_cores (output identical for every thread count)",
+  "exit_codes": {
+   "0": "ok",
+   "2": "error",
+   "3": "selftest refused",
+   "4": "pin mismatch (adapter)",
+   "10": "point cloud"
+  },
+  "point_cloud": "refuse | python_fallback"
+ },
+ "equivalence": {
+  "vs_python_accelerate": {
+   "dev_eval_lines_vs_python": {
+    "scans": 122,
+    "byte_identical_lines": 10,
+    "max_endpoint_mm": 1.5585700339215691e-06,
+    "max_score": 0.07740037373775466,
+    "n_lines_changed": 0,
+    "status_changed": 0,
+    "scans_incl_last_bits": 88,
+    "non_incl_field_changes": [
+     "ZS009.parts [9] [10]"
+    ],
+    "scans_score_gt_1e-9": [
+     [
+      0.0774,
+      "sc_3baf989b1612"
+     ],
+     [
+      0.007057,
+      "sc_0178c0155934"
+     ],
+     [
+      0.002738,
+      "sc_2d3e4a623a31"
+     ],
+     [
+      0.001704,
+      "sc_7c6712aacca8"
+     ],
+     [
+      0.000376,
+      "sc_186463746daa"
+     ],
+     [
+      0.000269,
+      "sc_1f1d06c24e9f"
+     ],
+     [
+      9.3e-05,
+      "sc_6fa053514df8"
+     ],
+     [
+      6.7e-05,
+      "sc_08686dc1d5d4"
+     ],
+     [
+      6.3e-05,
+      "sc_b3cde5d10544"
+     ],
+     [
+      2.8e-05,
+      "sc_2476a49b0278"
+     ]
+    ],
+    "point_cloud_not_run_by_binary": [
+     "sc_9b930fe58a1b",
+     "sc_a5e534e6097c",
+     "sc_f362d8de507c"
+    ]
+   },
+   "dev_matcher_vs_python": {
+    "scans": 125,
+    "line_sets_equal": 125,
+    "differ": [],
+    "ref_aggregate": {
+     "scans": 120,
+     "tp": 600,
+     "fp": 16,
+     "fn": 19,
+     "micro_f1": 0.9717,
+     "family_macro_f1": 0.9712,
+     "controls": {
+      "scans": 5,
+      "fp_lines": 0
+     }
+    },
+    "run_aggregate": {
+     "scans": 120,
+     "tp": 600,
+     "fp": 16,
+     "fn": 19,
+     "micro_f1": 0.9717,
+     "family_macro_f1": 0.9712,
+     "controls": {
+      "scans": 5,
+      "fp_lines": 0
+     }
+    },
+    "point_cloud_from_reference": [
+     "sc_9b930fe58a1b",
+     "sc_a5e534e6097c",
+     "sc_f362d8de507c"
+    ]
+   },
+   "dev_oof": {
+    "fixed_v3_fold_models": {
+     "micro_f1": 0.966,
+     "family_macro_f1": 0.9534,
+     "tp": 597,
+     "fp": 20,
+     "fn": 22,
+     "control_fp": 1
+    },
+    "refit": {
+     "micro_f1": 0.9643,
+     "family_macro_f1": 0.9511,
+     "tp": 594,
+     "fp": 19,
+     "fn": 25,
+     "control_fp": 1
+    },
+    "files_identical_to_accelerate": {
+     "OOF_v3r2_lines.json": false,
+     "OOF_v3r2_per_case.json": false
+    }
+   }
+  },
+  "cross_arch": "arm64 == x86-64 generic == x86-64-v2 byte for byte on 125 DEV (122 binary + 3 point clouds) and 18 dense, at 1 and 16 threads, eval lines and stage dumps; x86-64-v3 differs on 1 DEV scan under Rosetta (cause undetermined: Rosetta AVX translation or AVX codegen)",
+  "evidence": "docs/production/runlog/zeroshot_2026-10-25/v3_rust/portable_results.json"
+ }
+}

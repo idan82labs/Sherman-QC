@@ -1,0 +1,19 @@
+{"labeler": "claude-vision-ai-v1",
+ "no_bends_present": false,
+ "thickness_mm": 1.5,
+ "ri_mm": 0.8,
+ "notes": "r3 investigator pass, owner-delegated verdict. Sparse two-skin LiDAR cloud (~0.25 pts/mm2 per skin; t 1.5 mm from skin pairs; outer bend radius ~2.2 mm so Ri ~0.8). Six real 90 deg formed folds, established from per-plane maps and perpendicular sections, none missed: F1 tall wall|strip, F2 strip|mid wall, F3 mid wall|base (4-segment stair, s 239.5..527), wall|tab (s 439.5..475.5), wall|end flange (two coplanar segments with a 10 mm relief gap) and wall|diagonal corner flange. A 12-14 mm window at s 364..378 interrupts all three long folds (strip cut out, mid wall lanced with a flat 10 mm tongue left in the base plane); a 62 mm base slot removes F3 at s 254..316, so B3 covers the main stretch 317..527. All extents are automatic, no extent override. fold_support_frac is informational here and near zero for every bend, including the ones verified in sections, because the cloud has ~1 point per mm per side within Ri+t+1 of a line. r3 prep: voxel 1.0, angle 20. Run margin 12 mm (wide support zone for the sparse cloud), small flanges 28 mm.",
+ "bends": [
+  {"patches": [[1,3,7], {"plane_from_points": {"seed_xyz": [-354.446, 26.785, 203.615], "radius_mm": 165, "grow": true}}],
+   "note": "F1 tall wall -u-facing skin (patches 1+3+7) | strip lower skin (whole-skin plane). Outer pair. Window s 364..378 cuts the strip, 5% of the line.", "confidence": "auto"},
+  {"patches": [{"plane_from_points": {"seed_xyz": [-354.446, 26.785, 203.615], "radius_mm": 165, "grow": true}}, [2,11]],
+   "note": "F2 strip lower skin (whole-skin plane) | mid wall lower skin (patches 2+11). Inner pair. Window s 365..377 cuts the strip.", "confidence": "auto"},
+  {"patches": [[2], {"plane_from_points": {"seed_xyz": [-375.568, 1.817, 203.501], "radius_mm": 110, "grow": false}}],
+   "note": "F3 mid wall lower skin (patch 2) | base lower skin (ball s~311..531, no grow, so the 14 mm F3 stub at s 240..254 beyond the 62 mm base slot is excluded). Outer pair. The flat window tongue sits at the outer sharp and pulls the apex onto the outer mold-line sharp, about 1.2 mm outside the outer arc.", "confidence": "auto"},
+  {"patches": [{"plane_from_points": {"seed_xyz": [-409.429, 33.444, 222.548], "radius_mm": 21.7, "grow": false}}, {"plane_from_points": {"seed_xyz": [-405.949, 52.186, 226.266], "radius_mm": 26, "grow": true}}],
+   "margin_mm": 28, "note": "tab fold. Side a is the wall -u-facing skin in a ball below the tab, because the wall continues above the tab line at s<440 and s>478. Side b is the tab lower skin. Both are inner skins: fitted planes at u -6.55 and v 104.40, the inner skins of this fold. The tool's skin-unknown flag comes from the sparse wall twin skin; skins were verified by hand. L-section at every station; line covers 33.3 of the ~36 mm fold.", "confidence": "certain"},
+  {"patches": [[1], {"plane_from_points": {"seed_xyz": [-472.286, 48.56, 256.207], "radius_mm": 42, "grow": true}}],
+   "margin_mm": 28, "note": "end flange fold along the wall end edge: wall -u-facing skin (patch 1) | end flange -s-facing skin, both coplanar segments (v 94.5..114.5 and 124.5..~146, relief gap between). Inner pair. Upper ~3 mm next to the corner flange has no usable normals.", "confidence": "auto"},
+  {"patches": [[1], {"plane_from_points": {"seed_xyz": [-453.196, 69.468, 288.781], "radius_mm": 16, "grow": true}}],
+   "margin_mm": 28, "note": "diagonal corner flange fold along the chamfered wall top edge: wall -u-facing skin (patch 1) | corner flange inner skin. Inner pair, incl 89.9 deg. Only 49 points on the flange side: the flange is 22x20 mm and about a third of its points have usable normals. Plane rms 0.06 mm. L-section at every station; line covers 20.8 of ~23 mm.", "confidence": "certain"}
+ ]}

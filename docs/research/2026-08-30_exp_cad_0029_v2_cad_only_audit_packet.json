@@ -1,0 +1,67 @@
+{
+  "schema": "EXP_CAD_0029_V2_CAD_ONLY_HASH_AUDIT_PACKET_V1",
+  "experiment_id": "EXP_CAD_0029",
+  "architecture": "CROSSFIT_PAIRWISE_DEFORMATION_GRAPH_V2_HARDENED",
+  "physical_scan_open_call_count": 0,
+  "restricted_evaluator_role_label_gold_quality_accessed": false,
+  "source_execution_authorized": false,
+  "audit_request": "Independently verify exact bound files, source-free interface, topology/boundary/geodesic/fold-halo/area invariants, tests, and primary-replay equality. Approval may authorize later source-runner implementation but does not itself open or authorize physical scan execution.",
+  "bound_files": {
+    "preregistration": {
+      "path": "docs/research/2026-08-30_exp_cad_0029_cfpdg_preregistration.json",
+      "sha256": "9f83d9a420ab7a122da52625bb60362e48ff4233264e93869269deb8fbfa10de"
+    },
+    "core": {
+      "path": "scripts/exp_cad_0029_cfpdg_core.py",
+      "sha256": "44005191978ff7f8dbd5a845f28b51ab2ea606ab9964852d2b376d69f3e80a90"
+    },
+    "cad_only_runner": {
+      "path": "scripts/run_exp_cad_0029_cad_only_preflight.py",
+      "sha256": "f7a7d6cd141b5db175ced2fc7a3eaff7a2ab2815cb09c7ed084119fa82f1929a"
+    },
+    "tests": {
+      "path": "tests/test_exp_cad_0029_cfpdg_preflight.py",
+      "sha256": "da049654a2ccfa9373e968e5191c3e74526d87b8a2f333e926f2176bb5ecaacd",
+      "result": "9 passed"
+    }
+  },
+  "primary_root": "output/research/autoresearch-loop/exp-cad-0029-cfpdg-v2-amended-cad-preflight",
+  "replay_root": "output/research/autoresearch-loop/exp-cad-0029-cfpdg-v2-amended-cad-preflight-replay",
+  "byte_exact_primary_replay": true,
+  "artifact_hashes_equal_in_both_roots": {
+    "CAD_ONLY_PREFLIGHT.json": "7663056f2910ebae0f063fdeddf49c817d051a80f59eb445327c216e38fe0157",
+    "CAD_GRAPH_NODES.npy": "575c19d404efd6733051d611dd46f123fbbee3117be13ef001514d658e2618b0",
+    "CAD_GRAPH_EDGES.npy": "0bf773fc65af9152bb8491830f98faf2e14c10fe999e8e4bf81a3db687513e3d",
+    "CAD_GRAPH_EDGE_GEODESIC_MM.npy": "92605624e786450ca260134555b6e71bbac56875e9e3e49b4aceac6d5e9de185"
+  },
+  "cad_only_result": {
+    "status": "PASS_CAD_ONLY_ACTIONABLE",
+    "cad_actionable": true,
+    "source_execution_authorized": false,
+    "interior_candidate_count": 80993,
+    "node_count": 8077,
+    "interior_area_mm2": 90790.49072977006,
+    "interior_area_fraction": 0.8115966033108091,
+    "assigned_area_mm2": 90790.49072977006,
+    "unassigned_area_mm2": 0.0,
+    "graph_edge_count": 19267,
+    "largest_graph_component_area_fraction": 0.8769910440648909,
+    "degree_two_assigned_area_fraction": 0.9965627804101773,
+    "fold_area_fractions": [
+      0.2500541888475166,
+      0.2499556664484513,
+      0.250032092591008,
+      0.24995805211302427
+    ],
+    "post_halo_training_area_fraction_range": [
+      0.7204012844948329,
+      0.7369475293358558
+    ],
+    "fold_training_rank": [6, 6, 6, 6],
+    "fold_training_condition_number_range": [
+      1.4973146849202057,
+      1.8015252338411756
+    ],
+    "all_gates": true
+  }
+}

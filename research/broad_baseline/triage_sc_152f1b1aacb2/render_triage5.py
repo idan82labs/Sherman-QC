@@ -1,0 +1,26 @@
+import numpy as np, matplotlib; matplotlib.use('Agg'); import matplotlib.pyplot as plt
+exec(open('research/broad_baseline/triage_sc_152f1b1aacb2/render_triage.py').read().split('fig,axs')[0])
+fig,axs=plt.subplots(2,3,figsize=(21,10))
+for col,(nm,lo,hi) in enumerate([('FP 98124c edge e1>95',95,115),('FP ac6111 edge e1<-100',-115,-100)]):
+    m=(q[:,0]>lo)&(q[:,0]<hi)
+    sc=axs[0,col].scatter(q[m,1],q[m,2],s=0.4,c=q[m,0]); axs[0,col].set_title(nm+': e2-e3 (edge seen from outside), lines dashed'); axs[0,col].set_ylim(-10,10)
+    for k,(a,b) in Pd.items():
+        A,B=L(a)[0],L(b)[0]
+        if lo<A[0]<hi: axs[0,col].plot([A[1],B[1]],[A[2],B[2]],'m--',lw=2)
+    up=m&(q[:,2]>-1.5)
+    print(nm,'upturned pts',up.sum(),'e2 extent',np.percentile(q[up,1],[0.5,99.5]).round(1),'max e3',q[up,2].max().round(1))
+    mm=m&(np.abs(q[:,1]+36)<6)
+    axs[1,col].scatter(q[mm,0],q[mm,2],s=0.6,c='k'); axs[1,col].set_aspect('equal'); axs[1,col].set_title(nm+': section at lip e2=-36 (e1-e3)')
+    mm=m&(np.abs(q[:,1]-30)<6)
+    axs[1,col].scatter(q[mm,0],q[mm,2]-15,s=0.6,c='b'); axs[1,col].text(q[m,0].mean(),-17,'blue = section at e2=+30 (shifted -15)',color='b')
+m=(q[:,1]>70)&(q[:,2]>30)
+axs[0,2].scatter(q[m,0],q[m,1],s=0.4,c=q[m,2]); axs[0,2].set_title('wall2 top region e3>30: top view (tabs) + FP CADF_CAD_B1 dashed')
+A,B=L(Pd['CADF_CAD_B1'][0])[0],L(Pd['CADF_CAD_B1'][1])[0]; axs[0,2].plot([A[0],B[0]],[A[1],B[1]],'m--',lw=2); axs[0,2].set_aspect('equal')
+m=(q[:,1]<-70)&(q[:,2]>30)
+axs[1,2].scatter(q[m,0],q[m,1],s=0.4,c=q[m,2]); axs[1,2].set_title('wall1 top region e3>30 (M07 flange), green=gold M07')
+A,B=L(G['M07'][0])[0],L(G['M07'][1])[0]; axs[1,2].plot([A[0],B[0]],[A[1],B[1]],'g-',lw=2); axs[1,2].set_aspect('equal')
+up=(q[:,1]>70)&(q[:,2]>30)&(q[:,1]<89)
+h=np.histogram(q[up,0],bins=np.arange(-70,70,4)); print('wall2 top inward pts by e1 bin', list(zip(h[1][:-1].astype(int),h[0])))
+up=(q[:,1]<-70)&(q[:,2]>30)&(q[:,1]>-89)
+h=np.histogram(q[up,0],bins=np.arange(-70,70,4)); print('wall1 top inward pts by e1 bin', list(zip(h[1][:-1].astype(int),h[0])))
+plt.tight_layout(); plt.savefig(OUT+'fp_closeups.png',dpi=75)

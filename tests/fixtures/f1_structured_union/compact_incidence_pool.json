@@ -1,0 +1,137 @@
+{
+  "schema_version": 2,
+  "algorithm": "f1_structured_professor_contract_fixture_v1",
+  "case_id": "metadata-only-case-token",
+  "scan_path": "/metadata/only/source-file.ply",
+  "coordinate_frame": "scan_raw",
+  "source_point_serialization": false,
+  "working_point_contract_version": "GLOBAL_POINT_BUDGET_V1",
+  "working_point_budget": 200000,
+  "transient_sampled_point_count": 6,
+  "transient_plane_point_count": 6,
+  "inference_contract": {
+    "part_identifier_exposed": false,
+    "expected_count_exposed": false,
+    "manual_truth_exposed": false,
+    "cad_exposed": false
+  },
+  "plane_table": [
+    {
+      "plane_id": "RP1",
+      "normal": [0.0, 1.0, 0.0],
+      "offset": 0.0,
+      "support_count": 6,
+      "merged_plane_ids": []
+    },
+    {
+      "plane_id": "RP2",
+      "normal": [0.0, 0.0, 1.0],
+      "offset": 0.0,
+      "support_count": 6,
+      "merged_plane_ids": []
+    }
+  ],
+  "support_atom_table": [
+    {"atom_id": "A0", "centroid": [1.0, 0.0, 0.0], "normal": [0.0, 1.0, 0.0], "axis_direction": [1.0, 0.0, 0.0], "local_spacing_mm": 1.0, "curvature_proxy": 0.2, "weight": 1.0, "area_proxy_mm2": 1.0, "incident_plane_ids": ["RP1", "RP2"]},
+    {"atom_id": "A1", "centroid": [4.0, 0.0, 0.0], "normal": [0.0, 0.0, 1.0], "axis_direction": [1.0, 0.0, 0.0], "local_spacing_mm": 1.0, "curvature_proxy": 0.2, "weight": 1.0, "area_proxy_mm2": 4.0, "incident_plane_ids": ["RP1", "RP2"]},
+    {"atom_id": "A2", "centroid": [7.0, 0.0, 0.0], "normal": [0.0, 1.0, 0.0], "axis_direction": [1.0, 0.0, 0.0], "local_spacing_mm": 1.0, "curvature_proxy": 0.2, "weight": 1.0, "area_proxy_mm2": 1.0, "incident_plane_ids": ["RP1", "RP2"]},
+    {"atom_id": "A3", "centroid": [10.0, 0.0, 0.0], "normal": [0.0, 0.0, 1.0], "axis_direction": [1.0, 0.0, 0.0], "local_spacing_mm": 1.0, "curvature_proxy": 0.2, "weight": 1.0, "area_proxy_mm2": 4.0, "incident_plane_ids": ["RP1", "RP2"]},
+    {"atom_id": "A4", "centroid": [13.0, 0.0, 0.0], "normal": [0.0, 1.0, 0.0], "axis_direction": [1.0, 0.0, 0.0], "local_spacing_mm": 1.0, "curvature_proxy": 0.2, "weight": 1.0, "area_proxy_mm2": 1.0, "incident_plane_ids": ["RP1", "RP2"]},
+    {"atom_id": "A5", "centroid": [16.0, 0.0, 0.0], "normal": [0.0, 0.0, 1.0], "axis_direction": [1.0, 0.0, 0.0], "local_spacing_mm": 1.0, "curvature_proxy": 0.2, "weight": 1.0, "area_proxy_mm2": 1.0, "incident_plane_ids": ["RP1", "RP2"]}
+  ],
+  "support_atom_edges": [
+    {"atom_ids": ["A0", "A1"], "weight": 1.0},
+    {"atom_ids": ["A1", "A2"], "weight": 1.0},
+    {"atom_ids": ["A2", "A3"], "weight": 1.0},
+    {"atom_ids": ["A3", "A4"], "weight": 1.0},
+    {"atom_ids": ["A4", "A5"], "weight": 1.0}
+  ],
+  "candidates": [
+    {
+      "candidate_id": "bend_hypothesis::SOURCE_WITH_SUPPORT",
+      "bend_id": "bend_hypothesis::SOURCE_WITH_SUPPORT",
+      "source_candidate_id": "SOURCE_WITH_SUPPORT",
+      "candidate_source": "bend_hypothesis",
+      "span_endpoints": [[0.0, 0.0, 0.0], [18.0, 0.0, 0.0]],
+      "incident_plane_ids": ["RP1", "RP2"],
+      "support_atom_ids": ["A0", "A1", "A2", "A3", "A4", "A5"],
+      "support_atom_ids_truncated": false,
+      "finite_support_fraction": 1.0,
+      "finite_support_longest_run_fraction": 1.0,
+      "endpoint_support_fraction": 1.0,
+      "two_sided_transition_score": 0.9
+    },
+    {
+      "candidate_id": "plane_lattice::TARGET_EQUIVALENT",
+      "bend_id": "plane_lattice::TARGET_EQUIVALENT",
+      "source_candidate_id": "TARGET_EQUIVALENT",
+      "candidate_source": "plane_lattice",
+      "span_endpoints": [[0.5, 0.0, 0.0], [18.5, 0.0, 0.0]],
+      "incident_plane_ids": ["RP1", "RP2"],
+      "support_atom_ids": [],
+      "support_atom_ids_truncated": false,
+      "finite_support_fraction": 1.0,
+      "finite_support_longest_run_fraction": 1.0,
+      "endpoint_support_fraction": 1.0,
+      "two_sided_transition_score": 0.9
+    },
+    {
+      "candidate_id": "plane_lattice::TARGET_TOO_FAR",
+      "bend_id": "plane_lattice::TARGET_TOO_FAR",
+      "source_candidate_id": "TARGET_TOO_FAR",
+      "candidate_source": "plane_lattice",
+      "span_endpoints": [[0.0, 10.0, 0.0], [18.0, 10.0, 0.0]],
+      "incident_plane_ids": ["RP1", "RP2"],
+      "support_atom_ids": [],
+      "support_atom_ids_truncated": false,
+      "finite_support_fraction": 1.0,
+      "finite_support_longest_run_fraction": 1.0,
+      "endpoint_support_fraction": 1.0,
+      "two_sided_transition_score": 0.9
+    }
+  ],
+  "line_objects": [
+    {
+      "bend_id": "LO_SOURCE",
+      "candidate_id": "LO_SOURCE",
+      "candidate_source": "cross_source_line_object",
+      "representative_source": "bend_hypothesis",
+      "cluster_sources": ["bend_hypothesis"],
+      "cluster_member_ids": ["bend_hypothesis::SOURCE_WITH_SUPPORT"],
+      "span_endpoints": [[0.0, 0.0, 0.0], [18.0, 0.0, 0.0]],
+      "incident_plane_ids": ["RP1", "RP2"],
+      "support_atom_ids": ["A0", "A1", "A2", "A3", "A4", "A5"],
+      "support_atom_ids_truncated": false,
+      "finite_support_longest_run_fraction": 1.0,
+      "endpoint_support_fraction": 1.0
+    },
+    {
+      "bend_id": "LO_EQUIVALENT",
+      "candidate_id": "LO_EQUIVALENT",
+      "candidate_source": "cross_source_line_object",
+      "representative_source": "plane_lattice",
+      "cluster_sources": ["plane_lattice"],
+      "cluster_member_ids": ["plane_lattice::TARGET_EQUIVALENT"],
+      "span_endpoints": [[0.5, 0.0, 0.0], [18.5, 0.0, 0.0]],
+      "incident_plane_ids": ["RP1", "RP2"],
+      "support_atom_ids": [],
+      "support_atom_ids_truncated": false,
+      "finite_support_longest_run_fraction": 1.0,
+      "endpoint_support_fraction": 1.0
+    },
+    {
+      "bend_id": "LO_TOO_FAR",
+      "candidate_id": "LO_TOO_FAR",
+      "candidate_source": "cross_source_line_object",
+      "representative_source": "plane_lattice",
+      "cluster_sources": ["plane_lattice"],
+      "cluster_member_ids": ["plane_lattice::TARGET_TOO_FAR"],
+      "span_endpoints": [[0.0, 10.0, 0.0], [18.0, 10.0, 0.0]],
+      "incident_plane_ids": ["RP1", "RP2"],
+      "support_atom_ids": [],
+      "support_atom_ids_truncated": false,
+      "finite_support_longest_run_fraction": 1.0,
+      "endpoint_support_fraction": 1.0
+    }
+  ]
+}

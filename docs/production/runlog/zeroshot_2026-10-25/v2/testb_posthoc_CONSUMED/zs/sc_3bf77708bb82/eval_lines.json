@@ -1,0 +1,197 @@
+{
+ "schema": "sherman.broad_baseline.eval_lines.v1",
+ "lane": "zs_lane_v2:zs",
+ "status": "OK",
+ "frame": "scan_raw",
+ "frame_definition": "coordinates of the scan file exactly as stored (source_ply_raw == scan_raw)",
+ "units": "scan file units (mm for every Sherman scan inspected so far; not re-estimated)",
+ "scan": {
+  "path": "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20261001_81a86845/36192000_02 (X).ply",
+  "sha256": "3bf77708bb82935555bf65b53b748fe311d12d3a57b08799ba5aae461b164407"
+ },
+ "source": {
+  "kind": "zs_lane_v2:zs",
+  "path": null,
+  "sha256": null
+ },
+ "conversion": {
+  "rule": "zs_lane_v2 variant zs",
+  "variant": "zs",
+  "threshold": 0.5,
+  "model": "docs/production/runlog/zeroshot_2026-10-25/v2/models/zs_lane_v2_zs_gbm.pkl",
+  "model_sha256": "91b3646653936394807b8ce665c95906fea7f61d83425e96bb7b1e0b02d8f6f6",
+  "post": {
+   "dedupe_join": true,
+   "join": true,
+   "join_low": 0.0,
+   "sweep_min": 0.25
+  },
+  "z3_params": {
+   "fallback_frac_only": true
+  },
+  "z2_fallback": true,
+  "code_fingerprint": "39c0efb92c3c3962605168fb2cda977edff5840a2da1cd4518659e7544209097",
+  "pins_ok": true,
+  "pin_mismatch": [],
+  "errors": {},
+  "stages": {
+   "z3": {
+    "wall": 1.683,
+    "t_mm": 1.5011258125305176,
+    "n_candidates": 5,
+    "area_total": 51835.25005366909,
+    "n_families": 3,
+    "family_fallback": false
+   },
+   "z2": {
+    "wall": 1.544,
+    "t_mm": 1.502,
+    "n_lines": 5
+   },
+   "pool": {
+    "wall": 0.002,
+    "n": 5
+   },
+   "snap_all": {
+    "wall": 0.026,
+    "n": 5
+   },
+   "evidence": {
+    "wall": 0.061
+   },
+   "select_post": {
+    "wall": 0.003,
+    "n": 5,
+    "ops": {
+     "keep": 5,
+     "split": 0,
+     "join": 0
+    }
+   }
+  },
+  "posthoc_consumed_testb": true,
+  "guard_basis": "POSTHOC_CONSUMED_TESTB (zs_lane_v1 one-time run consumed TEST-B; not a held-out result)"
+ },
+ "line_count": 5,
+ "owned_bend_regions": [
+  {
+   "bend_id": "ZS001",
+   "line_start": [
+    -258.7317494504602,
+    -65.05767132201366,
+    248.40516009638148
+   ],
+   "line_end": [
+    -246.24003234462063,
+    -113.94295374550414,
+    199.52503461687604
+   ],
+   "score": 0.9982989823397518,
+   "incl": 91.78540134242934,
+   "src": [
+    "z2",
+    "z3"
+   ],
+   "op": "keep",
+   "parts": [
+    0
+   ]
+  },
+  {
+   "bend_id": "ZS002",
+   "line_start": [
+    -267.5436755113471,
+    -66.9336407903991,
+    248.0354775028665
+   ],
+   "line_end": [
+    -255.1014002500244,
+    -115.84843958277503,
+    199.17228852488813
+   ],
+   "score": 0.9984539002717165,
+   "incl": 91.78209503367117,
+   "src": [
+    "z2",
+    "z3"
+   ],
+   "op": "keep",
+   "parts": [
+    1
+   ]
+  },
+  {
+   "bend_id": "ZS003",
+   "line_start": [
+    -257.1668830962499,
+    -70.98947702546607,
+    255.07721482443554
+   ],
+   "line_end": [
+    -244.6378148685452,
+    -119.99809617134227,
+    205.970894516848
+   ],
+   "score": 0.9977459318062446,
+   "incl": 91.27115187324941,
+   "src": [
+    "z2",
+    "z3"
+   ],
+   "op": "keep",
+   "parts": [
+    2
+   ]
+  },
+  {
+   "bend_id": "ZS004",
+   "line_start": [
+    -261.59700922708174,
+    -90.26709152765304,
+    195.32812976876107
+   ],
+   "line_end": [
+    -258.677380311585,
+    -101.57167818246538,
+    184.02556777955076
+   ],
+   "score": 0.991690092310676,
+   "incl": 90.93065994758217,
+   "src": [
+    "z2",
+    "z3"
+   ],
+   "op": "keep",
+   "parts": [
+    3
+   ]
+  },
+  {
+   "bend_id": "ZS005",
+   "line_start": [
+    -271.1703590465175,
+    -52.719125374703395,
+    232.93794622851314
+   ],
+   "line_end": [
+    -268.2940623708177,
+    -64.02030154084144,
+    221.62105822130977
+   ],
+   "score": 0.990268808325553,
+   "incl": 91.84541161158123,
+   "src": [
+    "z2",
+    "z3"
+   ],
+   "op": "keep",
+   "parts": [
+    4
+   ]
+  }
+ ],
+ "dropped": [],
+ "failure": null,
+ "created_at": "2026-10-25T08:46:12Z",
+ "ledger_note": "POSTHOC_CONSUMED: TEST-B was consumed by zs_lane_v1; this is not a held-out result"
+}

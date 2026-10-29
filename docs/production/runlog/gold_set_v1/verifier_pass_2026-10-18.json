@@ -1,0 +1,103 @@
+{
+  "schema": "sherman.gold_set_v1.verifier_pass.v1",
+  "created_at": "2026-10-18",
+  "note": "2-verifier pass on the fixed lines of the scans the original workflow left EXCLUDED (no 2-verifier pass recorded). Each scan's fixed lines (gold_set_v1/lines/<dir>) were checked by 2 independent blind vision verifiers against the gold rules (outer-skin apex of a real formed fold, parallel, >= 80% coverage, no missed bend >= 15 deg). Both pass -> GOLD_FIXED and written to the gold root with write-label (rc in write_label_logs/<sid>.out); any fail -> stays EXCLUDED with the verifier reasons. Verifier texts recorded verbatim.",
+  "scans": {
+    "sc_c27168a2de83": {
+      "pass": true,
+      "lines_dir": "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/gold_set_v1/lines/sc_c27168a2de83",
+      "verifiers": [
+        {
+          "pass": true,
+          "images_seen": 11,
+          "problems": "None. I opened the contact sheet, iso, iso_under, right and the three closeups, plus my own sections: a full 3x3 set at 25/50/75%, zooms, 7 profile stations across the part, end views and tab views.\n\nB1 (about 37 deg, wall 3 to chamfer): the dot sits on the outer (convex) arc at 25, 50 and 75%. Its extent along the fold axis is -173.3..-35.7, against a part span of -174.9..-34.0.\n\nB2 (about 53 deg, chamfer to base): at 25% the dot sits on the scanned outer-skin track. At 50% and 75% the outer skin is not scanned there, and the dot sits about 1.3 mm outside the inner arc, which is about one thickness (t = 1.48 mm), so it is on the outer side. Its section position is the same at all three stations, so it stays parallel. Its extent is -173.7..-35.4, the full part length.\n\nB3 (about 90 deg, base to wall 2, folding the opposite way): the dot is on the outer arc at all three stations. Its extent is -153.9..-55.1, matching the extent of wall 2 (-154.1..-54.4) between the relief notches.\n\nNo bend is missed. The profile is wall, B1, chamfer, B2, base, B3, wall at every station. The tabs on wall 3 are coplanar with it (patch 3 covers them, plane residual about 0). The top end of wall 2 is only an end-thickness cap, not a flange. Holes and slots are not bends."
+        },
+        {
+          "pass": true,
+          "images_seen": 12,
+          "problems": "None blocking. I opened all 9 renders (contact sheet, iso, iso_under, right, top, front, closeup_B1/B2/B3). I also made my own close-ups from points_ds.npz: perpendicular sections at 25/50/75% for each line (/private/tmp/claude-501/-Users-idantal/db065cf7-f766-4885-b217-ed8d7edd7ade/scratchpad/v2c27/sections.png), 8 whole-part profile sections along the fold axis (profiles.png) and a plan view (unfold.png). Findings: the part has exactly 3 formed folds. B1 is about 37 deg (wall to chamfer), B2 about 53 deg (chamfer to base) and B3 about 90 deg (base to short wall). The tabs are coplanar with the wall. The arcs at the ends of the wall and short wall are edges, not bends. The base and short wall are flat. No missed bend of 15 deg or more. B1: the label sits on the outer convex skin at 25/50/75%, with the nearest point 0.14-0.21 mm away and the inner skin 1.42-1.49 mm inward. It covers t -65.5..72.1 of the part's t -67..73.7 (full length). B2: at 25% it sits on the scanned outer apex (nearest point 0.10 mm away). At 50% and 75% the outer arc was not scanned (no points there). The label is 1.40-1.44 mm (about one thickness, t = 1.48 mm) outward of the scanned inner skin apex. That is consistent with the outer apex, not the inner skin. The extent is the full length (-65.9..72.4). Note: the outer-skin position at mid and far length is inferred from the inner skin, not seen directly. B3: the label is on the outer arc apex at all three sections (nearest point 0.01-0.23 mm away); the parallel inner-skin traces are offset into the V. It covers t -46.1..52.7, matching the short wall's extent between the relief notches. All lines run parallel to their folds and coverage is at least 80%."
+        }
+      ],
+      "final": "GOLD_FIXED",
+      "write_label_job": {
+        "scan_id": "sc_c27168a2de83",
+        "final": "GOLD_FIXED",
+        "lines_dir": "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/gold_set_v1/lines/sc_c27168a2de83",
+        "asset": "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260115_19bc0ba6/28289002_B01.ply",
+        "no_bends": false,
+        "prior_label": "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/annotations/ai_bend_lines_v1/f06551a2f3eb9e8e9eba7b30.json",
+        "prior_n": 3
+      }
+    },
+    "sc_eaa89c6d1f1f": {
+      "pass": true,
+      "lines_dir": "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/gold_set_v1/lines/sc_eaa89c6d1f1f",
+      "verifiers": [
+        {
+          "pass": true,
+          "images_seen": 22,
+          "problems": "None blocking. Checked against my own perpendicular sections at 25/50/75% and 1 mm station scans of raw points_ds.npz. All 9 lines sit on the outer-skin apex: median offset to the outer arc is -0.03..+0.03 mm, and p10/p90 stay within about 0.13 mm. They are parallel to the folds (bend angles 88.5-91.5 deg) and span the visible fold extents. B1 runs -1..181, B2 -1..181, B3/B4 0..126, B5 -1..48, B6/B7 0..20, B8/B9 0..14 in line t, so coverage is at least 80% of each real fold. Low auto-coverage on B3/B4 (0.52/0.53) and the B2 gap near t 88-102 come from ear windows and a base relief. They are not missing fold material: the ears are coplanar with the base, so each fold still joins the same two plates and correctly counts as one line. Missed-bend check: label-0 points are only edges, holes, window outlines and fold arcs. Patches 11-15 (flange and tabs) are all covered by B5-B9, ears sit at base height, and strip 16 is a wall-end thickness face. The four vertical box corners are seams rather than formed bends: a full-height wall-to-wall fold is impossible with both walls folded off the base. 9 lines matches the CAD count of 9. A minor caveat: the downsampled cloud is too sparse to settle the corner geometry from points alone, so that judgement rests on sheet-metal geometry and the CAD count. Scratch evidence is in /private/tmp/claude-501/-Users-idantal/db065cf7-f766-4885-b217-ed8d7edd7ade/scratchpad/v1/ (sec_B1.png, sec_B2.png, sec_B3.png, sec_B4_9.png, overview.png, corners.png, corner2.png)."
+        },
+        {
+          "pass": true,
+          "images_seen": 25,
+          "problems": "None blocking. All 9 lines land on the outer-skin apex of real formed ~90 deg folds and run parallel to them. I checked this with my own perpendicular sections at 25/50/75% from points_ds.npz, plus an outermost-skin profile along each line, taken within 0.6 mm laterally. The median offset of the outermost material from the label apex is between -0.04 and -0.01 mm on every line. Where the fold is present it stays within about +/-0.1 mm. Coverage: B1, B3, B4, B5, B6 and B9 are effectively full. B2 is about 93%: its only gap is the ~13 mm base relief at s=88.5-101 mm, which is a correct interruption. B7 and B8 show 67-68% on my strict 0.5 mm-station count, but that is sparse downsampled tab points, not a missing fold. Their profile plots show material continuous at about 0 across the full span, so both pass the 80% coverage rule. B3 and B4 run through two ear windows each, at roughly s=8-38 and 63-95 mm. There, only the coplanar base/ear plane is present, about 1-1.5 mm outside the label. One line per fold through the windows is correct, and the folded stretches sit on the apex. Minor note: at the far end of B2 (s about 160-180 mm), material bulges about 0.2-0.35 mm outward of the line, possibly from slight twist or noise in wall patch 6. The line still sits on the arc there. Missed-bend check: I plotted every point with an off-axis normal and every unlabeled point in the part frame. They fall only on the 4 base-wall folds, the 5 flange/tab folds, the perimeter and wall-end edges, hole and window rims, and the corner butt seams. There is no other formed bend of 15 deg or more, so 9 lines match the 9 folds. Not bends: the coplanar ears, the corner butt seams and the base scan-gap diamond. My scratch sections are in /private/tmp/claude-501/-Users-idantal/db065cf7-f766-4885-b217-ed8d7edd7ade/scratchpad/v2/ (sec_B1..B9.png, odd.png)."
+        }
+      ],
+      "final": "GOLD_FIXED",
+      "write_label_job": {
+        "scan_id": "sc_eaa89c6d1f1f",
+        "final": "GOLD_FIXED",
+        "lines_dir": "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/gold_set_v1/lines/sc_eaa89c6d1f1f",
+        "asset": "/Users/idantal/ShermanQC/source-assets/02_CAD_QC_3D/40500000_0_SCAN1 1.ply",
+        "no_bends": false,
+        "prior_label": "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/annotations/ai_bend_lines_v1/a0bf9352332d87f9c8dfc8e0.json",
+        "prior_n": 9
+      }
+    },
+    "sc_9ef2cf4e52cb": {
+      "pass": true,
+      "lines_dir": "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/gold_set_v1/lines/sc_9ef2cf4e52cb",
+      "verifiers": [
+        {
+          "pass": true,
+          "images_seen": 13,
+          "problems": "None blocking. All 4 lines (B1-B4) land on the outer-skin apex of real ~83-88 deg flange folds and are parallel to their folds. Own sections at 25/50/75% (/private/tmp/claude-501/-Users-idantal/db065cf7-f766-4885-b217-ed8d7edd7ade/scratchpad/v1/sections.png): every label point sits on the outermost point of the outer arc (max outward offset of scan points within 1 mm laterally is 0.02-0.14 mm). The nearest scan point is 0.10-0.27 mm away. Coverage: scan points lie within 0.51 mm along 100% of each line. The scanned arc spans t = -0.3 to 0.8 mm beyond the line ends, and the fold region about 1.4 mm beyond (end-face rounding). B1 at 75%: the flat outer plate skin is missing next to the fold, but the outer arc itself is scanned and the line sits on it. No missed bends: both plate skins (patches 1 and 2) are planar over the whole cross shape, with rms 0.03-0.04 mm and binned residuals within 0.1 mm, so no arm-base fold has been formed. The only non-plate patches are the four flange/lip pairs (3/5, 4/6, 7/9, 8/10), each already covered by a line, and the thickness edge 11. Unlabeled points far from the lines are plate edges, flange tips, holes and the slot. Caveat: the 'notes' field in lines.json (the fixer's rationale) was printed by accident in my first read. My verdict rests on my own sections and coverage checks."
+        },
+        {
+          "pass": true,
+          "images_seen": 14,
+          "problems": "None blocking. All 4 lines (B1-B4) land. I checked my own perpendicular sections at 25/50/75% from points_ds.npz in a plate frame where the outer skin, patch 2, sits at w=0. Every apex marker sits on the scanned outer arc, with the nearest point 0.03-0.24 mm away. All 4 lines run parallel to their folds. Coverage, scanned at 1 mm steps: the outer arc has a point within 0.3 mm in 97-100% of steps, and each line covers about 97-100% of its flange length. The fold ends lie only about 1 mm past each line end. B1's outer arc is scanned along its whole length even where the flat patch-2 skin beside it is missing (u > ~15), so B1 still reaches 98%. Included angles are 82.7-88.0 deg. Missed bends: none. Both plate skins are flat to within about \u00b10.15 mm across all 170 mm of the cross. Flanges 3-10 are planar, with half-length normals differing by 0.29 deg or less, and their tips are plain square ends with no returns or hems. Unlabelled points more than 2 mm from any patch are only fold-arc points (w about -1) and flat bottom-skin fragments at w about 0 along the edge of the scan gap. Patch 11 is a plate thickness edge. The only other features are small bumps under 0.2 mm on the inner skin next to B3 and B4, which are not bends. Images opened: all 10 renders (contact sheet, iso, iso_under, front, right, top, closeup_B1-B4) plus 4 of my own (height maps, the 12-panel section sheet, an unlabelled-point map; one is listed twice in my count, so 13 distinct images). My scripts and images are in /private/tmp/claude-501/-Users-idantal/db065cf7-f766-4885-b217-ed8d7edd7ade/scratchpad/ver2_9ef2."
+        }
+      ],
+      "final": "GOLD_FIXED",
+      "write_label_job": {
+        "scan_id": "sc_9ef2cf4e52cb",
+        "final": "GOLD_FIXED",
+        "lines_dir": "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/gold_set_v1/lines/sc_9ef2cf4e52cb",
+        "asset": "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/incoming/2026-08-04_shaked_scan_quality_parts/parts/45796000_A/scans/45796000_A_SCAN_2.ply",
+        "no_bends": false,
+        "prior_label": "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/annotations/ai_bend_lines_v1/b1038070f28cb7792f9d6090.json",
+        "prior_n": 4
+      }
+    },
+    "sc_186463746daa": {
+      "pass": false,
+      "lines_dir": "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/gold_set_v1/lines/sc_186463746daa_r2",
+      "verifiers": [
+        {
+          "pass": false,
+          "images_seen": 8,
+          "problems": "B3 (right arm, top end, plate-to-slope fold of about 60 deg) is not on the outer-skin apex. It sits on the inner (bottom) skin, about 0.95 to 1.0 mm inside the real outer apex.\n\nHow I checked:\n- My own perpendicular sections at 25%, 50% and 75% (from points_ds.npz, 0.9 mm slab) show only one skin at the B3 line at every station, and its normals all face inward along the bisector. B1 is B3's mirror twin; in its sections the line sits on the outward-facing top skin, with the inner skin 1.2 mm behind it.\n- I also cut long sections from B3 into the right arm at 25%, 50% and 75%. The scanned skin under the line runs flat at y of about +0.3 to +0.4 mm with normals pointing down (n.up = -1.0) out to about 45 mm. From about 50 mm on, a second, upward-facing top skin appears at y of about +1.3 to +1.6. The lower skin carries straight on at +0.4 to +0.5. So the skin carrying B3 is the arm's bottom (inner) skin, and the outer apex is about 0.95 to 1.0 mm higher. That breaks the rule that a line must sit on the outer-skin apex.\n\nThe other lines:\n- B1, B2, B4, B5, B6, B8 and B9 sit on the outer-facing skin at all three stations, run parallel to their folds and cover 100% of them.\n- B7 sits where the outer apex should be. At 25% and 50% the outer arc there is not scanned, and the nearest points are the inner arc about 0.93 to 1.0 mm behind. It looks acceptable.\n\nMissed bends: I saw none beyond the 9 labelled folds (arm top ends with plate-to-slope fold, V-bottom and flange; arm bottom return lips; the tab root; the 2-fold joggle). Main sources: the contact sheet and iso views, plus the closeups and sections above.\n\nImages seen (8):\n- Gold render: verify_contact_sheet, verify_iso, verify_iso_under, closeup_B1, closeup_B3, closeup_B7\n- My own: scratchpad/v1/sections_all.png and long_B3.png under /private/tmp/claude-501/-Users-idantal/db065cf7-f766-4885-b217-ed8d7edd7ade/"
+        },
+        {
+          "pass": false,
+          "images_seen": 14,
+          "problems": "B3 does not land: it sits on the inner skin, not the outer-skin apex. B3 is the right arm's top-end plate-to-slope fold (about 60 deg), which has the same geometry as B1. In both, the concave side faces -n and the outer skin is the top (+n) skin. B1's label sits on the top skin (patch 2 / patch 9 side), which is correct. B3 is built from patch 1 (bottom skin, normal -n), a plate plane seeded on the bottom skin (fit normal -n), and patch 10 (bottom skin of the slope, the twin side of B1's patch 8). Both are inner-skin surfaces. I profiled the arm along n (points_ds.npz, 2 mm slices): at the B3 arm end only the -n skin is present (65-69 points per slice, zero +n points) from 3 mm out to 45 mm, and the top skin first appears about 60 mm from the fold. My perpendicular sections at 25/50/75% show a single skin, with the label on it (nearest point 0.04/0.20/0.09 mm). So the line lies on the inner skin, about one thickness (0.92 mm) inside the outer apex. lines.json also records B3 skin='inner'.\n\nThe other lines pass my 25/50/75% sections. B1, B2, B5, B6 and B9 are on the lower (outer) skin apex. B4 is on patch 10/11, the outer side of the V-bottom (it matches B2's patch 8). B8 is on the outer patch-2 side apex, about 1 mm below the inner 1/7 arc. B7 sits about 0.95 mm below the inner 1/5 arc. That is where the outer apex should be, and patch-18 outer-fillet points nearby confirm it. All lines are parallel to their folds with coverage 1.0.\n\nI saw no missed formed bend in the renders (iso, under, front, right, top, patch sheet). The 9 bends are: 2 top-end folds per arm, 1 return lip per arm, the tab root, and the 2-bend joggle. The red squares in the top view are top-skin dropouts, not folds. This missed-bend check was visual only; I did not scan normals across the whole part.\n\nMy sections are in /private/tmp/claude-501/-Users-idantal/db065cf7-f766-4885-b217-ed8d7edd7ade/scratchpad/v2/sec_B1..B9.png."
+        }
+      ],
+      "final": "EXCLUDED",
+      "reason": "2-verifier pass FAILED on the r2 fixed lines (gold_set_v1/lines/sc_186463746daa_r2): both verifiers find B3 (right-arm top-end plate-to-slope fold, ~60 deg) on the INNER skin, about one thickness (0.92-1.0 mm) inside the outer-skin apex (lines.json records B3 skin='inner'); the other 8 lines pass. Not written to the gold root."
+    }
+  }
+}

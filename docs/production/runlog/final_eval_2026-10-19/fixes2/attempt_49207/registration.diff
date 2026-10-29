@@ -1,0 +1,228 @@
+--- /private/tmp/claude-501/-Users-idantal/db065cf7-f766-4885-b217-ed8d7edd7ade/scratchpad/fixes2/orig/domains/production/engine/inspect/registration.py	2026-10-19 16:15:46
++++ /private/tmp/claude-501/-Users-idantal/db065cf7-f766-4885-b217-ed8d7edd7ade/scratchpad/fixes2/attempt_49207/registration.py	2026-10-19 18:25:45
+@@ -245,6 +245,11 @@
+     #: there at S_N: the hole is not open in every stage, so that area neither forbids scan
+     #: material nor anchors the in-plane pose (stage-independent registration, amendment 9).
+     hole_blocked: list = field(default_factory=list)
++    #: 2D points of compiled stage material (S_0 and S_N, inside the datum slab) outside the outline, near it.
++    #: A free edge that is not a cut through the whole part (a shallow notch or mark on a bend line, a relief
++    #: beside a bend) has the formed part's own bend zone or flange beyond it: there the free-edge band of the
++    #: score kernel must not forbid scan material (the same stage-independent rule as ``hole_blocked``).
++    edge_blocked: np.ndarray = field(default_factory=lambda: np.zeros((0, 2)))
+ 
+     def round_hole(self, k: int) -> bool:
+         """A circular hole (radial bins about its centre); any other shape is used through its straight runs."""
+@@ -392,7 +397,8 @@
+             holes.append(np.stack([(hp - p0) @ f1, (hp - p0) @ f2], axis=1))
+         lo, hi = poly.min(axis=0), poly.max(axis=0)
+         return cls(p0, n0, f1, f2, part.t, poly, free, holes, area, (float(lo[0]), float(lo[1]), float(hi[0]), float(hi[1])),
+-                   hole_blocked=_stage_material_in_holes(part, p0, n0, f1, f2, holes))
++                   hole_blocked=_stage_material_in_holes(part, p0, n0, f1, f2, holes),
++                   edge_blocked=_stage_material_beyond_free_edges(part, p0, n0, f1, f2, poly, free))
+ 
+     def material_lookup(self, uv: np.ndarray, pixel: float = 0.25) -> tuple[np.ndarray, np.ndarray]:
+         """(inside the outline and outside every hole, distance to that boundary in mm) per 2D point."""
+@@ -454,7 +460,48 @@
+         if key not in cache:
+             cache[key] = self.kernel(pixel, band, weight, 4.0, hole_weight=hole_weight, clearance=clearance,
+                                      clearance_window=clearance_window)
++        return cache[key]
++
++    def rotational_symmetries(self, pixel: float = 0.5, overlap_min: float = 0.98) -> tuple[list[float], np.ndarray]:
++        """``(angles, centre)``: the in-plane rotations (90, 180, 270 deg about the material's area centroid) that map
++        the datum's material (outline minus holes) onto itself, with at least ``overlap_min`` of the rotated material
++        landing on material. Such a datum cannot tell those images of a pose apart by its own outline."""
++        cache = self.__dict__.setdefault("_rotsym", {})
++        key = (round(float(pixel), 6), round(float(overlap_min), 6))
++        if key not in cache:
++            x0, y0, x1, y1 = self.bbox
++            gx = np.arange(x0, x1 + pixel, pixel)
++            gy = np.arange(y0, y1 + pixel, pixel)
++            xx, yy = np.meshgrid(gx, gy)
++            cells = np.stack([xx.ravel(), yy.ravel()], axis=1)
++            ins, _ = self.material_lookup(cells, pixel)
++            mat = cells[ins]
++            angles: list[float] = []
++            centre = mat.mean(axis=0) if len(mat) else np.zeros(2)
++            if len(mat):
++                for phi in (0.5 * math.pi, math.pi, 1.5 * math.pi):
++                    rot = (mat - centre) @ _rot2(phi).T + centre
++                    on, _ = self.material_lookup(rot, pixel)
++                    if float(on.mean()) >= overlap_min:
++                        angles.append(phi)
++            cache[key] = (angles, centre)
+         return cache[key]
++
++    def symmetric_images(self, T: np.ndarray) -> list[np.ndarray]:
++        """The poses ``S @ T`` for every in-plane rotation ``S`` of :meth:`rotational_symmetries` (CAD frame)."""
++        sym, centre = self.rotational_symmetries()
++        out = []
++        F = np.stack([self.f1, self.f2, self.n0], axis=1)
++        c3 = self.p0 + self.f1 * centre[0] + self.f2 * centre[1]
++        for phi in sym:
++            r3 = np.eye(3)
++            r3[:2, :2] = _rot2(phi)
++            R = F @ r3 @ F.T
++            S = np.eye(4)
++            S[:3, :3] = R
++            S[:3, 3] = c3 - R @ c3
++            out.append(S @ T)
++        return out
+ 
+     def to2d(self, pts: np.ndarray) -> np.ndarray:
+         q = np.asarray(pts, dtype=np.float64) - self.p0
+@@ -475,6 +522,30 @@
+             out.append((a, b, np.array([d[1], -d[0]]) / length))
+         return out
+ 
++    def free_runs(self) -> list[list[tuple[np.ndarray, np.ndarray, np.ndarray]]]:
++        """The free edges grouped into runs of consecutive free polygon edges (each as :meth:`free_segments`)."""
++        k = len(self.polygon)
++        if not self.free.any():
++            return []
++        if self.free.all():
++            starts = [0]
++        else:
++            starts = [i for i in range(k) if self.free[i] and not self.free[(i - 1) % k]]
++        runs = []
++        for i0 in starts:
++            run = []
++            i = i0
++            while self.free[i] and (not run or i != i0):
++                a, b = self.polygon[i], self.polygon[(i + 1) % k]
++                d = b - a
++                length = float(np.linalg.norm(d))
++                if length >= 1e-9:
++                    run.append((a, b, np.array([d[1], -d[0]]) / length))
++                i = (i + 1) % k
++            if run:
++                runs.append(run)
++        return runs
++
+     def kernel(self, pixel: float, band: float, weight: float, margin: float, hole_weight: float = 0.0,
+                clearance: float = 1.5, clearance_window: float = 1.5):
+         """Rasterised score kernel and its grid origin (see module docstring).
+@@ -510,15 +581,28 @@
+                 c_k = clearance if self.round_hole(k) else max(clearance, clearance_window)
+                 core[idx[self.open_cells(k, cells[idx], c_k)]] = True  # only where open at every stage
+                 forb |= core
+-        for a, b, nout in self.free_segments():
+-            d = b - a
+-            length = float(np.linalg.norm(d))
+-            e = d / length
+-            rel = cells - a
+-            along = rel @ e
+-            off = rel @ nout
+-            band_mask = (along >= 0) & (along <= length) & (off > max(0.75, pixel)) & (off < band)
+-            forb |= band_mask & ~inside
++        blocked_out = getattr(self, "edge_blocked", None)
++        tree_b = cKDTree(blocked_out) if blocked_out is not None and len(blocked_out) else None
++        for run in self.free_runs():
++            run_band = np.zeros(len(cells), dtype=bool)
++            for a, b, nout in run:
++                d = b - a
++                length = float(np.linalg.norm(d))
++                e = d / length
++                rel = cells - a
++                along = rel @ e
++                off = rel @ nout
++                run_band |= (along >= 0) & (along <= length) & (off > max(0.75, pixel)) & (off < band)
++            run_band &= ~inside
++            if tree_b is not None and run_band.any():
++                bi = np.nonzero(run_band)[0]
++                d_b, _ = tree_b.query(cells[bi], k=1, distance_upper_bound=clearance, workers=1)
++                occupied = np.isfinite(d_b)
++                if 2 * int(occupied.sum()) > len(bi):
++                    run_band[:] = False  # most of the strip beyond this run is the part's own material: no cut edge
++                else:
++                    run_band[bi[occupied]] = False  # the compiled part has material there in some stage
++            forb |= run_band
+         inside &= ~hole_any
+         kin = inside.reshape(h, w).astype(np.float64)
+         kf = forb.reshape(h, w).astype(np.float64)
+@@ -678,6 +762,39 @@
+             cand = cand[_distance_to_polyline(cand, np.vstack([hp, hp[:1]])) > 0.3]
+         out.append(np.asarray(cand, dtype=np.float64).reshape(-1, 2))
+     return out
++
++
++def _stage_material_beyond_free_edges(part: PartView, p0: np.ndarray, n0: np.ndarray, f1: np.ndarray, f2: np.ndarray,
++                                      poly: np.ndarray, free: np.ndarray, reach: float = 25.0) -> np.ndarray:
++    """2D compiled stage material (S_0, S_N; datum slab) outside the datum outline, within ``reach`` of a free edge
++    and 0.3 mm clear of the outline (see ``DatumModel.edge_blocked``)."""
++    if not free.any():
++        return np.zeros((0, 2))
++    chunks = []
++    for sid in ("S0", f"S{part.n}"):
++        if sid not in part.stages:
++            continue
++        pts = part.cloud(sid).points
++        h = (pts - p0) @ n0
++        q = pts[(h > -part.t - 0.5) & (h < 0.5)] - p0
++        chunks.append(np.stack([q @ f1, q @ f2], axis=1))
++    uv = np.vstack(chunks) if chunks else np.zeros((0, 2))
++    if not len(uv):
++        return np.zeros((0, 2))
++    k = len(poly)
++    samples = []
++    for i in range(k):
++        if free[i]:
++            a, b = poly[i], poly[(i + 1) % k]
++            n_s = max(2, int(math.ceil(float(np.linalg.norm(b - a)) / 0.5)) + 1)
++            samples.append(a + np.linspace(0.0, 1.0, n_s)[:, None] * (b - a))
++    d_f, _ = cKDTree(np.vstack(samples)).query(uv, k=1, distance_upper_bound=reach, workers=1)
++    uv = uv[np.isfinite(d_f)]
++    if len(uv):
++        uv = uv[~MplPath(poly).contains_points(uv)]
++    if len(uv):
++        uv = uv[_distance_to_polyline(uv, np.vstack([poly, poly[:1]])) > 0.3]
++    return np.asarray(uv, dtype=np.float64).reshape(-1, 2)
+ 
+ 
+ # --------------------------------------------------------------------------- hypotheses
+@@ -695,6 +812,8 @@
+     violation: float = 0.0
+     partner: bool = False
+     info: dict = field(default_factory=dict)
++    #: the best raster peak of its own candidate plane and family, searched besides the global best peaks
++    segment_seed: bool = False
+ 
+ 
+ def _scan_frame(seg: PlaneSegment) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+@@ -817,8 +936,18 @@
+                and np.linalg.norm(tau - c[4]) < 10.0 for c in chosen):
+             continue
+         chosen.append(row)
++    # every candidate plane's best peak (each family) is searched too: large planes of the formed part (a tray's
++    # side walls, as large as its datum) correlate with a datum outline that has few or no free edges as well as
++    # the datum's own plane does, and their peaks can take every global slot while the datum's plane, partly
++    # hidden (by an attached body or a fixture), never gets a fine search
++    n_global = len(chosen)
++    seen_keys = {(c[1], c[2]) for c in chosen}
++    for row in pooled:  # sorted by value: the first row of a (plane, family) is its best peak
++        if (row[1], row[2]) not in seen_keys:
++            seen_keys.add((row[1], row[2]))
++            chosen.append(row)
+     hyps: list[PoseHypothesis] = []
+-    for val, si, family, th, tau in chosen:
++    for ci, (val, si, family, th, tau) in enumerate(chosen):
+         seg = cands[si]
+         pts, full, shape, kfft = prepared[(si, family)]
+         # angle polish on the coarse raster
+@@ -840,9 +969,13 @@
+             T = t_raw @ MIRROR if mirrored else t_raw
+             hyps.append(PoseHypothesis(T=T, score=sc, segment=si, family=family, height=h, mirrored=mirrored,
+                                        theta_deg=math.degrees(th_b), coverage=cov, violation=viol,
+-                                       partner=partner is not None))
+-    hyps.sort(key=lambda hp: -hp.score)
+-    return _dedupe(hyps), segments
++                                       partner=partner is not None, segment_seed=ci >= n_global))
++    # the global peaks keep their own order and de-duplication; a plane's seed joins after them unless it repeats
++    # one of their poses
++    glob = _dedupe(sorted((h for h in hyps if not h.segment_seed), key=lambda hp: -hp.score))
++    seeds = [s for s in _dedupe(sorted((h for h in hyps if h.segment_seed), key=lambda hp: -hp.score))
++             if not any(_same_pose(s.T, o.T) and abs(s.height - o.height) < 1e-9 for o in glob)]
++    return glob + seeds, segments
+ 
+ 
+ def datum_hole_targets(model: DatumModel) -> list[tuple[np.ndarray, float]]:

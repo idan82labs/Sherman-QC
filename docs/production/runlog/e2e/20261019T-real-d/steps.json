@@ -1,0 +1,1759 @@
+{
+  "run": "20261019T-real-d",
+  "counts": {
+    "PASS": 10,
+    "FAIL": 2
+  },
+  "steps": [
+    {
+      "id": "S0",
+      "title": "custody copies of the real part (read-only, byte-identical) and a temporary app copy (C04 --profile app)",
+      "status": "PASS",
+      "assertions": [
+        {
+          "what": "authorized 10839000 STEP and drawing PDF present",
+          "ok": true,
+          "value": null
+        },
+        {
+          "what": "scan full present",
+          "ok": true,
+          "value": "/Users/idantal/ShermanQC/source-assets/02_CAD_QC_3D/10839000/10839000_01_full_scan.ply"
+        },
+        {
+          "what": "scan scan_1 present",
+          "ok": true,
+          "value": "/Users/idantal/ShermanQC/source-assets/02_CAD_QC_3D/10839000/10839000_01_scan_1.ply"
+        },
+        {
+          "what": "scan scan_2 present",
+          "ok": true,
+          "value": "/Users/idantal/ShermanQC/source-assets/02_CAD_QC_3D/10839000/10839000_01_scan_2.ply"
+        },
+        {
+          "what": "read-only temp copies are byte-identical to the sources",
+          "ok": true,
+          "value": {
+            "10839000_01.stp": {
+              "source": "/Users/idantal/ShermanQC/source-assets/02_CAD_QC_3D/10839000_01.stp",
+              "sha256": "ea3e4820dff568916164c79417925ead79f307fba8aff11c7b3aeda7375e0b37",
+              "identical": true
+            },
+            "10839000_drawing.pdf": {
+              "source": "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/incoming_email_2026-10-17/20260308_19ccdcb6/שרטוט 10839000.pdf",
+              "sha256": "82ba62d60dfbb4e33f269cbe85a9ff9de98102f966f73cd529f273f8c747f6cf",
+              "identical": true
+            },
+            "full.ply": {
+              "source": "/Users/idantal/ShermanQC/source-assets/02_CAD_QC_3D/10839000/10839000_01_full_scan.ply",
+              "sha256": "71cf0b216f43284e401c891091cd56c10321aa3eebccde204f8d206683999215",
+              "identical": true
+            },
+            "scan_1.ply": {
+              "source": "/Users/idantal/ShermanQC/source-assets/02_CAD_QC_3D/10839000/10839000_01_scan_1.ply",
+              "sha256": "08686dc1d5d4c89725393907082e8cc4e4c0f5a21427697760ff44d29c7939fc",
+              "identical": true
+            },
+            "scan_2.ply": {
+              "source": "/Users/idantal/ShermanQC/source-assets/02_CAD_QC_3D/10839000/10839000_01_scan_2.ply",
+              "sha256": "cec08dfca9ab309ff3eef42cd3dc72eb33168e1d43029f3a0658f2923e4e171b",
+              "identical": true
+            }
+          }
+        },
+        {
+          "what": "app copy built (exit 0)",
+          "ok": true,
+          "value": 0
+        },
+        {
+          "what": "copy has a built SPA",
+          "ok": true,
+          "value": null
+        }
+      ],
+      "screenshots": [],
+      "started": "2026-10-18T22:10:24.663Z",
+      "custody": {
+        "10839000_01.stp": {
+          "source": "/Users/idantal/ShermanQC/source-assets/02_CAD_QC_3D/10839000_01.stp",
+          "sha256": "ea3e4820dff568916164c79417925ead79f307fba8aff11c7b3aeda7375e0b37",
+          "identical": true
+        },
+        "10839000_drawing.pdf": {
+          "source": "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/incoming_email_2026-10-17/20260308_19ccdcb6/שרטוט 10839000.pdf",
+          "sha256": "82ba62d60dfbb4e33f269cbe85a9ff9de98102f966f73cd529f273f8c747f6cf",
+          "identical": true
+        },
+        "full.ply": {
+          "source": "/Users/idantal/ShermanQC/source-assets/02_CAD_QC_3D/10839000/10839000_01_full_scan.ply",
+          "sha256": "71cf0b216f43284e401c891091cd56c10321aa3eebccde204f8d206683999215",
+          "identical": true
+        },
+        "scan_1.ply": {
+          "source": "/Users/idantal/ShermanQC/source-assets/02_CAD_QC_3D/10839000/10839000_01_scan_1.ply",
+          "sha256": "08686dc1d5d4c89725393907082e8cc4e4c0f5a21427697760ff44d29c7939fc",
+          "identical": true
+        },
+        "scan_2.ply": {
+          "source": "/Users/idantal/ShermanQC/source-assets/02_CAD_QC_3D/10839000/10839000_01_scan_2.ply",
+          "sha256": "cec08dfca9ab309ff3eef42cd3dc72eb33168e1d43029f3a0658f2923e4e171b",
+          "identical": true
+        }
+      },
+      "bundle": {
+        "bundle_id": "33c3e08d36aa75c0",
+        "profile": "app",
+        "files": 1449,
+        "has_legacy_worker": true
+      },
+      "duration_s": 1.5
+    },
+    {
+      "id": "S1",
+      "title": "bootstrap admin, start the API server and the line service from the app copy",
+      "status": "PASS",
+      "assertions": [
+        {
+          "what": "bootstrap_admin exit 0 (first-admin provisioning is a CLI step by design)",
+          "ok": true,
+          "value": ""
+        },
+        {
+          "what": "line ready",
+          "ok": true,
+          "value": {
+            "ready": true,
+            "checks": {
+              "db": "ok",
+              "disk": "ok",
+              "runner": "ok",
+              "hotfolder:cell-1": "ok"
+            }
+          }
+        }
+      ],
+      "screenshots": [],
+      "started": "2026-10-18T22:10:26.187Z",
+      "duration_s": 2.5
+    },
+    {
+      "id": "W1",
+      "title": "admin logs in; Production -> Parts -> New part 10839000; upload its folded STEP (CAD solver auto-marks bends)",
+      "status": "PASS",
+      "assertions": [
+        {
+          "what": "login stored a user token",
+          "ok": true,
+          "value": null
+        },
+        {
+          "what": "SKU preview = 10839000",
+          "ok": true,
+          "value": "10839000"
+        },
+        {
+          "what": "the CAD bend solver auto-marked bends on the real STEP (wizard count = API candidates)",
+          "ok": true,
+          "value": {
+            "candidates": 12,
+            "candidate_generation": "75ebb77583a8dfb164dceaa0bd1c3a67775795837224ce7ff379d8ee1fcb30cd",
+            "labels": [
+              "B1:35",
+              "B2:35",
+              "B3:35",
+              "B4:35",
+              "B5:90",
+              "B6:90",
+              "B7:90",
+              "B8:90",
+              "B9:90",
+              "B10:90",
+              "B11:90",
+              "B12:90"
+            ]
+          }
+        },
+        {
+          "what": "the CAD card names the uploaded file (not the stored hash name)",
+          "ok": true,
+          "value": "STEP 10839000_01.stp 211 KB · File fingerprint ea3e4820dff5 12 bends found in the CAD"
+        }
+      ],
+      "screenshots": [
+        {
+          "file": "01-new-part-form.png",
+          "pairs_with": "SKU preview attribute = 10839000"
+        },
+        {
+          "file": "02-wizard-cad.png",
+          "pairs_with": "candidate count = 12 (= API candidates); card names STEP 10839000_01.stp 211 KB · File fingerprint ea3e4820dff5 12 bends found in the CAD"
+        }
+      ],
+      "started": "2026-10-18T22:10:28.885Z",
+      "cad": {
+        "candidates": 12,
+        "candidate_generation": "75ebb77583a8dfb164dceaa0bd1c3a67775795837224ce7ff379d8ee1fcb30cd",
+        "labels": [
+          "B1:35",
+          "B2:35",
+          "B3:35",
+          "B4:35",
+          "B5:90",
+          "B6:90",
+          "B7:90",
+          "B8:90",
+          "B9:90",
+          "B10:90",
+          "B11:90",
+          "B12:90"
+        ]
+      },
+      "cad_card": "STEP 10839000_01.stp 211 KB · File fingerprint ea3e4820dff5 12 bends found in the CAD",
+      "duration_s": 5.5
+    },
+    {
+      "id": "W2",
+      "title": "upload the part's drawing PDF; \"Next\" goes to the optional flat step (not skipped)",
+      "status": "PASS",
+      "assertions": [
+        {
+          "what": "the drawing card names the uploaded file (not the stored hash name)",
+          "ok": true,
+          "value": "PDF 10839000_drawing.pdf 156 KB · File fingerprint 82ba62d60dfb Attached to the part"
+        },
+        {
+          "what": "the rail suggests the optional unfolded-part step next",
+          "ok": true,
+          "value": "flat"
+        },
+        {
+          "what": "\"Next\" from the drawing step opens the optional unfolded-part (flat) step",
+          "ok": true,
+          "value": "flat"
+        },
+        {
+          "what": "skipping the optional flat step goes to Bends & order",
+          "ok": true,
+          "value": "bends"
+        }
+      ],
+      "screenshots": [
+        {
+          "file": "03-wizard-drawing.png",
+          "pairs_with": "drawing card: PDF 10839000_drawing.pdf 156 KB · File fingerprint 82ba62d60dfb Attached to the part"
+        },
+        {
+          "file": "04-wizard-flat-optional.png",
+          "pairs_with": "flat step shown (optional); 10839000 has no flat DXF on file"
+        }
+      ],
+      "started": "2026-10-18T22:10:34.347Z",
+      "drawing_card": "PDF 10839000_drawing.pdf 156 KB · File fingerprint 82ba62d60dfb Attached to the part",
+      "rail_next": "flat",
+      "duration_s": 2.5
+    },
+    {
+      "id": "W3",
+      "title": "Vendor Setup studio: confirm every auto-marked bend ON THE MODEL, tag the order, one מהלך of two bends, save, back to the wizard",
+      "status": "PASS",
+      "assertions": [
+        {
+          "what": "studio lists every bend the CAD solver auto-marked (DOM rows = API candidates)",
+          "ok": true,
+          "value": {
+            "dom": 12,
+            "api": 12
+          }
+        },
+        {
+          "what": "auto-marked bends start unconfirmed (pending)",
+          "ok": true,
+          "value": [
+            "pending",
+            "pending",
+            "pending",
+            "pending",
+            "pending",
+            "pending",
+            "pending",
+            "pending",
+            "pending",
+            "pending",
+            "pending",
+            "pending"
+          ]
+        },
+        {
+          "what": "the CAD view draws one numbered marker per auto-marked bend",
+          "ok": true,
+          "value": {
+            "markers": 12,
+            "candidates": 12
+          }
+        },
+        {
+          "what": "every auto-marked bend shows confirmed",
+          "ok": true,
+          "value": null
+        },
+        {
+          "what": "מהלך 1 names its two bends",
+          "ok": true,
+          "value": "Move 1\nB1 · B2"
+        },
+        {
+          "what": "every bend was clicked on the CAD model (no list fallback)",
+          "ok": true,
+          "value": {
+            "model": 24,
+            "list": 0
+          }
+        },
+        {
+          "what": "save raised no error",
+          "ok": true,
+          "value": null
+        },
+        {
+          "what": "saved draft (read back): order = the clicked order",
+          "ok": true,
+          "value": {
+            "sequence": [
+              "B1",
+              "B2",
+              "B3",
+              "B4",
+              "B5",
+              "B6",
+              "B7",
+              "B8",
+              "B9",
+              "B10",
+              "B11",
+              "B12"
+            ],
+            "machine_moves": [
+              [
+                "B1",
+                "B2"
+              ]
+            ],
+            "operator_sequence_confirmed": true
+          }
+        },
+        {
+          "what": "saved draft: מהלך group = the tagged pair",
+          "ok": true,
+          "value": {
+            "sequence": [
+              "B1",
+              "B2",
+              "B3",
+              "B4",
+              "B5",
+              "B6",
+              "B7",
+              "B8",
+              "B9",
+              "B10",
+              "B11",
+              "B12"
+            ],
+            "machine_moves": [
+              [
+                "B1",
+                "B2"
+              ]
+            ],
+            "operator_sequence_confirmed": true
+          }
+        },
+        {
+          "what": "saved draft: every CAD mark confirmed, no manual marks",
+          "ok": true,
+          "value": null
+        }
+      ],
+      "screenshots": [
+        {
+          "file": "05-bends-entry.png",
+          "pairs_with": "wizard step 5 with the \"Tag bends\" action"
+        },
+        {
+          "file": "06-studio-auto-marked.png",
+          "pairs_with": "12 auto-marked bends, all pending, one marker each"
+        },
+        {
+          "file": "07-studio-confirmed.png",
+          "pairs_with": "all rows confirmed"
+        },
+        {
+          "file": "08-studio-order-moves.png",
+          "pairs_with": "order tagged; Move 1 B1 · B2"
+        },
+        {
+          "file": "09-studio-saved.png",
+          "pairs_with": "saved, no error"
+        },
+        {
+          "file": "10-wizard-bends-order.png",
+          "pairs_with": "wizard step 5 after Done"
+        }
+      ],
+      "started": "2026-10-18T22:10:36.838Z",
+      "ui": {
+        "clicks": [
+          {
+            "id": "55f02f70-5e0d-4c71-be8a-f7d85722fe5b",
+            "label": "B1",
+            "verb": "Select bend",
+            "via": "model"
+          },
+          {
+            "id": "eac1ea18-d567-43e6-b318-498105bf1503",
+            "label": "B2",
+            "verb": "Select bend",
+            "via": "model"
+          },
+          {
+            "id": "4cb68d61-10d7-4d91-879e-6ff5f472259d",
+            "label": "B3",
+            "verb": "Select bend",
+            "via": "model"
+          },
+          {
+            "id": "e4a2ef1b-7a7b-47a4-8f5b-6640f7e0cfee",
+            "label": "B4",
+            "verb": "Select bend",
+            "via": "model"
+          },
+          {
+            "id": "69c036a6-366b-4055-953d-5cf9775c1cc9",
+            "label": "B5",
+            "verb": "Select bend",
+            "via": "model"
+          },
+          {
+            "id": "4fc3fca1-61ca-4a3b-8bc0-132a59dded1f",
+            "label": "B6",
+            "verb": "Select bend",
+            "via": "model"
+          },
+          {
+            "id": "300e01c5-b8f0-4513-8963-1f8f9ad16b98",
+            "label": "B7",
+            "verb": "Select bend",
+            "via": "model"
+          },
+          {
+            "id": "8e6a113c-219b-4e36-87e2-a6d6edfeb3d9",
+            "label": "B8",
+            "verb": "Select bend",
+            "via": "model"
+          },
+          {
+            "id": "d30fdbad-4b47-4c68-a016-2f1f98e73e43",
+            "label": "B9",
+            "verb": "Select bend",
+            "via": "model"
+          },
+          {
+            "id": "1eb1c768-e48a-40df-bdd1-37de8a7dd4ba",
+            "label": "B10",
+            "verb": "Select bend",
+            "via": "model"
+          },
+          {
+            "id": "7c02c5f7-4f73-4cf7-aca4-478c38fe6316",
+            "label": "B11",
+            "verb": "Select bend",
+            "via": "model"
+          },
+          {
+            "id": "c05a0ea8-1220-4099-baff-5154f32e3b7e",
+            "label": "B12",
+            "verb": "Select bend",
+            "via": "model"
+          },
+          {
+            "id": "55f02f70-5e0d-4c71-be8a-f7d85722fe5b",
+            "label": "B1",
+            "verb": "Tag bend",
+            "via": "model"
+          },
+          {
+            "id": "eac1ea18-d567-43e6-b318-498105bf1503",
+            "label": "B2",
+            "verb": "Tag bend",
+            "via": "model"
+          },
+          {
+            "id": "4cb68d61-10d7-4d91-879e-6ff5f472259d",
+            "label": "B3",
+            "verb": "Tag bend",
+            "via": "model"
+          },
+          {
+            "id": "e4a2ef1b-7a7b-47a4-8f5b-6640f7e0cfee",
+            "label": "B4",
+            "verb": "Tag bend",
+            "via": "model"
+          },
+          {
+            "id": "69c036a6-366b-4055-953d-5cf9775c1cc9",
+            "label": "B5",
+            "verb": "Tag bend",
+            "via": "model"
+          },
+          {
+            "id": "4fc3fca1-61ca-4a3b-8bc0-132a59dded1f",
+            "label": "B6",
+            "verb": "Tag bend",
+            "via": "model"
+          },
+          {
+            "id": "300e01c5-b8f0-4513-8963-1f8f9ad16b98",
+            "label": "B7",
+            "verb": "Tag bend",
+            "via": "model"
+          },
+          {
+            "id": "8e6a113c-219b-4e36-87e2-a6d6edfeb3d9",
+            "label": "B8",
+            "verb": "Tag bend",
+            "via": "model"
+          },
+          {
+            "id": "d30fdbad-4b47-4c68-a016-2f1f98e73e43",
+            "label": "B9",
+            "verb": "Tag bend",
+            "via": "model"
+          },
+          {
+            "id": "1eb1c768-e48a-40df-bdd1-37de8a7dd4ba",
+            "label": "B10",
+            "verb": "Tag bend",
+            "via": "model"
+          },
+          {
+            "id": "7c02c5f7-4f73-4cf7-aca4-478c38fe6316",
+            "label": "B11",
+            "verb": "Tag bend",
+            "via": "model"
+          },
+          {
+            "id": "c05a0ea8-1220-4099-baff-5154f32e3b7e",
+            "label": "B12",
+            "verb": "Tag bend",
+            "via": "model"
+          }
+        ],
+        "candidates": [
+          {
+            "feature_id": "55f02f70-5e0d-4c71-be8a-f7d85722fe5b",
+            "label": "B1",
+            "target_angle": 35
+          },
+          {
+            "feature_id": "eac1ea18-d567-43e6-b318-498105bf1503",
+            "label": "B2",
+            "target_angle": 35
+          },
+          {
+            "feature_id": "4cb68d61-10d7-4d91-879e-6ff5f472259d",
+            "label": "B3",
+            "target_angle": 35
+          },
+          {
+            "feature_id": "e4a2ef1b-7a7b-47a4-8f5b-6640f7e0cfee",
+            "label": "B4",
+            "target_angle": 35
+          },
+          {
+            "feature_id": "69c036a6-366b-4055-953d-5cf9775c1cc9",
+            "label": "B5",
+            "target_angle": 90
+          },
+          {
+            "feature_id": "4fc3fca1-61ca-4a3b-8bc0-132a59dded1f",
+            "label": "B6",
+            "target_angle": 90
+          },
+          {
+            "feature_id": "300e01c5-b8f0-4513-8963-1f8f9ad16b98",
+            "label": "B7",
+            "target_angle": 90
+          },
+          {
+            "feature_id": "8e6a113c-219b-4e36-87e2-a6d6edfeb3d9",
+            "label": "B8",
+            "target_angle": 90
+          },
+          {
+            "feature_id": "d30fdbad-4b47-4c68-a016-2f1f98e73e43",
+            "label": "B9",
+            "target_angle": 90
+          },
+          {
+            "feature_id": "1eb1c768-e48a-40df-bdd1-37de8a7dd4ba",
+            "label": "B10",
+            "target_angle": 90
+          },
+          {
+            "feature_id": "7c02c5f7-4f73-4cf7-aca4-478c38fe6316",
+            "label": "B11",
+            "target_angle": 90
+          },
+          {
+            "feature_id": "c05a0ea8-1220-4099-baff-5154f32e3b7e",
+            "label": "B12",
+            "target_angle": 90
+          }
+        ],
+        "order": [
+          "B1",
+          "B2",
+          "B3",
+          "B4",
+          "B5",
+          "B6",
+          "B7",
+          "B8",
+          "B9",
+          "B10",
+          "B11",
+          "B12"
+        ],
+        "moves": [
+          [
+            "B1",
+            "B2"
+          ]
+        ],
+        "via": {
+          "model": 24,
+          "list": 0
+        },
+        "draft": {
+          "sequence": [
+            "B1",
+            "B2",
+            "B3",
+            "B4",
+            "B5",
+            "B6",
+            "B7",
+            "B8",
+            "B9",
+            "B10",
+            "B11",
+            "B12"
+          ],
+          "machine_moves": [
+            [
+              "B1",
+              "B2"
+            ]
+          ],
+          "operator_sequence_confirmed": true
+        }
+      },
+      "duration_s": 28.7
+    },
+    {
+      "id": "W4",
+      "title": "tolerances (FINAL), review, release 10839000@v1 (E1 compile from the saved setup), expectations table",
+      "status": "PASS",
+      "assertions": [
+        {
+          "what": "release names 10839000@v1",
+          "ok": true,
+          "value": null
+        },
+        {
+          "what": "expectations table has 12 rows",
+          "ok": true,
+          "value": null
+        },
+        {
+          "what": "the released recipe carries the studio order (sequence_index = clicked order)",
+          "ok": true,
+          "value": {
+            "recipe": [
+              "1:B1:1",
+              "2:B2:1",
+              "3:B3:",
+              "4:B4:",
+              "5:B5:",
+              "6:B6:",
+              "7:B7:",
+              "8:B8:",
+              "9:B9:",
+              "10:B10:",
+              "11:B11:",
+              "12:B12:"
+            ],
+            "studio": [
+              "B1",
+              "B2",
+              "B3",
+              "B4",
+              "B5",
+              "B6",
+              "B7",
+              "B8",
+              "B9",
+              "B10",
+              "B11",
+              "B12"
+            ]
+          }
+        }
+      ],
+      "screenshots": [
+        {
+          "file": "11-tolerances.png",
+          "pairs_with": "tolerances saved"
+        },
+        {
+          "file": "12-review.png",
+          "pairs_with": "review step"
+        },
+        {
+          "file": "13-released.png",
+          "pairs_with": "released 10839000@v1"
+        },
+        {
+          "file": "14-released-expectations.png",
+          "pairs_with": "nominal flange lengths and angles"
+        }
+      ],
+      "started": "2026-10-18T22:11:05.508Z",
+      "expectations": [
+        "1 Move 1 B1 R 0.10 145.0° ±1° 3.61 to bend B2 ±0.5 13.04 to free edge ±0.5 ±0.5 S1 342.98",
+        "2 Move 1 B2 R 0.10 145.0° ±1° 21.41 to bend B8 ±0.5 3.61 to bend B1 ±0.5 ±0.5 S2 340.02",
+        "3 B3 R 0.10 145.0° ±1° 3.61 to bend B4 ±0.5 13.04 to free edge ±0.5 ±0.5 S3 327.62",
+        "4 B4 R 0.10 145.0° ±1° 21.41 to bend B6 ±0.5 3.61 to bend B3 ±0.5 ±0.5 S4 324.65",
+        "5 B5 R 0.78 90.0° ±1° 12.00 to free edge ±0.5 41.20 to bend B10 ±0.5 ±0.5 S5 399.66",
+        "6 B6 R 0.78 90.0° ±1° 21.41 to bend B4 ±0.5 43.00 to bend B11 ±0.5 ±0.5 S6 305.80",
+        "7 B7 R 0.78 90.0° ±1° 12.00 to free edge ±0.5 41.20 to bend B12 ±0.5 ±0.5 S7 390.22",
+        "8 B8 R 0.78 90.0° ±1° 21.41 to bend B2 ±0.5 43.00 to bend B9 ±0.5 ±0.5 S8 286.95",
+        "9 B9 R 0.78 90.0° ±1° 43.00 to bend B8 ±0.5 206.06 to bend B11 ±0.5 ±0.5 S9 246.50",
+        "10 B10 R 0.78 90.0° ±1° 41.20 to bend B5 ±0.5 312.93 to bend B12 ±0.5 ±0.5 S10 351.57",
+        "11 B11 R 0.78 90.0° ±1° 43.00 to bend B6 ±0.5 206.06 to bend B9 ±0.5 ±0.5 S11 206.06",
+        "12 B12 R 0.78 90.0° ±1° 41.20 to bend B7 ±0.5 312.93 to bend B10 ±0.5 ±0.5 —"
+      ],
+      "recipe": {
+        "bends": 12,
+        "benchmark": {
+          "status": "REGISTERED",
+          "registered_at": "2026-10-18T22:11:18.307Z",
+          "compiled_part_sha256": "6df2a6843580a503f3cac6dd9c3b7724646e1594fe437a208f639c5eb510be52",
+          "algo_version": "e1-1.1.0"
+        }
+      },
+      "recipe_order": [
+        "1:B1:1",
+        "2:B2:1",
+        "3:B3:",
+        "4:B4:",
+        "5:B5:",
+        "6:B6:",
+        "7:B7:",
+        "8:B8:",
+        "9:B9:",
+        "10:B10:",
+        "11:B11:",
+        "12:B12:"
+      ],
+      "duration_s": 14.5
+    },
+    {
+      "id": "K1",
+      "title": "open the station screen as the signed-in admin (no device token minted through the API)",
+      "status": "PASS",
+      "assertions": [
+        {
+          "what": "no token gate: the station accepts the signed-in user",
+          "ok": true,
+          "value": null
+        },
+        {
+          "what": "station on the live stream",
+          "ok": true,
+          "value": "live",
+          "informational": true
+        }
+      ],
+      "screenshots": [
+        {
+          "file": "15-station-empty.png",
+          "pairs_with": "station connected (live)"
+        }
+      ],
+      "started": "2026-10-18T22:11:19.998Z",
+      "duration_s": 0.4
+    },
+    {
+      "id": "R-full",
+      "title": "drop the real full PLY into the hot folder (ZEISS-style); runner -> E3 -> station -> PDF; direct E3 CLI equality",
+      "status": "PASS",
+      "assertions": [
+        {
+          "what": "station showed the in-progress state",
+          "ok": true,
+          "value": true,
+          "informational": true
+        },
+        {
+          "what": "full: the job completed",
+          "ok": true,
+          "value": {
+            "execution_status": "completed",
+            "attempts": 1,
+            "wall_s": 26,
+            "failure": null
+          }
+        },
+        {
+          "what": "full: station shows the job within 5 s, no reload",
+          "ok": true,
+          "value": 0.427
+        },
+        {
+          "what": "full: the result was produced by the E3 production engine",
+          "ok": true,
+          "value": "sherman_production_engine e3-1.7.0"
+        },
+        {
+          "what": "full: WebGL canvas shows the part surface",
+          "ok": true,
+          "value": {
+            "painted": 6116,
+            "colours": 317
+          }
+        },
+        {
+          "what": "full: one table row per recipe bend",
+          "ok": true,
+          "value": 12
+        },
+        {
+          "what": "full: bend labels clean",
+          "ok": true,
+          "value": [],
+          "informational": true
+        },
+        {
+          "what": "full: PDF rendered to page images; header ids in order",
+          "ok": true,
+          "value": {
+            "expected": "הקידב חוד · 10839000 · 10839000@v1",
+            "first_page": "Sherman QC · Inspection report · הקידב חוד · 10839000 · 10839000@v1 · 2026-10-18T22:11:47Z",
+            "pages_wrong": []
+          }
+        },
+        {
+          "what": "full: PDF per-bend tables parsed",
+          "ok": true,
+          "value": ""
+        },
+        {
+          "what": "full: direct E3 CLI run exit 0",
+          "ok": true,
+          "value": " \"stage\": \"registration\"}\nPROGRESS\t{\"progress\": 40, \"stage\": \"articulated\"}\nPROGRESS\t{\"progress\": 55, \"stage\": \"decode\"}\nPROGRESS\t{\"progress\": 65, \"stage\": \"metrology\"}\nPROGRESS\t{\"progress\": 85, \"stage\": \"heatmap\"}\nPROGRESS\t{\"progress\": 100, \"stage\": \"written\"}\nRESULT\t{\"inspection_validity\": \"VALID\", \"result\": \"result.json\", \"stage_status\": \"CONSISTENT\", \"summary_state\": \"OUT_OF_TOLERANCE_FOUND\"}\n"
+        },
+        {
+          "what": "full: every per-bend value, state and decision is identical in E3 CLI, job, API, station screen and PDF",
+          "ok": true,
+          "value": []
+        },
+        {
+          "what": "full: station heatmap values are the engine's per-point deviations (and the direct run's)",
+          "ok": true,
+          "value": {
+            "band_mm": 0.5,
+            "viewer_points": 299187,
+            "viewer_devs": 299187,
+            "engine_points": 863115,
+            "engine_devs": 863115,
+            "max_point_match_mm": 0,
+            "nan_mismatch": 0,
+            "max_dev_diff_mm": 0,
+            "histogram": {
+              "abs<=b": 0.7475057405569092,
+              "b<abs<=2b": 0.24041485759742234,
+              "abs>2b": 0.012079401845668428,
+              "nan_fraction": 0,
+              "over_frac(+)": 0.1062746710251448,
+              "under_frac(-)": 0.14621958841794597,
+              "median_abs": 0.27725866436958313,
+              "p95_abs": 0.7327187061309814
+            },
+            "direct_engine_deviations_equal": true,
+            "ok": true
+          }
+        }
+      ],
+      "screenshots": [
+        {
+          "file": "16-11-full-in-progress.png",
+          "pairs_with": "station shows the running job (active ribbon)"
+        },
+        {
+          "file": "17-11-full-station.png",
+          "pairs_with": "full: banner OUT_OF_TOLERANCE_FOUND; 12 rows; heatmap"
+        },
+        {
+          "file": "18-11-full-worst-closeup.png",
+          "pairs_with": "worst-first close-up (bu_74f4d0a7cdc657854d17)"
+        },
+        {
+          "file": "19-11-full-table-end.png",
+          "pairs_with": "the end of the per-bend table"
+        }
+      ],
+      "started": "2026-10-18T22:11:20.385Z",
+      "scan": {
+        "key": "full",
+        "zeiss_name": "10839000_01_FULL_SCAN 1.ply",
+        "kind": "FULL",
+        "scan_sha256": "71cf0b216f43284e401c891091cd56c10321aa3eebccde204f8d206683999215",
+        "job_id": "line_02b9db5b0769487d8c91f44c7460a4be",
+        "job": {
+          "execution_status": "completed",
+          "attempts": 1,
+          "wall_s": 26,
+          "failure": null
+        },
+        "update_lag_s": 0.427,
+        "engine_log_head": [
+          "[   0.00s] ingest",
+          "[   0.09s] clouds",
+          "[   0.52s] points=863115 spacing=0.399 voxel=0.80 voxels=290312",
+          "[   0.52s] registration",
+          "[   2.44s] planes=11 coarse hypotheses=28 hole-pair hypotheses=0",
+          "[  15.44s] articulated"
+        ],
+        "engine": {
+          "engine_name": "sherman_production_engine",
+          "engine_version": "e3-1.7.0",
+          "config_sha256": "151d18ef23f70d97716305a6bb34c8f608c15f5d18565a391b8b50dbc1021680",
+          "bundle_id": "2e5b7a79d3ba139d",
+          "compiled_part_sha256": "6df2a6843580a503f3cac6dd9c3b7724646e1594fe437a208f639c5eb510be52",
+          "algorithm_versions": {
+            "articulated_fit": "hinge_hough_region_grow_skin_levels_arc_fold_displaced_fold_window_short_child_window_support_tabs_one_skin_pose_on_plane_joggle_step_one_skin_reread_astray_wide_v7",
+            "heatmap": "stage_cloud_nearest_signed_v1",
+            "ingest": "ply_stl_explicit_unit_v1",
+            "metrology": "station_oml_section_crease_aware_unfolded_island_station_profile_short_side_consistency_footprint_edge_riser_model_reseat_signed_angle_v7",
+            "registration": "datum_plane_outline_fft_wall_edge_hole_polygon_flange_ends_hole_pairs_weak_dirs_walk_distinct_v4",
+            "state_decode": "signed_dihedral_fraction_order_prior_symmetric_near_twins_hole_evidence_v4",
+            "thickness": "datum_tile_two_skin_separation_v1",
+            "uncertainty": "station_mad_residual_pose_erosion_bias_thickness_station_spread_riser_length_v4"
+          },
+          "duration_s": 21.483549,
+          "peak_rss_bytes": 747438080
+        },
+        "summary": {
+          "validity": "VALID",
+          "stage": "CONSISTENT",
+          "inferred_stage": 12,
+          "summary": "OUT_OF_TOLERANCE_FOUND"
+        },
+        "bends": [
+          {
+            "label": "B1",
+            "seq": 1,
+            "state": "FORMED"
+          },
+          {
+            "label": "B2",
+            "seq": 2,
+            "state": "FORMED"
+          },
+          {
+            "label": "B3",
+            "seq": 3,
+            "state": "FORMED"
+          },
+          {
+            "label": "B4",
+            "seq": 4,
+            "state": "FORMED"
+          },
+          {
+            "label": "B5",
+            "seq": 5,
+            "state": "FORMED"
+          },
+          {
+            "label": "B6",
+            "seq": 6,
+            "state": "FORMED"
+          },
+          {
+            "label": "B7",
+            "seq": 7,
+            "state": "FORMED"
+          },
+          {
+            "label": "B8",
+            "seq": 8,
+            "state": "FORMED"
+          },
+          {
+            "label": "B9",
+            "seq": 9,
+            "state": "FORMED"
+          },
+          {
+            "label": "B10",
+            "seq": 10,
+            "state": "FORMED"
+          },
+          {
+            "label": "B11",
+            "seq": 11,
+            "state": "FORMED"
+          },
+          {
+            "label": "B12",
+            "seq": 12,
+            "state": "FORMED"
+          }
+        ],
+        "canvas": {
+          "painted": 6116,
+          "colours": 317
+        },
+        "heatmap_legend": "Deviation, mm\n+1.0\n+0.5\n0.0\n−0.5\n−1.0\n+ over\n− under\nno value",
+        "pdf": {
+          "chars": 17382,
+          "expect_found": {
+            "10839000": true
+          },
+          "expect_reversed_only": {
+            "10839000": false
+          },
+          "header": {
+            "expected": "הקידב חוד · 10839000 · 10839000@v1",
+            "first_page": "Sherman QC · Inspection report · הקידב חוד · 10839000 · 10839000@v1 · 2026-10-18T22:11:47Z",
+            "pages_wrong": []
+          },
+          "ok": true,
+          "pages": [
+            "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/e2e/20261019T-real-d/scans/full/pdf/page-1.png",
+            "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/e2e/20261019T-real-d/scans/full/pdf/page-2.png",
+            "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/e2e/20261019T-real-d/scans/full/pdf/page-3.png",
+            "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/e2e/20261019T-real-d/scans/full/pdf/page-4.png",
+            "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/e2e/20261019T-real-d/scans/full/pdf/page-5.png",
+            "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/e2e/20261019T-real-d/scans/full/pdf/page-6.png",
+            "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/e2e/20261019T-real-d/scans/full/pdf/page-7.png"
+          ]
+        },
+        "direct_cmd": "cd /var/folders/yp/yrd9ss4s73zdt3d4_2221h580000gn/T/sherman-e2e-real-AP1BqL/line/engine/current && OMP_NUM_THREADS=1 PYTHONPATH=/var/folders/yp/yrd9ss4s73zdt3d4_2221h580000gn/T/sherman-e2e-real-AP1BqL/line/engine/current:/var/folders/yp/yrd9ss4s73zdt3d4_2221h580000gn/T/sherman-e2e-real-AP1BqL/line/engine/current/backend /Users/idantal/ShermanQC/FullProject/.venv/bin/python -m domains.production.engine.inspect --compiled /var/folders/yp/yrd9ss4s73zdt3d4_2221h580000gn/T/sherman-e2e-real-AP1BqL/line/jobs/line_02b9db5b0769487d8c91f44c7460a4be/compiled/compiled_part.json --recipe /var/folders/yp/yrd9ss4s73zdt3d4_2221h580000gn/T/sherman-e2e-real-AP1BqL/line/jobs/line_02b9db5b0769487d8c91f44c7460a4be/recipe.json --scan /var/folders/yp/yrd9ss4s73zdt3d4_2221h580000gn/T/sherman-e2e-real-AP1BqL/real/full.ply --out /Users/idantal/ShermanQC/FullProject/docs/production/runlog/e2e/20261019T-real-d/scans/full/direct_engine --scan-sha256 71cf0b216f43284e401c891091cd56c10321aa3eebccde204f8d206683999215 --compiled-sha256 6df2a6843580a503f3cac6dd9c3b7724646e1594fe437a208f639c5eb510be52 --recipe-sha256 3a9a4d88267f1b7dbd7785587d903f6d949f12081714c111af4c46b6177982c4 --time-budget-s 170 --engine-bundle-id 2e5b7a79d3ba139d",
+        "compare": {
+          "bends": 12,
+          "rows": 48,
+          "problems": [],
+          "n_problems": 0,
+          "tops": {
+            "direct_cli": {
+              "summary": "OUT_OF_TOLERANCE_FOUND",
+              "validity": "VALID",
+              "stage": "CONSISTENT",
+              "inferred_stage": 12
+            },
+            "job_engine": {
+              "summary": "OUT_OF_TOLERANCE_FOUND",
+              "validity": "VALID",
+              "stage": "CONSISTENT",
+              "inferred_stage": 12
+            },
+            "job_rendered": {
+              "summary": "OUT_OF_TOLERANCE_FOUND",
+              "validity": "VALID",
+              "stage": "CONSISTENT",
+              "inferred_stage": 12
+            },
+            "station_api": {
+              "summary": "OUT_OF_TOLERANCE_FOUND",
+              "validity": "VALID",
+              "stage": "CONSISTENT",
+              "inferred_stage": 12
+            },
+            "station_dom": {
+              "summary": "OUT_OF_TOLERANCE_FOUND"
+            }
+          },
+          "ok": true
+        },
+        "heatmap": {
+          "band_mm": 0.5,
+          "viewer_points": 299187,
+          "viewer_devs": 299187,
+          "engine_points": 863115,
+          "engine_devs": 863115,
+          "max_point_match_mm": 0,
+          "nan_mismatch": 0,
+          "max_dev_diff_mm": 0,
+          "histogram": {
+            "abs<=b": 0.7475057405569092,
+            "b<abs<=2b": 0.24041485759742234,
+            "abs>2b": 0.012079401845668428,
+            "nan_fraction": 0,
+            "over_frac(+)": 0.1062746710251448,
+            "under_frac(-)": 0.14621958841794597,
+            "median_abs": 0.27725866436958313,
+            "p95_abs": 0.7327187061309814
+          },
+          "direct_engine_deviations_equal": true,
+          "ok": true
+        }
+      },
+      "duration_s": 66.4
+    },
+    {
+      "id": "R-scan_1",
+      "title": "drop the real scan_1 PLY into the hot folder (ZEISS-style); runner -> E3 -> station -> PDF; direct E3 CLI equality",
+      "status": "FAIL",
+      "assertions": [
+        {
+          "what": "station showed the in-progress state",
+          "ok": true,
+          "value": true,
+          "informational": true
+        },
+        {
+          "what": "scan_1: the job completed",
+          "ok": true,
+          "value": {
+            "execution_status": "completed",
+            "attempts": 1,
+            "wall_s": 30,
+            "failure": null
+          }
+        },
+        {
+          "what": "scan_1: station shows the job within 5 s, no reload",
+          "ok": true,
+          "value": 1.18
+        },
+        {
+          "what": "scan_1: the result was produced by the E3 production engine",
+          "ok": true,
+          "value": "sherman_production_engine e3-1.7.0"
+        },
+        {
+          "what": "scan_1: WebGL canvas shows the part surface",
+          "ok": true,
+          "value": {
+            "painted": 5743,
+            "colours": 104
+          }
+        },
+        {
+          "what": "scan_1: one table row per recipe bend",
+          "ok": true,
+          "value": 12
+        },
+        {
+          "what": "scan_1: bend labels clean",
+          "ok": true,
+          "value": [],
+          "informational": true
+        },
+        {
+          "what": "scan_1: PDF rendered to page images; header ids in order",
+          "ok": true,
+          "value": {
+            "expected": "הקידב חוד · 10839000 · 10839000@v1",
+            "first_page": "Sherman QC · Inspection report · הקידב חוד · 10839000 · 10839000@v1 · 2026-10-18T22:12:57Z",
+            "pages_wrong": []
+          }
+        },
+        {
+          "what": "scan_1: PDF per-bend tables parsed",
+          "ok": true,
+          "value": ""
+        },
+        {
+          "what": "scan_1: direct E3 CLI run exit 0",
+          "ok": true,
+          "value": "egistration\"}\nPROGRESS\t{\"progress\": 40, \"stage\": \"articulated\"}\nPROGRESS\t{\"progress\": 55, \"stage\": \"decode\"}\nPROGRESS\t{\"progress\": 65, \"stage\": \"metrology\"}\nPROGRESS\t{\"progress\": 85, \"stage\": \"heatmap\"}\nPROGRESS\t{\"progress\": 100, \"stage\": \"written\"}\nRESULT\t{\"inspection_validity\": \"VALID\", \"result\": \"result.json\", \"stage_status\": \"OUT_OF_ORDER_SUSPECTED\", \"summary_state\": \"OUT_OF_TOLERANCE_FOUND\"}\n"
+        },
+        {
+          "what": "scan_1: every per-bend value, state and decision is identical in E3 CLI, job, API, station screen and PDF",
+          "ok": true,
+          "value": []
+        },
+        {
+          "what": "scan_1: station heatmap values are the engine's per-point deviations (and the direct run's)",
+          "ok": false,
+          "value": {}
+        }
+      ],
+      "screenshots": [
+        {
+          "file": "20-12-scan_1-in-progress.png",
+          "pairs_with": "station shows the running job (active ribbon)"
+        },
+        {
+          "file": "21-12-scan_1-station.png",
+          "pairs_with": "scan_1: banner OUT_OF_TOLERANCE_FOUND; 12 rows; heatmap"
+        },
+        {
+          "file": "22-12-scan_1-worst-closeup.png",
+          "pairs_with": "worst-first close-up (bu_5eca734ef4d696175d6b)"
+        },
+        {
+          "file": "23-12-scan_1-table-end.png",
+          "pairs_with": "the end of the per-bend table"
+        },
+        {
+          "file": "24-FAIL-R-scan_1-wizard.png",
+          "pairs_with": "failure state (diagnostic, not an assertion)"
+        },
+        {
+          "file": "25-FAIL-R-scan_1-station.png",
+          "pairs_with": "failure state (diagnostic, not an assertion)"
+        }
+      ],
+      "started": "2026-10-18T22:12:26.763Z",
+      "scan": {
+        "key": "scan_1",
+        "zeiss_name": "10839000_01_SCAN_1 1.ply",
+        "kind": "PARTIAL",
+        "scan_sha256": "08686dc1d5d4c89725393907082e8cc4e4c0f5a21427697760ff44d29c7939fc",
+        "job_id": "line_4af03c6131654f5884c2a262f687bebe",
+        "job": {
+          "execution_status": "completed",
+          "attempts": 1,
+          "wall_s": 30,
+          "failure": null
+        },
+        "update_lag_s": 1.18,
+        "engine_log_head": [
+          "[   0.00s] ingest",
+          "[   0.09s] clouds",
+          "[   0.48s] points=837407 spacing=0.521 voxel=1.02 voxels=222827",
+          "[   0.48s] registration",
+          "[   2.62s] planes=6 coarse hypotheses=28 hole-pair hypotheses=0",
+          "[  19.54s] articulated"
+        ],
+        "engine": {
+          "engine_name": "sherman_production_engine",
+          "engine_version": "e3-1.7.0",
+          "config_sha256": "151d18ef23f70d97716305a6bb34c8f608c15f5d18565a391b8b50dbc1021680",
+          "bundle_id": "2e5b7a79d3ba139d",
+          "compiled_part_sha256": "6df2a6843580a503f3cac6dd9c3b7724646e1594fe437a208f639c5eb510be52",
+          "algorithm_versions": {
+            "articulated_fit": "hinge_hough_region_grow_skin_levels_arc_fold_displaced_fold_window_short_child_window_support_tabs_one_skin_pose_on_plane_joggle_step_one_skin_reread_astray_wide_v7",
+            "heatmap": "stage_cloud_nearest_signed_v1",
+            "ingest": "ply_stl_explicit_unit_v1",
+            "metrology": "station_oml_section_crease_aware_unfolded_island_station_profile_short_side_consistency_footprint_edge_riser_model_reseat_signed_angle_v7",
+            "registration": "datum_plane_outline_fft_wall_edge_hole_polygon_flange_ends_hole_pairs_weak_dirs_walk_distinct_v4",
+            "state_decode": "signed_dihedral_fraction_order_prior_symmetric_near_twins_hole_evidence_v4",
+            "thickness": "datum_tile_two_skin_separation_v1",
+            "uncertainty": "station_mad_residual_pose_erosion_bias_thickness_station_spread_riser_length_v4"
+          },
+          "duration_s": 27.0249,
+          "peak_rss_bytes": 746242048
+        },
+        "summary": {
+          "validity": "VALID",
+          "stage": "OUT_OF_ORDER_SUSPECTED",
+          "inferred_stage": 8,
+          "summary": "OUT_OF_TOLERANCE_FOUND"
+        },
+        "bends": [
+          {
+            "label": "B1",
+            "seq": 1,
+            "state": "FORMED"
+          },
+          {
+            "label": "B2",
+            "seq": 2,
+            "state": "FORMED"
+          },
+          {
+            "label": "B3",
+            "seq": 3,
+            "state": "FORMED"
+          },
+          {
+            "label": "B4",
+            "seq": 4,
+            "state": "FORMED"
+          },
+          {
+            "label": "B5",
+            "seq": 5,
+            "state": "FORMED"
+          },
+          {
+            "label": "B6",
+            "seq": 6,
+            "state": "NOT_YET_FORMED"
+          },
+          {
+            "label": "B7",
+            "seq": 7,
+            "state": "UNEXPECTED_FORMED"
+          },
+          {
+            "label": "B8",
+            "seq": 8,
+            "state": "NOT_YET_FORMED"
+          },
+          {
+            "label": "B9",
+            "seq": 9,
+            "state": "NOT_YET_FORMED"
+          },
+          {
+            "label": "B10",
+            "seq": 10,
+            "state": "UNEXPECTED_FORMED"
+          },
+          {
+            "label": "B11",
+            "seq": 11,
+            "state": "NOT_YET_FORMED"
+          },
+          {
+            "label": "B12",
+            "seq": 12,
+            "state": "UNEXPECTED_FORMED"
+          }
+        ],
+        "canvas": {
+          "painted": 5743,
+          "colours": 104
+        },
+        "heatmap_legend": "Heatmap unavailable\nThe bending stage of the scan was not decoded",
+        "pdf": {
+          "chars": 21232,
+          "expect_found": {
+            "10839000": true
+          },
+          "expect_reversed_only": {
+            "10839000": false
+          },
+          "header": {
+            "expected": "הקידב חוד · 10839000 · 10839000@v1",
+            "first_page": "Sherman QC · Inspection report · הקידב חוד · 10839000 · 10839000@v1 · 2026-10-18T22:12:57Z",
+            "pages_wrong": []
+          },
+          "ok": true,
+          "pages": [
+            "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/e2e/20261019T-real-d/scans/scan_1/pdf/page-1.png",
+            "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/e2e/20261019T-real-d/scans/scan_1/pdf/page-2.png",
+            "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/e2e/20261019T-real-d/scans/scan_1/pdf/page-3.png",
+            "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/e2e/20261019T-real-d/scans/scan_1/pdf/page-4.png",
+            "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/e2e/20261019T-real-d/scans/scan_1/pdf/page-5.png",
+            "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/e2e/20261019T-real-d/scans/scan_1/pdf/page-6.png",
+            "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/e2e/20261019T-real-d/scans/scan_1/pdf/page-7.png",
+            "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/e2e/20261019T-real-d/scans/scan_1/pdf/page-8.png",
+            "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/e2e/20261019T-real-d/scans/scan_1/pdf/page-9.png"
+          ]
+        },
+        "direct_cmd": "cd /var/folders/yp/yrd9ss4s73zdt3d4_2221h580000gn/T/sherman-e2e-real-AP1BqL/line/engine/current && OMP_NUM_THREADS=1 PYTHONPATH=/var/folders/yp/yrd9ss4s73zdt3d4_2221h580000gn/T/sherman-e2e-real-AP1BqL/line/engine/current:/var/folders/yp/yrd9ss4s73zdt3d4_2221h580000gn/T/sherman-e2e-real-AP1BqL/line/engine/current/backend /Users/idantal/ShermanQC/FullProject/.venv/bin/python -m domains.production.engine.inspect --compiled /var/folders/yp/yrd9ss4s73zdt3d4_2221h580000gn/T/sherman-e2e-real-AP1BqL/line/jobs/line_4af03c6131654f5884c2a262f687bebe/compiled/compiled_part.json --recipe /var/folders/yp/yrd9ss4s73zdt3d4_2221h580000gn/T/sherman-e2e-real-AP1BqL/line/jobs/line_4af03c6131654f5884c2a262f687bebe/recipe.json --scan /var/folders/yp/yrd9ss4s73zdt3d4_2221h580000gn/T/sherman-e2e-real-AP1BqL/real/scan_1.ply --out /Users/idantal/ShermanQC/FullProject/docs/production/runlog/e2e/20261019T-real-d/scans/scan_1/direct_engine --scan-sha256 08686dc1d5d4c89725393907082e8cc4e4c0f5a21427697760ff44d29c7939fc --compiled-sha256 6df2a6843580a503f3cac6dd9c3b7724646e1594fe437a208f639c5eb510be52 --recipe-sha256 3a9a4d88267f1b7dbd7785587d903f6d949f12081714c111af4c46b6177982c4 --time-budget-s 170 --engine-bundle-id 2e5b7a79d3ba139d",
+        "compare": {
+          "bends": 12,
+          "rows": 48,
+          "problems": [],
+          "n_problems": 0,
+          "tops": {
+            "direct_cli": {
+              "summary": "OUT_OF_TOLERANCE_FOUND",
+              "validity": "VALID",
+              "stage": "OUT_OF_ORDER_SUSPECTED",
+              "inferred_stage": 8
+            },
+            "job_engine": {
+              "summary": "OUT_OF_TOLERANCE_FOUND",
+              "validity": "VALID",
+              "stage": "OUT_OF_ORDER_SUSPECTED",
+              "inferred_stage": 8
+            },
+            "job_rendered": {
+              "summary": "OUT_OF_TOLERANCE_FOUND",
+              "validity": "VALID",
+              "stage": "OUT_OF_ORDER_SUSPECTED",
+              "inferred_stage": 8
+            },
+            "station_api": {
+              "summary": "OUT_OF_TOLERANCE_FOUND",
+              "validity": "VALID",
+              "stage": "OUT_OF_ORDER_SUSPECTED",
+              "inferred_stage": 8
+            },
+            "station_dom": {
+              "summary": "OUT_OF_TOLERANCE_FOUND"
+            }
+          },
+          "ok": true
+        },
+        "heatmap": {}
+      },
+      "detail": "AssertionError [ERR_ASSERTION]: scan_1: station heatmap values are the engine's per-point deviations (and the direct run's) ({}) |     at check (file:///Users/idantal/ShermanQC/FullProject/scripts/production/run_e2e_real.mjs:97:10) |     at scanFlow (file:///Users/idantal/ShermanQC/FullProject/scripts/production/run_e2e_real.mjs:620:3) |     at async step.requires (file:///Users/idantal/ShermanQC/FullProject/scripts/production/run_e2e_real.mjs:632:18)",
+      "duration_s": 106.8
+    },
+    {
+      "id": "R-scan_2",
+      "title": "drop the real scan_2 PLY into the hot folder (ZEISS-style); runner -> E3 -> station -> PDF; direct E3 CLI equality",
+      "status": "FAIL",
+      "assertions": [
+        {
+          "what": "station showed the in-progress state",
+          "ok": true,
+          "value": true,
+          "informational": true
+        },
+        {
+          "what": "scan_2: the job completed",
+          "ok": true,
+          "value": {
+            "execution_status": "completed",
+            "attempts": 1,
+            "wall_s": 25,
+            "failure": null
+          }
+        },
+        {
+          "what": "scan_2: station shows the job within 5 s, no reload",
+          "ok": true,
+          "value": 0.549
+        },
+        {
+          "what": "scan_2: the result was produced by the E3 production engine",
+          "ok": true,
+          "value": "sherman_production_engine e3-1.7.0"
+        },
+        {
+          "what": "scan_2: WebGL canvas shows the part surface",
+          "ok": true,
+          "value": {
+            "painted": 6613,
+            "colours": 138
+          }
+        },
+        {
+          "what": "scan_2: one table row per recipe bend",
+          "ok": true,
+          "value": 12
+        },
+        {
+          "what": "scan_2: bend labels clean",
+          "ok": true,
+          "value": [],
+          "informational": true
+        },
+        {
+          "what": "scan_2: PDF rendered to page images; header ids in order",
+          "ok": true,
+          "value": {
+            "expected": "הקידב חוד · 10839000 · 10839000@v1",
+            "first_page": "Sherman QC · Inspection report · הקידב חוד · 10839000 · 10839000@v1 · 2026-10-18T22:14:40Z",
+            "pages_wrong": []
+          }
+        },
+        {
+          "what": "scan_2: PDF per-bend tables parsed",
+          "ok": true,
+          "value": ""
+        },
+        {
+          "what": "scan_2: direct E3 CLI run exit 0",
+          "ok": true,
+          "value": "egistration\"}\nPROGRESS\t{\"progress\": 40, \"stage\": \"articulated\"}\nPROGRESS\t{\"progress\": 55, \"stage\": \"decode\"}\nPROGRESS\t{\"progress\": 65, \"stage\": \"metrology\"}\nPROGRESS\t{\"progress\": 85, \"stage\": \"heatmap\"}\nPROGRESS\t{\"progress\": 100, \"stage\": \"written\"}\nRESULT\t{\"inspection_validity\": \"VALID\", \"result\": \"result.json\", \"stage_status\": \"OUT_OF_ORDER_SUSPECTED\", \"summary_state\": \"OUT_OF_TOLERANCE_FOUND\"}\n"
+        },
+        {
+          "what": "scan_2: every per-bend value, state and decision is identical in E3 CLI, job, API, station screen and PDF",
+          "ok": true,
+          "value": []
+        },
+        {
+          "what": "scan_2: station heatmap values are the engine's per-point deviations (and the direct run's)",
+          "ok": false,
+          "value": {}
+        }
+      ],
+      "screenshots": [
+        {
+          "file": "26-13-scan_2-in-progress.png",
+          "pairs_with": "station shows the running job (active ribbon)"
+        },
+        {
+          "file": "27-13-scan_2-station.png",
+          "pairs_with": "scan_2: banner OUT_OF_TOLERANCE_FOUND; 12 rows; heatmap"
+        },
+        {
+          "file": "28-13-scan_2-worst-closeup.png",
+          "pairs_with": "worst-first close-up (bu_eb06b19a6b0b0962f505)"
+        },
+        {
+          "file": "29-13-scan_2-table-end.png",
+          "pairs_with": "the end of the per-bend table"
+        },
+        {
+          "file": "30-FAIL-R-scan_2-wizard.png",
+          "pairs_with": "failure state (diagnostic, not an assertion)"
+        },
+        {
+          "file": "31-FAIL-R-scan_2-station.png",
+          "pairs_with": "failure state (diagnostic, not an assertion)"
+        }
+      ],
+      "started": "2026-10-18T22:14:13.609Z",
+      "scan": {
+        "key": "scan_2",
+        "zeiss_name": "10839000_01_SCAN_2 1.ply",
+        "kind": "PARTIAL",
+        "scan_sha256": "cec08dfca9ab309ff3eef42cd3dc72eb33168e1d43029f3a0658f2923e4e171b",
+        "job_id": "line_352f009f937144e2bfcf475cf2c2c2da",
+        "job": {
+          "execution_status": "completed",
+          "attempts": 1,
+          "wall_s": 25,
+          "failure": null
+        },
+        "update_lag_s": 0.549,
+        "engine_log_head": [
+          "[   0.00s] ingest",
+          "[   0.09s] clouds",
+          "[   0.52s] points=817867 spacing=0.513 voxel=0.99 voxels=217483",
+          "[   0.52s] registration",
+          "[   2.55s] planes=7 coarse hypotheses=28 hole-pair hypotheses=0",
+          "[  15.74s] articulated"
+        ],
+        "engine": {
+          "engine_name": "sherman_production_engine",
+          "engine_version": "e3-1.7.0",
+          "config_sha256": "151d18ef23f70d97716305a6bb34c8f608c15f5d18565a391b8b50dbc1021680",
+          "bundle_id": "2e5b7a79d3ba139d",
+          "compiled_part_sha256": "6df2a6843580a503f3cac6dd9c3b7724646e1594fe437a208f639c5eb510be52",
+          "algorithm_versions": {
+            "articulated_fit": "hinge_hough_region_grow_skin_levels_arc_fold_displaced_fold_window_short_child_window_support_tabs_one_skin_pose_on_plane_joggle_step_one_skin_reread_astray_wide_v7",
+            "heatmap": "stage_cloud_nearest_signed_v1",
+            "ingest": "ply_stl_explicit_unit_v1",
+            "metrology": "station_oml_section_crease_aware_unfolded_island_station_profile_short_side_consistency_footprint_edge_riser_model_reseat_signed_angle_v7",
+            "registration": "datum_plane_outline_fft_wall_edge_hole_polygon_flange_ends_hole_pairs_weak_dirs_walk_distinct_v4",
+            "state_decode": "signed_dihedral_fraction_order_prior_symmetric_near_twins_hole_evidence_v4",
+            "thickness": "datum_tile_two_skin_separation_v1",
+            "uncertainty": "station_mad_residual_pose_erosion_bias_thickness_station_spread_riser_length_v4"
+          },
+          "duration_s": 22.850921,
+          "peak_rss_bytes": 731922432
+        },
+        "summary": {
+          "validity": "VALID",
+          "stage": "OUT_OF_ORDER_SUSPECTED",
+          "inferred_stage": 10,
+          "summary": "OUT_OF_TOLERANCE_FOUND"
+        },
+        "bends": [
+          {
+            "label": "B1",
+            "seq": 1,
+            "state": "FORMED"
+          },
+          {
+            "label": "B2",
+            "seq": 2,
+            "state": "FORMED"
+          },
+          {
+            "label": "B3",
+            "seq": 3,
+            "state": "FORMED"
+          },
+          {
+            "label": "B4",
+            "seq": 4,
+            "state": "FORMED"
+          },
+          {
+            "label": "B5",
+            "seq": 5,
+            "state": "FORMED"
+          },
+          {
+            "label": "B6",
+            "seq": 6,
+            "state": "FORMED"
+          },
+          {
+            "label": "B7",
+            "seq": 7,
+            "state": "FORMED"
+          },
+          {
+            "label": "B8",
+            "seq": 8,
+            "state": "NOT_YET_FORMED"
+          },
+          {
+            "label": "B9",
+            "seq": 9,
+            "state": "NOT_YET_FORMED"
+          },
+          {
+            "label": "B10",
+            "seq": 10,
+            "state": "UNEXPECTED_FORMED"
+          },
+          {
+            "label": "B11",
+            "seq": 11,
+            "state": "UNEXPECTED_FORMED"
+          },
+          {
+            "label": "B12",
+            "seq": 12,
+            "state": "UNEXPECTED_FORMED"
+          }
+        ],
+        "canvas": {
+          "painted": 6613,
+          "colours": 138
+        },
+        "heatmap_legend": "Heatmap unavailable\nThe bending stage of the scan was not decoded",
+        "pdf": {
+          "chars": 20692,
+          "expect_found": {
+            "10839000": true
+          },
+          "expect_reversed_only": {
+            "10839000": false
+          },
+          "header": {
+            "expected": "הקידב חוד · 10839000 · 10839000@v1",
+            "first_page": "Sherman QC · Inspection report · הקידב חוד · 10839000 · 10839000@v1 · 2026-10-18T22:14:40Z",
+            "pages_wrong": []
+          },
+          "ok": true,
+          "pages": [
+            "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/e2e/20261019T-real-d/scans/scan_2/pdf/page-1.png",
+            "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/e2e/20261019T-real-d/scans/scan_2/pdf/page-2.png",
+            "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/e2e/20261019T-real-d/scans/scan_2/pdf/page-3.png",
+            "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/e2e/20261019T-real-d/scans/scan_2/pdf/page-4.png",
+            "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/e2e/20261019T-real-d/scans/scan_2/pdf/page-5.png",
+            "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/e2e/20261019T-real-d/scans/scan_2/pdf/page-6.png",
+            "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/e2e/20261019T-real-d/scans/scan_2/pdf/page-7.png",
+            "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/e2e/20261019T-real-d/scans/scan_2/pdf/page-8.png",
+            "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/e2e/20261019T-real-d/scans/scan_2/pdf/page-9.png"
+          ]
+        },
+        "direct_cmd": "cd /var/folders/yp/yrd9ss4s73zdt3d4_2221h580000gn/T/sherman-e2e-real-AP1BqL/line/engine/current && OMP_NUM_THREADS=1 PYTHONPATH=/var/folders/yp/yrd9ss4s73zdt3d4_2221h580000gn/T/sherman-e2e-real-AP1BqL/line/engine/current:/var/folders/yp/yrd9ss4s73zdt3d4_2221h580000gn/T/sherman-e2e-real-AP1BqL/line/engine/current/backend /Users/idantal/ShermanQC/FullProject/.venv/bin/python -m domains.production.engine.inspect --compiled /var/folders/yp/yrd9ss4s73zdt3d4_2221h580000gn/T/sherman-e2e-real-AP1BqL/line/jobs/line_352f009f937144e2bfcf475cf2c2c2da/compiled/compiled_part.json --recipe /var/folders/yp/yrd9ss4s73zdt3d4_2221h580000gn/T/sherman-e2e-real-AP1BqL/line/jobs/line_352f009f937144e2bfcf475cf2c2c2da/recipe.json --scan /var/folders/yp/yrd9ss4s73zdt3d4_2221h580000gn/T/sherman-e2e-real-AP1BqL/real/scan_2.ply --out /Users/idantal/ShermanQC/FullProject/docs/production/runlog/e2e/20261019T-real-d/scans/scan_2/direct_engine --scan-sha256 cec08dfca9ab309ff3eef42cd3dc72eb33168e1d43029f3a0658f2923e4e171b --compiled-sha256 6df2a6843580a503f3cac6dd9c3b7724646e1594fe437a208f639c5eb510be52 --recipe-sha256 3a9a4d88267f1b7dbd7785587d903f6d949f12081714c111af4c46b6177982c4 --time-budget-s 170 --engine-bundle-id 2e5b7a79d3ba139d",
+        "compare": {
+          "bends": 12,
+          "rows": 48,
+          "problems": [],
+          "n_problems": 0,
+          "tops": {
+            "direct_cli": {
+              "summary": "OUT_OF_TOLERANCE_FOUND",
+              "validity": "VALID",
+              "stage": "OUT_OF_ORDER_SUSPECTED",
+              "inferred_stage": 10
+            },
+            "job_engine": {
+              "summary": "OUT_OF_TOLERANCE_FOUND",
+              "validity": "VALID",
+              "stage": "OUT_OF_ORDER_SUSPECTED",
+              "inferred_stage": 10
+            },
+            "job_rendered": {
+              "summary": "OUT_OF_TOLERANCE_FOUND",
+              "validity": "VALID",
+              "stage": "OUT_OF_ORDER_SUSPECTED",
+              "inferred_stage": 10
+            },
+            "station_api": {
+              "summary": "OUT_OF_TOLERANCE_FOUND",
+              "validity": "VALID",
+              "stage": "OUT_OF_ORDER_SUSPECTED",
+              "inferred_stage": 10
+            },
+            "station_dom": {
+              "summary": "OUT_OF_TOLERANCE_FOUND"
+            }
+          },
+          "ok": true
+        },
+        "heatmap": {}
+      },
+      "detail": "AssertionError [ERR_ASSERTION]: scan_2: station heatmap values are the engine's per-point deviations (and the direct run's) ({}) |     at check (file:///Users/idantal/ShermanQC/FullProject/scripts/production/run_e2e_real.mjs:97:10) |     at scanFlow (file:///Users/idantal/ShermanQC/FullProject/scripts/production/run_e2e_real.mjs:620:3) |     at async step.requires (file:///Users/idantal/ShermanQC/FullProject/scripts/production/run_e2e_real.mjs:632:18)",
+      "duration_s": 96.8
+    },
+    {
+      "id": "R-hebrew",
+      "title": "station in Hebrew (RTL) on the last real job",
+      "status": "PASS",
+      "assertions": [
+        {
+          "what": "RTL station has no page scroll",
+          "ok": true,
+          "value": {
+            "sw": 1920,
+            "sh": 1080
+          }
+        }
+      ],
+      "screenshots": [
+        {
+          "file": "32-station-hebrew-rtl.png",
+          "pairs_with": "station-root dir=rtl"
+        }
+      ],
+      "started": "2026-10-18T22:15:50.437Z",
+      "duration_s": 2
+    },
+    {
+      "id": "Z1",
+      "title": "no page errors; no legacy worker process; inbox emptied",
+      "status": "PASS",
+      "assertions": [
+        {
+          "what": "no uncaught page errors",
+          "ok": true,
+          "value": []
+        },
+        {
+          "what": "server/service logs never mention the legacy bend_analysis_worker",
+          "ok": true,
+          "value": null
+        },
+        {
+          "what": "legacy engine routes refused on the line (403 ROUTE_DISABLED)",
+          "ok": true,
+          "value": {
+            "/api/analyze": "403 ROUTE_DISABLED",
+            "/api/batch/analyze": "403 ROUTE_DISABLED",
+            "/api/bend-inspection/analyze": "403 ROUTE_DISABLED",
+            "/api/bend-inspection/analyze-from-catalog": "403 ROUTE_DISABLED"
+          }
+        },
+        {
+          "what": "inbox emptied",
+          "ok": true,
+          "value": []
+        }
+      ],
+      "screenshots": [],
+      "started": "2026-10-18T22:15:52.471Z",
+      "page_errors": [],
+      "legacy_routes": {
+        "/api/analyze": "403 ROUTE_DISABLED",
+        "/api/batch/analyze": "403 ROUTE_DISABLED",
+        "/api/bend-inspection/analyze": "403 ROUTE_DISABLED",
+        "/api/bend-inspection/analyze-from-catalog": "403 ROUTE_DISABLED"
+      },
+      "duration_s": 0
+    }
+  ]
+}

@@ -1,0 +1,1527 @@
+{
+  "schema": "sherman.gold_set_v2.candidates.v1",
+  "created_at": "2026-10-18T06:44:51Z",
+  "request": "Owner 2026-10-18: more gold-labelled scans so the NO-CAD (blind) track can be benchmarked broadly; production will be CAD-assisted, so also add the remaining CAD scans. Every remaining CONSUMED real scan, no per-family cap, exact duplicates skipped.",
+  "sources": {
+    "benchmark_v3": "docs/production/runlog/benchmark_v3/BENCHMARK_V3.json (split CONSUMED, role benchmark_scan only)",
+    "benchmark_v2": "docs/production/runlog/benchmark_v2/BENCHMARK_V2.json (sha256, legacy gold detail, ai_label_run lines dirs, eval_tier)",
+    "gold_set_v1": "docs/production/runlog/gold_set_v1/GOLD_SET_V1.json (58 scans excluded; twin_vertex_check.json for STL/PLY twins)",
+    "cad": "broad_baseline/cad_crosscheck.json, fallback benchmark_v3/inventory.json step_v10 (-1 = no STEP / unknown)"
+  },
+  "custody": "CONSUMED scans only; every candidate is V3 split CONSUMED and V2 eval_tier CONSUMED (sc_2852c2845b94 is a V3-queue CONSUMED PLY). All 18 aug30 daily scans are TRAIN18 allowlist (A30-xxx), not HOLDOUT10. File sha256 re-hashed on disk and equal to the V2 manifest sha for every candidate. No FRESH, *_SEALED*, HOLDOUT10, N001-N016, EHO4, LIDAR_DEMO, CAD reference mesh or synthetic fixture. fresh_SEALED never opened.",
+  "gold_rules": "LANDS iff on the OUTER-skin apex of a real formed fold, parallel, >= 80% of the visible fold; joggle = 2 bends; formed bends >= 15 deg count; window/relief-interrupted fold of the same two plates = ONE line; hole walls, thickness/perimeter edges, embosses, gentle rolled kinks, artifacts are not bends; staged scans: label only bends formed in that scan; zero-bend scans are valid gold.",
+  "output_root_for_gold_labels": "data/bend_corpus/annotations/ai_bend_lines_gold_v1",
+  "summary": {
+    "candidates": 45,
+    "families": 40,
+    "by_truth": {
+      "GOLD_LINES_AI_LEGACY": 40,
+      "AI_GOLD_ACCEPTED": 5
+    },
+    "with_step": 2,
+    "staged": 0,
+    "by_stage": {
+      "FULL_PRESUMED_NO_STAGE_HINT": 35,
+      "DEFECTIVE_X": 5,
+      "GOOD_V": 5
+    },
+    "by_work": {
+      "PREP_LINES_LABEL_FROM_SCRATCH": 40,
+      "REAUDIT_EXISTING_LINES": 5
+    },
+    "prior_lines_total": 150,
+    "prep_needed": [
+      "sc_8b72c3ff233f",
+      "sc_050cba324c35",
+      "sc_3e4b28f24a9a",
+      "sc_3435e688d344",
+      "sc_b3cde5d10544",
+      "sc_43417f858d5a",
+      "sc_d82bd4f417a2",
+      "sc_589688be58d2",
+      "sc_633e26e28e56",
+      "sc_dff6419eacc4",
+      "sc_b76452ea6fa7",
+      "sc_cca7d7680a51",
+      "sc_b7bd53831ee2",
+      "sc_7d28946d9f49",
+      "sc_c1d112196ae5",
+      "sc_521e2ee69b21",
+      "sc_1aeb5ee39ef0",
+      "sc_e104a6f42d31",
+      "sc_49e5e7a1c973",
+      "sc_be840127c462",
+      "sc_eb1eab182228",
+      "sc_b92f211e6ec0",
+      "sc_469febe1cd7d",
+      "sc_711eb2a389a4",
+      "sc_28a25c37a928",
+      "sc_e218b16ed070",
+      "sc_891a8e4a2ee1",
+      "sc_9b38b1167834",
+      "sc_d741e1d515bf",
+      "sc_24c57f2660b3",
+      "sc_e0285cea8c56",
+      "sc_203b95d7a753",
+      "sc_1d601c46ff9c",
+      "sc_e8c946b837aa",
+      "sc_d27acfe5468d",
+      "sc_2c807204c472",
+      "sc_baa71ce6bc5d",
+      "sc_f4bc782eff8b",
+      "sc_d891ea8c5891",
+      "sc_c1a1d6de4681"
+    ],
+    "max_scans_per_family": 2,
+    "note": "Legacy GOLD_LINES_AI_LEGACY counts are Codex manual-multiview priors, not gold: every line must be re-made/verified by heavy vision. Only 2 of 45 candidates have a STEP (45796000, 49201000); the rest have native x_t/no CAD, so they serve the no-CAD blind track only."
+  },
+  "candidates": [
+    {
+      "scan_id": "sc_8b72c3ff233f",
+      "part_id": "24694000",
+      "family": "24694000",
+      "stage": "FULL_PRESUMED_NO_STAGE_HINT",
+      "staged": false,
+      "path": "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/incoming/2026-07-16-shaked-count-backed-ply/24694000_02.ply",
+      "format": "ply",
+      "sha256": "8b72c3ff233f679b7262f182d32721c86eabbeae872b80ce709a688a5cd37e42",
+      "mesh_header": {
+        "vertices": 179189,
+        "faces": 355896
+      },
+      "lines_dir": "",
+      "prep_dir": "",
+      "lines_prep_ref": null,
+      "n_lines": 6,
+      "has_step": false,
+      "cad_bend_lines": -1,
+      "cad_bend_lines_source": null,
+      "current_truth": "GOLD_LINES_AI_LEGACY: 6 lines, ref shaked12/02_24694000, tier codex_manual_multiview_count_backed, frame scan_raw, Codex import in human_bend_lines_v1/0ca0673704603f37b08c33c3.json (read-only, never modify); label from scratch with heavy vision (no prep/lines yet), legacy count is a prior only",
+      "current_truth_tier": "GOLD_LINES_AI_LEGACY",
+      "work": "PREP_LINES_LABEL_FROM_SCRATCH",
+      "prior_use": "Gold37",
+      "prior_use_basis": [
+        "legacy37 scan-only manifest",
+        "gold_lines: shaked12/02_24694000 tier=codex_manual_multiview_count_backed frame=scan_raw n=6",
+        "human_bend_lines_v1 0ca0673704603f37b08c33c3"
+      ],
+      "quality_flags": []
+    },
+    {
+      "scan_id": "sc_050cba324c35",
+      "part_id": "35705010",
+      "family": "35705010",
+      "stage": "DEFECTIVE_X",
+      "staged": false,
+      "path": "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/incoming/2026-07-29_shaked_defective_good_pairs/35705010_A/scans/35705010_A_X.ply",
+      "format": "ply",
+      "sha256": "050cba324c35e32979b9ee626a1e73e64f8e39e4d7797c04a48eb8a9ff52bb97",
+      "mesh_header": {
+        "vertices": 300337,
+        "faces": 600570
+      },
+      "lines_dir": "",
+      "prep_dir": "",
+      "lines_prep_ref": null,
+      "n_lines": 3,
+      "has_step": false,
+      "cad_bend_lines": -1,
+      "cad_bend_lines_source": null,
+      "current_truth": "GOLD_LINES_AI_LEGACY: 3 lines, ref shaked_xv/C01, tier codex_manual_multiview_drawing_backed, frame scan_raw, Codex import in human_bend_lines_v1/0bb9b58e9894f58f30061936.json (read-only, never modify); label from scratch with heavy vision (no prep/lines yet), legacy count is a prior only",
+      "current_truth_tier": "GOLD_LINES_AI_LEGACY",
+      "work": "PREP_LINES_LABEL_FROM_SCRATCH",
+      "prior_use": "Gold37",
+      "prior_use_basis": [
+        "legacy37 scan-only manifest",
+        "gold_lines: shaked_xv/C01 tier=codex_manual_multiview_drawing_backed frame=scan_raw n=3",
+        "human_bend_lines_v1 0bb9b58e9894f58f30061936"
+      ],
+      "quality_flags": []
+    },
+    {
+      "scan_id": "sc_3e4b28f24a9a",
+      "part_id": "35705010",
+      "family": "35705010",
+      "stage": "GOOD_V",
+      "staged": false,
+      "path": "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/incoming/2026-07-29_shaked_defective_good_pairs/35705010_A/scans/35705010_A_V.ply",
+      "format": "ply",
+      "sha256": "3e4b28f24a9a49007735a0eafe7b366185852ab6c9d7b659b316b71ad0835d4d",
+      "mesh_header": {
+        "vertices": 191556,
+        "faces": 382911
+      },
+      "lines_dir": "",
+      "prep_dir": "",
+      "lines_prep_ref": null,
+      "n_lines": 3,
+      "has_step": false,
+      "cad_bend_lines": -1,
+      "cad_bend_lines_source": null,
+      "current_truth": "GOLD_LINES_AI_LEGACY: 3 lines, ref shaked_xv/C02, tier codex_manual_multiview_drawing_backed, frame scan_raw, Codex import in human_bend_lines_v1/6dd02e365c8260662121c7c5.json (read-only, never modify); label from scratch with heavy vision (no prep/lines yet), legacy count is a prior only",
+      "current_truth_tier": "GOLD_LINES_AI_LEGACY",
+      "work": "PREP_LINES_LABEL_FROM_SCRATCH",
+      "prior_use": "Gold37",
+      "prior_use_basis": [
+        "legacy37 scan-only manifest",
+        "gold_lines: shaked_xv/C02 tier=codex_manual_multiview_drawing_backed frame=scan_raw n=3",
+        "human_bend_lines_v1 6dd02e365c8260662121c7c5"
+      ],
+      "quality_flags": []
+    },
+    {
+      "scan_id": "sc_3435e688d344",
+      "part_id": "38173000",
+      "family": "38173000",
+      "stage": "DEFECTIVE_X",
+      "staged": false,
+      "path": "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/incoming/2026-07-29_shaked_defective_good_pairs/38173000_02/scans/38173000_02_X.ply",
+      "format": "ply",
+      "sha256": "3435e688d344af35061cac715d6f9f1a4af59e79e70aa06baa8d852df0754d89",
+      "mesh_header": {
+        "vertices": 1140033,
+        "faces": 2277504
+      },
+      "lines_dir": "",
+      "prep_dir": "",
+      "lines_prep_ref": null,
+      "n_lines": 4,
+      "has_step": false,
+      "cad_bend_lines": -1,
+      "cad_bend_lines_source": null,
+      "current_truth": "GOLD_LINES_AI_LEGACY: 4 lines, ref shaked_xv/C03, tier codex_manual_multiview_drawing_backed, frame scan_raw, Codex import in human_bend_lines_v1/100f7b56ad909c655f3ecd96.json (read-only, never modify); label from scratch with heavy vision (no prep/lines yet), legacy count is a prior only",
+      "current_truth_tier": "GOLD_LINES_AI_LEGACY",
+      "work": "PREP_LINES_LABEL_FROM_SCRATCH",
+      "prior_use": "Gold37",
+      "prior_use_basis": [
+        "legacy37 scan-only manifest",
+        "gold_lines: shaked_xv/C03 tier=codex_manual_multiview_drawing_backed frame=scan_raw n=4",
+        "human_bend_lines_v1 100f7b56ad909c655f3ecd96"
+      ],
+      "quality_flags": [],
+      "custody_flag": "SKU 38173000 also has rev _01 in the sealed N001-N014 tranche (CAD 38173001_01). These _02 V/X scans are themselves Gold37-consumed (2026-07-29 defective/good pairs), not N-files; included, but the owner may veto by SKU-overlap rule (cf. 41880000 SKU_OVERLAPS_SEALED_SET)."
+    },
+    {
+      "scan_id": "sc_b3cde5d10544",
+      "part_id": "38173000",
+      "family": "38173000",
+      "stage": "GOOD_V",
+      "staged": false,
+      "path": "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/incoming/2026-07-29_shaked_defective_good_pairs/38173000_02/scans/38173000_02_V.ply",
+      "format": "ply",
+      "sha256": "b3cde5d10544f277d2c52d30f8928ada201c6334703d0658594f28fbb95df298",
+      "mesh_header": {
+        "vertices": 787770,
+        "faces": 1564868
+      },
+      "lines_dir": "",
+      "prep_dir": "",
+      "lines_prep_ref": null,
+      "n_lines": 4,
+      "has_step": false,
+      "cad_bend_lines": -1,
+      "cad_bend_lines_source": null,
+      "current_truth": "GOLD_LINES_AI_LEGACY: 4 lines, ref shaked_xv/C04, tier codex_manual_multiview_drawing_backed, frame scan_raw, Codex import in human_bend_lines_v1/1c65aa581606548b74c7c717.json (read-only, never modify); label from scratch with heavy vision (no prep/lines yet), legacy count is a prior only",
+      "current_truth_tier": "GOLD_LINES_AI_LEGACY",
+      "work": "PREP_LINES_LABEL_FROM_SCRATCH",
+      "prior_use": "Gold37",
+      "prior_use_basis": [
+        "legacy37 scan-only manifest",
+        "gold_lines: shaked_xv/C04 tier=codex_manual_multiview_drawing_backed frame=scan_raw n=4",
+        "human_bend_lines_v1 1c65aa581606548b74c7c717"
+      ],
+      "quality_flags": [],
+      "custody_flag": "SKU 38173000 also has rev _01 in the sealed N001-N014 tranche (CAD 38173001_01). These _02 V/X scans are themselves Gold37-consumed (2026-07-29 defective/good pairs), not N-files; included, but the owner may veto by SKU-overlap rule (cf. 41880000 SKU_OVERLAPS_SEALED_SET)."
+    },
+    {
+      "scan_id": "sc_43417f858d5a",
+      "part_id": "41017000",
+      "family": "41017000",
+      "stage": "FULL_PRESUMED_NO_STAGE_HINT",
+      "staged": false,
+      "path": "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/incoming/2026-08-30_shaked_daily_scans/source_download/41017000_B.ply",
+      "format": "ply",
+      "sha256": "43417f858d5a647b742ce3fc04b4f3b96d0bd5449ec19e228f8f32c94a3f7f77",
+      "mesh_header": {
+        "vertices": 72388,
+        "faces": 144786
+      },
+      "lines_dir": "",
+      "prep_dir": "",
+      "lines_prep_ref": null,
+      "n_lines": 4,
+      "has_step": false,
+      "cad_bend_lines": -1,
+      "cad_bend_lines_source": null,
+      "current_truth": "GOLD_LINES_AI_LEGACY: 4 lines, ref T002, tier codex_manual_multiview_scan_only, frame source_scan_raw; label from scratch with heavy vision (no prep/lines yet), legacy count is a prior only",
+      "current_truth_tier": "GOLD_LINES_AI_LEGACY",
+      "work": "PREP_LINES_LABEL_FROM_SCRATCH",
+      "prior_use": "other-consumed",
+      "prior_use_basis": [
+        "TRAIN18 A30-005",
+        "gold_lines: T002 tier=codex_manual_multiview_scan_only frame=source_scan_raw n=4"
+      ],
+      "quality_flags": []
+    },
+    {
+      "scan_id": "sc_d82bd4f417a2",
+      "part_id": "42725000",
+      "family": "42725000",
+      "stage": "FULL_PRESUMED_NO_STAGE_HINT",
+      "staged": false,
+      "path": "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/incoming/2026-08-30_shaked_daily_scans/source_download/42725000_B.ply",
+      "format": "ply",
+      "sha256": "d82bd4f417a210945ec11151e9dbabf8d3e8099f62f97d2336a34cc9be82c685",
+      "mesh_header": {
+        "vertices": 41933,
+        "faces": 83810
+      },
+      "lines_dir": "",
+      "prep_dir": "",
+      "lines_prep_ref": null,
+      "n_lines": 4,
+      "has_step": false,
+      "cad_bend_lines": -1,
+      "cad_bend_lines_source": null,
+      "current_truth": "GOLD_LINES_AI_LEGACY: 4 lines, ref T004, tier codex_manual_multiview_scan_only, frame source_scan_raw; label from scratch with heavy vision (no prep/lines yet), legacy count is a prior only",
+      "current_truth_tier": "GOLD_LINES_AI_LEGACY",
+      "work": "PREP_LINES_LABEL_FROM_SCRATCH",
+      "prior_use": "other-consumed",
+      "prior_use_basis": [
+        "TRAIN18 A30-021",
+        "gold_lines: T004 tier=codex_manual_multiview_scan_only frame=source_scan_raw n=4"
+      ],
+      "quality_flags": []
+    },
+    {
+      "scan_id": "sc_589688be58d2",
+      "part_id": "43895000",
+      "family": "43895000",
+      "stage": "FULL_PRESUMED_NO_STAGE_HINT",
+      "staged": false,
+      "path": "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/incoming/2026-08-30_shaked_daily_scans/source_download/43895000_B.ply",
+      "format": "ply",
+      "sha256": "589688be58d2a4243c173440b586f532bfdbb7ada8142414fa373ed5ee7cde97",
+      "mesh_header": {
+        "vertices": 108590,
+        "faces": 216750
+      },
+      "lines_dir": "",
+      "prep_dir": "",
+      "lines_prep_ref": null,
+      "n_lines": 4,
+      "has_step": false,
+      "cad_bend_lines": -1,
+      "cad_bend_lines_source": null,
+      "current_truth": "GOLD_LINES_AI_LEGACY: 4 lines, ref T005, tier codex_manual_multiview_scan_only, frame source_scan_raw; label from scratch with heavy vision (no prep/lines yet), legacy count is a prior only",
+      "current_truth_tier": "GOLD_LINES_AI_LEGACY",
+      "work": "PREP_LINES_LABEL_FROM_SCRATCH",
+      "prior_use": "other-consumed",
+      "prior_use_basis": [
+        "TRAIN18 A30-010",
+        "gold_lines: T005 tier=codex_manual_multiview_scan_only frame=source_scan_raw n=4"
+      ],
+      "quality_flags": []
+    },
+    {
+      "scan_id": "sc_633e26e28e56",
+      "part_id": "43920000",
+      "family": "43920000",
+      "stage": "FULL_PRESUMED_NO_STAGE_HINT",
+      "staged": false,
+      "path": "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/incoming/2026-08-30_shaked_daily_scans/source_download/43920000_A.ply",
+      "format": "ply",
+      "sha256": "633e26e28e566d6d9cb97ab6ea727593ca9372cf311d964289d368671161a465",
+      "mesh_header": {
+        "vertices": 97107,
+        "faces": 194166
+      },
+      "lines_dir": "",
+      "prep_dir": "",
+      "lines_prep_ref": null,
+      "n_lines": 1,
+      "has_step": false,
+      "cad_bend_lines": -1,
+      "cad_bend_lines_source": null,
+      "current_truth": "GOLD_LINES_AI_LEGACY: 1 lines, ref T006, tier codex_manual_multiview_scan_only, frame source_scan_raw; label from scratch with heavy vision (no prep/lines yet), legacy count is a prior only",
+      "current_truth_tier": "GOLD_LINES_AI_LEGACY",
+      "work": "PREP_LINES_LABEL_FROM_SCRATCH",
+      "prior_use": "other-consumed",
+      "prior_use_basis": [
+        "TRAIN18 A30-013",
+        "gold_lines: T006 tier=codex_manual_multiview_scan_only frame=source_scan_raw n=1"
+      ],
+      "quality_flags": []
+    },
+    {
+      "scan_id": "sc_dff6419eacc4",
+      "part_id": "43976000",
+      "family": "43976000",
+      "stage": "FULL_PRESUMED_NO_STAGE_HINT",
+      "staged": false,
+      "path": "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/incoming/2026-08-30_shaked_daily_scans/source_download/43976000_A.ply",
+      "format": "ply",
+      "sha256": "dff6419eacc46de6714b195e2fd652f2d9dba44b7098a57b30ba88f0b06ff804",
+      "mesh_header": {
+        "vertices": 34427,
+        "faces": 68822
+      },
+      "lines_dir": "",
+      "prep_dir": "",
+      "lines_prep_ref": null,
+      "n_lines": 1,
+      "has_step": false,
+      "cad_bend_lines": -1,
+      "cad_bend_lines_source": null,
+      "current_truth": "GOLD_LINES_AI_LEGACY: 1 lines, ref T007, tier codex_manual_multiview_scan_only, frame source_scan_raw; label from scratch with heavy vision (no prep/lines yet), legacy count is a prior only",
+      "current_truth_tier": "GOLD_LINES_AI_LEGACY",
+      "work": "PREP_LINES_LABEL_FROM_SCRATCH",
+      "prior_use": "other-consumed",
+      "prior_use_basis": [
+        "TRAIN18 A30-022",
+        "gold_lines: T007 tier=codex_manual_multiview_scan_only frame=source_scan_raw n=1"
+      ],
+      "quality_flags": []
+    },
+    {
+      "scan_id": "sc_2852c2845b94",
+      "part_id": "45796000",
+      "family": "45796000",
+      "stage": "FULL_PRESUMED_NO_STAGE_HINT",
+      "staged": false,
+      "path": "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260115_8201c914/45796000_A 5.ply",
+      "format": "ply",
+      "sha256": null,
+      "mesh_header": {
+        "vertices": 273790,
+        "faces": 540352
+      },
+      "lines_dir": "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/benchmark_v3/label_lines/sc_2852c2845b94",
+      "prep_dir": "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/benchmark_v3/label_prep/sc_2852c2845b94",
+      "lines_prep_ref": "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/benchmark_v3/label_prep/sc_2852c2845b94",
+      "n_lines": 8,
+      "has_step": true,
+      "cad_bend_lines": 8,
+      "cad_bend_lines_source": "broad_baseline/cad_crosscheck.json",
+      "current_truth": "AI_GOLD_ACCEPTED: 8 lines, studio label /Users/idantal/ShermanQC/FullProject/data/bend_corpus/annotations/ai_bend_lines_v1/131ad1dd0948162fc4a5cf75.json (lines from /Users/idantal/ShermanQC/FullProject/docs/production/runlog/benchmark_v3/label_lines/sc_2852c2845b94); vision re-audit required, not yet gold",
+      "current_truth_tier": "AI_GOLD_ACCEPTED",
+      "work": "REAUDIT_EXISTING_LINES",
+      "prior_use": null,
+      "prior_use_basis": null,
+      "quality_flags": [],
+      "note": "GOLD_SET_V1 reserve: second full scan of 45796000 (A 5.ply, 273790 verts; gold sc_1268c72dcc30 A_FULL_SCAN has 268623 verts, so a different capture, not a duplicate); cut only by the v1 max-3-per-family cap."
+    },
+    {
+      "scan_id": "sc_b76452ea6fa7",
+      "part_id": "46414000",
+      "family": "46414000",
+      "stage": "FULL_PRESUMED_NO_STAGE_HINT",
+      "staged": false,
+      "path": "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/incoming/2026-08-30_shaked_daily_scans/source_download/46414000_C.ply",
+      "format": "ply",
+      "sha256": "b76452ea6fa7adeaff3857fb7670f129a8e7f0c18186320d5aff09c58de7d39c",
+      "mesh_header": {
+        "vertices": 31659,
+        "faces": 63296
+      },
+      "lines_dir": "",
+      "prep_dir": "",
+      "lines_prep_ref": null,
+      "n_lines": 2,
+      "has_step": false,
+      "cad_bend_lines": -1,
+      "cad_bend_lines_source": null,
+      "current_truth": "GOLD_LINES_AI_LEGACY: 2 lines, ref T009, tier codex_manual_multiview_scan_only, frame source_scan_raw; label from scratch with heavy vision (no prep/lines yet), legacy count is a prior only",
+      "current_truth_tier": "GOLD_LINES_AI_LEGACY",
+      "work": "PREP_LINES_LABEL_FROM_SCRATCH",
+      "prior_use": "other-consumed",
+      "prior_use_basis": [
+        "TRAIN18 A30-017",
+        "gold_lines: T009 tier=codex_manual_multiview_scan_only frame=source_scan_raw n=2"
+      ],
+      "quality_flags": []
+    },
+    {
+      "scan_id": "sc_cca7d7680a51",
+      "part_id": "47632001",
+      "family": "47632001",
+      "stage": "FULL_PRESUMED_NO_STAGE_HINT",
+      "staged": false,
+      "path": "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/incoming/2026-08-30_shaked_daily_scans/source_download/47632001_A.ply",
+      "format": "ply",
+      "sha256": "cca7d7680a51c305b0bee021b21ed2a07cccce7225dc8e506fea199ebd297e45",
+      "mesh_header": {
+        "vertices": 300037,
+        "faces": 600001
+      },
+      "lines_dir": "",
+      "prep_dir": "",
+      "lines_prep_ref": null,
+      "n_lines": 2,
+      "has_step": false,
+      "cad_bend_lines": -1,
+      "cad_bend_lines_source": null,
+      "current_truth": "GOLD_LINES_AI_LEGACY: 2 lines, ref T012, tier codex_manual_multiview_scan_only, frame source_scan_raw; label from scratch with heavy vision (no prep/lines yet), legacy count is a prior only",
+      "current_truth_tier": "GOLD_LINES_AI_LEGACY",
+      "work": "PREP_LINES_LABEL_FROM_SCRATCH",
+      "prior_use": "other-consumed",
+      "prior_use_basis": [
+        "TRAIN18 A30-020",
+        "gold_lines: T012 tier=codex_manual_multiview_scan_only frame=source_scan_raw n=2"
+      ],
+      "quality_flags": []
+    },
+    {
+      "scan_id": "sc_b7bd53831ee2",
+      "part_id": "48333006",
+      "family": "48333006",
+      "stage": "FULL_PRESUMED_NO_STAGE_HINT",
+      "staged": false,
+      "path": "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/incoming/2026-07-16-shaked-count-backed-ply/48333006_01.ply",
+      "format": "ply",
+      "sha256": "b7bd53831ee277e0b4b57a88567f3c5fb2b56b68b7154c01ffe8d0cb318a574f",
+      "mesh_header": {
+        "vertices": 45944,
+        "faces": 91520
+      },
+      "lines_dir": "",
+      "prep_dir": "",
+      "lines_prep_ref": null,
+      "n_lines": 2,
+      "has_step": false,
+      "cad_bend_lines": -1,
+      "cad_bend_lines_source": null,
+      "current_truth": "GOLD_LINES_AI_LEGACY: 2 lines, ref shaked12/10_48333006, tier codex_manual_multiview_count_backed, frame scan_raw, Codex import in human_bend_lines_v1/0368ec3c104c2f8cfd6db3ec.json (read-only, never modify); label from scratch with heavy vision (no prep/lines yet), legacy count is a prior only",
+      "current_truth_tier": "GOLD_LINES_AI_LEGACY",
+      "work": "PREP_LINES_LABEL_FROM_SCRATCH",
+      "prior_use": "Gold37",
+      "prior_use_basis": [
+        "legacy37 scan-only manifest",
+        "gold_lines: shaked12/10_48333006 tier=codex_manual_multiview_count_backed frame=scan_raw n=2",
+        "human_bend_lines_v1 0368ec3c104c2f8cfd6db3ec",
+        "email: email:19f6afb2ba855837",
+        "local hash match"
+      ],
+      "quality_flags": []
+    },
+    {
+      "scan_id": "sc_7d28946d9f49",
+      "part_id": "48333018",
+      "family": "48333018",
+      "stage": "FULL_PRESUMED_NO_STAGE_HINT",
+      "staged": false,
+      "path": "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/incoming/2026-07-16-shaked-count-backed-ply/48333018_00.ply",
+      "format": "ply",
+      "sha256": "7d28946d9f49bfe38f7a3e9f5ba4e26e7a07d4c07bdf3c90e780c578e3a85897",
+      "mesh_header": {
+        "vertices": 74285,
+        "faces": 148424
+      },
+      "lines_dir": "",
+      "prep_dir": "",
+      "lines_prep_ref": null,
+      "n_lines": 2,
+      "has_step": false,
+      "cad_bend_lines": -1,
+      "cad_bend_lines_source": null,
+      "current_truth": "GOLD_LINES_AI_LEGACY: 2 lines, ref shaked12/08_48333018, tier codex_manual_multiview_count_backed, frame scan_raw, Codex import in human_bend_lines_v1/e479ab885bb91833f4ccf6e4.json (read-only, never modify); label from scratch with heavy vision (no prep/lines yet), legacy count is a prior only",
+      "current_truth_tier": "GOLD_LINES_AI_LEGACY",
+      "work": "PREP_LINES_LABEL_FROM_SCRATCH",
+      "prior_use": "Gold37",
+      "prior_use_basis": [
+        "legacy37 scan-only manifest",
+        "gold_lines: shaked12/08_48333018 tier=codex_manual_multiview_count_backed frame=scan_raw n=2",
+        "human_bend_lines_v1 e479ab885bb91833f4ccf6e4",
+        "email: email:19f6b05875fee5d1",
+        "local hash match"
+      ],
+      "quality_flags": []
+    },
+    {
+      "scan_id": "sc_c1d112196ae5",
+      "part_id": "48340007",
+      "family": "48340007",
+      "stage": "FULL_PRESUMED_NO_STAGE_HINT",
+      "staged": false,
+      "path": "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/incoming/2026-07-16-shaked-count-backed-ply/48340007_01.ply",
+      "format": "ply",
+      "sha256": "c1d112196ae59f697dfad63aaa18f63380715766c52998a7e15e83bafc705a10",
+      "mesh_header": {
+        "vertices": 53912,
+        "faces": 107716
+      },
+      "lines_dir": "",
+      "prep_dir": "",
+      "lines_prep_ref": null,
+      "n_lines": 4,
+      "has_step": false,
+      "cad_bend_lines": -1,
+      "cad_bend_lines_source": null,
+      "current_truth": "GOLD_LINES_AI_LEGACY: 4 lines, ref shaked12/11_48340007, tier codex_manual_multiview_count_backed, frame scan_raw, Codex import in human_bend_lines_v1/cdbd28f2c8c8ed4b74e93736.json (read-only, never modify); label from scratch with heavy vision (no prep/lines yet), legacy count is a prior only",
+      "current_truth_tier": "GOLD_LINES_AI_LEGACY",
+      "work": "PREP_LINES_LABEL_FROM_SCRATCH",
+      "prior_use": "Gold37",
+      "prior_use_basis": [
+        "legacy37 scan-only manifest",
+        "gold_lines: shaked12/11_48340007 tier=codex_manual_multiview_count_backed frame=scan_raw n=4",
+        "human_bend_lines_v1 cdbd28f2c8c8ed4b74e93736",
+        "email: email:19f6af643766b94c",
+        "local hash match"
+      ],
+      "quality_flags": []
+    },
+    {
+      "scan_id": "sc_521e2ee69b21",
+      "part_id": "48340008",
+      "family": "48340008",
+      "stage": "FULL_PRESUMED_NO_STAGE_HINT",
+      "staged": false,
+      "path": "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/incoming/2026-07-16-shaked-count-backed-ply/48340008_02.ply",
+      "format": "ply",
+      "sha256": "521e2ee69b21ab45d7a2c7a1c494dce47087df32cdae77f9eef0e8820f21840c",
+      "mesh_header": {
+        "vertices": 46973,
+        "faces": 93705
+      },
+      "lines_dir": "",
+      "prep_dir": "",
+      "lines_prep_ref": null,
+      "n_lines": 3,
+      "has_step": false,
+      "cad_bend_lines": -1,
+      "cad_bend_lines_source": null,
+      "current_truth": "GOLD_LINES_AI_LEGACY: 3 lines, ref shaked12/04_48340008, tier codex_manual_multiview_count_backed, frame scan_raw, Codex import in human_bend_lines_v1/dca5c44759273daaaa70a442.json (read-only, never modify); label from scratch with heavy vision (no prep/lines yet), legacy count is a prior only",
+      "current_truth_tier": "GOLD_LINES_AI_LEGACY",
+      "work": "PREP_LINES_LABEL_FROM_SCRATCH",
+      "prior_use": "Gold37",
+      "prior_use_basis": [
+        "legacy37 scan-only manifest",
+        "gold_lines: shaked12/04_48340008 tier=codex_manual_multiview_count_backed frame=scan_raw n=3",
+        "human_bend_lines_v1 dca5c44759273daaaa70a442",
+        "email: email:19f6b29088e95b29",
+        "local hash match"
+      ],
+      "quality_flags": []
+    },
+    {
+      "scan_id": "sc_1aeb5ee39ef0",
+      "part_id": "48412000",
+      "family": "48412000",
+      "stage": "FULL_PRESUMED_NO_STAGE_HINT",
+      "staged": false,
+      "path": "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/incoming/2026-08-30_shaked_daily_scans/source_download/48412000_B.ply",
+      "format": "ply",
+      "sha256": "1aeb5ee39ef0083206c5287b57cb8b3e7a69d3dc5e4b724c7530999778a94aad",
+      "mesh_header": {
+        "vertices": 156963,
+        "faces": 313537
+      },
+      "lines_dir": "",
+      "prep_dir": "",
+      "lines_prep_ref": null,
+      "n_lines": 1,
+      "has_step": false,
+      "cad_bend_lines": -1,
+      "cad_bend_lines_source": null,
+      "current_truth": "GOLD_LINES_AI_LEGACY: 1 lines, ref T016, tier codex_manual_multiview_scan_only, frame source_scan_raw; label from scratch with heavy vision (no prep/lines yet), legacy count is a prior only",
+      "current_truth_tier": "GOLD_LINES_AI_LEGACY",
+      "work": "PREP_LINES_LABEL_FROM_SCRATCH",
+      "prior_use": "other-consumed",
+      "prior_use_basis": [
+        "TRAIN18 A30-001",
+        "gold_lines: T016 tier=codex_manual_multiview_scan_only frame=source_scan_raw n=1"
+      ],
+      "quality_flags": []
+    },
+    {
+      "scan_id": "sc_e104a6f42d31",
+      "part_id": "48565005",
+      "family": "48565005",
+      "stage": "FULL_PRESUMED_NO_STAGE_HINT",
+      "staged": false,
+      "path": "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/incoming/2026-08-30_shaked_daily_scans/source_download/48565005_A.ply",
+      "format": "ply",
+      "sha256": "e104a6f42d31dcfe2368ed14d2f90666cccd7194d024dd224c5fc01ea15c6424",
+      "mesh_header": {
+        "vertices": 143365,
+        "faces": 286550
+      },
+      "lines_dir": "",
+      "prep_dir": "",
+      "lines_prep_ref": null,
+      "n_lines": 2,
+      "has_step": false,
+      "cad_bend_lines": -1,
+      "cad_bend_lines_source": null,
+      "current_truth": "GOLD_LINES_AI_LEGACY: 2 lines, ref T017, tier codex_manual_multiview_scan_only, frame source_scan_raw; label from scratch with heavy vision (no prep/lines yet), legacy count is a prior only",
+      "current_truth_tier": "GOLD_LINES_AI_LEGACY",
+      "work": "PREP_LINES_LABEL_FROM_SCRATCH",
+      "prior_use": "other-consumed",
+      "prior_use_basis": [
+        "TRAIN18 A30-023",
+        "gold_lines: T017 tier=codex_manual_multiview_scan_only frame=source_scan_raw n=2"
+      ],
+      "quality_flags": []
+    },
+    {
+      "scan_id": "sc_49e5e7a1c973",
+      "part_id": "48565022",
+      "family": "48565022",
+      "stage": "FULL_PRESUMED_NO_STAGE_HINT",
+      "staged": false,
+      "path": "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/incoming/2026-08-30_shaked_daily_scans/source_download/48565022_A.ply",
+      "format": "ply",
+      "sha256": "49e5e7a1c973a94acca656b84f42c5f63b71d1c352237c4ec3bbae103d63525b",
+      "mesh_header": {
+        "vertices": 696296,
+        "faces": 1392343
+      },
+      "lines_dir": "",
+      "prep_dir": "",
+      "lines_prep_ref": null,
+      "n_lines": 1,
+      "has_step": false,
+      "cad_bend_lines": -1,
+      "cad_bend_lines_source": null,
+      "current_truth": "GOLD_LINES_AI_LEGACY: 1 lines, ref T018, tier codex_manual_multiview_scan_only, frame source_scan_raw; label from scratch with heavy vision (no prep/lines yet), legacy count is a prior only",
+      "current_truth_tier": "GOLD_LINES_AI_LEGACY",
+      "work": "PREP_LINES_LABEL_FROM_SCRATCH",
+      "prior_use": "other-consumed",
+      "prior_use_basis": [
+        "TRAIN18 A30-008",
+        "gold_lines: T018 tier=codex_manual_multiview_scan_only frame=source_scan_raw n=1"
+      ],
+      "quality_flags": []
+    },
+    {
+      "scan_id": "sc_be840127c462",
+      "part_id": "48932000",
+      "family": "48932000",
+      "stage": "FULL_PRESUMED_NO_STAGE_HINT",
+      "staged": false,
+      "path": "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/incoming/2026-08-30_shaked_daily_scans/source_download/48932000_B.ply",
+      "format": "ply",
+      "sha256": "be840127c462d152276aa14906a155106eaa51b6aab1ffef7b6cec426227938b",
+      "mesh_header": {
+        "vertices": 356158,
+        "faces": 712213
+      },
+      "lines_dir": "",
+      "prep_dir": "",
+      "lines_prep_ref": null,
+      "n_lines": 2,
+      "has_step": false,
+      "cad_bend_lines": -1,
+      "cad_bend_lines_source": null,
+      "current_truth": "GOLD_LINES_AI_LEGACY: 2 lines, ref T019, tier codex_manual_multiview_scan_only, frame source_scan_raw; label from scratch with heavy vision (no prep/lines yet), legacy count is a prior only",
+      "current_truth_tier": "GOLD_LINES_AI_LEGACY",
+      "work": "PREP_LINES_LABEL_FROM_SCRATCH",
+      "prior_use": "other-consumed",
+      "prior_use_basis": [
+        "TRAIN18 A30-019",
+        "gold_lines: T019 tier=codex_manual_multiview_scan_only frame=source_scan_raw n=2"
+      ],
+      "quality_flags": []
+    },
+    {
+      "scan_id": "sc_eb1eab182228",
+      "part_id": "48938000",
+      "family": "48938000",
+      "stage": "FULL_PRESUMED_NO_STAGE_HINT",
+      "staged": false,
+      "path": "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/incoming/2026-08-30_shaked_daily_scans/source_download/48938000_C.ply",
+      "format": "ply",
+      "sha256": "eb1eab18222879f6acb7343424a3f7a8c05a813fcb1955cf22ed8494c9c6136c",
+      "mesh_header": {
+        "vertices": 103771,
+        "faces": 207357
+      },
+      "lines_dir": "",
+      "prep_dir": "",
+      "lines_prep_ref": null,
+      "n_lines": 1,
+      "has_step": false,
+      "cad_bend_lines": -1,
+      "cad_bend_lines_source": null,
+      "current_truth": "GOLD_LINES_AI_LEGACY: 1 lines, ref T020, tier codex_manual_multiview_scan_only, frame source_scan_raw; label from scratch with heavy vision (no prep/lines yet), legacy count is a prior only",
+      "current_truth_tier": "GOLD_LINES_AI_LEGACY",
+      "work": "PREP_LINES_LABEL_FROM_SCRATCH",
+      "prior_use": "other-consumed",
+      "prior_use_basis": [
+        "TRAIN18 A30-027",
+        "gold_lines: T020 tier=codex_manual_multiview_scan_only frame=source_scan_raw n=1"
+      ],
+      "quality_flags": []
+    },
+    {
+      "scan_id": "sc_b92f211e6ec0",
+      "part_id": "49162000",
+      "family": "49162000",
+      "stage": "FULL_PRESUMED_NO_STAGE_HINT",
+      "staged": false,
+      "path": "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/incoming/2026-08-30_shaked_daily_scans/source_download/49162000_A.ply",
+      "format": "ply",
+      "sha256": "b92f211e6ec0b93fe2f5756861de9bb98f2c15779ce7de3afcb2e8db98958758",
+      "mesh_header": {
+        "vertices": 81303,
+        "faces": 162562
+      },
+      "lines_dir": "",
+      "prep_dir": "",
+      "lines_prep_ref": null,
+      "n_lines": 2,
+      "has_step": false,
+      "cad_bend_lines": -1,
+      "cad_bend_lines_source": null,
+      "current_truth": "GOLD_LINES_AI_LEGACY: 2 lines, ref T022, tier codex_manual_multiview_scan_only, frame source_scan_raw; label from scratch with heavy vision (no prep/lines yet), legacy count is a prior only",
+      "current_truth_tier": "GOLD_LINES_AI_LEGACY",
+      "work": "PREP_LINES_LABEL_FROM_SCRATCH",
+      "prior_use": "other-consumed",
+      "prior_use_basis": [
+        "TRAIN18 A30-018",
+        "gold_lines: T022 tier=codex_manual_multiview_scan_only frame=source_scan_raw n=2"
+      ],
+      "quality_flags": []
+    },
+    {
+      "scan_id": "sc_469febe1cd7d",
+      "part_id": "49163000",
+      "family": "49163000",
+      "stage": "FULL_PRESUMED_NO_STAGE_HINT",
+      "staged": false,
+      "path": "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/incoming/2026-08-30_shaked_daily_scans/source_download/49163000_A.ply",
+      "format": "ply",
+      "sha256": "469febe1cd7df83cfd469d0dc5e6f23eb6a3fd9c465cf20e54258c73a2d71138",
+      "mesh_header": {
+        "vertices": 141625,
+        "faces": 283123
+      },
+      "lines_dir": "",
+      "prep_dir": "",
+      "lines_prep_ref": null,
+      "n_lines": 2,
+      "has_step": false,
+      "cad_bend_lines": -1,
+      "cad_bend_lines_source": null,
+      "current_truth": "GOLD_LINES_AI_LEGACY: 2 lines, ref T023, tier codex_manual_multiview_scan_only, frame source_scan_raw; label from scratch with heavy vision (no prep/lines yet), legacy count is a prior only",
+      "current_truth_tier": "GOLD_LINES_AI_LEGACY",
+      "work": "PREP_LINES_LABEL_FROM_SCRATCH",
+      "prior_use": "other-consumed",
+      "prior_use_basis": [
+        "TRAIN18 A30-007",
+        "gold_lines: T023 tier=codex_manual_multiview_scan_only frame=source_scan_raw n=2"
+      ],
+      "quality_flags": []
+    },
+    {
+      "scan_id": "sc_711eb2a389a4",
+      "part_id": "49188000",
+      "family": "49188000",
+      "stage": "FULL_PRESUMED_NO_STAGE_HINT",
+      "staged": false,
+      "path": "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/incoming/2026-08-30_shaked_daily_scans/source_download/49188000_A.ply",
+      "format": "ply",
+      "sha256": "711eb2a389a437c201ef75b61bae7d13b550aba5076f8507ab8c7a7fd69133c4",
+      "mesh_header": {
+        "vertices": 218449,
+        "faces": 436847
+      },
+      "lines_dir": "",
+      "prep_dir": "",
+      "lines_prep_ref": null,
+      "n_lines": 2,
+      "has_step": false,
+      "cad_bend_lines": -1,
+      "cad_bend_lines_source": null,
+      "current_truth": "GOLD_LINES_AI_LEGACY: 2 lines, ref T024, tier codex_manual_multiview_scan_only, frame source_scan_raw; label from scratch with heavy vision (no prep/lines yet), legacy count is a prior only",
+      "current_truth_tier": "GOLD_LINES_AI_LEGACY",
+      "work": "PREP_LINES_LABEL_FROM_SCRATCH",
+      "prior_use": "other-consumed",
+      "prior_use_basis": [
+        "TRAIN18 A30-014",
+        "gold_lines: T024 tier=codex_manual_multiview_scan_only frame=source_scan_raw n=2"
+      ],
+      "quality_flags": []
+    },
+    {
+      "scan_id": "sc_28a25c37a928",
+      "part_id": "49191023",
+      "family": "49191023",
+      "stage": "FULL_PRESUMED_NO_STAGE_HINT",
+      "staged": false,
+      "path": "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/incoming/2026-07-16-shaked-count-backed-ply/49191023_03.ply",
+      "format": "ply",
+      "sha256": "28a25c37a928f36856d281ecef0d9653331ce961cb2abe548ad3eb566950ed6b",
+      "mesh_header": {
+        "vertices": 421557,
+        "faces": 841360
+      },
+      "lines_dir": "",
+      "prep_dir": "",
+      "lines_prep_ref": null,
+      "n_lines": 8,
+      "has_step": false,
+      "cad_bend_lines": -1,
+      "cad_bend_lines_source": null,
+      "current_truth": "GOLD_LINES_AI_LEGACY: 8 lines, ref shaked12/01_49191023, tier codex_manual_multiview_count_backed, frame scan_raw, Codex import in human_bend_lines_v1/33a65a2883386c622a4c3ded.json (read-only, never modify); label from scratch with heavy vision (no prep/lines yet), legacy count is a prior only",
+      "current_truth_tier": "GOLD_LINES_AI_LEGACY",
+      "work": "PREP_LINES_LABEL_FROM_SCRATCH",
+      "prior_use": "Gold37",
+      "prior_use_basis": [
+        "legacy37 scan-only manifest",
+        "gold_lines: shaked12/01_49191023 tier=codex_manual_multiview_count_backed frame=scan_raw n=8",
+        "human_bend_lines_v1 33a65a2883386c622a4c3ded"
+      ],
+      "quality_flags": []
+    },
+    {
+      "scan_id": "sc_e218b16ed070",
+      "part_id": "49191030",
+      "family": "49191030",
+      "stage": "FULL_PRESUMED_NO_STAGE_HINT",
+      "staged": false,
+      "path": "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/incoming/2026-07-16-shaked-count-backed-ply/49191030_01.ply",
+      "format": "ply",
+      "sha256": "e218b16ed0701591db7f96bf206fc7c6012692a76609e12c05a79e132f5aa1e3",
+      "mesh_header": {
+        "vertices": 289578,
+        "faces": 576481
+      },
+      "lines_dir": "",
+      "prep_dir": "",
+      "lines_prep_ref": null,
+      "n_lines": 7,
+      "has_step": false,
+      "cad_bend_lines": -1,
+      "cad_bend_lines_source": null,
+      "current_truth": "GOLD_LINES_AI_LEGACY: 7 lines, ref shaked12/12_49191030, tier codex_manual_multiview_count_backed, frame scan_raw, Codex import in human_bend_lines_v1/45664983bda4656a9bde6e68.json (read-only, never modify); label from scratch with heavy vision (no prep/lines yet), legacy count is a prior only",
+      "current_truth_tier": "GOLD_LINES_AI_LEGACY",
+      "work": "PREP_LINES_LABEL_FROM_SCRATCH",
+      "prior_use": "Gold37",
+      "prior_use_basis": [
+        "legacy37 scan-only manifest",
+        "gold_lines: shaked12/12_49191030 tier=codex_manual_multiview_count_backed frame=scan_raw n=7",
+        "human_bend_lines_v1 45664983bda4656a9bde6e68"
+      ],
+      "quality_flags": []
+    },
+    {
+      "scan_id": "sc_891a8e4a2ee1",
+      "part_id": "49191032",
+      "family": "49191032",
+      "stage": "FULL_PRESUMED_NO_STAGE_HINT",
+      "staged": false,
+      "path": "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/incoming/2026-07-16-shaked-count-backed-ply/49191032_00.ply",
+      "format": "ply",
+      "sha256": "891a8e4a2ee1adcfe40e5ef46a722cdb3196fb4a65b563cde1513dbd926ca9cf",
+      "mesh_header": {
+        "vertices": 83362,
+        "faces": 166517
+      },
+      "lines_dir": "",
+      "prep_dir": "",
+      "lines_prep_ref": null,
+      "n_lines": 3,
+      "has_step": false,
+      "cad_bend_lines": -1,
+      "cad_bend_lines_source": null,
+      "current_truth": "GOLD_LINES_AI_LEGACY: 3 lines, ref shaked12/05_49191032, tier codex_manual_multiview_count_backed, frame scan_raw, Codex import in human_bend_lines_v1/ec809c82e939596151ed78e1.json (read-only, never modify); label from scratch with heavy vision (no prep/lines yet), legacy count is a prior only",
+      "current_truth_tier": "GOLD_LINES_AI_LEGACY",
+      "work": "PREP_LINES_LABEL_FROM_SCRATCH",
+      "prior_use": "Gold37",
+      "prior_use_basis": [
+        "legacy37 scan-only manifest",
+        "gold_lines: shaked12/05_49191032 tier=codex_manual_multiview_count_backed frame=scan_raw n=3",
+        "human_bend_lines_v1 ec809c82e939596151ed78e1",
+        "email: email:19f6b26144963286",
+        "local hash match"
+      ],
+      "quality_flags": []
+    },
+    {
+      "scan_id": "sc_9b38b1167834",
+      "part_id": "49191037",
+      "family": "49191037",
+      "stage": "FULL_PRESUMED_NO_STAGE_HINT",
+      "staged": false,
+      "path": "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/incoming/2026-07-16-shaked-count-backed-ply/49191037_01.ply",
+      "format": "ply",
+      "sha256": "9b38b1167834c37e3af11cbbe08b18f9d8b584bcb478958cb0c7153cc739dadf",
+      "mesh_header": {
+        "vertices": 106896,
+        "faces": 213333
+      },
+      "lines_dir": "",
+      "prep_dir": "",
+      "lines_prep_ref": null,
+      "n_lines": 5,
+      "has_step": false,
+      "cad_bend_lines": -1,
+      "cad_bend_lines_source": null,
+      "current_truth": "GOLD_LINES_AI_LEGACY: 5 lines, ref shaked12/09_49191037, tier codex_manual_multiview_count_backed, frame scan_raw, Codex import in human_bend_lines_v1/5596f67aba1c536f611da650.json (read-only, never modify); label from scratch with heavy vision (no prep/lines yet), legacy count is a prior only",
+      "current_truth_tier": "GOLD_LINES_AI_LEGACY",
+      "work": "PREP_LINES_LABEL_FROM_SCRATCH",
+      "prior_use": "Gold37",
+      "prior_use_basis": [
+        "legacy37 scan-only manifest",
+        "gold_lines: shaked12/09_49191037 tier=codex_manual_multiview_count_backed frame=scan_raw n=5",
+        "human_bend_lines_v1 5596f67aba1c536f611da650"
+      ],
+      "quality_flags": []
+    },
+    {
+      "scan_id": "sc_d741e1d515bf",
+      "part_id": "49191038",
+      "family": "49191038",
+      "stage": "FULL_PRESUMED_NO_STAGE_HINT",
+      "staged": false,
+      "path": "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/incoming/2026-07-16-shaked-count-backed-ply/49191038_02.ply",
+      "format": "ply",
+      "sha256": "d741e1d515bfcf04729fe361ac6fd6127b9f8490f95214a7a23ed0ebdef3c174",
+      "mesh_header": {
+        "vertices": 235444,
+        "faces": 469732
+      },
+      "lines_dir": "",
+      "prep_dir": "",
+      "lines_prep_ref": null,
+      "n_lines": 8,
+      "has_step": false,
+      "cad_bend_lines": -1,
+      "cad_bend_lines_source": null,
+      "current_truth": "GOLD_LINES_AI_LEGACY: 8 lines, ref shaked12/07_49191038, tier codex_manual_multiview_count_backed, frame scan_raw, Codex import in human_bend_lines_v1/a872771cbaf9236ce1f12cd3.json (read-only, never modify); label from scratch with heavy vision (no prep/lines yet), legacy count is a prior only",
+      "current_truth_tier": "GOLD_LINES_AI_LEGACY",
+      "work": "PREP_LINES_LABEL_FROM_SCRATCH",
+      "prior_use": "Gold37",
+      "prior_use_basis": [
+        "legacy37 scan-only manifest",
+        "gold_lines: shaked12/07_49191038 tier=codex_manual_multiview_count_backed frame=scan_raw n=8",
+        "human_bend_lines_v1 a872771cbaf9236ce1f12cd3"
+      ],
+      "quality_flags": []
+    },
+    {
+      "scan_id": "sc_24c57f2660b3",
+      "part_id": "49191054",
+      "family": "49191054",
+      "stage": "FULL_PRESUMED_NO_STAGE_HINT",
+      "staged": false,
+      "path": "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/incoming/2026-07-16-shaked-count-backed-ply/49191054_02.ply",
+      "format": "ply",
+      "sha256": "24c57f2660b3016486b985e16c413f5b6e64559cb4e06c2895b7e36fd5e59296",
+      "mesh_header": {
+        "vertices": 127492,
+        "faces": 254385
+      },
+      "lines_dir": "",
+      "prep_dir": "",
+      "lines_prep_ref": null,
+      "n_lines": 6,
+      "has_step": false,
+      "cad_bend_lines": -1,
+      "cad_bend_lines_source": null,
+      "current_truth": "GOLD_LINES_AI_LEGACY: 6 lines, ref shaked12/03_49191054, tier codex_manual_multiview_count_backed, frame scan_raw, Codex import in human_bend_lines_v1/b3df772c6af0749918ddbcfa.json (read-only, never modify); label from scratch with heavy vision (no prep/lines yet), legacy count is a prior only",
+      "current_truth_tier": "GOLD_LINES_AI_LEGACY",
+      "work": "PREP_LINES_LABEL_FROM_SCRATCH",
+      "prior_use": "Gold37",
+      "prior_use_basis": [
+        "legacy37 scan-only manifest",
+        "gold_lines: shaked12/03_49191054 tier=codex_manual_multiview_count_backed frame=scan_raw n=6",
+        "human_bend_lines_v1 b3df772c6af0749918ddbcfa"
+      ],
+      "quality_flags": []
+    },
+    {
+      "scan_id": "sc_e0285cea8c56",
+      "part_id": "49191061",
+      "family": "49191061",
+      "stage": "FULL_PRESUMED_NO_STAGE_HINT",
+      "staged": false,
+      "path": "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/incoming/2026-07-16-shaked-count-backed-ply/49191061_00.ply",
+      "format": "ply",
+      "sha256": "e0285cea8c56602614f276afb21bfb5b5d2b02726c065732d0d9ee09fe9e6d7f",
+      "mesh_header": {
+        "vertices": 349502,
+        "faces": 698362
+      },
+      "lines_dir": "",
+      "prep_dir": "",
+      "lines_prep_ref": null,
+      "n_lines": 5,
+      "has_step": false,
+      "cad_bend_lines": -1,
+      "cad_bend_lines_source": null,
+      "current_truth": "GOLD_LINES_AI_LEGACY: 5 lines, ref shaked12/06_49191061, tier codex_manual_multiview_count_backed, frame scan_raw, Codex import in human_bend_lines_v1/2c641c875ae6c7265e22cac8.json (read-only, never modify); label from scratch with heavy vision (no prep/lines yet), legacy count is a prior only",
+      "current_truth_tier": "GOLD_LINES_AI_LEGACY",
+      "work": "PREP_LINES_LABEL_FROM_SCRATCH",
+      "prior_use": "Gold37",
+      "prior_use_basis": [
+        "legacy37 scan-only manifest",
+        "gold_lines: shaked12/06_49191061 tier=codex_manual_multiview_count_backed frame=scan_raw n=5",
+        "human_bend_lines_v1 2c641c875ae6c7265e22cac8"
+      ],
+      "quality_flags": []
+    },
+    {
+      "scan_id": "sc_203b95d7a753",
+      "part_id": "49201000",
+      "family": "49201000",
+      "stage": "FULL_PRESUMED_NO_STAGE_HINT",
+      "staged": false,
+      "path": "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/incoming/2026-08-30_shaked_daily_scans/source_download/49201000_C.ply",
+      "format": "ply",
+      "sha256": "203b95d7a75370e235abd70f09e1509e600ae5db90c9bd6db9f13e41d3a707dc",
+      "mesh_header": {
+        "vertices": 1981703,
+        "faces": 3962601
+      },
+      "lines_dir": "",
+      "prep_dir": "",
+      "lines_prep_ref": null,
+      "n_lines": 2,
+      "has_step": true,
+      "cad_bend_lines": 2,
+      "cad_bend_lines_source": "broad_baseline/cad_crosscheck.json",
+      "current_truth": "GOLD_LINES_AI_LEGACY: 2 lines, ref T025, tier codex_manual_multiview_scan_only, frame source_scan_raw; label from scratch with heavy vision (no prep/lines yet), legacy count is a prior only",
+      "current_truth_tier": "GOLD_LINES_AI_LEGACY",
+      "work": "PREP_LINES_LABEL_FROM_SCRATCH",
+      "prior_use": "other-consumed",
+      "prior_use_basis": [
+        "TRAIN18 A30-004",
+        "gold_lines: T025 tier=codex_manual_multiview_scan_only frame=source_scan_raw n=2"
+      ],
+      "quality_flags": []
+    },
+    {
+      "scan_id": "sc_1d601c46ff9c",
+      "part_id": "49227000",
+      "family": "49227000",
+      "stage": "FULL_PRESUMED_NO_STAGE_HINT",
+      "staged": false,
+      "path": "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/incoming/2026-08-30_shaked_daily_scans/source_download/49227000_A.ply",
+      "format": "ply",
+      "sha256": "1d601c46ff9c815afbdaf8f5ad596041fd4eb573a1152337266d0b1c9900a432",
+      "mesh_header": {
+        "vertices": 39882,
+        "faces": 79706
+      },
+      "lines_dir": "",
+      "prep_dir": "",
+      "lines_prep_ref": null,
+      "n_lines": 2,
+      "has_step": false,
+      "cad_bend_lines": -1,
+      "cad_bend_lines_source": null,
+      "current_truth": "GOLD_LINES_AI_LEGACY: 2 lines, ref T027, tier codex_manual_multiview_scan_only, frame source_scan_raw; label from scratch with heavy vision (no prep/lines yet), legacy count is a prior only",
+      "current_truth_tier": "GOLD_LINES_AI_LEGACY",
+      "work": "PREP_LINES_LABEL_FROM_SCRATCH",
+      "prior_use": "other-consumed",
+      "prior_use_basis": [
+        "TRAIN18 A30-003",
+        "gold_lines: T027 tier=codex_manual_multiview_scan_only frame=source_scan_raw n=2"
+      ],
+      "quality_flags": []
+    },
+    {
+      "scan_id": "sc_e8c946b837aa",
+      "part_id": "49293001",
+      "family": "49293001",
+      "stage": "FULL_PRESUMED_NO_STAGE_HINT",
+      "staged": false,
+      "path": "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/incoming/2026-08-30_shaked_daily_scans/source_download/49293001_B.ply",
+      "format": "ply",
+      "sha256": "e8c946b837aa120ea613052b1c08b5db743a1dde3f5a2f1978073b1179da8561",
+      "mesh_header": {
+        "vertices": 418855,
+        "faces": 837433
+      },
+      "lines_dir": "",
+      "prep_dir": "",
+      "lines_prep_ref": null,
+      "n_lines": 2,
+      "has_step": false,
+      "cad_bend_lines": -1,
+      "cad_bend_lines_source": null,
+      "current_truth": "GOLD_LINES_AI_LEGACY: 2 lines, ref T028, tier codex_manual_multiview_scan_only, frame source_scan_raw; label from scratch with heavy vision (no prep/lines yet), legacy count is a prior only",
+      "current_truth_tier": "GOLD_LINES_AI_LEGACY",
+      "work": "PREP_LINES_LABEL_FROM_SCRATCH",
+      "prior_use": "other-consumed",
+      "prior_use_basis": [
+        "TRAIN18 A30-026",
+        "gold_lines: T028 tier=codex_manual_multiview_scan_only frame=source_scan_raw n=2"
+      ],
+      "quality_flags": []
+    },
+    {
+      "scan_id": "sc_d27acfe5468d",
+      "part_id": "50545000",
+      "family": "50545000",
+      "stage": "DEFECTIVE_X",
+      "staged": false,
+      "path": "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/incoming/2026-07-29_shaked_defective_good_pairs/50545000_05/scans/50545000_05_X.ply",
+      "format": "ply",
+      "sha256": "d27acfe5468d11b3d857d78b1093285ee97d53099da3add194c33080fdc666e7",
+      "mesh_header": {
+        "vertices": 225195,
+        "faces": 449577
+      },
+      "lines_dir": "",
+      "prep_dir": "",
+      "lines_prep_ref": null,
+      "n_lines": 5,
+      "has_step": false,
+      "cad_bend_lines": -1,
+      "cad_bend_lines_source": null,
+      "current_truth": "GOLD_LINES_AI_LEGACY: 5 lines, ref shaked_xv/C07, tier codex_manual_multiview_drawing_backed, frame scan_raw, Codex import in human_bend_lines_v1/8c0286ea2dcade8ae4618cc4.json (read-only, never modify); label from scratch with heavy vision (no prep/lines yet), legacy count is a prior only",
+      "current_truth_tier": "GOLD_LINES_AI_LEGACY",
+      "work": "PREP_LINES_LABEL_FROM_SCRATCH",
+      "prior_use": "Gold37",
+      "prior_use_basis": [
+        "legacy37 scan-only manifest",
+        "gold_lines: shaked_xv/C07 tier=codex_manual_multiview_drawing_backed frame=scan_raw n=5",
+        "human_bend_lines_v1 8c0286ea2dcade8ae4618cc4"
+      ],
+      "quality_flags": []
+    },
+    {
+      "scan_id": "sc_2c807204c472",
+      "part_id": "50545000",
+      "family": "50545000",
+      "stage": "GOOD_V",
+      "staged": false,
+      "path": "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/incoming/2026-07-29_shaked_defective_good_pairs/50545000_05/scans/50545000_05_V.ply",
+      "format": "ply",
+      "sha256": "2c807204c4726280345b99555644bee994e922839b7d796b133103fa47329770",
+      "mesh_header": {
+        "vertices": 207958,
+        "faces": 415110
+      },
+      "lines_dir": "",
+      "prep_dir": "",
+      "lines_prep_ref": null,
+      "n_lines": 5,
+      "has_step": false,
+      "cad_bend_lines": -1,
+      "cad_bend_lines_source": null,
+      "current_truth": "GOLD_LINES_AI_LEGACY: 5 lines, ref shaked_xv/C08, tier codex_manual_multiview_drawing_backed, frame scan_raw, Codex import in human_bend_lines_v1/3f58285cd2034ea3a5c61ec5.json (read-only, never modify); label from scratch with heavy vision (no prep/lines yet), legacy count is a prior only",
+      "current_truth_tier": "GOLD_LINES_AI_LEGACY",
+      "work": "PREP_LINES_LABEL_FROM_SCRATCH",
+      "prior_use": "Gold37",
+      "prior_use_basis": [
+        "legacy37 scan-only manifest",
+        "gold_lines: shaked_xv/C08 tier=codex_manual_multiview_drawing_backed frame=scan_raw n=5",
+        "human_bend_lines_v1 3f58285cd2034ea3a5c61ec5"
+      ],
+      "quality_flags": []
+    },
+    {
+      "scan_id": "sc_baa71ce6bc5d",
+      "part_id": "50546000",
+      "family": "50546000",
+      "stage": "DEFECTIVE_X",
+      "staged": false,
+      "path": "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/incoming/2026-07-29_shaked_defective_good_pairs/50546000_05/scans/50546000_05_X.ply",
+      "format": "ply",
+      "sha256": "baa71ce6bc5dc6844bdde2059927c444e601c2d1cc35f792ac680811a1483c63",
+      "mesh_header": {
+        "vertices": 172191,
+        "faces": 343782
+      },
+      "lines_dir": "",
+      "prep_dir": "",
+      "lines_prep_ref": null,
+      "n_lines": 3,
+      "has_step": false,
+      "cad_bend_lines": -1,
+      "cad_bend_lines_source": null,
+      "current_truth": "GOLD_LINES_AI_LEGACY: 3 lines, ref shaked_xv/C09, tier codex_manual_multiview_drawing_backed, frame scan_raw, Codex import in human_bend_lines_v1/eae2b422490a8bbca1a9dd75.json (read-only, never modify); label from scratch with heavy vision (no prep/lines yet), legacy count is a prior only",
+      "current_truth_tier": "GOLD_LINES_AI_LEGACY",
+      "work": "PREP_LINES_LABEL_FROM_SCRATCH",
+      "prior_use": "Gold37",
+      "prior_use_basis": [
+        "legacy37 scan-only manifest",
+        "gold_lines: shaked_xv/C09 tier=codex_manual_multiview_drawing_backed frame=scan_raw n=3",
+        "human_bend_lines_v1 eae2b422490a8bbca1a9dd75"
+      ],
+      "quality_flags": []
+    },
+    {
+      "scan_id": "sc_f4bc782eff8b",
+      "part_id": "50546000",
+      "family": "50546000",
+      "stage": "GOOD_V",
+      "staged": false,
+      "path": "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/incoming/2026-07-29_shaked_defective_good_pairs/50546000_05/scans/50546000_05_V.ply",
+      "format": "ply",
+      "sha256": "f4bc782eff8befa270b31b2fd5ac8c30a7a646e2b5d7461019d93f90385c374a",
+      "mesh_header": {
+        "vertices": 159166,
+        "faces": 317642
+      },
+      "lines_dir": "",
+      "prep_dir": "",
+      "lines_prep_ref": null,
+      "n_lines": 3,
+      "has_step": false,
+      "cad_bend_lines": -1,
+      "cad_bend_lines_source": null,
+      "current_truth": "GOLD_LINES_AI_LEGACY: 3 lines, ref shaked_xv/C10, tier codex_manual_multiview_drawing_backed, frame scan_raw, Codex import in human_bend_lines_v1/9c4cf0ddcf841d09dcbf03b4.json (read-only, never modify); label from scratch with heavy vision (no prep/lines yet), legacy count is a prior only",
+      "current_truth_tier": "GOLD_LINES_AI_LEGACY",
+      "work": "PREP_LINES_LABEL_FROM_SCRATCH",
+      "prior_use": "Gold37",
+      "prior_use_basis": [
+        "legacy37 scan-only manifest",
+        "gold_lines: shaked_xv/C10 tier=codex_manual_multiview_drawing_backed frame=scan_raw n=3",
+        "human_bend_lines_v1 9c4cf0ddcf841d09dcbf03b4"
+      ],
+      "quality_flags": []
+    },
+    {
+      "scan_id": "sc_d891ea8c5891",
+      "part_id": "50556000",
+      "family": "50556000",
+      "stage": "DEFECTIVE_X",
+      "staged": false,
+      "path": "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/incoming/2026-07-29_shaked_defective_good_pairs/50556000_04/scans/50556000_04_X.ply",
+      "format": "ply",
+      "sha256": "d891ea8c589166abc07cb3ec8c02d76030d50fd3aaaf27b59a054678898358ff",
+      "mesh_header": {
+        "vertices": 63530,
+        "faces": 126713
+      },
+      "lines_dir": "",
+      "prep_dir": "",
+      "lines_prep_ref": null,
+      "n_lines": 1,
+      "has_step": false,
+      "cad_bend_lines": -1,
+      "cad_bend_lines_source": null,
+      "current_truth": "GOLD_LINES_AI_LEGACY: 1 lines, ref shaked_xv/C11, tier codex_manual_multiview_drawing_backed, frame scan_raw, Codex import in human_bend_lines_v1/a240ebc3cc5a3337a4123ec3.json (read-only, never modify); label from scratch with heavy vision (no prep/lines yet), legacy count is a prior only",
+      "current_truth_tier": "GOLD_LINES_AI_LEGACY",
+      "work": "PREP_LINES_LABEL_FROM_SCRATCH",
+      "prior_use": "Gold37",
+      "prior_use_basis": [
+        "legacy37 scan-only manifest",
+        "gold_lines: shaked_xv/C11 tier=codex_manual_multiview_drawing_backed frame=scan_raw n=1",
+        "human_bend_lines_v1 a240ebc3cc5a3337a4123ec3"
+      ],
+      "quality_flags": []
+    },
+    {
+      "scan_id": "sc_c1a1d6de4681",
+      "part_id": "50556000",
+      "family": "50556000",
+      "stage": "GOOD_V",
+      "staged": false,
+      "path": "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/incoming/2026-07-29_shaked_defective_good_pairs/50556000_04/scans/50556000_04_V.ply",
+      "format": "ply",
+      "sha256": "c1a1d6de46810d57452d09c80ea6b658be53eefeb8371fe5f57c327a1b276242",
+      "mesh_header": {
+        "vertices": 66060,
+        "faces": 131699
+      },
+      "lines_dir": "",
+      "prep_dir": "",
+      "lines_prep_ref": null,
+      "n_lines": 1,
+      "has_step": false,
+      "cad_bend_lines": -1,
+      "cad_bend_lines_source": null,
+      "current_truth": "GOLD_LINES_AI_LEGACY: 1 lines, ref shaked_xv/C12, tier codex_manual_multiview_drawing_backed, frame scan_raw, Codex import in human_bend_lines_v1/16e06b690fd4c78294277297.json (read-only, never modify); label from scratch with heavy vision (no prep/lines yet), legacy count is a prior only",
+      "current_truth_tier": "GOLD_LINES_AI_LEGACY",
+      "work": "PREP_LINES_LABEL_FROM_SCRATCH",
+      "prior_use": "Gold37",
+      "prior_use_basis": [
+        "legacy37 scan-only manifest",
+        "gold_lines: shaked_xv/C12 tier=codex_manual_multiview_drawing_backed frame=scan_raw n=1",
+        "human_bend_lines_v1 16e06b690fd4c78294277297"
+      ],
+      "quality_flags": []
+    },
+    {
+      "scan_id": "sc_9b930fe58a1b",
+      "part_id": "UNKNOWN:sc_9b930fe58a1b",
+      "family": "UNKNOWN:sc_9b930fe58a1b",
+      "stage": "FULL_PRESUMED_NO_STAGE_HINT",
+      "staged": false,
+      "path": "/Users/idantal/ShermanQC/FullProject/uploads/98072c85/scan.ply",
+      "format": "ply",
+      "sha256": "9b930fe58a1b73acfd3ab5018ac33aa7a755db6b378a7f83fb757b63f6bbe87f",
+      "mesh_header": {
+        "vertices": 20809,
+        "faces": 0
+      },
+      "lines_dir": "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/benchmark_v2/label_lines/sc_9b930fe58a1b",
+      "prep_dir": "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/benchmark_v2/label_prep/sc_9b930fe58a1b",
+      "lines_prep_ref": "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/benchmark_v2/label_prep/sc_9b930fe58a1b",
+      "n_lines": 2,
+      "has_step": false,
+      "cad_bend_lines": -1,
+      "cad_bend_lines_source": null,
+      "current_truth": "AI_GOLD_ACCEPTED: 2 lines, studio label /Users/idantal/ShermanQC/FullProject/data/bend_corpus/annotations/ai_bend_lines_v1/d7c45836673fe7a997185af1.json (lines from /Users/idantal/ShermanQC/FullProject/docs/production/runlog/benchmark_v2/label_lines/sc_9b930fe58a1b); vision re-audit required, not yet gold",
+      "current_truth_tier": "AI_GOLD_ACCEPTED",
+      "work": "REAUDIT_EXISTING_LINES",
+      "prior_use": "other-consumed",
+      "prior_use_basis": [
+        "legacy app/dev upload or fixture"
+      ],
+      "quality_flags": [
+        "legacy_upload_unknown_part",
+        "no_part_number"
+      ],
+      "note": "GOLD_SET_V1 reserve: unknown part number, no STEP; real capture (trimesh/legacy upload or source-assets part 1.ply), not a flagged CAD reference mesh or synthetic demo."
+    },
+    {
+      "scan_id": "sc_a5e534e6097c",
+      "part_id": "UNKNOWN:sc_a5e534e6097c",
+      "family": "UNKNOWN:sc_a5e534e6097c",
+      "stage": "FULL_PRESUMED_NO_STAGE_HINT",
+      "staged": false,
+      "path": "/Users/idantal/ShermanQC/FullProject/uploads/bend_10cdda62/scan.ply",
+      "format": "ply",
+      "sha256": "a5e534e6097cfa926632c761c762bf0828193ab77cc52b42c76fba0fbfacb2af",
+      "mesh_header": {
+        "vertices": 533161,
+        "faces": 0
+      },
+      "lines_dir": "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/benchmark_v2/label_lines_r3/sc_a5e534e6097c",
+      "prep_dir": "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/benchmark_v2/label_prep/sc_a5e534e6097c",
+      "lines_prep_ref": "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/benchmark_v2/label_prep/sc_a5e534e6097c",
+      "n_lines": 5,
+      "has_step": false,
+      "cad_bend_lines": -1,
+      "cad_bend_lines_source": null,
+      "current_truth": "AI_GOLD_ACCEPTED: 5 lines, studio label /Users/idantal/ShermanQC/FullProject/data/bend_corpus/annotations/ai_bend_lines_v1/3b3f853405102c379a2672cf.json (lines from /Users/idantal/ShermanQC/FullProject/docs/production/runlog/benchmark_v2/label_lines_r3/sc_a5e534e6097c); vision re-audit required, not yet gold",
+      "current_truth_tier": "AI_GOLD_ACCEPTED",
+      "work": "REAUDIT_EXISTING_LINES",
+      "prior_use": "other-consumed",
+      "prior_use_basis": [
+        "legacy app/dev upload or fixture"
+      ],
+      "quality_flags": [
+        "legacy_upload_unknown_part",
+        "no_part_number"
+      ],
+      "note": "GOLD_SET_V1 reserve: unknown part number, no STEP; real capture (trimesh/legacy upload or source-assets part 1.ply), not a flagged CAD reference mesh or synthetic demo."
+    },
+    {
+      "scan_id": "sc_abe194f04ade",
+      "part_id": "UNKNOWN:sc_abe194f04ade",
+      "family": "UNKNOWN:sc_abe194f04ade",
+      "stage": "FULL_PRESUMED_NO_STAGE_HINT",
+      "staged": false,
+      "path": "/Users/idantal/ShermanQC/source-assets/02_CAD_QC_3D/part 1.ply",
+      "format": "ply",
+      "sha256": "abe194f04adedadc9d9a4c12a1d37a1f79b7db1c840a23e3a51409c015a8212b",
+      "mesh_header": {
+        "vertices": 385851,
+        "faces": 768676
+      },
+      "lines_dir": "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/benchmark_v2/label_lines/sc_abe194f04ade",
+      "prep_dir": "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/benchmark_v2/label_prep/sc_abe194f04ade",
+      "lines_prep_ref": "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/benchmark_v2/label_prep/sc_abe194f04ade",
+      "n_lines": 2,
+      "has_step": false,
+      "cad_bend_lines": -1,
+      "cad_bend_lines_source": null,
+      "current_truth": "AI_GOLD_ACCEPTED: 2 lines, studio label /Users/idantal/ShermanQC/FullProject/data/bend_corpus/annotations/ai_bend_lines_v1/89521be3f0aa92b53ff65fe0.json (lines from /Users/idantal/ShermanQC/FullProject/docs/production/runlog/benchmark_v2/label_lines/sc_abe194f04ade); vision re-audit required, not yet gold",
+      "current_truth_tier": "AI_GOLD_ACCEPTED",
+      "work": "REAUDIT_EXISTING_LINES",
+      "prior_use": "unknown",
+      "prior_use_basis": [
+        "no SKU/provenance (generic name); not matched to any manifest"
+      ],
+      "quality_flags": [
+        "no_part_number"
+      ],
+      "note": "GOLD_SET_V1 reserve: unknown part number, no STEP; real capture (trimesh/legacy upload or source-assets part 1.ply), not a flagged CAD reference mesh or synthetic demo."
+    },
+    {
+      "scan_id": "sc_f362d8de507c",
+      "part_id": "UNKNOWN:sc_f362d8de507c",
+      "family": "UNKNOWN:sc_f362d8de507c",
+      "stage": "FULL_PRESUMED_NO_STAGE_HINT",
+      "staged": false,
+      "path": "/Users/idantal/ShermanQC/FullProject/uploads/c2a47c72/scan.ply",
+      "format": "ply",
+      "sha256": "f362d8de507cce1b8c0c7993a60c5274b332dcb8cfd9db791886684f0d36eae5",
+      "mesh_header": {
+        "vertices": 559376,
+        "faces": 0
+      },
+      "lines_dir": "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/benchmark_v2/label_lines_r3/sc_f362d8de507c",
+      "prep_dir": "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/benchmark_v2/label_prep/sc_f362d8de507c",
+      "lines_prep_ref": "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/benchmark_v2/label_prep/sc_f362d8de507c",
+      "n_lines": 5,
+      "has_step": false,
+      "cad_bend_lines": -1,
+      "cad_bend_lines_source": null,
+      "current_truth": "AI_GOLD_ACCEPTED: 5 lines, studio label /Users/idantal/ShermanQC/FullProject/data/bend_corpus/annotations/ai_bend_lines_v1/f3b6c986ccb0556ebb674843.json (lines from /Users/idantal/ShermanQC/FullProject/docs/production/runlog/benchmark_v2/label_lines_r3/sc_f362d8de507c); vision re-audit required, not yet gold",
+      "current_truth_tier": "AI_GOLD_ACCEPTED",
+      "work": "REAUDIT_EXISTING_LINES",
+      "prior_use": "other-consumed",
+      "prior_use_basis": [
+        "legacy app/dev upload or fixture"
+      ],
+      "quality_flags": [
+        "legacy_upload_unknown_part",
+        "no_part_number"
+      ],
+      "note": "GOLD_SET_V1 reserve: unknown part number, no STEP; real capture (trimesh/legacy upload or source-assets part 1.ply), not a flagged CAD reference mesh or synthetic demo."
+    }
+  ],
+  "skipped": [
+    {
+      "scan_id": "sc_d45186653eed",
+      "reason": "STL original; same-mesh twin of GOLD_SET_V1 PLY sc_3c93a0bf6f97 (twin_vertex_check: 251501 verts, 0.0 mm)."
+    },
+    {
+      "scan_id": "sc_8dfdab44605d",
+      "reason": "STL original; same-mesh twin of GOLD_SET_V1 PLY sc_1a5377ac7c15 (89693 verts, 0.0 mm)."
+    },
+    {
+      "scan_id": "sc_927a2fa13067",
+      "reason": "STL original; same-mesh twin of GOLD_SET_V1 PLY sc_43a32fe3b4a3 (87628 verts, 0.0 mm)."
+    },
+    {
+      "scan_id": "sc_9b9fd762f361",
+      "reason": "STL original; same-mesh twin of GOLD_SET_V1 PLY sc_db487cbd29a7 (131655 verts, 0.0 mm)."
+    },
+    {
+      "scan_id": "sc_a0305a6cf787",
+      "reason": "STL original; same-mesh twin of GOLD_SET_V1 PLY sc_cebb070285b5 (215709 verts, 0.0 mm)."
+    },
+    {
+      "scan_id": "sc_8379cebef9e3",
+      "reason": "OBJ; same mesh (601144 verts) as Gold11 sc_7a1773eca9fa (49001000_A-PRELIM.ply); already gold, and OBJ cannot take a studio label."
+    },
+    {
+      "scan_id": "sc_4d277fbe7854",
+      "reason": "CAD_RECIPE row; 15651004_01_SECOND_SCAN__source_frame_proxy.ply is a trimesh unmerged-vertex re-export of the SECOND_SCAN mesh (537777 = 3 x 179259 verts, 179259 faces, same face count as gold PLY sc_1a5377ac7c15). Same-mesh twin of a GOLD_SET_V1 scan -> skipped (exact duplicate). Verified under the geometry lock: after open3d remove_duplicated_vertices both have 89693 vertices / 179259 faces, max vertex distance 0.0 mm both ways."
+    },
+    {
+      "scan_id": "sc_90257b128d80",
+      "reason": "17139000_01.ply: V2 eval_tier FRESH_SCAN_OF_CONSUMED_PART (possibly FRESH); stays out by instruction."
+    },
+    {
+      "scan_id": "sc_186463746daa",
+      "reason": "23553000_B_SCAN_2: GOLD_SET_V1 excluded it after the 2-verifier pass failed (B3 on inner skin); OUT, already decided."
+    },
+    {
+      "scan_id": "sc_2e584e9d1ffe",
+      "reason": "POSSIBLE_CAD_REFERENCE_MESH quality flag (zero-bend AI label, legacy upload): forbidden CAD reference mesh."
+    },
+    {
+      "scan_id": "sc_7a253806b10b",
+      "reason": "POSSIBLE_CAD_REFERENCE_MESH quality flag (STL legacy upload): forbidden CAD reference mesh."
+    },
+    {
+      "scan_id": "sc_f098dbceaa6d",
+      "reason": "POSSIBLE_CAD_REFERENCE_MESH quality flag (STL legacy upload): forbidden CAD reference mesh."
+    },
+    {
+      "scan_id": "sc_9c890e76934f",
+      "reason": "part 2.stl (UNKNOWN part, AI_GOLD_ACCEPTED 2 lines in benchmark_v2/label_lines): STL only; no PLY twin on disk (source-assets has only part 1.ply, a different mesh: 385851 verts, different part) and bench_labeling prep reads STL/OBJ directly but never writes a PLY, so write-label (PLY-only) cannot take it."
+    }
+  ]
+}

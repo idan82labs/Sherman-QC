@@ -18,6 +18,8 @@ import type {
   PartCreateRequest,
   PartUpdateRequest,
   BendSpecCreateRequest,
+  VendorSetupDraft,
+  VendorSetupResponse,
 } from '../types'
 
 // Re-export APIError for backwards compatibility
@@ -60,7 +62,7 @@ export function getErrorCode(error: unknown): string | null {
   return null
 }
 
-const api = axios.create({
+export const api = axios.create({
   baseURL: '/api',
   timeout: 30000, // 30 second timeout
   withCredentials: true,
@@ -432,6 +434,35 @@ export interface BendInspectionJob {
     bender_view_overall_url?: string
   }
   error?: string
+  qualification?: BendInspectionReadiness
+}
+
+export type BendMarkerReviewDecision = 'real_bend' | 'not_bend_outline' | 'uncertain'
+
+export interface ManualBendLabel {
+  bend_id: string
+  line_start: [number, number, number]
+  line_end: [number, number, number]
+  semantic: 'conventional_bend'
+  source: 'human_two_point'
+}
+
+export interface BendMarkerReview {
+  bend_id: string
+  decision: BendMarkerReviewDecision
+  reason?: string
+}
+
+export interface BendInstanceLabels {
+  schema_version: 1
+  kind: 'sherman_qc_bend_instance_labels'
+  job_id: string
+  coordinate_frame: 'reference_mesh_raw'
+  review_status: 'in_progress' | 'complete'
+  created_at?: string
+  updated_at?: string
+  manual_bends: ManualBendLabel[]
+  marker_reviews: BendMarkerReview[]
 }
 
 export interface BendMatch {
@@ -448,6 +479,9 @@ export interface BendMatch {
   display_detected_line_start?: [number, number, number] | null
   display_detected_line_end?: [number, number, number] | null
   callout_anchor?: [number, number, number] | null
+  display_geometry_frame?: 'reference_mesh_raw' | string
+  display_geometry_provenance?: string
+  display_geometry_valid?: boolean
   target_angle: number
   measured_angle: number | null
   angle_deviation: number | null
@@ -529,6 +563,7 @@ export interface ScanQualitySummary {
 export interface BendInspectionReport {
   part_id: string
   alignment?: Record<string, unknown>
+  decision_contract?: BendDecisionContract
   summary: {
     total_bends: number
     detected: number
@@ -607,6 +642,29 @@ export interface BendInspectionReport {
   processing_time_ms: number
 }
 
+/** Additive evidence projection; V1 never authorizes production disposition. */
+export interface BendDecisionContract {
+  schema_version: 1
+  kind: 'BEND_DECISION_CONTRACT_V1'
+  observed_counts: {
+    formed: number
+    unformed: number
+    unknown: number
+    total: number
+    partially_observed: number
+  }
+  registration: 'ABSTAINED' | 'UNVERIFIED'
+  render_evidence: 'UNAVAILABLE' | 'UNVERIFIED'
+  production_disposition: 'NOT_AUTHORIZED'
+  reasons: string[]
+  bends: Array<{
+    bend_id: string
+    state: 'FORMED' | 'UNFORMED' | 'UNKNOWN'
+    observation_detail: string
+    reasons: string[]
+  }>
+}
+
 export interface BendOverlayManifestEntry {
   bend_id: string
   status: 'PASS' | 'FAIL' | 'WARNING' | 'NOT_DETECTED' | string
@@ -657,12 +715,30 @@ export interface BendSpecification {
   tolerance_radius: number
 }
 
+export interface BendInspectionReadiness {
+  schema_version: number
+  kind: 'SHERMAN_QC_BEND_INSPECTION_READINESS'
+  status: 'PRODUCTION_QUALIFIED' | 'PROMOTION_BLOCKED' | 'PROMOTION_EVIDENCE_INVALID_FAIL_CLOSED' | 'UNAVAILABLE_FAIL_CLOSED'
+  operating_mode: 'PRODUCTION_QC' | 'RESEARCH_ONLY'
+  production_use_allowed: boolean
+  physical_generalization_progress: boolean
+  active_blockers: string[]
+  generalization_progress_indicator: Record<string, string>
+  lane_status: Record<string, unknown>
+  program_status_sha256?: string
+}
+
 export const bendInspectionApi = {
+  readiness: async (): Promise<BendInspectionReadiness> => {
+    const response = await api.get('/bend-inspection/readiness')
+    return response.data
+  },
+
   // Start a new bend inspection analysis
   analyze: async (
     formData: FormData,
     onUploadProgress?: (progress: number) => void
-  ): Promise<{ job_id: string; status: string; message: string }> => {
+  ): Promise<{ job_id: string; status: string; message: string; qualification: BendInspectionReadiness }> => {
     const response = await api.post('/bend-inspection/analyze', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
       timeout: 120000,
@@ -679,6 +755,16 @@ export const bendInspectionApi = {
   // Get bend inspection result
   get: async (jobId: string): Promise<BendInspectionJob> => {
     const response = await api.get(`/bend-inspection/${jobId}`)
+    return response.data
+  },
+
+  getLabels: async (jobId: string): Promise<BendInstanceLabels> => {
+    const response = await api.get(`/bend-inspection/${jobId}/labels`)
+    return response.data
+  },
+
+  saveLabels: async (jobId: string, labels: BendInstanceLabels): Promise<BendInstanceLabels> => {
+    const response = await api.put(`/bend-inspection/${jobId}/labels`, labels)
     return response.data
   },
 
@@ -722,6 +808,14 @@ export const bendInspectionApi = {
 
 // Part Catalog API
 export const partCatalogApi = {
+  getVendorSetup: async (partId: string): Promise<VendorSetupResponse> => {
+    const response = await api.get(`/parts/${partId}/vendor-setup`)
+    return response.data
+  },
+  saveVendorSetup: async (partId: string, draft: VendorSetupDraft): Promise<{ draft: VendorSetupDraft }> => {
+    const response = await api.put(`/parts/${partId}/vendor-setup`, draft)
+    return response.data
+  },
   // List parts with filters
   list: async (params?: {
     search?: string
@@ -778,12 +872,33 @@ export const partCatalogApi = {
     file: File,
     analyzeBends: boolean = true,
     onProgress?: (progress: number) => void
-  ): Promise<{ part: Part; bends_detected: number; message: string }> => {
+  ): Promise<{ status: 'CAD_PROCESSED' | 'CAD_UPLOADED_UNANALYZED' | 'CAD_ANALYSIS_FAILED_NOT_PUBLISHED' | 'CAD_UPLOAD_SUPERSEDED_NOT_PUBLISHED'; bends_detected?: number; bend_analysis_error?: string; preview_available?: boolean; message: string }> => {
     const formData = new FormData()
     formData.append('cad_file', file)
     formData.append('analyze_bends', String(analyzeBends))
 
     const response = await api.post(`/parts/${partId}/cad`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+      timeout: 120000,
+      onUploadProgress: (event) => {
+        if (onProgress && event.total) {
+          onProgress(Math.round((event.loaded / event.total) * 100))
+        }
+      },
+    })
+    return response.data
+  },
+
+  // Upload a technical drawing for the vendor setup / inspection preset.
+  uploadDrawing: async (
+    partId: string,
+    file: File,
+    onProgress?: (progress: number) => void
+  ): Promise<{ part: Part; message: string }> => {
+    const formData = new FormData()
+    formData.append('drawing_file', file)
+
+    const response = await api.post(`/parts/${partId}/drawing`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
       timeout: 120000,
       onUploadProgress: (event) => {

@@ -27,6 +27,7 @@ from feature_detection.bend_detector import (
     ProgressiveBendMatcher,
     CADBendExtractor,
 )
+from cad_bend_extractor import CADBendExtractor as MeshCADBendExtractor
 
 
 class TestPlaneSegment:
@@ -600,7 +601,8 @@ class TestBendInspectionReport:
             detected_bend=None,
             status="NOT_DETECTED",
             physical_completion_state="UNKNOWN",
-            observability_state="PARTIALLY_OBSERVED",
+            observability_state="UNKNOWN",
+            observability_detail_state="PARTIALLY_OBSERVED",
             observability_confidence=0.72,
             visibility_score=0.48,
             visibility_score_source="heuristic_local_visibility_v0",
@@ -618,13 +620,53 @@ class TestBendInspectionReport:
         )
         payload = match.to_dict()
         assert payload["physical_completion_state"] == "UNKNOWN"
-        assert payload["observability_state"] == "PARTIALLY_OBSERVED"
+        assert payload["observability_state"] == "UNKNOWN"
+        assert payload["observability_detail_state"] == "PARTIALLY_OBSERVED"
         assert payload["visibility_score"] == 0.48
         assert payload["surface_visibility_ratio"] == 0.5
         assert payload["assignment_source"] == "CAD_LOCAL_NEIGHBORHOOD"
         assert payload["assignment_confidence"] == 0.61
         assert payload["observed_surface_count"] == 1
+        assert payload["feature_family"] == "COUNTABLE_DISCRETE_BEND"
+        assert payload["measurement_primitive"] == "ANGLE_RADIUS"
         assert payload["measurement_mode"] == "cad_local_neighborhood"
+
+    def test_summary_counts_only_countable_bends_but_keeps_process_features(self):
+        countable = BendSpecification(
+            bend_id="B1",
+            target_angle=90.0,
+            target_radius=3.0,
+            bend_line_start=np.zeros(3),
+            bend_line_end=np.array([0, 10, 0]),
+        )
+        rolled = BendSpecification(
+            bend_id="R1",
+            target_angle=140.0,
+            target_radius=25.0,
+            bend_line_start=np.zeros(3),
+            bend_line_end=np.array([0, 10, 0]),
+            bend_form="ROLLED",
+            feature_type="ROLLED_SECTION",
+            countable_in_regression=False,
+        )
+        report = BendInspectionReport(
+            part_id="TEST",
+            matches=[
+                BendMatch(cad_bend=countable, detected_bend=None, status="PASS"),
+                BendMatch(cad_bend=rolled, detected_bend=None, status="PASS"),
+            ],
+        )
+
+        payload = report.to_dict()
+        summary = payload["summary"]
+        assert summary["total_bends"] == 1
+        assert summary["completed_bends"] == 1
+        assert summary["total_features"] == 2
+        assert summary["detected_features"] == 2
+        assert summary["process_features"] == 1
+        assert summary["detected_process_features"] == 1
+        assert payload["matches"][1]["feature_type"] == "ROLLED_SECTION"
+        assert payload["matches"][1]["countable_in_regression"] is False
 
 
 class TestMathematicalFoundations:
@@ -771,6 +813,91 @@ class TestCADBendExtractor:
         assert len(specs) == 2
         forms = sorted(s.bend_form for s in specs)
         assert forms == ["FOLDED", "ROLLED"]
+
+
+def test_estimate_area_handles_large_planar_support_without_full_svd(monkeypatch):
+    detector = BendDetector()
+    x = np.linspace(-50.0, 50.0, 400)
+    y = np.linspace(-25.0, 25.0, 250)
+    xx, yy = np.meshgrid(x, y, indexing="ij")
+    points = np.column_stack((xx.ravel(), yy.ravel(), np.zeros(xx.size)))
+
+    def reject_full_svd(*_args, **_kwargs):
+        raise AssertionError("area estimation must not allocate a full SVD")
+
+    monkeypatch.setattr(np.linalg, "svd", reject_full_svd)
+
+    assert detector._estimate_area(points) == pytest.approx(5_000.0, rel=1e-3)
+
+
+def test_large_plane_fit_uses_bounded_covariance_and_is_deterministic(monkeypatch):
+    detector = BendDetector()
+    x = np.linspace(-100.0, 100.0, 100_000)
+    points = np.column_stack((x, np.sin(x), np.full_like(x, 7.5)))
+
+    def reject_full_svd(*_args, **_kwargs):
+        raise AssertionError("plane fitting must not allocate a full N x N SVD")
+
+    monkeypatch.setattr(np.linalg, "svd", reject_full_svd)
+    first_normal, first_d = detector._least_squares_plane(points)
+    second_normal, second_d = detector._least_squares_plane(points)
+
+    np.testing.assert_array_equal(first_normal, second_normal)
+    assert first_d == second_d
+    assert abs(abs(first_normal[2]) - 1.0) < 1e-12
+    assert abs(abs(first_d) - 7.5) < 1e-12
+
+
+def test_large_boundary_projection_uses_bounded_covariance(monkeypatch):
+    detector = BendDetector()
+    x = np.linspace(-50.0, 50.0, 500)
+    y = np.linspace(-25.0, 25.0, 200)
+    xx, yy = np.meshgrid(x, y, indexing="ij")
+    points = np.column_stack((xx.ravel(), yy.ravel(), np.zeros(xx.size)))
+
+    def reject_full_svd(*_args, **_kwargs):
+        raise AssertionError("boundary projection must not allocate a full N x N SVD")
+
+    monkeypatch.setattr(np.linalg, "svd", reject_full_svd)
+    boundary = detector._extract_boundary(points)
+
+    assert len(boundary) == 4
+    np.testing.assert_allclose(boundary[:, 2], 0.0)
+
+
+def test_mesh_region_growing_retries_face_after_reference_normal_changes():
+    """A rejected queued face must remain eligible through a later neighbor."""
+
+    def normal(angle_deg):
+        angle = np.radians(angle_deg)
+        return [np.cos(angle), np.sin(angle), 0.0]
+
+    extractor = MeshCADBendExtractor(coplanar_threshold=25.0)
+    face_normals = np.asarray(
+        [normal(0.0), normal(20.0), normal(24.0), normal(34.0)],
+        dtype=np.float64,
+    )
+    # Deterministic queue order: face 3 fails after faces 0/1, face 2 then
+    # shifts the weighted mean so a duplicate path can retry and accept 3.
+    adjacency = {
+        0: [1, 3, 2],
+        1: [0, 3],
+        2: [0, 3],
+        3: [0, 1, 2],
+    }
+    areas = np.asarray([2.0, 1.0, 1.0, 1.0], dtype=np.float64)
+    surfaces = extractor._region_growing(
+        4,
+        face_normals,
+        adjacency,
+        set(),
+        areas,
+        np.zeros((4, 3), dtype=np.float64),
+        float(np.sum(areas)),
+    )
+
+    assert len(surfaces) == 1
+    assert set(surfaces[0].face_indices.tolist()) == {0, 1, 2, 3}
 
 
 if __name__ == "__main__":

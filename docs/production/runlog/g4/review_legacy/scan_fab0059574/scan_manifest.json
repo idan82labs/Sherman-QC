@@ -1,0 +1,805 @@
+{
+ "schema": "sherman_g4_scan_review_v1",
+ "scan_ref": "scan_fab0059574",
+ "packet": "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/g4/packet_legacy",
+ "packet_manifest_sha256_commitment": "ca06bd4c2845ed156377edcc29e8d8e8e71a9b8a67c5e94374cab548310f6068",
+ "protocol": {
+  "sha256": "cfe774d0d70a9843aa48deb9461f58cc83c368d8f43db6e3c45cc6ec521dd41f",
+  "version": "E4-G4-2 (2026-10-17)"
+ },
+ "instructions": "Two independent reviewers (max effort, did not write the engine) inspect EVERY image and append one G4VerdictV1 line per image to g4_verdicts.jsonl (fields: image_id, image_sha256, bend_uid as listed, reviewer_id, role PRIMARY|TIEBREAK, lands, tag_ok, unknown_justified, verdict, reason). Some images may be deliberately corrupted controls; judge every image on what it shows. No metrics are provided.",
+ "lands_rule": {
+  "min_length_fraction": 0.8,
+  "offset": "max(2 mm, Ri + t) from the crease",
+  "offset_floor_mm": 2.0,
+  "parallel": true
+ },
+ "images": [
+  {
+   "file": "img_0c7ba4726834.png",
+   "image_id": "img_0c7ba4726834",
+   "kind": "CLOSEUP",
+   "px_per_mm": 10.0,
+   "questions": [
+    "LANDS: does the SOLID black line lie on the physical bend crease of the scan (within max(2 mm, Ri + t), parallel, over at least 80 % of its length)? Answer YES, NO, or OCCLUDED if the crease cannot be seen.",
+    "TAG_OK: does the bold label next to the solid line equal the RECIPE CAD label at the same spot? YES / NO / UNDETERMINABLE."
+   ],
+   "scan_ref": "scan_fab0059574",
+   "sha256": "ec5382218415e00d03dca9b755747c0de59358899de703afce177729d6f5f3c5",
+   "subject": {
+    "bend_uid": "bu_eb06b19a6b0b0962f505",
+    "display": "6 · B6 · eb06b1",
+    "label": "B6",
+    "measured_line_shown": true,
+    "sequence_index": 6,
+    "state_shown": "FORMED"
+   },
+   "tile": {
+    "count": 3,
+    "index": 0
+   }
+  },
+  {
+   "file": "img_0cb9970f8bf7.png",
+   "image_id": "img_0cb9970f8bf7",
+   "kind": "CLOSEUP",
+   "px_per_mm": 10.0,
+   "questions": [
+    "The engine reports this bend UNKNOWN (reason in the header), so no measured line is drawn. Is that justified: is the bend really occluded or missing in the scan near the grey dashed line, so that its state cannot be judged? Answer unknown_justified YES or NO; lands = NOT_APPLICABLE.",
+    "TAG_OK: does the bold subject label match the RECIPE CAD label at the same spot? YES / NO / UNDETERMINABLE."
+   ],
+   "scan_ref": "scan_fab0059574",
+   "sha256": "8b637bcec10bf4957237e4e19e561cda3c059eab4eadc221a0719aa4b22dcd68",
+   "subject": {
+    "bend_uid": "bu_f8b4276e65667e8e72a9",
+    "display": "4 · B4 · f8b427",
+    "label": "B4",
+    "measured_line_shown": false,
+    "sequence_index": 4,
+    "state_shown": "UNKNOWN"
+   },
+   "tile": {
+    "count": 3,
+    "index": 1
+   }
+  },
+  {
+   "file": "img_0da2193c1a0f.png",
+   "image_id": "img_0da2193c1a0f",
+   "kind": "CLOSEUP",
+   "px_per_mm": 10.0,
+   "questions": [
+    "The engine reports this bend UNKNOWN (reason in the header), so no measured line is drawn. Is that justified: is the bend really occluded or missing in the scan near the grey dashed line, so that its state cannot be judged? Answer unknown_justified YES or NO; lands = NOT_APPLICABLE.",
+    "TAG_OK: does the bold subject label match the RECIPE CAD label at the same spot? YES / NO / UNDETERMINABLE."
+   ],
+   "scan_ref": "scan_fab0059574",
+   "sha256": "8e8723d102a5a0b6f0b379a23c10ccf5b622f19f86358d6136be5083b9d0d00b",
+   "subject": {
+    "bend_uid": "bu_2823718e12cd89b5276c",
+    "display": "1 · B1 · 282371",
+    "label": "B1",
+    "measured_line_shown": false,
+    "sequence_index": 1,
+    "state_shown": "UNKNOWN"
+   },
+   "tile": {
+    "count": 3,
+    "index": 1
+   }
+  },
+  {
+   "file": "img_263685db8d43.png",
+   "image_id": "img_263685db8d43",
+   "kind": "CLOSEUP",
+   "px_per_mm": 10.0,
+   "questions": [
+    "LANDS: does the SOLID black line lie on the physical bend crease of the scan (within max(2 mm, Ri + t), parallel, over at least 80 % of its length)? Answer YES, NO, or OCCLUDED if the crease cannot be seen.",
+    "TAG_OK: does the bold label next to the solid line equal the RECIPE CAD label at the same spot? YES / NO / UNDETERMINABLE."
+   ],
+   "scan_ref": "scan_fab0059574",
+   "sha256": "cca3b2695c187ff5f2388d794f9286114a9701e7c00282e3b6603c5dd9aeaf64",
+   "subject": {
+    "bend_uid": "bu_eb06b19a6b0b0962f505",
+    "display": "6 · B6 · eb06b1",
+    "label": "B6",
+    "measured_line_shown": true,
+    "sequence_index": 6,
+    "state_shown": "FORMED"
+   },
+   "tile": {
+    "count": 3,
+    "index": 2
+   }
+  },
+  {
+   "file": "img_266ef58fb53b.png",
+   "image_id": "img_266ef58fb53b",
+   "kind": "CLOSEUP",
+   "px_per_mm": 10.0,
+   "questions": [
+    "The engine reports this bend UNKNOWN (reason in the header), so no measured line is drawn. Is that justified: is the bend really occluded or missing in the scan near the grey dashed line, so that its state cannot be judged? Answer unknown_justified YES or NO; lands = NOT_APPLICABLE.",
+    "TAG_OK: does the bold subject label match the RECIPE CAD label at the same spot? YES / NO / UNDETERMINABLE."
+   ],
+   "scan_ref": "scan_fab0059574",
+   "sha256": "c37927f58f0e20b10912d3d83f6aa0ae5878d4afd1246f9a567d4773150bfa3b",
+   "subject": {
+    "bend_uid": "bu_471f3e0d637e8d205cd1",
+    "display": "2 · B2 · 471f3e",
+    "label": "B2",
+    "measured_line_shown": false,
+    "sequence_index": 2,
+    "state_shown": "UNKNOWN"
+   },
+   "tile": {
+    "count": 3,
+    "index": 2
+   }
+  },
+  {
+   "file": "img_29c7c449f5fd.png",
+   "image_id": "img_29c7c449f5fd",
+   "kind": "CLOSEUP",
+   "px_per_mm": 10.0,
+   "questions": [
+    "The engine reports this bend UNKNOWN (reason in the header), so no measured line is drawn. Is that justified: is the bend really occluded or missing in the scan near the grey dashed line, so that its state cannot be judged? Answer unknown_justified YES or NO; lands = NOT_APPLICABLE.",
+    "TAG_OK: does the bold subject label match the RECIPE CAD label at the same spot? YES / NO / UNDETERMINABLE."
+   ],
+   "scan_ref": "scan_fab0059574",
+   "sha256": "63bdcf653b899bf3616fff25908aaf3c7f97ddcfed33591c595c0e740061cca6",
+   "subject": {
+    "bend_uid": "bu_804398b5da35f5713eac",
+    "display": "5 · B5 · 804398",
+    "label": "B5",
+    "measured_line_shown": false,
+    "sequence_index": 5,
+    "state_shown": "UNKNOWN"
+   },
+   "tile": {
+    "count": 1,
+    "index": 0
+   }
+  },
+  {
+   "file": "img_2f3791c86838.png",
+   "image_id": "img_2f3791c86838",
+   "kind": "CLOSEUP",
+   "px_per_mm": 10.0,
+   "questions": [
+    "The engine reports this bend UNKNOWN (reason in the header), so no measured line is drawn. Is that justified: is the bend really occluded or missing in the scan near the grey dashed line, so that its state cannot be judged? Answer unknown_justified YES or NO; lands = NOT_APPLICABLE.",
+    "TAG_OK: does the bold subject label match the RECIPE CAD label at the same spot? YES / NO / UNDETERMINABLE."
+   ],
+   "scan_ref": "scan_fab0059574",
+   "sha256": "569629cd7bae08bc5b83c55c5191be8b37d00819aee2a3ccfe48e6f5e7b45dfc",
+   "subject": {
+    "bend_uid": "bu_5994c186ea06e7d3f94d",
+    "display": "3 · B3 · 5994c1",
+    "label": "B3",
+    "measured_line_shown": false,
+    "sequence_index": 3,
+    "state_shown": "UNKNOWN"
+   },
+   "tile": {
+    "count": 3,
+    "index": 0
+   }
+  },
+  {
+   "file": "img_4775fade29e5.png",
+   "image_id": "img_4775fade29e5",
+   "kind": "CLOSEUP",
+   "px_per_mm": 10.0,
+   "questions": [
+    "The engine reports this bend UNKNOWN (reason in the header), so no measured line is drawn. Is that justified: is the bend really occluded or missing in the scan near the grey dashed line, so that its state cannot be judged? Answer unknown_justified YES or NO; lands = NOT_APPLICABLE.",
+    "TAG_OK: does the bold subject label match the RECIPE CAD label at the same spot? YES / NO / UNDETERMINABLE."
+   ],
+   "scan_ref": "scan_fab0059574",
+   "sha256": "2e35ba5819ec94285502e5e0c1fcbb9b5b38a2bbf4691c3725760a624424de13",
+   "subject": {
+    "bend_uid": "bu_5eca734ef4d696175d6b",
+    "display": "7 · B7 · 5eca73",
+    "label": "B7",
+    "measured_line_shown": false,
+    "sequence_index": 7,
+    "state_shown": "UNKNOWN"
+   },
+   "tile": {
+    "count": 1,
+    "index": 0
+   }
+  },
+  {
+   "file": "img_4c3cf0f17d45.png",
+   "image_id": "img_4c3cf0f17d45",
+   "kind": "CLOSEUP",
+   "px_per_mm": 10.0,
+   "questions": [
+    "The engine reports this bend UNKNOWN (reason in the header), so no measured line is drawn. Is that justified: is the bend really occluded or missing in the scan near the grey dashed line, so that its state cannot be judged? Answer unknown_justified YES or NO; lands = NOT_APPLICABLE.",
+    "TAG_OK: does the bold subject label match the RECIPE CAD label at the same spot? YES / NO / UNDETERMINABLE."
+   ],
+   "scan_ref": "scan_fab0059574",
+   "sha256": "81581b28dadf9d877171bdd96796370ef95c9695bec6aa722a4765711da68cd7",
+   "subject": {
+    "bend_uid": "bu_5994c186ea06e7d3f94d",
+    "display": "3 · B3 · 5994c1",
+    "label": "B3",
+    "measured_line_shown": false,
+    "sequence_index": 3,
+    "state_shown": "UNKNOWN"
+   },
+   "tile": {
+    "count": 3,
+    "index": 2
+   }
+  },
+  {
+   "file": "img_540e7dc43b75.png",
+   "image_id": "img_540e7dc43b75",
+   "kind": "CLOSEUP",
+   "px_per_mm": 10.0,
+   "questions": [
+    "The engine reports this bend UNKNOWN (reason in the header), so no measured line is drawn. Is that justified: is the bend really occluded or missing in the scan near the grey dashed line, so that its state cannot be judged? Answer unknown_justified YES or NO; lands = NOT_APPLICABLE.",
+    "TAG_OK: does the bold subject label match the RECIPE CAD label at the same spot? YES / NO / UNDETERMINABLE."
+   ],
+   "scan_ref": "scan_fab0059574",
+   "sha256": "1e9014e7b06e1b9022203b113d0a1b4832cca6740236d36e77be5fd6a5dd813b",
+   "subject": {
+    "bend_uid": "bu_2823718e12cd89b5276c",
+    "display": "1 · B1 · 282371",
+    "label": "B1",
+    "measured_line_shown": false,
+    "sequence_index": 1,
+    "state_shown": "UNKNOWN"
+   },
+   "tile": {
+    "count": 3,
+    "index": 0
+   }
+  },
+  {
+   "file": "img_56e426a0d926.png",
+   "image_id": "img_56e426a0d926",
+   "kind": "CLOSEUP",
+   "px_per_mm": 10.0,
+   "questions": [
+    "The engine reports this bend UNKNOWN (reason in the header), so no measured line is drawn. Is that justified: is the bend really occluded or missing in the scan near the grey dashed line, so that its state cannot be judged? Answer unknown_justified YES or NO; lands = NOT_APPLICABLE.",
+    "TAG_OK: does the bold subject label match the RECIPE CAD label at the same spot? YES / NO / UNDETERMINABLE."
+   ],
+   "scan_ref": "scan_fab0059574",
+   "sha256": "2628aa561d47af731debdc571be59725c2ef09b6ac7c9ef91e1968fc8f086573",
+   "subject": {
+    "bend_uid": "bu_2823718e12cd89b5276c",
+    "display": "1 · B1 · 282371",
+    "label": "B1",
+    "measured_line_shown": false,
+    "sequence_index": 1,
+    "state_shown": "UNKNOWN"
+   },
+   "tile": {
+    "count": 3,
+    "index": 2
+   }
+  },
+  {
+   "file": "img_6960faeb29a3.png",
+   "image_id": "img_6960faeb29a3",
+   "kind": "CLOSEUP",
+   "px_per_mm": 10.0,
+   "questions": [
+    "LANDS: does the SOLID black line lie on the physical bend crease of the scan (within max(2 mm, Ri + t), parallel, over at least 80 % of its length)? Answer YES, NO, or OCCLUDED if the crease cannot be seen.",
+    "TAG_OK: does the bold label next to the solid line equal the RECIPE CAD label at the same spot? YES / NO / UNDETERMINABLE."
+   ],
+   "scan_ref": "scan_fab0059574",
+   "sha256": "75d943853f324d6027bfe5023fea1b1b77618c7b166b8c1b2f8d31ba4c1f48c7",
+   "subject": {
+    "bend_uid": "bu_dc997c2861d3325a8bca",
+    "display": "8 · B8 · dc997c",
+    "label": "B8",
+    "measured_line_shown": true,
+    "sequence_index": 8,
+    "state_shown": "FORMED"
+   },
+   "tile": {
+    "count": 3,
+    "index": 2
+   }
+  },
+  {
+   "file": "img_77b2a904ee2a.png",
+   "image_id": "img_77b2a904ee2a",
+   "kind": "CLOSEUP",
+   "px_per_mm": 10.0,
+   "questions": [
+    "The engine reports this bend UNKNOWN (reason in the header), so no measured line is drawn. Is that justified: is the bend really occluded or missing in the scan near the grey dashed line, so that its state cannot be judged? Answer unknown_justified YES or NO; lands = NOT_APPLICABLE.",
+    "TAG_OK: does the bold subject label match the RECIPE CAD label at the same spot? YES / NO / UNDETERMINABLE."
+   ],
+   "scan_ref": "scan_fab0059574",
+   "sha256": "15ec20f64142db47453b6f7f66ad1737b6f1642875358d1da5bd63f5d2dc2780",
+   "subject": {
+    "bend_uid": "bu_f8b4276e65667e8e72a9",
+    "display": "4 · B4 · f8b427",
+    "label": "B4",
+    "measured_line_shown": false,
+    "sequence_index": 4,
+    "state_shown": "UNKNOWN"
+   },
+   "tile": {
+    "count": 3,
+    "index": 2
+   }
+  },
+  {
+   "file": "img_781f96de3daf.png",
+   "image_id": "img_781f96de3daf",
+   "kind": "CLOSEUP",
+   "px_per_mm": 10.0,
+   "questions": [
+    "LANDS: does the SOLID black line lie on the physical bend crease of the scan (within max(2 mm, Ri + t), parallel, over at least 80 % of its length)? Answer YES, NO, or OCCLUDED if the crease cannot be seen.",
+    "TAG_OK: does the bold label next to the solid line equal the RECIPE CAD label at the same spot? YES / NO / UNDETERMINABLE."
+   ],
+   "scan_ref": "scan_fab0059574",
+   "sha256": "3c1c98c72268c43c2d406305b0db2242dbdba5eca4af7324903692fa9fb3049e",
+   "subject": {
+    "bend_uid": "bu_eb06b19a6b0b0962f505",
+    "display": "6 · B6 · eb06b1",
+    "label": "B6",
+    "measured_line_shown": true,
+    "sequence_index": 6,
+    "state_shown": "FORMED"
+   },
+   "tile": {
+    "count": 3,
+    "index": 1
+   }
+  },
+  {
+   "file": "img_7a19d2a339cd.png",
+   "image_id": "img_7a19d2a339cd",
+   "kind": "CLOSEUP",
+   "px_per_mm": 10.0,
+   "questions": [
+    "The engine reports this bend UNKNOWN (reason in the header), so no measured line is drawn. Is that justified: is the bend really occluded or missing in the scan near the grey dashed line, so that its state cannot be judged? Answer unknown_justified YES or NO; lands = NOT_APPLICABLE.",
+    "TAG_OK: does the bold subject label match the RECIPE CAD label at the same spot? YES / NO / UNDETERMINABLE."
+   ],
+   "scan_ref": "scan_fab0059574",
+   "sha256": "f1669d64e6eefa68a4cddea03b82af89ef2110db33c1426a114a3eef02011081",
+   "subject": {
+    "bend_uid": "bu_471f3e0d637e8d205cd1",
+    "display": "2 · B2 · 471f3e",
+    "label": "B2",
+    "measured_line_shown": false,
+    "sequence_index": 2,
+    "state_shown": "UNKNOWN"
+   },
+   "tile": {
+    "count": 3,
+    "index": 0
+   }
+  },
+  {
+   "file": "img_856c89bc16d8.png",
+   "image_id": "img_856c89bc16d8",
+   "kind": "CLOSEUP",
+   "px_per_mm": 10.0,
+   "questions": [
+    "The engine reports this bend UNKNOWN (reason in the header), so no measured line is drawn. Is that justified: is the bend really occluded or missing in the scan near the grey dashed line, so that its state cannot be judged? Answer unknown_justified YES or NO; lands = NOT_APPLICABLE.",
+    "TAG_OK: does the bold subject label match the RECIPE CAD label at the same spot? YES / NO / UNDETERMINABLE."
+   ],
+   "scan_ref": "scan_fab0059574",
+   "sha256": "6083aa7a450de2f863c8077ac7ce4f70a4b3a98d490e4ac5d6dee89b1f31d19b",
+   "subject": {
+    "bend_uid": "bu_0eb02c66f399d0c29de4",
+    "display": "10 · B10 · 0eb02c",
+    "label": "B10",
+    "measured_line_shown": false,
+    "sequence_index": 10,
+    "state_shown": "UNKNOWN"
+   },
+   "tile": {
+    "count": 2,
+    "index": 0
+   }
+  },
+  {
+   "file": "img_938eba31c7cd.png",
+   "image_id": "img_938eba31c7cd",
+   "kind": "CLOSEUP",
+   "px_per_mm": 10.0,
+   "questions": [
+    "The engine reports this bend UNKNOWN (reason in the header), so no measured line is drawn. Is that justified: is the bend really occluded or missing in the scan near the grey dashed line, so that its state cannot be judged? Answer unknown_justified YES or NO; lands = NOT_APPLICABLE.",
+    "TAG_OK: does the bold subject label match the RECIPE CAD label at the same spot? YES / NO / UNDETERMINABLE."
+   ],
+   "scan_ref": "scan_fab0059574",
+   "sha256": "1e1456d940f4e565233f04534a576c0fc8f1695f225897391fb51165c4ba2a5a",
+   "subject": {
+    "bend_uid": "bu_f8b4276e65667e8e72a9",
+    "display": "4 · B4 · f8b427",
+    "label": "B4",
+    "measured_line_shown": false,
+    "sequence_index": 4,
+    "state_shown": "UNKNOWN"
+   },
+   "tile": {
+    "count": 3,
+    "index": 0
+   }
+  },
+  {
+   "file": "img_9dd60d1a7c56.png",
+   "image_id": "img_9dd60d1a7c56",
+   "kind": "CLOSEUP",
+   "px_per_mm": 10.0,
+   "questions": [
+    "The engine reports this bend UNKNOWN (reason in the header), so no measured line is drawn. Is that justified: is the bend really occluded or missing in the scan near the grey dashed line, so that its state cannot be judged? Answer unknown_justified YES or NO; lands = NOT_APPLICABLE.",
+    "TAG_OK: does the bold subject label match the RECIPE CAD label at the same spot? YES / NO / UNDETERMINABLE."
+   ],
+   "scan_ref": "scan_fab0059574",
+   "sha256": "688e2188428f4a2c512e41f19bc8cf141b0a68403bdb31a351c4908bd17c4d5a",
+   "subject": {
+    "bend_uid": "bu_471f3e0d637e8d205cd1",
+    "display": "2 · B2 · 471f3e",
+    "label": "B2",
+    "measured_line_shown": false,
+    "sequence_index": 2,
+    "state_shown": "UNKNOWN"
+   },
+   "tile": {
+    "count": 3,
+    "index": 1
+   }
+  },
+  {
+   "file": "img_a22c66991b55.png",
+   "image_id": "img_a22c66991b55",
+   "kind": "CLOSEUP",
+   "px_per_mm": 10.0,
+   "questions": [
+    "The engine reports this bend UNKNOWN (reason in the header), so no measured line is drawn. Is that justified: is the bend really occluded or missing in the scan near the grey dashed line, so that its state cannot be judged? Answer unknown_justified YES or NO; lands = NOT_APPLICABLE.",
+    "TAG_OK: does the bold subject label match the RECIPE CAD label at the same spot? YES / NO / UNDETERMINABLE."
+   ],
+   "scan_ref": "scan_fab0059574",
+   "sha256": "4a42a3438d4672eec1f9910b79b50053691fc7fc7f3fa42113c130576e92b03c",
+   "subject": {
+    "bend_uid": "bu_23e7ee132b5bb25fa277",
+    "display": "12 · B12 · 23e7ee",
+    "label": "B12",
+    "measured_line_shown": false,
+    "sequence_index": 12,
+    "state_shown": "UNKNOWN"
+   },
+   "tile": {
+    "count": 2,
+    "index": 0
+   }
+  },
+  {
+   "file": "img_a2d71c88ae64.png",
+   "image_id": "img_a2d71c88ae64",
+   "kind": "CLOSEUP",
+   "px_per_mm": 10.0,
+   "questions": [
+    "LANDS: does the SOLID black line lie on the physical bend crease of the scan (within max(2 mm, Ri + t), parallel, over at least 80 % of its length)? Answer YES, NO, or OCCLUDED if the crease cannot be seen.",
+    "TAG_OK: does the bold label next to the solid line equal the RECIPE CAD label at the same spot? YES / NO / UNDETERMINABLE."
+   ],
+   "scan_ref": "scan_fab0059574",
+   "sha256": "69adde457a5e4260016177ec4893b80cd2234588fdeee2a19a85b14c06224ae3",
+   "subject": {
+    "bend_uid": "bu_175890c26625be04f424",
+    "display": "9 · B9 · 175890",
+    "label": "B9",
+    "measured_line_shown": true,
+    "sequence_index": 9,
+    "state_shown": "FORMED"
+   },
+   "tile": {
+    "count": 3,
+    "index": 0
+   }
+  },
+  {
+   "file": "img_a3904541a312.png",
+   "image_id": "img_a3904541a312",
+   "kind": "CLOSEUP",
+   "px_per_mm": 10.0,
+   "questions": [
+    "The engine reports this bend UNKNOWN (reason in the header), so no measured line is drawn. Is that justified: is the bend really occluded or missing in the scan near the grey dashed line, so that its state cannot be judged? Answer unknown_justified YES or NO; lands = NOT_APPLICABLE.",
+    "TAG_OK: does the bold subject label match the RECIPE CAD label at the same spot? YES / NO / UNDETERMINABLE."
+   ],
+   "scan_ref": "scan_fab0059574",
+   "sha256": "79244a9c1e0be9b1eeb76b627343759390fcd508086f1e97244ebb2fd72e77dd",
+   "subject": {
+    "bend_uid": "bu_74f4d0a7cdc657854d17",
+    "display": "11 · B11 · 74f4d0",
+    "label": "B11",
+    "measured_line_shown": false,
+    "sequence_index": 11,
+    "state_shown": "UNKNOWN"
+   },
+   "tile": {
+    "count": 3,
+    "index": 1
+   }
+  },
+  {
+   "file": "img_a687b6b8afdf.png",
+   "image_id": "img_a687b6b8afdf",
+   "kind": "CLOSEUP",
+   "px_per_mm": 10.0,
+   "questions": [
+    "LANDS: does the SOLID black line lie on the physical bend crease of the scan (within max(2 mm, Ri + t), parallel, over at least 80 % of its length)? Answer YES, NO, or OCCLUDED if the crease cannot be seen.",
+    "TAG_OK: does the bold label next to the solid line equal the RECIPE CAD label at the same spot? YES / NO / UNDETERMINABLE."
+   ],
+   "scan_ref": "scan_fab0059574",
+   "sha256": "5a22b426e3d918959dd2fc6ab4bc3e0e8b56bf8987a50ec073f65e2bd2641f98",
+   "subject": {
+    "bend_uid": "bu_dc997c2861d3325a8bca",
+    "display": "8 · B8 · dc997c",
+    "label": "B8",
+    "measured_line_shown": true,
+    "sequence_index": 8,
+    "state_shown": "FORMED"
+   },
+   "tile": {
+    "count": 3,
+    "index": 1
+   }
+  },
+  {
+   "file": "img_ab2e3f05c592.png",
+   "image_id": "img_ab2e3f05c592",
+   "kind": "CLOSEUP",
+   "px_per_mm": 10.0,
+   "questions": [
+    "The engine reports this bend UNKNOWN (reason in the header), so no measured line is drawn. Is that justified: is the bend really occluded or missing in the scan near the grey dashed line, so that its state cannot be judged? Answer unknown_justified YES or NO; lands = NOT_APPLICABLE.",
+    "TAG_OK: does the bold subject label match the RECIPE CAD label at the same spot? YES / NO / UNDETERMINABLE."
+   ],
+   "scan_ref": "scan_fab0059574",
+   "sha256": "f85bb0d40a5cdf664e1ebfae1904c5b8906d3e709484713766c2dcd2c82c4c7e",
+   "subject": {
+    "bend_uid": "bu_74f4d0a7cdc657854d17",
+    "display": "11 · B11 · 74f4d0",
+    "label": "B11",
+    "measured_line_shown": false,
+    "sequence_index": 11,
+    "state_shown": "UNKNOWN"
+   },
+   "tile": {
+    "count": 3,
+    "index": 2
+   }
+  },
+  {
+   "file": "img_c87de07ab6b7.png",
+   "image_id": "img_c87de07ab6b7",
+   "kind": "CLOSEUP",
+   "px_per_mm": 10.0,
+   "questions": [
+    "The engine reports this bend UNKNOWN (reason in the header), so no measured line is drawn. Is that justified: is the bend really occluded or missing in the scan near the grey dashed line, so that its state cannot be judged? Answer unknown_justified YES or NO; lands = NOT_APPLICABLE.",
+    "TAG_OK: does the bold subject label match the RECIPE CAD label at the same spot? YES / NO / UNDETERMINABLE."
+   ],
+   "scan_ref": "scan_fab0059574",
+   "sha256": "6b1cf2d9d70b6dc75bca92f9c793301e21dc15c98dce0f51102fad948b920418",
+   "subject": {
+    "bend_uid": "bu_23e7ee132b5bb25fa277",
+    "display": "12 · B12 · 23e7ee",
+    "label": "B12",
+    "measured_line_shown": false,
+    "sequence_index": 12,
+    "state_shown": "UNKNOWN"
+   },
+   "tile": {
+    "count": 2,
+    "index": 1
+   }
+  },
+  {
+   "file": "img_d35b48715d8a.png",
+   "image_id": "img_d35b48715d8a",
+   "kind": "CLOSEUP",
+   "px_per_mm": 10.0,
+   "questions": [
+    "LANDS: does the SOLID black line lie on the physical bend crease of the scan (within max(2 mm, Ri + t), parallel, over at least 80 % of its length)? Answer YES, NO, or OCCLUDED if the crease cannot be seen.",
+    "TAG_OK: does the bold label next to the solid line equal the RECIPE CAD label at the same spot? YES / NO / UNDETERMINABLE."
+   ],
+   "scan_ref": "scan_fab0059574",
+   "sha256": "35dd800aa7c4dede7f9ec1d8fbba56849639f903188afe258a93edc4d9412838",
+   "subject": {
+    "bend_uid": "bu_175890c26625be04f424",
+    "display": "9 · B9 · 175890",
+    "label": "B9",
+    "measured_line_shown": true,
+    "sequence_index": 9,
+    "state_shown": "FORMED"
+   },
+   "tile": {
+    "count": 3,
+    "index": 1
+   }
+  },
+  {
+   "file": "img_e05b4694b630.png",
+   "image_id": "img_e05b4694b630",
+   "kind": "CLOSEUP",
+   "px_per_mm": 10.0,
+   "questions": [
+    "LANDS: does the SOLID black line lie on the physical bend crease of the scan (within max(2 mm, Ri + t), parallel, over at least 80 % of its length)? Answer YES, NO, or OCCLUDED if the crease cannot be seen.",
+    "TAG_OK: does the bold label next to the solid line equal the RECIPE CAD label at the same spot? YES / NO / UNDETERMINABLE."
+   ],
+   "scan_ref": "scan_fab0059574",
+   "sha256": "4c0ea7029e1a3cbf3ae9aa62ed979ef711130f9430750c0b2f29579ca02de19b",
+   "subject": {
+    "bend_uid": "bu_175890c26625be04f424",
+    "display": "9 · B9 · 175890",
+    "label": "B9",
+    "measured_line_shown": true,
+    "sequence_index": 9,
+    "state_shown": "FORMED"
+   },
+   "tile": {
+    "count": 3,
+    "index": 2
+   }
+  },
+  {
+   "file": "img_e8ee71e00fa0.png",
+   "image_id": "img_e8ee71e00fa0",
+   "kind": "CLOSEUP",
+   "px_per_mm": 10.0,
+   "questions": [
+    "LANDS: does the SOLID black line lie on the physical bend crease of the scan (within max(2 mm, Ri + t), parallel, over at least 80 % of its length)? Answer YES, NO, or OCCLUDED if the crease cannot be seen.",
+    "TAG_OK: does the bold label next to the solid line equal the RECIPE CAD label at the same spot? YES / NO / UNDETERMINABLE."
+   ],
+   "scan_ref": "scan_fab0059574",
+   "sha256": "cdeada356aa3cf04f48ecb4fc40715b5b23b0a7b3f8fa928fa7cf1d9db35d298",
+   "subject": {
+    "bend_uid": "bu_dc997c2861d3325a8bca",
+    "display": "8 · B8 · dc997c",
+    "label": "B8",
+    "measured_line_shown": true,
+    "sequence_index": 8,
+    "state_shown": "FORMED"
+   },
+   "tile": {
+    "count": 3,
+    "index": 0
+   }
+  },
+  {
+   "file": "img_f4af5cc68aad.png",
+   "image_id": "img_f4af5cc68aad",
+   "kind": "CLOSEUP",
+   "px_per_mm": 10.0,
+   "questions": [
+    "The engine reports this bend UNKNOWN (reason in the header), so no measured line is drawn. Is that justified: is the bend really occluded or missing in the scan near the grey dashed line, so that its state cannot be judged? Answer unknown_justified YES or NO; lands = NOT_APPLICABLE.",
+    "TAG_OK: does the bold subject label match the RECIPE CAD label at the same spot? YES / NO / UNDETERMINABLE."
+   ],
+   "scan_ref": "scan_fab0059574",
+   "sha256": "b48bcabdef1325343fc9c423e0ba2b2143ca47d303b9e77fa0803191e6549684",
+   "subject": {
+    "bend_uid": "bu_74f4d0a7cdc657854d17",
+    "display": "11 · B11 · 74f4d0",
+    "label": "B11",
+    "measured_line_shown": false,
+    "sequence_index": 11,
+    "state_shown": "UNKNOWN"
+   },
+   "tile": {
+    "count": 3,
+    "index": 0
+   }
+  },
+  {
+   "file": "img_f6b337a74ff0.png",
+   "image_id": "img_f6b337a74ff0",
+   "kind": "CLOSEUP",
+   "px_per_mm": 10.0,
+   "questions": [
+    "The engine reports this bend UNKNOWN (reason in the header), so no measured line is drawn. Is that justified: is the bend really occluded or missing in the scan near the grey dashed line, so that its state cannot be judged? Answer unknown_justified YES or NO; lands = NOT_APPLICABLE.",
+    "TAG_OK: does the bold subject label match the RECIPE CAD label at the same spot? YES / NO / UNDETERMINABLE."
+   ],
+   "scan_ref": "scan_fab0059574",
+   "sha256": "1899673e2e3db9ac5d0c76189957df8728dcfa807a29d36a4feacaf2d2a27948",
+   "subject": {
+    "bend_uid": "bu_0eb02c66f399d0c29de4",
+    "display": "10 · B10 · 0eb02c",
+    "label": "B10",
+    "measured_line_shown": false,
+    "sequence_index": 10,
+    "state_shown": "UNKNOWN"
+   },
+   "tile": {
+    "count": 2,
+    "index": 1
+   }
+  },
+  {
+   "file": "img_f8b719bcb224.png",
+   "image_id": "img_f8b719bcb224",
+   "kind": "CLOSEUP",
+   "px_per_mm": 10.0,
+   "questions": [
+    "The engine reports this bend UNKNOWN (reason in the header), so no measured line is drawn. Is that justified: is the bend really occluded or missing in the scan near the grey dashed line, so that its state cannot be judged? Answer unknown_justified YES or NO; lands = NOT_APPLICABLE.",
+    "TAG_OK: does the bold subject label match the RECIPE CAD label at the same spot? YES / NO / UNDETERMINABLE."
+   ],
+   "scan_ref": "scan_fab0059574",
+   "sha256": "d48c9b49e448298ecdda4350ff64d90c0a2c9bd06e44f388310368124309f592",
+   "subject": {
+    "bend_uid": "bu_5994c186ea06e7d3f94d",
+    "display": "3 · B3 · 5994c1",
+    "label": "B3",
+    "measured_line_shown": false,
+    "sequence_index": 3,
+    "state_shown": "UNKNOWN"
+   },
+   "tile": {
+    "count": 3,
+    "index": 1
+   }
+  },
+  {
+   "file": "img_056cc5f7555e.png",
+   "image_id": "img_056cc5f7555e",
+   "kind": "GLOBAL_DIMENSIONS",
+   "questions": [
+    "Context only: overview of the registered scan with every bend's line and label. Record a verdict only if something contradicts the close-ups (lands = NOT_APPLICABLE, tag_ok = UNDETERMINABLE)."
+   ],
+   "scan_ref": "scan_fab0059574",
+   "sha256": "7b27457316300158902a7f9839030b6da52c47b6da403a1f5d7366d9524db0f2",
+   "subject": null
+  },
+  {
+   "file": "img_07d7f1e56d0e.png",
+   "image_id": "img_07d7f1e56d0e",
+   "kind": "GLOBAL_HEATMAP",
+   "questions": [
+    "Context only: overview of the registered scan with every bend's line and label. Record a verdict only if something contradicts the close-ups (lands = NOT_APPLICABLE, tag_ok = UNDETERMINABLE)."
+   ],
+   "scan_ref": "scan_fab0059574",
+   "sha256": "e46dd5dfcd2cd98e9003223542dfd7646f2b6e5380b24dadb8eec83c523ecc81",
+   "subject": null
+  },
+  {
+   "file": "img_7c5711b63c41.png",
+   "image_id": "img_7c5711b63c41",
+   "kind": "GLOBAL_SIDE",
+   "questions": [
+    "Context only: overview of the registered scan with every bend's line and label. Record a verdict only if something contradicts the close-ups (lands = NOT_APPLICABLE, tag_ok = UNDETERMINABLE)."
+   ],
+   "scan_ref": "scan_fab0059574",
+   "sha256": "ce78dfcf2174d677e95f26c7e66f1459d2dabd4b513b994afc9f721905d4a150",
+   "subject": null
+  },
+  {
+   "file": "img_9de80fabe591.png",
+   "image_id": "img_9de80fabe591",
+   "kind": "GLOBAL_TOP",
+   "questions": [
+    "Context only: overview of the registered scan with every bend's line and label. Record a verdict only if something contradicts the close-ups (lands = NOT_APPLICABLE, tag_ok = UNDETERMINABLE)."
+   ],
+   "scan_ref": "scan_fab0059574",
+   "sha256": "89a09ffc532b189071f69615a30de40b9000ff35c7d397ae3af2b32205f6de27",
+   "subject": null
+  },
+  {
+   "file": "img_d3d1624ca479.png",
+   "image_id": "img_d3d1624ca479",
+   "kind": "GLOBAL_ISO",
+   "questions": [
+    "Context only: overview of the registered scan with every bend's line and label. Record a verdict only if something contradicts the close-ups (lands = NOT_APPLICABLE, tag_ok = UNDETERMINABLE)."
+   ],
+   "scan_ref": "scan_fab0059574",
+   "sha256": "7d5c810d68fb2ba717c525242a42720ed5ef7383189c3724bb28f722792d3c85",
+   "subject": null
+  },
+  {
+   "file": "img_dc2ac9ce7018.png",
+   "image_id": "img_dc2ac9ce7018",
+   "kind": "GLOBAL_FRONT",
+   "questions": [
+    "Context only: overview of the registered scan with every bend's line and label. Record a verdict only if something contradicts the close-ups (lands = NOT_APPLICABLE, tag_ok = UNDETERMINABLE)."
+   ],
+   "scan_ref": "scan_fab0059574",
+   "sha256": "97d66b91800d60a312a248b379f80c4db1bdb6f24c738fc1c823f363943be32f",
+   "subject": null
+  }
+ ]
+}

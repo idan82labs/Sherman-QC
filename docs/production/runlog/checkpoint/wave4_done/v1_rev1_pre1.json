@@ -1,0 +1,206 @@
+{
+ "steps": [
+  {
+   "step": "S0",
+   "ok": true,
+   "critique": "No screenshot for this step; checked only through the steps.json assertions (app copy built, E2 part set with 6 drop scans). There is nothing to review visually."
+  },
+  {
+   "step": "S1",
+   "ok": true,
+   "critique": "No screenshot. Log and assertion only: exit 2, SECRET_KEY_MISSING_OR_DEFAULT."
+  },
+  {
+   "step": "S2",
+   "ok": true,
+   "critique": "No screenshot. Readiness JSON shows db, disk, runner and hotfolder all ok."
+  },
+  {
+   "step": "W1",
+   "ok": true,
+   "image": "01-production-parts.png, 02-new-part-form.png",
+   "critique": "Empty parts list renders cleanly. The new-part form shows Part number and Canonical SKU SYN-4ED9FC3569, revision 01 and thickness 2.5. No clipping at 1920x1080."
+  },
+  {
+   "step": "W2",
+   "ok": true,
+   "image": "03-wizard-cad.png",
+   "critique": "The CAD card shows part.step (the real name, not the stored hash), 100 KB, '4 bends found in the CAD', and the info box agrees with 4 candidates. The rail marks steps 5 and 6 'Needs attention' (amber) and step 8 'Blocked' (red), as expected."
+  },
+  {
+   "step": "W3",
+   "ok": true,
+   "image": "04-wizard-drawing.png",
+   "critique": "drawing.pdf is attached and no stale upload card is left. The rail shows 3 of 8 steps done."
+  },
+  {
+   "step": "W4",
+   "ok": true,
+   "image": "05..12",
+   "critique": "05: the Tag bends entry shows 3 sub-steps. 06: 4 auto-marked '?' markers B1-B4 sit on the two bend pairs of the model, all pending, '0 of 4 reviewed'. 07: the confirmed markers are renumbered 1-4 in click order (B1=1, B4=2, B2=3, B3=4) and the cards agree. 08: order mode chips read 1\u00b7B1, 2\u00b7B4, 3\u00b7B2, 4\u00b7B3, with Move 1 = B1\u00b7B4 and Move 2 = B2\u00b7B3. On-model markers carry 'Move n' badges coloured per move. 09: the unfolded CAD development draws 4 lines and the numbering is consistent. 10/11: folded view, 'All changes saved', 'Operator setup saved. This is a plan, not a QC result'. 12: the wizard summary shows 4 of 4 reviewed, order confirmed Yes, 2 moves, revision 1. Defects found: the bottom caption of the studio is cut off mid-sentence at 1080 ('...This is not a scan' in 06/07/08). The right panel text is clipped at the panel bottom in 06 ('Selected B1: marking pending review. This is not QC approval' is cut) and at the top in 07. In the wizard (12) the Unfolded toggle is disabled ('needs a flat whose binding is confirmed'), while the studio offered a CAD-development unfold for the same part; the two screens disagree."
+  },
+  {
+   "step": "W5",
+   "ok": true,
+   "image": "13-wizard-flat-proposal.png, 14-wizard-flat-confirmed.png",
+   "critique": "Parsed flat: mm units, 44061 mm\u00b2, 4 bend lines, binding chip 'Proposed, not confirmed' changing to 'Confirmed by operator', and the message 'binding matches the current CAD and bend marks'. Polish: the flat preview, which is the thing being confirmed, is cut off under the footer in both shots; only the top ~50 px of the outline shows. In 14 the 'flat.dxf' title is scrolled half under the step header. The screenshot therefore does not show the non-overlapping flat labels that the assertion claims."
+  },
+  {
+   "step": "W6",
+   "ok": true,
+   "image": "15-wizard-unfolded.png, 16-wizard-folded.png",
+   "critique": "15: 'Unfolded view from your file' draws the flat outline with 4 dashed lines numbered 1,3,4,2 left to right, consistent with the tagged order. Holes are drawn. The Unfolded toggle is pressed and the caption says 'Drawn from the uploaded flat'. 16: back to the folded CAD with Move badges, Folded pressed."
+  },
+  {
+   "step": "W6b",
+   "ok": true,
+   "image": "17, 18, 19",
+   "critique": "17: the studio unfolded view now comes from the flat ('Unfolded view drawn from the uploaded flat file (confirmed binding)'). Lines 1,3,4,2 are coloured per move and match 15. 18: folded again. 19: Hebrew RTL. The step rail is mirrored to the right, the toolbar and toggles are mirrored, the header reads correctly ('SYN-4ED9FC3569 \u2026 \u05d2\u05e8\u05e1\u05d4 01'), and the move badges read '\u05de\u05d4\u05dc\u05da 1/2' correctly with LTR digits isolated. No mirrored glyphs and no horizontal overflow. As in English, the bottom caption is truncated at 1080."
+  },
+  {
+   "step": "W7",
+   "ok": true,
+   "image": "20-wizard-tolerances.png",
+   "critique": "Part defaults are shown (angle \u00b11, flange \u00b10.5, bend line \u00b10.5, backgauge \u00b10.3, heatmap band 0.5), with tolerance source Shop standard and the finished-part scan mode. Weak evidence: the screenshot pairs with '4 per-bend rows', but only the first row (B1) is visible and it is cut off under the footer."
+  },
+  {
+   "step": "W8",
+   "ok": true,
+   "image": "21, 22, 23",
+   "critique": "21: the review step reads 'Checked automatically when you release', rail at 6/8. 22: 'Released v1, Recipe SYN-4ED9FC3569@v1, Fingerprint 7f74ebed', all checklist items Done. 23: the nominals table shows thickness 2.500, K 0.330\u00b10.005 from the bound flat, and 4 rows with angles, flange A/B targets and backgauge S1-S3. UX concern: recipe rows are relabelled by sequence (row 2 'B2 / CAD B4', row 3 'B3 / CAD B2'). The same physical bend is therefore 'B4' in the studio and 'B2' on the station and in the PDF. The CAD-label hint helps, but operators will be confused."
+  },
+  {
+   "step": "W9",
+   "ok": true,
+   "image": "24-wizard-hebrew-rtl.png",
+   "critique": "Hebrew wizard is fully mirrored: rail on the right with '\u05d4\u05d5\u05e9\u05dc\u05dd' states, the release checklist is in Hebrew, and the active recipe 'SYN-4ED9FC3569@v1' keeps LTR order. The back arrow points right, which is correct for RTL. No overflow. The nominals section is cut by the footer and needs a scroll; that is acceptable."
+  },
+  {
+   "step": "K1",
+   "ok": true,
+   "image": "25, 26",
+   "critique": "Token gate: the 'Connect this station' card shows station cell-1 and has a Hebrew toggle. Connected empty station: 'Live 09:45:55' with a green icon, an empty-state message and 'Report not ready' disabled. Polish: the right half of the screen (the table area) is a large blank panel with no placeholder."
+  },
+  {
+   "step": "K2",
+   "ok": true,
+   "image": "27, 28",
+   "critique": "27: the in-progress ribbon reads 'New scan: Scan received, waiting', with the file name, 0% and 0:00, and the history chip appears. 28: red banner 'Out of tolerance found', 14 pass / 2 fail of 16, worst 'Bend 2 (B2), Flange B \u0394 +1.5 (tol \u00b10.5)'. The table B2 Flange B cell 53.5 shows a red Fail and B3 Angle 92.1\u00b0 +2.1\u00b0 a red Fail; the other cells are green Pass. The stage strip has 1 and 4 green, 2 and 3 red, grouped as Move 1 and Move 2. The 3D labels are coloured by worst decision (1 and 4 green, 2 and 3 red). The WebGL canvas is painted and labels do not overlap. Colours follow the plan."
+  },
+  {
+   "step": "K3",
+   "ok": true,
+   "image": "29-34",
+   "critique": "29: heatmap off, with a neutral scan and the legend dimmed. 30: heatmap on. 31: CAD only shows a grey solid mesh with holes visible. 32: scan only, with the CAD toggle visibly off. 33: both layers on. 34: labels off, no pills. All views are non-blank. Polish: in 34 the measured bend lines disappear along with the labels. 'Bend labels' off should hide only the pills, not the measured OML lines, or it should be renamed."
+  },
+  {
+   "step": "K4",
+   "ok": true,
+   "image": "35-40",
+   "critique": "35: row 2 is clicked; the camera reframes on B2, the row expands with 'Bend line \u0394 0.0 \u00b10.5 Pass', and the strip outlines 2. 36 is pixel-identical to 35 because the worst bend is B2, which row 2 had already selected. The worst-first jump is therefore not shown visually; only the final state is correct. Shoot 36 from a different selection. 37-40: fit, wheel zoom, pinch plus one-finger orbit (39, a very close zoom) and mouse orbit all change the view, and labels stay attached. In 39 the B2 red line runs well past the part edge over empty background (upper left). This needs a look: it is either a line-extent issue or a camera-clipping artefact."
+  },
+  {
+   "step": "K5",
+   "ok": true,
+   "image": "41-44",
+   "critique": "Each close-up highlights the correct pill (white ring) and strip square, and expands the matching table row with its bend-line delta. B1, B3 and B4 lines sit on the physical bend edges, so LANDS and TAG_OK hold. B2 (42) is the same framing as 35/36, not a close-up. Its solid red line starts slightly outside the part outline at the left, so LANDS is plausible but not crisp. Polish: these are not close-ups; the zoom barely changes. G4-quality per-bend review needs a much tighter frame or the E4 \u22658 px/mm renders."
+  },
+  {
+   "step": "K6",
+   "ok": true,
+   "image": "pdf/page-1..5",
+   "critique": "5-page bilingual PDF. Running header 'Sherman QC \u00b7 Inspection report \u00b7 \u05d3\u05d5\u05d7 \u05d1\u05d3\u05d9\u05e7\u05d4 \u00b7 SYN-4ED9FC3569 \u00b7 SYN-4ED9FC3569@v1' is on every page. Page 1 has a red verdict box (Out of tolerance found / \u05e0\u05de\u05e6\u05d0\u05d4 \u05d7\u05e8\u05d9\u05d2\u05d4), counts 16/14/2, worst B2 flange B +1.47, and a valid stage. Page 2 has 4 views with labels '1 B1 f2a8 \u2026' that do not overlap, a signed \u00b10.5 legend and a 50 mm scale bar. Page 3 has the flange-first table grouped by Move M1/M2 with Pass and Fail chips in English and Hebrew (B2 Flange B and B3 angle Fail, matching the station). Page 5 has the decision colour legend including '\u05dc\u05d0 \u05d4\u05d5\u05db\u05e8\u05e2' and the grey-hatched 'Not yet formed', plus conventions in both languages. Hebrew glyphs are in reading order, not mirrored. Polish: the Hebrew 3D-view caption leaves out the '\u00b10.50 mm band; + = outward' and 'Labels: sequence, bend, uid code' parts of the English. The extracted text has reversed parentheses (')\u05d7\u05dc\u05e7 \u05de\u05d5\u05d2\u05de\u05e8(') even though it renders correctly, so copy and search are broken. The page-1 ISO thumbnail is small with lots of white space."
+  },
+  {
+   "step": "K7",
+   "ok": true,
+   "image": "45-station-hebrew-rtl.png",
+   "critique": "Full RTL mirror. The table has Bend on the right, flange A, flange B and Angle to the left. Pass and Fail read '\u05ea\u05e7\u05d9\u05df'/'\u05d7\u05e8\u05d9\u05d2\u05d4', and the stage strip reads right to left with '\u05de\u05d4\u05dc\u05da 1/2'. The banner reads '\u05e0\u05de\u05e6\u05d0\u05d4 \u05d7\u05e8\u05d9\u05d2\u05d4 \u2026 14 \u05ea\u05e7\u05d9\u05df 2 \u05d7\u05e8\u05d9\u05d2\u05d4'. The worst line reads '\u05d4\u05d7\u05e8\u05d9\u05d2\u05d4 \u05d4\u05d2\u05d3\u05d5\u05dc\u05d4: \u05db\u05d9\u05e4\u05d5\u05e3 2 (B2), \u05db\u05e0\u05e3 B \u0394 +1.5 (\u05d8\u05d5\u05dc' \u00b10.5)' with numbers isolated LTR and parentheses mirrored correctly. Legend shows '\u05e2\u05d5\u05d3\u05e3/\u05d7\u05e1\u05e8/\u05dc\u05dc\u05d0 \u05e2\u05e8\u05da'. No overflow, no mirrored glyphs."
+  },
+  {
+   "step": "K8",
+   "ok": true,
+   "image": "46-station-incomplete.png",
+   "critique": "Amber 'Review required': 7 pass / 2 undetermined of 9, 'Final check, but bends are missing'. Stage strip 'Stage 2 of 4' with 3 and 4 dashed and hatched. The B3 and B4 table rows are grey-hatched 'Not yet formed' and show nominal Flange A/B and Angle only, so they are never red. B1 and B2 Flange A show 'Not measured, Neighbouring bend not measured'. The backgauge sub-row reads 'Backgauge 140.11 \u0394 +0.05 \u00b10.30 Pass'. 3D: the finished-part ghost is drawn, and the hatched '3 ff03'/'4 1711' pills sit on the still-flat web. Matches the plan."
+  },
+  {
+   "step": "K9",
+   "ok": true,
+   "image": "47, 48",
+   "critique": "47: amber ribbon 'Scan held back: Part number not released for inspection', file 'SYN-0CE499EE31_A_FULL_SCAN 1.ply', and a 'Rescan / call engineer' action. The previous result stays visible. 48: after the admin assigns the SKU the station shows the new job 88300dca with green 'All measured in tolerance', 16 pass, all cells green, plus a new history chip."
+  },
+  {
+   "step": "K10",
+   "ok": true,
+   "image": "49, 50",
+   "critique": "49: the in-flight panel reads 'Measuring BEFORE BENDING SYN-4ED9FC3569_01.ply\u2026 Below: previous result', the previous result is dimmed, and the ribbon shows 5%. Polish: the SKU wraps mid-token ('SYN-' / '4ED9FC3569_01.ply\u2026') in the banner title. 50: recovered job afb3d5a2 is a blank. 'Review required, No bends formed yet \u2013 nothing to check', Stage 0 of 4, all four rows hatched 'Not yet formed', all pills hatched, Worst-first disabled. Correct."
+  },
+  {
+   "step": "K11",
+   "ok": true,
+   "critique": "No screenshot; API assertion only (SCAN_DUPLICATE, no new job)."
+  },
+  {
+   "step": "R1",
+   "ok": true,
+   "image": "51, 52",
+   "critique": "SKU preview 10839000. The real STEP card shows 10839000_01.stp, 211 KB, '12 bends found in the CAD'. Polish: the thickness field was left empty here. The recipe later derives 1.500 mm (62), but the PDF prints thickness '\u2014'."
+  },
+  {
+   "step": "R2",
+   "ok": true,
+   "image": "53-58",
+   "critique": "54: 12 '?' markers, all pending; the leader lines land on the frame bend lines. 'Unfolding is unavailable for this CAD geometry' is shown, so the Unfolded toggle is disabled (informational). 55: all 12 confirmed and renumbered. 56: chips 1\u00b7B1 \u2026 12\u00b7B12, Move 1 B1\u00b7B2. Defect: after B12 was just tagged, the on-model B12 marker still reads '? B12' (stale pending marker) while the chip list shows 12\u00b7B12. 57 saved. 58: wizard shows 12 of 12 reviewed, order Yes, 1 move, revision 1. Move 1 holds 1 B1 and 2 B2, and the rest are listed ungrouped. The 12 black label boxes cover much of the part in the wizard preview."
+  },
+  {
+   "step": "R3",
+   "ok": true,
+   "image": "59-62",
+   "critique": "Tolerances, review, 'Released v1 10839000@v1'. Nominals: thickness 1.500 mm, K 0.330\u00b10.050 shop default. B1-B4 145\u00b0 R0.10, B5 90\u00b0 R0.78, flange targets such as 3.61/13.04/21.41 and backgauge values. Data note: R0.10 on the 35\u00b0 bends is effectively sharp. It is worth checking that the extracted CAD radius is real and not a parse artefact."
+  },
+  {
+   "step": "R4",
+   "ok": true,
+   "image": "63-real-station-result.png",
+   "critique": "The station shows the real job within the limit. 'Live 09:50:56'. Red banner: 21 pass / 15 fail / 12 review of 48, worst 'Bend 8 (B8), Flange A \u0394 \u221217.7', 'A bend is only partly formed'. The strip has 12 squares (6 green, 9 amber, the rest red). Rows show 'Partially formed' red sub-tags on B1 and B2. The CAD-mesh scan has a heatmap, and 12 labels are placed without overlap; 8, 2 and 1 are stacked tightly on the top rail. The app behaves correctly, but the engine content is poor: B1 166.2\u00b0 and B2 177.2\u00b0 against 145\u00b0, B2 flange A and B swapped (3.8/21.4 vs 20.2/3.6), and the B2 bend line is +17.3 mm off. Only 4 of the 12 rows fit and the 5th row is clipped at the panel bottom."
+  },
+  {
+   "step": "R5",
+   "ok": false,
+   "image": "64, 65, pdf/real/page-1..8",
+   "critique": "64: worst-first selects B8. The pill gets a white ring, strip square 8 is outlined, and the table scrolls to B8. B8's line sits on the top-rail bend, so LANDS and TAG_OK are plausible for B8. However, the table scroll parks B8 at the very bottom edge with its sub-row hidden, and a half-cut row of text shows under the column header. 65: Hebrew RTL is correct (mirrored table, Hebrew legend, worst line '\u05db\u05d9\u05e4\u05d5\u05e3 8 (B8), \u05db\u05e0\u05e3 A \u0394 \u221217.7 (\u05d8\u05d5\u05dc' \u00b10.5)', '\u05db\u05d9\u05e4\u05d5\u05e3 \u05e9\u05db\u05d5\u05e4\u05e3 \u05d7\u05dc\u05e7\u05d9\u05ea'). The PDF has 8 pages with the header correct on every page. It fails on content: page 1 prints 'Bends 12 \u00b7 formed 12 \u00b7 not yet formed 0 \u00b7 unknown 0', while the same page says 'Partially formed bend found' and page 3 lists B1 and B2 as 'Partially formed (formed 39% / 8%)'. The record contradicts itself. Also: 'Material / thickness \u2014 / \u2014' although the recipe has 1.500 mm. The page-6 backgauge table has 12 empty rows of '\u2014'. The page-7 warning 'K_FACTOR_DEFAULTED\u2026' is English only. Page 3/4 show 'formed 127%/136%' on bends labelled plain 'Formed' that fail by \u22129.5\u00b0/\u221212.4\u00b0. G4 cannot be signed for B2 on the real part: its measured line is offset +17.3 mm with flanges swapped, which points to a line landing on the B1/B8 cluster (mis-tag)."
+  },
+  {
+   "step": "Z1",
+   "ok": true,
+   "critique": "No screenshot; assertion only (no page errors)."
+  }
+ ],
+ "blockers": [
+  "Real-part PDF (domains/production/reporting) contradicts itself. Page 1 says 'Bends 12 \u00b7 formed 12 \u00b7 not yet formed 0 \u00b7 unknown 0', while the same page says 'Partially formed bend found' and page 3 marks B1 and B2 PARTIALLY_FORMED (formed 39%/8%). PARTIALLY_FORMED must not be counted as formed in the summary. The PDF is the record of the inspection, so this blocks R5 and K6 PDF sign-off. File: /Users/idantal/ShermanQC/FullProject/docs/production/runlog/e2e/20261018T064404Z-pre1/pdf/real/page-1.png",
+  "G4 (LANDS/TAG_OK) cannot be signed for real 10839000 B1/B2. B2's measured line is +17.3 mm off nominal with flange A/B swapped (3.75 vs 21.41 and 20.24 vs 3.61). B8 flange A reads 3.71 against 21.41, which is consistent with B2's line sitting at the B8/B1 cluster on the top rail (63/64 show labels 8, 2 and 1 stacked there). B1 and B2 angles of 166\u00b0/177\u00b0 against 145\u00b0 are also implausible. This is an engine (A1) defect. It does not block the app E2E plumbing, but it blocks any G4 or real-part accuracy claim from this run."
+ ],
+ "polish": [
+  "Bend identity is renamed across screens. The studio uses CAD labels (B1,B4,B2,B3 in tagging order), but the recipe, station and PDF relabel by sequence ('B2 / CAD B4'). The same physical bend is 'B4' in the studio and 'B2' on the station. Show the CAD label on the station or in the PDF too, or keep one naming.",
+  "K4: 36-station-worst-first.png is identical to 35 because B2 is both row 2 and the worst bend. Reset the selection to B1 or fit before the worst-first screenshot so the jump is visible.",
+  "K5 close-ups are not close-ups. 42 (B2) is the same framing as 35, and the others barely zoom. Frame each selected bend tightly for G4 review.",
+  "K4/K5: in 39 (and at the left end in 42) B2's solid red measured line extends past the part outline over empty background. Check the measured-line extent and clipping.",
+  "K3: 'Bend labels' off (34) also hides the measured OML lines. Keep the lines or rename the toggle.",
+  "Station heatmap legend spans \u00b11.0 mm (2\u00d7 the band) while the PDF uses the recipe band \u00b10.50. The same job is coloured on different scales on the station and in the PDF.",
+  "Studio (06/07/08/17/18/54-56): the bottom caption is cut mid-sentence at 1080 ('\u2026This is not a scan'), and right-panel text is clipped at the top and bottom ('Selected B1: marking pending review. This is not QC approval' is cut).",
+  "W5 (13/14): the flat preview being confirmed is almost fully hidden under the footer, and the 'flat.dxf' title is scrolled under the header in 14. The screenshot cannot show the claimed label non-overlap.",
+  "W7 (20): only one per-bend tolerance row is visible and it is clipped. The screenshot does not evidence the claimed 4 rows.",
+  "W4/12: the wizard Unfolded toggle is disabled ('needs a flat') while the studio offered a CAD-development unfold for the same part.",
+  "R2 (56): the on-model B12 marker still shows '? B12' (pending) after B12 was tagged in order mode.",
+  "R4/R5 (63-65): only about 4 of 12 rows fit. Auto-scroll on worst-first parks the selected row at the bottom edge with its sub-row hidden, and leaves a half-cut row under the header. Scroll the selected row to the centre.",
+  "K10 (49): the in-flight banner title wraps mid-SKU ('SYN-' / '4ED9FC3569_01.ply\u2026'). Truncate or keep the file name on one line.",
+  "PDF: the Hebrew 3D-view caption leaves out the '\u00b10.50 mm band; + = outward' and 'Labels: sequence, bend, uid code' parts of the English. The K_FACTOR_DEFAULTED warning (real p7) has no Hebrew. The text layer has reversed parentheses (')\u05d7\u05dc\u05e7 \u05de\u05d5\u05d2\u05de\u05e8('), so copy and search are wrong even though rendering is fine.",
+  "Real PDF: 'Material / thickness \u2014 / \u2014' although the recipe nominal thickness is 1.500 mm. Print the recipe thickness.",
+  "Real PDF p6: the backgauge table prints 12 all-'\u2014' rows. Collapse it to the 'No backgauge characteristic at this stage' note.",
+  "Real PDF p3/p4: 'formed 127%'/'formed 136%' on bends labelled 'Formed' that fail by \u22129.5\u00b0/\u221212.4\u00b0. Over-forming above 100% should be called out (overbent) rather than shown as plain Formed.",
+  "Real recipe (62): R0.10 on the 35\u00b0 bends B1-B4 looks like a CAD radius extraction artefact. Verify it.",
+  "K1 (26): the empty station's right half is a blank panel. Add a placeholder.",
+  "PDF page-1 ISO thumbnails are small with a lot of white space (both reports)."
+ ],
+ "images_seen": 78
+}

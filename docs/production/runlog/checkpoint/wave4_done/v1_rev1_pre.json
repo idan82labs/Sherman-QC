@@ -1,0 +1,208 @@
+{
+ "steps": [
+  {
+   "step": "S0",
+   "ok": true,
+   "critique": "Log-only step (app copy built, E2 part set generated). No screenshot to judge visually."
+  },
+  {
+   "step": "S1",
+   "ok": true,
+   "critique": "Log-only step (refused start with SECRET_KEY_MISSING_OR_DEFAULT). No visual evidence."
+  },
+  {
+   "step": "S2",
+   "ok": true,
+   "critique": "Log-only step (readiness ok). No visual evidence."
+  },
+  {
+   "step": "W1",
+   "ok": true,
+   "image": "01-production-parts.png, 02-new-part-form.png",
+   "critique": "The empty Production parts list and the New part form render cleanly at 1920x1080. The canonical SKU preview SYN-4ED9FC3569 matches the part number, and the thickness of 2.5 is filled."
+  },
+  {
+   "step": "W2",
+   "ok": true,
+   "image": "03-wizard-cad.png",
+   "critique": "Shows '4 bends found in the CAD' and 'CAD processed. 4 bend candidates were found'. Polish: the file is listed under a hashed name (9598e8b3\u2026step) instead of the uploaded file name."
+  },
+  {
+   "step": "W3",
+   "ok": true,
+   "image": "04-wizard-drawing.png",
+   "critique": "drawing.pdf shows 'Attached to the part' and 'Drawing attached.'. Polish: a second upload card is still visible, and its bar is about half full while the label reads 'Uploading\u2026 100%'."
+  },
+  {
+   "step": "W4",
+   "ok": true,
+   "image": "05-10",
+   "critique": "The flow matches the claim. 06: four '?' markers (B1\u2013B4) sit on the four CAD bend lines, all pending, 'Bend markings 0 of 4 reviewed'. 07: all four confirmed, numbered 1\u20134 in click order. 08: order chips 1\u00b7B1, 2\u00b7B4, 3\u00b7B2, 4\u00b7B3, with Move 1 = B1\u00b7B4 and Move 2 = B2\u00b7B3. 09: 'Operator setup saved', 'All changes saved', two machine moves. 10: wizard shows 4 of 4 reviewed, order confirmed Yes, 2 moves, revision 1. Polish: 05 was captured while the card was still fading in, and the studio footnote is clipped at the bottom edge."
+  },
+  {
+   "step": "W5",
+   "ok": true,
+   "image": "11-wizard-flat-proposal.png, 12-wizard-flat-confirmed.png",
+   "critique": "11 shows the flat parsed (4 lines, 3 inner loops) and a binding marked 'Proposed, not confirmed'. 12 shows the L1\u2192B1(Step 1), L2\u2192B2(Step 3), L3\u2192B3(Step 4), L4\u2192B4(Step 2) table and step 4 Done, but the CONFIRMED chip it is meant to prove is scrolled out of view. The on-flat chips overlap: 'L1\u2192' is covered by 'L2\u2192B2' and 'L3\u2192' by 'L4\u2192B4', so the L1 and L3 targets can't be read."
+  },
+  {
+   "step": "W6",
+   "ok": false,
+   "image": "13-wizard-unfolded.png, 14-wizard-folded.png",
+   "critique": "13 draws the uploaded flat, numbered 1,3,4,2 from left to right, which is consistent with the tagged order and the binding. However the Folded/Unfolded segmented control still highlights 'Folded' while the panel says 'Unfolded view from your file', so the toggle state is wrong. 14 is correct: folded CAD with 'Move 1\u00b71', 'Move 1\u00b72', 'Move 2\u00b73' and 'Move 2\u00b74' on the expected lines."
+  },
+  {
+   "step": "W6b",
+   "ok": true,
+   "image": "15-17",
+   "critique": "15 shows the studio's unfolded view drawn from the uploaded flat, with the 'Unfolded' button pressed and markers 1/3/4/2 colour-coded by move. 16 is back to folded. 17 shows the studio in Hebrew with correct RTL: sidebar on the right, Hebrew text unmirrored, '\u05de\u05d4\u05dc\u05da 1/2' cards, markers drawn and no horizontal overflow. Polish: the flat view still carries a 'CAD' badge, and the bottom hint text and right-panel footnote are clipped at 1080 px."
+  },
+  {
+   "step": "W7",
+   "ok": true,
+   "image": "18-wizard-tolerances.png",
+   "critique": "Defaults are angle \u00b11, flange \u00b10.5, bend line \u00b10.5, backgauge \u00b10.3, heatmap band 0.5, Shop standard, with 'After the last bend' selected. The claimed 4 per-bend rows are below the fold, so only the start of row 1 is visible."
+  },
+  {
+   "step": "W8",
+   "ok": false,
+   "image": "19-wizard-review.png, 20-wizard-released.png, 21-wizard-released-expectations.png",
+   "critique": "19 is wrong. The review step shows '0 of 8 steps done', every step 'To do', the SKU header chip missing, and the content card faded. The wizard state appears reset or not yet loaded when this step is entered, and 58 shows the same for the real part. 20 shows 'Released v1 \u00b7 Recipe SYN-4ED9FC3569@v1 \u00b7 Fingerprint 9d8d4297', but the action button is stuck on a disabled 'Releasing\u2026'. 21 is fine: 4 rows with nominal angles 90\u00b0 and flanges 34.6/41.5, 33.5/52.0, 82.2/34.6 and 82.2/33.5, matching the station truth. Note: the recipe renumbers the bends by sequence, so studio Move 1 'B1\u00b7B4' appears as recipe Move 1 'B1, B2'."
+  },
+  {
+   "step": "W9",
+   "ok": true,
+   "image": "22-wizard-hebrew-rtl.png",
+   "critique": "Hebrew RTL is correct: the checklist reads \u05d4\u05d5\u05e9\u05dc\u05dd throughout, active recipe SYN-4ED9FC3569@v1 is shown, the step rail is on the right, bidi of the English part name plus '\u05d2\u05e8\u05e1\u05d4 01' is correct, and there is no overflow."
+  },
+  {
+   "step": "K1",
+   "ok": false,
+   "image": "23-station-token-gate.png, 24-station-connected.png",
+   "critique": "23 shows the token gate correctly. 24 does not show a connected station: the centre reads 'Connecting to the line server\u2026' and the status shows 'Polling \u2014'. The screenshot was taken before the connection was established; 25 is the first frame that shows 'Live'."
+  },
+  {
+   "step": "K2",
+   "ok": true,
+   "image": "25-station-in-progress.png, 26-station-result-errors.png",
+   "critique": "25 shows the ribbon 'New scan: Scan received, waiting \u00b7 SYN-4ED9FC3569_01_FULL_SCAN 2.ply \u00b7 0% \u00b7 0:00'. 26 shows a red 'Out of tolerance found' banner (14 pass, 2 fail, of 16), 'Worst: Bend 2 (B2), Flange B \u0394 +1.5', B2 Flange B 53.5 Fail and B3 angle 92.1\u00b0 Fail in red cells, red stage chips 2 and 3, red 3D labels 2 and 3, and a painted heatmap. Polish: the part name is truncated in the header."
+  },
+  {
+   "step": "K3",
+   "ok": true,
+   "image": "27-32",
+   "critique": "27 heatmap off (neutral points, dimmed legend), 28 heatmap on, 29 CAD only (grey solid, holes visible), 30 scan only, 31 both and 32 labels off all match their claims. Weak evidence: 31 is pixel-identical to 28 and 30, because the points completely hide the CAD."
+  },
+  {
+   "step": "K4",
+   "ok": true,
+   "image": "33-38",
+   "critique": "33: row 2 expands with 'Bend line \u0394 0.0 Pass' and the camera moves to B2. 34 is visually identical to 33 because the worst bend is already B2, so it proves nothing new; only the button label changes to 'Next worst'. 35 is the fit view, and 36, 37 and 38 show the zoom, pinch-rotate and orbit changes clearly."
+  },
+  {
+   "step": "K5",
+   "ok": true,
+   "image": "39-42",
+   "critique": "B1: a solid green line on the bottom web-to-flange bend; lands, tag OK. B2: a red line on the upper bend; lands, tag OK, though the line runs slightly past the cloud edge on the left. B3: a red line on the lower inner bend; lands, tag OK. B4: a green line on the upper step bend; lands, tag OK. Label colours match the recipe decisions (B2 and B3 FAIL red, B1 and B4 PASS green)."
+  },
+  {
+   "step": "K6",
+   "ok": true,
+   "image": "pdf/page-1..5",
+   "critique": "Page 1: red 'Out of tolerance found / \u05e0\u05de\u05e6\u05d0\u05d4 \u05d7\u05e8\u05d9\u05d2\u05d4', worst B2 Flange B +1.47, valid inspection, thickness 2.50. Page 2: four 3D views with labelled lines, heatmap \u00b10.5 and 50 mm scale bars. Page 3: flange-first table grouped by move, with Pass/Fail cells in Hebrew. Page 4: registration (RMSE 0.023). Page 5: conventions in both languages. Hebrew is unmirrored throughout. Polish: in the legend, 'Not applicable' and 'Not yet formed' use the same swatch colour."
+  },
+  {
+   "step": "K7",
+   "ok": true,
+   "image": "43-station-hebrew-rtl.png",
+   "critique": "The layout is mirrored, the Hebrew is correct (\u05e0\u05de\u05e6\u05d0\u05d4 \u05d7\u05e8\u05d9\u05d2\u05d4, \u05ea\u05e7\u05d9\u05df/\u05d7\u05e8\u05d9\u05d2\u05d4, \u05de\u05d4\u05dc\u05da 1/2), the stage chips run 1\u21924 from the right, and the worst-line bidi reads correctly ('\u05db\u05d9\u05e4\u05d5\u05e3 2 (B2), \u05db\u05e0\u05e3 B \u0394 +1.5 (\u05d8\u05d5\u05dc\u05f3 \u00b10.5)'). No overflow. Polish: the part name in the header is cut at the start ('\u2026thetic sheet-metal part')."
+  },
+  {
+   "step": "K8",
+   "ok": true,
+   "image": "44-station-incomplete.png",
+   "critique": "B3 and B4 rows are hatched grey 'Not yet formed' with their nominals, stage chips 3 and 4 are dashed, the strip reads 'Stage 2 of 4 \u00b7 Final check, but bends are missing', the backgauge row shows 140.11 \u0394+0.05 Pass, and the banner is 'Review required' (not green). The banner was captured mid-fade and looks brown-grey; 45 shows the same banner in full orange."
+  },
+  {
+   "step": "K9",
+   "ok": true,
+   "image": "45-station-quarantine-issue.png, 46-station-after-assign.png",
+   "critique": "The bottom ribbon reads 'Scan held back: Part number not released for inspection \u00b7 SYN-0CE499EE31_A_FULL_SCAN 1.ply \u00b7 Rescan / call engineer' in amber. After assignment, 46 shows the new job ebd79fa0 with a green 'All measured in tolerance' (16/16)."
+  },
+  {
+   "step": "K10",
+   "ok": false,
+   "image": "47-station-service-killed.png, 48-station-recovered.png",
+   "critique": "47 does not show the claimed state. The station still shows the previous job ebd79fa0 and 'Waiting for the next scan' while the stage_0 job is actually running and orphaned; there is no running or stalled indicator, and the new scan is missing from Recent scans. 48 is fine: job eb20cb8e is a blank, all four bends hatched NOT_YET_FORMED, 'Stage 0 of 4', banner not green. The banner was again captured mid-fade, and the copy 'of 0 required checks' reads oddly."
+  },
+  {
+   "step": "K11",
+   "ok": true,
+   "critique": "API-only step; no screenshot."
+  },
+  {
+   "step": "R1",
+   "ok": true,
+   "image": "49-real-new-part-form.png, 50-real-wizard-cad.png",
+   "critique": "SKU preview 10839000 and '12 bends found in the CAD'. Polish: the STEP shows under a hashed name. No screenshot shows the placeholder drawing step, so its labelling can't be verified visually."
+  },
+  {
+   "step": "R2",
+   "ok": true,
+   "image": "51-56",
+   "critique": "52: 12 '?' markers on the frame model, 0 of 12 reviewed. 53: all confirmed, numbered 1\u201312. 54: order chips 1\u00b7B1\u202612\u00b7B12 with Move 1 = B1\u00b7B2 (the 3.6 mm joggle pair, which is sensible). 55: saved, 12 of 12 reviewed. 56: wizard shows 12/12 with order confirmed. Markers are dense but each has a leader line. Polish: the marker and label positions shuffle between 52, 53 and 54, the right-panel footnotes are clipped, and the moves list in 56 cuts off at B10."
+  },
+  {
+   "step": "R3",
+   "ok": false,
+   "image": "57-60",
+   "critique": "57 tolerances are fine. 58 repeats the W8 defect: '0 of 8 steps done', every step 'To do', no SKU header, faded card. 59 shows 10839000@v1 released with fingerprint 425e0756 and compile warnings FLAT_NOT_BOUND and K_FACTOR_DEFAULTED, but the button is again stuck on 'Releasing\u2026'. 60 nominals look plausible (B1\u2013B4 at 145\u00b0, R0.10, 3.61 mm joggle flanges; thickness 1.5)."
+  },
+  {
+   "step": "R4",
+   "ok": false,
+   "image": "61-real-station-result.png",
+   "critique": "The banner (grey 'Invalid inspection \u00b7 48 undetermined \u00b7 Mirrored part suspected'), the 'Stage ?' chips and the 'Inspection invalid \u2013 no bend was measured. Rescan the part.' row are correct. The 3D view, however, shows only dashed nominal lines and grey labels, with no CAD surface even though the CAD layer is on. The 'canvas painted' check passed on 436 px of line pixels. Labels collide: the B1 pill is hidden under '2 471f' and B3 under '4 f8b4'/'6 eb06'. The heatmap note shows raw text ('validity mirrored part suspected'). The engine result itself (INVALID, 0/48) is informational, but it means there is nothing on real data that G4 could check."
+  },
+  {
+   "step": "R5",
+   "ok": false,
+   "image": "62-real-station-worst-first.png, 63-real-station-hebrew-rtl.png, pdf/real/page-1..9",
+   "critique": "62: worst-first selects B1 (row 1 and stage chip 1 are highlighted), but in 3D the highlighted pill is '2 471f' because B1's label sits underneath it, so the tag is not OK visually. The '5 8043' label is drawn over the bottom toolbar's Scan button. 63: the Hebrew layout is fine, but the heatmap reason remains in English. PDF: content is correct (grey 'Invalid inspection', MIRROR_FITS_BETTER 1.598>1.350, four CAD views with labels, all 48 rows Undetermined with bilingual reasons). The running header on all 9 pages is bidi-garbled for the numeric SKU: 'Sherman QC \u00b7 Inspection report \u00b7 10839000 \u00b7 10839000 \u00b7 \u05d3\u05d5\u05d7 \u05d1\u05d3\u05d9\u05e7\u05d4@v1', which splits '@v1' from the recipe ID. The synthetic header renders correctly."
+  },
+  {
+   "step": "Z1",
+   "ok": true,
+   "critique": "No page errors recorded; no visual evidence."
+  }
+ ],
+ "blockers": [
+  "The station 3D view for the real part draws no CAD surface (61\u201363). With the CAD layer on, only dashed nominal lines and labels render; there are no scan points and no CAD mesh, so the operator cannot see the part. The 'WebGL not blank' check passed on 436 px of line pixels, compared with about 1200 for the synthetic part. The PDF does render the final CAD, so the station can be expected to as well.",
+  "Label collisions on the real part cause mis-tagging (61\u201363). The B1 pill is hidden under '2 471f', and B3 is hidden under '4 f8b4'/'6 eb06'. Worst-first selects B1, but the highlighted pill in 3D is B2's. This breaks the G4 rule of 0 mis-tagged bends for the closely spaced joggle pairs that are common on real parts.",
+  "The real-part PDF running header is bidi-garbled on all 9 pages: '10839000 \u00b7 10839000 \u00b7 \u05d3\u05d5\u05d7 \u05d1\u05d3\u05d9\u05e7\u05d4@v1'. '@v1' attaches to the Hebrew title instead of the recipe ID 10839000@v1. Production SKUs are numeric, so this will hit every real report. The synthetic alphanumeric SKU renders correctly.",
+  "Entering the Review expectations step (19 and 58, both parts) shows a reset wizard: '0 of 8 steps done', every step 'To do', no SKU header, faded content. It may be a real remount/state-loss bug or a capture taken before load. Either way, re-capture it after the page settles; if it persists, fix it before sign-off."
+ ],
+ "polish": [
+  "In 13, the Folded/Unfolded control highlights 'Folded' while the wizard shows 'Unfolded view from your file'.",
+  "In 20 and 59, the release button stays a disabled 'Releasing\u2026' after 'Released v1' is shown. Hebrew 22 shows the correct idle label.",
+  "In 12, the flat-binding chips overlap ('L1\u2192' under 'L2\u2192B2', 'L3\u2192' under 'L4\u2192B4'), and the CONFIRMED chip it is meant to prove is scrolled out of view.",
+  "In 24, the 'connected' screenshot actually shows 'Connecting to the line server\u2026' / 'Polling \u2014'. Wait for Live before capturing.",
+  "In 47, after the line service is killed, the station shows the previous job and 'Waiting for the next scan' with no running or stalled indicator for the orphaned job. Surface the in-flight job in the ribbon.",
+  "44 and 48 were captured during the banner fade-in, so the verdict colour looks muddy. Wait for the transition to finish before taking screenshots.",
+  "Weak evidence: 34 (worst-first) is identical to 33 because B2 was already selected, and 31 is identical to 28. Start worst-first from a different selection.",
+  "In 04, the progress bar is half full while the label reads 'Uploading\u2026 100%', and a stale upload card stays below the attached file.",
+  "The wizard shows STEP files under hashed names (9598e8b3\u2026.step, 77ec5ecc\u2026.stp) instead of the uploaded file names.",
+  "The heatmap-unavailable reason is shown as raw lowercase enum text ('validity mirrored part suspected') and is not translated in Hebrew (63).",
+  "3D bend labels draw over the bottom toolbar (the '5 8043' pill covers the Scan button in 62). Clip labels to the viewport or keep them below the controls.",
+  "The recipe renumbers bends by sequence, so studio Move 1 'B1\u00b7B4' appears as recipe Move 1 'B1, B2'. Show the CAD label next to the recipe label in the expectations table and the station so operators are not confused.",
+  "The station header part name is truncated ('Synthetic sheet-metal part SYN-4ED9FC3\u2026'), and in RTL it is cut at the start ('\u2026thetic').",
+  "The bottom hint text in the studio and the right-panel footnotes are clipped at 1920x1080 (6, 15, 16, 52, 53).",
+  "In the PDF legend, 'Not applicable' and 'Not yet formed' share the same swatch colour.",
+  "Page 7 of the real PDF prints a 12-row backgauge table of empty Undetermined rows for an invalid inspection. Collapse it to a single line.",
+  "In 48, 'of 0 required checks' reads oddly for a blank; use wording like 'no bends formed yet'.",
+  "The 'CAD' badge stays on the uploaded-flat view in the studio (15).",
+  "In 56, the real-part wizard folded view uses plain dark label boxes with no move colours, which are less legible than the studio's colours, and the moves list cuts off after B10.",
+  "The real-part markers and labels reposition between the confirm and order modes (52, 53, 54), which makes clicking by position less predictable."
+ ],
+ "images_seen": 77
+}

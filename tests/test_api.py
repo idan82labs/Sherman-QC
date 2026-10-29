@@ -21,20 +21,20 @@ if backend_path not in sys.path:
 @pytest.fixture
 def client(temp_db, temp_output_dir):
     """Create test client with mocked dependencies."""
-    # Patch database and directories before importing server
-    with patch("server.init_db") as mock_init_db, \
-         patch("server.UPLOAD_DIR", temp_output_dir / "uploads"), \
-         patch("server.OUTPUT_DIR", temp_output_dir / "output"), \
-         patch("server.DATA_DIR", temp_output_dir / "data"):
-
-        mock_init_db.return_value = temp_db
+    # The API is assembled through apps.api.main; endpoint implementations still
+    # use the legacy context during the strangler migration. Patch that context
+    # directly instead of relying on symbols formerly exported by server.py.
+    with patch("apps.api.legacy_context.legacy.db", temp_db), \
+         patch("apps.api.legacy_context.legacy.UPLOAD_DIR", temp_output_dir / "uploads"), \
+         patch("apps.api.legacy_context.legacy.OUTPUT_DIR", temp_output_dir / "output"), \
+         patch("apps.api.legacy_context.legacy.DATA_DIR", temp_output_dir / "data"):
 
         # Create directories
         (temp_output_dir / "uploads").mkdir(exist_ok=True)
         (temp_output_dir / "output").mkdir(exist_ok=True)
         (temp_output_dir / "data").mkdir(exist_ok=True)
 
-        # Import server after patching
+        # Import the assembled app after patching the implementation context.
         from server import app
         with TestClient(app) as test_client:
             yield test_client

@@ -1,0 +1,95 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sherman-qc.local/schemas/jev_bend_candidate_state_v1.schema.json",
+  "title": "Jev bend-candidate state v1",
+  "description": "Coordinate-free, identity-free state for the Jev question 'Is this candidate a real press-brake bend line?'. Mirrors research/jev/state_v1.py check_state (the code also limits nesting to 8 levels and checks 4-significant-digit rounding and null/_missing pairing). Generated from the state_v1 constants; a test checks they agree.",
+  "type": "object",
+  "required": [
+    "schema",
+    "candidate_source",
+    "units_convention",
+    "candidate"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema": {
+      "const": "jev_bend_candidate_state_v1"
+    },
+    "candidate_source": {
+      "enum": [
+        "CAD_ONBOARDING",
+        "E1_FLANGE_GRAPH",
+        "SCAN_E3",
+        "SCAN_F1_POOL",
+        "SCAN_LEGACY_REPORT"
+      ]
+    },
+    "units_convention": {
+      "const": "MM_DEG"
+    },
+    "candidate": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/block"
+        },
+        {
+          "minProperties": 1
+        }
+      ]
+    },
+    "neighbours": {
+      "$ref": "#/$defs/block"
+    },
+    "context": {
+      "$ref": "#/$defs/block"
+    },
+    "cad_relation": {
+      "$ref": "#/$defs/block"
+    }
+  },
+  "$defs": {
+    "enum_token": {
+      "type": "string",
+      "pattern": "^[A-Za-z][A-Za-z0-9_]{0,63}$",
+      "not": {
+        "pattern": "[0-9]{4}"
+      }
+    },
+    "block": {
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[a-z][a-z0-9_]{0,95}$",
+        "not": {
+          "anyOf": [
+            {
+              "pattern": "^(anchor|anchors|axis_direction|bbox_points|bend_line_direction|bend_line_end|bend_line_start|cad_line_end|cad_line_start|cad_metadata|centroid|centroid_mm|detected_line_end|detected_line_start|direction|expected_count|filename|line_end|line_end_mm|line_start|line_start_mm|manual_truth|measured_polyline_mm|nominal_polyline_mm|normal|part_id|point_indices|point_mm|points|polyline_mm|raw_to_frame|source_points|span_endpoints|split_group_id|transform)$"
+            },
+            {
+              "pattern": "(^|_)(anchor|anchors|at|case|cases|centroid|coordinate|coordinates|date|endpoint|endpoints|families|family|file|filename|filenames|files|gold|hash|id|ids|job|jobs|label|labels|manual|name|names|operator|part|parts|path|paths|polyline|recipe|recipes|review|reviewed|reviews|scan|scans|seed|seeds|serial|sha|sha256|sku|skus|split|splits|station|stations|time|timestamp|timestamps|truth|uid|uids|uuid|xyz)(_|$)"
+            }
+          ]
+        }
+      },
+      "patternProperties": {
+        "_(count|deg|eigenvalue|fraction|log1p|mm|mm2|pct|per_mm|probability|quantile|ratio|score)$": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "^(is|has)_": {
+          "type": "boolean"
+        },
+        "_missing$": {
+          "const": true
+        },
+        "_(convention|direction_sign|family_kind|form|kind|method|mode|reason|semantics|source|state|status)$": {
+          "$ref": "#/$defs/enum_token"
+        }
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/block"
+      }
+    }
+  }
+}

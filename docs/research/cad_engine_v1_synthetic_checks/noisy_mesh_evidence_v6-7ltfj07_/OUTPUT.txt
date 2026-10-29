@@ -1,0 +1,617 @@
+..............................................................................FFFFFFFFFFFFF
+=================================== FAILURES ===================================
+_ test_actual_frozen_noisy_frames_have_exact_v5_v6_geometry_and_full_evidence[0] _
+
+frame = 0
+
+    @pytest.mark.parametrize("frame", range(4))
+    def test_actual_frozen_noisy_frames_have_exact_v5_v6_geometry_and_full_evidence(frame):
+        truth, triangles = _grid()
+        rotation, translation, scale = FIXED_FRAMES[frame]
+        local = truth.copy()
+        local[:, 2] = [.01*(-1 if (i//9+i%9) % 2 else 1) for i in range(81)]
+        observed, clean = (local*scale)@rotation.T+translation, (truth*scale)@rotation.T+translation
+        epsilon = np.full(81, .05*scale)
+        assert np.all(np.linalg.norm(observed-clean, axis=1) < epsilon)
+>       _, result = _paired(observed, triangles, epsilon)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_cad_guided_noisy_mesh_evidence_v6.py:425: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+points = array([[-8.  , -8.  ,  0.01],
+       [-6.  , -8.  , -0.01],
+       [-4.  , -8.  ,  0.01],
+       [-2.  , -8.  , -0.01]...      [ 2.  ,  8.  , -0.01],
+       [ 4.  ,  8.  ,  0.01],
+       [ 6.  ,  8.  , -0.01],
+       [ 8.  ,  8.  ,  0.01]])
+triangles = array([[ 0,  1,  9],
+       [ 1, 10,  9],
+       [ 1,  2, 10],
+       [ 2, 11, 10],
+       [ 2,  3, 11],
+       [ 3, 1...[68, 69, 77],
+       [69, 78, 77],
+       [69, 70, 78],
+       [70, 79, 78],
+       [70, 71, 79],
+       [71, 80, 79]])
+epsilon = array([0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05,
+       0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0....5, 0.05, 0.05,
+       0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05,
+       0.05, 0.05, 0.05, 0.05])
+kwargs = {}
+
+    def _paired(points, triangles, epsilon=.05, **kwargs):
+        baseline = _run(v5, points, triangles, epsilon, **kwargs)
+        successor = _run(v6, points, triangles, epsilon, **kwargs)
+>       assert baseline["status"] == successor["status"] == "COMPLETE", (baseline["reasons"], successor["reasons"])
+E       AssertionError: ([], ['UNSUPPORTED_METADATA_VALUE'])
+E       assert 'COMPLETE' == 'UNAVAILABLE'
+E         
+E         - UNAVAILABLE
+E         + COMPLETE
+
+tests/test_cad_guided_noisy_mesh_evidence_v6.py:384: AssertionError
+_ test_actual_frozen_noisy_frames_have_exact_v5_v6_geometry_and_full_evidence[1] _
+
+frame = 1
+
+    @pytest.mark.parametrize("frame", range(4))
+    def test_actual_frozen_noisy_frames_have_exact_v5_v6_geometry_and_full_evidence(frame):
+        truth, triangles = _grid()
+        rotation, translation, scale = FIXED_FRAMES[frame]
+        local = truth.copy()
+        local[:, 2] = [.01*(-1 if (i//9+i%9) % 2 else 1) for i in range(81)]
+        observed, clean = (local*scale)@rotation.T+translation, (truth*scale)@rotation.T+translation
+        epsilon = np.full(81, .05*scale)
+        assert np.all(np.linalg.norm(observed-clean, axis=1) < epsilon)
+>       _, result = _paired(observed, triangles, epsilon)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_cad_guided_noisy_mesh_evidence_v6.py:425: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+points = array([[-4.99555556e+00, -1.20044444e+01,  4.99222222e+00],
+       [-4.78222222e+00, -1.02177778e+01,  4.11888889e+00]...      [ 1.07733333e+01,  2.22666667e+00,  5.89666667e+00],
+       [ 1.10044444e+01,  3.99555556e+00,  4.99222222e+00]])
+triangles = array([[ 0,  1,  9],
+       [ 1, 10,  9],
+       [ 1,  2, 10],
+       [ 2, 11, 10],
+       [ 2,  3, 11],
+       [ 3, 1...[68, 69, 77],
+       [69, 78, 77],
+       [69, 70, 78],
+       [70, 79, 78],
+       [70, 71, 79],
+       [71, 80, 79]])
+epsilon = array([0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05,
+       0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0....5, 0.05, 0.05,
+       0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05,
+       0.05, 0.05, 0.05, 0.05])
+kwargs = {}
+
+    def _paired(points, triangles, epsilon=.05, **kwargs):
+        baseline = _run(v5, points, triangles, epsilon, **kwargs)
+        successor = _run(v6, points, triangles, epsilon, **kwargs)
+>       assert baseline["status"] == successor["status"] == "COMPLETE", (baseline["reasons"], successor["reasons"])
+E       AssertionError: ([], ['UNSUPPORTED_METADATA_VALUE'])
+E       assert 'COMPLETE' == 'UNAVAILABLE'
+E         
+E         - UNAVAILABLE
+E         + COMPLETE
+
+tests/test_cad_guided_noisy_mesh_evidence_v6.py:384: AssertionError
+_ test_actual_frozen_noisy_frames_have_exact_v5_v6_geometry_and_full_evidence[2] _
+
+frame = 2
+
+    @pytest.mark.parametrize("frame", range(4))
+    def test_actual_frozen_noisy_frames_have_exact_v5_v6_geometry_and_full_evidence(frame):
+        truth, triangles = _grid()
+        rotation, translation, scale = FIXED_FRAMES[frame]
+        local = truth.copy()
+        local[:, 2] = [.01*(-1 if (i//9+i%9) % 2 else 1) for i in range(81)]
+        observed, clean = (local*scale)@rotation.T+translation, (truth*scale)@rotation.T+translation
+        epsilon = np.full(81, .05*scale)
+        assert np.all(np.linalg.norm(observed-clean, axis=1) < epsilon)
+>       _, result = _paired(observed, triangles, epsilon)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_cad_guided_noisy_mesh_evidence_v6.py:425: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+points = array([[ 35.00111111, -23.00111111,   8.99805556],
+       [ 35.05444444, -22.55444444,   8.77972222],
+       [ 35.1122...,   9.4425    ],
+       [ 38.94333333, -19.44333333,   9.22416667],
+       [ 39.00111111, -19.00111111,   8.99805556]])
+triangles = array([[ 0,  1,  9],
+       [ 1, 10,  9],
+       [ 1,  2, 10],
+       [ 2, 11, 10],
+       [ 2,  3, 11],
+       [ 3, 1...[68, 69, 77],
+       [69, 78, 77],
+       [69, 70, 78],
+       [70, 79, 78],
+       [70, 71, 79],
+       [71, 80, 79]])
+epsilon = array([0.0125, 0.0125, 0.0125, 0.0125, 0.0125, 0.0125, 0.0125, 0.0125,
+       0.0125, 0.0125, 0.0125, 0.0125, 0.0125, ... 0.0125, 0.0125, 0.0125, 0.0125,
+       0.0125, 0.0125, 0.0125, 0.0125, 0.0125, 0.0125, 0.0125, 0.0125,
+       0.0125])
+kwargs = {}
+
+    def _paired(points, triangles, epsilon=.05, **kwargs):
+        baseline = _run(v5, points, triangles, epsilon, **kwargs)
+        successor = _run(v6, points, triangles, epsilon, **kwargs)
+>       assert baseline["status"] == successor["status"] == "COMPLETE", (baseline["reasons"], successor["reasons"])
+E       AssertionError: ([], ['UNSUPPORTED_METADATA_VALUE'])
+E       assert 'COMPLETE' == 'UNAVAILABLE'
+E         
+E         - UNAVAILABLE
+E         + COMPLETE
+
+tests/test_cad_guided_noisy_mesh_evidence_v6.py:384: AssertionError
+_ test_actual_frozen_noisy_frames_have_exact_v5_v6_geometry_and_full_evidence[3] _
+
+frame = 3
+
+    @pytest.mark.parametrize("frame", range(4))
+    def test_actual_frozen_noisy_frames_have_exact_v5_v6_geometry_and_full_evidence(frame):
+        truth, triangles = _grid()
+        rotation, translation, scale = FIXED_FRAMES[frame]
+        local = truth.copy()
+        local[:, 2] = [.01*(-1 if (i//9+i%9) % 2 else 1) for i in range(81)]
+        observed, clean = (local*scale)@rotation.T+translation, (truth*scale)@rotation.T+translation
+        epsilon = np.full(81, .05*scale)
+        assert np.all(np.linalg.norm(observed-clean, axis=1) < epsilon)
+>       _, result = _paired(observed, triangles, epsilon)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_cad_guided_noisy_mesh_evidence_v6.py:425: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+points = array([[-41.01777778, -26.98222222,  10.96888889],
+       [-40.09333333, -19.90666667,  14.58666667],
+       [-39.24  ...,   3.85777778],
+       [ 22.12888889,  29.87111111,   7.47555556],
+       [ 22.98222222,  37.01777778,  10.96888889]])
+triangles = array([[ 0,  1,  9],
+       [ 1, 10,  9],
+       [ 1,  2, 10],
+       [ 2, 11, 10],
+       [ 2,  3, 11],
+       [ 3, 1...[68, 69, 77],
+       [69, 78, 77],
+       [69, 70, 78],
+       [70, 79, 78],
+       [70, 71, 79],
+       [71, 80, 79]])
+epsilon = array([0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2,
+       0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2,...0.2, 0.2, 0.2, 0.2, 0.2,
+       0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2,
+       0.2, 0.2, 0.2])
+kwargs = {}
+
+    def _paired(points, triangles, epsilon=.05, **kwargs):
+        baseline = _run(v5, points, triangles, epsilon, **kwargs)
+        successor = _run(v6, points, triangles, epsilon, **kwargs)
+>       assert baseline["status"] == successor["status"] == "COMPLETE", (baseline["reasons"], successor["reasons"])
+E       AssertionError: ([], ['UNSUPPORTED_METADATA_VALUE'])
+E       assert 'COMPLETE' == 'UNAVAILABLE'
+E         
+E         - UNAVAILABLE
+E         + COMPLETE
+
+tests/test_cad_guided_noisy_mesh_evidence_v6.py:384: AssertionError
+_ test_v5_v6_equality_retains_holes_identity_failures_and_declared_omissions[hole] _
+
+mode = 'hole'
+
+    @pytest.mark.parametrize("mode", ("hole", "duplicate_xyz", "failed_closure", "rotated_zero", "quota_zero"))
+    def test_v5_v6_equality_retains_holes_identity_failures_and_declared_omissions(mode):
+        points, triangles = _grid(hole=mode == "hole", span=40. if mode == "failed_closure" else 16.)
+        epsilon, kwargs = .05, {}
+        if mode == "duplicate_xyz":
+            points, triangles = np.vstack((points, points)), np.vstack((triangles, triangles+81))
+        elif mode == "failed_closure":
+            points = np.vstack((points, [[20., 25., 0.], [25., 25., 0.], [0., 0., 1.], [0., 0., -1.]]))
+            triangles = np.vstack((triangles, [[79, 80, 81], [80, 81, 82], [81, 82, 83], [82, 83, 84]]))
+            epsilon = np.r_[np.ones(83), 0., 0.]
+        elif mode == "rotated_zero": points, epsilon = points@R.T+[3., -4., 5.], 0.
+        elif mode == "quota_zero": kwargs["budgets"] = replace(v5.NoisyMeshPlaneBudgetsV5(), max_closure_schedules=0)
+>       _, result = _paired(points, triangles, epsilon, **kwargs)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_cad_guided_noisy_mesh_evidence_v6.py:454: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+points = array([[-8., -8.,  0.],
+       [-6., -8.,  0.],
+       [-4., -8.,  0.],
+       [-2., -8.,  0.],
+       [ 0., -8.,  0.]...      [ 0.,  8.,  0.],
+       [ 2.,  8.,  0.],
+       [ 4.,  8.,  0.],
+       [ 6.,  8.,  0.],
+       [ 8.,  8.,  0.]])
+triangles = array([[ 0,  1,  9],
+       [ 1, 10,  9],
+       [ 1,  2, 10],
+       [ 2, 11, 10],
+       [ 2,  3, 11],
+       [ 3, 1...[68, 69, 77],
+       [69, 78, 77],
+       [69, 70, 78],
+       [70, 79, 78],
+       [70, 71, 79],
+       [71, 80, 79]])
+epsilon = 0.05, kwargs = {}
+
+    def _paired(points, triangles, epsilon=.05, **kwargs):
+        baseline = _run(v5, points, triangles, epsilon, **kwargs)
+        successor = _run(v6, points, triangles, epsilon, **kwargs)
+>       assert baseline["status"] == successor["status"] == "COMPLETE", (baseline["reasons"], successor["reasons"])
+E       AssertionError: ([], ['UNSUPPORTED_METADATA_VALUE'])
+E       assert 'COMPLETE' == 'UNAVAILABLE'
+E         
+E         - UNAVAILABLE
+E         + COMPLETE
+
+tests/test_cad_guided_noisy_mesh_evidence_v6.py:384: AssertionError
+_ test_v5_v6_equality_retains_holes_identity_failures_and_declared_omissions[duplicate_xyz] _
+
+mode = 'duplicate_xyz'
+
+    @pytest.mark.parametrize("mode", ("hole", "duplicate_xyz", "failed_closure", "rotated_zero", "quota_zero"))
+    def test_v5_v6_equality_retains_holes_identity_failures_and_declared_omissions(mode):
+        points, triangles = _grid(hole=mode == "hole", span=40. if mode == "failed_closure" else 16.)
+        epsilon, kwargs = .05, {}
+        if mode == "duplicate_xyz":
+            points, triangles = np.vstack((points, points)), np.vstack((triangles, triangles+81))
+        elif mode == "failed_closure":
+            points = np.vstack((points, [[20., 25., 0.], [25., 25., 0.], [0., 0., 1.], [0., 0., -1.]]))
+            triangles = np.vstack((triangles, [[79, 80, 81], [80, 81, 82], [81, 82, 83], [82, 83, 84]]))
+            epsilon = np.r_[np.ones(83), 0., 0.]
+        elif mode == "rotated_zero": points, epsilon = points@R.T+[3., -4., 5.], 0.
+        elif mode == "quota_zero": kwargs["budgets"] = replace(v5.NoisyMeshPlaneBudgetsV5(), max_closure_schedules=0)
+>       _, result = _paired(points, triangles, epsilon, **kwargs)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_cad_guided_noisy_mesh_evidence_v6.py:454: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+points = array([[-8., -8.,  0.],
+       [-6., -8.,  0.],
+       [-4., -8.,  0.],
+       [-2., -8.,  0.],
+       [ 0., -8.,  0.]...      [ 0.,  8.,  0.],
+       [ 2.,  8.,  0.],
+       [ 4.,  8.,  0.],
+       [ 6.,  8.,  0.],
+       [ 8.,  8.,  0.]])
+triangles = array([[  0,   1,   9],
+       [  1,  10,   9],
+       [  1,   2,  10],
+       [  2,  11,  10],
+       [  2,   3,  11]...      [150, 159, 158],
+       [150, 151, 159],
+       [151, 160, 159],
+       [151, 152, 160],
+       [152, 161, 160]])
+epsilon = 0.05, kwargs = {}
+
+    def _paired(points, triangles, epsilon=.05, **kwargs):
+        baseline = _run(v5, points, triangles, epsilon, **kwargs)
+        successor = _run(v6, points, triangles, epsilon, **kwargs)
+>       assert baseline["status"] == successor["status"] == "COMPLETE", (baseline["reasons"], successor["reasons"])
+E       AssertionError: ([], ['UNSUPPORTED_METADATA_VALUE'])
+E       assert 'COMPLETE' == 'UNAVAILABLE'
+E         
+E         - UNAVAILABLE
+E         + COMPLETE
+
+tests/test_cad_guided_noisy_mesh_evidence_v6.py:384: AssertionError
+_ test_v5_v6_equality_retains_holes_identity_failures_and_declared_omissions[failed_closure] _
+
+mode = 'failed_closure'
+
+    @pytest.mark.parametrize("mode", ("hole", "duplicate_xyz", "failed_closure", "rotated_zero", "quota_zero"))
+    def test_v5_v6_equality_retains_holes_identity_failures_and_declared_omissions(mode):
+        points, triangles = _grid(hole=mode == "hole", span=40. if mode == "failed_closure" else 16.)
+        epsilon, kwargs = .05, {}
+        if mode == "duplicate_xyz":
+            points, triangles = np.vstack((points, points)), np.vstack((triangles, triangles+81))
+        elif mode == "failed_closure":
+            points = np.vstack((points, [[20., 25., 0.], [25., 25., 0.], [0., 0., 1.], [0., 0., -1.]]))
+            triangles = np.vstack((triangles, [[79, 80, 81], [80, 81, 82], [81, 82, 83], [82, 83, 84]]))
+            epsilon = np.r_[np.ones(83), 0., 0.]
+        elif mode == "rotated_zero": points, epsilon = points@R.T+[3., -4., 5.], 0.
+        elif mode == "quota_zero": kwargs["budgets"] = replace(v5.NoisyMeshPlaneBudgetsV5(), max_closure_schedules=0)
+>       _, result = _paired(points, triangles, epsilon, **kwargs)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_cad_guided_noisy_mesh_evidence_v6.py:454: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+points = array([[-20., -20.,   0.],
+       [-15., -20.,   0.],
+       [-10., -20.,   0.],
+       [ -5., -20.,   0.],
+       [  ...0.,   0.],
+       [ 20.,  25.,   0.],
+       [ 25.,  25.,   0.],
+       [  0.,   0.,   1.],
+       [  0.,   0.,  -1.]])
+triangles = array([[ 0,  1,  9],
+       [ 1, 10,  9],
+       [ 1,  2, 10],
+       [ 2, 11, 10],
+       [ 2,  3, 11],
+       [ 3, 1...[70, 71, 79],
+       [71, 80, 79],
+       [79, 80, 81],
+       [80, 81, 82],
+       [81, 82, 83],
+       [82, 83, 84]])
+epsilon = array([1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1.,
+       1., 1., 1., 1., 1., 1., 1., 1., 1., ...1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1.,
+       1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 0., 0.])
+kwargs = {}
+
+    def _paired(points, triangles, epsilon=.05, **kwargs):
+        baseline = _run(v5, points, triangles, epsilon, **kwargs)
+        successor = _run(v6, points, triangles, epsilon, **kwargs)
+>       assert baseline["status"] == successor["status"] == "COMPLETE", (baseline["reasons"], successor["reasons"])
+E       AssertionError: ([], ['UNSUPPORTED_METADATA_VALUE'])
+E       assert 'COMPLETE' == 'UNAVAILABLE'
+E         
+E         - UNAVAILABLE
+E         + COMPLETE
+
+tests/test_cad_guided_noisy_mesh_evidence_v6.py:384: AssertionError
+_ test_v5_v6_equality_retains_holes_identity_failures_and_declared_omissions[rotated_zero] _
+
+mode = 'rotated_zero'
+
+    @pytest.mark.parametrize("mode", ("hole", "duplicate_xyz", "failed_closure", "rotated_zero", "quota_zero"))
+    def test_v5_v6_equality_retains_holes_identity_failures_and_declared_omissions(mode):
+        points, triangles = _grid(hole=mode == "hole", span=40. if mode == "failed_closure" else 16.)
+        epsilon, kwargs = .05, {}
+        if mode == "duplicate_xyz":
+            points, triangles = np.vstack((points, points)), np.vstack((triangles, triangles+81))
+        elif mode == "failed_closure":
+            points = np.vstack((points, [[20., 25., 0.], [25., 25., 0.], [0., 0., 1.], [0., 0., -1.]]))
+            triangles = np.vstack((triangles, [[79, 80, 81], [80, 81, 82], [81, 82, 83], [82, 83, 84]]))
+            epsilon = np.r_[np.ones(83), 0., 0.]
+        elif mode == "rotated_zero": points, epsilon = points@R.T+[3., -4., 5.], 0.
+        elif mode == "quota_zero": kwargs["budgets"] = replace(v5.NoisyMeshPlaneBudgetsV5(), max_closure_schedules=0)
+>       _, result = _paired(points, triangles, epsilon, **kwargs)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_cad_guided_noisy_mesh_evidence_v6.py:454: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+points = array([[ -5.        , -12.        ,   5.        ],
+       [ -4.77777778, -10.22222222,   4.11111111],
+       [ -4.5555...,   6.77777778],
+       [ 10.77777778,   2.22222222,   5.88888889],
+       [ 11.        ,   4.        ,   5.        ]])
+triangles = array([[ 0,  1,  9],
+       [ 1, 10,  9],
+       [ 1,  2, 10],
+       [ 2, 11, 10],
+       [ 2,  3, 11],
+       [ 3, 1...[68, 69, 77],
+       [69, 78, 77],
+       [69, 70, 78],
+       [70, 79, 78],
+       [70, 71, 79],
+       [71, 80, 79]])
+epsilon = 0.0, kwargs = {}
+
+    def _paired(points, triangles, epsilon=.05, **kwargs):
+        baseline = _run(v5, points, triangles, epsilon, **kwargs)
+        successor = _run(v6, points, triangles, epsilon, **kwargs)
+>       assert baseline["status"] == successor["status"] == "COMPLETE", (baseline["reasons"], successor["reasons"])
+E       AssertionError: (['NO_PROPOSAL_WITHIN_DECLARED_POLICY'], ['UNSUPPORTED_METADATA_VALUE'])
+E       assert 'COMPLETE' == 'UNAVAILABLE'
+E         
+E         - UNAVAILABLE
+E         + COMPLETE
+
+tests/test_cad_guided_noisy_mesh_evidence_v6.py:384: AssertionError
+_ test_v5_v6_equality_retains_holes_identity_failures_and_declared_omissions[quota_zero] _
+
+mode = 'quota_zero'
+
+    @pytest.mark.parametrize("mode", ("hole", "duplicate_xyz", "failed_closure", "rotated_zero", "quota_zero"))
+    def test_v5_v6_equality_retains_holes_identity_failures_and_declared_omissions(mode):
+        points, triangles = _grid(hole=mode == "hole", span=40. if mode == "failed_closure" else 16.)
+        epsilon, kwargs = .05, {}
+        if mode == "duplicate_xyz":
+            points, triangles = np.vstack((points, points)), np.vstack((triangles, triangles+81))
+        elif mode == "failed_closure":
+            points = np.vstack((points, [[20., 25., 0.], [25., 25., 0.], [0., 0., 1.], [0., 0., -1.]]))
+            triangles = np.vstack((triangles, [[79, 80, 81], [80, 81, 82], [81, 82, 83], [82, 83, 84]]))
+            epsilon = np.r_[np.ones(83), 0., 0.]
+        elif mode == "rotated_zero": points, epsilon = points@R.T+[3., -4., 5.], 0.
+        elif mode == "quota_zero": kwargs["budgets"] = replace(v5.NoisyMeshPlaneBudgetsV5(), max_closure_schedules=0)
+>       _, result = _paired(points, triangles, epsilon, **kwargs)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_cad_guided_noisy_mesh_evidence_v6.py:454: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+points = array([[-8., -8.,  0.],
+       [-6., -8.,  0.],
+       [-4., -8.,  0.],
+       [-2., -8.,  0.],
+       [ 0., -8.,  0.]...      [ 0.,  8.,  0.],
+       [ 2.,  8.,  0.],
+       [ 4.,  8.,  0.],
+       [ 6.,  8.,  0.],
+       [ 8.,  8.,  0.]])
+triangles = array([[ 0,  1,  9],
+       [ 1, 10,  9],
+       [ 1,  2, 10],
+       [ 2, 11, 10],
+       [ 2,  3, 11],
+       [ 3, 1...[68, 69, 77],
+       [69, 78, 77],
+       [69, 70, 78],
+       [70, 79, 78],
+       [70, 71, 79],
+       [71, 80, 79]])
+epsilon = 0.05
+kwargs = {'budgets': NoisyMeshPlaneBudgetsV5(max_raw_rows=1000000, max_triangles=2000000, max_edge_records=6000000, max_core_re...ons=65552, max_closure_schedules=0, max_retained_array_bytes=536870912, max_metadata_bytes=67108864, chunk_rows=65536)}
+
+    def _paired(points, triangles, epsilon=.05, **kwargs):
+        baseline = _run(v5, points, triangles, epsilon, **kwargs)
+        successor = _run(v6, points, triangles, epsilon, **kwargs)
+>       assert baseline["status"] == successor["status"] == "COMPLETE", (baseline["reasons"], successor["reasons"])
+E       AssertionError: ([], ['UNSUPPORTED_METADATA_VALUE'])
+E       assert 'COMPLETE' == 'UNAVAILABLE'
+E         
+E         - UNAVAILABLE
+E         + COMPLETE
+
+tests/test_cad_guided_noisy_mesh_evidence_v6.py:384: AssertionError
+_ test_three_final_passes_share_admission_work_and_reproduce_exact_final_bytes _
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10c535090>
+
+    def test_three_final_passes_share_admission_work_and_reproduce_exact_final_bytes(monkeypatch):
+        points, triangles = _grid()
+        append, envelope = v6._append, v6._envelope
+        appends, passes = [], []
+        def checked_append(target, record, stats, cap, codec):
+            expected = _tree_work(record)
+            before = codec.work.visits, codec.work.hash_bytes
+            append(target, record, stats, cap, codec)
+            assert (codec.work.visits-before[0], codec.work.hash_bytes-before[1]) == expected
+            appends.append((id(codec), id(codec.work), *expected))
+        def checked_envelope(value, work, maximum):
+            expected = _tree_work(value)
+            before = work.visits, work.hash_bytes
+            result = envelope(value, work, maximum)
+            assert (work.visits-before[0], work.hash_bytes-before[1]) == expected
+            assert result[1] == len(_bytes(result[0])) and result[2] == len(_bytes(_logical(value)))
+            passes.append((id(work), *expected, value["statistics"]["metadata_bytes"]))
+            return result
+        monkeypatch.setattr(v6, "_append", checked_append)
+        monkeypatch.setattr(v6, "_envelope", checked_envelope)
+        result = _run(v6, points, triangles)
+>       assert result["status"] == "COMPLETE", result["reasons"]
+E       AssertionError: ['UNSUPPORTED_METADATA_VALUE']
+E       assert 'UNAVAILABLE' == 'COMPLETE'
+E         
+E         - COMPLETE
+E         + UNAVAILABLE
+
+tests/test_cad_guided_noisy_mesh_evidence_v6.py:504: AssertionError
+______ test_actual_append_and_final_overflow_clear_all_qualified_records _______
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10aded250>
+
+    def test_actual_append_and_final_overflow_clear_all_qualified_records(monkeypatch):
+        points, triangles = _grid()
+        _failure(_run(v6, points, triangles, budgets=replace(v5.NoisyMeshPlaneBudgetsV5(), max_metadata_bytes=1)))
+        envelope, admission = v6._envelope, []
+        def measured(value, work, maximum):
+            if not admission: admission.append(value["statistics"]["metadata_bytes"])
+            return envelope(value, work, maximum)
+        with monkeypatch.context() as patch:
+            patch.setattr(v6, "_envelope", measured)
+            complete = _run(v6, points, triangles)
+>       assert complete["status"] == "COMPLETE"
+E       AssertionError: assert 'UNAVAILABLE' == 'COMPLETE'
+E         
+E         - COMPLETE
+E         + UNAVAILABLE
+
+tests/test_cad_guided_noisy_mesh_evidence_v6.py:527: AssertionError
+_ test_final_pass_nonconvergence_whole_refuses_without_unbounded_retry[size_drift] _
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10ad4c990>
+mode = 'size_drift'
+
+    @pytest.mark.parametrize("mode", ("size_drift", "structure_drift"))
+    def test_final_pass_nonconvergence_whole_refuses_without_unbounded_retry(monkeypatch, mode):
+        points, triangles = _grid()
+        envelope, calls = v6._envelope, []
+        def drifting(value, work, maximum):
+            result, size, expanded = envelope(value, work, maximum)
+            calls.append(None)
+            if mode == "structure_drift" and len(calls) == 1: value["late_invented_field"] = [1]
+            return result, size+len(calls) if mode == "size_drift" else size, expanded
+        monkeypatch.setattr(v6, "_envelope", drifting)
+        result = _run(v6, points, triangles)
+>       _failure(result, discarded=2)
+
+tests/test_cad_guided_noisy_mesh_evidence_v6.py:549: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+result = {'schema_version': 'noisy_mesh_planes_v6', 'status': 'UNAVAILABLE', 'reasons': ['UNSUPPORTED_METADATA_VALUE'], 'result_representation': 'ARRAY_NATIVE_IMMUTABLE_LINEAGE_NOT_JSON_REPORT', ...}
+discarded = 2
+
+    def _failure(result, discarded=0):
+        assert result["status"] == "UNAVAILABLE" and result["reasons"]
+        assert all(result[key] == [] for key in ("cores", "closures", "proposals", "partitions"))
+        stats = result["statistics"]
+>       assert stats["discarded_core_records"] >= discarded
+E       assert 0 >= 2
+
+tests/test_cad_guided_noisy_mesh_evidence_v6.py:350: AssertionError
+_ test_final_pass_nonconvergence_whole_refuses_without_unbounded_retry[structure_drift] _
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10ad4ca50>
+mode = 'structure_drift'
+
+    @pytest.mark.parametrize("mode", ("size_drift", "structure_drift"))
+    def test_final_pass_nonconvergence_whole_refuses_without_unbounded_retry(monkeypatch, mode):
+        points, triangles = _grid()
+        envelope, calls = v6._envelope, []
+        def drifting(value, work, maximum):
+            result, size, expanded = envelope(value, work, maximum)
+            calls.append(None)
+            if mode == "structure_drift" and len(calls) == 1: value["late_invented_field"] = [1]
+            return result, size+len(calls) if mode == "size_drift" else size, expanded
+        monkeypatch.setattr(v6, "_envelope", drifting)
+        result = _run(v6, points, triangles)
+>       _failure(result, discarded=2)
+
+tests/test_cad_guided_noisy_mesh_evidence_v6.py:549: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+result = {'schema_version': 'noisy_mesh_planes_v6', 'status': 'UNAVAILABLE', 'reasons': ['UNSUPPORTED_METADATA_VALUE'], 'result_representation': 'ARRAY_NATIVE_IMMUTABLE_LINEAGE_NOT_JSON_REPORT', ...}
+discarded = 2
+
+    def _failure(result, discarded=0):
+        assert result["status"] == "UNAVAILABLE" and result["reasons"]
+        assert all(result[key] == [] for key in ("cores", "closures", "proposals", "partitions"))
+        stats = result["statistics"]
+>       assert stats["discarded_core_records"] >= discarded
+E       assert 0 >= 2
+
+tests/test_cad_guided_noisy_mesh_evidence_v6.py:350: AssertionError
+=========================== short test summary info ============================
+FAILED ../../../../dev::test_actual_frozen_noisy_frames_have_exact_v5_v6_geometry_and_full_evidence[0]
+FAILED ../../../../dev::test_actual_frozen_noisy_frames_have_exact_v5_v6_geometry_and_full_evidence[1]
+FAILED ../../../../dev::test_actual_frozen_noisy_frames_have_exact_v5_v6_geometry_and_full_evidence[2]
+FAILED ../../../../dev::test_actual_frozen_noisy_frames_have_exact_v5_v6_geometry_and_full_evidence[3]
+FAILED ../../../../dev::test_v5_v6_equality_retains_holes_identity_failures_and_declared_omissions[hole]
+FAILED ../../../../dev::test_v5_v6_equality_retains_holes_identity_failures_and_declared_omissions[duplicate_xyz]
+FAILED ../../../../dev::test_v5_v6_equality_retains_holes_identity_failures_and_declared_omissions[failed_closure]
+FAILED ../../../../dev::test_v5_v6_equality_retains_holes_identity_failures_and_declared_omissions[rotated_zero]
+FAILED ../../../../dev::test_v5_v6_equality_retains_holes_identity_failures_and_declared_omissions[quota_zero]
+FAILED ../../../../dev::test_three_final_passes_share_admission_work_and_reproduce_exact_final_bytes
+FAILED ../../../../dev::test_actual_append_and_final_overflow_clear_all_qualified_records
+FAILED ../../../../dev::test_final_pass_nonconvergence_whole_refuses_without_unbounded_retry[size_drift]
+FAILED ../../../../dev::test_final_pass_nonconvergence_whole_refuses_without_unbounded_retry[structure_drift]
+13 failed, 78 passed in 0.47s
+{"worker_cpu_seconds": 0.400884, "worker_peak_rss_bytes": 77381632}

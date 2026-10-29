@@ -1,0 +1,23 @@
+(version 1)
+
+; Development-only detector boundary for the real-scan affine/resampling lane.
+; Public opaque meshes are readable.  Pseudo-truth, parent identity/comparison
+; material, human labels, historical evaluation, CAD, and drawings are not.
+(allow default)
+
+(deny file-read*
+  (subpath "/Users/idantal/ShermanQC/FullProject/output/research/f1-real-scan-affine-resample-robustness-v1-20260815/evaluator_only"))
+(deny file-read*
+  (literal "/Users/idantal/ShermanQC/FullProject/output/research/f1-real-scan-affine-resample-robustness-v1-20260815/VISUAL_PRECOMMIT.json"))
+(deny file-read*
+  (subpath "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/annotations"))
+(deny file-read*
+  (subpath "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/evaluation"))
+(deny file-read*
+  (subpath "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/evaluation_slices"))
+(deny file-read*
+  (subpath "/Users/idantal/ShermanQC/FullProject/output/research/f1-gold27-20260803"))
+(deny file-read*
+  (subpath "/Users/idantal/ShermanQC/FullProject/output/research/f1-v51-gold37-blind-once-20260814"))
+(deny file-read*
+  (regex #"(?i).*/[^/]*\.(stp|step|sldprt|sldasm|dxf|dwg|pdf)$"))

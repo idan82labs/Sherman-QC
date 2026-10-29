@@ -1,0 +1,45 @@
+{
+ "gates": {
+  "G1": {
+   "pass": true,
+   "detail": "Synthetic regression DEV tier (50 cases, 7 families, e3-1.2.0): regression_verdict PASS, 0 failed accuracy gates. Flange bias 0.0094 mm, P95 0.103 mm. Angle bias 0.0015 deg, P95 0.019 deg. Position P95 0.073 mm. Coverage 0.997. False PASS 0/553, false FAIL 0. U calibration 0.984. Decisiveness 0.983. Stage state 1.0. 0 engine failures. Overall verdict is INCOMPLETE and the run is non-qualifying (TIER_REGRESSION, SEEDSET_DEV, SCANNER_MODEL_PARTIAL): G1.SUITE fails by construction below 200 cases. Gate for gate the same as iter 0 except flange bias 0.009329 -> 0.009377 mm."
+  },
+  "G2": {
+   "pass": false,
+   "detail": "G2 verdict FAIL, final=false (no truth table). (a) line metric FAIL: 5/9 Gold11 cases are refused by the amendment-7 gate and count as misses. On the 4 cases E3 runs: relabel F1 1.000 (31/31, 0 FP) vs best lane 0.561; human 0.724 vs 0.717. Over all 9 cases: relabel 0.574 (P 1.00) vs best lane 0.547; human 0.467 vs 0.473. Legacy arm (informational) 0.088 human / 0.140 relabel. (b) coverage FAIL: angle 55/91 = 0.604, flange 108/178 = 0.607, but 100% on every case that runs. (c) known-good angle FAIL on coverage only: 14/32 vs legacy 16/32. MAE 0.435 deg; on 8 common bends 0.503 vs legacy 1.360 deg. (d) known-good flange PASS: P95 0.518 mm, max 0.847 mm (iter 0 was 1.22 mm). (e) runtime FAIL on all_cases_run: P95 21.3 s, max 23.0 s, 0 crashes, 5 refused, 1 compile BLOCKED. (f) repeatability NOT_EVALUABLE: 2 of the 3 15651004 repeat scans are refused, so 0 E3 pairs. Compile rate 0.923 PASS. Relabel snapshot unchanged since the freeze.",
+   "line_f1_gold11_human": 0.4667,
+   "line_f1_gold11_relabel": 0.5741,
+   "precision": 1
+  },
+  "G3": {
+   "pass": false,
+   "detail": "NOT_EVALUABLE: the frozen visual truth table (amendment 7, truth_table_FROZEN.json) still does not exist. Population 11 (G3) plus 8 BROAD staged cases."
+  },
+  "G5": {
+   "pass": false,
+   "detail": "FAIL. Baseline integrity, manifest (1 allowlisted add), tsc, lint and vendor scripts PASS (5 NOT_RUN, matching the baseline). backend_tests has 10 NEW failures, all in tests/test_vendor_unfold_api_contract.py, the same 10 as iter 0. Cause: another workflow edited apps/api/services/vendor_setup_service.py at 02:05. get_vendor_setup now calls the new module helper _natural_label_key, and the test AST-extracts that function alone, so it raises NameError. This is not engine-related: the A1 change touched no backend/, domains/bend/ or scripts/ file."
+  }
+ },
+ "broad": {
+  "scans": 24,
+  "line_f1_micro": 0.5688,
+  "line_f1_family_macro": 0.6259,
+  "precision": 0.8378,
+  "recall": 0.4306,
+  "per_bend_correct_rate": 0.7125,
+  "false_pass": 0
+ },
+ "config_hash": "74c0305091bf0fb900ce1e137603ec1b3176361ca61f6d94a29c72fed044dcc7",
+ "rss_peak_gib": 0.953,
+ "runtime_p95_s": 21.26,
+ "top_failures": [
+  "PROCESS (biggest lever): the amendment-7 gate refuses 13/26 BROAD cases and 5/9 G2(a) Gold11 cases because no G3 visual truth table has been frozen. Those cases count as misses: BROAD recall is 0.431 over all 26 cases vs 0.795 over the 13 that run, and G2(a) relabel is 0.574 over 9 cases vs 1.000 over the 4 that run. G3 and G2(f) stay NOT_EVALUABLE.",
+  "6 bends have their position withheld (REGISTRATION_UNTRUSTED along the free datum direction) but still get angle/flange PASS: 49204020 B3/B4/B6/B12 and 15651004 B1/B2. This costs 6 BROAD TPs and needs a decision rule or stronger datum-hole information.",
+  "38172000 X/V angle FAILs: 8 bends at -1.7 to -2.8 deg, consistent across both scans; V B5 at +4.8 deg with flange B -9.17 mm (REVIEW); V B7 at +5.4 deg (FAIL). None of these is verified; some could be false FAILs and need a section-level visual check.",
+  "50757000 sc_752e flange FAIL chain (B1 +4.9 mm, P6 +4.8 mm, four tabs about -3 mm): probably a real off-position defect, but not physically verified.",
+  "BROAD gold-convention conflicts: 12 FP / 6 FN vs the BROAD gold on 38172000 X/V, 37361005 and 11979003, although every published line is confirmed by the Gold11 relabel and/or GOLD_SET_V1. 11979003 has 9 gold lines but 7 recipe bends (F1 ceiling 0.875).",
+  "G2(c) known-good angle coverage 14/32 vs legacy 16/32, and G2(b) coverage 0.60 angle / 0.61 flange overall. Both are 100% on the cases that run; the gap is entirely refused cases.",
+  "G5 FAIL: 10 NEW backend failures in tests/test_vendor_unfold_api_contract.py, caused by another workflow's vendor_setup_service.py edit, not by the engine."
+ ],
+ "summary": "I re-measured A1 iteration 1 (engine e3-1.2.0, default config 74c03050\u2026) from scratch. Every heavy step ran one at a time under /private/tmp/claude-501/sherman_geom.lock with OMP_NUM_THREADS=1, and peak RSS stayed below 1 GiB. The engine code did not change during the measurement, and its G1 fingerprint (4e63a064) matches the change step. The results reproduce the change step's raw numbers exactly. The ledger check is OK and the anchor was checked.\n\nEngine vs the best F1 lane on the same scans (frozen matcher 5 deg / 4 mm / 0.6, apex locus, raw frame):\n- BROAD, all 26 A1 cases (refused cases count as misses): family-macro 0.626 / micro 0.569, P 0.84, R 0.43 (TP 62, FP 12, FN 82). Best lane: 0.543 / 0.508. Iter 0 was 0.319 / 0.282.\n- BROAD, the 13 scans the engine runs (11 families): 0.832 / 0.816 (TP 62, FP 12, FN 16). Best lane: 0.649 / 0.620.\n- G2(a) Gold11 relabel, the gold of record: 0.574 over the 9 A1 cases (P 1.00) vs best lane 0.547, and 1.000 (31/31, 0 FP) on the 4 cases that run vs 0.561. This beats the 0.510 relabel bar on the same scans.\n- G2(a) human Gold11 (historical diagnostic only): 0.467 vs 0.473 over 9 cases, 0.724 vs 0.717 on the 4 that run.\n- GOLD_SET_V1, 13 A1 scans with STEP that ran: micro 0.961 / family-macro 0.936 (TP 74, FP 0, FN 6). Best lane: 0.597 / 0.653.\n- The broad-57 bar (0.458) cannot be compared directly, because the engine only runs on the frozen A1 list. The legacy arm is informational only (G2(a) 0.088).\n- The 0.80 family-macro target is met on the scans the engine runs, but not on the frozen all-26 population: the target status in the scorer is NOT_MET.\n\nPer bend given CAD (80 recipe bends on the complete BROAD scans the engine runs):\n- All 80 are FORMED, and all 80 have the angle measured.\n- Correct: 0.713 against the BROAD gold, 0.863 against any gold of record.\n- Strict false-PASS proxy is 0: every published line is confirmed by at least one gold of record.\n- The loose proxy is 17. Of these, 11 are BROAD-gold convention cases that the relabel or gold set confirms, and 6 are PASS on bends whose position is withheld.\n- There are 27 FAIL decisions; none of them is physically verified.\n- Angle |dev|: P50 0.50 deg, P95 2.17 deg. Flange |dev|: P50 0.14 mm, P95 2.0 mm (driven by the 752e defect chain).\n\nGates:\n- G1: regression PASS, non-qualifying by tier.\n- G2: FAIL, mainly because refused cases count as misses. (d) flange is now PASS at P95 0.518 mm.\n- G3: NOT_EVALUABLE (no frozen truth table).\n- G5: FAIL, from an unrelated vendor_setup_service.py edit by another workflow.\n\nRuntime P95 is 21.3 s (G2) and 20.7 s (BROAD).\n\nThe scorecard is at /Users/idantal/ShermanQC/FullProject/docs/production/runlog/a1/iter_1/scorecard.json. Raw outputs, tools and logs are in /Users/idantal/ShermanQC/FullProject/docs/production/runlog/a1/iter_1/measure/. Overlays of the 20 worst bends were regenerated into /Users/idantal/ShermanQC/FullProject/docs/production/runlog/a1/iter_1/overlays/ (INDEX.json identical to the change step's). The work directory is /private/tmp/claude-501/-Users-idantal/db065cf7-f766-4885-b217-ed8d7edd7ade/scratchpad/a1_iter1m.\n\nCustody: only cases_A1.json cases were run or scored. Nothing DEV-CHECK, SEALED, FRESH, HOLDOUT10, N001-N016 or EHO4 was read. No repo code was edited."
+}

@@ -1,0 +1,70 @@
+# Springback CAD-stage probes, final engine (sbprobes/final): per family, then per probe.
+| Family | Probes | Bend states | Probes with a wrong state | Wrong bend states | Angles within U | False angle FAIL / PASS | Positions within U | Position FAIL (all true) | False position FAIL / PASS | Flange FAILs (no truth) |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 10839000 | 13 | 156 | 0 | 0 | 78/78 | 0 / 0 | 71/78 | 16 | 0 / 0 | 0 |
+| 23553000 | 9 | 144 | 0 | 0 | 72/72 | 0 / 0 | 72/72 | 25 | 0 / 0 | 0 |
+| 38172000 | 13 | 156 | 0 | 0 | 77/78 | 0 / 0 | 78/78 | 2 | 0 / 0 | 0 |
+| 11979003 | 8 | 56 | 1 | 1 | 26/28 | 0 / 1 | 26/28 | 8 | 0 / 0 | 0 |
+| 28870000 | 2 | 2 | 0 | 0 | 1/1 | 0 / 0 | 0/1 | 0 | 0 / 0 | 0 |
+| 15651004 | 4 | 12 | 1 | 3 | 5/5 | 0 / 0 | 5/5 | 0 | 0 / 0 | 0 |
+| **All** | 49 | 526 | 2 | 4 | 259/262 | 0 / 1 | 252/262 | 51 | 0 / 0 | 0 |
+
+- 11979003 S4: 1 wrong states (decoded against S4 (display only: some bends undetermined); B1:FOR B2:FOR B3:FOR B4:FOR B5:NOT B6:UNK B7:NOT)
+- 15651004 S1: 3 wrong states (not evaluated: MIRRORED_PART_SUSPECTED)
+
+# per probe (final engine)
+DEV-1F88D309A7 S0 VALID decoded S0 | B1:NOT B2:NOT B3:NOT | wrong [] | angle false FAIL [] | false PASS [] | other FAILs []
+DEV-1F88D309A7 S1 MIRRORED_PART_SUSPECTED decoded None | B1:UNK!FOR B2:UNK!NOT B3:UNK!NOT | wrong ['B1', 'B2', 'B3'] | angle false FAIL [] | false PASS [] | other FAILs []
+DEV-1F88D309A7 S2 VALID decoded S2 | B1:FOR B2:FOR B3:NOT | wrong [] | angle false FAIL [] | false PASS [] | other FAILs []
+DEV-1F88D309A7 S3 VALID decoded S3 | B1:FOR B2:FOR B3:FOR | wrong [] | angle false FAIL [] | false PASS [] | other FAILs []
+DEV-4D512B5C56 S0 VALID decoded S0 | B1:NOT B2:NOT B3:NOT B4:NOT B5:NOT B6:NOT B7:NOT B8:NOT B9:NOT B10:NOT B11:NOT B12:NOT | wrong [] | angle false FAIL [] | false PASS [] | other FAILs []
+DEV-4D512B5C56 S1 VALID decoded S1 | B1:FOR B2:NOT B3:NOT B4:NOT B5:NOT B6:NOT B7:NOT B8:NOT B9:NOT B10:NOT B11:NOT B12:NOT | wrong [] | angle false FAIL [] | false PASS [] | other FAILs []
+DEV-4D512B5C56 S2 VALID decoded S2 | B1:FOR B2:FOR B3:NOT B4:NOT B5:NOT B6:NOT B7:NOT B8:NOT B9:NOT B10:NOT B11:NOT B12:NOT | wrong [] | angle false FAIL [] | false PASS [] | other FAILs ['B1/BEND:1.02']
+DEV-4D512B5C56 S3 VALID decoded S3 | B1:FOR B2:FOR B3:FOR B4:NOT B5:NOT B6:NOT B7:NOT B8:NOT B9:NOT B10:NOT B11:NOT B12:NOT | wrong [] | angle false FAIL [] | false PASS [] | other FAILs []
+DEV-4D512B5C56 S4 VALID decoded S4 | B1:FOR B2:FOR B3:FOR B4:FOR B5:NOT B6:NOT B7:NOT B8:NOT B9:NOT B10:NOT B11:NOT B12:NOT | wrong [] | angle false FAIL [] | false PASS [] | other FAILs []
+DEV-4D512B5C56 S5 VALID decoded S5 | B1:FOR B2:FOR B3:FOR B4:FOR B5:FOR B6:NOT B7:NOT B8:NOT B9:NOT B10:NOT B11:NOT B12:NOT | wrong [] | angle false FAIL [] | false PASS [] | other FAILs []
+DEV-4D512B5C56 S6 VALID decoded S6 | B1:FOR B2:FOR B3:FOR B4:FOR B5:FOR B6:FOR B7:NOT B8:NOT B9:NOT B10:NOT B11:NOT B12:NOT | wrong [] | angle false FAIL [] | false PASS [] | other FAILs []
+DEV-4D512B5C56 S7 VALID decoded S7 | B1:FOR B2:FOR B3:FOR B4:FOR B5:FOR B6:FOR B7:FOR B8:NOT B9:NOT B10:NOT B11:NOT B12:NOT | wrong [] | angle false FAIL [] | false PASS [] | other FAILs []
+DEV-4D512B5C56 S8 VALID decoded S8 | B1:FOR B2:FOR B3:FOR B4:FOR B5:FOR B6:FOR B7:FOR B8:FOR B9:NOT B10:NOT B11:NOT B12:NOT | wrong [] | angle false FAIL [] | false PASS [] | other FAILs []
+DEV-4D512B5C56 S9 VALID decoded S9 | B1:FOR B2:FOR B3:FOR B4:FOR B5:FOR B6:FOR B7:FOR B8:FOR B9:FOR B10:NOT B11:NOT B12:NOT | wrong [] | angle false FAIL [] | false PASS [] | other FAILs []
+DEV-4D512B5C56 S10 VALID decoded S10 | B1:FOR B2:FOR B3:FOR B4:FOR B5:FOR B6:FOR B7:FOR B8:FOR B9:FOR B10:FOR B11:NOT B12:NOT | wrong [] | angle false FAIL [] | false PASS [] | other FAILs []
+DEV-4D512B5C56 S11 VALID decoded S11 | B1:FOR B2:FOR B3:FOR B4:FOR B5:FOR B6:FOR B7:FOR B8:FOR B9:FOR B10:FOR B11:FOR B12:NOT | wrong [] | angle false FAIL [] | false PASS [] | other FAILs []
+DEV-4D512B5C56 S12 VALID decoded S12 | B1:FOR B2:FOR B3:FOR B4:FOR B5:FOR B6:FOR B7:FOR B8:FOR B9:FOR B10:FOR B11:FOR B12:FOR | wrong [] | angle false FAIL [] | false PASS [] | other FAILs ['B3/BEND:-0.64']
+DEV-6E71609F74 S0 VALID decoded S0 | B1:NOT B2:NOT B3:NOT B4:NOT B5:NOT B6:NOT B7:NOT B8:NOT B9:NOT B10:NOT B11:NOT B12:NOT B13:NOT B14:NOT B15:NOT B16:NOT | wrong [] | angle false FAIL [] | false PASS [] | other FAILs []
+DEV-6E71609F74 S2 VALID decoded S2 | B1:FOR B2:FOR B3:NOT B4:NOT B5:NOT B6:NOT B7:NOT B8:NOT B9:NOT B10:NOT B11:NOT B12:NOT B13:NOT B14:NOT B15:NOT B16:NOT | wrong [] | angle false FAIL [] | false PASS [] | other FAILs []
+DEV-6E71609F74 S4 VALID decoded S4 | B1:FOR B2:FOR B3:FOR B4:FOR B5:NOT B6:NOT B7:NOT B8:NOT B9:NOT B10:NOT B11:NOT B12:NOT B13:NOT B14:NOT B15:NOT B16:NOT | wrong [] | angle false FAIL [] | false PASS [] | other FAILs ['B2/BEND:-0.89', 'B3/BEND:1.12']
+DEV-6E71609F74 S6 VALID decoded S6 | B1:FOR B2:FOR B3:FOR B4:FOR B5:FOR B6:FOR B7:NOT B8:NOT B9:NOT B10:NOT B11:NOT B12:NOT B13:NOT B14:NOT B15:NOT B16:NOT | wrong [] | angle false FAIL [] | false PASS [] | other FAILs ['B2/BEND:-1.37', 'B3/BEND:1.28']
+DEV-6E71609F74 S8 VALID decoded S8 | B1:FOR B2:FOR B3:FOR B4:FOR B5:FOR B6:FOR B7:FOR B8:FOR B9:NOT B10:NOT B11:NOT B12:NOT B13:NOT B14:NOT B15:NOT B16:NOT | wrong [] | angle false FAIL [] | false PASS [] | other FAILs ['B2/BEND:-1.88', 'B3/BEND:1.3', 'B5/BEND:2.78']
+DEV-6E71609F74 S10 VALID decoded S10 | B1:FOR B2:FOR B3:FOR B4:FOR B5:FOR B6:FOR B7:FOR B8:FOR B9:FOR B10:FOR B11:NOT B12:NOT B13:NOT B14:NOT B15:NOT B16:NOT | wrong [] | angle false FAIL [] | false PASS [] | other FAILs ['B2/BEND:-2.16', 'B3/BEND:1.84', 'B5/BEND:-1.88']
+DEV-6E71609F74 S12 VALID decoded S12 | B1:FOR B2:FOR B3:FOR B4:FOR B5:FOR B6:FOR B7:FOR B8:FOR B9:FOR B10:FOR B11:FOR B12:FOR B13:NOT B14:NOT B15:NOT B16:NOT | wrong [] | angle false FAIL [] | false PASS [] | other FAILs ['B2/BEND:0.85', 'B5/BEND:-1.43', 'B11/BEND:-1.23']
+DEV-6E71609F74 S14 VALID decoded S14 | B1:FOR B2:FOR B3:FOR B4:FOR B5:FOR B6:FOR B7:FOR B8:FOR B9:FOR B10:FOR B11:FOR B12:FOR B13:FOR B14:FOR B15:NOT B16:NOT | wrong [] | angle false FAIL [] | false PASS [] | other FAILs ['B2/BEND:2.2', 'B3/BEND:-1.55', 'B5/BEND:-2.51', 'B11/BEND:-2.11', 'B13/BEND:0.98', 'B14/BEND:-1.49']
+DEV-6E71609F74 S16 VALID decoded S16 | B1:FOR B2:FOR B3:FOR B4:FOR B5:FOR B6:FOR B7:FOR B8:FOR B9:FOR B10:FOR B11:FOR B12:FOR B13:FOR B14:FOR B15:FOR B16:FOR | wrong [] | angle false FAIL [] | false PASS [] | other FAILs ['B2/BEND:-0.93', 'B3/BEND:0.68', 'B5/BEND:2.62', 'B11/BEND:2.73', 'B13/BEND:1.57', 'B14/BEND:-1.78']
+DEV-AAB8C67C31 S0 VALID decoded S0 | B1:NOT | wrong [] | angle false FAIL [] | false PASS [] | other FAILs []
+DEV-AAB8C67C31 S1 VALID decoded S1 | B1:FOR | wrong [] | angle false FAIL [] | false PASS [] | other FAILs []
+DEV-BDE878D2AF S0 VALID decoded S0 | B1:NOT B2:NOT B3:NOT B4:NOT B5:NOT B6:NOT B7:NOT | wrong [] | angle false FAIL [] | false PASS [] | other FAILs []
+DEV-BDE878D2AF S1 VALID decoded S1 | B1:FOR B2:NOT B3:NOT B4:NOT B5:NOT B6:NOT B7:NOT | wrong [] | angle false FAIL [] | false PASS [] | other FAILs []
+DEV-BDE878D2AF S2 VALID decoded S2 | B1:FOR B2:FOR B3:NOT B4:NOT B5:NOT B6:NOT B7:NOT | wrong [] | angle false FAIL [] | false PASS [] | other FAILs []
+DEV-BDE878D2AF S3 VALID decoded S3 | B1:FOR B2:FOR B3:FOR B4:NOT B5:NOT B6:NOT B7:NOT | wrong [] | angle false FAIL [] | false PASS [] | other FAILs []
+DEV-BDE878D2AF S4 VALID decoded S4 | B1:FOR B2:FOR B3:FOR B4:FOR B5:NOT B6:UNK!NOT B7:NOT | wrong ['B6'] | angle false FAIL [] | false PASS [{'bend': 'B4', 'dev': -0.731478, 'true': -1.055, 'U': 0.263908}] | other FAILs ['B1/BEND:1.15', 'B2/BEND:1.25']
+DEV-BDE878D2AF S5 VALID decoded S5 | B1:FOR B2:FOR B3:FOR B4:FOR B5:FOR B6:NOT B7:NOT | wrong [] | angle false FAIL [] | false PASS [] | other FAILs []
+DEV-BDE878D2AF S6 VALID decoded S6 | B1:FOR B2:FOR B3:FOR B4:FOR B5:FOR B6:FOR B7:NOT | wrong [] | angle false FAIL [] | false PASS [] | other FAILs ['B1/BEND:1.11', 'B2/BEND:1.18', 'B3/BEND:-0.69', 'B6/BEND:3.45']
+DEV-BDE878D2AF S7 VALID decoded S7 | B1:FOR B2:FOR B3:FOR B4:FOR B5:FOR B6:FOR B7:FOR | wrong [] | angle false FAIL [] | false PASS [] | other FAILs ['B6/BEND:1.37', 'B7/BEND:0.93']
+DEV-EA3E4820DF S0 VALID decoded S0 | B1:NOT B2:NOT B3:NOT B4:NOT B5:NOT B6:NOT B7:NOT B8:NOT B9:NOT B10:NOT B11:NOT B12:NOT | wrong [] | angle false FAIL [] | false PASS [] | other FAILs []
+DEV-EA3E4820DF S1 VALID decoded S1 | B1:FOR B2:NOT B3:NOT B4:NOT B5:NOT B6:NOT B7:NOT B8:NOT B9:NOT B10:NOT B11:NOT B12:NOT | wrong [] | angle false FAIL [] | false PASS [] | other FAILs []
+DEV-EA3E4820DF S2 VALID decoded S2 | B1:FOR B2:FOR B3:NOT B4:NOT B5:NOT B6:NOT B7:NOT B8:NOT B9:NOT B10:NOT B11:NOT B12:NOT | wrong [] | angle false FAIL [] | false PASS [] | other FAILs []
+DEV-EA3E4820DF S3 VALID decoded S3 | B1:FOR B2:FOR B3:FOR B4:NOT B5:NOT B6:NOT B7:NOT B8:NOT B9:NOT B10:NOT B11:NOT B12:NOT | wrong [] | angle false FAIL [] | false PASS [] | other FAILs ['B1/BEND:-0.74']
+DEV-EA3E4820DF S4 VALID decoded S4 | B1:FOR B2:FOR B3:FOR B4:FOR B5:NOT B6:NOT B7:NOT B8:NOT B9:NOT B10:NOT B11:NOT B12:NOT | wrong [] | angle false FAIL [] | false PASS [] | other FAILs []
+DEV-EA3E4820DF S5 VALID decoded S5 | B1:FOR B2:FOR B3:FOR B4:FOR B5:FOR B6:NOT B7:NOT B8:NOT B9:NOT B10:NOT B11:NOT B12:NOT | wrong [] | angle false FAIL [] | false PASS [] | other FAILs []
+DEV-EA3E4820DF S6 VALID decoded S6 | B1:FOR B2:FOR B3:FOR B4:FOR B5:FOR B6:FOR B7:NOT B8:NOT B9:NOT B10:NOT B11:NOT B12:NOT | wrong [] | angle false FAIL [] | false PASS [] | other FAILs []
+DEV-EA3E4820DF S7 VALID decoded S7 | B1:FOR B2:FOR B3:FOR B4:FOR B5:FOR B6:FOR B7:FOR B8:NOT B9:NOT B10:NOT B11:NOT B12:NOT | wrong [] | angle false FAIL [] | false PASS [] | other FAILs ['B3/BEND:0.89', 'B6/BEND:-0.62']
+DEV-EA3E4820DF S8 VALID decoded S8 | B1:FOR B2:FOR B3:FOR B4:FOR B5:FOR B6:FOR B7:FOR B8:FOR B9:NOT B10:NOT B11:NOT B12:NOT | wrong [] | angle false FAIL [] | false PASS [] | other FAILs ['B5/BEND:0.66']
+DEV-EA3E4820DF S9 VALID decoded S9 | B1:FOR B2:FOR B3:FOR B4:FOR B5:FOR B6:FOR B7:FOR B8:FOR B9:FOR B10:NOT B11:NOT B12:NOT | wrong [] | angle false FAIL [] | false PASS [] | other FAILs ['B1/BEND:-1.3', 'B2/BEND:-1.26', 'B3/BEND:-0.81', 'B8/BEND:1.25']
+DEV-EA3E4820DF S10 VALID decoded S10 | B1:FOR B2:FOR B3:FOR B4:FOR B5:FOR B6:FOR B7:FOR B8:FOR B9:FOR B10:FOR B11:NOT B12:NOT | wrong [] | angle false FAIL [] | false PASS [] | other FAILs []
+DEV-EA3E4820DF S11 VALID decoded S11 | B1:FOR B2:FOR B3:FOR B4:FOR B5:FOR B6:FOR B7:FOR B8:FOR B9:FOR B10:FOR B11:FOR B12:NOT | wrong [] | angle false FAIL [] | false PASS [] | other FAILs ['B1/BEND:-0.89', 'B2/BEND:-0.87', 'B8/BEND:0.85']
+DEV-EA3E4820DF S12 VALID decoded S12 | B1:FOR B2:FOR B3:FOR B4:FOR B5:FOR B6:FOR B7:FOR B8:FOR B9:FOR B10:FOR B11:FOR B12:FOR | wrong [] | angle false FAIL [] | false PASS [] | other FAILs ['B3/BEND:1.15', 'B4/BEND:0.81', 'B5/BEND:-1.08', 'B6/BEND:-0.74', 'B7/BEND:0.98']
+
+# baseline engine (e3-1.3.0) on the probes with misreads, and on 10839000 S7
+DEV-EA3E4820DF/S7 { "sku": "DEV-EA3E4820DF@v1", "stage": "S7", "selfcheck_mm": 0.0, "rc": 0, "t_e3_s": 15.9, "t_scan_s": 0.0, "validity": "VALID", "config_sha": "417f580b", "stage_decoded": "S7", "states": "B1:FOR B2:FOR B3:FOR B4:FOR B5:FOR B6:FOR B7:FOR B8:NOT B9:NOT B10:NOT B11:NOT B12:NOT", "wrong_states": [], "angle_false_fail": [], "angle_false_pass": [], "angle_errors": [  {   "bend": "B1",   "err": 0.059,   "U": 0.613,   "inU": true  },  {   "bend": "B2",   "err": 0.162,   "U": 0.593,   "inU": true  },  {   "bend": "B5",   "err": -0.038,   "U": 0.293,   "inU": true  },  {   "bend": "B6",   "err": 0.024,
+DEV-BDE878D2AF/S4 { "sku": "DEV-BDE878D2AF@v1", "stage": "S4", "selfcheck_mm": 0.0, "rc": 0, "t_e3_s": 7.8, "t_scan_s": 0.0, "validity": "VALID", "config_sha": "417f580b", "stage_decoded": "S4", "states": "B1:FOR B2:FOR B3:FOR B4:FOR B5:NOT B6:UNK!NOT B7:NOT", "wrong_states": [  {   "bend": "B6",   "state": "UNKNOWN",   "truth": "NOT_YET_FORMED",   "delta": -0.23  } ], "angle_false_fail": [], "angle_false_pass": [  {   "bend": "B4",   "dev": -0.731478,   "true": -1.055,   "U": 0.263909  } ], "angle_errors": [  {   "bend": "B1",   "err": -0.001,   "U": 0.15,   "inU": true  },  {   "bend": "B2",   "err": 0.129,  
+DEV-BDE878D2AF/S5 { "sku": "DEV-BDE878D2AF@v1", "stage": "S5", "selfcheck_mm": 0.0, "rc": 0, "t_e3_s": 4.4, "t_scan_s": 0.0, "validity": "VALID", "config_sha": "417f580b", "stage_decoded": "S5", "states": "B1:FOR B2:FOR B3:FOR B4:FOR B5:FOR B6:NOT B7:NOT", "wrong_states": [], "angle_false_fail": [], "angle_false_pass": [], "angle_errors": [  {   "bend": "B1",   "err": -0.002,   "U": 0.151,   "inU": true  },  {   "bend": "B2",   "err": -0.086,   "U": 0.205,   "inU": true  },  {   "bend": "B3",   "err": -0.028,   "U": 0.212,   "inU": true  },  {   "bend": "B4",   "err": -0.151,   "U": 0.259,   "inU": true  },  { 
+DEV-1F88D309A7/S1 { "sku": "DEV-1F88D309A7@v1", "stage": "S1", "selfcheck_mm": 0.0, "rc": 0, "t_e3_s": 3.5, "t_scan_s": 0.0, "validity": "MIRRORED_PART_SUSPECTED", "config_sha": "417f580b", "stage_decoded": null, "states": "B1:UNK!FOR B2:UNK!NOT B3:UNK!NOT", "wrong_states": [  {   "bend": "B1",   "state": "UNKNOWN",   "truth": "FORMED",   "delta": 0.96  },  {   "bend": "B2",   "state": "UNKNOWN",   "truth": "NOT_YET_FORMED",   "delta": -0.26  },  {   "bend": "B3",   "state": "UNKNOWN",   "truth": "NOT_YET_FORMED",   "delta": -0.34  } ], "angle_false_fail": [], "angle_false_pass": [], "angle_errors": [], "fails_

@@ -1,0 +1,123 @@
+RULING_TOKEN
+
+CIIP_V1_ACCOUNTING_CORRECTION_STATIC_STOP
+
+PACKET_INTEGRITY
+
+PASS.
+
+The ZIP independently hashes to 18cdac60420d956cc62c03e608bc1e238ec89c61e535d70043e8e804bc5f1c48. The internal manifest independently hashes to 77021134c9ec285a89c9ac3a4d94df93419d0e6bc2124a33a235db0ebfa1e539.
+
+The archive contains exactly 27 regular members totaling 495,947 uncompressed bytes: one manifest and exactly 26 manifest-listed payload files. Every payload byte count and SHA-256 matches the manifest. There are no missing or unlisted members, duplicate paths, absolute paths, path-traversal components, backslash aliases, directory entries, symbolic links, or ZIP CRC failures. The separate outer record agrees on the archive identity, member count, manifest identity, and no-execution state. 
+
+CIIP_V1_SERIALIZED_BYTES_ACCOUN…
+
+STATIC_CORRECTION_AUDIT
+
+The exact production deletion and aggregate bindings pass, but the corrected accounting contract fails static review.
+
+The sole represented production diff is exactly the deletion of:
+
+Python
+Run
+        "serialized_bytes": 0,
+
+from execute_semantic_role.resource_values in research/f1_ciip_v1/semantic_core.py.
+
+The corrected file is 8,988 bytes with SHA-256 bc91738aee711b10d754e63e484017862797b456fe43bb3977d46364f716b905. Reinserting that exact 31-byte line at the represented location produces a 9,019-byte file with SHA-256 5cd1d36349ff136d12d3bf21827a2a8e6abc774508f243669aed90f787818145. The independently generated unified hunk is byte-identical in substance to the attached patch. No other serialized_bytes placeholder or sentinel exists in semantic_core.py, and the production runner’s resource dictionary also omits the field.
+
+Using the frozen CIIP_CODE_LOCK_V1\0 aggregation rule over the exact 16 canonical source paths gives:
+
+corrected aggregate: cafe23bba37dedcf7dbbf506f46fff08557b7eb193f6f8f9e91b59bd317b039f;
+
+aggregate after substituting only the prior semantic_core.py size and hash: 344bd553ce8500c6ea3d2f1f22cfb28254671ba01fa8f94a5599dd975e910814.
+
+Both match the packet’s respective corrected and V7 aggregate claims. Therefore any execution lock bound to the V7 aggregate—including the identified historical lock 54086ad146476dacd1e66217669f359c730646f80b80f6182101f32b19b0158b—is stale for the corrected code. No replacement lock is present.
+
+The terminal defect is in the claimed caller-preclaim contract. container.py::_set_computed checks only:
+
+Python
+Run
+if key in target and target[key] != value:
+    raise ...
+target[key] = value
+
+A caller-supplied float(T), where T is the exact final serialized length, compares equal to integer T. Every permitted container length is at most 64 MiB and therefore exactly representable as a binary floating-point integer. _set_computed consequently accepts the float and replaces it with integer T before emitted-schema validation can reject its original type.
+
+That behavior contradicts the packet’s normative requirement that a supplied value be a non-Boolean JSON u64, and it contradicts the included mandatory test case that expects float(total) to be rejected. The one-line deletion therefore removes the original zero collision but does not fully implement the stated construction-versus-emission contract.
+
+TEST_DEFINITION_AUDIT
+
+FAIL. The test definitions are neither self-contained nor complete enough for authorization. No test was executed.
+
+First, the tensor test imports _container_bytes from tests/test_f1_ciip_v1_independent_validator.py, but that source file is absent from the packet. The professor therefore cannot verify the fixture’s construction, compactness, source-freedom, metadata bindings, or lack of raw PLY/gold access.
+
+Second, the source-contract test requires docs/research/CIIP_V1_GOLD_FREE_SMOKE_PREEXECUTION_LOCK_20260809.json, which is also absent. The stale status of the V7 aggregate is independently established, but the supplied test cannot run from the reviewed packet and its specific execution-lock body cannot be audited by that definition.
+
+Third, the mandatory tensor is substantively incomplete:
+
+The omission test checks only serialized_bytes == len(rebuilt); it does not assert the required three-way identity with METADATA_REGION_BYTES + sum(six canonical table byte lengths), nor byte identity with the reference omission path.
+
+It does not directly establish that all six table bytes, table hashes, partition commitment, directory commitment, case token, or other source-free commitments remain identical on the corrected omission path.
+
+The float(total) rejection case is statically inconsistent with the current production implementation and would not produce the expected exception.
+
+The combined decoder/independent-validator tamper test reaches the shared container.decode_container rejection first. It therefore does not exercise the independent validator’s own SERIALIZED_BYTE_ACCOUNTING_MISMATCH path for zero, T-1, and T+1.
+
+The supervisor patch test lacks the required negative case in which an attempted serialized_bytes change must fail, and it does not explicitly assert preservation of all table hashes and commitments.
+
+No attached definition verifies the ledger’s complete frozen tamper-contract requirement or the execution-result validator’s two-token and permanently-false authority flags.
+
+NONINTERFERENCE
+
+STATIC SCIENTIFIC NONINTERFERENCE: PASS WITH EXECUTION REMAINING CLOSED.
+
+The deletion occurs after parsing, sampling, partitioning, field construction, adjacency construction, both persistence arms, gates, and scientific census construction. It changes only the premature resource-metadata entry.
+
+Reversing only that deletion reproduces the exact prior code aggregate. This cryptographically binds the other 15 code members as unchanged under the frozen aggregate construction. The configuration, emitted schema, static cardinality/resource proof, and safety/terminal contract also retain their exact frozen hashes. No scientific constant, scale, geometry operation, identifier rule, table format, persistence rule, acceptance gate, native source, independent semantic rebuild, source-selection rule, or authority flag changed.
+
+No raw PLY, semantic payload, test result, compiled binary, gold, CAD, label, expected count, benchmark, replay, or synthetic result is present in the correction archive. Dynamic byte-identity and runtime noninterference remain unproven because execution was correctly not performed.
+
+This STOP is an accounting-contract and test-completeness STOP. It is not empirical evidence against the CIIP scientific family and is not an architecture-family STOP.
+
+EXACT_NEXT_AUTHORITY
+
+No source-free test batch is authorized from this packet. No import, compilation, native KAT, or test invocation is authorized.
+
+The sole admissible next authority is one fresh immutable paper/code-only, no-execution correction packet limited to all of the following:
+
+Preserve the exact semantic_core.py deletion.
+
+Add a narrow supplied-value type/domain guard before _set_computed handles resource.serialized_bytes, using the existing u64 rule or its exact equivalent: reject Boolean, float, negative, 2**64, string, null, container, object, or sentinel values before equality comparison; accept only a non-Boolean integer in [0, 2**64) that exactly equals T. _set_computed itself should remain strict and otherwise unchanged.
+
+Include the complete compact synthetic six-table fixture source rather than importing an unattached helper.
+
+Include the immutable stale execution-lock object needed by the lock test, or a complete independently verifiable replacement evidence object containing its exact canonical body and bindings. It must remain historical and non-reusable.
+
+Complete the tests with explicit three-way length arithmetic, corrected omission-path byte/table/commitment identity, direct independent-accounting tamper cases, the negative resource-patch case, full commitment invariance, frozen tamper-contract coverage, and execution-result token/false-flag coverage.
+
+Recalculate every changed-file hash and the code aggregate, while marking all earlier code and execution locks stale. No new execution lock may be created.
+
+That corrected packet requires a fresh professor static audit before even the bounded source-free tests can be authorized. After any later authorized test results, a fresh immutable professor packet is again required before any further authority can be considered.
+
+WHAT_REMAINS_CLOSED
+
+Execution authority remains NONE; tests remain unexecuted; the prior claim remains consumed; and rerun and replacement-input authority remain false. 
+
+CIIP_V1_SERIALIZED_BYTES_ACCOUN…
+
+Closed without exception:
+
+all attached-source and test importing, compiling, execution, smoke invocation, native KAT execution, or benchmark activity;
+
+the entire proposed source-free test batch under the present packet;
+
+preparation or use of a replacement code, dependency, native-binary, capability, or execution lock;
+
+every raw PLY access and every scan rerun, including corrected BASE_A, BASE_B, permutation, independent rebuild, validator, replay, synthetic, or rescue lanes;
+
+gold, labels, expected bend counts, ownership, births, CAD/reference geometry, renders, manual annotations, prior candidates, benchmark answers, family routing, fitting, learning, threshold selection, and expected-count logic;
+
+runtime/main-branch integration, production inspection, publication, or promotion.
+
+The published INVALID_CII_PERSISTENCE_PREFLIGHT_STOP remains terminal historical evidence and cannot be repaired, replaced, replayed, or converted into a pass.

@@ -1,0 +1,47 @@
+{
+ "config_hash": "cb14d5ca9833617babdf18a2d39f354bccf2c693542e1742fa9ab6619279469f",
+ "gates": {
+  "G1": {
+   "pass": true,
+   "detail": "Regression tier on DEV seeds (50 cases, 7 families, scanner model PARTIAL): regression_verdict PASS with no failed gate; overall verdict INCOMPLETE. Coverage 0.997, false PASS 0/553, false FAIL 0, U calibration 0.984, angle P95 0.019 deg, flange P95 0.103 mm. Every accuracy gate matches iteration 6 and the change step exactly; only the runtime, RSS and tier-budget records moved (P95 13.42 s). G1.SUITE FAIL is by construction (it needs 200 or more cases). Not qualifying: TIER_REGRESSION, SEEDSET_DEV, SCANNER_MODEL_PARTIAL, FREEZE_LEDGER_MISMATCH."
+  },
+  "G2": {
+   "pass": false,
+   "line_f1_gold11_human": 0.391,
+   "line_f1_gold11_relabel": 0.987,
+   "precision": 0.975,
+   "detail": "Fails on (a) and (f). (a): the frozen scorer gates on the human Gold11, F1 0.391 (P 0.342, R 0.458) against best F1 lane 0.473, so FAIL. On gold11_relabel_v1 (gold of record) F1 0.987 (P 0.975, R 1.000, 77/2/0) against best lane 0.547, which would PASS; the frozen gate changes only with owner sign-off. (f): repeatability P95 angle 0.306 deg against a 0.30 gate (was 0.426); the three 15651004 'repeats' are three different stages. Passing: (b) angle/flange coverage 0.988 / 0.964; (c) known-good angle MAE 0.798 deg (legacy common 1.291, informational); (d) known-good flange P95 0.393 mm; (e) runtime P95 27.7 s, max 31.6 s, 0 crashes; compile rate. Peak RSS 0.92 GiB."
+  },
+  "G3": {
+   "pass": false,
+   "detail": "State match 118/123 = 0.959, FAIL: 4 disputed 10839000 scan_2 rows (pc_cec08dfca9ab) plus the rolled 28870000 SCAN_1 B1 (reads UNKNOWN, truth NOT_FORMED). Known-good angle MAE 1.147 deg, FAIL (was 1.186): 10839000 1.241 (real local overbend and base bow per CHANGE.md, not an engine bias), 15651004 0.274; common bends E3 1.324 vs legacy 1.222 deg (informational). Unformed bends reported as defect: 2, FAIL (the disputed rows). Coverage, flange P95 0.368 mm, blank stage 0 and counts PASS."
+  },
+  "G5": {
+   "pass": true,
+   "detail": "scripts/production/g5_check.py gate PASS: baseline integrity, manifest (1 allowlisted add), tsc new=0, lint new=0, vendor scripts (5 NOT_RUN as in baseline), backend tests 121 passed with 0 new failures."
+  }
+ },
+ "broad": {
+  "scans": 24,
+  "line_f1_micro": 0.702,
+  "line_f1_family_macro": 0.817,
+  "precision": 0.665,
+  "recall": 0.743,
+  "per_bend_correct_rate": 0.9015,
+  "false_pass": 0
+ },
+ "rss_peak_gib": 1.175,
+ "runtime_p95_s": 27.73,
+ "top_failures": [
+  "BROAD recall on the frozen BROAD gold is 0.743 (107/144), below 0.80 and unchanged. Of the 37 FNs, 36 have no matching gold-of-record line on the same scan (label problems) and 1 is a fold the recipe excludes (28870000 FULL). On the gold of record for the same 24 scans, recall is 0.994 vs 0.475 for the best F1 lane.",
+  "G3 state match is 118/123 (FAIL). 4 mismatches are disputed 10839000 scan_2 truth rows (pc_cec08dfca9ab B6/B8/B9/B11; the hole evidence points to the 180-deg twin, so the owner needs to re-adjudicate). The 5th is the rolled 28870000 SCAN_1 B1. unformed_reported_as_defect = 2.",
+  "G3 known-good angle MAE is 1.147 deg (FAIL; was 1.186). It is driven by 10839000 at 1.241 deg: real local overbend and base bow, plus joggle risers at REVIEW with U 7-8 deg. The owner must decide whether this part counts as known-good at +-1 deg.",
+  "G2(a) fails on the frozen human-Gold11 gate: F1 0.391 vs best lane 0.473. On gold11_relabel_v1, F1 is 0.987 with P 0.975 vs best lane 0.547, which would pass. Changing the gate of record needs the owner's sign-off.",
+  "G2(f) repeatability P95 angle is 0.306 deg against a 0.30 gate. The three 15651004 'repeats' are three different stages.",
+  "38172000 SCAN_1 (pc_07062eee17aa) B1/B9: the tab lines run collinear with the 214 mm folds, while the relabel draws each pair as one 305 mm line. This gives 2 gold-set FPs and 1 false-PASS proxy, and is a stage-level labelling convention question for the owner.",
+  "50757000_02_X B1/B4 flange/position reads about 4.9-5.0 mm off nominal (FAIL) with angles in tolerance, which looks like one off-nominal backgauge (unverified). 38172000_01_X B5 side B reads -8.30 mm and the angle +4.69 deg (FAIL since iteration 3).",
+  "Per-bend correctness given CAD is 183/203 = 0.901 riser-aware (0.837 strict), unchanged. The false-PASS proxy is 3: 1 stage convention plus the 2 disputed truth rows.",
+  "Ledger check ok=false (CONTRACTS_CODE_CHANGED_SINCE_FREEZE; another workflow edited contracts/production), so the physical and G1 scorecards are not qualifying until the freeze is re-anchored."
+ ],
+ "summary": "A1 iteration 7 measure is done on engine e3-1.9.0 (config cb14d5ca), and the results match the change step. Line-finding and per-bend correctness are unchanged from iteration 6; the angle readings improved. G1 and G5 pass, G2 and G3 fail. Every heavy step ran one at a time under the shared lock with OMP_NUM_THREADS=1, and the lock is released. All 27 A1 cases ran: 26 OK, 1 compile BLOCKED.\n\nMatch to the change step: the fp.py engine fingerprint 6297d8e3 equals the change step's final and did not change during the run. The goldset, per-bend and subset outputs are byte-identical to iter_7/validation, the G1 accuracy gates are identical, and the physical G2/G3 gate records are identical. The FN/FP line sets match iteration 6 line for line.\n\nLine-finding vs the best F1 lane on the same scans (the bar):\n- BROAD frozen A1 list (24 line cases, 14 families): family-macro 0.817 and micro 0.702 (P 0.665, R 0.743, TP/FP/FN 107/54/37), against 0.543 / 0.508 for the best lane.\n- Same scans on the gold of record (report-only): micro 0.991 and family-macro 0.974, against 0.559 / 0.581.\n- Gold11 relabel (gold of record): 0.987 against 0.547. Human Gold11 (historical diagnostic): 0.391 against 0.473.\n- GOLD_SET_V1 (23 A1 scans): micro 0.990 and family-macro 0.974, against 0.566 / 0.583.\n\nPer bend given CAD (203 bends): 0.901 riser-aware, 0.837 strict, family-macro 0.910. The false-PASS proxy is 3 (1 labelling-convention case, 2 disputed truth rows); strict false PASS on complete BROAD scans is 0.\n\nAngles, where the iteration-7 change shows: physical MAE vs nominal fell from 0.946 to 0.898 deg over 159 angles, and mean U from 1.018 to 0.956 deg. There is no physical angle truth for these scans; these are nominal-relative only.\n\nGates:\n- G1 (DEV regression tier): PASS.\n- G2: FAIL on (a), the frozen human-Gold11 gate, and on (f), repeatability 0.306 deg against a 0.30 gate. (b) coverage, (c) known-good angle MAE 0.798 deg (legacy common 1.291, informational), (d) flange P95 0.393 mm, (e) runtime P95 27.7 s and compile rate all pass.\n- G3: FAIL. State match 0.959, known-good angle MAE 1.147 deg, unformed reported as defect 2.\n- G5: PASS (121 backend tests, no new failures).\n\nThe ledger check is ok=false because another workflow edited contracts/production, so these scorecards are not qualifying until the freeze is re-anchored. Peak RSS was 1.175 GiB.\n\nFiles are in /Users/idantal/ShermanQC/FullProject/docs/production/runlog/a1/iter_7/:\n- scorecard.json\n- overlays/worst20/ (20 bends, 40 PNGs plus INDEX.json)\n- measure/raw, measure/logs and measure/tools\n\nThe work directory is /private/tmp/claude-501/-Users-idantal/db065cf7-f766-4885-b217-ed8d7edd7ade/scratchpad/a1_iter7m. Custody: only cases_A1 were read; nothing from DEV-CHECK, SEALED, FRESH, HOLDOUT10, N001-N016 or EHO4, and no credentials."
+}

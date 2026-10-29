@@ -1,0 +1,412 @@
+diff -ruN -x __pycache__ domains/production/engine/inspect/chirality.py domains/production/engine/inspect/chirality.py
+--- domains/production/engine/inspect/chirality.py	1970-01-01 02:00:00
++++ domains/production/engine/inspect/chirality.py	2026-10-28 09:59:36
+@@ -0,0 +1,215 @@
++"""Scan-side left/right (chirality) check against a ``chirality_map_v0`` (E3 side, research candidate).
++
++Self-contained (numpy + scipy only, no import from research/): the e3-1.15.0-rc candidate ships this file
++verbatim as ``domains/production/engine/inspect/chirality.py``.
++
++After E3 has registered the scan and fitted every panel (``PanelFit.A``: final pose -> registered frame), each
++probe of the decoded stage's map is carried onto the scan by its owning panel's pose and tested for material:
++a scan point within ``hit_mm``.
++
++Per feature, per skin side (+1 / -1 of the owning panel's skin-0 normal):
++
++- *proper-material* probes (the CAD has material, the mirror image has none) and *mirror-material* probes (the
++  reverse) are PRESENT when at least ``present_fraction`` of them are hit, ABSENT when at most
++  ``absent_fraction`` are hit **and** the ring around the feature (material both images share) is observed on the
++  same side (``ring_coverage_min``); anything else is not evidence. Not scanned is never absent.
++- proper votes: proper-material PRESENT, mirror-material ABSENT; mirror votes: the opposite.
++- feature: PROPER (only proper votes), MIRROR (only mirror votes), CONFLICT (both) or UNOBSERVED (none).
++
++Per mirror hypothesis (a place where a mirrored part would sit): PROPER when at least one feature is PROPER and
++none is MIRROR or CONFLICT; MIRROR when at least one is MIRROR and none is PROPER or CONFLICT.
++
++Decision:
++
++- ``ACHIRAL``: the stage is its own mirror image (no check needed);
++- ``PROPER_CONFIRMED``: every hypothesis is PROPER;
++- ``MIRROR_SUSPECTED``: some hypothesis is MIRROR (its observed features all match that mirror image; another
++  hypothesis reading PROPER only says the scan is not *that* mirror placement);
++- ``UNCONFIRMED``: anything else (features unobserved, inconclusive or contradictory; stage not mapped; map
++  missing or not matching the compiled part). The caller withholds every PASS.
++"""
++from __future__ import annotations
++
++import hashlib
++import json
++from pathlib import Path
++
++import numpy as np
++from scipy.spatial import cKDTree
++
++SCHEMA = "chirality_map_v0"
++CHECK_VERSION = "chirality_check_v0"
++
++#: Frozen 2026-10-28 before any synthetic evaluation.
++CHECK_THRESHOLDS: dict[str, float] = {
++    "hit_mm": 0.8,               # a probe is covered by material when a registered scan point is this close
++    "present_fraction": 0.5,
++    "absent_fraction": 0.1,
++    "ring_coverage_min": 0.5,    # absence needs the shared surroundings observed on the same side
++    "min_side_probes": 4,        # a side's role/ring needs this many probes to count
++}
++CHECK_THRESHOLDS_SHA256 = hashlib.sha256(json.dumps(CHECK_THRESHOLDS, sort_keys=True).encode()).hexdigest()
++
++ROLE_A, ROLE_B, ROLE_RING = 0, 1, 2
++
++
++def _sha_file(p: Path) -> str:
++    h = hashlib.sha256()
++    with open(p, "rb") as fh:
++        for b in iter(lambda: fh.read(1 << 22), b""):
++            h.update(b)
++    return h.hexdigest()
++
++
++def load_map(path: Path | str | None, compiled_part_sha256: str) -> tuple[dict | None, dict | None, str | None]:
++    """(map, probes, problem). ``problem`` is a reason code when the map cannot be used."""
++    if path is None:
++        return None, None, "CHIRALITY_MAP_MISSING"
++    path = Path(path)
++    if not path.is_file():
++        return None, None, "CHIRALITY_MAP_MISSING"
++    try:
++        doc = json.loads(path.read_text())
++    except (OSError, ValueError):
++        return None, None, "CHIRALITY_MAP_UNREADABLE"
++    if doc.get("schema") != SCHEMA:
++        return None, None, "CHIRALITY_MAP_UNREADABLE"
++    if doc.get("compiled_part_sha256") != compiled_part_sha256:
++        return None, None, "CHIRALITY_MAP_OTHER_PART"
++    pz = path.parent / str(doc.get("probes_file") or "")
++    if not pz.is_file() or _sha_file(pz) != doc.get("probes_sha256"):
++        return None, None, "CHIRALITY_MAP_PROBES_MISMATCH"
++    z = np.load(pz, allow_pickle=False)
++    return doc, {k: z[k] for k in z.files}, None
++
++
++def stage_record(doc: dict, stage_id: str | None) -> dict | None:
++    for i, s in enumerate(doc["stages"]):
++        if s["stage_model_id"] == stage_id:
++            s = dict(s)
++            s["_ordinal"] = i
++            return s
++    return None
++
++
++def stage_class(doc: dict | None, stage_id: str | None) -> str | None:
++    """The map's class of a stage; for an unmapped stage, ACHIRAL only when every mapped stage is ACHIRAL."""
++    if doc is None:
++        return None
++    rec = stage_record(doc, stage_id)
++    if rec is not None:
++        return rec["class"]
++    if doc["stages"] and all(s["class"] == "ACHIRAL" for s in doc["stages"]):
++        return "ACHIRAL"
++    return None
++
++
++def _side_state(hit: np.ndarray, side: np.ndarray, ring_cov: dict[int, float | None], th: dict) -> str | None:
++    states = set()
++    for s in (1, -1):
++        m = side == s
++        if int(m.sum()) < th["min_side_probes"]:
++            continue
++        f = float(hit[m].mean())
++        if f >= th["present_fraction"]:
++            states.add("PRESENT")
++        elif f <= th["absent_fraction"] and (ring_cov.get(s) or 0.0) >= th["ring_coverage_min"]:
++            states.add("ABSENT")
++    if states == {"PRESENT"}:
++        return "PRESENT"
++    if states == {"ABSENT"}:
++        return "ABSENT"
++    if states:
++        return "CONFLICT"
++    return None
++
++
++def evaluate(doc: dict | None, probes: dict | None, stage_id: str | None, panel_pose: dict[int, np.ndarray | None],
++             reg_pts: np.ndarray, th: dict = CHECK_THRESHOLDS, problem: str | None = None) -> dict:
++    """Left/right decision of a registered scan (module docstring). ``panel_pose[i]``: final -> registered 4x4 of
++    compiled panel ``i`` (None: the panel was not fitted)."""
++    out = {"version": CHECK_VERSION, "thresholds_sha256": hashlib.sha256(json.dumps(th, sort_keys=True).encode()).hexdigest(),
++           "stage_model_id": stage_id, "decision": "UNCONFIRMED", "reason": problem, "class": None, "hypotheses": []}
++    if doc is None or probes is None:
++        out["reason"] = problem or "CHIRALITY_MAP_MISSING"
++        return out
++    out["map_sha256"] = doc.get("map_sha256")
++    rec = stage_record(doc, stage_id)
++    if rec is None:
++        if stage_class(doc, stage_id) == "ACHIRAL":
++            out.update(decision="ACHIRAL", reason="ALL_STAGES_ACHIRAL", **{"class": "ACHIRAL"})
++        else:
++            out["reason"] = "CHIRALITY_STAGE_UNMAPPED"
++        return out
++    out["class"] = rec["class"]
++    if rec["class"] == "ACHIRAL":
++        out.update(decision="ACHIRAL", reason="STAGE_ACHIRAL")
++        return out
++    sel = probes["stage"] == rec["_ordinal"]
++    pos, own, side = probes["pos"][sel].astype(np.float64), probes["owner"][sel], probes["side"][sel]
++    hyp, feat, role = probes["hyp"][sel], probes["feature"][sel], probes["role"][sel]
++    # carry every probe onto the scan with its panel's fitted pose
++    reg = np.full_like(pos, np.nan)
++    for i in np.unique(own):
++        A = panel_pose.get(int(i))
++        if A is None:
++            continue
++        m = own == i
++        reg[m] = pos[m] @ np.asarray(A)[:3, :3].T + np.asarray(A)[:3, 3]
++    ok = np.isfinite(reg).all(axis=1)
++    hit = np.zeros(len(pos), bool)
++    if ok.any() and len(reg_pts):
++        lo, hi = reg[ok].min(axis=0) - 2.0, reg[ok].max(axis=0) + 2.0
++        near = np.all((reg_pts >= lo) & (reg_pts <= hi), axis=1)
++        if near.any():
++            d, _ = cKDTree(reg_pts[near]).query(reg[ok], distance_upper_bound=th["hit_mm"])
++            hit[np.where(ok)[0]] = np.isfinite(d)
++    verdicts = []
++    for h in rec["hypotheses"]:
++        hi_ = h["hypothesis"]
++        frec = []
++        for f in h["features"]:
++            fi = f["feature"]
++            base = (hyp == hi_) & (feat == fi) & ok
++            ring = base & (role == ROLE_RING)
++            ring_cov = {}
++            for s in (1, -1):
++                m = ring & (side == s)
++                ring_cov[s] = float(hit[m].mean()) if int(m.sum()) >= th["min_side_probes"] else None
++            st = {}
++            for r, name in ((ROLE_A, "proper_material"), (ROLE_B, "mirror_material")):
++                m = base & (role == r)
++                st[name] = _side_state(hit[m], side[m], ring_cov, th) if m.any() else None
++            pv = int(st["proper_material"] == "PRESENT") + int(st["mirror_material"] == "ABSENT")
++            mv = int(st["proper_material"] == "ABSENT") + int(st["mirror_material"] == "PRESENT")
++            confl = "CONFLICT" in (st["proper_material"], st["mirror_material"])
++            if confl or (pv and mv):
++                fs = "CONFLICT"
++            elif pv:
++                fs = "PROPER"
++            elif mv:
++                fs = "MIRROR"
++            else:
++                fs = "UNOBSERVED"
++            frec.append({"feature": fi, "type": f.get("type"), "panel_id": f.get("panel_id"), "state": fs,
++                         "proper_material": st["proper_material"], "mirror_material": st["mirror_material"],
++                         "ring_coverage": {str(k): (None if v is None else round(v, 3)) for k, v in ring_cov.items()}})
++        n = {k: sum(1 for x in frec if x["state"] == k) for k in ("PROPER", "MIRROR", "CONFLICT", "UNOBSERVED")}
++        if n["PROPER"] and not n["MIRROR"] and not n["CONFLICT"]:
++            v = "PROPER"
++        elif n["MIRROR"] and not n["PROPER"] and not n["CONFLICT"]:
++            v = "MIRROR"
++        elif n["CONFLICT"] or (n["PROPER"] and n["MIRROR"]):
++            v = "CONFLICT"
++        else:
++            v = "UNOBSERVED"
++        verdicts.append(v)
++        out["hypotheses"].append({"hypothesis": hi_, "verdict": v, "counts": n, "features": frec})
++    if verdicts and all(v == "PROPER" for v in verdicts):
++        out.update(decision="PROPER_CONFIRMED", reason="FEATURES_CONFIRM_PROPER")
++    elif any(v == "MIRROR" for v in verdicts):
++        out.update(decision="MIRROR_SUSPECTED", reason="FEATURES_MATCH_MIRROR")
++    else:
++        bad = sorted(set(verdicts) - {"PROPER"})
++        out.update(decision="UNCONFIRMED", reason="FEATURES_" + ("_".join(bad) if bad else "NONE"))
++    return out
+diff -ruN -x __pycache__ domains/production/engine/inspect/cli.py domains/production/engine/inspect/cli.py
+--- domains/production/engine/inspect/cli.py	2026-10-17 21:19:18
++++ domains/production/engine/inspect/cli.py	2026-10-28 10:00:07
+@@ -67,6 +67,7 @@
+     p.add_argument("--time-budget-s", type=float)
+     p.add_argument("--engine-bundle-id")
+     p.add_argument("--config")
++    p.add_argument("--chirality-map")
+     return p
+ 
+ 
+@@ -122,7 +123,8 @@
+         return 2
+     opts = InspectOptions(context=context, declared_stage=args.declared_stage,
+                           declared_source=args.declared_stage_source, unit_factor=float(args.unit_factor),
+-                          engine_bundle_id=args.engine_bundle_id, time_budget_s=cfg.time_budget_s)
++                          engine_bundle_id=args.engine_bundle_id, time_budget_s=cfg.time_budget_s,
++                          chirality_map=args.chirality_map)
+     try:
+         outcome = inspect_scan(inputs, out, cfg, opts, progress=lambda st, pc: _emit("PROGRESS", {"stage": st, "progress": pc}))
+     except Exception as exc:  # noqa: BLE001 - every unexpected failure is an internal error (exit 3)
+diff -ruN -x __pycache__ domains/production/engine/inspect/config.py domains/production/engine/inspect/config.py
+--- domains/production/engine/inspect/config.py	2026-10-28 01:58:53
++++ domains/production/engine/inspect/config.py	2026-10-28 10:00:07
+@@ -32,7 +32,7 @@
+ __all__ = ["ENGINE_VERSION", "ALGORITHM_VERSIONS", "InspectConfig", "ConfigError", "load_config"]
+ 
+ #: Version of the per-scan engine (``result.engine.engine_version``).
+-ENGINE_VERSION = "e3-1.14.0"
++ENGINE_VERSION = "e3-1.15.0-rc"
+ 
+ #: Algorithm identifiers recorded in ``result.engine.algorithm_versions``.
+ ALGORITHM_VERSIONS: dict[str, str] = {
+@@ -44,6 +44,7 @@
+     "metrology": "station_oml_section_crease_aware_unfolded_island_station_profile_short_side_consistency_footprint_edge_riser_model_reseat_signed_angle_reversed_position_mirrored_flat_start_flange_na_at_stage_pose_borne_lengths_one_skin_swap_branch_withhold_pose_alternative_withhold_v13",
+     "uncertainty": "station_mad_residual_pose_erosion_bias_thickness_station_spread_riser_length_v4",
+     "heatmap": "stage_cloud_nearest_signed_v1",
++    "chirality": "chirality_map_v0_probe_check_v0_achiral_guard_v0",
+ }
+ 
+ 
+@@ -352,6 +353,15 @@
+     #: ``pose_well_alt_margin`` of the (final) chosen total is an alternative pose: the scan is measured under it
+     #: too, and a decided characteristic the alternative does not decide the same way is withheld (REVIEW).
+     pose_wells: int = 1
++    #: e3-1.15 (research candidate) left/right identity: the decoded stage's distinguishing features
++    #: (``chirality_map_v0``, compiled from the CAD) are checked in the registered scan
++    #: (:mod:`domains.production.engine.inspect.chirality`). Features matching the mirror image refuse the scan
++    #: (MIRRORED_PART_SUSPECTED); features unobserved or inconclusive, or no usable map for a chiral part, withhold
++    #: every PASS (REVIEW, LEFT_RIGHT_UNCONFIRMED). Never creates a PASS.
++    chirality_check: int = 1
++    #: e3-1.15: a live mirror refusal (``mirror_margin``) of a stage the map certifies ACHIRAL is not a mirror
++    #: refusal (the part is its own mirror image): the proper registration is untrusted instead.
++    chirality_achiral_guard: int = 1
+     pose_well_edge_mm: float = 1.5
+     pose_well_max_deg: float = 2.0
+     pose_well_min_gap_mm: float = 0.5
+@@ -551,7 +561,8 @@
+     "min_scan_points": (10, None, False, False), "gross_outlier_extent_factor": (1.0, None, True, False),
+     "density_guard_cell_mm": _POS, "density_guard_ppc": (0.0, None, False, False),
+     "density_guard_max_points": (0, None, False, False), "dense_thin": (0, 1, False, False),
+-    "pose_wells": (0, 1, False, False), "pose_well_edge_mm": _POS, "pose_well_max_deg": (0.0, 10.0, True, False),
++    "pose_wells": (0, 1, False, False), "chirality_check": (0, 1, False, False),
++    "chirality_achiral_guard": (0, 1, False, False), "pose_well_edge_mm": _POS, "pose_well_max_deg": (0.0, 10.0, True, False),
+     "pose_well_min_gap_mm": _POS, "pose_well_score_slack": (0.0, 1.0, False, False),
+     "pose_well_articulate_max": (0, 16, False, False), "pose_well_switch_margin": (0.0, 1.0, False, False),
+     "pose_well_alt_margin": (0.0, 1.0, False, False),
+diff -ruN -x __pycache__ domains/production/engine/inspect/engine.py domains/production/engine/inspect/engine.py
+--- domains/production/engine/inspect/engine.py	2026-10-28 01:58:43
++++ domains/production/engine/inspect/engine.py	2026-10-28 10:03:05
+@@ -79,6 +79,7 @@
+     ViewerAssetsV1,
+ )
+ from contracts.production.layout import ENGINE_OUTPUT_FILES
++from domains.production.engine.inspect import chirality as _chirality
+ from domains.production.engine.inspect.articulated import ArticulatedFit, fit_articulated
+ from domains.production.engine.inspect.cloud import (
+     VoxelCloud,
+@@ -146,6 +147,8 @@
+     defer_finish: bool = False
+     #: e3-1.13 dense ingest (internal): the primary's thinning decision, inherited by its resamples (None: decide)
+     dense_thin: bool | None = None
++    #: e3-1.15 (research candidate): the part's ``chirality_map_v0.json`` (None: beside compiled_part.json)
++    chirality_map: str | None = None
+ 
+ 
+ @dataclass
+@@ -387,6 +390,13 @@
+     warnings: list[str] = []
+     ctx = _Ctx(part=part, recipe=recipe, inputs=inputs, cfg=cfg, opts=opts, out_dir=out_dir, warnings=warnings,
+                note=note, budget=budget)
++    chir_doc = chir_probes = None
++    chir_problem = None
++    if cfg.chirality_check or cfg.chirality_achiral_guard:
++        map_path = Path(opts.chirality_map) if opts.chirality_map else Path(inputs.compiled_dir) / "chirality_map_v0.json"
++        chir_doc, chir_probes, chir_problem = _chirality.load_map(map_path, part.compiled.compiled_part_sha256)
++        note(f"chirality map: {map_path.name if chir_doc is not None else chir_problem}"
++             + (f" part class {chir_doc.get('part_class')}" if chir_doc is not None else ""))
+     step("ingest", 5)
+     try:
+         scan = read_scan(inputs.scan_path)
+@@ -559,6 +569,13 @@
+                          f"total={best.total:.3f} explained={best.explained:.3f}")
+             why = _mirror_refusal(mb.total, best.total, mb.fit.hole_mismatch, best.fit.hole_mismatch,
+                                   symmetric=bool(sym_maps), margin=cfg.mirror_margin)
++            if why is not None and cfg.chirality_achiral_guard and chir_doc is not None and \
++                    _chirality.stage_class(chir_doc, _decoded_stage_id(part, mb)) == "ACHIRAL":
++                # e3-1.15: the stage is its own mirror image (chirality map), so a better mirrored fit means the
++                # proper search failed, not that the part is mirrored
++                note(f"achiral guard: {why} on an ACHIRAL stage is not a mirror refusal")
++                return ctx.invalid("UNTRUSTED_REGISTRATION", (f"MIRROR_FIT_BETTER_ACHIRAL_STAGE:{why}"[:200],), None,
++                                   None, log, abstained=True)
+             if why is not None:
+                 return ctx.invalid("MIRRORED_PART_SUSPECTED", (why,), None, None, log, abstained=True)
+     # the pose is chosen by comparing complete articulated fits (and, when the best looks suspicious,
+@@ -683,6 +700,25 @@
+             identity_ambiguous = True
+             warnings.append("IDENTITY_AMBIGUOUS_TWINS: certified symmetric twin poses tie; only readings identical "
+                             "under every twin are published, everything else is UNKNOWN(AMBIGUOUS_POSE)")
++    # -- e3-1.15 left/right identity (chirality map) ------------------------------------------------------
++    if cfg.chirality_check:
++        chk_stage = stage_id if stage_id is not None else choose_stage_model(part, chosen_states)[0]
++        poses = {pf.index: pf.A for pf in best.art.panels if pf.A is not None and pf.state != "UNKNOWN"}
++        chk = _chirality.evaluate(chir_doc, chir_probes, chk_stage, poses, reg_pts, problem=chir_problem)
++        chk["pass_before_check"] = _count_pass(outcomes, ctx.general[0], part)
++        ctx.chirality = chk
++        note(f"chirality check: stage {chk_stage} class {chk.get('class')} -> {chk['decision']} ({chk['reason']}) "
++             + " ".join(f"H{h['hypothesis']}={h['verdict']}" for h in chk["hypotheses"]))
++        if opts.write_outputs and opts.subsample is None:
++            write_json(out_dir / "chirality_check.json", chk)
++        if chk["decision"] == "MIRROR_SUSPECTED":
++            hyps = [h for h in chk["hypotheses"] if h["verdict"] == "MIRROR"]
++            return ctx.invalid("MIRRORED_PART_SUSPECTED",
++                               (f"CHIRAL_FEATURES_MATCH_MIRROR:H{hyps[0]['hypothesis']}:"
++                                f"{hyps[0]['counts']['MIRROR']}" if hyps else "CHIRAL_FEATURES_MATCH_MIRROR",),
++                               None, None, log, abstained=True)
++        if chk["decision"] not in ("ACHIRAL", "PROPER_CONFIRMED"):
++            _chirality_withhold(outcomes, ctx.general[0], part, chk["reason"] or "UNCONFIRMED", ctx)
+     # -- heatmap, labels --------------------------------------------------------------------------------
+     step("heatmap", 85)
+     heat_reason = None
+@@ -757,6 +793,8 @@
+     #: e3-1.14 pose wells: the chosen pose was replaced by a better well; alternative-pose withholding record
+     pose_switched: bool = False
+     pose_alt: dict = field(default_factory=dict)
++    #: e3-1.15 left/right identity check record
++    chirality: dict = field(default_factory=dict)
+ 
+     def _engine(self) -> EngineInfoV1:
+         return EngineInfoV1(engine_version=ENGINE_VERSION, config_sha256=self.cfg.sha256(),
+@@ -1085,6 +1123,42 @@
+     note(f"alternative poses: {len(alts)} within {cfg.pose_well_alt_margin} of total {best.total:.3f} "
+          + " ".join(f"[{h.total:.3f}]" for h in alts) + f" ({budget.elapsed() - t_start:.1f}s); withheld "
+          + (" ".join(withheld) if withheld else "none"))
++
++
++def _count_pass(outcomes: list[BendOutcome], general: dict, part: PartView) -> int:
++    """Decided PASS characteristics as they stand (bookkeeping: what the result would carry without the check)."""
++    n = 0
++    items = [(cid, m, o) for o in outcomes for cid, m in o.measurements.items()] + \
++        [(cid, m, None) for cid, m in general.items()]
++    for cid, m, o in items:
++        if m.value is None or m.u is None or (o is not None and (cid in o.forced_unknown or cid in o.stage_na)):
++            continue
++        if o is not None and o.state in ("UNKNOWN", "NOT_YET_FORMED"):
++            continue
++        n += int(_gb(part.nominals.get(cid), m.value, m.u) == "PASS")
++    return n
++
++
++def _chirality_withhold(outcomes: list[BendOutcome], general: dict, part: PartView, reason: str, ctx: "_Ctx") -> None:
++    """e3-1.15: the part's left/right identity is not confirmed: every PASS becomes REVIEW (U raised to the guard
++    band, :func:`withhold_u`). FAIL and everything undecided are untouched; nothing becomes PASS."""
++    n = 0
++    items = [(cid, m, o) for o in outcomes for cid, m in o.measurements.items()] + \
++        [(cid, m, None) for cid, m in general.items()]
++    for cid, m, o in items:
++        if m.value is None or m.u is None or (o is not None and (cid in o.forced_unknown or cid in o.stage_na)):
++            continue
++        if o is not None and o.state in ("UNKNOWN", "NOT_YET_FORMED"):
++            continue
++        nom = part.nominals.get(cid)
++        if _gb(nom, m.value, m.u) != "PASS":
++            continue
++        m.u = withhold_u(nom, m.value, float(m.u), 0.0)
++        m.notes = tuple(m.notes) + ("LEFT_RIGHT_UNCONFIRMED",)
++        n += 1
++    ctx.warnings.append(f"LEFT_RIGHT_UNCONFIRMED: {reason}; the part's left/right variant could not be confirmed "
++                        f"from its distinguishing features; {n} PASS characteristic(s) withheld (REVIEW)")
++    ctx.note(f"chirality withhold: {n} PASS -> REVIEW ({reason})")
+ 
+ 
+ def _mirror_voxels(vox: VoxelCloud) -> VoxelCloud:

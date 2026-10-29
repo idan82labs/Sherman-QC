@@ -1,0 +1,33 @@
+{
+  "labeler": "claude-vision-ai-v1",
+  "no_bends_present": false,
+  "notes": "r3 (owner-delegated hard multi-angle review, 2026-10-17). Physical scan (point cloud with deviation colour map, seams, missing patches, warp). 5 real formed bends: B1 = front down-flange along the +x edge; B2/B3 = tall tabs at the -y/+y front corners; B4/B5 = short tabs at the +y/-y back corners. B1-B4 pairs are unchanged from r2. They were re-verified on 12 overview views, face-on, perpendicular and zoomed sections, plus full-part x-z/y-z slices: apex on the outer arc, and 94-99% of the measured fold arc covered. B5 is fixed with margin_mm=15. Not bends: the base warp (+-0.3 mm, no crease) and the underside scan seams; the smooth ~12 deg roll of the +y tall tab 8-22 mm above B3 (R ~67 mm); the <=7 deg base tail within ~20 mm of B5; thickness edges 13 and 14; arc facets 17, 18, 19 and 21.",
+  "bends": [
+    {
+      "patches": [[1], [6]],
+      "confidence": "auto",
+      "note": "B1 front down-flange along the +x edge, ~90 deg. Outer skin: base top 1 + flange outer face 6. Measured fold arc 376 mm, corner to corner; the line is 372.9 mm (99%). Apex on the outer arc in all 20 sections."
+    },
+    {
+      "patches": [[2], [3]],
+      "confidence": "auto",
+      "note": "B2 tall tab at the -y front corner, ~90 deg. Outer skin: base bottom 2 + tab outer face 3. The fold arc runs 46 mm, from the tab edge to the corner relief at B1; the line is 44.7 mm (97%). Apex on the outer arc."
+    },
+    {
+      "patches": [[2], [15]],
+      "confidence": "auto",
+      "note": "B3 tall tab at the +y front corner. Main fold ~98 deg to the lowest tab band 15. Outer skin: base bottom 2 + band 15. Above it the tab rolls ~12 deg more, smoothly, over 8-22 mm from the fold (R ~67 mm, no crease; tab plane 4/5 is at ~110 deg). That roll is part of this bend, not a separate bend. Fold arc 45 mm; line 42.4 mm (94%). Apex on the outer arc."
+    },
+    {
+      "patches": [[1], [9]],
+      "confidence": "auto",
+      "note": "B4 short tab at the +y back corner, 90 deg. Inner skin: base top 1 + tab inner face 9, because base bottom 2 was not scanned at this fold. The label apex still sits on the OUTER arc (offset -0.5 mm from the inner sharp). Fold arc 48 mm; line 47.1 mm (98%)."
+    },
+    {
+      "patches": [[2], [11]],
+      "margin_mm": 15.0,
+      "confidence": "auto",
+      "note": "B5 short tab at the -y back corner, leaning out: ~66 deg bend (incl ~114). Outer skin: base bottom 2 + tab outer face 11. The base tilts up to ~7 deg within ~20 mm of the fold (a gentle tail, no crease). That tilt starved the default 6.8 mm support zone under the full-res 0.6 mm plane gate (r2 gave a 10.5 mm stub). margin_mm 15 gives an auto extent of 47.4 mm of the 49 mm fold arc (97%), fold support 1.0, no extent override. Apex on the outer arc vertex in the zoomed sections."
+    }
+  ]
+}

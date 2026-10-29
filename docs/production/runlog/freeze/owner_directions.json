@@ -1,0 +1,17 @@
+{
+ "date": "2026-10-17",
+ "directions": [
+  "Aim for line-F1 >= 0.80 with NO part-specific optimization: generality over the parts in the mix.",
+  "No SKU/family/part-id/filename-dependent code, thresholds or special cases anywhere in the engine (E3 never receives filename tokens or metadata counts, plan amendment 4).",
+  "Primary production gate: per-bend correctness given CAD (formed/not, flange length, angle, PASS/FAIL with ~zero false PASS).",
+  "Blind/broad line-F1 is reported family-macro.",
+  "Labelling conventions: a joggle is 2 bends; formed 15 deg tabs count; a fold interrupted by windows or reliefs folding the same two plates is one line; the line locus is the visible-surface apex (amendment 6a).",
+  "Gold11 human labels are under audit: until the owner signs off, report G2(a) against BOTH the human Gold11 and ai_bend_lines_gold11_relabel_v1 if present; never replace silently."
+ ],
+ "freeze_consequences": {
+  "broad_list": "BROAD = every CONSUMED scan of case_list_broad_v3.json with CAD that compiles; family-macro line-F1 (mean over families of the family-micro F1) and per-bend checks, report-only, owner target 0.80",
+  "g2a_dual_report": "G2(a) gate of record = human Gold11; the relabel is scored next to it (report-only)",
+  "plan_gates": "plan §5 and §10 thresholds unchanged (thresholds_plan_verbatim.md)"
+ },
+ "relayed_by": "the wave-4 workflow task text (E4b); consistent with the session's recorded owner agreement"
+}

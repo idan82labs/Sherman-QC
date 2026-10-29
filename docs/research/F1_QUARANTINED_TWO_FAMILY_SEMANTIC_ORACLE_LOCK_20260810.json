@@ -1,0 +1,124 @@
+{
+  "schema_version": 1,
+  "lock_id": "shermanqc-f1-quarantined-semantic-oracle-v1",
+  "authority": {
+    "user_authorized": true,
+    "authorization_text": "procced",
+    "professor_stop_sha256": "efbd7a10369066a436fd82d48b91f82245ae0f167f5708e54b0801e107339d71",
+    "formal_stop_record_sha256": "37ba271a16f78291685f6ffef36c9f04bce42d9783ec87e21ce3d4b4e1501b08"
+  },
+  "catalog": {
+    "path": "data/bend_corpus/annotations/bend_line_gold_catalog_v1.json",
+    "sha256": "4ad243c1f8d7332749c854f32729607f156cd2e0f47454acd4b0ff61f1793b36",
+    "required_truth_tier": "authoritative_user_verified",
+    "required_promotion_eligible": true
+  },
+  "selection": {
+    "algorithm": "ascending_sha256_rank_v1",
+    "rank_input": "lock_id + NUL + catalog_sha256 + NUL + part_id",
+    "labels_used": false,
+    "bend_counts_used": false,
+    "predictions_used": false,
+    "geometry_features_used": false,
+    "excluded_part_ids": [
+      "10839000",
+      "35705010",
+      "38172000"
+    ],
+    "exclusion_reasons": {
+      "10839000": "one gold record was exposed during pre-lock schema inspection",
+      "35705010": "target-adjacent Shaked X/V family remains outside this opening",
+      "38172000": "contains the sealed C006 target family"
+    },
+    "family_A_rule": "lowest eligible rank",
+    "family_B_rule": "second-lowest eligible rank"
+  },
+  "family_A": {
+    "role": "iterative_development_and_model_selection",
+    "part_id": "47959001",
+    "case_ids": [
+      "corpus/09_47959001"
+    ],
+    "selection_rank_sha256": "2a696cb03d1af35dd5809a705cd0b9477275676585cbea224e71fd8a40b2c891",
+    "scan_sha256": "a0305a6cf78729b2ea4be5505139e43f96667850e2ff8e02e99964ea03b7bd1e",
+    "coordinate_frame": "reference_mesh_raw"
+  },
+  "family_B": {
+    "role": "immutable_leave_one_family_out_validation",
+    "part_id": "ysherman",
+    "case_ids": [
+      "corpus/13_ysherman"
+    ],
+    "selection_rank_sha256": "2a79dd7dd56522d9fe725e66000d7ae4b8b58cbd98338c01b95a4305950c9552",
+    "scan_sha256": "36e5d6998b9b3c674124ec1da58da5124f14338f3e06c4a26b76148b5003b99c",
+    "coordinate_frame": "reference_mesh_raw",
+    "truth_access": "sealed_until_frozen_submission_claim_is_consumed",
+    "execution_limit": 1
+  },
+  "matching": {
+    "axis_angle_degrees_max": 5.0,
+    "transverse_offset_mm_max": 4.0,
+    "gold_span_overlap_min": 0.6,
+    "prediction_span_overlap_min": 0.6,
+    "assignment": "one_to_one_minimum_cost"
+  },
+  "hidden_oracle_output": {
+    "allowed_candidate_classes": [
+      "TRUE_BEND_OBJECT",
+      "DUPLICATE_ALIAS",
+      "PERIMETER_OR_TERMINAL",
+      "HOLE",
+      "NONBEND_CURVED_FEATURE",
+      "UNMATCHED"
+    ],
+    "allowed_fields": [
+      "opaque_submission_id",
+      "candidate_id",
+      "ownership_class",
+      "opaque_object_id",
+      "true_positive",
+      "false_positive",
+      "false_negative",
+      "direction_error_degrees",
+      "line_distance_mm",
+      "gold_span_overlap",
+      "prediction_span_overlap",
+      "aggregate_exact_count",
+      "aggregate_precision",
+      "aggregate_recall",
+      "aggregate_f1"
+    ],
+    "forbidden_fields": [
+      "gold_line_start",
+      "gold_line_end",
+      "gold_coordinates",
+      "expected_bend_count",
+      "correspondence_table",
+      "CAD_geometry",
+      "source_filename_or_part_id_in_detector_features"
+    ]
+  },
+  "separation": {
+    "family_A_feedback_may_change_architecture": true,
+    "family_B_feedback_may_change_architecture": false,
+    "freeze_required_before_family_B": true,
+    "c006_consideration_requires_family_B_transfer_pass": true,
+    "c006_requires_separate_authorization": true
+  },
+  "inference_contract": {
+    "strict_blind_scan_only": true,
+    "deterministic_cpu": true,
+    "detector_input_point_cap": 200000,
+    "source_point_serialization": false,
+    "peak_rss_bytes_max": 17179869184,
+    "identity_or_filename_features": false,
+    "part_specific_thresholds": false,
+    "runtime_main_promotion": false
+  },
+  "c006": {
+    "sealed": true,
+    "source_opened": false,
+    "claim_created": false,
+    "claim_consumed": false
+  }
+}

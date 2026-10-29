@@ -1,0 +1,46 @@
+{
+ "gates": {
+  "G1": {
+   "pass": true,
+   "detail": "Synthetic regression tier (DEV seeds; 50 cases, 7 families, scanner model card PARTIAL): regression_verdict PASS with 0 failed accuracy gates. The overall verdict is INCOMPLETE and the run is non-qualifying by construction (TIER_REGRESSION, SEEDSET_DEV, SCANNER_MODEL_PARTIAL). Angle bias 0.0015 deg, P95 0.019 deg; position P95 0.073 mm; flange bias 0.009369 mm, P95 0.1034 mm. Against iteration 2, only the flange bias, flange P95 and flange slope moved, all in the 4th to 6th decimal, plus runtime noise (P95 11.23 s). Ledger check OK."
+  },
+  "G2": {
+   "pass": false,
+   "detail": "FAIL, final=false: no G3 truth table is frozen, so the amendment-7 gate refuses 5 of 15 G2 cases, and pc_b4719db3dd69 is compile BLOCKED. Refused cases stay in the denominators. (a) Line metric FAIL. All 9 Gold11 cases: relabel 0.574 (P 1.00, R 0.40) vs best F1 lane 0.547; human 0.467 vs 0.473. On the 4 cases E3 runs: relabel 1.000 vs 0.561; human 0.724 vs 0.717. (b) Coverage FAIL: angle 55/91, flange sides 108/178; 100% on every runnable case. (c) Known-good angle FAIL on coverage only: 14/32 vs legacy 16/32. MAE 0.422 deg; on the 8 common bends 0.503 vs legacy 1.360 (legacy is informational). (d) Known-good flange PASS: P95 0.537 mm, max 0.901 mm. (e) Runtime FAIL only because not all cases ran: P95 20.4 s, max 20.9 s, 0 crashes. (f) Repeatability NOT_EVALUABLE: 0 E3 pairs. Compile rate PASS (24/26).",
+   "line_f1_gold11_human": 0.467,
+   "line_f1_gold11_relabel": 0.574,
+   "precision": 1
+  },
+  "G3": {
+   "pass": false,
+   "detail": "NOT_EVALUABLE: the frozen visual truth table (g3_truth_material/truth_table_FROZEN.json, amendment 7) does not exist. Population 11; no E3 output exists on the truth-relevant scans."
+  },
+  "G5": {
+   "pass": false,
+   "detail": "scripts/production/g5_check.py FAIL. Manifest, tsc, lint and vendor scripts PASS. backend_tests has 10 NEW failures, all in tests/test_vendor_unfold_api_contract.py, the same 10 as iterations 0-2. Re-checked cause: apps/api/services/vendor_setup_service.py:243 calls the module helper _natural_label_key, and the test AST-extracts get_vendor_setup alone, so it hits NameError. This is another workflow's edit, not the engine."
+  }
+ },
+ "broad": {
+  "scans": 26,
+  "line_f1_micro": 0.607,
+  "line_f1_family_macro": 0.667,
+  "precision": 0.85,
+  "recall": 0.472,
+  "per_bend_correct_rate": 0.7875,
+  "false_pass": 0
+ },
+ "top_failures": [
+  "PROCESS (the biggest lever, unchanged): the amendment-7 gate still refuses 13/26 BROAD cases and 5/9 G2(a) Gold11 cases because the G3 truth table is not frozen, and they count as misses. BROAD all-26 recall is 0.472 vs 0.872 on the 13 runnable scans; G2(a) relabel is 0.574 vs 1.000 on the 4 runnable cases. Iteration 3's fixes target exactly these refused families but are validated only on CAD probes, so no physical score moved.",
+  "BROAD-gold convention conflicts: 12 FP / 10 FN on the 13 runnable scans (38172000 X/V, 37361005, 11979003), though the relabel or GOLD_SET_V1 confirms all 80 published lines. The loose false-PASS proxy of 11 comes only from these; the strict proxy is 0.",
+  "38172000 X/V angle FAILs (X B7 +5.39 deg, X B9 -1.69, V B9 -2.81, V B5 +1.85) are reproduced by plane fits, but no physical truth exists, so false FAILs are still possible (worst-20 ranks 1-4).",
+  "50757000 sc_752e flange FAIL chain (B1 +4.91 mm, B2 side B +4.83, B5 side B -2.93) and sc_777c angle FAILs (B5 -1.30, B6 -1.21 deg) are plausible real defects but unverified.",
+  "5 bends are not correct against any gold: compile-side unavailable flange nominals (50757000 B1/B4 side B on both scans, 47266000 B1 UNSUPPORTED_FEATURE). pc_b4719db3dd69 is compile BLOCKED.",
+  "G2(c) angle coverage is 14/32 vs legacy 16/32 (refused cases). G2(d) max 0.90 mm on 11979003 B1 side B, moved +0.04 mm by the iteration-3 support cut.",
+  "Open iteration-3 risks, unseen on real scans until G3 runs: the 28870000 S0 blank probe is still INVALID; a mid-stage joggle with a 1.47 mm shift reads NOT_YET_FORMED; the short-child window bound can turn a riser hinge displaced by more than half the axis spacing into a state error.",
+  "G5 FAIL: 10 non-engine backend failures in tests/test_vendor_unfold_api_contract.py."
+ ],
+ "summary": "A1 iteration-3 MEASURE ran e3-1.4.0 with config 9ec3bb56. Engine code was unchanged during the measure (freeze-style fingerprint ab513015 at start and end), and the run reproduces the change step byte for byte apart from runtime.\n\nNo physical number moved against iteration 2. The iteration-3 fixes target the 13 cases that the amendment-7 gate still refuses.\n\nLine-F1 (frozen 5 deg / 4 mm / 0.6 matcher, apex locus), with the best F1 lane on the same scans:\n- BROAD, all 26 A1 cases (refused cases count as misses): family-macro 0.667 / micro 0.607 (TP 68, FP 12, FN 76; P 0.85, R 0.47) vs the lane's 0.543 / 0.508.\n- The 13 scans E3 runs: 0.896 / 0.861 (P 0.85, R 0.87) vs the lane's 0.649 / 0.620.\n- G2(a) on all 9 Gold11 cases: relabel_v1, the gold of record, 0.574 (P 1.00) vs 0.547; human 0.467 vs 0.473.\n- G2(a) on the 4 cases E3 runs: relabel 1.000 vs 0.561; human 0.724 vs 0.717.\n- GOLD_SET_V1 (13 A1 scans with STEP): 1.000 micro / 1.000 family-macro vs 0.597 / 0.653.\n\nPer bend given CAD (80 bends): 0.788 correct against BROAD gold and 0.938 against any gold of record. Strict false PASS is 0, and there are 0 PASS decisions without a published line.\n\nGates:\n- G1 regression DEV: PASS (non-qualifying by construction).\n- G2: FAIL. Sub-gates (a), (b), (c) and (e) fail because of refused cases; (d) flange P95 0.54 mm PASSES; (f) is NOT_EVALUABLE.\n- G3: NOT_EVALUABLE, because no truth table is frozen.\n- G5: FAIL on 10 backend tests that are not the engine's.\n\nRuntime: E3 P95 20.4 s, max 20.9 s, 0 crashes; peak RSS 0.91 GiB. Every heavy step ran serially under the shared lock.\n\nThe scorecard is at /Users/idantal/ShermanQC/FullProject/docs/production/runlog/a1/iter_3/scorecard.json. Worst-20 overlays (40 PNGs plus INDEX.json) are in /Users/idantal/ShermanQC/FullProject/docs/production/runlog/a1/iter_3/overlays/worst20/. Raw outputs, logs and tools are under /Users/idantal/ShermanQC/FullProject/docs/production/runlog/a1/iter_3/measure/, and the work dir is /private/tmp/claude-501/-Users-idantal/db065cf7-f766-4885-b217-ed8d7edd7ade/scratchpad/a1_iter3m.\n\nCustody: only cases_A1.json cases were run or scored. Nothing from DEV-CHECK, SEALED, FRESH, HOLDOUT10, N001-N016 or EHO4 was read, no credentials were touched, and no repo code was edited.",
+ "config_hash": "9ec3bb560b617e6d3ea73ad453eccfe10189b1796d2c0238002fad3780ecea12",
+ "rss_peak_gib": 0.91,
+ "runtime_p95_s": 20.4
+}

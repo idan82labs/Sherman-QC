@@ -1,0 +1,538 @@
+RULING
+LOCAL_SCREW_SLIPPAGE_COHERENCE_V1 is terminal. Its graph/component loss is not reopened, repaired, or bypassed.
+Architecture token
+LINEAR_EXTRUSION_PROFILE_GRAMMAR_V1
+Single causal hypothesis
+A genuine straight sheet-metal bend is a partial linear extrusion: translation along the bend axis reproduces a perpendicular two-dimensional profile containing two concentric open circular arcs, one per skin, with a tangent straight continuation at both ends of both arcs. The bend axis is the line through the shared profile center parallel to the translation direction.
+A flat plate lacks the arcs. A single skin lacks the second offset arc. A complete cylinder lacks the open-sector and tangent-continuation grammar. A through-hole lacks the required axial span or double open profile. A terminal wall lacks circular-sector support.
+The established basis is the generalized-cylinder and extrusion representation of shape by a swept cross-section, translational-symmetry extraction of such parts from unorganized point clouds, and the generation of approximate Euclidean-symmetry candidates from local correspondences followed by explicit spatial verification. IEEE Xplore+3ScienceDirect+3arXiv+3
+The specific double-offset open-sector grammar, all constants below, and its use as a bend detector are new Sherman-specific hypotheses. No published result is being claimed for them.
+This architecture is causally distinct from the closed families. No normal orientation, curvature estimate, Gauss map, focal-center vote, screw coordinate, antipodal skin pairing, intrinsic path, cubical complex, persistence computation, local-plane fragment ownership, or transition-strip certificate enters an acceptance gate.
+FROZEN CONSTRUCTION
+1. Input and scale
+max_source_points = 200000
+coordinate_type = float64
+finite_xyz_only = true
+remove_exact_duplicate_xyz = true
+
+knn_count = 33
+
+s = median distance from every retained point to its nearest
+    nonidentical retained point
+
+centroid = arithmetic mean of retained XYZ
+
+R95 = percentile_95(norm(point - centroid))
+D95 = 2 * R95
+
+invalid if s <= 0
+invalid if retained_point_count < 2048
+invalid if any required calculation is nonfinite
+No normals are loaded or estimated.
+2. Translation-correspondence proposals
+For every point, query the 32 nearest nonidentical neighbours and form the rigid-invariant local distance signature
+signature_ranks = [1, 2, 4, 8, 16, 32]
+signature_quantum = 0.25 * s
+Each signature coordinate is the corresponding neighbour distance divided by signature_quantum and rounded to the nearest integer.
+The intrinsic anchor key is SHA-256 over the following signed big-endian integers:
+round(norm(point - centroid) / (0.25 * s))
+six quantized signature coordinates
+Ties are resolved by lexicographic float64 XYZ bytes.
+anchor_limit = 16384
+signature_query_neighbours = 64
+signature_candidates_retained = 24
+pairs_evaluated_per_anchor = 12
+
+pair_distance_min = 6 * s
+pair_distance_max = min(64 * s, 0.50 * D95)
+
+patch_neighbour_count = 12
+patch_match_tolerance = 1.25 * s
+patch_required_matches_each_direction = 9
+For an anchor pair i,j, let translation = point_j - point_i.
+The pair survives only when:
+
+
+Its length is inside the frozen pair-distance interval.
+
+
+At least 9 of the 12 neighbours of i, after translation by translation, have a source point within 1.25*s.
+
+
+At least 9 of the 12 neighbours of j, after translation by -translation, have a source point within 1.25*s.
+
+
+Duplicate unordered pairs are removed.
+accepted_pair_hard_cap = 196608
+Reaching the cap is invalid rather than silently truncating.
+3. Projective translation-direction modes
+Each accepted translation contributes the unoriented unit direction v.
+Seeds are ordered by:
+fewest unmatched patch points
+lowest median matched-point residual
+largest translation length
+intrinsic unordered-pair key
+direction_seed_limit = 256
+direction_mean_shift_half_angle_deg = 4.0
+direction_mean_shift_iterations = 3
+direction_merge_angle_deg = 2.0
+direction_min_pairs = 48
+direction_min_unique_endpoints = 96
+direction_candidate_limit = 24
+Each mean-shift update is the principal eigenvector of
+sum(v * transpose(v))
+over projective angular inliers. Thus v and -v are identical.
+After merging modes within 2 degrees, retain the best 24 by:
+pair support descending
+unique endpoint count descending
+median patch residual ascending
+intrinsic direction key ascending
+The 24-direction limit is a frozen proposal budget, not an expected bend count.
+4. Translation-consensus cross-sections
+For each retained direction a, construct a perpendicular basis.
+b = dominant eigenvector of the source covariance projected
+    onto the plane perpendicular to a
+
+c = normalized cross(a, b)
+If the projected covariance eigenvalues tie within relative 1e-8, use the projection of the Cartesian basis vector having the smallest value of abs(dot(axis_vector, a)).
+Coordinates relative to the source centroid are:
+u = dot(point - centroid, a)
+x = dot(point - centroid, b)
+z = dot(point - centroid, c)
+axial_bin_width = 3.0 * s
+profile_cell_size = 0.5 * s
+per_bin_profile_dilation = one Chebyshev grid cell
+eligible_axial_bin_min_points = 64
+
+consensus_cell_min_axial_bins = 6
+consensus_cell_min_center_span = 15 * s
+consensus_profile_min_cells = 96
+consensus_profile_hard_cap = 50000
+Each eligible axial bin is rasterized independently in the perpendicular plane. Its occupied cells are dilated by one cell before cross-bin accumulation.
+A profile cell survives only if it occurs in at least six eligible axial bins and the first-to-last occupied bin-center span is at least 15*s.
+Reaching the profile-cell hard cap is invalid rather than pruned.
+5. Shared-center dual-circle proposals
+Profile cells are weighted by:
+weight = min(number_of_occupied_axial_bins, 8)
+Select profile anchors by descending weight, then intrinsic grid-cell hash.
+profile_anchor_limit = 512
+profile_neighbour_limit = 48
+profile_neighbour_distance_min = 3 * s
+profile_neighbour_distance_max = 24 * s
+triplets_per_anchor = 96
+triplet_min_sine = sin(12 degrees)
+
+circle_radius_min = 4 * s
+circle_radius_max = min(128 * s, 0.40 * D95)
+
+center_vote_cell_size = 1.0 * s
+center_vote_min = 6
+center_candidate_limit = 64
+For every profile anchor:
+
+
+Obtain up to 48 neighbours in the frozen distance interval.
+
+
+Form neighbour pairs.
+
+
+Order the resulting triplets by SHA-256 of their integer grid-cell identities.
+
+
+Evaluate the first 96.
+
+
+Reject a triplet when its normalized triangle sine is below sin(12 degrees).
+
+
+Compute its exact circumcenter and radius.
+
+
+Reject radii outside the frozen radius interval.
+
+
+Vote only for the two-dimensional center cell, not for an axis or a radius.
+
+
+This center vote occurs after translation collapse and does not use surface normals or local focal points.
+For each surviving center cell:
+radial_histogram_bin = 0.5 * s
+radial_peak_limit = 8
+shell_assignment_tolerance = 1.25 * s
+shell_min_profile_cells = 24
+
+skin_gap_min = 2 * s
+skin_gap_max = 24 * s
+
+common_center_refit_iterations = 3
+radial_rms_max = 0.75 * s
+Evaluate every ordered pair of the eight strongest radial peaks satisfying the radius and skin-gap gates.
+Refinement uses three deterministic assignment/refit iterations. With shell identity k, solve the common-center algebraic system
+x*x + z*z + A*x + B*z + C_k = 0
+by weighted linear least squares. Then:
+center_x = -A / 2
+center_z = -B / 2
+radius_k = sqrt(center_x*center_x + center_z*center_z - C_k)
+A model survives only if both shells contain at least 24 profile cells and the combined radial root-mean-square error is at most 0.75*s.
+6. Open-sector gate
+For each shell, form a weighted circular angular distribution around the common center.
+angle_bin_deg = 3.0
+shortest_interval_mass_fraction = 0.90
+
+arc_span_min_deg = 25.0
+arc_span_max_deg = 170.0
+
+shell_endpoint_disagreement_max_deg = 6.0
+arc_outside_mass_fraction_max = 0.12
+arc_angular_bin_coverage_min = 0.70
+The shortest directed circular interval containing 90 percent of each shell’s weight is computed.
+The model survives only when:
+
+
+Both intervals span between 25 and 170 degrees.
+
+
+Corresponding start endpoints differ by at most 6 degrees.
+
+
+Corresponding end endpoints differ by at most 6 degrees.
+
+
+At most 12 percent of either shell’s weight lies outside the resulting common interval.
+
+
+At least 70 percent of the 3-degree bins inside the common interval are occupied for each shell.
+
+
+A complete or nearly complete cylinder therefore reaches the dual-circle stage and is rejected here rather than being rejected because no axis proposal existed.
+7. Four tangent-continuation gates
+For a common directed interval from alpha to beta, define:
+radial(phi) = [cos(phi), sin(phi)]
+tangent(phi) = [-sin(phi), cos(phi)]
+
+start_ray_direction = -tangent(alpha)
+end_ray_direction = tangent(beta)
+The construction produces one start ray and one end ray for each radius.
+ray_line_tolerance = 1.0 * s
+ray_start_distance = 2 * s
+ray_bin_length = 1.0 * s
+
+ray_required_length =
+    max(8 * s, min(20 * s, 0.50 * inner_radius))
+
+ray_bin_coverage_min = 0.70
+shell_contour_component_fraction_min = 0.80
+Each of the four rays must:
+
+
+Reach ray_required_length.
+
+
+Occupy at least 70 percent of the one-unit bins between 2*s and the required length.
+
+
+Connect through assigned profile cells to its shell’s arc.
+
+
+For each shell independently, assigned start-ray, arc, and end-ray cells are tested in the 8-neighbour profile raster. One component must contain at least 80 percent of the assigned cells and touch the start ray, the middle third of the arc, and the end ray.
+No connection is formed in three-dimensional screw-vote space.
+8. Per-axial-bin causal verification
+Every complete two-shell profile is returned to the original axial bins.
+per_bin_arc_coverage_min = 0.50
+per_bin_ray_coverage_min = 0.50
+
+passing_axial_bins_min = 6
+passing_axial_center_span_min = 15 * s
+passing_bin_fraction_min = 0.60
+An axial bin passes only if both arcs and all four tangent rays independently meet their per-bin coverage minimum.
+A model survives only when:
+passing bin count >= 6
+first-to-last passing-bin center span >= 15 * s
+passing bins between those endpoints >= 60 percent
+Thus an attractive profile appearing only on a terminal slice cannot survive by becoming dense after projection.
+9. Axis production and duplicate suppression
+The three-dimensional axis is:
+axis_direction = a
+
+axis_point =
+    centroid
+    + center_x * b
+    + center_z * c
+    + median_u_of_passing_bins * a
+The stored axial support interval is the first and last passing-bin extent.
+Duplicate models are merged when all conditions hold:
+projective_direction_difference <= 2.0 degrees
+shortest_line_distance <= 2.0 * s
+inner_radius_difference <= 2.0 * s
+outer_radius_difference <= 2.0 * s
+both arc endpoint differences <= 6.0 degrees
+The retained model is selected lexicographically by:
+passing axial-bin count descending
+minimum per-bin arc coverage descending
+minimum per-bin ray coverage descending
+radial RMS ascending
+center-vote count descending
+canonical axis representation ascending
+final_axis_hard_cap = 16
+More than 16 final axes is a source-only nonselectivity STOP, not truncation.
+SOURCE-FREE KILL SUITE
+Shared fixture generator
+fixture_s = 1.0
+default_axis = [0, 1, 0]
+
+q_r(phi) = [r*cos(phi), r*sin(phi)]
+t(phi) = [-sin(phi), cos(phi)]
+For radius r, bend angle theta, and continuation length L, the two-dimensional profile is the concatenation of:
+q_r(-theta/2) - lambda*t(-theta/2), lambda from L to 0
+q_r(phi), phi from -theta/2 to theta/2
+q_r(theta/2) + lambda*t(theta/2), lambda from 0 to L
+Every curve is sampled so consecutive arclength is at most 1.0. Every extrusion axis is sampled at spacing 1.0, including both endpoints. The tensor product of profile samples and axis samples forms the source points.
+All fixtures then receive:
+coordinate jitter range = [-0.03, 0.03]
+jitter source = SHA-256 of fixture token and exact pre-jitter lattice identity
+deletion fraction = 0.05
+delete when first unsigned 64 hash bits modulo 20 equals 0
+input normals = absent
+Tests execute in order and stop immediately at the first failure.
+SF01 — 90-degree double-skin positive
+inner_radius = 8
+outer_radius = 16
+bend_angle = 90 degrees
+continuation_length = 24
+axial_range = [-32, 32]
+Required:
+exactly one final axis
+direction error <= 0.10 degrees
+line distance <= 0.20 * s
+both radius errors <= 0.25 * s
+bend-angle error <= 2.0 degrees
+all four continuations pass
+SF02 — axial-crop positive
+Use SF01 geometry with:
+axial_range = [-14, 14]
+The same acceptance errors apply. At least six axial bins must pass.
+SF03 — larger-radius 60-degree positive
+inner_radius = 21
+outer_radius = 27
+bend_angle = 60 degrees
+continuation_length = 30
+axial_range = [-36, 36]
+Required:
+exactly one final axis
+same direction, line, radius, and angle tolerances as SF01
+This is the mandatory scale/angle wall that stopped LSSC. Failure is immediately terminal.
+SF04 — flat double skin
+z = -4 and z = 4
+x_range = [-40, 40]
+y_range = [-32, 32]
+Required white-box path:
+at least one translation-direction candidate
+at least 96 translation-consensus profile cells
+zero dual-radius open-sector models
+zero final axes
+It must be rejected by the curved-profile stage, not merely by failure to propose a direction.
+SF05 — single-skin bend
+radius = 16
+bend_angle = 90 degrees
+continuation_length = 24
+axial_range = [-32, 32]
+only one profile skin
+Required white-box path:
+at least one translation-direction candidate
+at least one valid single-shell open-sector fit
+zero valid dual-shell fits
+zero final axes
+SF06 — concentric full-cylinder decoy
+radii = [8, 16]
+angular_range = full 360 degrees
+axial_range = [-32, 32]
+no tangent continuations
+Required white-box path:
+at least one translation-direction candidate
+at least one shared-center dual-radius fit
+zero models passing the open-sector gate
+zero final axes
+This is the mandatory CFAC-separating decoy.
+SF07 — open concentric sectors without flanges
+radii = [8, 16]
+bend_angle = 90 degrees
+axial_range = [-32, 32]
+continuation_length = 0
+Required white-box path:
+at least one shared-center dual-radius open-sector fit
+zero models passing all four tangent-continuation gates
+zero final axes
+SF08 — axially short bend-shaped nuisance
+Use the complete SF01 profile but:
+axial_range = [-6, 6]
+Required white-box path:
+at least one translation-direction candidate
+zero profiles satisfying 15*s axial consensus span
+zero final axes
+This fixture isolates the repeated-extrusion requirement.
+SF09 — flat double skin with through-hole
+flat skins at z = -4 and z = 4
+x_range = [-40, 40]
+y_range = [-40, 40]
+remove skin points with x*x + y*y < 12*12
+add through-hole wall with radius 12 and z_range = [-4, 4]
+Required:
+zero final axes
+No candidate may pass both the dual-open-profile and axial-span gates.
+SF10 — flat double skin with terminal wall
+flat skins at z = -4 and z = 4
+x_range = [-40, 40]
+y_range = [-32, 32]
+terminal wall at y = 32
+wall z_range = [-4, 4]
+Required:
+at least one translation-direction candidate
+zero complete dual-arc tangent grammars
+zero final axes
+SF11 — permutation and rigid-transform metamorphics
+Permutation is generated by sorting points on SplitMix64 of the original point index with seed:
+seed = 0x4c4550477631
+Required permutation result:
+canonical result JSON byte-identical
+all stage counts identical
+all terminal tokens identical
+Apply these proper rigid transforms independently to SF01:
+T1 rotation_axis = normalize([1, 2, 3])
+T1 rotation_angle = 37 degrees
+T1 translation = [17, -11, 23]
+
+T2 rotation_axis = normalize([-2, 1, 4])
+T2 rotation_angle = 103 degrees
+T2 translation = [-31, 7, 19]
+
+T3 rotation_axis = normalize([5, -3, 2])
+T3 rotation_angle = 211 degrees
+T3 translation = [9, 29, -13]
+Required for each:
+same final-axis count
+transformed direction error <= 0.10 degrees
+transformed line distance <= 0.20 * s
+radius differences <= 0.25 * s
+same causal stage tokens
+The sole source-free success token is:
+LEPG_V1_SOURCE_FREE_PASS
+Any mismatch, invalid result, hard-cap contact, positive miss, negative leakage, or metamorphic failure produces:
+LEPG_V1_SOURCE_FREE_ARCHITECTURE_STOP
+No source-free correction, threshold adjustment, fixture replacement, or rerun is authorized after that STOP.
+ONE-SHOT C006 FUND/KILL RUN
+Only after all eleven source-free tests pass may orchestration:
+
+
+Freeze and hash the implementation, configuration, fixture package, schema, and renderer.
+
+
+Create a fresh LEPG-specific attempt identity and claim.
+
+
+Consume that claim before the first process capable of opening C006.
+
+
+Open the existing frozen C006 source exactly once.
+
+
+Execute the same code and constants without branch changes.
+
+
+No gold, CAD, expected bend count, benchmark result, prior C006 visualization, or target-specific configuration may be read.
+C006_wall_hard_max = 300 seconds
+peak_RSS_hard_max = 16 GiB
+CPU_only = true
+GPU_access = false
+
+OMP_NUM_THREADS = 1
+OPENBLAS_NUM_THREADS = 1
+MKL_NUM_THREADS = 1
+
+compact_artifact_total_hard_max = 256 MiB
+serialized_source_points = forbidden
+The compact result records only:
+input and configuration hashes
+scale s
+stage counts
+resource measurements
+translation-direction summaries
+axis point and projective direction
+axial support interval
+inner and outer radii
+arc endpoints and angle
+four continuation reaches and coverages
+per-bin coverage summaries
+terminal token
+artifact hashes
+C006 terminal rules
+invalid computation
+resource wall
+hard-cap contact
+produces:
+LEPG_V1_C006_INVALID_RESOURCE_STOP
+zero accepted translation modes
+zero translation-consensus profiles
+zero final axes
+produces:
+LEPG_V1_C006_NO_TRANSLATIONAL_PROFILE_STOP
+more than 16 final axes
+or evidence that distinct profile primitives are being combinatorially recombined
+produces:
+LEPG_V1_C006_NONSELECTIVE_PROFILE_STOP
+A valid nonzero result may survive only after the mandatory visual ruling below.
+NATIVE-RESOLUTION VISUALS
+Exactly two 4096 by 4096 PNG artifacts are mandatory. All source points are rendered; no point-cloud decimation is allowed.
+1. Axis overlay
+C006_LEPG_V1_AXIS_OVERLAY_4096.png
+It contains orthographic XY, XZ, and YZ panels plus one perspective panel.
+For every retained model it shows:
+translation-consensus source support
+the two fitted skin supports
+the axis line clipped to the passing axial support interval
+the shared profile-center point
+the first and last passing axial slices
+The axis is rendered as a labeled clipped line. No unrelated renderer direction glyph may share its color or line style.
+2. Profile and slice audit
+C006_LEPG_V1_PROFILE_AUDIT_4096.png
+It contains one tile per final model, up to the frozen limit of 16. Every tile shows:
+collapsed consensus profile
+inner and outer fitted arcs
+all four tangent rays
+radial residual annotation
+axial-bin pass strip
+first, middle, and last passing cross-sections
+Manual rejection criteria
+The entire C006 run receives LEPG_V1_C006_MANUAL_VISUAL_VETO_STOP if any retained model exhibits any of the following:
+
+
+The axis follows a through-hole, closed cylinder, perimeter edge, terminal wall, or renderer artifact.
+
+
+Either fitted arc visibly floats away from its assigned source band over more than one quarter of its angular span.
+
+
+Any tangent continuation is supplied by disconnected geometry rather than the same contour as its arc.
+
+
+Inner and outer primitives visibly belong to different physical structures.
+
+
+Different axial slices supply different required primitives, despite aggregate coverage passing.
+
+
+The line is not parallel to the repeated support extent.
+
+
+A visibly closed circular profile is represented as an open bend.
+
+
+Source occlusion or projection makes the claimed two-skin grammar impossible to verify.
+
+
+The manual reviewer may veto; the reviewer may not rescue, delete an inconvenient axis, alter a threshold, or select a preferred subset.
+A valid run with at least one final axis, no hard-cap or nonselectivity condition, and no visual veto produces:
+LEPG_V1_C006_SOURCE_ONLY_SURVIVES
+That token funds a later, separately governed evaluation decision. It does not authorize opening gold in this tranche.
+Implementation and source-free execution are authorized immediately. A complete source-free pass automatically authorizes the single frozen C006 claim and run without another paper-only approval.
+AUTHORIZE_LINEAR_EXTRUSION_PROFILE_GRAMMAR_V1_SOURCE_FREE_THEN_C006_FROZEN_ONE_SHOT

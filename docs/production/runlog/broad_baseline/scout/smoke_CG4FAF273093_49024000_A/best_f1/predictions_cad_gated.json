@@ -1,0 +1,122 @@
+{
+  "schema": "sherman.broad_baseline.eval_lines.v1",
+  "lane": "cad_gated",
+  "status": "OK",
+  "frame": "scan_raw",
+  "frame_definition": "coordinates of the scan file exactly as stored (source_ply_raw == scan_raw)",
+  "units": "scan file units (mm for every Sherman scan inspected so far; not re-estimated)",
+  "scan": {
+    "path": "/Users/idantal/ShermanQC/source-assets/02_CAD_QC_3D/49024000_A.ply",
+    "sha256": "70b39f530f00a72dd99acf00b4a065f45bfe4f50185e3579c3ba26143f7d2ade"
+  },
+  "source": {
+    "kind": "evaluate_bend_case_blind_cad_ply",
+    "path": "/private/tmp/claude-501/-Users-idantal/db065cf7-f766-4885-b217-ed8d7edd7ade/scratchpad/smoke_work/best_f1/cad/cad_case.json",
+    "sha256": "e152e6d3dbc09cdf5b6860d3b4b95c419b6cbf536efb5a923b69a38f25f2742d"
+  },
+  "conversion": {
+    "rule": "apply_f1_cad_guided_scan_frame_gate + score_f1_cad_guided_gold13_e2e._cad_predictions",
+    "gate_constants": {
+      "support_sample_count": 201,
+      "support_distance_mm": 3.0,
+      "minimum_supported_fraction": 0.1,
+      "minimum_supported_span_mm": 8.0,
+      "scan_point_cap": 200000
+    },
+    "frame_in": "MIXED: GLOBAL_DETECTION rows are raw-scan, local-refinement rows are CAD-aligned; the raw-scan support gate is the historical frame filter",
+    "transform": "none (historical)",
+    "gate_audit": [
+      {
+        "bend_id": "CAD_B1",
+        "accepted": true,
+        "support_fraction": 0.22885572139303484,
+        "supported_span_mm": 29.175052604102373,
+        "median_distance_mm": 26.285772230408586,
+        "source_span_mm": 129.66690046267723
+      },
+      {
+        "bend_id": "CAD_B3",
+        "accepted": true,
+        "support_fraction": 0.24875621890547264,
+        "supported_span_mm": 30.632713469578622,
+        "median_distance_mm": 4.956683613376251,
+        "source_span_mm": 125.0314835493005
+      },
+      {
+        "bend_id": "CAD_B4",
+        "accepted": true,
+        "support_fraction": 0.42786069651741293,
+        "supported_span_mm": 29.3692689994101,
+        "median_distance_mm": 4.190004333995784,
+        "source_span_mm": 127.6924739104786
+      }
+    ],
+    "inference_mode": "blind_cad_ply"
+  },
+  "line_count": 3,
+  "owned_bend_regions": [
+    {
+      "bend_id": "CAD_B1",
+      "line_start": [
+        -230.07334648837042,
+        -146.77431119599692,
+        273.5019237334802
+      ],
+      "line_end": [
+        -210.36372413747947,
+        -128.53886008995647,
+        284.91169166261045
+      ],
+      "origin": "cad_guided_blind_runtime_corpus_path",
+      "cad_target_id": "CAD_B1",
+      "assignment_source": "GLOBAL_DETECTION",
+      "measurement_method": "detected_bend_match",
+      "observability_state": "FORMED",
+      "detected_line_geometry_source": "SCAN_FIT",
+      "status": "FAIL"
+    },
+    {
+      "bend_id": "CAD_B3",
+      "line_start": [
+        -225.31575881270825,
+        -118.97966290329559,
+        254.10014767737428
+      ],
+      "line_end": [
+        -204.38052604077015,
+        -101.37806168538923,
+        267.89372581576424
+      ],
+      "origin": "cad_guided_blind_runtime_corpus_path",
+      "cad_target_id": "CAD_B3",
+      "assignment_source": "GLOBAL_DETECTION",
+      "measurement_method": "detected_bend_match",
+      "observability_state": "FORMED",
+      "detected_line_geometry_source": "SCAN_FIT",
+      "status": "FAIL"
+    },
+    {
+      "bend_id": "CAD_B4",
+      "line_start": [
+        -211.39662284931543,
+        -117.62314292871523,
+        273.0701370310557
+      ],
+      "line_end": [
+        -230.0510636424828,
+        -139.32989667066752,
+        266.4835869295106
+      ],
+      "origin": "cad_guided_blind_runtime_corpus_path",
+      "cad_target_id": "CAD_B4",
+      "assignment_source": "GLOBAL_DETECTION",
+      "measurement_method": "detected_bend_match",
+      "observability_state": "FORMED",
+      "detected_line_geometry_source": "SCAN_FIT",
+      "status": "FAIL"
+    }
+  ],
+  "dropped": [],
+  "failure": null,
+  "created_at": "2026-10-17T08:42:50Z"
+}

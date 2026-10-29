@@ -18,38 +18,20 @@ def normalize_observability_state(
     physical_completion_state: Optional[str] = None,
     status: Optional[str] = None,
 ) -> str:
-    state = str(observability_state or "").strip().upper()
-    physical = str(physical_completion_state or "").strip().upper()
-    status_norm = str(status or "").strip().upper()
+    """Normalize observation evidence, never a tolerance verdict or a state prior.
 
+    The keyword arguments remain for call-site compatibility. In particular,
+    PASS/WARNING/FAIL describes a measurement comparison, not whether both sides
+    of a bend were observed. Explicit unknown/partial evidence is not completed
+    by a physical-completion claim from another stage.
+    """
+    state = str(observability_state or "").strip().upper()
     if state in TERNARY_OBSERVABILITY_STATES:
-        if state == "UNKNOWN":
-            if physical in {"FORMED"}:
-                return "FORMED"
-            if physical in {"UNFORMED", "NOT_FORMED"}:
-                return "UNFORMED"
-            if status_norm in {"PASS", "FAIL", "WARNING"}:
-                return "FORMED"
         return state
     if state == "OBSERVED_FORMED":
         return "FORMED"
     if state == "OBSERVED_NOT_FORMED":
         return "UNFORMED"
-    if state in {"PARTIALLY_OBSERVED", "UNOBSERVED", "", "NONE"}:
-        if physical in {"FORMED"}:
-            return "FORMED"
-        if physical in {"UNFORMED", "NOT_FORMED"}:
-            return "UNFORMED"
-        if status_norm in {"PASS", "FAIL", "WARNING"}:
-            return "FORMED"
-        return "UNKNOWN"
-
-    if physical in {"FORMED"}:
-        return "FORMED"
-    if physical in {"UNFORMED", "NOT_FORMED"}:
-        return "UNFORMED"
-    if status_norm in {"PASS", "FAIL", "WARNING"}:
-        return "FORMED"
     return "UNKNOWN"
 
 

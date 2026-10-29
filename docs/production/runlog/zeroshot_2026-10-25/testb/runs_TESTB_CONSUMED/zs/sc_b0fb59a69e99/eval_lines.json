@@ -1,0 +1,129 @@
+{
+ "schema": "sherman.broad_baseline.eval_lines.v1",
+ "lane": "zs_lane_v1:zs",
+ "status": "OK",
+ "frame": "scan_raw",
+ "frame_definition": "coordinates of the scan file exactly as stored (source_ply_raw == scan_raw)",
+ "units": "scan file units (mm for every Sherman scan inspected so far; not re-estimated)",
+ "scan": {
+  "path": "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260901_e7acf485/48910000_A.ply",
+  "sha256": "b0fb59a69e9923f83dc62b09b3420ed015139ea770a95b378e87dd04ac9b00c1"
+ },
+ "source": {
+  "kind": "zs_lane_v1:zs",
+  "path": null,
+  "sha256": null
+ },
+ "conversion": {
+  "rule": "zs_lane_v1 variant zs",
+  "variant": "zs",
+  "threshold": 0.5,
+  "model": "docs/production/runlog/zeroshot_2026-10-25/integration/models/zs_lane_v1_zs_gbm.pkl",
+  "model_sha256": "ccc28773687b7a32c1c72e127448445794e75cee5e26f896395cc14b9eb1b052",
+  "code_fingerprint": "af87df2f96426a9e69a46ed942ced4f19f0eb770e71e50aada43ddd27ec1441c",
+  "pins_ok": true,
+  "pin_mismatch": [],
+  "errors": {},
+  "stages": {
+   "z3": {
+    "wall": 0.952,
+    "t_mm": 2.9651010036468506,
+    "n_candidates": 7
+   },
+   "z2": {
+    "wall": 1.422,
+    "t_mm": 2.966,
+    "n_lines": 4
+   },
+   "pool": {
+    "wall": 0.002,
+    "n": 8
+   },
+   "snap": {
+    "wall": 0.013,
+    "n": 3,
+    "moved": 3
+   }
+  },
+  "final_testb": true,
+  "guard_basis": "GOLD_LEDGER_FROZEN"
+ },
+ "line_count": 3,
+ "owned_bend_regions": [
+  {
+   "bend_id": "ZS001",
+   "line_start": [
+    -102.80585914872177,
+    -58.31459098626514,
+    183.15586488311232
+   ],
+   "line_end": [
+    -105.45667724799146,
+    -56.43340201950138,
+    177.18306893180855
+   ],
+   "score": 0.7918756372403949,
+   "incl": 90.4659396264818,
+   "src": [
+    "z2",
+    "z3"
+   ],
+   "d1_snap": {
+    "moved": true,
+    "locus": "outer_apex",
+    "shift_mm": 0.022
+   }
+  },
+  {
+   "bend_id": "ZS002",
+   "line_start": [
+    -97.78561565317646,
+    -24.99646820148519,
+    215.4438878591452
+   ],
+   "line_end": [
+    -105.97258278859623,
+    -19.177124087046874,
+    197.00183322633393
+   ],
+   "score": 0.9988305107645618,
+   "incl": 89.83192277206956,
+   "src": [
+    "z2",
+    "z3"
+   ],
+   "d1_snap": {
+    "moved": true,
+    "locus": "outer_apex",
+    "shift_mm": 0.0555
+   }
+  },
+  {
+   "bend_id": "ZS003",
+   "line_start": [
+    -156.14069125582438,
+    -37.507622484565346,
+    237.40322251635135
+   ],
+   "line_end": [
+    -164.0972541051323,
+    -31.87216586436058,
+    219.37021601185225
+   ],
+   "score": 0.993595097491668,
+   "incl": 89.93876491873411,
+   "src": [
+    "z2",
+    "z3"
+   ],
+   "d1_snap": {
+    "moved": true,
+    "locus": "outer_apex",
+    "shift_mm": 0.2784
+   }
+  }
+ ],
+ "dropped": [],
+ "failure": null,
+ "created_at": "2026-10-25T05:01:16Z"
+}

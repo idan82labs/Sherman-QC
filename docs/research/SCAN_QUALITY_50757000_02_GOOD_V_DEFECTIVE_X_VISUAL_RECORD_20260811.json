@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-08-11",
+  "part_id": "50757000_02",
+  "scope": "scan_quality_good_vs_defective_pair",
+  "separation_from_f1_claims": "This record is scan-quality evidence only. The pair is not a genuinely unseen F1 transfer family and is excluded from F1 generalization claims.",
+  "labels": {
+    "baseline": "V_good",
+    "comparison": "X_defective"
+  },
+  "registration": {
+    "accepted": true,
+    "method": "24 proper PCA-frame orientations plus four dominant-plane orientations, followed by deterministic trimmed rigid ICP",
+    "proper_rotation_only": true,
+    "symmetric_p80_mm": 3.0307203955277275,
+    "visual_pose_checks": [
+      "four large circular holes overlap in plan view",
+      "top-center notch overlaps in plan view",
+      "bottom central cutout and paired lugs remain on the same side",
+      "upright flange and long one-sided return point in the same direction in the short-side profile",
+      "long-side asymmetric raised features overlap rather than swap sides"
+    ]
+  },
+  "defective_to_good_metrics_mm": {
+    "median": 0.7282955848341629,
+    "p90": 4.449601108431481,
+    "p95": 6.1164400256899025,
+    "p99": 7.491188033147905,
+    "maximum": 8.40808842610369,
+    "fraction_above_2_mm": 0.28460565478450994,
+    "fraction_above_5_mm": 0.08117195150727077
+  },
+  "native_resolution_visual_critique": {
+    "outcome": "DEVIATION_VISUALLY_DETECTED",
+    "findings": [
+      "The rigid overlay shows a coherent several-millimetre separation of the formed upright wall in the short-side profile; this is localized shape displacement, not uniform global pose error.",
+      "The deviation heatmap concentrates the largest residuals along the upright wall and its transition geometry while broad regions remain much closer to the good baseline.",
+      "The deviation histogram has a dense sub-millimetre mode plus a distinct long tail through roughly 8 mm, consistent with a localized formed-feature deviation rather than whole-part misregistration.",
+      "The plan and long-side views preserve asymmetric landmarks and major openings, supporting the accepted pose rather than a mirrored or reversed alignment."
+    ],
+    "limitation": "No drawing/profile or bend-angle tolerance was supplied. This establishes a detectable geometric difference relative to the labeled good scan, but does not independently set a production acceptance threshold."
+  },
+  "artifacts": {
+    "alignment_review": {
+      "path": "output/research/f1-email-intake-20260804/50757000_02/alignment_visual_review.json",
+      "sha256": "da14fd8a0233c8cb5e9a2f3f9c4dafd5d085f758d26aef96e4d187358655a9ea"
+    },
+    "comparison_summary": {
+      "path": "output/research/f1-email-intake-20260804/50757000_02/surface_comparison_v2/comparison_summary.json",
+      "sha256": "fb733c2303206becb21fbaa6f13295f5b54b5833cd023473ec796b9e0002c68f"
+    },
+    "heatmap": {
+      "path": "output/research/f1-email-intake-20260804/50757000_02/surface_comparison_v2/defective_X_deviation_heatmap.png",
+      "sha256": "284f530f919dc8eca947adf087a891658e16c2a2e3dc6700f0e655a3683aaa8c"
+    },
+    "overlay": {
+      "path": "output/research/f1-email-intake-20260804/50757000_02/surface_comparison_v2/overlay_good_V_vs_defective_X.png",
+      "sha256": "57709e502d38de36953aadb9418e40fd48130c1f90abb796aff96979a308b25e"
+    },
+    "histogram": {
+      "path": "output/research/f1-email-intake-20260804/50757000_02/surface_comparison_v2/deviation_histogram.png",
+      "sha256": "e91cfca4ba15f4f7126c4fbc665ed77556b0bc43691a98113d60a0bd4c768397"
+    },
+    "pdf_report": {
+      "path": "output/pdf/ShermanQC_50757000_02_Good_vs_Defective_F1_Report_20260804.pdf",
+      "sha256": "edf6c01b4e75059dc5ad01a30a37f5cacc8189794c1a353664ec1f4f929c4c0f"
+    }
+  }
+}

@@ -1,0 +1,109 @@
+{
+  "schema": "sherman.broad_baseline.typed_union_replay.v1",
+  "created_at": "2026-10-17T10:06:21Z",
+  "purpose": "Is the retained C001 A0 (reused from a smoke run) the typed union of the earlier PROBE pool (6 mesh-adjacency candidates over 863115 vertices)?",
+  "pool": "/Users/idantal/ShermanQC/FullProject/output/research/f1-gold27-20260803/candidate_pool_bounded_v2_probe/C001.json",
+  "pool_sha256": "51d01070e7e6db4d90a2e98079cc633c144da0baf5b6d0cefff48a39c70ba948",
+  "step": {
+    "name": "replay_typed_union",
+    "command": [
+      "/Users/idantal/ShermanQC/FullProject/.venv/bin/python",
+      "-B",
+      "/Users/idantal/ShermanQC/FullProject/scripts/run_f1_structured_union_e2e.py",
+      "--candidate-pool",
+      "/Users/idantal/ShermanQC/FullProject/output/research/f1-gold27-20260803/candidate_pool_bounded_v2_probe/C001.json",
+      "--output-dir",
+      "/private/tmp/claude-501/-Users-idantal/db065cf7-f766-4885-b217-ed8d7edd7ade/scratchpad/replay_C001_probe_pool/a0_union",
+      "--disable-birth",
+      "--solver-python",
+      "/Users/idantal/ShermanQC/FullProject/.venv-f1-structured/bin/python"
+    ],
+    "returncode": 0,
+    "timed_out": false,
+    "timeout_s": 600.0,
+    "wall_s": 230.421,
+    "time_real_s": 230.41,
+    "time_user_s": 229.22,
+    "time_sys_s": 0.56,
+    "time_max_rss_bytes": 1347239936,
+    "sampled_peak_group_rss_bytes": 1461223424,
+    "stdout_log": "/private/tmp/claude-501/-Users-idantal/db065cf7-f766-4885-b217-ed8d7edd7ade/scratchpad/replay_C001_probe_pool/logs/replay_typed_union.stdout.log",
+    "stderr_log": "/private/tmp/claude-501/-Users-idantal/db065cf7-f766-4885-b217-ed8d7edd7ade/scratchpad/replay_C001_probe_pool/logs/replay_typed_union.stderr.log",
+    "python_rss_gib_at_start": 0.17,
+    "rss_waits": 0,
+    "rss_wait_s": 0.0,
+    "rss_limit_gib": 9.0,
+    "status": "OK"
+  },
+  "lock": "/private/tmp/claude-501/sherman_broad_baseline_engine.lock",
+  "lock_wait_s": 0.0,
+  "comparisons": {
+    "historical_retained_C001": {
+      "dir": "/Users/idantal/ShermanQC/FullProject/output/research/f1-gold27-20260803/structured_union_exact_v1/cases/C001",
+      "prediction_sha256": "3befcc1d963ce9ab70a915e174c3be5503c5a81a46fa16c9f8883c23db9b7914",
+      "prediction_byte_identical": true,
+      "graph_sha256": "c91c2c50134037af87880edd06c88c3be48a7e0697a07450c3825b2bd22d8533",
+      "graph_identical": true,
+      "typed_assignment_count": 778,
+      "counted_bend_component_count": 5,
+      "lines": {
+        "fresh_count": 5,
+        "historical_count": 5,
+        "common_ids": 5,
+        "only_fresh": [],
+        "only_historical": [],
+        "max_endpoint_abs_diff_mm": 0.0,
+        "identical": true
+      }
+    },
+    "fresh_run_C001": {
+      "dir": "/private/tmp/claude-501/-Users-idantal/db065cf7-f766-4885-b217-ed8d7edd7ade/scratchpad/gold11_repro_work/sc_71cf0b216f43/best_f1/a0_union",
+      "prediction_sha256": "896755321867501762a4de25d5a491d54d767ef1d1ceaa7afe7583393481e330",
+      "prediction_byte_identical": false,
+      "graph_sha256": "cd6995d253ee53c4128f7a5dbf1140769415b418aa10d7b338cafc7c80e5945e",
+      "graph_identical": false,
+      "typed_assignment_count": 772,
+      "counted_bend_component_count": 4,
+      "lines": {
+        "fresh_count": 5,
+        "historical_count": 4,
+        "common_ids": 2,
+        "only_fresh": [
+          "F1C_be73f11b26b42cc6",
+          "F1C_c3b63d5e33f7d44b",
+          "F1C_f050ac71f9217c2b"
+        ],
+        "only_historical": [
+          "F1C_c086b3f21a90181e",
+          "F1C_e0ca11a30b691a7f"
+        ],
+        "max_endpoint_abs_diff_mm": 0.0,
+        "identical": false,
+        "unpaired_nearest": [
+          {
+            "fresh": "F1C_be73f11b26b42cc6",
+            "nearest_historical": "F1C_c086b3f21a90181e",
+            "max_endpoint_abs_diff_mm": 14.810238
+          },
+          {
+            "fresh": "F1C_c3b63d5e33f7d44b",
+            "nearest_historical": "F1C_e0ca11a30b691a7f",
+            "max_endpoint_abs_diff_mm": 238.504462
+          },
+          {
+            "fresh": "F1C_f050ac71f9217c2b",
+            "nearest_historical": "F1C_e0ca11a30b691a7f",
+            "max_endpoint_abs_diff_mm": 6.51069
+          }
+        ]
+      }
+    }
+  },
+  "replay": {
+    "prediction_sha256": "3befcc1d963ce9ab70a915e174c3be5503c5a81a46fa16c9f8883c23db9b7914",
+    "graph_sha256": "c91c2c50134037af87880edd06c88c3be48a7e0697a07450c3825b2bd22d8533",
+    "typed_assignment_count": 778,
+    "counted_bend_component_count": 5,
+    "solver_status": "OPTIMAL"
+  }
+}

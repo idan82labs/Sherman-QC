@@ -1,0 +1,139 @@
+{
+ "schema": "sherman.final_eval.gold_adjudication.v1",
+ "batch": "FE1",
+ "gid": "gb_bbc3a8",
+ "scan_id": "sc_44aa540b43d0",
+ "role": "SCORED",
+ "subset": "HOLDOUT10",
+ "part_id": "46957010",
+ "original_path": "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/incoming/2026-08-30_shaked_daily_scans/source_download/46957010_A.ply",
+ "scan_sha256": "44aa540b43d027f9c6c45108e909fdda7c761dfd2cf3f6a953a86e08cdd4cabf",
+ "adjudicator": "FE1/adjudicator (claude-vision-ai-v1)",
+ "adjudicated_at": "2026-10-28T21:21:57+00:00",
+ "protocol": "PREREG.md section 4 (sha c50f58e0...); frozen matcher research/broad_baseline/score.py score_case (5 deg / 4 mm / 60 % both spans, one-to-one); accept threshold 1.5 mm / 2 deg; gold rule GOLD_SET_V2 (MARKER_INSTRUCTIONS.md)",
+ "inputs_seen": [
+  "marker_A and marker_B lines/pairs/notes/renders/sweeps",
+  "shared prep renders",
+  "adjudicator raw-scan sections and station checks (adjudication/evidence/)",
+  "private key (gid -> original)"
+ ],
+ "not_seen": "no engine, lane, pool, E3, CAD or baseline output",
+ "marker_A_lines_sha256": "115024cc0559705c4f2ff16cf59e29d8a49a429b15779e4e0f15a8a18bf4054b",
+ "marker_B_lines_sha256": "9d672465baeb60abfa6b0cb24b9ef98fafad2a0a1572e2c6b219cfcfb139b0b6",
+ "final_source": "A",
+ "final_lines_sha256": "3a1de837beb1365cf75d74e6ed7db1951c2b2dc554a3394fbe08017c1b34bd54",
+ "final_line_count": 4,
+ "no_bends_present": false,
+ "label_complete": true,
+ "part_class": "bent",
+ "zero_bend": false,
+ "partial_scan": false,
+ "partial_note": "complete scan (both markers; all views)",
+ "excluded": false,
+ "ab_match": {
+  "nA": 4,
+  "nB": 4,
+  "tp": 4,
+  "fp_B_only": 0,
+  "fn_A_only": 0,
+  "f1": 1.0,
+  "disposition": "SCORED_COMPLETE_LABEL",
+  "accepted_within_1p5mm_2deg": 4,
+  "matched_not_accepted": [],
+  "A_only": [],
+  "B_only": [],
+  "matches": [
+   [
+    "B1",
+    "B1",
+    0.002,
+    0.0,
+    0.976,
+    1.0
+   ],
+   [
+    "B2",
+    "B2",
+    0.0,
+    0.0,
+    0.991,
+    1.0
+   ],
+   [
+    "B3",
+    "B3",
+    0.0,
+    0.0,
+    0.995,
+    0.998
+   ],
+   [
+    "B4",
+    "B4",
+    0.0,
+    0.0,
+    0.997,
+    1.0
+   ]
+  ]
+ },
+ "lines": [
+  {
+   "final_id": "B1",
+   "bend_angle_deg": 89.86,
+   "length_mm": 574.9,
+   "confidence": "uncertain",
+   "marker_A_id": "B1",
+   "marker_B_id": "B1",
+   "verdict": "AGREED",
+   "from": "A",
+   "ab_offset_mm": 0.002,
+   "ab_angle_deg": 0.0
+  },
+  {
+   "final_id": "B2",
+   "bend_angle_deg": 89.94,
+   "length_mm": 574.9,
+   "confidence": "certain",
+   "marker_A_id": "B2",
+   "marker_B_id": "B2",
+   "verdict": "AGREED",
+   "from": "A",
+   "ab_offset_mm": 0.0,
+   "ab_angle_deg": 0.0
+  },
+  {
+   "final_id": "B3",
+   "bend_angle_deg": 90.35,
+   "length_mm": 354.0,
+   "confidence": "certain",
+   "marker_A_id": "B3",
+   "marker_B_id": "B3",
+   "verdict": "AGREED",
+   "from": "A",
+   "ab_offset_mm": 0.0,
+   "ab_angle_deg": 0.0
+  },
+  {
+   "final_id": "B4",
+   "bend_angle_deg": 90.45,
+   "length_mm": 354.0,
+   "confidence": "certain",
+   "marker_A_id": "B4",
+   "marker_B_id": "B4",
+   "verdict": "AGREED",
+   "from": "A",
+   "ab_offset_mm": 0.0,
+   "ab_angle_deg": 0.0
+  }
+ ],
+ "rejected_marker_lines": [],
+ "doubts_adjudicated": [
+  {
+   "doubt": "~30 louvres in the top plate (both markers rejected)",
+   "verdict": "NOT_A_BEND",
+   "rule": "T3 gb_c61b1b frozen gold (lanced louvres excluded as emboss-type features); GOLD_SET_V2 'embosses are not bends'",
+   "reason": "Lanced and formed ~24-25 deg hoods, 35 x 12 mm, attached at both ends: stamped features of the emboss kind, exactly the T3 gb_c61b1b case (frozen gold 2 lines, louvres excluded). Confirmed."
+  }
+ ]
+}

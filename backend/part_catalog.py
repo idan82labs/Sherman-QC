@@ -13,6 +13,8 @@ the live scan feature with automatic part recognition.
 
 import os
 import json
+import hashlib
+import math
 import uuid
 import sqlite3
 from datetime import datetime
@@ -42,6 +44,12 @@ class Part:
     cad_file_path: Optional[str] = None
     cad_file_hash: Optional[str] = None  # For change detection
     cad_uploaded_at: Optional[str] = None
+    preview_mesh_path: Optional[str] = None
+
+    # Technical drawing attachment (used during vendor setup and review)
+    drawing_file_path: Optional[str] = None
+    drawing_file_hash: Optional[str] = None
+    drawing_uploaded_at: Optional[str] = None
 
     # Specifications
     material: Optional[str] = None
@@ -99,6 +107,19 @@ class PartBendSpec:
 
     def to_dict(self) -> Dict:
         return asdict(self)
+
+
+@dataclass(frozen=True)
+class CadUploadReservation:
+    """Published-state snapshot for one pending CAD preprocessing attempt."""
+    token: str
+    cad_file_path: Optional[str]
+    cad_file_hash: Optional[str]
+    cad_uploaded_at: Optional[str]
+    preview_mesh_path: Optional[str]
+    candidate_generation: str
+    revision: Optional[str]
+    tolerance_angle: float
 
 
 @dataclass
@@ -190,6 +211,12 @@ class PartCatalogManager:
                     cad_file_path TEXT,
                     cad_file_hash TEXT,
                     cad_uploaded_at TEXT,
+                    preview_mesh_path TEXT,
+                    pending_cad_token TEXT,
+
+                    drawing_file_path TEXT,
+                    drawing_file_hash TEXT,
+                    drawing_uploaded_at TEXT,
 
                     material TEXT,
                     default_tolerance_angle REAL DEFAULT 1.0,
@@ -206,6 +233,21 @@ class PartCatalogManager:
                     notes TEXT
                 )
             """)
+
+            # Keep existing installations compatible with the richer vendor setup
+            # without requiring a destructive database reset.
+            existing_columns = {
+                row["name"] for row in conn.execute("PRAGMA table_info(parts)").fetchall()
+            }
+            for column, definition in (
+                ("drawing_file_path", "TEXT"),
+                ("drawing_file_hash", "TEXT"),
+                ("drawing_uploaded_at", "TEXT"),
+                ("preview_mesh_path", "TEXT"),
+                ("pending_cad_token", "TEXT"),
+            ):
+                if column not in existing_columns:
+                    conn.execute(f"ALTER TABLE parts ADD COLUMN {column} {definition}")
 
             # Part embeddings table (separate for efficiency)
             conn.execute("""
@@ -237,6 +279,30 @@ class PartCatalogManager:
                     UNIQUE(part_id, bend_id)
                 )
             """)
+
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS vendor_setup_drafts (
+                    part_id TEXT PRIMARY KEY REFERENCES parts(id) ON DELETE CASCADE,
+                    schema_version INTEGER NOT NULL,
+                    cad_file_hash TEXT NOT NULL,
+                    cad_uploaded_at TEXT,
+                    part_revision TEXT,
+                    drawing_file_hash TEXT,
+                    candidate_generation TEXT,
+                    draft_revision INTEGER NOT NULL DEFAULT 1,
+                    draft_json TEXT NOT NULL,
+                    updated_at TEXT NOT NULL
+                )
+            """)
+            draft_columns = {row["name"] for row in conn.execute("PRAGMA table_info(vendor_setup_drafts)")}
+            if "draft_revision" not in draft_columns:
+                conn.execute("ALTER TABLE vendor_setup_drafts ADD COLUMN draft_revision INTEGER NOT NULL DEFAULT 1")
+            if "drawing_file_hash" not in draft_columns:
+                conn.execute("ALTER TABLE vendor_setup_drafts ADD COLUMN drawing_file_hash TEXT")
+            if "candidate_generation" not in draft_columns:
+                conn.execute("ALTER TABLE vendor_setup_drafts ADD COLUMN candidate_generation TEXT")
+            if "cad_uploaded_at" not in draft_columns:
+                conn.execute("ALTER TABLE vendor_setup_drafts ADD COLUMN cad_uploaded_at TEXT")
 
             # Live scan sessions
             conn.execute("""
@@ -340,7 +406,8 @@ class PartCatalogManager:
             'part_name', 'customer', 'revision', 'material',
             'default_tolerance_angle', 'default_tolerance_linear',
             'notes', 'cad_file_path', 'cad_file_hash', 'cad_uploaded_at',
-            'bend_count'
+            'drawing_file_path', 'drawing_file_hash', 'drawing_uploaded_at',
+            'bend_count', 'preview_mesh_path'
         }
 
         updates = {k: v for k, v in kwargs.items() if k in allowed_fields}
@@ -523,6 +590,10 @@ class PartCatalogManager:
             cad_file_path=row["cad_file_path"],
             cad_file_hash=row["cad_file_hash"],
             cad_uploaded_at=row["cad_uploaded_at"],
+            preview_mesh_path=row["preview_mesh_path"],
+            drawing_file_path=row["drawing_file_path"],
+            drawing_file_hash=row["drawing_file_hash"],
+            drawing_uploaded_at=row["drawing_uploaded_at"],
             material=row["material"],
             default_tolerance_angle=row["default_tolerance_angle"] or 1.0,
             default_tolerance_linear=row["default_tolerance_linear"] or 0.5,
@@ -701,6 +772,131 @@ class PartCatalogManager:
             )
             return cursor.rowcount
 
+    def replace_bend_specs_for_part(self, part_id: str, bends: List[Any]) -> None:
+        """Validate all extracted marks, then publish the complete set in one transaction."""
+        records = self._bend_records(part_id, bends)
+        with self.get_connection() as conn:
+            conn.execute("BEGIN IMMEDIATE")
+            conn.execute("DELETE FROM part_bend_specs WHERE part_id = ?", (part_id,))
+            conn.executemany("""
+                INSERT INTO part_bend_specs
+                    (id, part_id, bend_id, target_angle, target_radius,
+                     tolerance_angle, tolerance_radius, bend_line_start, bend_line_end)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, records)
+            conn.execute("UPDATE parts SET bend_count = ?, updated_at = ? WHERE id = ?",
+                         (len(records), datetime.now().isoformat(), part_id))
+
+    @staticmethod
+    def _bend_records(part_id: str, bends: List[Any]) -> List[Tuple[Any, ...]]:
+        """Prepare rows before any candidate deletion or CAD publication."""
+        records = []
+        for bend in bends:
+            start = [float(v) for v in bend.bend_line_start]
+            end = [float(v) for v in bend.bend_line_end]
+            angle = float(bend.target_angle)
+            radius = None if bend.target_radius is None else float(bend.target_radius)
+            if (not math.isfinite(angle) or not 0 < angle <= 360
+                    or radius is not None and (not math.isfinite(radius) or radius <= 0)):
+                raise ValueError("Extracted bend has invalid nominal angle or radius")
+            if len(start) != 3 or len(end) != 3 or not all(math.isfinite(v) for v in start + end):
+                raise ValueError("Extracted bend has invalid coordinates")
+            records.append((str(uuid.uuid4()), part_id, bend.bend_id,
+                            angle, radius,
+                            bend.tolerance_angle, bend.tolerance_radius,
+                            json.dumps(start), json.dumps(end)))
+        if len({record[2] for record in records}) != len(records):
+            raise ValueError("Extracted bend identifiers are not unique")
+        return records
+
+    @staticmethod
+    def _candidate_generation_in_connection(conn: sqlite3.Connection, part_id: str) -> str:
+        rows = conn.execute("""
+            SELECT id, bend_id, target_angle, target_radius, bend_line_start, bend_line_end
+            FROM part_bend_specs WHERE part_id = ? ORDER BY id
+        """, (part_id,)).fetchall()
+        return hashlib.sha256(json.dumps([tuple(row) for row in rows]).encode()).hexdigest()
+
+    def begin_cad_upload(self, part_id: str) -> CadUploadReservation:
+        """Reserve latest-attempt precedence without changing published CAD or bends."""
+        token = uuid.uuid4().hex
+        with self.get_connection() as conn:
+            conn.execute("BEGIN IMMEDIATE")
+            part = conn.execute("""
+                SELECT cad_file_path, cad_file_hash, cad_uploaded_at, preview_mesh_path,
+                       revision, default_tolerance_angle
+                FROM parts WHERE id = ?
+            """, (part_id,)).fetchone()
+            if part is None:
+                raise ValueError("Part no longer exists")
+            generation = self._candidate_generation_in_connection(conn, part_id)
+            conn.execute("UPDATE parts SET pending_cad_token = ? WHERE id = ?", (token, part_id))
+            return CadUploadReservation(token, part["cad_file_path"], part["cad_file_hash"],
+                                        part["cad_uploaded_at"], part["preview_mesh_path"],
+                                        generation, part["revision"], part["default_tolerance_angle"] or 1.0)
+
+    def cancel_cad_upload(self, part_id: str, reservation: CadUploadReservation) -> bool:
+        """A failed attempt clears only its own reservation, never a newer one."""
+        with self.get_connection() as conn:
+            conn.execute("BEGIN IMMEDIATE")
+            changed = conn.execute("""
+                UPDATE parts SET pending_cad_token = NULL
+                WHERE id = ? AND pending_cad_token = ?
+            """, (part_id, reservation.token))
+            return changed.rowcount == 1
+
+    def publish_cad_upload(self, part_id: str, reservation: CadUploadReservation,
+                           cad_file_path: str, cad_file_hash: str,
+                           preview_mesh_path: Optional[str], bends: List[Any],
+                           *, analyzed: bool) -> bool:
+        """CAS-publish CAD, full bend set and preview together, or publish nothing.
+
+        The nonce orders overlapping uploads, while the baseline prevents direct
+        catalog edits or candidate changes from being overwritten mid-analysis.
+        """
+        if (not cad_file_path or len(cad_file_hash) != 64
+                or any(char not in "0123456789abcdef" for char in cad_file_hash)):
+            raise ValueError("Invalid CAD publication identity")
+        records = self._bend_records(part_id, bends)
+        now = datetime.now().isoformat()
+        with self.get_connection() as conn:
+            conn.execute("BEGIN IMMEDIATE")
+            part = conn.execute("""
+                SELECT pending_cad_token, cad_file_path, cad_file_hash, cad_uploaded_at,
+                       preview_mesh_path,
+                       revision, default_tolerance_angle
+                FROM parts WHERE id = ?
+            """, (part_id,)).fetchone()
+            if (part is None or part["pending_cad_token"] != reservation.token
+                    or part["cad_file_path"] != reservation.cad_file_path
+                    or part["cad_file_hash"] != reservation.cad_file_hash
+                    or part["cad_uploaded_at"] != reservation.cad_uploaded_at
+                    or part["preview_mesh_path"] != reservation.preview_mesh_path
+                    or part["revision"] != reservation.revision
+                    or (part["default_tolerance_angle"] or 1.0) != reservation.tolerance_angle
+                    or self._candidate_generation_in_connection(conn, part_id) != reservation.candidate_generation):
+                return False
+            conn.execute("DELETE FROM part_bend_specs WHERE part_id = ?", (part_id,))
+            conn.executemany("""
+                INSERT INTO part_bend_specs
+                    (id, part_id, bend_id, target_angle, target_radius,
+                     tolerance_angle, tolerance_radius, bend_line_start, bend_line_end)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, records)
+            changed = conn.execute("""
+                UPDATE parts SET cad_file_path = ?, cad_file_hash = ?, cad_uploaded_at = ?,
+                    preview_mesh_path = ?, bend_count = ?, pending_cad_token = NULL,
+                    updated_at = ? WHERE id = ? AND pending_cad_token = ?
+            """, (cad_file_path, cad_file_hash, now, preview_mesh_path,
+                  len(records) if analyzed else None, now, part_id, reservation.token))
+            if changed.rowcount != 1:
+                raise ValueError("CAD upload reservation changed during publication")
+        return True
+
+    def candidate_generation(self, part_id: str) -> str:
+        with self.get_connection() as conn:
+            return self._candidate_generation_in_connection(conn, part_id)
+
     def _row_to_bend_spec(self, row) -> PartBendSpec:
         """Convert database row to PartBendSpec"""
         return PartBendSpec(
@@ -715,6 +911,82 @@ class PartCatalogManager:
             bend_line_end=row["bend_line_end"],
             notes=row["notes"],
         )
+
+    def get_vendor_setup_draft(self, part_id: str) -> Optional[Dict[str, Any]]:
+        """Return the saved draft and whether its CAD/revision binding still holds."""
+        part = self.get_part(part_id)
+        if not part:
+            return None
+        with self.get_connection() as conn:
+            row = conn.execute(
+                "SELECT * FROM vendor_setup_drafts WHERE part_id = ?", (part_id,)
+            ).fetchone()
+        if not row:
+            return None
+        draft = json.loads(row["draft_json"])
+        draft["updated_at"] = row["updated_at"]
+        draft["draft_revision"] = row["draft_revision"]
+        draft["is_stale"] = (
+            row["cad_file_hash"] != part.cad_file_hash
+            or row["cad_uploaded_at"] != part.cad_uploaded_at
+            or row["part_revision"] != part.revision
+            or row["drawing_file_hash"] != part.drawing_file_hash
+            or row["candidate_generation"] != self.candidate_generation(part_id)
+        )
+        return draft
+
+    def save_vendor_setup_draft(self, part_id: str, draft: Dict[str, Any]) -> Dict[str, Any]:
+        """Atomically bind a versioned draft to the current CAD bytes and revision."""
+        now = datetime.now().isoformat()
+        with self.get_connection() as conn:
+            conn.execute("BEGIN IMMEDIATE")
+            part = conn.execute(
+                "SELECT cad_file_hash, cad_uploaded_at, drawing_file_hash, revision FROM parts WHERE id = ?", (part_id,)
+            ).fetchone()
+            if not part or not part["cad_file_hash"]:
+                raise ValueError("A catalog part with uploaded CAD is required")
+            if (draft.get("cad_file_hash") != part["cad_file_hash"]
+                    or draft.get("cad_uploaded_at") != part["cad_uploaded_at"]
+                    or draft.get("part_revision") != part["revision"]
+                    or draft.get("drawing_file_hash") != part["drawing_file_hash"]):
+                raise ValueError("CAD, drawing or part revision changed; reload before saving")
+            rows = conn.execute("""
+                SELECT id, bend_id, target_angle, target_radius, bend_line_start, bend_line_end
+                FROM part_bend_specs WHERE part_id = ? ORDER BY id
+            """, (part_id,)).fetchall()
+            current_generation = hashlib.sha256(
+                json.dumps([tuple(row) for row in rows]).encode()
+            ).hexdigest()
+            if draft.get("candidate_generation") != current_generation:
+                raise ValueError("CAD bend candidates changed; reload before saving")
+            existing = conn.execute(
+                "SELECT draft_revision FROM vendor_setup_drafts WHERE part_id = ?", (part_id,)
+            ).fetchone()
+            current_revision = existing["draft_revision"] if existing else 0
+            if draft.get("expected_draft_revision", 0) != current_revision:
+                raise ValueError("Setup draft changed in another session; reload before saving")
+            next_revision = current_revision + 1
+            stored = {k: v for k, v in draft.items() if k != "expected_draft_revision"}
+            conn.execute("""
+                INSERT INTO vendor_setup_drafts
+                    (part_id, schema_version, cad_file_hash, cad_uploaded_at, part_revision, drawing_file_hash, candidate_generation, draft_revision, draft_json, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(part_id) DO UPDATE SET
+                    schema_version = excluded.schema_version,
+                    cad_file_hash = excluded.cad_file_hash,
+                    cad_uploaded_at = excluded.cad_uploaded_at,
+                    part_revision = excluded.part_revision,
+                    drawing_file_hash = excluded.drawing_file_hash,
+                    candidate_generation = excluded.candidate_generation,
+                    draft_revision = excluded.draft_revision,
+                    draft_json = excluded.draft_json,
+                    updated_at = excluded.updated_at
+            """, (
+                part_id, draft["schema_version"], part["cad_file_hash"], part["cad_uploaded_at"],
+                part["revision"], part["drawing_file_hash"], current_generation, next_revision,
+                json.dumps(stored, allow_nan=False), now,
+            ))
+        return {**stored, "updated_at": now, "draft_revision": next_revision, "is_stale": False}
 
     # ==================== Live Scan Sessions ====================
 

@@ -1,0 +1,53 @@
+{
+ "schema": "sherman_g4_scan_review_v1",
+ "scan_ref": "scan_951f77f48b",
+ "packet": "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/g4/packet_legacy",
+ "packet_manifest_sha256_commitment": "ca06bd4c2845ed156377edcc29e8d8e8e71a9b8a67c5e94374cab548310f6068",
+ "protocol": {
+  "sha256": "cfe774d0d70a9843aa48deb9461f58cc83c368d8f43db6e3c45cc6ec521dd41f",
+  "version": "E4-G4-2 (2026-10-17)"
+ },
+ "instructions": "Two independent reviewers (max effort, did not write the engine) inspect EVERY image and append one G4VerdictV1 line per image to g4_verdicts.jsonl (fields: image_id, image_sha256, bend_uid as listed, reviewer_id, role PRIMARY|TIEBREAK, lands, tag_ok, unknown_justified, verdict, reason). Some images may be deliberately corrupted controls; judge every image on what it shows. No metrics are provided.",
+ "lands_rule": {
+  "min_length_fraction": 0.8,
+  "offset": "max(2 mm, Ri + t) from the crease",
+  "offset_floor_mm": 2.0,
+  "parallel": true
+ },
+ "images": [
+  {
+   "file": "img_4fe493c7a44e.png",
+   "image_id": "img_4fe493c7a44e",
+   "kind": "CLOSEUP",
+   "px_per_mm": 10.0,
+   "questions": [
+    "Context only: the engine declared this whole inspection invalid (header), so no bend is measured. Record lands = NOT_APPLICABLE, tag_ok = UNDETERMINABLE and no unknown_justified."
+   ],
+   "scan_ref": "scan_951f77f48b",
+   "sha256": "e15a436625f9587e2a649e6345ef45de4aaff1953453fe294cefc1930dbe1fb6",
+   "subject": {
+    "bend_uid": "bu_572d43540423d764b77d",
+    "display": "1 · B1 · 572d43",
+    "label": "B1",
+    "measured_line_shown": false,
+    "sequence_index": 1,
+    "state_shown": "UNKNOWN"
+   },
+   "tile": {
+    "count": 1,
+    "index": 0
+   }
+  },
+  {
+   "file": "img_418ba70994f0.png",
+   "image_id": "img_418ba70994f0",
+   "kind": "GLOBAL_NO_SCAN",
+   "questions": [
+    "Context only: overview of the registered scan with every bend's line and label. Record a verdict only if something contradicts the close-ups (lands = NOT_APPLICABLE, tag_ok = UNDETERMINABLE)."
+   ],
+   "scan_ref": "scan_951f77f48b",
+   "sha256": "61ba7664567f5622e281aae4f9b9b4e422eb09ad85112f539df625beaf8e26f8",
+   "subject": null
+  }
+ ]
+}

@@ -1,0 +1,401 @@
+RULING
+
+AUTHORIZE_CIIP_V1_FROZEN_TARGET_ATTRIBUTION_PROBE_V1
+
+CIIP-V1 should not be stopped at this point. V4 has cleared the representation-construction and reproducibility gate. It has not yet cleared a defect-relevance or generalization gate.
+
+This ruling directly authorizes the executable tranche below. It does not authorize an intervening paper-only permission cycle, a replacement scan, or a rerun of CORRECTION_V4.
+
+1. What the successful V4 result establishes
+
+Subject to the supplied result and hashes being authentic—the underlying packet was not attached for independent byte verification—V4 establishes the following for the single source with SHA-256:
+
+050cba324c35e32979b9ee626a1e73e64f8e39e4d7797c04a48eb8a9ff52bb97
+
+Established
+
+The frozen CIIP-V1 construction is executable on this source.
+All four roles completed with code 0, no role failure, and modest reported resource use.
+
+The six canonical evidence tables have deterministic semantics under the tested execution paths.
+BASE_A, BASE_B, INPUT_ORDER_PERMUTED, and INDEPENDENT_VALIDATOR produced byte-identical canonical table hashes.
+
+The construction is invariant to the one locked input-order permutation.
+This rules out dependence on that particular point enumeration order. It does not establish invariance to arbitrary changes in sampling, coordinates, voxel phase, or acquisition conditions.
+
+The independent implementation can reconstruct the same locked semantics.
+This substantially reduces the probability that the result is caused by an incidental producer-only bug. It does not rule out a shared error in the scientific specification, filtration choice, or interpretation of the tables.
+
+The V3 failure was control-plane rather than demonstrated semantic disagreement.
+V4 shows that, once the nonexistent alias requirement was removed and the real key made mandatory, independent reconstruction completed successfully.
+
+The reported source-free regression suite supports the surrounding implementation.
+182 passed, 1 deliberately deselected is useful software evidence. It is not evidence of performance on other scans, because the real-source content-selection test was outside that gate.
+
+Persistent homology formally tracks topological events across a filtration, and exact persistence computation on cubical complexes is an established method. Those results support the mathematical legitimacy of the computational object—not its usefulness for Sherman QC defects. 
+Springer
++1
+
+Not established
+
+V4 establishes none of the following:
+
+that any CIIP interval or component corresponds to a physical bend, defect, transition, or inspection-relevant object;
+
+that CIIP evidence reaches any of the frozen 4,788 F1 targets;
+
+that it advances an existing side gate;
+
+that it creates any certificate not already obtainable from the frozen baseline;
+
+that an apparent certificate is causally attributable to CIIP evidence;
+
+precision, recall, F1, calibration, ranking quality, or defect/non-defect separation;
+
+robustness to scanner noise, missing data, point-density variation, occlusion, coordinate jitter, voxel-origin changes, filtration-scale changes, or different parts;
+
+cross-source, cross-part, cross-scanner, or production generalization;
+
+production safety, latency, integration behavior, or release readiness.
+
+The persistence-stability theorem says, under its assumptions, that bounded perturbations of a filtration function produce bounded changes in the persistence diagram. It does not say that a stable feature is task-relevant, nor does it automatically cover a changed voxelization, sampling pattern, missing-point process, or scanner domain. V4 tested exact equality under one order permutation—not this broader notion of stability. 
+Springer
++1
+
+Similarly, stable representations of persistence diagrams can be constructed, but discriminatory value remains a separate empirical question. Stability is not a substitute for downstream evidence. 
+Journal of Machine Learning Research
+
+Therefore: V4 is a representation-validity pass, not an F1-generalization pass.
+
+2. Authorized next tranche
+CIIP_V1_FROZEN_TARGET_ATTRIBUTION_PROBE_V1
+Scientific question
+
+Can the already-produced CIIP-V1 H0 merge structure generate at least one deterministic, geometrically local, non-baseline witness that reaches a frozen F1 target, advances its existing side gate, and is necessary for a novel certificate?
+
+This is the smallest useful next move because it tests the mechanism against the actual frozen F1 representation without opening gold. If CIIP cannot affect even one target under a fixed mapping, the family has reached an immediate empirical wall and should be retired before labels, alternate scans, or tuning are considered.
+
+This is an ordinary execution tranche, not another preflight or approval packet.
+
+3. Permitted inputs
+
+Only the following inputs may be consumed:
+
+The exact V4 result bound to:
+
+raw-source SHA-256
+050cba324c35e32979b9ee626a1e73e64f8e39e4d7797c04a48eb8a9ff52bb97
+
+result-file SHA-256
+5ee0cc41fae561529f96ed4241742fdae2138479ae332a6c9d31e9b48707dac6
+
+execution-lock SHA-256
+3a5547ffeda25726bca42e520d569a19f4222651f5f3c7d9a9384cff33279411
+
+The six V4 canonical evidence tables, byte-for-byte.
+
+The same raw source, read-only, solely where physical-coordinate reconstruction cannot be obtained from the canonical tables and lock. CIIP itself must not be recomputed or altered.
+
+The already-frozen 4,788-target projection and its exact target IDs, target-side membership predicates, target tubes, baseline graph, side-gate evaluator, certificate evaluator, and existing geometric-equivalence predicate.
+
+Frozen source-to-target cross-binding data required to prove that the CIIP tables and target population refer to the same source geometry.
+
+No target may be removed, redefined, exchanged, or silently declared unreachable.
+
+4. Forbidden inputs and actions
+
+The tranche must not access or perform:
+
+gold labels or sealed truth;
+
+CAD, reference geometry, design intent, renders, or manual visual adjudication;
+
+expected bend counts or expected defect counts;
+
+benchmark results or prior per-target correctness outcomes;
+
+ownership labels, bend births, family-routing labels, or learned associations;
+
+a second raw scan or replacement raw input;
+
+replay tuning or a retry with changed parameters;
+
+synthetic points, synthetic defects, synthetic targets, or rescue fixtures used as scientific evidence;
+
+fitting or choosing a persistence threshold;
+
+voxel-size, origin, filtration, neighborhood, tube, side-gate, or equivalence-predicate changes;
+
+parameter grids, sweeps, top-k searches, or selecting the best result after execution;
+
+production/runtime/main-branch integration;
+
+removal or modification of frozen baseline evidence;
+
+modification or rerun of the consumed V4 attempt.
+
+The only permitted intervention is the additive CIIP witness layer and its exact ablation described below.
+
+5. Exact CIIP witness construction
+
+The mapping must use all finite canonical H0 merge events. No persistence cutoff is permitted.
+
+For every finite H0 interval or equivalent canonical merge record:
+
+Identify the component that dies under the locked elder/tie-breaking rule.
+
+Identify the surviving component into which it merges.
+
+Identify the canonical death cell responsible for the merge.
+
+Immediately before insertion of that death cell, identify the incident cells belonging to the dying and surviving components.
+
+On each side, select the representative incident cell using the existing canonical cell ordering. If more than one cell is eligible, select the lexicographically first one. No geometric score may replace this rule.
+
+Convert the two representatives and the death cell into physical coordinates using the locked cubical grid transform.
+
+Emit exactly one CIIP merge witness:
+
+witness_id
+source_sha256
+ciip_interval_or_merge_id
+birth_filtration_value
+death_filtration_value
+persistence_value
+dying_component_id
+surviving_component_id
+dying_representative_cell
+surviving_representative_cell
+death_cell
+dying_representative_position
+surviving_representative_position
+death_position
+construction_version
+row_sha256
+
+The local witness support is the union of:
+
+the dying-side representative cell;
+
+the death cell;
+
+the surviving-side representative cell.
+
+The associated candidate rung is the undirected segment between the two representative-cell barycentres, carrying the death cell as its mandatory support witness.
+
+This is a project-specific engineering interpretation of an H0 merge event. Persistent-homology literature establishes the birth/merge structure; it does not establish that this three-cell witness corresponds to a manufacturing defect.
+
+Fail-closed localization condition
+
+A merge row is non-localizable only when the canonical complex cannot reconstruct two distinct predecessor components incident to the death cell.
+
+Such rows must be counted and retained in an exception table. They must not be silently repaired, expanded into a neighborhood search, or assigned substitute representatives.
+
+6. Mapping witnesses to frozen targets
+
+A CIIP witness reaches a target only when the existing frozen predicates establish all of the following:
+
+one representative belongs to the target’s first frozen side region;
+
+the other representative belongs to its second frozen side region, in either order;
+
+the death cell belongs to the target’s existing frozen target tube or support predicate;
+
+the witness and target are source-cross-bound;
+
+the rung is accepted by all pre-existing structural validity checks.
+
+No new distance, angle, overlap, persistence, or ranking threshold may be introduced.
+
+Every valid witness-target relationship is retained. There is no “best witness” selection.
+
+The added rung must be tagged:
+
+origin_family = CIIP_V1
+origin_witness_id = <witness_id>
+origin_target_id = <target_id>
+
+Its identifier must be a SHA-256 over the canonical serialization of the source hash, target ID, witness ID, endpoint cells, death cell, and construction version.
+
+7. Required paired evaluation
+
+The probe must evaluate exactly two graph states:
+
+A. Augmented state
+
+The frozen baseline plus all valid CIIP-V1 rungs.
+
+B. CIIP ablation state
+
+Byte-identical to the augmented state except that every edge with:
+
+origin_family = CIIP_V1
+
+is removed.
+
+No baseline edge, mode, fragment, component, target, side gate, or evaluator state may differ between A and B.
+
+A certificate is CIIP-attributable only when:
+
+it exists in the augmented state;
+
+it does not exist in the CIIP ablation state;
+
+its derivation contains at least one CIIP witness rung;
+
+the corresponding target’s side-gate state changes from not-advanced in B to advanced in A.
+
+A certificate is novel only when it is not equivalent to any frozen baseline certificate under the already-locked equivalence predicate. That predicate may not be widened, narrowed, or replaced.
+
+8. Mandatory invariants
+
+The result is valid only if all of these hold:
+
+All source, lock, V4-result, target-population, baseline, evaluator, and configuration hashes match the immutable manifest.
+
+The target-ID set is exactly the frozen 4,788-ID set.
+
+The baseline-only graph and baseline certificate tables reproduce their pre-tranche hashes exactly.
+
+Every finite H0 merge record produces either:
+
+exactly one canonical witness, or
+
+exactly one explicit non-localizable exception row.
+
+No persistence threshold or post-result selection is present.
+
+Every added rung traces to exactly one canonical witness row and one target relationship.
+
+Removing all and only CIIP rungs reproduces the ablation state.
+
+The producer and independently implemented validator agree byte-for-byte on:
+
+witness table;
+
+non-localizable table;
+
+witness-target relation table;
+
+added-rung table;
+
+per-target gate comparison;
+
+certificate attribution table;
+
+aggregate metrics.
+
+Targets not reached by a CIIP rung retain byte-identical outcomes.
+
+Gold, CAD, expected-count, benchmark, production, and replacement-input access flags are all false.
+
+9. Required outputs and metrics
+
+The authoritative result must include complete, untruncated tables and these exact aggregate counts:
+
+finite_h0_merge_count
+localizable_ciip_witness_count
+nonlocalizable_ciip_merge_count
+ciip_witness_target_relation_count
+aggregate_added_ciip_rung_count
+target_reached_by_ciip_rung_count
+target_side_gate_advanced_count
+target_ciip_attributable_certificate_count
+target_novel_ciip_attributable_certificate_count
+target_certificate_equivalent_to_frozen_baseline_count
+untouched_target_count
+baseline_hash_reproduction_ok
+producer_validator_consensus_ok
+
+It must also emit one complete per-target row containing:
+
+target_id
+reached_by_ciip
+ciip_witness_ids
+ciip_rung_ids
+side_gate_ablation_state
+side_gate_augmented_state
+certificate_ids_ablation
+certificate_ids_augmented
+ciip_attributable_certificate_ids
+novel_ciip_attributable_certificate_ids
+equivalent_baseline_certificate_ids
+row_sha256
+
+Persistence values may be reported descriptively, but they may not be used during this tranche to suppress, rank, or select witnesses.
+
+10. Maximum scope
+
+The tranche is bounded to:
+
+exactly one execution claim;
+
+exactly the V4 source;
+
+exactly the frozen 4,788 targets;
+
+all finite canonical H0 merge rows;
+
+one fixed witness construction;
+
+one augmented evaluation;
+
+one exact CIIP ablation;
+
+one independently implemented validator;
+
+no parameter variants;
+
+no second attempt under a changed namespace following a scientific zero.
+
+Operational fail-closed ceilings:
+
+wall time: 30 minutes;
+
+peak resident memory: 2 GiB;
+
+authoritative output: 1 GiB.
+
+A ceiling breach produces a terminal invalid-resource STOP for this tranche. It does not authorize truncation, sampling, batching away targets, or rerunning with altered limits.
+
+11. Pass and STOP rule
+Architecture-survival pass
+
+CIIP-V1 survives this tranche only if all structural invariants pass and all four counts are strictly positive:
+
+aggregate_added_ciip_rung_count > 0
+target_reached_by_ciip_rung_count > 0
+target_side_gate_advanced_count > 0
+target_novel_ciip_attributable_certificate_count > 0
+
+This pass would establish only:
+
+CIIP-V1 can generate at least one deterministic, local, non-baseline piece of evidence that changes the frozen F1 reasoning state on this source.
+
+It would still not establish correctness or F1 improvement.
+
+Formal architecture-family STOP
+
+Issue:
+
+CIIP_V1_NO_NOVEL_TARGET_ATTRIBUTION_ARCHITECTURE_STOP
+
+when any of the four scientific counts is zero after a valid complete execution.
+
+That result would mean that the mathematically valid CIIP representation has no demonstrated mechanism for affecting the frozen F1 target population under its first fixed interpretation. Further threshold searches, alternative witness definitions, or persistence cutoffs would then be architecture rescue/tuning rather than a clean test and are not rationally justified in this lane.
+
+An integrity mismatch, incomplete census, validator disagreement, baseline reproduction failure, or resource-ceiling breach instead yields:
+
+INVALID_CIIP_V1_ATTRIBUTION_TRANCHE_STOP
+
+No scientific success or failure may be inferred from an invalid result, and the consumed claim may not be rerun.
+
+12. How this result changes the next decision
+
+A zero result retires CIIP-V1 without opening gold.
+
+A positive result justifies preserving CIIP-V1 and moving to the smallest sealed task-relevance evaluation. At that point, continued absolute closure of all truth makes an actual F1-generalization conclusion impossible: internal agreement, persistence, invariance, and graph attribution cannot reveal whether the affected targets are correct. The eventual smallest scientifically necessary opening would be a read-only, blinded evaluation of the frozen CIIP intervention on a predeclared held-out truth set, with no tuning and no feedback until the complete result is committed.
+
+That truth opening is not authorized by this ruling. The authorized action now is solely:
+
+CIIP_V1_FROZEN_TARGET_ATTRIBUTION_PROBE_V1.

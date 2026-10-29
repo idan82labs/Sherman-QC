@@ -1,0 +1,39 @@
+{
+  "calib_pool_auc": {
+    "best_feature": 0.8728,
+    "clf_gbm": 0.9425,
+    "clf_logreg": 0.9167,
+    "jev_composite": 0.7762,
+    "jev_composite_combined": 0.8848,
+    "jev_typed": 0.7888,
+    "jev_typed_reading": 0.7756,
+    "old_jev_v1": null,
+    "pool_prior": 0.8802
+  },
+  "calib_thresholds": {
+    "lane+best_feature_filter": 0.2576574115346552,
+    "lane+clf_gbm_filter": 0.13055357909196397,
+    "lane+jev_composite_combined_filter": 0.3066442115835676,
+    "lane+jev_composite_filter": 0.24443037974683546,
+    "lane+jev_plus_clf_filter": 0.21201365732694802,
+    "lane+jev_typed_filter": 0.19645569620253164,
+    "lane+jev_typed_reading_filter": 0.24443037974683546,
+    "lane+old_jev_v1_filter": 0.35,
+    "lane_alone": null,
+    "pool+best_feature": 0.9078191281405515,
+    "pool+clf_gbm": 0.5328338102850109,
+    "pool+clf_logreg": 0.9785895158986075,
+    "pool+jev_composite": 0.72,
+    "pool+jev_composite_combined": 0.9405930888787755,
+    "pool+jev_plus_clf": 0.7150033360494769,
+    "pool+jev_typed": 0.72,
+    "pool+jev_typed_reading": 0.74,
+    "pool+pool_prior": 6.453885458811696
+  },
+  "classifier": "clf_gbm",
+  "frozen_at": "2026-10-18, before any test-family Jev call",
+  "jev_design": "composite",
+  "jev_score": "jev_composite_combined",
+  "rule": "Jev input design = highest calibration-family pool AUC (any-match label, ai_relabel truth); classifier = higher calib pool AUC of logreg/gbm; Jev+classifier = mean of the two probabilities",
+  "schema": "jev_v2_design_choice_v1"
+}

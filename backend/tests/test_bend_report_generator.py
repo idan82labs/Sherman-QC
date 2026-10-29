@@ -5,10 +5,14 @@ from pathlib import Path
 import numpy as np
 import open3d as o3d
 from PIL import Image
+from pypdf import PdfReader
 
 from bend_report_generator import (
+    RESEARCH_WATERMARK,
+    _stamp_research_only,
     augment_report_with_overlay_geometry,
     generate_bend_inspection_pdf,
+    render_bend_overlay_artifacts,
 )
 
 
@@ -34,6 +38,11 @@ def _write_reference_mesh(path: Path) -> None:
 def _sample_report() -> dict:
     return {
         "part_id": "PART-001",
+        "alignment": {
+            "status": "AVAILABLE",
+            "geometry_frame": "reference_mesh_raw",
+            "raw_scan_to_reference_transform": np.eye(4).tolist(),
+        },
         "summary": {
             "completed_bends": 2,
             "expected_bends": 3,
@@ -121,10 +130,34 @@ def test_augment_report_with_overlay_geometry_adds_display_lines_and_manifest(tm
     assert first["display_cad_line_start"] is not None
     assert first["display_detected_line_start"] is not None
     assert first["callout_anchor"] is not None
+    assert first["display_geometry_frame"] == "reference_mesh_raw"
+    assert first["display_geometry_provenance"] == "reference_triangle_surface_validation_v2"
+    assert first["display_geometry_valid"] is True
     assert manifest["overview_image"] == "bend_overlay_overview.png"
+    assert manifest["qualification_context"]["production_use_allowed"] is False
     assert len(manifest["issue_tiles"]) == 1
     assert manifest["issue_tiles"][0]["bend_id"] == "CAD_B1"
     assert any(b["bend_id"] == "CAD_B2" for b in manifest["bends"])
+
+
+def test_augment_report_drops_implausibly_far_detected_line(tmp_path):
+    ref_mesh = tmp_path / "reference_mesh.ply"
+    _write_reference_mesh(ref_mesh)
+    report = _sample_report()
+    report["matches"][0]["detected_line_start"] = [200.0, 200.0, 50.0]
+    report["matches"][0]["detected_line_end"] = [230.0, 205.0, 52.0]
+
+    augmented, _ = augment_report_with_overlay_geometry(report, ref_mesh)
+
+    first = augmented["matches"][0]
+    assert first.get("display_detected_line_start") is None
+    assert first.get("display_detected_line_end") is None
+    assert first["callout_anchor"] == first["display_cad_line_start"] or first["callout_anchor"] == first["display_cad_line_end"] or first["callout_anchor"] is not None
+    cad_mid = [
+        round((first["display_cad_line_start"][i] + first["display_cad_line_end"][i]) / 2.0, 4)
+        for i in range(3)
+    ]
+    assert first["callout_anchor"] == cad_mid
 
 
 def test_generate_bend_inspection_pdf_writes_output(tmp_path):
@@ -149,3 +182,61 @@ def test_generate_bend_inspection_pdf_writes_output(tmp_path):
 
     assert pdf_path.exists()
     assert pdf_path.stat().st_size > 0
+    text = "\n".join(page.extract_text() or "" for page in PdfReader(str(pdf_path)).pages)
+    assert "RESEARCH ONLY" in text
+    assert "NOT QUALIFIED FOR PRODUCTION ACCEPT/REJECT" in text
+
+
+def test_research_watermark_is_baked_into_detached_png():
+    import io
+
+    original = io.BytesIO()
+    Image.new("RGB", (800, 500), color=(240, 244, 248)).save(original, format="PNG")
+    stamped = _stamp_research_only(original.getvalue())
+    with Image.open(io.BytesIO(stamped)) as image:
+        assert image.size == (800, 500)
+        assert image.getpixel((10, 10)) == (136, 19, 55)
+    assert RESEARCH_WATERMARK == "RESEARCH ONLY - NOT PRODUCTION QC"
+
+
+def test_all_rendered_visual_artifacts_are_watermarked_fail_closed(tmp_path, monkeypatch):
+    import io
+
+    class FakeRenderer:
+        def render_bend_status_overlay(self, **_kwargs):
+            buf = io.BytesIO()
+            Image.new("RGB", (800, 500), color=(240, 244, 248)).save(buf, format="PNG")
+            return buf.getvalue()
+
+    monkeypatch.setattr("bend_report_generator.Model3DSnapshotRenderer", FakeRenderer)
+    manifest = {
+        "qualification_context": {"production_use_allowed": False},
+        "bends": [],
+        "issue_tiles": [{"bend_id": "B1", "image": "bend_overlay_issue_B1.png"}],
+    }
+    result = render_bend_overlay_artifacts(manifest, tmp_path / "unused.ply", tmp_path)
+    paths = [Path(result["overview_path"]), *(Path(p) for p in result["issue_paths"]), *(Path(p) for p in result["bender_view_paths"].values())]
+    assert len(paths) == 6
+    for path in paths:
+        with Image.open(path) as image:
+            assert image.getpixel((10, 10)) == (136, 19, 55)
+
+
+def test_qualification_boolean_cannot_remove_research_watermark(tmp_path, monkeypatch):
+    import io
+
+    class FakeRenderer:
+        def render_bend_status_overlay(self, **_kwargs):
+            buf = io.BytesIO()
+            Image.new("RGB", (800, 500), color=(240, 244, 248)).save(buf, format="PNG")
+            return buf.getvalue()
+
+    monkeypatch.setattr("bend_report_generator.Model3DSnapshotRenderer", FakeRenderer)
+    manifest = {
+        "qualification_context": {"production_use_allowed": True},
+        "bends": [],
+        "issue_tiles": [],
+    }
+    result = render_bend_overlay_artifacts(manifest, tmp_path / "unused.ply", tmp_path)
+    with Image.open(result["overview_path"]) as image:
+        assert image.getpixel((10, 10)) == (136, 19, 55)

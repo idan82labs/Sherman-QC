@@ -1,10 +1,9 @@
 import type { BendMatch } from '../../../shared/api'
 import type { BendAnnotation } from '../../../shared/3d'
+import { isDecisionCountableBend } from './decisionContract'
 
 export function isCountableBend(match: BendMatch): boolean {
-  if (match.countable_in_regression === false) return false
-  if ((match.feature_type ?? '').toUpperCase() === 'ROLLED_SECTION') return false
-  return true
+  return isDecisionCountableBend(match)
 }
 
 export function parseLinePoint(raw?: [number, number, number] | number[] | null): [number, number, number] | null {
@@ -39,12 +38,19 @@ function interpolate3D(
   ]
 }
 
+export function hasValidatedDisplayGeometry(match: BendMatch): boolean {
+  return match.display_geometry_valid === true
+    && match.display_geometry_frame === 'reference_mesh_raw'
+    && match.display_geometry_provenance === 'reference_triangle_surface_validation_v2'
+}
+
 export function midpointFromMatch(match: BendMatch): [number, number, number] | null {
-  const a = parseLinePoint(match.display_detected_line_start ?? match.detected_line_start)
-  const b = parseLinePoint(match.display_detected_line_end ?? match.detected_line_end)
+  if (!hasValidatedDisplayGeometry(match)) return null
+  const a = parseLinePoint(match.display_detected_line_start)
+  const b = parseLinePoint(match.display_detected_line_end)
   if (a && b) return midpoint3D(a, b)
-  const c = parseLinePoint(match.display_cad_line_start ?? match.cad_line_start)
-  const d = parseLinePoint(match.display_cad_line_end ?? match.cad_line_end)
+  const c = parseLinePoint(match.display_cad_line_start)
+  const d = parseLinePoint(match.display_cad_line_end)
   if (c && d) return midpoint3D(c, d)
   return null
 }
@@ -76,16 +82,19 @@ export function buildBendAnnotations(matches: BendMatch[], focusedBendId?: strin
     if (!isCountableBend(match)) {
       continue
     }
-    const lineStart = parseLinePoint(match.display_cad_line_start ?? match.cad_line_start)
-    const lineEnd = parseLinePoint(match.display_cad_line_end ?? match.cad_line_end)
-    if (!lineStart || !lineEnd) continue
-    const detectedLineStart = parseLinePoint(match.display_detected_line_start ?? match.detected_line_start)
-    const detectedLineEnd = parseLinePoint(match.display_detected_line_end ?? match.detected_line_end)
+    if (!hasValidatedDisplayGeometry(match)) continue
+    const lineStart = parseLinePoint(match.display_cad_line_start)
+    const lineEnd = parseLinePoint(match.display_cad_line_end)
+    const detectedLineStart = parseLinePoint(match.display_detected_line_start)
+    const detectedLineEnd = parseLinePoint(match.display_detected_line_end)
+    const supportedStart = lineStart ?? detectedLineStart
+    const supportedEnd = lineEnd ?? detectedLineEnd
+    if (!supportedStart || !supportedEnd) continue
     const featureType = match.feature_type ?? null
     const isRolledSection = featureType === 'ROLLED_SECTION'
-    const rawMidpoint = midpoint3D(lineStart, lineEnd)
-    const anchorStart = isRolledSection ? lineStart : (detectedLineStart ?? lineStart)
-    const anchorEnd = isRolledSection ? lineEnd : (detectedLineEnd ?? lineEnd)
+    const rawMidpoint = midpoint3D(supportedStart, supportedEnd)
+    const anchorStart = isRolledSection ? supportedStart : (detectedLineStart ?? supportedStart)
+    const anchorEnd = isRolledSection ? supportedEnd : (detectedLineEnd ?? supportedEnd)
     const rolledAnchor = isRolledSection
       ? interpolate3D(highestEndpoint(anchorStart, anchorEnd), highestEndpoint(anchorStart, anchorEnd) === anchorStart ? anchorEnd : anchorStart, 0.38)
       : null
@@ -95,8 +104,8 @@ export function buildBendAnnotations(matches: BendMatch[], focusedBendId?: strin
       position: rolledAnchor ?? rawMidpoint,
       calloutAnchor: rolledAnchor ?? rawMidpoint,
       featureType: featureType ?? undefined,
-      lineStart: isRolledSection ? undefined : lineStart,
-      lineEnd: isRolledSection ? undefined : lineEnd,
+      lineStart: isRolledSection ? undefined : lineStart ?? undefined,
+      lineEnd: isRolledSection ? undefined : lineEnd ?? undefined,
       detectedLineStart: isRolledSection ? undefined : detectedLineStart ?? undefined,
       detectedLineEnd: isRolledSection ? undefined : detectedLineEnd ?? undefined,
       expectedAngle: match.target_angle,
@@ -104,7 +113,9 @@ export function buildBendAnnotations(matches: BendMatch[], focusedBendId?: strin
       deviation: match.angle_deviation,
       status: toViewerStatus(match.status),
       active: focusedBendId === match.bend_id,
-      displayGeometryCanonical: false,
+      displayGeometryCanonical: true,
+      coordinateFrame: 'reference_mesh_raw',
+      geometryProvenance: match.display_geometry_provenance,
       radiusDeviation: match.radius_deviation,
       lineCenterDeviationMm: match.line_center_deviation_mm,
       toleranceAngle: match.tolerance_angle,

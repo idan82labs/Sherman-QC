@@ -1,0 +1,1286 @@
+{
+  "run": "20261017T211301Z",
+  "counts": {
+    "PASS": 23,
+    "API_ASSIST": 1,
+    "NOT_RUN": 1
+  },
+  "steps": [
+    {
+      "id": "S0",
+      "title": "build a temporary app copy (C04 --profile app) and an E2 part set",
+      "status": "PASS",
+      "assertions": [
+        {
+          "what": "app copy built (exit 0)",
+          "ok": true,
+          "value": 0
+        },
+        {
+          "what": "copy has a manifest and a built SPA",
+          "ok": true,
+          "value": null
+        },
+        {
+          "what": "E2 part set generated",
+          "ok": true,
+          "value": ""
+        },
+        {
+          "what": "part set has the drop scans",
+          "ok": true,
+          "value": [
+            "nominal",
+            "errors",
+            "stage_k",
+            "stage_0",
+            "unknown_sku",
+            "wrong_part"
+          ]
+        }
+      ],
+      "screenshots": [],
+      "started": "2026-10-17T21:13:01.651Z",
+      "duration_s": 26.1
+    },
+    {
+      "id": "S1",
+      "title": "hardening: the server refuses to start without SECRET_KEY (exit 2, SECRET_KEY_MISSING_OR_DEFAULT)",
+      "status": "PASS",
+      "assertions": [
+        {
+          "what": "exit code 2",
+          "ok": true,
+          "value": 2
+        },
+        {
+          "what": "stderr names SECRET_KEY_MISSING_OR_DEFAULT",
+          "ok": true,
+          "value": null
+        },
+        {
+          "what": "a refused start wrote nothing under the app root (legacy never imported)",
+          "ok": true,
+          "value": null
+        }
+      ],
+      "screenshots": [],
+      "started": "2026-10-17T21:13:27.701Z",
+      "duration_s": 0
+    },
+    {
+      "id": "S2",
+      "title": "bootstrap admin, start the API server and the line service from the app copy",
+      "status": "PASS",
+      "assertions": [
+        {
+          "what": "bootstrap_admin exit 0",
+          "ok": true,
+          "value": ""
+        },
+        {
+          "what": "readiness {ready, checks}",
+          "ok": true,
+          "value": {
+            "ready": true,
+            "checks": {
+              "db": "ok",
+              "disk": "ok",
+              "runner": "ok",
+              "hotfolder:cell-1": "ok"
+            }
+          }
+        },
+        {
+          "what": "server log has no stream token",
+          "ok": true,
+          "value": null
+        }
+      ],
+      "screenshots": [],
+      "started": "2026-10-17T21:13:27.742Z",
+      "duration_s": 2.8
+    },
+    {
+      "id": "W1",
+      "title": "admin logs in; Production -> Parts -> New part",
+      "status": "PASS",
+      "assertions": [
+        {
+          "what": "login stored a user token",
+          "ok": true,
+          "value": null
+        },
+        {
+          "what": "SKU preview equals the canonical SKU",
+          "ok": true,
+          "value": "SYN-4ED9FC3569"
+        },
+        {
+          "what": "wizard opened for the new part",
+          "ok": true,
+          "value": "720a7ad3-4caf-46dc-be55-5bf73403ddd0"
+        }
+      ],
+      "screenshots": [
+        {
+          "file": "01-production-parts.png",
+          "pairs_with": "production parts list rendered ([data-production-parts])"
+        },
+        {
+          "file": "02-new-part-form.png",
+          "pairs_with": "SKU preview attribute equals the SKU"
+        }
+      ],
+      "started": "2026-10-17T21:13:30.645Z",
+      "duration_s": 2.3
+    },
+    {
+      "id": "W2",
+      "title": "upload the folded STEP (legacy catalog route + native bend extraction)",
+      "status": "PASS",
+      "assertions": [
+        {
+          "what": "CAD bend candidates extracted from the STEP (HAT: 4)",
+          "ok": true,
+          "value": 4
+        }
+      ],
+      "screenshots": [
+        {
+          "file": "03-wizard-cad.png",
+          "pairs_with": "candidate count = 4"
+        }
+      ],
+      "started": "2026-10-17T21:13:32.973Z",
+      "duration_s": 2.3
+    },
+    {
+      "id": "W3",
+      "title": "upload the PDF drawing",
+      "status": "PASS",
+      "assertions": [
+        {
+          "what": "drawing attached",
+          "ok": true,
+          "value": null
+        }
+      ],
+      "screenshots": [
+        {
+          "file": "04-wizard-drawing.png",
+          "pairs_with": "drawing current row present"
+        }
+      ],
+      "started": "2026-10-17T21:13:35.266Z",
+      "duration_s": 0.4
+    },
+    {
+      "id": "W4",
+      "title": "confirm the bends, tag the order and one מהלך group (Vendor Setup draft)",
+      "status": "API_ASSIST",
+      "assertions": [
+        {
+          "what": "Vendor Setup draft saved (marks confirmed, order, moves)",
+          "ok": true,
+          "value": {
+            "candidate_count": 4,
+            "draft_revision": 1,
+            "machine_moves": [
+              [
+                "242e76ac-6aca-4438-a0ea-8a34ff07a44a",
+                "84861d37-76e2-4816-845e-689dc966e2fb"
+              ],
+              [
+                "4e354735-c110-43bf-806e-3fa22cf86097",
+                "ecf27868-cb67-4f54-a724-7a156c264a81"
+              ]
+            ],
+            "ok": true,
+            "sequence": [
+              "242e76ac-6aca-4438-a0ea-8a34ff07a44a",
+              "84861d37-76e2-4816-845e-689dc966e2fb",
+              "4e354735-c110-43bf-806e-3fa22cf86097",
+              "ecf27868-cb67-4f54-a724-7a156c264a81"
+            ]
+          }
+        },
+        {
+          "what": "wizard shows the order confirmed",
+          "ok": true,
+          "value": null
+        },
+        {
+          "what": "move 1 groups two bends",
+          "ok": true,
+          "value": null
+        }
+      ],
+      "screenshots": [
+        {
+          "file": "05-wizard-bends-order.png",
+          "pairs_with": "sequence confirmed and move 1 has 2 bends"
+        }
+      ],
+      "started": "2026-10-17T21:13:35.653Z",
+      "api_assist": {
+        "candidate_count": 4,
+        "draft_revision": 1,
+        "machine_moves": [
+          [
+            "242e76ac-6aca-4438-a0ea-8a34ff07a44a",
+            "84861d37-76e2-4816-845e-689dc966e2fb"
+          ],
+          [
+            "4e354735-c110-43bf-806e-3fa22cf86097",
+            "ecf27868-cb67-4f54-a724-7a156c264a81"
+          ]
+        ],
+        "ok": true,
+        "sequence": [
+          "242e76ac-6aca-4438-a0ea-8a34ff07a44a",
+          "84861d37-76e2-4816-845e-689dc966e2fb",
+          "4e354735-c110-43bf-806e-3fa22cf86097",
+          "ecf27868-cb67-4f54-a724-7a156c264a81"
+        ]
+      },
+      "detail": "bend marks/order/moves saved through PUT /api/parts/{id}/vendor-setup (the Vendor Setup page route)",
+      "duration_s": 0.4
+    },
+    {
+      "id": "W5",
+      "title": "upload the flat DXF; propose and confirm the bend-line binding",
+      "status": "PASS",
+      "assertions": [
+        {
+          "what": "flat parsed",
+          "ok": true,
+          "value": "parsed"
+        },
+        {
+          "what": "binding confirmed and fresh",
+          "ok": true,
+          "value": null
+        }
+      ],
+      "screenshots": [
+        {
+          "file": "06-wizard-flat-proposal.png",
+          "pairs_with": "binding editor shown with the flat view"
+        },
+        {
+          "file": "07-wizard-flat-confirmed.png",
+          "pairs_with": "binding chip CONFIRMED"
+        }
+      ],
+      "started": "2026-10-17T21:13:36.044Z",
+      "binding_warnings": [],
+      "duration_s": 3.5
+    },
+    {
+      "id": "W6",
+      "title": "toggle folded / unfolded (the unfolded view comes from the uploaded flat)",
+      "status": "PASS",
+      "assertions": [
+        {
+          "what": "unfolded view draws 4 numbered bend lines",
+          "ok": true,
+          "value": [
+            "1",
+            "3",
+            "4",
+            "2"
+          ]
+        },
+        {
+          "what": "folded view is back",
+          "ok": true,
+          "value": null
+        }
+      ],
+      "screenshots": [
+        {
+          "file": "08-wizard-unfolded.png",
+          "pairs_with": "unfold source = uploaded-flat"
+        },
+        {
+          "file": "09-wizard-folded.png",
+          "pairs_with": "unfolded source gone"
+        }
+      ],
+      "started": "2026-10-17T21:13:39.542Z",
+      "duration_s": 2.5
+    },
+    {
+      "id": "W7",
+      "title": "set tolerances (FINAL inspection)",
+      "status": "PASS",
+      "assertions": [
+        {
+          "what": "tolerance fields filled",
+          "ok": true,
+          "value": null
+        },
+        {
+          "what": "release draft saved with the tolerances",
+          "ok": true,
+          "value": {
+            "angle_deg": {
+              "minus": 1,
+              "plus": 1
+            },
+            "backgauge_mm": {
+              "minus": 0.3,
+              "plus": 0.3
+            },
+            "bend_line_position_mm": {
+              "minus": 0.5,
+              "plus": 0.5
+            },
+            "flange_mm": {
+              "minus": 0.5,
+              "plus": 0.5
+            },
+            "general_mm": null,
+            "note": "",
+            "source": "SHOP_STANDARD",
+            "surface_profile_mm": 0.5
+          }
+        }
+      ],
+      "screenshots": [
+        {
+          "file": "10-wizard-tolerances.png",
+          "pairs_with": "release draft has angle ±1, flange ±0.5"
+        }
+      ],
+      "started": "2026-10-17T21:13:42.009Z",
+      "duration_s": 1.6
+    },
+    {
+      "id": "W8",
+      "title": "review, release SKU@v1; expectations show nominal flange lengths and angles; benchmark row",
+      "status": "PASS",
+      "assertions": [
+        {
+          "what": "release result names SKU@v1",
+          "ok": true,
+          "value": "Released v1\nRecipe SYN-4ED9FC3569@v1\nFingerprint 671da288"
+        },
+        {
+          "what": "expectations table has 4 bend rows",
+          "ok": true,
+          "value": 4
+        },
+        {
+          "what": "recipe API reports a REGISTERED benchmark reference",
+          "ok": true,
+          "value": {
+            "status": "REGISTERED",
+            "registered_at": "2026-10-17T21:13:48.196Z",
+            "compiled_part_sha256": "20050021b7f4bdd14632d88ca2eeda71016dbc62d162ff5a9de0d67c4d825d92",
+            "algo_version": "e1-1.1.0"
+          }
+        },
+        {
+          "what": "benchmark_references row has per-bend nominals for every bend",
+          "ok": true,
+          "value": {
+            "bends": 4,
+            "missing_bends": [],
+            "nominals_bytes": 8181,
+            "ok": true,
+            "status": "REGISTERED"
+          }
+        }
+      ],
+      "screenshots": [
+        {
+          "file": "11-wizard-review.png",
+          "pairs_with": "review step rendered"
+        },
+        {
+          "file": "12-wizard-released.png",
+          "pairs_with": "release result names SKU@v1"
+        },
+        {
+          "file": "13-wizard-released-expectations.png",
+          "pairs_with": "expectations READY with 4 rows (nominal flange lengths and angles)"
+        }
+      ],
+      "started": "2026-10-17T21:13:43.653Z",
+      "benchmark": {
+        "bends": 4,
+        "missing_bends": [],
+        "nominals_bytes": 8181,
+        "ok": true,
+        "status": "REGISTERED"
+      },
+      "duration_s": 5.4
+    },
+    {
+      "id": "W9",
+      "title": "wizard in Hebrew (RTL)",
+      "status": "PASS",
+      "assertions": [
+        {
+          "what": "Hebrew checklist shows part/cad/drawing/flat/bends/tolerances done",
+          "ok": true,
+          "value": {
+            "part": "done",
+            "cad": "done",
+            "drawing": "done",
+            "flat": "done",
+            "bends": "done",
+            "tolerances": "done",
+            "review": "optional"
+          }
+        },
+        {
+          "what": "part header names the SKU",
+          "ok": true,
+          "value": "SYN-4ED9FC3569\nSynthetic sheet-metal part SYN-4ED9FC3569 גרסה 01"
+        },
+        {
+          "what": "no CAD/drawing/tolerances \"missing\" blockers on the released part",
+          "ok": true,
+          "value": 0
+        },
+        {
+          "what": "no horizontal overflow in RTL",
+          "ok": true,
+          "value": {
+            "sw": 1920
+          }
+        }
+      ],
+      "screenshots": [
+        {
+          "file": "14-wizard-hebrew-rtl.png",
+          "pairs_with": "wizard root dir=rtl; loaded: SKU header, active recipe, checklist done, no missing blockers"
+        }
+      ],
+      "started": "2026-10-17T21:13:49.092Z",
+      "checklist": {
+        "part": "done",
+        "cad": "done",
+        "drawing": "done",
+        "flat": "done",
+        "bends": "done",
+        "tolerances": "done",
+        "review": "optional"
+      },
+      "duration_s": 0.8
+    },
+    {
+      "id": "K1",
+      "title": "station kiosk: device-token gate, then the connected empty station",
+      "status": "PASS",
+      "assertions": [
+        {
+          "what": "device token issued by an admin",
+          "ok": true,
+          "value": 201
+        },
+        {
+          "what": "station connected with the device token",
+          "ok": true,
+          "value": null
+        }
+      ],
+      "screenshots": [
+        {
+          "file": "15-station-token-gate.png",
+          "pairs_with": "auth gate shown without a stored token"
+        },
+        {
+          "file": "16-station-connected.png",
+          "pairs_with": "station root rendered"
+        }
+      ],
+      "started": "2026-10-17T21:13:49.949Z",
+      "duration_s": 0.5
+    },
+    {
+      "id": "K2",
+      "title": "ZEISS-style drop of the error scan (+1.5 mm B2 flange, +2° B3); station updates within 5 s",
+      "status": "PASS",
+      "assertions": [
+        {
+          "what": "station showed the in-progress state (active ribbon + elapsed timer) while the job ran",
+          "ok": true,
+          "value": {
+            "ribbon": "active",
+            "stage": "queued",
+            "elapsed": 1
+          }
+        },
+        {
+          "what": "job completed",
+          "ok": true,
+          "value": "completed"
+        },
+        {
+          "what": "station shows the new job within 5 s of the job finishing, no reload",
+          "ok": true,
+          "value": 1.399
+        },
+        {
+          "what": "WebGL canvas is not blank",
+          "ok": true,
+          "value": {
+            "painted": 1218,
+            "colours": 158
+          }
+        },
+        {
+          "what": "verdict banner shows the errors",
+          "ok": true,
+          "value": "OUT_OF_TOLERANCE_FOUND"
+        },
+        {
+          "what": "both injected characteristics present",
+          "ok": true,
+          "value": [
+            {
+              "key": "bu_56b8ab33d8b39b59451d/FLANGE_LENGTH/B",
+              "label": "B2",
+              "seq": 2,
+              "decision": "FAIL",
+              "state": "MEASURED",
+              "actual": 53.465482,
+              "truth": 53.500000000000014
+            },
+            {
+              "key": "bu_ff03905845bb23afcc6f/INCLUDED_ANGLE",
+              "label": "B3",
+              "seq": 3,
+              "decision": "FAIL",
+              "state": "MEASURED",
+              "actual": 92.050286,
+              "truth": 92
+            }
+          ]
+        },
+        {
+          "what": "B2 FLANGE_LENGTH/B is FAIL or REVIEW",
+          "ok": true,
+          "value": "FAIL"
+        },
+        {
+          "what": "B2 actual within tolerance of truth",
+          "ok": true,
+          "value": {
+            "key": "bu_56b8ab33d8b39b59451d/FLANGE_LENGTH/B",
+            "label": "B2",
+            "seq": 2,
+            "decision": "FAIL",
+            "state": "MEASURED",
+            "actual": 53.465482,
+            "truth": 53.500000000000014
+          }
+        },
+        {
+          "what": "table cell cell-2-flange-b shows the decision",
+          "ok": true,
+          "value": "FAIL"
+        },
+        {
+          "what": "B3 INCLUDED_ANGLE is FAIL or REVIEW",
+          "ok": true,
+          "value": "FAIL"
+        },
+        {
+          "what": "B3 actual within tolerance of truth",
+          "ok": true,
+          "value": {
+            "key": "bu_ff03905845bb23afcc6f/INCLUDED_ANGLE",
+            "label": "B3",
+            "seq": 3,
+            "decision": "FAIL",
+            "state": "MEASURED",
+            "actual": 92.050286,
+            "truth": 92
+          }
+        },
+        {
+          "what": "table cell cell-3-angle shows the decision",
+          "ok": true,
+          "value": "FAIL"
+        }
+      ],
+      "screenshots": [
+        {
+          "file": "17-station-in-progress.png",
+          "pairs_with": "status ribbon data-ribbon=active with the job stage and elapsed timer"
+        },
+        {
+          "file": "18-station-result-errors.png",
+          "pairs_with": "banner OUT_OF_TOLERANCE_FOUND/REVIEW; injected cells FAIL/REVIEW; canvas painted"
+        }
+      ],
+      "started": "2026-10-17T21:13:50.438Z",
+      "in_progress": {
+        "ribbon": "active",
+        "stage": "queued",
+        "elapsed": 1
+      },
+      "update_lag_s": 1.399,
+      "engine_summary": {
+        "state": "OUT_OF_TOLERANCE_FOUND",
+        "bends_total": 4,
+        "bends_formed": 4,
+        "bends_not_yet_formed": 0,
+        "bends_unknown": 0,
+        "characteristics_required": 16,
+        "required_pass": 14,
+        "required_fail": 2,
+        "required_review": 0,
+        "required_unknown": 0,
+        "unplanned_creases": 0,
+        "worst": {
+          "characteristic_id": "bu_56b8ab33d8b39b59451d/FLANGE_LENGTH/B",
+          "bend_uid": "bu_56b8ab33d8b39b59451d",
+          "kind": "FLANGE_LENGTH",
+          "deviation": 1.465482,
+          "uncertainty": 0.161369,
+          "decision": "FAIL",
+          "exceedance_ratio": 3.253702
+        },
+        "reasons": [
+          "REQUIRED_FAIL"
+        ]
+      },
+      "injected_rows": [
+        {
+          "key": "bu_56b8ab33d8b39b59451d/FLANGE_LENGTH/B",
+          "label": "B2",
+          "seq": 2,
+          "decision": "FAIL",
+          "state": "MEASURED",
+          "actual": 53.465482,
+          "truth": 53.500000000000014
+        },
+        {
+          "key": "bu_ff03905845bb23afcc6f/INCLUDED_ANGLE",
+          "label": "B3",
+          "seq": 3,
+          "decision": "FAIL",
+          "state": "MEASURED",
+          "actual": 92.050286,
+          "truth": 92
+        }
+      ],
+      "duration_s": 15.4
+    },
+    {
+      "id": "K3",
+      "title": "station layers: heatmap off/on, CAD only, scan only, both, labels off",
+      "status": "PASS",
+      "assertions": [
+        {
+          "what": "legend says heatmap off",
+          "ok": true,
+          "value": null
+        },
+        {
+          "what": "CAD-only view is not blank",
+          "ok": true,
+          "value": {
+            "painted": 1218,
+            "colours": 158
+          }
+        },
+        {
+          "what": "scan-only: CAD layer off, scan layer on",
+          "ok": true,
+          "value": null
+        },
+        {
+          "what": "scan-only view draws the scan",
+          "ok": true,
+          "value": {
+            "painted": 1197,
+            "colours": 140
+          }
+        },
+        {
+          "what": "both layers on",
+          "ok": true,
+          "value": null
+        },
+        {
+          "what": "CAD + scan view is not blank",
+          "ok": true,
+          "value": {
+            "painted": 1218,
+            "colours": 158
+          }
+        },
+        {
+          "what": "4 bend labels before toggling",
+          "ok": true,
+          "value": 4
+        }
+      ],
+      "screenshots": [
+        {
+          "file": "19-station-heatmap-off.png",
+          "pairs_with": "data-scan-colour=neutral, legend off"
+        },
+        {
+          "file": "20-station-heatmap-on.png",
+          "pairs_with": "data-scan-colour=heatmap"
+        },
+        {
+          "file": "21-station-cad-only.png",
+          "pairs_with": "scan layer off (data-scan-colour=none), canvas painted"
+        },
+        {
+          "file": "22-station-scan-only.png",
+          "pairs_with": "CAD aria-pressed=false, scan aria-pressed=true, data-scan-colour=heatmap, canvas painted"
+        },
+        {
+          "file": "23-station-cad-and-scan.png",
+          "pairs_with": "CAD and scan aria-pressed=true, data-scan-colour=heatmap"
+        },
+        {
+          "file": "24-station-labels-off.png",
+          "pairs_with": "no .st-label elements"
+        }
+      ],
+      "started": "2026-10-17T21:14:05.866Z",
+      "duration_s": 7.7
+    },
+    {
+      "id": "K4",
+      "title": "click bend row 2 (camera focuses), worst-first jump, orbit/zoom/touch before/after",
+      "status": "PASS",
+      "assertions": [
+        {
+          "what": "camera target moved to bend 2",
+          "ok": true,
+          "value": {
+            "t0": "0.00,0.00,0.00",
+            "t1": "-22.00,2.82,24.26"
+          }
+        },
+        {
+          "what": "worst-first selected a bend",
+          "ok": true,
+          "value": "bu_56b8ab33d8b39b59451d"
+        },
+        {
+          "what": "wheel zooms in",
+          "ok": true,
+          "value": {
+            "d0": 634.59,
+            "d1": 481.06
+          }
+        },
+        {
+          "what": "two-finger pinch zooms in",
+          "ok": true,
+          "value": {
+            "d1": 481.06,
+            "d2": 95.91
+          }
+        },
+        {
+          "what": "one-finger touch drag orbits the camera",
+          "ok": true,
+          "value": {
+            "pt0": "45.9,-65.4,53.1",
+            "pt1": "-8.9,-66.8,69.5"
+          }
+        },
+        {
+          "what": "mouse drag orbits the camera",
+          "ok": true,
+          "value": {
+            "pt1": "-8.9,-66.8,69.5",
+            "p1": "-40.7,-13.8,86.6"
+          }
+        }
+      ],
+      "screenshots": [
+        {
+          "file": "25-station-row2-focus.png",
+          "pairs_with": "camera target changed; bend 2 selected"
+        },
+        {
+          "file": "26-station-worst-first.png",
+          "pairs_with": "selected bend bu_56b8ab33d8b39b59451d"
+        },
+        {
+          "file": "27-station-before-orbit.png",
+          "pairs_with": "camera at fit"
+        },
+        {
+          "file": "28-station-after-zoom.png",
+          "pairs_with": "camera distance decreased"
+        },
+        {
+          "file": "29-station-after-touch.png",
+          "pairs_with": "pinch reduced the distance; one-finger drag rotated"
+        },
+        {
+          "file": "30-station-after-orbit.png",
+          "pairs_with": "camera position changed by the mouse drag"
+        }
+      ],
+      "started": "2026-10-17T21:14:13.587Z",
+      "duration_s": 23.1
+    },
+    {
+      "id": "K5",
+      "title": "per-bend close-ups in the station 3D view (G4 LANDS / TAG_OK review material)",
+      "status": "PASS",
+      "assertions": [
+        {
+          "what": "bend 1 selected",
+          "ok": true,
+          "value": "bu_f2a8292152aed38bc9dc"
+        },
+        {
+          "what": "bend 2 selected",
+          "ok": true,
+          "value": "bu_56b8ab33d8b39b59451d"
+        },
+        {
+          "what": "bend 3 selected",
+          "ok": true,
+          "value": "bu_ff03905845bb23afcc6f"
+        },
+        {
+          "what": "bend 4 selected",
+          "ok": true,
+          "value": "bu_1711e091ced0eeaa6a2a"
+        }
+      ],
+      "screenshots": [
+        {
+          "file": "31-station-closeup-B1.png",
+          "pairs_with": "bend 1 (bu_f2a8292152aed38bc9dc) focused; reviewer judges LANDS / TAG_OK"
+        },
+        {
+          "file": "32-station-closeup-B2.png",
+          "pairs_with": "bend 2 (bu_56b8ab33d8b39b59451d) focused; reviewer judges LANDS / TAG_OK"
+        },
+        {
+          "file": "33-station-closeup-B3.png",
+          "pairs_with": "bend 3 (bu_ff03905845bb23afcc6f) focused; reviewer judges LANDS / TAG_OK"
+        },
+        {
+          "file": "34-station-closeup-B4.png",
+          "pairs_with": "bend 4 (bu_1711e091ced0eeaa6a2a) focused; reviewer judges LANDS / TAG_OK"
+        }
+      ],
+      "started": "2026-10-17T21:14:36.735Z",
+      "duration_s": 19.1
+    },
+    {
+      "id": "K6",
+      "title": "export PDF from the station; render pages; Hebrew and English text",
+      "status": "PASS",
+      "assertions": [
+        {
+          "what": "PDF rendered to page images",
+          "ok": true,
+          "value": 5
+        },
+        {
+          "what": "PDF text contains the SKU",
+          "ok": true,
+          "value": null
+        },
+        {
+          "what": "PDF Hebrew label \"לא הוכרע\" appears in logical order (not only reversed)",
+          "ok": true,
+          "value": {
+            "found": {
+              "SYN-4ED9FC3569": true,
+              "לא הוכרע": true
+            },
+            "reversed_only": {
+              "SYN-4ED9FC3569": false,
+              "לא הוכרע": false
+            }
+          }
+        },
+        {
+          "what": "pdf-pages helper verdict ok",
+          "ok": true,
+          "value": {
+            "code": 0,
+            "ok": true
+          }
+        },
+        {
+          "what": "PDF contains Hebrew text (vision reviewer also checks glyph order)",
+          "ok": true,
+          "value": null
+        }
+      ],
+      "screenshots": [],
+      "started": "2026-10-17T21:14:55.876Z",
+      "pdf": {
+        "chars": 9967,
+        "expect_found": {
+          "SYN-4ED9FC3569": true,
+          "לא הוכרע": true
+        },
+        "expect_reversed_only": {
+          "SYN-4ED9FC3569": false,
+          "לא הוכרע": false
+        },
+        "ok": true,
+        "pages": [
+          "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/e2e/20261017T211301Z/pdf/page-1.png",
+          "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/e2e/20261017T211301Z/pdf/page-2.png",
+          "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/e2e/20261017T211301Z/pdf/page-3.png",
+          "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/e2e/20261017T211301Z/pdf/page-4.png",
+          "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/e2e/20261017T211301Z/pdf/page-5.png"
+        ]
+      },
+      "duration_s": 0.5
+    },
+    {
+      "id": "K7",
+      "title": "station in Hebrew (RTL)",
+      "status": "PASS",
+      "assertions": [
+        {
+          "what": "RTL station has no page scroll",
+          "ok": true,
+          "value": {
+            "sw": 1920,
+            "sh": 1080
+          }
+        }
+      ],
+      "screenshots": [
+        {
+          "file": "35-station-hebrew-rtl.png",
+          "pairs_with": "station-root dir=rtl, no overflow"
+        }
+      ],
+      "started": "2026-10-17T21:14:56.356Z",
+      "duration_s": 1.1
+    },
+    {
+      "id": "K8",
+      "title": "incomplete-scan drop: NOT_YET_FORMED bends greyed, stage decision, backgauge lengths",
+      "status": "PASS",
+      "assertions": [
+        {
+          "what": "job completed",
+          "ok": true,
+          "value": "completed"
+        },
+        {
+          "what": "inspection valid",
+          "ok": true,
+          "value": {
+            "state": "VALID",
+            "reasons": [],
+            "metrology_qualified": false,
+            "registration": {
+              "method": "datum_plane_outline_edges_holes",
+              "frame": "cad_model_mm",
+              "raw_to_frame": [
+                [
+                  -0.847455,
+                  -0.296484,
+                  -0.440364,
+                  24.869233
+                ],
+                [
+                  0.456234,
+                  0.01736,
+                  -0.889692,
+                  -128.359198
+                ],
+                [
+                  0.271422,
+                  -0.954881,
+                  0.120552,
+                  -7.235605
+                ],
+                [
+                  0,
+                  0,
+                  0,
+                  1
+                ]
+              ],
+              "unit_factor": 1,
+              "datum_fitness": 0.999842,
+              "rmse_mm": 0.073005,
+              "pose_candidates_considered": 6,
+              "pose_margin": 0.921215,
+              "pose_ambiguous": false,
+              "in_plane_degenerate": false,
+              "abstained": false
+            },
+            "coverage": {
+              "surface_coverage_ratio": 1,
+              "datum_coverage_ratio": 0.999842,
+              "scan_point_count": 267494
+            }
+          }
+        },
+        {
+          "what": "engine NOT_YET_FORMED bends match truth",
+          "ok": true,
+          "value": [
+            "B3",
+            "B4"
+          ]
+        },
+        {
+          "what": "B3 greyed as not yet formed in the table",
+          "ok": true,
+          "value": null
+        },
+        {
+          "what": "B4 greyed as not yet formed in the table",
+          "ok": true,
+          "value": null
+        },
+        {
+          "what": "incomplete part is never green",
+          "ok": true,
+          "value": "REVIEW_REQUIRED"
+        },
+        {
+          "what": "stage decision strip shown",
+          "ok": true,
+          "value": null
+        },
+        {
+          "what": "the engine reports backgauge lengths for the incomplete scan",
+          "ok": true,
+          "value": [
+            {
+              "label": "B2",
+              "state": "MEASURED",
+              "decision": "PASS",
+              "actual": 140.110784,
+              "expected": 140.05907
+            }
+          ]
+        },
+        {
+          "what": "the table shows a backgauge row for every applicable backgauge length",
+          "ok": true,
+          "value": {
+            "shownBg": 1,
+            "domBg": 1
+          }
+        }
+      ],
+      "screenshots": [
+        {
+          "file": "36-station-incomplete.png",
+          "pairs_with": "NOT_YET_FORMED cells greyed; stage strip; backgauge detail row; summary not green"
+        }
+      ],
+      "started": "2026-10-17T21:14:57.498Z",
+      "engine_summary": {
+        "validity": "VALID",
+        "stage": "FINAL_INCOMPLETE",
+        "summary": "REVIEW_REQUIRED"
+      },
+      "backgauge": [
+        {
+          "label": "B2",
+          "state": "MEASURED",
+          "decision": "PASS",
+          "actual": 140.110784,
+          "expected": 140.05907
+        }
+      ],
+      "duration_s": 15
+    },
+    {
+      "id": "K9",
+      "title": "wrong-SKU drop ends in Quarantine with a reason; the admin assigns the SKU; the job runs",
+      "status": "PASS",
+      "assertions": [
+        {
+          "what": "quarantine reason UNMATCHED_SKU",
+          "ok": true,
+          "value": "UNMATCHED_SKU"
+        },
+        {
+          "what": "status ribbon carries the quarantine reason UNMATCHED_SKU",
+          "ok": true,
+          "value": {
+            "reason": "UNMATCHED_SKU",
+            "text": "Scan held back: Part number not released for inspection\nSYN-0CE499EE31_A_FULL_SCAN 1.ply\nRescan / call engineer"
+          }
+        },
+        {
+          "what": "status ribbon names the dropped file",
+          "ok": true,
+          "value": "Scan held back: Part number not released for inspection\nSYN-0CE499EE31_A_FULL_SCAN 1.ply\nRescan / call engineer"
+        },
+        {
+          "what": "status ribbon shows the quarantine reason copy",
+          "ok": true,
+          "value": "Scan held back: Part number not released for inspection\nSYN-0CE499EE31_A_FULL_SCAN 1.ply\nRescan / call engineer"
+        },
+        {
+          "what": "assigned by SKU -> inspect job",
+          "ok": true,
+          "value": {
+            "scan_file_id": "scan_caf6a9ac80d2173326eada5d",
+            "job_id": "line_7153aac6461c44a999dbf306142c7724",
+            "recipe_id": "SYN-4ED9FC3569@v1",
+            "recipe_version": 1,
+            "sku": "SYN-4ED9FC3569"
+          }
+        },
+        {
+          "what": "assigned job completed",
+          "ok": true,
+          "value": "completed"
+        }
+      ],
+      "screenshots": [
+        {
+          "file": "37-station-quarantine-issue.png",
+          "pairs_with": "ribbon data-ribbon=issue, data-reason=UNMATCHED_SKU, names the file"
+        },
+        {
+          "file": "38-station-after-assign.png",
+          "pairs_with": "station shows the assigned job"
+        }
+      ],
+      "started": "2026-10-17T21:15:12.515Z",
+      "ribbon": {
+        "reason": "UNMATCHED_SKU",
+        "text": "Scan held back: Part number not released for inspection\nSYN-0CE499EE31_A_FULL_SCAN 1.ply\nRescan / call engineer"
+      },
+      "duration_s": 15.1
+    },
+    {
+      "id": "K10",
+      "title": "kill the line service mid-job, restart it: the job recovers and completes",
+      "status": "PASS",
+      "assertions": [
+        {
+          "what": "line service killed (SIGKILL) while the job was running",
+          "ok": true,
+          "value": "SIGKILL"
+        },
+        {
+          "what": "the killed service left the job running (lease not released)",
+          "ok": true,
+          "value": "running"
+        },
+        {
+          "what": "recovered job completed",
+          "ok": true,
+          "value": "completed"
+        },
+        {
+          "what": "second attempt after recovery",
+          "ok": true,
+          "value": 2
+        },
+        {
+          "what": "JOB_RECOVERED event recorded",
+          "ok": true,
+          "value": [
+            "JOB_QUEUED",
+            "JOB_STARTED",
+            "JOB_PROGRESS",
+            "JOB_RECOVERED",
+            "JOB_STARTED",
+            "JOB_PROGRESS",
+            "JOB_PROGRESS",
+            "JOB_PROGRESS",
+            "JOB_PROGRESS",
+            "JOB_PROGRESS",
+            "JOB_COMPLETED"
+          ]
+        }
+      ],
+      "screenshots": [
+        {
+          "file": "39-station-service-killed.png",
+          "pairs_with": "job execution_status=running after the service was killed"
+        },
+        {
+          "file": "40-station-recovered.png",
+          "pairs_with": "station shows the recovered job (blank, stage 0)"
+        }
+      ],
+      "started": "2026-10-17T21:15:27.608Z",
+      "state_after_kill": "running",
+      "engine_summary": {
+        "validity": "VALID",
+        "stage": "FINAL_INCOMPLETE",
+        "inferred_stage": 0,
+        "summary": "REVIEW_REQUIRED"
+      },
+      "duration_s": 17.8
+    },
+    {
+      "id": "K11",
+      "title": "a duplicate drop is idempotent (SCAN_DUPLICATE, no new job)",
+      "status": "PASS",
+      "assertions": [
+        {
+          "what": "SCAN_DUPLICATE recorded",
+          "ok": true,
+          "value": null
+        },
+        {
+          "what": "no new job for the duplicate",
+          "ok": true,
+          "value": {
+            "nBefore": 4,
+            "nAfter": 4
+          }
+        },
+        {
+          "what": "inbox emptied",
+          "ok": true,
+          "value": []
+        }
+      ],
+      "screenshots": [],
+      "started": "2026-10-17T21:15:45.418Z",
+      "duration_s": 5.2
+    },
+    {
+      "id": "R1",
+      "title": "real dev part 10839000 (STEP + FULL scan)",
+      "status": "NOT_RUN",
+      "assertions": [],
+      "screenshots": [],
+      "started": "2026-10-17T21:15:50.632Z",
+      "detail": "custody: C11 is not authorized to read real CAD or scans (plan §9); run by an authorized chunk",
+      "duration_s": 0
+    },
+    {
+      "id": "Z1",
+      "title": "no page errors in the wizard or the station",
+      "status": "PASS",
+      "assertions": [
+        {
+          "what": "no uncaught page errors",
+          "ok": true,
+          "value": []
+        }
+      ],
+      "screenshots": [],
+      "started": "2026-10-17T21:15:50.633Z",
+      "page_errors": [],
+      "duration_s": 0
+    }
+  ]
+}

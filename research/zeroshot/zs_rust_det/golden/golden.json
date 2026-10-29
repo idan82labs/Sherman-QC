@@ -1,0 +1,85 @@
+{
+  "schema": "sherman.zs_rust.golden.v1",
+  "primitives": {
+    "libm": "dec048c48b49699e55f68416f6c84670bdc302b01224f79dc7b7800d2d68f282",
+    "fma_sqrt": "c4616e6600550d16576158f8ce32b1bc65635f14a4f84b8af2f9c54aaa073152",
+    "linalg": "5f13b4427b9c56e98bc034d22a079dfc4e5534174811e6c3f3430625437331b6",
+    "rng_repr": "812edf6ef5bceaf62cf08cae79320e1e672ed22975d4b3bd21f12e64d5073ec5",
+    "sha256": "e2a2a9b67b033446b4d7d6bcaeae4f702ea4a183bb404cd99c6005395f0ef9f8"
+  },
+  "meshes": {
+    "g1_channel.ply": "a62fe207eb9b860a0c951f24fbfea12639d1c8c8e2d969879f9b87c4f2db554c",
+    "g2_zprofile_rot.ply": "0ad5e5e5f4f71a10481c331e120191357a312bfbe067a1e295b1c9a5d724e628",
+    "g3_hat.ply": "a070877b1c572dec916f332fd5939912bd87d44ed02eba640682a490515e13a3",
+    "g4_channel_soup.stl": "5304c6ea11085bcc70ee9220835863c1a6d1c6fb25656eb769a22e0203b372a3"
+  },
+  "sets": {
+    "8b546ce3b20061132765c270c09233000f87554ec27c8a9ddf763305053a8b0f": {
+      "models": {
+        "zs": "0489df880e347b568a70456ed6cf7c0e665c03fb7e8618eda9369ec274b9144e",
+        "z3": "8dfbcfbfb6dfb85c0cf5916d76dc3e8854a1e25deceb083b218233bde539f65e"
+      },
+      "config_note": "zs_lane_v3 revision 2 as one Rust binary (zs_rust); models, thresholds, post-pro",
+      "budget": {
+        "max_faces": 3000000,
+        "rule": "a scan with more triangles than max_faces (file header) runs on a normal-aware quadric vertex-clustering of itself to at most max_faces faces (budget.py); within the budget the scan is used unchanged"
+      },
+      "cases": {
+        "g1_channel": {
+          "digest": "9565e16c37d0c93903ea443393cb1680cb2435ed5a7fa147e0f9c7efcbff802f",
+          "n_lines": 2
+        },
+        "g2_zprofile_rot": {
+          "digest": "e4920d600c91d7968e8c203f4f4da198cf7d5ed77b8fe0bfebb9e89bf6517e5e",
+          "n_lines": 2
+        },
+        "g3_hat": {
+          "digest": "141b705155a63e49f923095451dce8fd44ec62df3f001dd49c75e09aae80fe69",
+          "n_lines": 4
+        },
+        "g4_channel_soup": {
+          "digest": "33895cf17221ed4332772d33497afee680c76d8d10ee83399d7a34c68b14a35f",
+          "n_lines": 0
+        },
+        "g1_channel_budget": {
+          "digest": "13974f2f2f1fba63cc5d8a6baabd68fac5ad73784ab667566cabd143a28dbfe5",
+          "n_lines": 2
+        }
+      }
+    },
+    "b6839ea030df0834bfcfeddc8851ee20628d07fbc8b1e2fe512ec8d05f1657da": {
+      "models": {
+        "zs": "0489df880e347b568a70456ed6cf7c0e665c03fb7e8618eda9369ec274b9144e",
+        "z3": "8dfbcfbfb6dfb85c0cf5916d76dc3e8854a1e25deceb083b218233bde539f65e"
+      },
+      "config_note": "zs_lane_v3 revision 3 as one Rust binary (zs_rust); models, thresholds, post-pro",
+      "budget": {
+        "cell_mm": 0.3,
+        "max_faces": 3000000,
+        "rule": "a scan with more triangles than max_faces (file header) runs on a resampling of itself on a fixed absolute grid (cell cell_mm x 1.12^k, the smallest k whose output has at most max_faces faces): one QEF vertex per (cell, skin) from the scan's grid-line crossings, one quad per crossing (budget.py, revision 3); within the budget the scan is used unchanged"
+      },
+      "cases": {
+        "g1_channel": {
+          "digest": "9565e16c37d0c93903ea443393cb1680cb2435ed5a7fa147e0f9c7efcbff802f",
+          "n_lines": 2
+        },
+        "g2_zprofile_rot": {
+          "digest": "e4920d600c91d7968e8c203f4f4da198cf7d5ed77b8fe0bfebb9e89bf6517e5e",
+          "n_lines": 2
+        },
+        "g3_hat": {
+          "digest": "141b705155a63e49f923095451dce8fd44ec62df3f001dd49c75e09aae80fe69",
+          "n_lines": 4
+        },
+        "g4_channel_soup": {
+          "digest": "33895cf17221ed4332772d33497afee680c76d8d10ee83399d7a34c68b14a35f",
+          "n_lines": 0
+        },
+        "g1_channel_budget": {
+          "digest": "5f40c955db2dd2b5cac07eb687acfda7d3d54e34a28e9d8b39d42d8ff97c1a96",
+          "n_lines": 2
+        }
+      }
+    }
+  }
+}

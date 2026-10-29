@@ -1,0 +1,151 @@
+{
+  "schema": "EXP_CAD_0030_V3_INDEPENDENT_SOURCE_RUNNER_APPROVAL_V1",
+  "experiment_id": "EXP_CAD_0030",
+  "architecture": "CROSSFIT_PAIRWISE_DEFORMATION_GRAPH_V3_HARDENED",
+  "created_at_utc": "2026-08-30T11:19:09Z",
+  "reviewer": "CODEX_INDEPENDENT_AUDIT_AGENT_NTRC_V1_AUDIT",
+  "decision": "APPROVE_ONE_PHYSICAL_PRIMARY_REPLAY_EXECUTION",
+  "physical_source_execution_authorized": true,
+  "source_execution_authorized": true,
+  "orchestration_only": true,
+  "approval_consumption": "ONE_ORCHESTRATOR_INVOCATION_CONTAINING_EXACTLY_ONE_FRESH_PRIMARY_AND_ONE_FRESH_REPLAY_SOURCE_CHILD_PLUS_ONE_FRESH_RENDERER_CHILD_PER_TREE",
+  "rerun_or_rescue_authorized": false,
+  "physical_scan_opened_by_auditor": false,
+  "physical_scan_hash_call_count_by_auditor": 0,
+  "physical_scan_point_cloud_load_call_count_by_auditor": 0,
+  "physical_scan_byte_open_operation_count_by_auditor": 0,
+  "restricted_evaluator_role_label_gold_expected_count_filename_identity_quality_accessed": false,
+  "approval_scope": "Execute the exact EXP30 source-only opaque N009/N010 pair once through the bound fresh-process primary/replay orchestrator. The two source children may hash and load only the two preregistered scans after both approvals, both transforms, and all bound CAD artifacts validate. The renderer must operate only on each child payload. Full output trees must match byte-for-byte or the run terminates without retry.",
+  "bound_files": {
+    "preregistration": {
+      "path": "docs/research/2026-08-30_exp_cad_0030_cfpdg_v3_preregistration.json",
+      "sha256": "c9129ccc103d45c89ccdc67eef938b242ccdbb081d3d0f261145cc5a5b9b8368"
+    },
+    "cad_preflight": {
+      "path": "output/research/autoresearch-loop/exp-cad-0030-cfpdg-v3-cad-preflight-lock3/CAD_ONLY_PREFLIGHT.json",
+      "sha256": "e96daf9288f59a8d7f156981f6d13e9fd3204b344523d96bba587bbbd84c8f82"
+    },
+    "cad_only_audit_packet": {
+      "path": "docs/research/2026-08-30_exp_cad_0030_v3_cad_only_audit_packet.json",
+      "sha256": "6130ca0c68161b12210929ccd3f261613effcf481ad8587fb9fff7324abcb42a"
+    },
+    "nodes": {
+      "path": "output/research/autoresearch-loop/exp-cad-0030-cfpdg-v3-cad-preflight-lock3/CAD_GRAPH_NODES.npy",
+      "sha256": "575c19d404efd6733051d611dd46f123fbbee3117be13ef001514d658e2618b0"
+    },
+    "edges": {
+      "path": "output/research/autoresearch-loop/exp-cad-0030-cfpdg-v3-cad-preflight-lock3/CAD_GRAPH_EDGES.npy",
+      "sha256": "0bf773fc65af9152bb8491830f98faf2e14c10fe999e8e4bf81a3db687513e3d"
+    },
+    "edge_geodesic_mm": {
+      "path": "output/research/autoresearch-loop/exp-cad-0030-cfpdg-v3-cad-preflight-lock3/CAD_GRAPH_EDGE_GEODESIC_MM.npy",
+      "sha256": "92605624e786450ca260134555b6e71bbac56875e9e3e49b4aceac6d5e9de185"
+    },
+    "mesh": {
+      "path": "output/research/autoresearch-loop/exp-cad-0015-new-physical-intake-v1/cad_meshes/42637000_B.ply",
+      "sha256": "9e6571704780383e99b6fa4f2800fa69a50a3e187467698fe5dd7414d9d2a716"
+    },
+    "core": {
+      "path": "scripts/exp_cad_0029_cfpdg_core.py",
+      "sha256": "592787c80beeeafb79d04e645e34681daf470f580267e6df26c4801a2f385d3d"
+    },
+    "cad_only_runner": {
+      "path": "scripts/run_exp_cad_0029_cad_only_preflight.py",
+      "sha256": "d8fea33c787bd1cfc9b802367d32f601bb98367f81c93cc04d72ba21e9a38c9c"
+    },
+    "cad_only_wrapper": {
+      "path": "scripts/run_exp_cad_0030_cad_only_preflight.py",
+      "sha256": "d73d37895d15dcaaefaf3132755943ae3b9c0a0c694ebe99d7e89ae3361ea6c9"
+    },
+    "cad_only_tests": {
+      "path": "tests/test_exp_cad_0029_cfpdg_preflight.py",
+      "sha256": "da049654a2ccfa9373e968e5191c3e74526d87b8a2f333e926f2176bb5ecaacd",
+      "independent_result": "9 passed"
+    },
+    "cad_identity_tests": {
+      "path": "tests/test_exp_cad_0030_cfpdg_cad_identity.py",
+      "sha256": "89b9839620212aace69e17e77bd69d719959f6df1b314e16f31a5a9c12d36aac",
+      "independent_result": "3 passed"
+    },
+    "cad_approval": {
+      "path": "docs/research/2026-08-30_exp_cad_0030_v3_independent_cad_only_approval.json",
+      "sha256": "5721370b6bcb585c5dc9309aa561bd09f020b7f16eac8affefa4452c5e113d31"
+    },
+    "source_module": {
+      "path": "scripts/exp_cad_0029_cfpdg_source.py",
+      "sha256": "a620567c3d2ff5aab48f30a7fac8b2bbf95e75d74660cf22b98ba5063a6dcb68"
+    },
+    "source_runner": {
+      "path": "scripts/run_exp_cad_0030_cfpdg_source.py",
+      "sha256": "51d8574fa874b35c679c22b6d6ca06e20ba7e081565bfd0c1579f5028cd6e0f3"
+    },
+    "source_runner_base": {
+      "path": "scripts/run_exp_cad_0029_cfpdg_source.py",
+      "sha256": "149b1a256ca7a3c78d61727c463741b52194e1b099668d7afbacb97999c48adf"
+    },
+    "source_tests": {
+      "path": "tests/test_exp_cad_0029_cfpdg_source_semantics.py",
+      "sha256": "2a02fa1fa99d297e8ee755565cc9eaa651977904b08994b84f2761a3454bd999"
+    },
+    "renderer": {
+      "path": "scripts/render_exp_cad_0030_cfpdg_native.py",
+      "sha256": "94ae9d1a75d4c3b353d5ed8046bf0e51d291304674db71b24a5b74bb3b642603"
+    },
+    "renderer_tests": {
+      "path": "tests/test_exp_cad_0030_cfpdg_native_renderer.py",
+      "sha256": "6619366e6ba3dca87b72576d8ebe87673a46619ae1b9bc0dd1e7c5fca2dbbd06"
+    },
+    "orchestration": {
+      "path": "scripts/orchestrate_exp_cad_0030_cfpdg_primary_replay.py",
+      "sha256": "14b85eb0e3a38816440c1b03ce0df1624b4eeb071d61bee753b492373d690137"
+    },
+    "orchestration_tests": {
+      "path": "tests/test_exp_cad_0030_cfpdg_orchestration.py",
+      "sha256": "9e1e976ddaa03c7c337628ba96a297b7abf8c8c85a5cc58fd43ae449f0dd155d"
+    }
+  },
+  "independent_source_free_verification": {
+    "combined_test_result": "63 passed",
+    "combined_test_elapsed_seconds": 12.73,
+    "cad_primary_replay_fresh_process_count": 2,
+    "cad_primary_replay_full_tree_byte_exact": true,
+    "renderer_primary_replay_fresh_process_count": 2,
+    "renderer_primary_replay_full_tree_byte_exact": true,
+    "renderer_full_tree_regular_file_count": 9,
+    "native_resolution_manual_review_complete": true,
+    "native_resolution_review_verdict": "PASS_SOURCE_FREE_SYNTHETIC_VISUAL_CONTRACT",
+    "passed_but_changed_row_local_pack_present_and_truthful": true,
+    "zero_component_global_diagnostic_present": true,
+    "pre_scan_order_verified": "APPROVALS_THEN_TRANSFORMS_THEN_CAD_ARTIFACT_LOAD_THEN_FIRST_SCAN_HASH",
+    "member_swap_null_winner_rejected": true,
+    "member_swap_energy_exchange_and_slot_antisymmetry_verified": true,
+    "exp29_shaped_cad_preflight_rejected": true,
+    "passed_but_changed_visual_evidence_verified": true,
+    "semantic_result_excludes_all_visual_only_variant_component_and_support_fields": true,
+    "real_cad_scale_semantic_separation_regression_passed": true,
+    "source_result_visual_payload_deterministic": true
+  },
+  "source_free_native_asset_hashes": {
+    "global_paired_diagnostic.png": "847313839480e62a9a7a4118bfb3ae9fbae6f2f15514ec15655f7380a56b413d",
+    "component_C0000.png": "d7d1494140f733f84bbbf379fb9f29546e7e3cdf168106b55d3842177b7f4dbb",
+    "component_V_R01_C0000.png": "8e772d9d9191912bc2d110065ad33a4386e005e6439179b4a4bc97142789cc6b",
+    "component_V_R07_C0000.png": "44d0e182657a6e279cc71b6f9f6dce631999aa25ea13c852fa25bb2c44a4ae0b",
+    "component_V_R08_VANISHED_C0000.png": "913fa21110192b4aa3b514851cfd3f5bc2b061c90220d694f38666e65caa85fe",
+    "node_000000.png": "ff4c0304bb320f0460f679a97c0768c50dc0888bc06d69a2378ff1351bfea900",
+    "node_000001.png": "0047cf3438d1ef42486ad387e055e6e47e506beec43f2e87f25e00ae1e17bda6",
+    "node_000002.png": "d1724ea8859f25780311c5031dcb51c3e8ed223a4b5ae8c2c6c9866462cbab32",
+    "native_visual_manifest.json": "4bcc4518922516bd94734c53bf8ca7bb35a6f066d585bbb4561ee2b6abd3c5f1"
+  },
+  "required_terminal_interpretation": {
+    "source_only_opaque_pair_diagnostic": true,
+    "generalization_evidence": false,
+    "bend_line_f1_authorized": false,
+    "production_tolerance_decision": false,
+    "runtime_or_production_promotion_authorized": false,
+    "evaluator_roles_remain_sealed_after_execution": true,
+    "failure_is_terminal_without_retry_or_threshold_rescue": true
+  },
+  "generalization_evidence": false,
+  "bend_line_f1_authorized": false,
+  "production_promotion_authorized": false
+}

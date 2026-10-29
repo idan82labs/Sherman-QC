@@ -1,0 +1,161 @@
+{
+  "schema": "sherman.broad_baseline.run_record.v1",
+  "lane": "best_f1",
+  "status": "A0_ONLY_NO_CAD",
+  "line_count": 5,
+  "scan": {
+    "source": "/private/tmp/claude-501/-Users-idantal/db065cf7-f766-4885-b217-ed8d7edd7ade/scratchpad/d1/mid_ply/mid_sc_752e2bd54aad.ply",
+    "sha256": "51801bfbe4ff912eec1cb39f52777ff80820b1953aec80ea052be4e92982950a",
+    "staged": "/private/tmp/claude-501/-Users-idantal/db065cf7-f766-4885-b217-ed8d7edd7ade/scratchpad/d1/a0mid/work/mid/sc_752e2bd54aad/staged/scan_51801bfbe4ff.ply"
+  },
+  "cad": null,
+  "opaque_token": "BB51801bfbe4ff",
+  "work_dir": "/private/tmp/claude-501/-Users-idantal/db065cf7-f766-4885-b217-ed8d7edd7ade/scratchpad/d1/a0mid/work/mid/sc_752e2bd54aad",
+  "lane_wall_s": 596.3,
+  "lane_excluded_wait_s": 0.1,
+  "heavy_step_wall_s": 595.755,
+  "peak_rss_bytes": 1695563776,
+  "limits": {
+    "step_timeout_s": 600.0,
+    "lane_timeout_s": 600.0,
+    "rss_limit_gib": 12.0
+  },
+  "steps": [
+    {
+      "name": "stage",
+      "status": "OK",
+      "scan": "/private/tmp/claude-501/-Users-idantal/db065cf7-f766-4885-b217-ed8d7edd7ade/scratchpad/d1/a0mid/work/mid/sc_752e2bd54aad/staged/scan_51801bfbe4ff.ply",
+      "cad": null,
+      "opaque": true
+    },
+    {
+      "name": "a0_decompose",
+      "command": [
+        "/Users/idantal/ShermanQC/FullProject/.venv/bin/python",
+        "-B",
+        "/Users/idantal/ShermanQC/FullProject/research/broad_baseline/bb_steps.py",
+        "decompose",
+        "--scan",
+        "/private/tmp/claude-501/-Users-idantal/db065cf7-f766-4885-b217-ed8d7edd7ade/scratchpad/d1/a0mid/work/mid/sc_752e2bd54aad/staged/scan_51801bfbe4ff.ply",
+        "--out-json",
+        "/private/tmp/claude-501/-Users-idantal/db065cf7-f766-4885-b217-ed8d7edd7ade/scratchpad/d1/a0mid/work/mid/sc_752e2bd54aad/a0/BB51801bfbe4ff/result/decomposition_result.json",
+        "--cache-dir",
+        "/private/tmp/claude-501/-Users-idantal/db065cf7-f766-4885-b217-ed8d7edd7ade/scratchpad/d1/a0mid/work/mid/sc_752e2bd54aad/a0_cache"
+      ],
+      "returncode": 0,
+      "timed_out": false,
+      "timeout_s": 599.9469190419186,
+      "wall_s": 103.545,
+      "time_real_s": 103.49,
+      "time_user_s": 103.1,
+      "time_sys_s": 0.43,
+      "time_max_rss_bytes": 486473728,
+      "sampled_peak_group_rss_bytes": 416153600,
+      "stdout_log": "/private/tmp/claude-501/-Users-idantal/db065cf7-f766-4885-b217-ed8d7edd7ade/scratchpad/d1/a0mid/mid/sc_752e2bd54aad/logs/a0_decompose.stdout.log",
+      "stderr_log": "/private/tmp/claude-501/-Users-idantal/db065cf7-f766-4885-b217-ed8d7edd7ade/scratchpad/d1/a0mid/mid/sc_752e2bd54aad/logs/a0_decompose.stderr.log",
+      "python_rss_gib_at_start": 2.926,
+      "rss_waits": 0,
+      "rss_wait_s": 0.0,
+      "rss_limit_gib": 12.0,
+      "status": "OK",
+      "pre_step_rss_gate": {
+        "python_rss_gib_at_start": 2.926,
+        "rss_waits": 0,
+        "rss_wait_s": 0.0,
+        "rss_limit_gib": 12.0
+      },
+      "lane_excluded_wait_s_so_far": 0.0
+    },
+    {
+      "name": "a0_pool",
+      "command": [
+        "/Users/idantal/ShermanQC/FullProject/.venv/bin/python",
+        "-B",
+        "/Users/idantal/ShermanQC/FullProject/research/broad_baseline/bb_steps.py",
+        "pool",
+        "--decomposition-root",
+        "/private/tmp/claude-501/-Users-idantal/db065cf7-f766-4885-b217-ed8d7edd7ade/scratchpad/d1/a0mid/work/mid/sc_752e2bd54aad/a0",
+        "--token",
+        "BB51801bfbe4ff",
+        "--source-scan",
+        "/private/tmp/claude-501/-Users-idantal/db065cf7-f766-4885-b217-ed8d7edd7ade/scratchpad/d1/a0mid/work/mid/sc_752e2bd54aad/staged/scan_51801bfbe4ff.ply",
+        "--source-sha",
+        "51801bfbe4ff912eec1cb39f52777ff80820b1953aec80ea052be4e92982950a",
+        "--out-dir",
+        "/private/tmp/claude-501/-Users-idantal/db065cf7-f766-4885-b217-ed8d7edd7ade/scratchpad/d1/a0mid/work/mid/sc_752e2bd54aad/pool",
+        "--voxel-mm",
+        "1.8"
+      ],
+      "returncode": 0,
+      "timed_out": false,
+      "timeout_s": 496.1312202506233,
+      "wall_s": 56.209,
+      "time_real_s": 56.2,
+      "time_user_s": 55.93,
+      "time_sys_s": 0.29,
+      "time_max_rss_bytes": 719831040,
+      "sampled_peak_group_rss_bytes": 721141760,
+      "stdout_log": "/private/tmp/claude-501/-Users-idantal/db065cf7-f766-4885-b217-ed8d7edd7ade/scratchpad/d1/a0mid/mid/sc_752e2bd54aad/logs/a0_pool.stdout.log",
+      "stderr_log": "/private/tmp/claude-501/-Users-idantal/db065cf7-f766-4885-b217-ed8d7edd7ade/scratchpad/d1/a0mid/mid/sc_752e2bd54aad/logs/a0_pool.stderr.log",
+      "python_rss_gib_at_start": 3.788,
+      "rss_waits": 0,
+      "rss_wait_s": 0.0,
+      "rss_limit_gib": 12.0,
+      "status": "OK",
+      "pre_step_rss_gate": {
+        "python_rss_gib_at_start": 3.788,
+        "rss_waits": 0,
+        "rss_wait_s": 0.0,
+        "rss_limit_gib": 12.0
+      },
+      "lane_excluded_wait_s_so_far": 0.1
+    },
+    {
+      "name": "a0_typed_union",
+      "command": [
+        "/Users/idantal/ShermanQC/FullProject/.venv/bin/python",
+        "-B",
+        "/Users/idantal/ShermanQC/FullProject/scripts/run_f1_structured_union_e2e.py",
+        "--candidate-pool",
+        "/private/tmp/claude-501/-Users-idantal/db065cf7-f766-4885-b217-ed8d7edd7ade/scratchpad/d1/a0mid/work/mid/sc_752e2bd54aad/pool/BB51801bfbe4ff.json",
+        "--output-dir",
+        "/private/tmp/claude-501/-Users-idantal/db065cf7-f766-4885-b217-ed8d7edd7ade/scratchpad/d1/a0mid/work/mid/sc_752e2bd54aad/a0_union",
+        "--disable-birth",
+        "--solver-python",
+        "/Users/idantal/ShermanQC/FullProject/.venv-f1-structured/bin/python"
+      ],
+      "returncode": 0,
+      "timed_out": false,
+      "timeout_s": 439.8804250836838,
+      "wall_s": 436.001,
+      "time_real_s": 435.95,
+      "time_user_s": 434.47,
+      "time_sys_s": 1.36,
+      "time_max_rss_bytes": 1553448960,
+      "sampled_peak_group_rss_bytes": 1695563776,
+      "stdout_log": "/private/tmp/claude-501/-Users-idantal/db065cf7-f766-4885-b217-ed8d7edd7ade/scratchpad/d1/a0mid/mid/sc_752e2bd54aad/logs/a0_typed_union.stdout.log",
+      "stderr_log": "/private/tmp/claude-501/-Users-idantal/db065cf7-f766-4885-b217-ed8d7edd7ade/scratchpad/d1/a0mid/mid/sc_752e2bd54aad/logs/a0_typed_union.stderr.log",
+      "python_rss_gib_at_start": 2.707,
+      "rss_waits": 0,
+      "rss_wait_s": 0.0,
+      "rss_limit_gib": 12.0,
+      "status": "OK",
+      "pre_step_rss_gate": {
+        "python_rss_gib_at_start": 2.707,
+        "rss_waits": 0,
+        "rss_wait_s": 0.0,
+        "rss_limit_gib": 12.0
+      },
+      "lane_excluded_wait_s_so_far": 0.1
+    }
+  ],
+  "environment": {
+    "python": "3.11.15",
+    "platform": "macOS-26.5-arm64-arm-64bit",
+    "app_python": "/Users/idantal/ShermanQC/FullProject/.venv/bin/python",
+    "solver_python": "/Users/idantal/ShermanQC/FullProject/.venv-f1-structured/bin/python"
+  },
+  "lock": "/private/tmp/claude-501/-Users-idantal/db065cf7-f766-4885-b217-ed8d7edd7ade/scratchpad/d1/a0mid/locks/mid_sc_752e2bd54aad.lock",
+  "lock_wait_s": 0.0,
+  "finished_at": "2026-10-25T01:04:00Z"
+}

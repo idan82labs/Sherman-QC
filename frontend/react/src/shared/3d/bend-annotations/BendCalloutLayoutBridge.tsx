@@ -133,7 +133,7 @@ export function BendCalloutLayoutBridge({
         boxY: 0,
       }))
       return distributeRailCards(preferred, minTop, maxBottom, cardGap)
-        .map(({ preferredTop, ...item }) => item)
+        .map(({ preferredTop: _preferredTop, ...item }) => item)
     }
 
     const callouts = [...layoutSide(rails.left, 'left'), ...layoutSide(rails.right, 'right')]

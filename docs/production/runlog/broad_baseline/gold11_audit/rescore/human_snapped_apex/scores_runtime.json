@@ -1,0 +1,2762 @@
+{
+  "schema": "sherman.broad_baseline.broad_scores.v1",
+  "title": "broad runtime:predictions_runtime.json",
+  "created_at": "2026-10-17T19:25:22Z",
+  "lane": "runtime",
+  "prediction_file": "predictions_runtime.json",
+  "case_list": {
+    "path": "docs/production/runlog/broad_baseline/gold11_audit/truth/case_list_gold11__human_snapped_apex.json",
+    "file_sha256": "fe9641fe71342e6c0a7a42e2671522516a1a78014c7e9f5355c7f4f191b04582",
+    "case_list_sha256": "c1e72769fef0cf096c48167c4a1b61a3db9909e4dca836384a6965572308d758",
+    "cases": 11
+  },
+  "frame_records": {
+    "path": "docs/production/runlog/broad_baseline/broad_frame_records.json",
+    "sha256": "906f5ae2685b6a558fb59209dc9ed67743ce8623f75eea5b4f52ae441827b7a6"
+  },
+  "matcher": {
+    "source": "scripts/evaluate_f1_against_manual_gold.match_lines (via score.score_case)",
+    "axis_angle_deg": 5.0,
+    "transverse_offset_mm": 4.0,
+    "gold_span_overlap": 0.6,
+    "prediction_span_overlap": 0.6,
+    "assignment": "one_to_one_minimum_cost Hungarian",
+    "frame": "scan_raw"
+  },
+  "conventions": {
+    "micro": "summed TP/FP/FN over complete-label line scans",
+    "macro": "mean of per-scan precision/recall/F1 (scan with no predictions -> P=R=F1=0)",
+    "family_macro_f1": "mean over families of family-micro F1",
+    "zero_bend_controls": "not in line-F1; every predicted line counted as a false positive",
+    "diagnostic_causes": "nearest-counterpart classification; NOT the metric",
+    "gold_tiers": "GOLD11 (owner-verified except C05/C06 Codex multiview), GOLD_LINES_HUMAN_NON_GOLD11 (owner-verified), AI_GOLD_ACCEPTED (agent-adjudicated)"
+  },
+  "cohorts": {
+    "ALL": {
+      "scans": 11,
+      "families": 6,
+      "gold_lines": 71,
+      "predicted_lines": 10,
+      "true_positive": 6,
+      "false_positive": 4,
+      "false_negative": 65,
+      "micro_precision": 0.6,
+      "micro_recall": 0.084507,
+      "micro_f1": 0.1481481481,
+      "macro_precision": 0.2667,
+      "macro_recall": 0.1053,
+      "macro_f1": 0.1389,
+      "family_macro_f1": 0.2213,
+      "exact_scans": 0,
+      "scans_with_f1_ge_0_8": 0,
+      "scans_with_zero_tp": 7,
+      "scans_with_no_predictions": 7,
+      "angle_mae_deg_matched": 0.4641,
+      "position_error_mean_mm_matched": 1.1087,
+      "position_error_median_mm_matched": 0.9962,
+      "fn_cause_counts_diagnostic": {
+        "MISSED": 62,
+        "OFFSET_GT_4MM": 3
+      },
+      "fp_cause_counts_diagnostic": {
+        "OFFSET_GT_4MM": 3,
+        "SPURIOUS": 1
+      },
+      "lane_status_counts": {
+        "OK": 4,
+        "NO_PREDICTIONS": 4,
+        "LANE_FAILED": 3
+      },
+      "partial_label_recall_only": {
+        "scans": 0,
+        "true_positive": 0,
+        "gold_lines": 0
+      },
+      "zero_bend_controls": {
+        "scans": 0,
+        "false_positive_lines": 0,
+        "scans_with_false_positive": []
+      }
+    },
+    "ALL_EXCL_LIDAR_DEMO": {
+      "scans": 11,
+      "families": 6,
+      "gold_lines": 71,
+      "predicted_lines": 10,
+      "true_positive": 6,
+      "false_positive": 4,
+      "false_negative": 65,
+      "micro_precision": 0.6,
+      "micro_recall": 0.084507,
+      "micro_f1": 0.1481481481,
+      "macro_precision": 0.2667,
+      "macro_recall": 0.1053,
+      "macro_f1": 0.1389,
+      "family_macro_f1": 0.2213,
+      "exact_scans": 0,
+      "scans_with_f1_ge_0_8": 0,
+      "scans_with_zero_tp": 7,
+      "scans_with_no_predictions": 7,
+      "angle_mae_deg_matched": 0.4641,
+      "position_error_mean_mm_matched": 1.1087,
+      "position_error_median_mm_matched": 0.9962,
+      "fn_cause_counts_diagnostic": {
+        "MISSED": 62,
+        "OFFSET_GT_4MM": 3
+      },
+      "fp_cause_counts_diagnostic": {
+        "OFFSET_GT_4MM": 3,
+        "SPURIOUS": 1
+      },
+      "lane_status_counts": {
+        "OK": 4,
+        "NO_PREDICTIONS": 4,
+        "LANE_FAILED": 3
+      },
+      "partial_label_recall_only": {
+        "scans": 0,
+        "true_positive": 0,
+        "gold_lines": 0
+      },
+      "zero_bend_controls": {
+        "scans": 0,
+        "false_positive_lines": 0,
+        "scans_with_false_positive": []
+      }
+    },
+    "GOLD11": {
+      "scans": 11,
+      "families": 6,
+      "gold_lines": 71,
+      "predicted_lines": 10,
+      "true_positive": 6,
+      "false_positive": 4,
+      "false_negative": 65,
+      "micro_precision": 0.6,
+      "micro_recall": 0.084507,
+      "micro_f1": 0.1481481481,
+      "macro_precision": 0.2667,
+      "macro_recall": 0.1053,
+      "macro_f1": 0.1389,
+      "family_macro_f1": 0.2213,
+      "exact_scans": 0,
+      "scans_with_f1_ge_0_8": 0,
+      "scans_with_zero_tp": 7,
+      "scans_with_no_predictions": 7,
+      "angle_mae_deg_matched": 0.4641,
+      "position_error_mean_mm_matched": 1.1087,
+      "position_error_median_mm_matched": 0.9962,
+      "fn_cause_counts_diagnostic": {
+        "MISSED": 62,
+        "OFFSET_GT_4MM": 3
+      },
+      "fp_cause_counts_diagnostic": {
+        "OFFSET_GT_4MM": 3,
+        "SPURIOUS": 1
+      },
+      "lane_status_counts": {
+        "OK": 4,
+        "NO_PREDICTIONS": 4,
+        "LANE_FAILED": 3
+      },
+      "partial_label_recall_only": {
+        "scans": 0,
+        "true_positive": 0,
+        "gold_lines": 0
+      },
+      "zero_bend_controls": {
+        "scans": 0,
+        "false_positive_lines": 0,
+        "scans_with_false_positive": []
+      }
+    },
+    "NON_GOLD11": {
+      "scans": 0,
+      "families": 0,
+      "gold_lines": 0,
+      "predicted_lines": 0,
+      "true_positive": 0,
+      "false_positive": 0,
+      "false_negative": 0,
+      "micro_precision": 0.0,
+      "micro_recall": 0.0,
+      "micro_f1": 0.0,
+      "macro_precision": null,
+      "macro_recall": null,
+      "macro_f1": null,
+      "family_macro_f1": null,
+      "exact_scans": 0,
+      "scans_with_f1_ge_0_8": 0,
+      "scans_with_zero_tp": 0,
+      "scans_with_no_predictions": 0,
+      "angle_mae_deg_matched": null,
+      "position_error_mean_mm_matched": null,
+      "position_error_median_mm_matched": null,
+      "fn_cause_counts_diagnostic": {},
+      "fp_cause_counts_diagnostic": {},
+      "lane_status_counts": {},
+      "partial_label_recall_only": {
+        "scans": 0,
+        "true_positive": 0,
+        "gold_lines": 0
+      },
+      "zero_bend_controls": {
+        "scans": 0,
+        "false_positive_lines": 0,
+        "scans_with_false_positive": []
+      }
+    },
+    "NON_GOLD11_EXCL_LIDAR_DEMO": {
+      "scans": 0,
+      "families": 0,
+      "gold_lines": 0,
+      "predicted_lines": 0,
+      "true_positive": 0,
+      "false_positive": 0,
+      "false_negative": 0,
+      "micro_precision": 0.0,
+      "micro_recall": 0.0,
+      "micro_f1": 0.0,
+      "macro_precision": null,
+      "macro_recall": null,
+      "macro_f1": null,
+      "family_macro_f1": null,
+      "exact_scans": 0,
+      "scans_with_f1_ge_0_8": 0,
+      "scans_with_zero_tp": 0,
+      "scans_with_no_predictions": 0,
+      "angle_mae_deg_matched": null,
+      "position_error_mean_mm_matched": null,
+      "position_error_median_mm_matched": null,
+      "fn_cause_counts_diagnostic": {},
+      "fp_cause_counts_diagnostic": {},
+      "lane_status_counts": {},
+      "partial_label_recall_only": {
+        "scans": 0,
+        "true_positive": 0,
+        "gold_lines": 0
+      },
+      "zero_bend_controls": {
+        "scans": 0,
+        "false_positive_lines": 0,
+        "scans_with_false_positive": []
+      }
+    },
+    "HUMAN_GOLD_ALL": {
+      "scans": 11,
+      "families": 6,
+      "gold_lines": 71,
+      "predicted_lines": 10,
+      "true_positive": 6,
+      "false_positive": 4,
+      "false_negative": 65,
+      "micro_precision": 0.6,
+      "micro_recall": 0.084507,
+      "micro_f1": 0.1481481481,
+      "macro_precision": 0.2667,
+      "macro_recall": 0.1053,
+      "macro_f1": 0.1389,
+      "family_macro_f1": 0.2213,
+      "exact_scans": 0,
+      "scans_with_f1_ge_0_8": 0,
+      "scans_with_zero_tp": 7,
+      "scans_with_no_predictions": 7,
+      "angle_mae_deg_matched": 0.4641,
+      "position_error_mean_mm_matched": 1.1087,
+      "position_error_median_mm_matched": 0.9962,
+      "fn_cause_counts_diagnostic": {
+        "MISSED": 62,
+        "OFFSET_GT_4MM": 3
+      },
+      "fp_cause_counts_diagnostic": {
+        "OFFSET_GT_4MM": 3,
+        "SPURIOUS": 1
+      },
+      "lane_status_counts": {
+        "OK": 4,
+        "NO_PREDICTIONS": 4,
+        "LANE_FAILED": 3
+      },
+      "partial_label_recall_only": {
+        "scans": 0,
+        "true_positive": 0,
+        "gold_lines": 0
+      },
+      "zero_bend_controls": {
+        "scans": 0,
+        "false_positive_lines": 0,
+        "scans_with_false_positive": []
+      }
+    },
+    "HUMAN_GOLD_NON_GOLD11": {
+      "scans": 0,
+      "families": 0,
+      "gold_lines": 0,
+      "predicted_lines": 0,
+      "true_positive": 0,
+      "false_positive": 0,
+      "false_negative": 0,
+      "micro_precision": 0.0,
+      "micro_recall": 0.0,
+      "micro_f1": 0.0,
+      "macro_precision": null,
+      "macro_recall": null,
+      "macro_f1": null,
+      "family_macro_f1": null,
+      "exact_scans": 0,
+      "scans_with_f1_ge_0_8": 0,
+      "scans_with_zero_tp": 0,
+      "scans_with_no_predictions": 0,
+      "angle_mae_deg_matched": null,
+      "position_error_mean_mm_matched": null,
+      "position_error_median_mm_matched": null,
+      "fn_cause_counts_diagnostic": {},
+      "fp_cause_counts_diagnostic": {},
+      "lane_status_counts": {},
+      "partial_label_recall_only": {
+        "scans": 0,
+        "true_positive": 0,
+        "gold_lines": 0
+      },
+      "zero_bend_controls": {
+        "scans": 0,
+        "false_positive_lines": 0,
+        "scans_with_false_positive": []
+      }
+    },
+    "AI_GOLD": {
+      "scans": 0,
+      "families": 0,
+      "gold_lines": 0,
+      "predicted_lines": 0,
+      "true_positive": 0,
+      "false_positive": 0,
+      "false_negative": 0,
+      "micro_precision": 0.0,
+      "micro_recall": 0.0,
+      "micro_f1": 0.0,
+      "macro_precision": null,
+      "macro_recall": null,
+      "macro_f1": null,
+      "family_macro_f1": null,
+      "exact_scans": 0,
+      "scans_with_f1_ge_0_8": 0,
+      "scans_with_zero_tp": 0,
+      "scans_with_no_predictions": 0,
+      "angle_mae_deg_matched": null,
+      "position_error_mean_mm_matched": null,
+      "position_error_median_mm_matched": null,
+      "fn_cause_counts_diagnostic": {},
+      "fp_cause_counts_diagnostic": {},
+      "lane_status_counts": {},
+      "partial_label_recall_only": {
+        "scans": 0,
+        "true_positive": 0,
+        "gold_lines": 0
+      },
+      "zero_bend_controls": {
+        "scans": 0,
+        "false_positive_lines": 0,
+        "scans_with_false_positive": []
+      }
+    },
+    "AI_GOLD_EXCL_LIDAR_DEMO": {
+      "scans": 0,
+      "families": 0,
+      "gold_lines": 0,
+      "predicted_lines": 0,
+      "true_positive": 0,
+      "false_positive": 0,
+      "false_negative": 0,
+      "micro_precision": 0.0,
+      "micro_recall": 0.0,
+      "micro_f1": 0.0,
+      "macro_precision": null,
+      "macro_recall": null,
+      "macro_f1": null,
+      "family_macro_f1": null,
+      "exact_scans": 0,
+      "scans_with_f1_ge_0_8": 0,
+      "scans_with_zero_tp": 0,
+      "scans_with_no_predictions": 0,
+      "angle_mae_deg_matched": null,
+      "position_error_mean_mm_matched": null,
+      "position_error_median_mm_matched": null,
+      "fn_cause_counts_diagnostic": {},
+      "fp_cause_counts_diagnostic": {},
+      "lane_status_counts": {},
+      "partial_label_recall_only": {
+        "scans": 0,
+        "true_positive": 0,
+        "gold_lines": 0
+      },
+      "zero_bend_controls": {
+        "scans": 0,
+        "false_positive_lines": 0,
+        "scans_with_false_positive": []
+      }
+    },
+    "LIDAR_DEMO_SYNTHETIC": {
+      "scans": 0,
+      "families": 0,
+      "gold_lines": 0,
+      "predicted_lines": 0,
+      "true_positive": 0,
+      "false_positive": 0,
+      "false_negative": 0,
+      "micro_precision": 0.0,
+      "micro_recall": 0.0,
+      "micro_f1": 0.0,
+      "macro_precision": null,
+      "macro_recall": null,
+      "macro_f1": null,
+      "family_macro_f1": null,
+      "exact_scans": 0,
+      "scans_with_f1_ge_0_8": 0,
+      "scans_with_zero_tp": 0,
+      "scans_with_no_predictions": 0,
+      "angle_mae_deg_matched": null,
+      "position_error_mean_mm_matched": null,
+      "position_error_median_mm_matched": null,
+      "fn_cause_counts_diagnostic": {},
+      "fp_cause_counts_diagnostic": {},
+      "lane_status_counts": {},
+      "partial_label_recall_only": {
+        "scans": 0,
+        "true_positive": 0,
+        "gold_lines": 0
+      },
+      "zero_bend_controls": {
+        "scans": 0,
+        "false_positive_lines": 0,
+        "scans_with_false_positive": []
+      }
+    },
+    "FULL_SCANS": {
+      "scans": 5,
+      "families": 4,
+      "gold_lines": 35,
+      "predicted_lines": 9,
+      "true_positive": 5,
+      "false_positive": 4,
+      "false_negative": 30,
+      "micro_precision": 0.555556,
+      "micro_recall": 0.142857,
+      "micro_f1": 0.2272727273,
+      "macro_precision": 0.3867,
+      "macro_recall": 0.1917,
+      "macro_f1": 0.239,
+      "family_macro_f1": 0.2987,
+      "exact_scans": 0,
+      "scans_with_f1_ge_0_8": 0,
+      "scans_with_zero_tp": 2,
+      "scans_with_no_predictions": 2,
+      "angle_mae_deg_matched": 0.5041,
+      "position_error_mean_mm_matched": 1.1137,
+      "position_error_median_mm_matched": 0.9086,
+      "fn_cause_counts_diagnostic": {
+        "MISSED": 27,
+        "OFFSET_GT_4MM": 3
+      },
+      "fp_cause_counts_diagnostic": {
+        "OFFSET_GT_4MM": 3,
+        "SPURIOUS": 1
+      },
+      "lane_status_counts": {
+        "OK": 3,
+        "NO_PREDICTIONS": 2
+      },
+      "partial_label_recall_only": {
+        "scans": 0,
+        "true_positive": 0,
+        "gold_lines": 0
+      },
+      "zero_bend_controls": {
+        "scans": 0,
+        "false_positive_lines": 0,
+        "scans_with_false_positive": []
+      }
+    },
+    "STAGED_SCANS": {
+      "scans": 6,
+      "families": 4,
+      "gold_lines": 36,
+      "predicted_lines": 1,
+      "true_positive": 1,
+      "false_positive": 0,
+      "false_negative": 35,
+      "micro_precision": 1.0,
+      "micro_recall": 0.027778,
+      "micro_f1": 0.0540540541,
+      "macro_precision": 0.1667,
+      "macro_recall": 0.0333,
+      "macro_f1": 0.0556,
+      "family_macro_f1": 0.0833,
+      "exact_scans": 0,
+      "scans_with_f1_ge_0_8": 0,
+      "scans_with_zero_tp": 5,
+      "scans_with_no_predictions": 5,
+      "angle_mae_deg_matched": 0.2641,
+      "position_error_mean_mm_matched": 1.0837,
+      "position_error_median_mm_matched": 1.0837,
+      "fn_cause_counts_diagnostic": {
+        "MISSED": 35
+      },
+      "fp_cause_counts_diagnostic": {},
+      "lane_status_counts": {
+        "LANE_FAILED": 3,
+        "NO_PREDICTIONS": 2,
+        "OK": 1
+      },
+      "partial_label_recall_only": {
+        "scans": 0,
+        "true_positive": 0,
+        "gold_lines": 0
+      },
+      "zero_bend_controls": {
+        "scans": 0,
+        "false_positive_lines": 0,
+        "scans_with_false_positive": []
+      }
+    },
+    "FULL_SCANS_EXCL_LIDAR_DEMO": {
+      "scans": 5,
+      "families": 4,
+      "gold_lines": 35,
+      "predicted_lines": 9,
+      "true_positive": 5,
+      "false_positive": 4,
+      "false_negative": 30,
+      "micro_precision": 0.555556,
+      "micro_recall": 0.142857,
+      "micro_f1": 0.2272727273,
+      "macro_precision": 0.3867,
+      "macro_recall": 0.1917,
+      "macro_f1": 0.239,
+      "family_macro_f1": 0.2987,
+      "exact_scans": 0,
+      "scans_with_f1_ge_0_8": 0,
+      "scans_with_zero_tp": 2,
+      "scans_with_no_predictions": 2,
+      "angle_mae_deg_matched": 0.5041,
+      "position_error_mean_mm_matched": 1.1137,
+      "position_error_median_mm_matched": 0.9086,
+      "fn_cause_counts_diagnostic": {
+        "MISSED": 27,
+        "OFFSET_GT_4MM": 3
+      },
+      "fp_cause_counts_diagnostic": {
+        "OFFSET_GT_4MM": 3,
+        "SPURIOUS": 1
+      },
+      "lane_status_counts": {
+        "OK": 3,
+        "NO_PREDICTIONS": 2
+      },
+      "partial_label_recall_only": {
+        "scans": 0,
+        "true_positive": 0,
+        "gold_lines": 0
+      },
+      "zero_bend_controls": {
+        "scans": 0,
+        "false_positive_lines": 0,
+        "scans_with_false_positive": []
+      }
+    },
+    "CAD_AVAILABLE": {
+      "scans": 11,
+      "families": 6,
+      "gold_lines": 71,
+      "predicted_lines": 10,
+      "true_positive": 6,
+      "false_positive": 4,
+      "false_negative": 65,
+      "micro_precision": 0.6,
+      "micro_recall": 0.084507,
+      "micro_f1": 0.1481481481,
+      "macro_precision": 0.2667,
+      "macro_recall": 0.1053,
+      "macro_f1": 0.1389,
+      "family_macro_f1": 0.2213,
+      "exact_scans": 0,
+      "scans_with_f1_ge_0_8": 0,
+      "scans_with_zero_tp": 7,
+      "scans_with_no_predictions": 7,
+      "angle_mae_deg_matched": 0.4641,
+      "position_error_mean_mm_matched": 1.1087,
+      "position_error_median_mm_matched": 0.9962,
+      "fn_cause_counts_diagnostic": {
+        "MISSED": 62,
+        "OFFSET_GT_4MM": 3
+      },
+      "fp_cause_counts_diagnostic": {
+        "OFFSET_GT_4MM": 3,
+        "SPURIOUS": 1
+      },
+      "lane_status_counts": {
+        "OK": 4,
+        "NO_PREDICTIONS": 4,
+        "LANE_FAILED": 3
+      },
+      "partial_label_recall_only": {
+        "scans": 0,
+        "true_positive": 0,
+        "gold_lines": 0
+      },
+      "zero_bend_controls": {
+        "scans": 0,
+        "false_positive_lines": 0,
+        "scans_with_false_positive": []
+      }
+    },
+    "NO_CAD": {
+      "scans": 0,
+      "families": 0,
+      "gold_lines": 0,
+      "predicted_lines": 0,
+      "true_positive": 0,
+      "false_positive": 0,
+      "false_negative": 0,
+      "micro_precision": 0.0,
+      "micro_recall": 0.0,
+      "micro_f1": 0.0,
+      "macro_precision": null,
+      "macro_recall": null,
+      "macro_f1": null,
+      "family_macro_f1": null,
+      "exact_scans": 0,
+      "scans_with_f1_ge_0_8": 0,
+      "scans_with_zero_tp": 0,
+      "scans_with_no_predictions": 0,
+      "angle_mae_deg_matched": null,
+      "position_error_mean_mm_matched": null,
+      "position_error_median_mm_matched": null,
+      "fn_cause_counts_diagnostic": {},
+      "fp_cause_counts_diagnostic": {},
+      "lane_status_counts": {},
+      "partial_label_recall_only": {
+        "scans": 0,
+        "true_positive": 0,
+        "gold_lines": 0
+      },
+      "zero_bend_controls": {
+        "scans": 0,
+        "false_positive_lines": 0,
+        "scans_with_false_positive": []
+      }
+    },
+    "CAD_AVAILABLE_EXCL_LIDAR_DEMO": {
+      "scans": 11,
+      "families": 6,
+      "gold_lines": 71,
+      "predicted_lines": 10,
+      "true_positive": 6,
+      "false_positive": 4,
+      "false_negative": 65,
+      "micro_precision": 0.6,
+      "micro_recall": 0.084507,
+      "micro_f1": 0.1481481481,
+      "macro_precision": 0.2667,
+      "macro_recall": 0.1053,
+      "macro_f1": 0.1389,
+      "family_macro_f1": 0.2213,
+      "exact_scans": 0,
+      "scans_with_f1_ge_0_8": 0,
+      "scans_with_zero_tp": 7,
+      "scans_with_no_predictions": 7,
+      "angle_mae_deg_matched": 0.4641,
+      "position_error_mean_mm_matched": 1.1087,
+      "position_error_median_mm_matched": 0.9962,
+      "fn_cause_counts_diagnostic": {
+        "MISSED": 62,
+        "OFFSET_GT_4MM": 3
+      },
+      "fp_cause_counts_diagnostic": {
+        "OFFSET_GT_4MM": 3,
+        "SPURIOUS": 1
+      },
+      "lane_status_counts": {
+        "OK": 4,
+        "NO_PREDICTIONS": 4,
+        "LANE_FAILED": 3
+      },
+      "partial_label_recall_only": {
+        "scans": 0,
+        "true_positive": 0,
+        "gold_lines": 0
+      },
+      "zero_bend_controls": {
+        "scans": 0,
+        "false_positive_lines": 0,
+        "scans_with_false_positive": []
+      }
+    },
+    "NON_GOLD11_CAD_AVAILABLE_EXCL_LIDAR_DEMO": {
+      "scans": 0,
+      "families": 0,
+      "gold_lines": 0,
+      "predicted_lines": 0,
+      "true_positive": 0,
+      "false_positive": 0,
+      "false_negative": 0,
+      "micro_precision": 0.0,
+      "micro_recall": 0.0,
+      "micro_f1": 0.0,
+      "macro_precision": null,
+      "macro_recall": null,
+      "macro_f1": null,
+      "family_macro_f1": null,
+      "exact_scans": 0,
+      "scans_with_f1_ge_0_8": 0,
+      "scans_with_zero_tp": 0,
+      "scans_with_no_predictions": 0,
+      "angle_mae_deg_matched": null,
+      "position_error_mean_mm_matched": null,
+      "position_error_median_mm_matched": null,
+      "fn_cause_counts_diagnostic": {},
+      "fp_cause_counts_diagnostic": {},
+      "lane_status_counts": {},
+      "partial_label_recall_only": {
+        "scans": 0,
+        "true_positive": 0,
+        "gold_lines": 0
+      },
+      "zero_bend_controls": {
+        "scans": 0,
+        "false_positive_lines": 0,
+        "scans_with_false_positive": []
+      }
+    }
+  },
+  "by_tier": {
+    "GOLD11": {
+      "scans": 11,
+      "families": 6,
+      "gold_lines": 71,
+      "predicted_lines": 10,
+      "true_positive": 6,
+      "false_positive": 4,
+      "false_negative": 65,
+      "micro_precision": 0.6,
+      "micro_recall": 0.084507,
+      "micro_f1": 0.1481481481,
+      "macro_precision": 0.2667,
+      "macro_recall": 0.1053,
+      "macro_f1": 0.1389,
+      "family_macro_f1": 0.2213,
+      "exact_scans": 0,
+      "scans_with_f1_ge_0_8": 0,
+      "scans_with_zero_tp": 7,
+      "scans_with_no_predictions": 7,
+      "angle_mae_deg_matched": 0.4641,
+      "position_error_mean_mm_matched": 1.1087,
+      "position_error_median_mm_matched": 0.9962,
+      "fn_cause_counts_diagnostic": {
+        "MISSED": 62,
+        "OFFSET_GT_4MM": 3
+      },
+      "fp_cause_counts_diagnostic": {
+        "OFFSET_GT_4MM": 3,
+        "SPURIOUS": 1
+      },
+      "lane_status_counts": {
+        "OK": 4,
+        "NO_PREDICTIONS": 4,
+        "LANE_FAILED": 3
+      },
+      "partial_label_recall_only": {
+        "scans": 0,
+        "true_positive": 0,
+        "gold_lines": 0
+      },
+      "zero_bend_controls": {
+        "scans": 0,
+        "false_positive_lines": 0,
+        "scans_with_false_positive": []
+      }
+    }
+  },
+  "by_family": {
+    "10839000": {
+      "scans": 3,
+      "gold_lines": 18,
+      "predicted_lines": 5,
+      "true_positive": 3,
+      "false_positive": 2,
+      "false_negative": 15,
+      "micro_precision": 0.6,
+      "micro_recall": 0.166667,
+      "micro_f1": 0.2608695652,
+      "macro_f1": 0.1538
+    },
+    "37361005": {
+      "scans": 1,
+      "gold_lines": 4,
+      "predicted_lines": 1,
+      "true_positive": 1,
+      "false_positive": 0,
+      "false_negative": 3,
+      "micro_precision": 1.0,
+      "micro_recall": 0.25,
+      "micro_f1": 0.4,
+      "macro_f1": 0.4
+    },
+    "38172000": {
+      "scans": 4,
+      "gold_lines": 34,
+      "predicted_lines": 0,
+      "true_positive": 0,
+      "false_positive": 0,
+      "false_negative": 34,
+      "micro_precision": 0.0,
+      "micro_recall": 0.0,
+      "micro_f1": 0.0,
+      "macro_f1": 0.0
+    },
+    "40500000": {
+      "scans": 1,
+      "gold_lines": 7,
+      "predicted_lines": 0,
+      "true_positive": 0,
+      "false_positive": 0,
+      "false_negative": 7,
+      "micro_precision": 0.0,
+      "micro_recall": 0.0,
+      "micro_f1": 0.0,
+      "macro_f1": 0.0
+    },
+    "49001000": {
+      "scans": 1,
+      "gold_lines": 5,
+      "predicted_lines": 1,
+      "true_positive": 1,
+      "false_positive": 0,
+      "false_negative": 4,
+      "micro_precision": 1.0,
+      "micro_recall": 0.2,
+      "micro_f1": 0.3333333333,
+      "macro_f1": 0.3333
+    },
+    "49024000": {
+      "scans": 1,
+      "gold_lines": 3,
+      "predicted_lines": 3,
+      "true_positive": 1,
+      "false_positive": 2,
+      "false_negative": 2,
+      "micro_precision": 0.333333,
+      "micro_recall": 0.333333,
+      "micro_f1": 0.3333333333,
+      "macro_f1": 0.3333
+    }
+  },
+  "resources": {
+    "runs_with_record": 11,
+    "lane_wall_s_total": 325.1,
+    "lane_wall_s_median": 31.995,
+    "lane_wall_s_max": 57.415,
+    "peak_rss_gib_max": 10.583,
+    "runs_over_4_gib": [
+      "sc_152f1b1aacb2"
+    ],
+    "timeouts": [],
+    "not_run": []
+  },
+  "excluded_before_scoring": [],
+  "worst_15": [
+    {
+      "case_id": "sc_2714fb7e0c0b",
+      "family_id": "38172000",
+      "tier": "GOLD11",
+      "gold11_id": "CGF41F49066A",
+      "scan_name": "38172000_01_V.ply",
+      "staged": false,
+      "has_cad": true,
+      "lidar_demo_synthetic": false,
+      "lane_status": "NO_PREDICTIONS",
+      "disposition": "SCORED_COMPLETE_LABEL",
+      "gold_count": 10,
+      "prediction_count": 0,
+      "true_positive": 0,
+      "false_positive": 0,
+      "false_negative": 10,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "angle_mae_deg": null,
+      "position_error_mean_mm": null,
+      "position_error_median_mm": null,
+      "failure_reason": null,
+      "worker_error": null,
+      "fn_causes": {
+        "MISSED": 10
+      },
+      "fp_causes": {},
+      "lane_wall_s": 31.995,
+      "peak_rss_gib": 0.651
+    },
+    {
+      "case_id": "sc_4f8188b4d1a8",
+      "family_id": "38172000",
+      "tier": "GOLD11",
+      "gold11_id": "CG1E0BBA2933",
+      "scan_name": "38172000_01_X.ply",
+      "staged": false,
+      "has_cad": true,
+      "lidar_demo_synthetic": false,
+      "lane_status": "NO_PREDICTIONS",
+      "disposition": "SCORED_COMPLETE_LABEL",
+      "gold_count": 10,
+      "prediction_count": 0,
+      "true_positive": 0,
+      "false_positive": 0,
+      "false_negative": 10,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "angle_mae_deg": null,
+      "position_error_mean_mm": null,
+      "position_error_median_mm": null,
+      "failure_reason": null,
+      "worker_error": null,
+      "fn_causes": {
+        "MISSED": 10
+      },
+      "fp_causes": {},
+      "lane_wall_s": 35.567,
+      "peak_rss_gib": 1.008
+    },
+    {
+      "case_id": "sc_f2475286312b",
+      "family_id": "38172000",
+      "tier": "GOLD11",
+      "gold11_id": "CGEBA9A869AC",
+      "scan_name": "38172000_01_SCAN_2 1.ply",
+      "staged": true,
+      "has_cad": true,
+      "lidar_demo_synthetic": false,
+      "lane_status": "NO_PREDICTIONS",
+      "disposition": "SCORED_COMPLETE_LABEL",
+      "gold_count": 8,
+      "prediction_count": 0,
+      "true_positive": 0,
+      "false_positive": 0,
+      "false_negative": 8,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "angle_mae_deg": null,
+      "position_error_mean_mm": null,
+      "position_error_median_mm": null,
+      "failure_reason": null,
+      "worker_error": null,
+      "fn_causes": {
+        "MISSED": 8
+      },
+      "fp_causes": {},
+      "lane_wall_s": 55.95,
+      "peak_rss_gib": 2.725
+    },
+    {
+      "case_id": "sc_152f1b1aacb2",
+      "family_id": "40500000",
+      "tier": "GOLD11",
+      "gold11_id": "CG64C412CC73",
+      "scan_name": "40500000_0_SCAN2 1.ply",
+      "staged": true,
+      "has_cad": true,
+      "lidar_demo_synthetic": false,
+      "lane_status": "NO_PREDICTIONS",
+      "disposition": "SCORED_COMPLETE_LABEL",
+      "gold_count": 7,
+      "prediction_count": 0,
+      "true_positive": 0,
+      "false_positive": 0,
+      "false_negative": 7,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "angle_mae_deg": null,
+      "position_error_mean_mm": null,
+      "position_error_median_mm": null,
+      "failure_reason": null,
+      "worker_error": null,
+      "fn_causes": {
+        "MISSED": 7
+      },
+      "fp_causes": {},
+      "lane_wall_s": 57.415,
+      "peak_rss_gib": 10.583
+    },
+    {
+      "case_id": "sc_07062eee17aa",
+      "family_id": "38172000",
+      "tier": "GOLD11",
+      "gold11_id": "CG65CD575B1C",
+      "scan_name": "38172000_01_SCAN_1.ply",
+      "staged": true,
+      "has_cad": true,
+      "lidar_demo_synthetic": false,
+      "lane_status": "LANE_FAILED",
+      "disposition": "SCORED_COMPLETE_LABEL",
+      "gold_count": 6,
+      "prediction_count": 0,
+      "true_positive": 0,
+      "false_positive": 0,
+      "false_negative": 6,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "angle_mae_deg": null,
+      "position_error_mean_mm": null,
+      "position_error_median_mm": null,
+      "failure_reason": "RUNTIME_WORKER_FAILED",
+      "worker_error": "Invalid raw scan to reference transform",
+      "fn_causes": {
+        "MISSED": 6
+      },
+      "fp_causes": {},
+      "lane_wall_s": 12.487,
+      "peak_rss_gib": 0.42
+    },
+    {
+      "case_id": "sc_cec08dfca9ab",
+      "family_id": "10839000",
+      "tier": "GOLD11",
+      "gold11_id": "CG08506AE97D",
+      "scan_name": "10839000_01_scan_2.ply",
+      "staged": true,
+      "has_cad": true,
+      "lidar_demo_synthetic": false,
+      "lane_status": "LANE_FAILED",
+      "disposition": "SCORED_COMPLETE_LABEL",
+      "gold_count": 6,
+      "prediction_count": 0,
+      "true_positive": 0,
+      "false_positive": 0,
+      "false_negative": 6,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "angle_mae_deg": null,
+      "position_error_mean_mm": null,
+      "position_error_median_mm": null,
+      "failure_reason": "RUNTIME_WORKER_FAILED",
+      "worker_error": "Invalid raw scan to reference transform",
+      "fn_causes": {
+        "MISSED": 6
+      },
+      "fp_causes": {},
+      "lane_wall_s": 9.258,
+      "peak_rss_gib": 0.44
+    },
+    {
+      "case_id": "sc_08686dc1d5d4",
+      "family_id": "10839000",
+      "tier": "GOLD11",
+      "gold11_id": "CGE4B0549E41",
+      "scan_name": "10839000_01_scan_1.ply",
+      "staged": true,
+      "has_cad": true,
+      "lidar_demo_synthetic": false,
+      "lane_status": "LANE_FAILED",
+      "disposition": "SCORED_COMPLETE_LABEL",
+      "gold_count": 4,
+      "prediction_count": 0,
+      "true_positive": 0,
+      "false_positive": 0,
+      "false_negative": 4,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "angle_mae_deg": null,
+      "position_error_mean_mm": null,
+      "position_error_median_mm": null,
+      "failure_reason": "RUNTIME_WORKER_FAILED",
+      "worker_error": "Alignment unavailable: insufficient shared registration fitness",
+      "fn_causes": {
+        "MISSED": 4
+      },
+      "fp_causes": {},
+      "lane_wall_s": 10.044,
+      "peak_rss_gib": 0.44
+    },
+    {
+      "case_id": "sc_70b39f530f00",
+      "family_id": "49024000",
+      "tier": "GOLD11",
+      "gold11_id": "CG4FAF273093",
+      "scan_name": "49024000_A.ply",
+      "staged": false,
+      "has_cad": true,
+      "lidar_demo_synthetic": false,
+      "lane_status": "OK",
+      "disposition": "SCORED_COMPLETE_LABEL",
+      "gold_count": 3,
+      "prediction_count": 3,
+      "true_positive": 1,
+      "false_positive": 2,
+      "false_negative": 2,
+      "precision": 0.3333333333333333,
+      "recall": 0.3333333333333333,
+      "f1": 0.3333333333333333,
+      "angle_mae_deg": 1.9186,
+      "position_error_mean_mm": 1.9194,
+      "position_error_median_mm": 1.9194,
+      "failure_reason": null,
+      "worker_error": null,
+      "fn_causes": {
+        "OFFSET_GT_4MM": 2
+      },
+      "fp_causes": {
+        "OFFSET_GT_4MM": 2
+      },
+      "lane_wall_s": 8.507,
+      "peak_rss_gib": 0.441
+    },
+    {
+      "case_id": "sc_7a1773eca9fa",
+      "family_id": "49001000",
+      "tier": "GOLD11",
+      "gold11_id": "CG191DEC7F81",
+      "scan_name": "49001000_A-PRELIM.ply",
+      "staged": true,
+      "has_cad": true,
+      "lidar_demo_synthetic": false,
+      "lane_status": "OK",
+      "disposition": "SCORED_COMPLETE_LABEL",
+      "gold_count": 5,
+      "prediction_count": 1,
+      "true_positive": 1,
+      "false_positive": 0,
+      "false_negative": 4,
+      "precision": 1.0,
+      "recall": 0.2,
+      "f1": 0.33333333333333337,
+      "angle_mae_deg": 0.2641,
+      "position_error_mean_mm": 1.0837,
+      "position_error_median_mm": 1.0837,
+      "failure_reason": null,
+      "worker_error": null,
+      "fn_causes": {
+        "MISSED": 4
+      },
+      "fp_causes": {},
+      "lane_wall_s": 36.786,
+      "peak_rss_gib": 1.314
+    },
+    {
+      "case_id": "sc_d1732de18023",
+      "family_id": "37361005",
+      "tier": "GOLD11",
+      "gold11_id": "CG4BDD1371B6",
+      "scan_name": "37361005_01.ply",
+      "staged": false,
+      "has_cad": true,
+      "lidar_demo_synthetic": false,
+      "lane_status": "OK",
+      "disposition": "SCORED_COMPLETE_LABEL",
+      "gold_count": 4,
+      "prediction_count": 1,
+      "true_positive": 1,
+      "false_positive": 0,
+      "false_negative": 3,
+      "precision": 1.0,
+      "recall": 0.25,
+      "f1": 0.4,
+      "angle_mae_deg": 0.276,
+      "position_error_mean_mm": 0.1472,
+      "position_error_median_mm": 0.1472,
+      "failure_reason": null,
+      "worker_error": null,
+      "fn_causes": {
+        "MISSED": 3
+      },
+      "fp_causes": {},
+      "lane_wall_s": 31.183,
+      "peak_rss_gib": 0.562
+    },
+    {
+      "case_id": "sc_71cf0b216f43",
+      "family_id": "10839000",
+      "tier": "GOLD11",
+      "gold11_id": "CG84C8FA12D2",
+      "scan_name": "10839000_01_full_scan.ply",
+      "staged": false,
+      "has_cad": true,
+      "lidar_demo_synthetic": false,
+      "lane_status": "OK",
+      "disposition": "SCORED_COMPLETE_LABEL",
+      "gold_count": 8,
+      "prediction_count": 5,
+      "true_positive": 3,
+      "false_positive": 2,
+      "false_negative": 5,
+      "precision": 0.6,
+      "recall": 0.375,
+      "f1": 0.4615384615384615,
+      "angle_mae_deg": 0.1086,
+      "position_error_mean_mm": 1.1673,
+      "position_error_median_mm": 0.9086,
+      "failure_reason": null,
+      "worker_error": null,
+      "fn_causes": {
+        "MISSED": 4,
+        "OFFSET_GT_4MM": 1
+      },
+      "fp_causes": {
+        "OFFSET_GT_4MM": 1,
+        "SPURIOUS": 1
+      },
+      "lane_wall_s": 35.89,
+      "peak_rss_gib": 0.778
+    }
+  ],
+  "per_scan": [
+    {
+      "case_id": "sc_08686dc1d5d4",
+      "family_id": "10839000",
+      "tier": "GOLD11",
+      "gold11_id": "CGE4B0549E41",
+      "scan_name": "10839000_01_scan_1.ply",
+      "staged": true,
+      "has_cad": true,
+      "lidar_demo_synthetic": false,
+      "lane_status": "LANE_FAILED",
+      "disposition": "SCORED_COMPLETE_LABEL",
+      "gold_count": 4,
+      "prediction_count": 0,
+      "true_positive": 0,
+      "false_positive": 0,
+      "false_negative": 4,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "angle_mae_deg": null,
+      "position_error_mean_mm": null,
+      "position_error_median_mm": null,
+      "failure_reason": "RUNTIME_WORKER_FAILED",
+      "worker_error": "Alignment unavailable: insufficient shared registration fitness",
+      "fn_causes": {
+        "MISSED": 4
+      },
+      "fp_causes": {},
+      "lane_wall_s": 10.044,
+      "peak_rss_gib": 0.44
+    },
+    {
+      "case_id": "sc_cec08dfca9ab",
+      "family_id": "10839000",
+      "tier": "GOLD11",
+      "gold11_id": "CG08506AE97D",
+      "scan_name": "10839000_01_scan_2.ply",
+      "staged": true,
+      "has_cad": true,
+      "lidar_demo_synthetic": false,
+      "lane_status": "LANE_FAILED",
+      "disposition": "SCORED_COMPLETE_LABEL",
+      "gold_count": 6,
+      "prediction_count": 0,
+      "true_positive": 0,
+      "false_positive": 0,
+      "false_negative": 6,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "angle_mae_deg": null,
+      "position_error_mean_mm": null,
+      "position_error_median_mm": null,
+      "failure_reason": "RUNTIME_WORKER_FAILED",
+      "worker_error": "Invalid raw scan to reference transform",
+      "fn_causes": {
+        "MISSED": 6
+      },
+      "fp_causes": {},
+      "lane_wall_s": 9.258,
+      "peak_rss_gib": 0.44
+    },
+    {
+      "case_id": "sc_71cf0b216f43",
+      "family_id": "10839000",
+      "tier": "GOLD11",
+      "gold11_id": "CG84C8FA12D2",
+      "scan_name": "10839000_01_full_scan.ply",
+      "staged": false,
+      "has_cad": true,
+      "lidar_demo_synthetic": false,
+      "lane_status": "OK",
+      "disposition": "SCORED_COMPLETE_LABEL",
+      "gold_count": 8,
+      "prediction_count": 5,
+      "true_positive": 3,
+      "false_positive": 2,
+      "false_negative": 5,
+      "precision": 0.6,
+      "recall": 0.375,
+      "f1": 0.4615384615384615,
+      "angle_mae_deg": 0.1086,
+      "position_error_mean_mm": 1.1673,
+      "position_error_median_mm": 0.9086,
+      "failure_reason": null,
+      "worker_error": null,
+      "fn_causes": {
+        "MISSED": 4,
+        "OFFSET_GT_4MM": 1
+      },
+      "fp_causes": {
+        "OFFSET_GT_4MM": 1,
+        "SPURIOUS": 1
+      },
+      "lane_wall_s": 35.89,
+      "peak_rss_gib": 0.778
+    },
+    {
+      "case_id": "sc_d1732de18023",
+      "family_id": "37361005",
+      "tier": "GOLD11",
+      "gold11_id": "CG4BDD1371B6",
+      "scan_name": "37361005_01.ply",
+      "staged": false,
+      "has_cad": true,
+      "lidar_demo_synthetic": false,
+      "lane_status": "OK",
+      "disposition": "SCORED_COMPLETE_LABEL",
+      "gold_count": 4,
+      "prediction_count": 1,
+      "true_positive": 1,
+      "false_positive": 0,
+      "false_negative": 3,
+      "precision": 1.0,
+      "recall": 0.25,
+      "f1": 0.4,
+      "angle_mae_deg": 0.276,
+      "position_error_mean_mm": 0.1472,
+      "position_error_median_mm": 0.1472,
+      "failure_reason": null,
+      "worker_error": null,
+      "fn_causes": {
+        "MISSED": 3
+      },
+      "fp_causes": {},
+      "lane_wall_s": 31.183,
+      "peak_rss_gib": 0.562
+    },
+    {
+      "case_id": "sc_2714fb7e0c0b",
+      "family_id": "38172000",
+      "tier": "GOLD11",
+      "gold11_id": "CGF41F49066A",
+      "scan_name": "38172000_01_V.ply",
+      "staged": false,
+      "has_cad": true,
+      "lidar_demo_synthetic": false,
+      "lane_status": "NO_PREDICTIONS",
+      "disposition": "SCORED_COMPLETE_LABEL",
+      "gold_count": 10,
+      "prediction_count": 0,
+      "true_positive": 0,
+      "false_positive": 0,
+      "false_negative": 10,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "angle_mae_deg": null,
+      "position_error_mean_mm": null,
+      "position_error_median_mm": null,
+      "failure_reason": null,
+      "worker_error": null,
+      "fn_causes": {
+        "MISSED": 10
+      },
+      "fp_causes": {},
+      "lane_wall_s": 31.995,
+      "peak_rss_gib": 0.651
+    },
+    {
+      "case_id": "sc_4f8188b4d1a8",
+      "family_id": "38172000",
+      "tier": "GOLD11",
+      "gold11_id": "CG1E0BBA2933",
+      "scan_name": "38172000_01_X.ply",
+      "staged": false,
+      "has_cad": true,
+      "lidar_demo_synthetic": false,
+      "lane_status": "NO_PREDICTIONS",
+      "disposition": "SCORED_COMPLETE_LABEL",
+      "gold_count": 10,
+      "prediction_count": 0,
+      "true_positive": 0,
+      "false_positive": 0,
+      "false_negative": 10,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "angle_mae_deg": null,
+      "position_error_mean_mm": null,
+      "position_error_median_mm": null,
+      "failure_reason": null,
+      "worker_error": null,
+      "fn_causes": {
+        "MISSED": 10
+      },
+      "fp_causes": {},
+      "lane_wall_s": 35.567,
+      "peak_rss_gib": 1.008
+    },
+    {
+      "case_id": "sc_07062eee17aa",
+      "family_id": "38172000",
+      "tier": "GOLD11",
+      "gold11_id": "CG65CD575B1C",
+      "scan_name": "38172000_01_SCAN_1.ply",
+      "staged": true,
+      "has_cad": true,
+      "lidar_demo_synthetic": false,
+      "lane_status": "LANE_FAILED",
+      "disposition": "SCORED_COMPLETE_LABEL",
+      "gold_count": 6,
+      "prediction_count": 0,
+      "true_positive": 0,
+      "false_positive": 0,
+      "false_negative": 6,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "angle_mae_deg": null,
+      "position_error_mean_mm": null,
+      "position_error_median_mm": null,
+      "failure_reason": "RUNTIME_WORKER_FAILED",
+      "worker_error": "Invalid raw scan to reference transform",
+      "fn_causes": {
+        "MISSED": 6
+      },
+      "fp_causes": {},
+      "lane_wall_s": 12.487,
+      "peak_rss_gib": 0.42
+    },
+    {
+      "case_id": "sc_f2475286312b",
+      "family_id": "38172000",
+      "tier": "GOLD11",
+      "gold11_id": "CGEBA9A869AC",
+      "scan_name": "38172000_01_SCAN_2 1.ply",
+      "staged": true,
+      "has_cad": true,
+      "lidar_demo_synthetic": false,
+      "lane_status": "NO_PREDICTIONS",
+      "disposition": "SCORED_COMPLETE_LABEL",
+      "gold_count": 8,
+      "prediction_count": 0,
+      "true_positive": 0,
+      "false_positive": 0,
+      "false_negative": 8,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "angle_mae_deg": null,
+      "position_error_mean_mm": null,
+      "position_error_median_mm": null,
+      "failure_reason": null,
+      "worker_error": null,
+      "fn_causes": {
+        "MISSED": 8
+      },
+      "fp_causes": {},
+      "lane_wall_s": 55.95,
+      "peak_rss_gib": 2.725
+    },
+    {
+      "case_id": "sc_152f1b1aacb2",
+      "family_id": "40500000",
+      "tier": "GOLD11",
+      "gold11_id": "CG64C412CC73",
+      "scan_name": "40500000_0_SCAN2 1.ply",
+      "staged": true,
+      "has_cad": true,
+      "lidar_demo_synthetic": false,
+      "lane_status": "NO_PREDICTIONS",
+      "disposition": "SCORED_COMPLETE_LABEL",
+      "gold_count": 7,
+      "prediction_count": 0,
+      "true_positive": 0,
+      "false_positive": 0,
+      "false_negative": 7,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "angle_mae_deg": null,
+      "position_error_mean_mm": null,
+      "position_error_median_mm": null,
+      "failure_reason": null,
+      "worker_error": null,
+      "fn_causes": {
+        "MISSED": 7
+      },
+      "fp_causes": {},
+      "lane_wall_s": 57.415,
+      "peak_rss_gib": 10.583
+    },
+    {
+      "case_id": "sc_7a1773eca9fa",
+      "family_id": "49001000",
+      "tier": "GOLD11",
+      "gold11_id": "CG191DEC7F81",
+      "scan_name": "49001000_A-PRELIM.ply",
+      "staged": true,
+      "has_cad": true,
+      "lidar_demo_synthetic": false,
+      "lane_status": "OK",
+      "disposition": "SCORED_COMPLETE_LABEL",
+      "gold_count": 5,
+      "prediction_count": 1,
+      "true_positive": 1,
+      "false_positive": 0,
+      "false_negative": 4,
+      "precision": 1.0,
+      "recall": 0.2,
+      "f1": 0.33333333333333337,
+      "angle_mae_deg": 0.2641,
+      "position_error_mean_mm": 1.0837,
+      "position_error_median_mm": 1.0837,
+      "failure_reason": null,
+      "worker_error": null,
+      "fn_causes": {
+        "MISSED": 4
+      },
+      "fp_causes": {},
+      "lane_wall_s": 36.786,
+      "peak_rss_gib": 1.314
+    },
+    {
+      "case_id": "sc_70b39f530f00",
+      "family_id": "49024000",
+      "tier": "GOLD11",
+      "gold11_id": "CG4FAF273093",
+      "scan_name": "49024000_A.ply",
+      "staged": false,
+      "has_cad": true,
+      "lidar_demo_synthetic": false,
+      "lane_status": "OK",
+      "disposition": "SCORED_COMPLETE_LABEL",
+      "gold_count": 3,
+      "prediction_count": 3,
+      "true_positive": 1,
+      "false_positive": 2,
+      "false_negative": 2,
+      "precision": 0.3333333333333333,
+      "recall": 0.3333333333333333,
+      "f1": 0.3333333333333333,
+      "angle_mae_deg": 1.9186,
+      "position_error_mean_mm": 1.9194,
+      "position_error_median_mm": 1.9194,
+      "failure_reason": null,
+      "worker_error": null,
+      "fn_causes": {
+        "OFFSET_GT_4MM": 2
+      },
+      "fp_causes": {
+        "OFFSET_GT_4MM": 2
+      },
+      "lane_wall_s": 8.507,
+      "peak_rss_gib": 0.441
+    }
+  ],
+  "cases": [
+    {
+      "case_id": "sc_08686dc1d5d4",
+      "family_id": "10839000",
+      "tier": "GOLD11",
+      "in_gold11": true,
+      "gold11_id": "CGE4B0549E41",
+      "gold_kind": "HUMAN",
+      "staged": true,
+      "stage_hints": [
+        "PARTIAL_SCAN_1"
+      ],
+      "has_cad": true,
+      "lidar_demo_synthetic": false,
+      "flags": [],
+      "scan_path": "/Users/idantal/ShermanQC/source-assets/02_CAD_QC_3D/10839000/10839000_01_scan_1.ply",
+      "scan_name": "10839000_01_scan_1.ply",
+      "predictions": "docs/production/runlog/broad_baseline/runs/runtime/sc_08686dc1d5d4/predictions_runtime.json",
+      "run": {
+        "status": "LANE_FAILED",
+        "lane_wall_s": 10.044,
+        "heavy_step_wall_s": 9.921,
+        "peak_rss_gib": 0.44,
+        "timed_out_steps": [],
+        "finished_at": "2026-10-17T10:36:02Z"
+      },
+      "label_complete": true,
+      "predictions_path": "docs/production/runlog/broad_baseline/runs/runtime/sc_08686dc1d5d4/predictions_runtime.json",
+      "gold": {
+        "scan_sha256": "08686dc1d5d4c89725393907082e8cc4e4c0f5a21427697760ff44d29c7939fc",
+        "label_frame": "scan_raw",
+        "zero_bend_control": false,
+        "gold_source": "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/broad_baseline/gold11_audit/truth/human_snapped_apex/sc_08686dc1d5d4.json"
+      },
+      "lane_status": "LANE_FAILED",
+      "lane": "runtime",
+      "gold_count": 4,
+      "prediction_count": 0,
+      "true_positive": 0,
+      "matches": [],
+      "unmatched_gold_ids": [
+        "M01",
+        "M02",
+        "M03",
+        "M04"
+      ],
+      "unmatched_prediction_ids": [],
+      "disposition": "SCORED_COMPLETE_LABEL",
+      "false_positive": 0,
+      "false_negative": 4,
+      "exact": false,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "failure": {
+        "reason": "RUNTIME_WORKER_FAILED",
+        "returncode": 1,
+        "timed_out": false,
+        "worker_error": "Alignment unavailable: insufficient shared registration fitness",
+        "stderr_tail": "  File \"/Users/idantal/ShermanQC/FullProject/backend/bend_analysis_worker.py\", line 134, in _export_aligned_scan_visualization\n    return build_bend_heatmap_evidence(\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/idantal/ShermanQC/FullProject/domains/bend/services/heatmap_evidence_service.py\", line 170, in build_bend_heatmap_evidence\n    raise ValueError('Alignment unavailable: insufficient shared registration fitness')\nValueError: Alignment unavailable: insufficient shared registration fitness\n\n        9.86 real         9.69 user         0.16 sys\n           472006656  maximum resident set size\n                   0  average shared memory size\n                   0  average unshared data size\n                   0  average unshared stack size\n               62513  page reclaims\n                   0  page faults\n                   0  swaps\n                   0  block input operations\n                   0  block output operations\n                   0  messages sent\n                   0  messages received\n                   0  signals received\n                   0  voluntary context switches\n                1879  involuntary context switches\n        159064218616  instructions retired\n         42241266236  cycles elapsed\n           365855776  peak memory footprint"
+      },
+      "angle_mae_deg": null,
+      "position_error_mean_mm": null,
+      "position_error_median_mm": null,
+      "gold_span_overlap_mean": null,
+      "diagnostic": {
+        "false_negatives": [
+          {
+            "gold_id": "M01",
+            "cause": "MISSED"
+          },
+          {
+            "gold_id": "M02",
+            "cause": "MISSED"
+          },
+          {
+            "gold_id": "M03",
+            "cause": "MISSED"
+          },
+          {
+            "gold_id": "M04",
+            "cause": "MISSED"
+          }
+        ],
+        "false_positives": [],
+        "fn_cause_counts": {
+          "MISSED": 4
+        },
+        "fp_cause_counts": {}
+      }
+    },
+    {
+      "case_id": "sc_cec08dfca9ab",
+      "family_id": "10839000",
+      "tier": "GOLD11",
+      "in_gold11": true,
+      "gold11_id": "CG08506AE97D",
+      "gold_kind": "HUMAN",
+      "staged": true,
+      "stage_hints": [
+        "PARTIAL_SCAN_2"
+      ],
+      "has_cad": true,
+      "lidar_demo_synthetic": false,
+      "flags": [],
+      "scan_path": "/Users/idantal/ShermanQC/source-assets/02_CAD_QC_3D/10839000/10839000_01_scan_2.ply",
+      "scan_name": "10839000_01_scan_2.ply",
+      "predictions": "docs/production/runlog/broad_baseline/runs/runtime/sc_cec08dfca9ab/predictions_runtime.json",
+      "run": {
+        "status": "LANE_FAILED",
+        "lane_wall_s": 9.258,
+        "heavy_step_wall_s": 9.13,
+        "peak_rss_gib": 0.44,
+        "timed_out_steps": [],
+        "finished_at": "2026-10-17T10:39:39Z"
+      },
+      "label_complete": true,
+      "predictions_path": "docs/production/runlog/broad_baseline/runs/runtime/sc_cec08dfca9ab/predictions_runtime.json",
+      "gold": {
+        "scan_sha256": "cec08dfca9ab309ff3eef42cd3dc72eb33168e1d43029f3a0658f2923e4e171b",
+        "label_frame": "scan_raw",
+        "zero_bend_control": false,
+        "gold_source": "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/broad_baseline/gold11_audit/truth/human_snapped_apex/sc_cec08dfca9ab.json"
+      },
+      "lane_status": "LANE_FAILED",
+      "lane": "runtime",
+      "gold_count": 6,
+      "prediction_count": 0,
+      "true_positive": 0,
+      "matches": [],
+      "unmatched_gold_ids": [
+        "HB1",
+        "HB2",
+        "HB3",
+        "HB4",
+        "HB5",
+        "HB6"
+      ],
+      "unmatched_prediction_ids": [],
+      "disposition": "SCORED_COMPLETE_LABEL",
+      "false_positive": 0,
+      "false_negative": 6,
+      "exact": false,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "failure": {
+        "reason": "RUNTIME_WORKER_FAILED",
+        "returncode": 1,
+        "timed_out": false,
+        "worker_error": "Invalid raw scan to reference transform",
+        "stderr_tail": "  File \"/Users/idantal/ShermanQC/FullProject/domains/bend/services/heatmap_evidence_service.py\", line 172, in build_bend_heatmap_evidence\n    alignment = validate_alignment({\n                ^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/idantal/ShermanQC/FullProject/domains/bend/services/inspection_frame.py\", line 20, in validate_alignment\n    raise ValueError('Invalid raw scan to reference transform')\nValueError: Invalid raw scan to reference transform\n\n        9.09 real         8.93 user         0.15 sys\n           471973888  maximum resident set size\n                   0  average shared memory size\n                   0  average unshared data size\n                   0  average unshared stack size\n               62454  page reclaims\n                   0  page faults\n                   0  swaps\n                   0  block input operations\n                   0  block output operations\n                   0  messages sent\n                   0  messages received\n                   0  signals received\n                   0  voluntary context switches\n                1615  involuntary context switches\n        133552848229  instructions retired\n         37917883721  cycles elapsed\n           365757472  peak memory footprint"
+      },
+      "angle_mae_deg": null,
+      "position_error_mean_mm": null,
+      "position_error_median_mm": null,
+      "gold_span_overlap_mean": null,
+      "diagnostic": {
+        "false_negatives": [
+          {
+            "gold_id": "HB1",
+            "cause": "MISSED"
+          },
+          {
+            "gold_id": "HB2",
+            "cause": "MISSED"
+          },
+          {
+            "gold_id": "HB3",
+            "cause": "MISSED"
+          },
+          {
+            "gold_id": "HB4",
+            "cause": "MISSED"
+          },
+          {
+            "gold_id": "HB5",
+            "cause": "MISSED"
+          },
+          {
+            "gold_id": "HB6",
+            "cause": "MISSED"
+          }
+        ],
+        "false_positives": [],
+        "fn_cause_counts": {
+          "MISSED": 6
+        },
+        "fp_cause_counts": {}
+      }
+    },
+    {
+      "case_id": "sc_71cf0b216f43",
+      "family_id": "10839000",
+      "tier": "GOLD11",
+      "in_gold11": true,
+      "gold11_id": "CG84C8FA12D2",
+      "gold_kind": "HUMAN",
+      "staged": false,
+      "stage_hints": [
+        "FULL"
+      ],
+      "has_cad": true,
+      "lidar_demo_synthetic": false,
+      "flags": [],
+      "scan_path": "/Users/idantal/ShermanQC/source-assets/02_CAD_QC_3D/10839000_01_full_scan.ply",
+      "scan_name": "10839000_01_full_scan.ply",
+      "predictions": "docs/production/runlog/broad_baseline/runs/runtime/sc_71cf0b216f43/predictions_runtime.json",
+      "run": {
+        "status": "OK",
+        "lane_wall_s": 35.89,
+        "heavy_step_wall_s": 33.757,
+        "peak_rss_gib": 0.778,
+        "timed_out_steps": [],
+        "finished_at": "2026-10-17T10:38:53Z"
+      },
+      "label_complete": true,
+      "predictions_path": "docs/production/runlog/broad_baseline/runs/runtime/sc_71cf0b216f43/predictions_runtime.json",
+      "gold": {
+        "scan_sha256": "71cf0b216f43284e401c891091cd56c10321aa3eebccde204f8d206683999215",
+        "label_frame": "scan_raw",
+        "zero_bend_control": false,
+        "gold_source": "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/broad_baseline/gold11_audit/truth/human_snapped_apex/sc_71cf0b216f43.json"
+      },
+      "lane_status": "OK",
+      "lane": "runtime",
+      "gold_count": 8,
+      "prediction_count": 5,
+      "true_positive": 3,
+      "matches": [
+        {
+          "gold_id": "M06",
+          "prediction_id": "CAD_B1",
+          "axis_angle_deg": 0.119578,
+          "transverse_offset_mm": 0.908636,
+          "gold_span_overlap": 1.0,
+          "prediction_span_overlap": 0.890827,
+          "shorter_span_overlap": 1.0,
+          "gold_length_mm": 305.844996,
+          "prediction_length_mm": 343.326885
+        },
+        {
+          "gold_id": "M07",
+          "prediction_id": "CAD_B6",
+          "axis_angle_deg": 0.058026,
+          "transverse_offset_mm": 0.761991,
+          "gold_span_overlap": 1.0,
+          "prediction_span_overlap": 0.895514,
+          "shorter_span_overlap": 1.0,
+          "gold_length_mm": 308.450696,
+          "prediction_length_mm": 344.439747
+        },
+        {
+          "gold_id": "M08",
+          "prediction_id": "CAD_B2",
+          "axis_angle_deg": 0.148207,
+          "transverse_offset_mm": 1.831413,
+          "gold_span_overlap": 1.0,
+          "prediction_span_overlap": 0.896411,
+          "shorter_span_overlap": 1.0,
+          "gold_length_mm": 307.572421,
+          "prediction_length_mm": 343.115429
+        }
+      ],
+      "unmatched_gold_ids": [
+        "M01",
+        "M02",
+        "M03",
+        "M04",
+        "M05"
+      ],
+      "unmatched_prediction_ids": [
+        "CAD_B3",
+        "CAD_B10"
+      ],
+      "disposition": "SCORED_COMPLETE_LABEL",
+      "false_positive": 2,
+      "false_negative": 5,
+      "exact": false,
+      "precision": 0.6,
+      "recall": 0.375,
+      "f1": 0.4615384615384615,
+      "failure": null,
+      "angle_mae_deg": 0.1086,
+      "position_error_mean_mm": 1.1673,
+      "position_error_median_mm": 0.9086,
+      "gold_span_overlap_mean": 1.0,
+      "diagnostic": {
+        "false_negatives": [
+          {
+            "gold_id": "M01",
+            "cause": "MISSED"
+          },
+          {
+            "gold_id": "M02",
+            "cause": "MISSED"
+          },
+          {
+            "gold_id": "M03",
+            "cause": "MISSED"
+          },
+          {
+            "gold_id": "M04",
+            "cause": "MISSED"
+          },
+          {
+            "gold_id": "M05",
+            "nearest_prediction": "CAD_B3",
+            "cause": "OFFSET_GT_4MM",
+            "axis_angle_deg": 2.101,
+            "transverse_offset_mm": 11.907,
+            "gold_span_overlap": 1.0,
+            "prediction_span_overlap": 0.891,
+            "shorter_span_overlap": 1.0,
+            "gold_length_mm": 306.816,
+            "prediction_length_mm": 344.259
+          }
+        ],
+        "false_positives": [
+          {
+            "prediction_id": "CAD_B3",
+            "nearest_gold": "M05",
+            "cause": "OFFSET_GT_4MM",
+            "axis_angle_deg": 2.101,
+            "transverse_offset_mm": 11.907,
+            "gold_span_overlap": 1.0,
+            "prediction_span_overlap": 0.891,
+            "shorter_span_overlap": 1.0,
+            "gold_length_mm": 306.816,
+            "prediction_length_mm": 344.259
+          },
+          {
+            "prediction_id": "CAD_B10",
+            "cause": "SPURIOUS"
+          }
+        ],
+        "fn_cause_counts": {
+          "MISSED": 4,
+          "OFFSET_GT_4MM": 1
+        },
+        "fp_cause_counts": {
+          "OFFSET_GT_4MM": 1,
+          "SPURIOUS": 1
+        }
+      }
+    },
+    {
+      "case_id": "sc_d1732de18023",
+      "family_id": "37361005",
+      "tier": "GOLD11",
+      "in_gold11": true,
+      "gold11_id": "CG4BDD1371B6",
+      "gold_kind": "HUMAN",
+      "staged": false,
+      "stage_hints": [],
+      "has_cad": true,
+      "lidar_demo_synthetic": false,
+      "flags": [],
+      "scan_path": "/Users/idantal/ShermanQC/source-assets/02_CAD_QC_3D/37361005_01.ply",
+      "scan_name": "37361005_01.ply",
+      "predictions": "docs/production/runlog/broad_baseline/runs/runtime/sc_d1732de18023/predictions_runtime.json",
+      "run": {
+        "status": "OK",
+        "lane_wall_s": 31.183,
+        "heavy_step_wall_s": 29.694,
+        "peak_rss_gib": 0.562,
+        "timed_out_steps": [],
+        "finished_at": "2026-10-17T10:40:10Z"
+      },
+      "label_complete": true,
+      "predictions_path": "docs/production/runlog/broad_baseline/runs/runtime/sc_d1732de18023/predictions_runtime.json",
+      "gold": {
+        "scan_sha256": "d1732de180230bdbf0caa6eaf454a33071c206060aea276dce67a9abcf13b038",
+        "label_frame": "scan_raw",
+        "zero_bend_control": false,
+        "gold_source": "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/broad_baseline/gold11_audit/truth/human_snapped_apex/sc_d1732de18023.json"
+      },
+      "lane_status": "OK",
+      "lane": "runtime",
+      "gold_count": 4,
+      "prediction_count": 1,
+      "true_positive": 1,
+      "matches": [
+        {
+          "gold_id": "M03",
+          "prediction_id": "CAD_B2",
+          "axis_angle_deg": 0.275979,
+          "transverse_offset_mm": 0.147184,
+          "gold_span_overlap": 1.0,
+          "prediction_span_overlap": 0.792682,
+          "shorter_span_overlap": 1.0,
+          "gold_length_mm": 252.275063,
+          "prediction_length_mm": 318.255113
+        }
+      ],
+      "unmatched_gold_ids": [
+        "M01",
+        "M02",
+        "M04"
+      ],
+      "unmatched_prediction_ids": [],
+      "disposition": "SCORED_COMPLETE_LABEL",
+      "false_positive": 0,
+      "false_negative": 3,
+      "exact": false,
+      "precision": 1.0,
+      "recall": 0.25,
+      "f1": 0.4,
+      "failure": null,
+      "angle_mae_deg": 0.276,
+      "position_error_mean_mm": 0.1472,
+      "position_error_median_mm": 0.1472,
+      "gold_span_overlap_mean": 1.0,
+      "diagnostic": {
+        "false_negatives": [
+          {
+            "gold_id": "M01",
+            "cause": "MISSED"
+          },
+          {
+            "gold_id": "M02",
+            "cause": "MISSED"
+          },
+          {
+            "gold_id": "M04",
+            "cause": "MISSED"
+          }
+        ],
+        "false_positives": [],
+        "fn_cause_counts": {
+          "MISSED": 3
+        },
+        "fp_cause_counts": {}
+      }
+    },
+    {
+      "case_id": "sc_2714fb7e0c0b",
+      "family_id": "38172000",
+      "tier": "GOLD11",
+      "in_gold11": true,
+      "gold11_id": "CGF41F49066A",
+      "gold_kind": "HUMAN",
+      "staged": false,
+      "stage_hints": [
+        "GOOD_V"
+      ],
+      "has_cad": true,
+      "lidar_demo_synthetic": false,
+      "flags": [
+        "GOLD11_LINES_ARE_CODEX_MULTIVIEW_NOT_HUMAN"
+      ],
+      "scan_path": "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/incoming/2026-07-29_shaked_defective_good_pairs/38172000_01/scans/38172000_01_V.ply",
+      "scan_name": "38172000_01_V.ply",
+      "predictions": "docs/production/runlog/broad_baseline/runs/runtime/sc_2714fb7e0c0b/predictions_runtime.json",
+      "run": {
+        "status": "NO_PREDICTIONS",
+        "lane_wall_s": 31.995,
+        "heavy_step_wall_s": 30.445,
+        "peak_rss_gib": 0.651,
+        "timed_out_steps": [],
+        "finished_at": "2026-10-17T10:37:32Z"
+      },
+      "label_complete": true,
+      "predictions_path": "docs/production/runlog/broad_baseline/runs/runtime/sc_2714fb7e0c0b/predictions_runtime.json",
+      "gold": {
+        "scan_sha256": "2714fb7e0c0b681196da62bf368e60c0635b97000f34df3241ca1b70ee56faba",
+        "label_frame": "scan_raw",
+        "zero_bend_control": false,
+        "gold_source": "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/broad_baseline/gold11_audit/truth/human_snapped_apex/sc_2714fb7e0c0b.json"
+      },
+      "lane_status": "NO_PREDICTIONS",
+      "lane": "runtime",
+      "gold_count": 10,
+      "prediction_count": 0,
+      "true_positive": 0,
+      "matches": [],
+      "unmatched_gold_ids": [
+        "B01",
+        "B02",
+        "B03",
+        "B04",
+        "B05",
+        "B06",
+        "B07",
+        "B08",
+        "B09",
+        "B10"
+      ],
+      "unmatched_prediction_ids": [],
+      "disposition": "SCORED_COMPLETE_LABEL",
+      "false_positive": 0,
+      "false_negative": 10,
+      "exact": false,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "failure": null,
+      "angle_mae_deg": null,
+      "position_error_mean_mm": null,
+      "position_error_median_mm": null,
+      "gold_span_overlap_mean": null,
+      "diagnostic": {
+        "false_negatives": [
+          {
+            "gold_id": "B01",
+            "cause": "MISSED"
+          },
+          {
+            "gold_id": "B02",
+            "cause": "MISSED"
+          },
+          {
+            "gold_id": "B03",
+            "cause": "MISSED"
+          },
+          {
+            "gold_id": "B04",
+            "cause": "MISSED"
+          },
+          {
+            "gold_id": "B05",
+            "cause": "MISSED"
+          },
+          {
+            "gold_id": "B06",
+            "cause": "MISSED"
+          },
+          {
+            "gold_id": "B07",
+            "cause": "MISSED"
+          },
+          {
+            "gold_id": "B08",
+            "cause": "MISSED"
+          },
+          {
+            "gold_id": "B09",
+            "cause": "MISSED"
+          },
+          {
+            "gold_id": "B10",
+            "cause": "MISSED"
+          }
+        ],
+        "false_positives": [],
+        "fn_cause_counts": {
+          "MISSED": 10
+        },
+        "fp_cause_counts": {}
+      }
+    },
+    {
+      "case_id": "sc_4f8188b4d1a8",
+      "family_id": "38172000",
+      "tier": "GOLD11",
+      "in_gold11": true,
+      "gold11_id": "CG1E0BBA2933",
+      "gold_kind": "HUMAN",
+      "staged": false,
+      "stage_hints": [
+        "DEFECTIVE_X"
+      ],
+      "has_cad": true,
+      "lidar_demo_synthetic": false,
+      "flags": [
+        "GOLD11_LINES_ARE_CODEX_MULTIVIEW_NOT_HUMAN"
+      ],
+      "scan_path": "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/incoming/2026-07-29_shaked_defective_good_pairs/38172000_01/scans/38172000_01_X.ply",
+      "scan_name": "38172000_01_X.ply",
+      "predictions": "docs/production/runlog/broad_baseline/runs/runtime/sc_4f8188b4d1a8/predictions_runtime.json",
+      "run": {
+        "status": "NO_PREDICTIONS",
+        "lane_wall_s": 35.567,
+        "heavy_step_wall_s": 34.152,
+        "peak_rss_gib": 1.008,
+        "timed_out_steps": [],
+        "finished_at": "2026-10-17T10:38:08Z"
+      },
+      "label_complete": true,
+      "predictions_path": "docs/production/runlog/broad_baseline/runs/runtime/sc_4f8188b4d1a8/predictions_runtime.json",
+      "gold": {
+        "scan_sha256": "4f8188b4d1a844305134801c3bb5364270250416d2f4dc43f0b05d37cc7962b9",
+        "label_frame": "scan_raw",
+        "zero_bend_control": false,
+        "gold_source": "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/broad_baseline/gold11_audit/truth/human_snapped_apex/sc_4f8188b4d1a8.json"
+      },
+      "lane_status": "NO_PREDICTIONS",
+      "lane": "runtime",
+      "gold_count": 10,
+      "prediction_count": 0,
+      "true_positive": 0,
+      "matches": [],
+      "unmatched_gold_ids": [
+        "B01",
+        "B02",
+        "B03",
+        "B04",
+        "B05",
+        "B06",
+        "B07",
+        "B08",
+        "B09",
+        "B10"
+      ],
+      "unmatched_prediction_ids": [],
+      "disposition": "SCORED_COMPLETE_LABEL",
+      "false_positive": 0,
+      "false_negative": 10,
+      "exact": false,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "failure": null,
+      "angle_mae_deg": null,
+      "position_error_mean_mm": null,
+      "position_error_median_mm": null,
+      "gold_span_overlap_mean": null,
+      "diagnostic": {
+        "false_negatives": [
+          {
+            "gold_id": "B01",
+            "cause": "MISSED"
+          },
+          {
+            "gold_id": "B02",
+            "cause": "MISSED"
+          },
+          {
+            "gold_id": "B03",
+            "cause": "MISSED"
+          },
+          {
+            "gold_id": "B04",
+            "cause": "MISSED"
+          },
+          {
+            "gold_id": "B05",
+            "cause": "MISSED"
+          },
+          {
+            "gold_id": "B06",
+            "cause": "MISSED"
+          },
+          {
+            "gold_id": "B07",
+            "cause": "MISSED"
+          },
+          {
+            "gold_id": "B08",
+            "cause": "MISSED"
+          },
+          {
+            "gold_id": "B09",
+            "cause": "MISSED"
+          },
+          {
+            "gold_id": "B10",
+            "cause": "MISSED"
+          }
+        ],
+        "false_positives": [],
+        "fn_cause_counts": {
+          "MISSED": 10
+        },
+        "fp_cause_counts": {}
+      }
+    },
+    {
+      "case_id": "sc_07062eee17aa",
+      "family_id": "38172000",
+      "tier": "GOLD11",
+      "in_gold11": true,
+      "gold11_id": "CG65CD575B1C",
+      "gold_kind": "HUMAN",
+      "staged": true,
+      "stage_hints": [
+        "PARTIAL_SCAN_1"
+      ],
+      "has_cad": true,
+      "lidar_demo_synthetic": false,
+      "flags": [],
+      "scan_path": "/Users/idantal/ShermanQC/source-assets/02_CAD_QC_3D/38172000_01_SCAN_1.ply",
+      "scan_name": "38172000_01_SCAN_1.ply",
+      "predictions": "docs/production/runlog/broad_baseline/runs/runtime/sc_07062eee17aa/predictions_runtime.json",
+      "run": {
+        "status": "LANE_FAILED",
+        "lane_wall_s": 12.487,
+        "heavy_step_wall_s": 12.377,
+        "peak_rss_gib": 0.42,
+        "timed_out_steps": [],
+        "finished_at": "2026-10-17T10:35:52Z"
+      },
+      "label_complete": true,
+      "predictions_path": "docs/production/runlog/broad_baseline/runs/runtime/sc_07062eee17aa/predictions_runtime.json",
+      "gold": {
+        "scan_sha256": "07062eee17aa4e41721b93cdb69ddb4b752e6713a16c5aab0a10df9c86d07880",
+        "label_frame": "scan_raw",
+        "zero_bend_control": false,
+        "gold_source": "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/broad_baseline/gold11_audit/truth/human_snapped_apex/sc_07062eee17aa.json"
+      },
+      "lane_status": "LANE_FAILED",
+      "lane": "runtime",
+      "gold_count": 6,
+      "prediction_count": 0,
+      "true_positive": 0,
+      "matches": [],
+      "unmatched_gold_ids": [
+        "M01",
+        "M02",
+        "M03",
+        "M04",
+        "M05",
+        "M06"
+      ],
+      "unmatched_prediction_ids": [],
+      "disposition": "SCORED_COMPLETE_LABEL",
+      "false_positive": 0,
+      "false_negative": 6,
+      "exact": false,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "failure": {
+        "reason": "RUNTIME_WORKER_FAILED",
+        "returncode": 1,
+        "timed_out": false,
+        "worker_error": "Invalid raw scan to reference transform",
+        "stderr_tail": "  File \"/Users/idantal/ShermanQC/FullProject/domains/bend/services/heatmap_evidence_service.py\", line 172, in build_bend_heatmap_evidence\n    alignment = validate_alignment({\n                ^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/idantal/ShermanQC/FullProject/domains/bend/services/inspection_frame.py\", line 20, in validate_alignment\n    raise ValueError('Invalid raw scan to reference transform')\nValueError: Invalid raw scan to reference transform\n\n       12.33 real        12.17 user         0.16 sys\n           451297280  maximum resident set size\n                   0  average shared memory size\n                   0  average unshared data size\n                   0  average unshared stack size\n               60819  page reclaims\n                   0  page faults\n                   0  swaps\n                   0  block input operations\n                   0  block output operations\n                   0  messages sent\n                   0  messages received\n                   0  signals received\n                   0  voluntary context switches\n                2402  involuntary context switches\n        190119407449  instructions retired\n         52707169509  cycles elapsed\n           346817568  peak memory footprint"
+      },
+      "angle_mae_deg": null,
+      "position_error_mean_mm": null,
+      "position_error_median_mm": null,
+      "gold_span_overlap_mean": null,
+      "diagnostic": {
+        "false_negatives": [
+          {
+            "gold_id": "M01",
+            "cause": "MISSED"
+          },
+          {
+            "gold_id": "M02",
+            "cause": "MISSED"
+          },
+          {
+            "gold_id": "M03",
+            "cause": "MISSED"
+          },
+          {
+            "gold_id": "M04",
+            "cause": "MISSED"
+          },
+          {
+            "gold_id": "M05",
+            "cause": "MISSED"
+          },
+          {
+            "gold_id": "M06",
+            "cause": "MISSED"
+          }
+        ],
+        "false_positives": [],
+        "fn_cause_counts": {
+          "MISSED": 6
+        },
+        "fp_cause_counts": {}
+      }
+    },
+    {
+      "case_id": "sc_f2475286312b",
+      "family_id": "38172000",
+      "tier": "GOLD11",
+      "in_gold11": true,
+      "gold11_id": "CGEBA9A869AC",
+      "gold_kind": "HUMAN",
+      "staged": true,
+      "stage_hints": [
+        "PARTIAL_SCAN_2"
+      ],
+      "has_cad": true,
+      "lidar_demo_synthetic": false,
+      "flags": [],
+      "scan_path": "/Users/idantal/ShermanQC/source-assets/02_CAD_QC_3D/38172000_01_SCAN_2 1.ply",
+      "scan_name": "38172000_01_SCAN_2 1.ply",
+      "predictions": "docs/production/runlog/broad_baseline/runs/runtime/sc_f2475286312b/predictions_runtime.json",
+      "run": {
+        "status": "NO_PREDICTIONS",
+        "lane_wall_s": 55.95,
+        "heavy_step_wall_s": 54.543,
+        "peak_rss_gib": 2.725,
+        "timed_out_steps": [],
+        "finished_at": "2026-10-17T10:41:06Z"
+      },
+      "label_complete": true,
+      "predictions_path": "docs/production/runlog/broad_baseline/runs/runtime/sc_f2475286312b/predictions_runtime.json",
+      "gold": {
+        "scan_sha256": "f2475286312b7e11be773166afae5d7eaacd826f8b59cee84289d05b4a222b63",
+        "label_frame": "scan_raw",
+        "zero_bend_control": false,
+        "gold_source": "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/broad_baseline/gold11_audit/truth/human_snapped_apex/sc_f2475286312b.json"
+      },
+      "lane_status": "NO_PREDICTIONS",
+      "lane": "runtime",
+      "gold_count": 8,
+      "prediction_count": 0,
+      "true_positive": 0,
+      "matches": [],
+      "unmatched_gold_ids": [
+        "M01",
+        "M02",
+        "M03",
+        "M04",
+        "M05",
+        "M06",
+        "M07",
+        "M08"
+      ],
+      "unmatched_prediction_ids": [],
+      "disposition": "SCORED_COMPLETE_LABEL",
+      "false_positive": 0,
+      "false_negative": 8,
+      "exact": false,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "failure": null,
+      "angle_mae_deg": null,
+      "position_error_mean_mm": null,
+      "position_error_median_mm": null,
+      "gold_span_overlap_mean": null,
+      "diagnostic": {
+        "false_negatives": [
+          {
+            "gold_id": "M01",
+            "cause": "MISSED"
+          },
+          {
+            "gold_id": "M02",
+            "cause": "MISSED"
+          },
+          {
+            "gold_id": "M03",
+            "cause": "MISSED"
+          },
+          {
+            "gold_id": "M04",
+            "cause": "MISSED"
+          },
+          {
+            "gold_id": "M05",
+            "cause": "MISSED"
+          },
+          {
+            "gold_id": "M06",
+            "cause": "MISSED"
+          },
+          {
+            "gold_id": "M07",
+            "cause": "MISSED"
+          },
+          {
+            "gold_id": "M08",
+            "cause": "MISSED"
+          }
+        ],
+        "false_positives": [],
+        "fn_cause_counts": {
+          "MISSED": 8
+        },
+        "fp_cause_counts": {}
+      }
+    },
+    {
+      "case_id": "sc_152f1b1aacb2",
+      "family_id": "40500000",
+      "tier": "GOLD11",
+      "in_gold11": true,
+      "gold11_id": "CG64C412CC73",
+      "gold_kind": "HUMAN",
+      "staged": true,
+      "stage_hints": [
+        "PARTIAL_SCAN_2"
+      ],
+      "has_cad": true,
+      "lidar_demo_synthetic": false,
+      "flags": [],
+      "scan_path": "/Users/idantal/ShermanQC/source-assets/02_CAD_QC_3D/40500000_0_SCAN2 1.ply",
+      "scan_name": "40500000_0_SCAN2 1.ply",
+      "predictions": "docs/production/runlog/broad_baseline/runs/runtime/sc_152f1b1aacb2/predictions_runtime.json",
+      "run": {
+        "status": "NO_PREDICTIONS",
+        "lane_wall_s": 57.415,
+        "heavy_step_wall_s": 56.382,
+        "peak_rss_gib": 10.583,
+        "timed_out_steps": [],
+        "finished_at": "2026-10-17T10:37:00Z"
+      },
+      "label_complete": true,
+      "predictions_path": "docs/production/runlog/broad_baseline/runs/runtime/sc_152f1b1aacb2/predictions_runtime.json",
+      "gold": {
+        "scan_sha256": "152f1b1aacb20920a601f7a8197d4c89a111688325bcf557a6a731641f306614",
+        "label_frame": "scan_raw",
+        "zero_bend_control": false,
+        "gold_source": "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/broad_baseline/gold11_audit/truth/human_snapped_apex/sc_152f1b1aacb2.json"
+      },
+      "lane_status": "NO_PREDICTIONS",
+      "lane": "runtime",
+      "gold_count": 7,
+      "prediction_count": 0,
+      "true_positive": 0,
+      "matches": [],
+      "unmatched_gold_ids": [
+        "M01",
+        "M02",
+        "M03",
+        "M04",
+        "M05",
+        "M06",
+        "M07"
+      ],
+      "unmatched_prediction_ids": [],
+      "disposition": "SCORED_COMPLETE_LABEL",
+      "false_positive": 0,
+      "false_negative": 7,
+      "exact": false,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "failure": null,
+      "angle_mae_deg": null,
+      "position_error_mean_mm": null,
+      "position_error_median_mm": null,
+      "gold_span_overlap_mean": null,
+      "diagnostic": {
+        "false_negatives": [
+          {
+            "gold_id": "M01",
+            "cause": "MISSED"
+          },
+          {
+            "gold_id": "M02",
+            "cause": "MISSED"
+          },
+          {
+            "gold_id": "M03",
+            "cause": "MISSED"
+          },
+          {
+            "gold_id": "M04",
+            "cause": "MISSED"
+          },
+          {
+            "gold_id": "M05",
+            "cause": "MISSED"
+          },
+          {
+            "gold_id": "M06",
+            "cause": "MISSED"
+          },
+          {
+            "gold_id": "M07",
+            "cause": "MISSED"
+          }
+        ],
+        "false_positives": [],
+        "fn_cause_counts": {
+          "MISSED": 7
+        },
+        "fp_cause_counts": {}
+      }
+    },
+    {
+      "case_id": "sc_7a1773eca9fa",
+      "family_id": "49001000",
+      "tier": "GOLD11",
+      "in_gold11": true,
+      "gold11_id": "CG191DEC7F81",
+      "gold_kind": "HUMAN",
+      "staged": true,
+      "stage_hints": [
+        "PRELIM"
+      ],
+      "has_cad": true,
+      "lidar_demo_synthetic": false,
+      "flags": [],
+      "scan_path": "/Users/idantal/ShermanQC/source-assets/02_CAD_QC_3D/49001000_A-PRELIM.ply",
+      "scan_name": "49001000_A-PRELIM.ply",
+      "predictions": "docs/production/runlog/broad_baseline/runs/runtime/sc_7a1773eca9fa/predictions_runtime.json",
+      "run": {
+        "status": "OK",
+        "lane_wall_s": 36.786,
+        "heavy_step_wall_s": 35.446,
+        "peak_rss_gib": 1.314,
+        "timed_out_steps": [],
+        "finished_at": "2026-10-17T10:39:30Z"
+      },
+      "label_complete": true,
+      "predictions_path": "docs/production/runlog/broad_baseline/runs/runtime/sc_7a1773eca9fa/predictions_runtime.json",
+      "gold": {
+        "scan_sha256": "7a1773eca9fab616afef498a9f9831e67eacb17fcc0d170607490a9e9db37020",
+        "label_frame": "scan_raw",
+        "zero_bend_control": false,
+        "gold_source": "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/broad_baseline/gold11_audit/truth/human_snapped_apex/sc_7a1773eca9fa.json"
+      },
+      "lane_status": "OK",
+      "lane": "runtime",
+      "gold_count": 5,
+      "prediction_count": 1,
+      "true_positive": 1,
+      "matches": [
+        {
+          "gold_id": "M01",
+          "prediction_id": "CAD_B1",
+          "axis_angle_deg": 0.26411,
+          "transverse_offset_mm": 1.083723,
+          "gold_span_overlap": 1.0,
+          "prediction_span_overlap": 0.895546,
+          "shorter_span_overlap": 1.0,
+          "gold_length_mm": 399.998365,
+          "prediction_length_mm": 446.653239
+        }
+      ],
+      "unmatched_gold_ids": [
+        "M02",
+        "M03",
+        "M04",
+        "M05"
+      ],
+      "unmatched_prediction_ids": [],
+      "disposition": "SCORED_COMPLETE_LABEL",
+      "false_positive": 0,
+      "false_negative": 4,
+      "exact": false,
+      "precision": 1.0,
+      "recall": 0.2,
+      "f1": 0.33333333333333337,
+      "failure": null,
+      "angle_mae_deg": 0.2641,
+      "position_error_mean_mm": 1.0837,
+      "position_error_median_mm": 1.0837,
+      "gold_span_overlap_mean": 1.0,
+      "diagnostic": {
+        "false_negatives": [
+          {
+            "gold_id": "M02",
+            "cause": "MISSED"
+          },
+          {
+            "gold_id": "M03",
+            "cause": "MISSED"
+          },
+          {
+            "gold_id": "M04",
+            "cause": "MISSED"
+          },
+          {
+            "gold_id": "M05",
+            "cause": "MISSED"
+          }
+        ],
+        "false_positives": [],
+        "fn_cause_counts": {
+          "MISSED": 4
+        },
+        "fp_cause_counts": {}
+      }
+    },
+    {
+      "case_id": "sc_70b39f530f00",
+      "family_id": "49024000",
+      "tier": "GOLD11",
+      "in_gold11": true,
+      "gold11_id": "CG4FAF273093",
+      "gold_kind": "HUMAN",
+      "staged": false,
+      "stage_hints": [],
+      "has_cad": true,
+      "lidar_demo_synthetic": false,
+      "flags": [],
+      "scan_path": "/Users/idantal/ShermanQC/source-assets/02_CAD_QC_3D/49024000_A.ply",
+      "scan_name": "49024000_A.ply",
+      "predictions": "docs/production/runlog/broad_baseline/runs/runtime/sc_70b39f530f00/predictions_runtime.json",
+      "run": {
+        "status": "OK",
+        "lane_wall_s": 8.507,
+        "heavy_step_wall_s": 7.618,
+        "peak_rss_gib": 0.441,
+        "timed_out_steps": [],
+        "finished_at": "2026-10-17T10:38:17Z"
+      },
+      "label_complete": true,
+      "predictions_path": "docs/production/runlog/broad_baseline/runs/runtime/sc_70b39f530f00/predictions_runtime.json",
+      "gold": {
+        "scan_sha256": "70b39f530f00a72dd99acf00b4a065f45bfe4f50185e3579c3ba26143f7d2ade",
+        "label_frame": "scan_raw",
+        "zero_bend_control": false,
+        "gold_source": "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/broad_baseline/gold11_audit/truth/human_snapped_apex/sc_70b39f530f00.json"
+      },
+      "lane_status": "OK",
+      "lane": "runtime",
+      "gold_count": 3,
+      "prediction_count": 3,
+      "true_positive": 1,
+      "matches": [
+        {
+          "gold_id": "M01",
+          "prediction_id": "CAD_B2",
+          "axis_angle_deg": 1.918637,
+          "transverse_offset_mm": 1.919422,
+          "gold_span_overlap": 1.0,
+          "prediction_span_overlap": 0.768235,
+          "shorter_span_overlap": 1.0,
+          "gold_length_mm": 28.255445,
+          "prediction_length_mm": 36.779692
+        }
+      ],
+      "unmatched_gold_ids": [
+        "M02",
+        "M03"
+      ],
+      "unmatched_prediction_ids": [
+        "CAD_B1",
+        "CAD_B4"
+      ],
+      "disposition": "SCORED_COMPLETE_LABEL",
+      "false_positive": 2,
+      "false_negative": 2,
+      "exact": false,
+      "precision": 0.3333333333333333,
+      "recall": 0.3333333333333333,
+      "f1": 0.3333333333333333,
+      "failure": null,
+      "angle_mae_deg": 1.9186,
+      "position_error_mean_mm": 1.9194,
+      "position_error_median_mm": 1.9194,
+      "gold_span_overlap_mean": 1.0,
+      "diagnostic": {
+        "false_negatives": [
+          {
+            "gold_id": "M02",
+            "nearest_prediction": "CAD_B4",
+            "cause": "OFFSET_GT_4MM+SPAN_LT_60PCT",
+            "axis_angle_deg": 1.275,
+            "transverse_offset_mm": 10.186,
+            "gold_span_overlap": 1.0,
+            "prediction_span_overlap": 0.181,
+            "shorter_span_overlap": 1.0,
+            "gold_length_mm": 21.795,
+            "prediction_length_mm": 120.456
+          },
+          {
+            "gold_id": "M03",
+            "nearest_prediction": "CAD_B4",
+            "cause": "OFFSET_GT_4MM+SPAN_LT_60PCT",
+            "axis_angle_deg": 1.963,
+            "transverse_offset_mm": 10.241,
+            "gold_span_overlap": 1.0,
+            "prediction_span_overlap": 0.162,
+            "shorter_span_overlap": 1.0,
+            "gold_length_mm": 19.49,
+            "prediction_length_mm": 120.456
+          }
+        ],
+        "false_positives": [
+          {
+            "prediction_id": "CAD_B1",
+            "nearest_gold": "M01",
+            "cause": "OFFSET_GT_4MM+SPAN_LT_60PCT",
+            "axis_angle_deg": 1.848,
+            "transverse_offset_mm": 4.005,
+            "gold_span_overlap": 1.0,
+            "prediction_span_overlap": 0.219,
+            "shorter_span_overlap": 1.0,
+            "gold_length_mm": 28.255,
+            "prediction_length_mm": 128.979
+          },
+          {
+            "prediction_id": "CAD_B4",
+            "nearest_gold": "M02",
+            "cause": "OFFSET_GT_4MM+SPAN_LT_60PCT",
+            "axis_angle_deg": 1.275,
+            "transverse_offset_mm": 10.186,
+            "gold_span_overlap": 1.0,
+            "prediction_span_overlap": 0.181,
+            "shorter_span_overlap": 1.0,
+            "gold_length_mm": 21.795,
+            "prediction_length_mm": 120.456
+          }
+        ],
+        "fn_cause_counts": {
+          "OFFSET_GT_4MM": 2
+        },
+        "fp_cause_counts": {
+          "OFFSET_GT_4MM": 2
+        }
+      }
+    }
+  ]
+}

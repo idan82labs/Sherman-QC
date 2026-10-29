@@ -1,0 +1,29 @@
+{
+ "scan_id": "sc_2233372b8df7",
+ "family": "42288005",
+ "gold": "ai_bend_lines_v1/ae525e4954effa70d87ba8eb.json (6 lines, source_ply_raw == scan_raw, identity frame)",
+ "gold_check": "All 6 gold lines sit on real fold apexes in the raw-scan sections (channel_zoom_sections2.png, sections_e1.png). Profile: panel -B1- wall -B2- 13 mm jog -B3- lip (9 mm mid / 13 mm at ends) -B4/B5- 19 mm feet at the two ends only; B6 = wall-to-end-tab fold. Gold omits a 2.9 mm joggle on the wall's left end (two ~15 deg folds, patches 3|13 at e1=-78 and 13|8 at e1=-90, ~43 mm each, running ACROSS e1). No prediction aligns with those, so the omission does not change any count here.",
+ "best_f1": {
+  "FN B3": "ENGINE_MISS - no line at the jog/lip corner; zero-shot decomposition saw it only as 12-22 mm fragments (OB6/7/10/11/13), typed union dropped them",
+  "FN B5": "ENGINE_SPLIT_OR_MERGE - CAD_B3 is one 262 mm line through both collinear end feet (B4 + B5); the scan-frame gate crops to the longest supported run, keeping the right foot only",
+  "FP CADF_CAD_B1": "ENGINE_FALSE_LINE - lies along the panel's free right edge (e1 110-120); no flange there; real B1 already covered by F1C_e4bb",
+  "FP CADF_CAD_B2": "ENGINE_WRONG_LOCUS - parallel to B6 but 6.5 mm out, in the middle of the 12 mm end tab; duplicate of F1C_1df90 that dedup did not merge",
+  "FP CADF_CAD_B7": "ENGINE_FALSE_LINE - CAD 166.7 deg R23 bend does not exist on the planar wall; the gate kept the 49 mm segment crossing the joggle land, orthogonal to the actual joggle folds"
+ },
+ "runtime_and_runtime_gated": {
+  "FN B2,B3,B4,B5,B6": "ENGINE_MISS - only CAD_B1 and CAD_B7 have scan-fit lines; CAD_B3/B5/B8 NOT_DETECTED, CAD_B2/B4/B6 placeholder-only (gated out)",
+  "FP CAD_B7": "ENGINE_FALSE_LINE (same as CADF_CAD_B7, 45.6 mm over the joggle land, 7.9 deg off e1)"
+ },
+ "runtime_with_placeholders": {
+  "FN B2": "ENGINE_WRONG_LOCUS - CAD_B4 placeholder 7.9 mm off (in air outside the wall), 2.3 deg",
+  "FN B3,B4,B5": "ENGINE_MISS",
+  "FN B6": "ENGINE_WRONG_LOCUS - CAD_B2 placeholder 14.4 deg skew",
+  "FP CAD_B2": "ENGINE_WRONG_LOCUS (B6)",
+  "FP CAD_B4": "ENGINE_WRONG_LOCUS (B2)",
+  "FP CAD_B6": "ENGINE_FALSE_LINE - 47 mm placeholder across the right foot end, perpendicular to B4, 37% support",
+  "FP CAD_B7": "ENGINE_FALSE_LINE - 276 mm diagonal across the planar wall, 19.5% support"
+ },
+ "renders": ["sections_e1.png", "channel_zoom_sections2.png", "wall_faceon.png", "joggle_section.png", "panel_right_edge.png"],
+ "geometry": "triage_geometry.json",
+ "code": "research/broad_baseline/triage/triage_sc_2233372b8df7*.py"
+}

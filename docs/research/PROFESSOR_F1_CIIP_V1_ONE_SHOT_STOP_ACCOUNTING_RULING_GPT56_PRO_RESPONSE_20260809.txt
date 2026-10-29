@@ -1,0 +1,417 @@
+RULING_TOKEN
+
+CIIP_V1_SERIALIZED_BYTES_ACCOUNTING_CORRECTION_AUTHORIZED_NO_EXECUTION
+
+EVIDENCE_INTEGRITY
+
+Status: PASS, with explicit packet-scope limitations.
+
+I independently computed the SHA-256 of the uploaded ZIP as:
+
+efa63808a7a106c9d802cfafb5325554a3cbbc4cc247340bd01010d005c06b0d
+
+This exactly matches the user-supplied value. The archive contains 43 regular files totaling 620,645 uncompressed bytes. ZIP CRC validation passed. I found no duplicate member paths, path-traversal entries, absolute paths, backslash aliases, or symbolic links.
+
+I independently hashed every extracted file. The nine V7 evidence attachments match their frozen hashes:
+
+01_V7_SOURCE_LOCK_INPUT_MANIFEST.json
+0d7d02698fdfc873ca56ff2248d7df9876a3e00ef1662bb73caab2d68f5b0bc4
+
+02_V7_LINEAGE_CLAIM_AND_CROSSBINDING_LEDGER.md
+e90b75ffad825b2438847c769cea9a1e953dab0bfcc55fb140dbd3001d7cf959
+
+03_V7_PRIMARY_SOURCE_AND_ENGINEERING_ASSUMPTION_LEDGER.md
+c0f29e4ae134f4287d87adab04eb0cd749f5f91ac0404ab051ecc21708e68d07
+
+04_V7_NORMATIVE_CUBICAL_IIP_V1_PREFLIGHT_SPEC.md
+638ab946e06e0db2e7ee99eb7d328c3dbc81928d0ef6b08785cf317451d58003
+
+05_V7_LOCKED_CUBICAL_IIP_V1_CONFIGURATION.json
+813acdd96f5a8108caf2c87dfdd733b5c856248c4522d2789d733e84016dce04
+
+06_V7_LOCKED_CUBICAL_IIP_V1_SCHEMA.json
+e996566e2b7da94dfc99b97e8bb59e5b6f1fdb25692a16890b63731b5c16ea4f
+
+07_V7_STATIC_CARDINALITY_EVIDENCE_RESOURCE_PROOF.json
+9726a1624afa115134135c0451ebf89e3f82241515000a18557988ab721da160
+
+08_V7_INDEPENDENT_VALIDATOR_AND_TAMPER_CONTRACT.md
+a0e2ca99d0789806f98de9d2eefb8c404939cf9c4ea5c1a02ee186d637d60788
+
+09_V7_SAFETY_AUTHORITY_AND_TERMINAL_CONTRACT.json
+dd8581b61ea83f22153c5c0e13ee4267312ec1f2b9356c1de3a989acf75a651d
+
+The canonical self-commitments independently recompute as:
+
+source manifest object:
+a87b10e9b14119a543d5d114d84579007a1272616b29c317f505812c4f4667fd
+
+locked configuration object:
+876cf418b6a6411a2ea34be969d4d9bd9e66bcc167cac79f3a83ac3a06c40e95
+
+locked schema object:
+b101e8177a96bf0a623db77c9b867d913371894cd9128ca7f25a1c8930c53376
+
+static proof object:
+a0d8b6b440ed6611db35f1f5ae7904eff1820a6b847be08dda8381949a4ec279
+
+safety/terminal contract object:
+ea7158c4cf88fa6d545b9a6d0cbf459ecf10f3faf8776ad53677852aa0bc94f7
+
+The execution-lock commitment independently recomputes, using its tagged canonical-body rule, to:
+
+54086ad146476dacd1e66217669f359c730646f80b80f6182101f32b19b0158b
+
+The dependency-lock commitment independently recomputes to:
+
+3c00998be063effeeaf1eb4d42ef4191a6635f28f8198907994560ec0d2c360a
+
+The tagged code-aggregate commitment recomputes from the lock ledger to:
+
+344bd553ce8500c6ea3d2f1f22cfb28254671ba01fa8f94a5599dd975e910814
+
+The 37-entry source manifest independently yields the frozen raw-content selection 050cba324c35e32979b9ee626a1e73e64f8e39e4d7797c04a48eb8a9ff52bb97 under the specified lexicographic selection rule. Its aggregate census also recomputes to 37 scans, 13,991,575 finite records, 448,084 duplicate records, and 699,881,650 raw bytes.
+
+The one-shot terminal chain is exact:
+
+Claim SHA-256: f9e2ddd561072c6242563f6c80e555fd90a3cd6476e468278f425cdb634630a3
+
+Claim state: CONSUMED_BEFORE_FIRST_WORKER_LAUNCH
+
+one_shot: true
+
+rerun_authorized: false
+
+Result SHA-256: e7280fb49b8b4aad13e11e0c681a5e82261503e83665dd8f2360d225b22c02f0
+
+Sole role: BASE_A
+
+Process-evidence SHA-256: 4d3e92330fea524954a9b4c8d161995aa2b19fc6a706d6170c4c2e580acc9768
+
+Stderr SHA-256: 54bae9557e6e05850349c4aea8ab2592c6f3006b15be52e282427c4c2cc3ad71
+
+Empty stdout SHA-256: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+
+Published outcome: INVALID_CII_PERSISTENCE_PREFLIGHT_STOP
+
+container_sha256: null
+
+gold_or_labels_accessed: false
+
+replacement_input_authorized: false
+
+rerun_authorized: false
+
+The result’s role record is byte-semantically identical to the separate process-evidence record. The stderr traceback binds the failure directly to semantic_core.py:203 → container.py:384 → container.py:553, terminating with:
+
+ContainerValidationError: supplied serialized_bytes disagrees with computed value
+
+Scope limitations: the packet does not contain the raw PLY bytes, the compiled native binary, the compiler/Python/system binaries named by the lock, or research/f1_ciip_v1/__init__.py, which is one of the 16 lock-listed code files. Therefore, those absent objects cannot be freshly byte-rehashed from this ZIP. Fifteen of the sixteen lock-listed source files are present and independently match their lock rows; the missing row participates coherently in the aggregate commitment but is not independently byte-verifiable here. The packet-reported 132/132 pre-execution test result likewise was not rerun, and no full test-run transcript is included. These are evidence-scope limits, not observed contradictions.
+
+The two files directly controlling the observed failure, semantic_core.py and container.py, are present, hash-bound, syntactically valid, and sufficient to establish the accounting defect without executing project code. No container or scientific geometry result was published.
+
+ROOT_CAUSE
+
+The failure is a deterministic caller-contract defect in the resource-metadata construction path.
+
+execute_semantic_role constructs its pre-encoding resource object with:
+
+Python
+Run
+"serialized_bytes": 0
+
+It then passes that object to encode_container.
+
+The encoder first canonicalizes the six frozen tables and computes:
+
+Python
+Run
+total_size = METADATA_REGION_BYTES + sum(
+    len(table_bytes[name]) for name in TABLE_NAMES
+)
+
+It then calls:
+
+Python
+Run
+_set_computed(built["resource"], "serialized_bytes", total_size)
+
+The existing _set_computed contract is:
+
+Python
+Run
+if key in target and target[key] != value:
+    raise ContainerValidationError(...)
+target[key] = value
+
+Consequently, the supplied zero is not interpreted as “unknown” or “unset.” It is interpreted as a caller assertion that the finished container has zero bytes. Since a valid container necessarily includes the fixed 1,048,576-byte metadata region, that assertion conflicts with the computed value and is correctly rejected.
+
+The emitted closed-schema requirement and the encoder’s construction input are different lifecycle states:
+
+Pre-finalization construction object: serialized_bytes is derived and may be absent.
+
+Emitted container metadata: serialized_bytes is mandatory and must equal the exact finished byte count.
+
+The code already embodies this two-stage model for other derived fields—table descriptors, table-directory commitment, partition commitment, and case-token digest—and the existing container test fixture already omits serialized_bytes before encoding. Its round-trip test verifies that the emitted field is inserted and equals len(encoded).
+
+There is no length circularity. The metadata region has a frozen fixed size of 1,048,576 bytes, so after the table payloads are canonicalized the complete container length is known before the metadata region is encoded. The decimal width of the metadata value cannot alter the total container length.
+
+The strict _set_computed behavior is therefore correct. The defect is the production caller’s premature placeholder, combined with missing regression coverage of that production resource-building path.
+
+This STOP supplies no admissible scientific geometry result. Calculations may have occurred transiently before serialization, but no semantic container was emitted, decoded, independently rebuilt, committed, or validated. Those transient values cannot be cited as positive, negative, or partial CIIP evidence. That evidentiary consequence does not transform the accounting mistake into a mathematical or architectural failure.
+
+LITERATURE_AND_STANDARDS_GROUNDING
+
+Persistent homology is defined through the evolution of homological features across a filtration, and the foundational algorithms operate on filtered complexes and their algebraic representations. Cubical homology supplies a computational homology framework for cubical complexes. None of these mathematical definitions depends on a project container’s serialized_bytes bookkeeping field. Therefore, the observed exception does not rebut persistence theory, cubical homology, or the intended mathematical family; it prevents this implementation attempt from publishing evidence about them. See Edelsbrunner–Letscher–Zomorodian, DOI 10.1007/s00454-002-2885-2; Zomorodian–Carlsson, DOI 10.1007/s00454-004-1146-y; and Kaczynski–Mischaikow–Mrozek’s cubical-homology treatment, DOI 10.1007/0-387-21597-2_2. 
+Springer
++2
+Springer
++2
+
+Pottmann et al., DOI 10.1016/j.cagd.2008.01.002, provide research grounding for multiscale integral-invariant methods and their robustness motivations in geometry processing. That paper does not establish Sherman QC’s particular digital occupied-shell construction, frozen scales, quantization, identifier system, table schema, persistence disposition rules, or acceptance gates. Those remain project-specific engineering hypotheses requiring empirical evidence. 
+ScienceDirect
++1
+
+Canonicalization is legitimately relevant because cryptographic commitments require a repeatable byte representation. RFC 8785 documents one deterministic JSON canonicalization scheme, although it is an Informational independent-submission RFC rather than an IETF Standards Track specification. The packet’s sorted-key, compact, ASCII-oriented JSON profile is a project-specific canonicalization convention and should not be described as RFC 8785 conformity unless every JCS rule is separately demonstrated. FIPS 180-4 specifies SHA-256 and related digest algorithms; a matching digest supports change detection, but provenance and authenticity still depend on the surrounding binding and authority system. 
+IETF Datatracker
++1
+
+W3C PROV-DM models entities, activities, derivations, and responsibility while explicitly allowing domain-specific extensions. The in-toto research similarly demonstrates cryptographic verification of software-supply-chain steps. These sources support the general practice of binding source, build, execution, and result identities; they do not prescribe this packet’s exact tags, JSON fields, one-shot capability, lock formula, or terminal tokens. Those are Sherman QC engineering conventions. 
+W3C
++1
+
+Keeping _set_computed strict is consistent with fail-safe design: an ambiguous or conflicting supplied value should be rejected rather than silently overwritten. Saltzer and Schroeder’s fail-safe-default principle supports the general posture, but the exact rule “absence or exact computed u64” is still a project-specific interface design decision, not a theorem or external standard requirement. 
+IEEE Xplore
++1
+
+Project-specific engineering choices in this ruling: the fixed one-MiB metadata region, the six-table binary layout, the 64 MiB cap, the exact resource-key set, treating the encoder as owner of derived byte accounting, accepting an absent derived field during construction, prohibiting sentinels, and requiring exact equality if a caller preclaims the value. These choices are technically coherent and fail-closed, but they are not literature-established scientific results.
+
+EXACT_AUTHORIZED_CORRECTION_OR_STOP
+
+Exactly one bounded correction is authorized:
+
+Remove the default "serialized_bytes": 0 entry from the pre-encoding resource_values object constructed by execute_semantic_role.
+
+No caller-supplied serialized_bytes value may be silently deleted, rewritten, or treated as a wildcard. The exact contract shall be:
+
+Let the emitted resource-key set be:
+
+cpu_nanoseconds
+wall_nanoseconds
+peak_process_tree_rss_bytes
+scratch_bytes
+serialized_bytes
+watchdog_poll_milliseconds
+resource_cap_tripped
+
+Before encoding, the resource construction object may contain either:
+
+the complete emitted key set minus serialized_bytes
+
+or the complete emitted key set.
+
+The encoder remains the authoritative owner of:
+
+T = 1_048_576
+    + byte_length(partition_node)
+    + byte_length(leaf_aggregate)
+    + byte_length(cell_scale_field)
+    + byte_length(space_scale_adjacency)
+    + byte_length(persistence_disposition)
+    + byte_length(rejection)
+
+When serialized_bytes is absent, the encoder shall insert T.
+
+When serialized_bytes is supplied, it must be a non-Boolean JSON u64 equal to T. Any zero, nonzero, or otherwise typed value unequal to T shall retain the current fail-closed exception.
+
+No internal or external sentinel is permitted. In particular, 0, null, -1, a string, an object, a special enum, or a maximum-u64 marker shall not mean “unset.”
+
+_set_computed shall remain strict and functionally unchanged.
+
+The emitted metadata shall continue to require the exact closed resource-key set, including serialized_bytes.
+
+decode_container shall continue to require:
+
+Python
+Run
+metadata["resource"]["serialized_bytes"] == len(data)
+
+The independent validator shall continue to perform its separately implemented length-accounting check.
+
+The fixed metadata framing, six table formats, row widths, order rules, commitments, 64 MiB cap, schema, configuration, scientific constants, native implementation, geometry operations, persistence logic, source-selection rule, and safety authority are unchanged.
+
+The smallest conforming functional patch is therefore the deletion of the single premature placeholder from semantic_core.py. Documentation and test-source additions necessary to make the two-stage contract explicit are within this correction. No functional modification to container.py, the decoder, or the independent validator is presently justified.
+
+This ruling authorizes source/document/test-definition correction only. It does not authorize importing, running, compiling, testing, smoke-executing, replaying, or otherwise exercising the corrected code.
+
+MANDATORY_SOURCE_FREE_TESTS
+
+The following test cases are mandatory before any later execution request. This section specifies required test definitions and expected outcomes; it does not authorize running them under the consumed one-shot authority.
+
+Production-path regression
+
+test_semantic_resource_builder_omits_serialized_bytes_before_encoding
+
+Inspect or isolate the actual production resource-construction path used by execute_semantic_role. Assert that its default pre-encoding resource object does not contain serialized_bytes. This test must fail against the frozen defective source containing "serialized_bytes": 0; testing only a separate fixture is insufficient.
+
+Omission-to-authoritative-value KAT
+
+test_encoder_inserts_exact_serialized_bytes_when_omitted
+
+Use only the compact synthetic six-table fixture. Omit the field before encoding. Assert that the emitted metadata contains it and that:
+
+serialized_bytes
+= len(encoded_container)
+= METADATA_REGION_BYTES + sum(canonical table byte lengths)
+
+Exact preclaim equivalence KAT
+
+test_exact_caller_serialized_bytes_preclaim_is_accepted
+
+First derive T from the source-free fixture. Re-encode the identical fixture with caller-supplied serialized_bytes = T. Assert acceptance and byte identity with the omission path.
+
+Zero-placeholder regression
+
+test_zero_serialized_bytes_preclaim_is_rejected
+
+Supply serialized_bytes = 0. Require the exact fail-closed computed-field disagreement before any container is returned.
+
+Wrong nonzero preclaims
+
+test_wrong_nonzero_serialized_bytes_preclaims_are_rejected
+
+At minimum test T - 1, T + 1, an unrelated positive value, and the configured cap when it is not equal to T. Every case must fail; none may be silently normalized.
+
+Type, range, and sentinel rejection
+
+test_serialized_bytes_rejects_non_u64_and_sentinel_values
+
+Cover Boolean values, negative integers, 2**64, floating-point values, strings, null, containers/objects, and any proposed internal sentinel. All must fail under the same emitted-schema type and domain rules.
+
+Closed emitted-schema enforcement
+
+test_decoder_requires_serialized_bytes_in_emitted_resource
+
+Remove the field from otherwise valid emitted metadata and re-encode the metadata region without changing the table suffix. The decoder must reject the non-exact resource-key set.
+
+Emitted-value tamper enforcement
+
+test_decoder_and_independent_validator_reject_serialized_bytes_tamper
+
+Mutate the final emitted field to zero, len(container) - 1, and len(container) + 1. Require rejection by the native decoder path and by the independently implemented validator path.
+
+Framing non-substitutability
+
+test_serialized_bytes_cannot_mask_truncation_or_trailing_bytes
+
+Demonstrate that adjusting the metadata field cannot make a truncated container, a container with trailing bytes, a noncontiguous descriptor directory, or a table-length mismatch valid.
+
+Fixed-region and cap boundary arithmetic
+
+test_serialized_bytes_uses_fixed_region_and_enforces_cap
+
+With inert source-free payloads or a bounded test seam, prove the arithmetic at the exact cap and cap-plus-one. Cap-plus-one must fail before publication. The test must not allocate enterprise-scale data or invoke geometry code.
+
+Supervisor resource-patch invariant
+
+test_resource_patch_preserves_serialized_length_and_table_suffix
+
+On a compact fixture, specify that patching final CPU, wall, RSS, and scratch values leaves total byte length, serialized_bytes, table bytes, table hashes, and commitments unchanged. A patch that changes serialized_bytes must fail.
+
+Independent accounting ownership
+
+test_independent_validator_compares_declared_length_to_actual_length
+
+Preserve the independent validator’s direct comparison against the received byte sequence length. The expected failure token remains SERIALIZED_BYTE_ACCOUNTING_MISMATCH or its frozen equivalent.
+
+Lock-rebinding KAT
+
+test_accounting_correction_invalidates_stale_code_lock
+
+The corrected source hash and code aggregate must differ from V7. A stale V7 code or execution-lock binding must be rejected. This is a source-free commitment test only.
+
+Scientific noninterference allowlist
+
+test_accounting_patch_changes_only_authorized_source_and_test_contract
+
+Compare the correction packet against V7. Permit the one production deletion plus test/document additions. Require byte identity for the frozen configuration, emitted schema, static cardinality proof, safety contract, table definitions, scientific constants, native source, geometry modules, persistence modules, and independent semantic rebuild.
+
+WHAT_REMAINS_CLOSED
+
+The consumed one-shot execution claim remains terminal. It is not revived, extended, repaired, or reusable by this ruling.
+
+No execution authority of any kind is granted. This includes:
+
+no source-free test invocation;
+
+no import or module-initialization test;
+
+no compilation;
+
+no native KAT execution;
+
+no corrected BASE_A attempt;
+
+no BASE_B, perturbation, rebuild, validator, replay, benchmark, or synthetic rescue;
+
+no replacement input;
+
+no raw PLY access;
+
+no runtime/main-branch integration;
+
+no production inspection or promotion.
+
+Gold and all truth-bearing material remain closed, including labels, expected bend counts, ownership, births, CAD/reference geometry, renders, manual annotations, prior F1 candidates, benchmark answers, family routing, fitting, learning, threshold selection, and expected-count logic.
+
+No parameter, scale, resource cap, source-selection rule, table schema, geometry primitive, persistence rule, acceptance gate, or architecture family is authorized to change.
+
+No transient BASE_A calculation is admitted as scientific evidence. The only admissible result of the consumed attempt is the durable accounting-layer STOP and its resource/process evidence.
+
+This ruling does not grant a scientific GO for Cubical IIP V1. It determines only that the observed STOP is sufficiently explained by a narrow pre-serialization accounting defect and therefore does not warrant an architecture-family STOP at this stage.
+
+NEXT_PACKET_REQUIREMENTS
+
+The next admissible packet is an immutable paper/code-only accounting-correction packet. It shall contain no scan result, test-run result, compiled binary result, semantic output, validator output, gold access, or execution capability consumption.
+
+It must include:
+
+The correction packet’s complete file inventory, byte sizes, per-file SHA-256 values, and outer archive SHA-256.
+
+The complete before-and-after bytes or an exact unified diff for every changed file.
+
+A change ledger identifying the sole production behavior change: deletion of the premature default "serialized_bytes": 0.
+
+A normative construction-versus-emission contract stating:
+
+absence is permitted only before encoding;
+
+exact final u64 is mandatory after encoding;
+
+exact caller preclaim may be accepted;
+
+unequal caller preclaim must fail;
+
+no sentinel is permitted.
+
+The complete source for all mandatory source-free tests above, with each test mapped to its expected acceptance or failure condition. No claim that they passed may appear unless a separate authority later permits their execution.
+
+A static demonstration that the production resource-building path no longer supplies a zero placeholder and that no alternate placeholder or sentinel was introduced elsewhere.
+
+New hashes for every changed source/test/document file and a newly calculated code aggregate. The V7 code aggregate and execution-lock commitment must be explicitly marked stale after the source correction.
+
+A byte-identity/noninterference ledger showing that the frozen configuration, schema, cardinality proof, safety contract, native source, table formats, scientific constants, geometry pipeline, persistence pipeline, and independent validator accounting logic were not functionally changed.
+
+Explicit preservation of:
+
+gold_or_labels_accessed: false;
+
+replacement_input_authorized: false;
+
+rerun_authorized: false;
+
+the consumed status of the prior one-shot claim;
+
+the terminal status of the published V7 STOP.
+
+A declaration that no execution lock or capability in the correction packet constitutes permission to run. Any request to execute even the source-free tests, and any later request for another scan, requires a separate user decision, a fresh immutable code/dependency/execution lock, and a new bounded authority.

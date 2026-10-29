@@ -1,0 +1,155 @@
+{
+ "base": "zs_lane_v2",
+ "base_config_sha256": "65502f244dac85a592617bcf5ade98309649be835d157896b7da3ca3ab990694",
+ "budget": {
+  "cell_mm": 0.3,
+  "max_faces": 3000000,
+  "rule": "a scan with more triangles than max_faces (file header) runs on a resampling of itself on a fixed absolute grid (cell cell_mm x 1.12^k, the smallest k whose output has at most max_faces faces): one QEF vertex per (cell, skin) from the scan's grid-line crossings, one quad per crossing (budget.py, revision 3); within the budget the scan is used unchanged"
+ },
+ "code_fingerprint": {
+  "files": {
+   "contracts/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "contracts/production/__init__.py": "f4470baba34366eaf39f7d3436e237031a9c72dada0c4147c99de325200b1d30",
+   "contracts/production/canonical.py": "0746c83dfde1ccc917b2e9c466127d7d42120b87706acc20108e1bfa61f7c8d9",
+   "contracts/production/characteristics.py": "09a5442d86ca11c2637170f5d0198d06f102415fc0a43998d4a9c63018fbb504",
+   "contracts/production/common.py": "31b8390afd578f7819453df54121cc50839f52b9b8e8f700af9e0023f2127a48",
+   "contracts/production/compiled_part.py": "8ec4e39a4ef32efab3775afa46df27fcf38ee5c7994cad28bc692726b0852253",
+   "contracts/production/consistency.py": "b725c34ef60920cf6c0bec73d4b2d2152c05e6aad82bca95784298aa8332e2f1",
+   "contracts/production/inspection_result.py": "124a11226142251931c4f82d61ae9b0876421083e0ce58f6913e88dfeb8cf425",
+   "contracts/production/layout.py": "0c5254ca1b2599345a9d727b1618af1a5621635668d10560b3eb73bf640c8593",
+   "contracts/production/line_job.py": "14327134a0772fcb2873bc1dd9495f8f54b18155dce2425fa60efce2a99ad56d",
+   "contracts/production/part_recipe.py": "f9734462a981f729df5eb7a034cbe52136ac37543681392c279f45c87a83b3b2",
+   "contracts/production/states.py": "04644ef74928ef91e33e38ce44ad5868e3dc6ca4c7ab4d50ab3f90c7d1f5295e",
+   "domains/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "domains/production/__init__.py": "541480f86c03cdaab34ea1c9dedaccedff24d792c4a6b98774f5d1d90815360d",
+   "domains/production/engine/__init__.py": "1dfcb438f65c1f4f9f6ea9a0c3761b09646e309ff2826822a1587155e7a05b47",
+   "domains/production/engine/inspect/__init__.py": "c5d89214ef50202a1d0d819d3656ea9cf28f5b03deda13fbf5370bd8f396569e",
+   "domains/production/engine/inspect/articulated.py": "22d38c5f4dc3a6493944434ff45aaee4156818ea21d89b31964d90aecf424858",
+   "domains/production/engine/inspect/cloud.py": "42c23cb9de3f01fa9362d6b1e3dd52ce30e9de72056677da8abbf1ed2d849f7c",
+   "domains/production/engine/inspect/config.py": "71c47872b48cfba5e6be3119f93c87f5aeb13544cf0808a7a18b6227c824762a",
+   "domains/production/engine/inspect/decode.py": "102cbb167b318270dca311a7576574157993a9c2b4a92b4cc367e662aedfca07",
+   "domains/production/engine/inspect/engine.py": "bb593889d1516b1a2568ef42a5a1a406a1460188735ce316959acd51d58fef1e",
+   "domains/production/engine/inspect/geom.py": "f4a1de7132ad9a66fef48995d4c6c89a3bc338a2e2233d0bfa53e29d142ded34",
+   "domains/production/engine/inspect/metrology.py": "61e4064900bc264dd02723a52ca9e5ede9844fa518e45b1b3d05818f3448e379",
+   "domains/production/engine/inspect/outputs.py": "4d1ec3b713a00ce324abf444bf7492582c4eb97034044a517299d3397597ad1c",
+   "domains/production/engine/inspect/part.py": "8c5a25e66589d64141dd77d5d5069ddef789a39fb197acc2608b02f2d035c8d1",
+   "domains/production/engine/inspect/registration.py": "c5ac36c8299a1caf7da40fc0272e86cf23f28cb4e5d2390c26677c81cb43d6e0",
+   "domains/production/engine/inspect/result.py": "10d98c1e54b0d40bddf18b30635ad0e212d85db75987fd193815239bd136b13c",
+   "domains/production/engine/inspect/scan_io.py": "60aa7716e31b178496438698dd8c00ee94251ad8b0bbc62dda3e04ba882887f4",
+   "research/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "research/bench_labeling/__init__.py": "9cdc8da635ba7ceb413f92b78e8d030894bf0deb2b32804aa56a9170080bd9d4",
+   "research/bench_labeling/custody.py": "9ba3cf6d0f5282f976b17715bdff24ac6aa41231cec1d5fbf4cfb6a60655345e",
+   "research/broad_baseline/bb_common.py": "aca4f68583d9c88159c26bfc91308add4883f4d9084d02e7f0e3abcbf072a281",
+   "research/broad_baseline/gold11_cases.py": "0a65bdaad95f43c4b3f44c4900ab7241aa869d33894173dc6ddf6dade66c8457",
+   "research/broad_baseline/score.py": "2bacc1b7fd37f41e509261da2b0b1ddb1e243f901a74350a061533d7ec0f603f",
+   "research/broad_baseline/score_broad.py": "210d98859426ff10f81833c9e343ab6dfdb4f53d2da76692a2fd506b472e657a",
+   "research/zeroshot/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "research/zeroshot/common/__init__.py": "899db36560a71ae272444a654f28e0fc7467e8cbf8bb3165a16e7340b494d279",
+   "research/zeroshot/common/gold_guard.py": "031f1276334bc676ceaaf4d41b83b86e914f920008cf00e1dc11aca2f117d40a",
+   "research/zeroshot/d1_two_skin/__init__.py": "14faf11f824a36f5985db705dd45dc585c7a572d1c0dd1301d2131167f2cee55",
+   "research/zeroshot/d1_two_skin/custody.py": "204f8f65e0b7346f48f52be7f0563773ac7c99074d551770921443df3eec4e0c",
+   "research/zeroshot/d1_two_skin/two_skin.py": "22c571aebbd4937052846ff2bba0e7e8603393b6c14cd9008d99f5a70a8a9bf6",
+   "research/zeroshot/z2_self_recipe/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "research/zeroshot/z2_self_recipe/common.py": "d6e12fc946cc65d839b6d98f4a1d05f09d00eb1a32416d935771879e4519b1c3",
+   "research/zeroshot/z2_self_recipe/graph.py": "dabe0d5a66b81c7edf2315cc2c88ca420846bb5f26dba350a117f0da649bb2d3",
+   "research/zeroshot/z2_self_recipe/run.py": "83c4aeea172feb9abd62cbfd5dbd3ebe9f987995dfa13aeb1fb662091d431f0e",
+   "research/zeroshot/z2_self_recipe/segment.py": "2cccce3256cc5c30d84594dd2ca45c312cb26296ea23cc4c73d31677fe6135a3",
+   "research/zeroshot/z3_slicing/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "research/zeroshot/z3_slicing/custody.py": "c9a63c774b27f60c65be8880edc52e151e9068747af20e0e58d2663dd85d2341",
+   "research/zeroshot/z3_slicing/gate.py": "0b780599ca39232cc2634ee9f42de4f0426531820581fad6671e0207257cc834",
+   "research/zeroshot/z3_slicing/pooled.py": "21d7ef7d1f1d88d5d8bfcf8ac69e76ecb5094c8eee28904cc987f86b403f899e",
+   "research/zeroshot/z3_slicing/score_run.py": "43b7fda7444eb3e90e6a62c889e11589ccf39fd19ec36a04b30bf45e8fe182e5",
+   "research/zeroshot/z3_slicing/selector.py": "30cb9184c50d7d4475b5f6ee3f20dca50c4c62354ba43b5d9c6cf1a10618aae5",
+   "research/zeroshot/z3_slicing/slicer.py": "716aad6e05146c3dfc7b92ae9213966845f5d05dee074f9e17bad6d46df23095",
+   "research/zeroshot/z3_slicing/union.py": "2de202061904523b2d573e3d237a9611ea68931d5f02c8308fc75bd2d0ef4ec0",
+   "research/zeroshot/z3_slicing/zscore.py": "cb18edb23f69fed77ceb6309bf42d8dd6a5f07db27df2e787c1c8b59727542e0",
+   "research/zeroshot/zs_lane_v2/__init__.py": "7b9553a779ab4c6cf15989b425cd7ec45e20b0dc4f9f686a723044c14f8d1777",
+   "research/zeroshot/zs_lane_v2/core.py": "52993a55dc6c02d88b5b8ecf173f07600f00346c7cd57d8deb7d40e505084fa4",
+   "research/zeroshot/zs_lane_v2/evidence.py": "0bac28a300baa4197d56df19ef3bfad6059b22bc49941240dfc093243923d316",
+   "research/zeroshot/zs_lane_v2/postproc.py": "9110ad8744d94cb926856b7e7bd31963aedcff3f503f7a40e6dd0707dce33f5b",
+   "research/zeroshot/zs_lane_v2/z3s.py": "278abbafee869f448a6c945a88ad73e36ed9f637c719e45d845e3c7287ac1cc4",
+   "research/zeroshot/zs_lane_v3/__init__.py": "d6de612efde37ff52f1e290e4016897b83fe7df367d3cc680e2997b451c0858e",
+   "research/zeroshot/zs_lane_v3/budget.py": "8605aea0d4e5bbb4f5bebc3d19f1b768cf5e4cd00227870ede701a69d7f12bc3",
+   "research/zeroshot/zs_lane_v3/core.py": "4414220f9427eca7e054e798c726dce526c2ee0abf493a7776930cb4dabfb1a0",
+   "research/zeroshot/zs_lane_v3/fingerprint.py": "f3d8538d0d2bb964c6a88a26b1991a23de6b1c254d1b8ce6370b35c5405f341a",
+   "research/zeroshot/zs_lane_v3/fixes.py": "4909c495481739f39f7d032dd89514a8823c88c8c035beba3c4a9db8b56ec062",
+   "research/zeroshot/zs_lane_v3/lane.py": "e5310bdf41bb75c38339e0074244778d462dc8eb1e947a920135a81cdd7e7808",
+   "research/zeroshot/zs_lane_v3/z3_merge.py": "1cf27a04cd0a2872f354927e35f9e5a4425f59abc355b15d4105eab69e648eea",
+   "scripts/evaluate_f1_against_manual_gold.py": "1e9420558b91f9b136fb32ed012b56c64cdaeecf7599ee1ef9fe336915d75c62"
+  },
+  "sha256": "871f23fa0f46d7f827a31e3c3bd075572dca8adb096569541942c973c1d487b7"
+ },
+ "lane": "zs_lane_v3",
+ "note": "zs_lane_v2 base + EXT (ratio 1.3, containment 0.6 = middle of the DEV plateau 0.5-0.75) + Z3R (Z3-alone p >= 0.9 and station sweep >= 0.25); fix parameters set on all-DEV OOF prototypes (selection-aware), see README.md. Revision 2 (2026-10-25): runtime/memory only (exact bounded Z3 merge, Z2 before Z3, 3M-face budget); same models and parameters as revision 1. Revision 3 (2026-10-25): budget step only (density-invariant fixed-grid resampling, cell 0.30 mm laddered to max_faces); same models and parameters as revision 2",
+ "repin_2026_10_26": {
+  "changed_files": [
+   "contracts/production/line_job.py",
+   "domains/production/engine/inspect/config.py",
+   "domains/production/engine/inspect/engine.py",
+   "domains/production/engine/inspect/metrology.py"
+  ],
+  "code_fingerprint_after": "49a16399f15349889fd266d1f05cfd1f9b8fce635d9a63a6b08bb233da66782b",
+  "code_fingerprint_before": "dc23a905bc2cf83a2fff2a4e1270ca654e95b8d3d6f2077db97c50559c85476f",
+  "config_before_archive": "docs/production/runlog/zeroshot_2026-10-25/repin_2026-10-26/archive/config_v3_rev3_pre_repin.json",
+  "reason": "production re-pin bundled with E3 e3-1.13.0 and ENGINE_IO-A5 (owner decision 2026-10-26: \"1a, approve the bundle, station is Windows\"; freeze-ledger seq 25). Only shared E3 / contracts files the lane imports read-only changed; every lane-own file, model, threshold and parameter is unchanged",
+  "record": "docs/production/runlog/zeroshot_2026-10-25/repin_2026-10-26/REPIN.md"
+ },
+ "repin_2026_10_28": {
+  "changed_files": [
+   "domains/production/engine/inspect/config.py",
+   "domains/production/engine/inspect/engine.py"
+  ],
+  "code_fingerprint_after": "871f23fa0f46d7f827a31e3c3bd075572dca8adb096569541942c973c1d487b7",
+  "code_fingerprint_before": "49a16399f15349889fd266d1f05cfd1f9b8fce635d9a63a6b08bb233da66782b",
+  "config_before_archive": "docs/production/runlog/zeroshot_2026-10-25/repin_2026-10-28/archive/config_v3_pre.json",
+  "reason": "production re-pin with E3 e3-1.14.0 (owner decision 2026-10-28: \"extend the waiver, thin dense scans, go ahead\"). Only shared E3 files the lane imports read-only changed; every lane-own file, model, threshold and parameter is unchanged",
+  "record": "docs/production/runlog/zeroshot_2026-10-25/repin_2026-10-28/REPIN.md"
+ },
+ "revision": 3,
+ "revision_note": "revision 3 (budget step only): the revision-2 vertex clustering (cell grown with the input density) is replaced by the density-invariant fixed-grid resampling (budget.py). Same models, threshold, post-processing, fixes, trigger (max_faces) and every other stage as revision 2 (code fingerprint ab31d061..., config sha 1c3f8cb7...)",
+ "schema": "sherman.zeroshot.zs_lane_v3.config.v1",
+ "scorer_fingerprint": {
+  "files": {
+   "research/broad_baseline/bb_common.py": "aca4f68583d9c88159c26bfc91308add4883f4d9084d02e7f0e3abcbf072a281",
+   "research/broad_baseline/score.py": "2bacc1b7fd37f41e509261da2b0b1ddb1e243f901a74350a061533d7ec0f603f",
+   "research/broad_baseline/score_broad.py": "210d98859426ff10f81833c9e343ab6dfdb4f53d2da76692a2fd506b472e657a",
+   "research/zeroshot/zs_lane_v2/scoring.py": "d13942dfc9fe0d14f625314366dabb2e4bc75755ece47097503ea67d8ffa30b1",
+   "scripts/evaluate_f1_against_manual_gold.py": "1e9420558b91f9b136fb32ed012b56c64cdaeecf7599ee1ef9fe336915d75c62"
+  },
+  "sha256": "05cc9314f471d22571cf9b108c53d11f384db89318dd4baeb31699d3c8104471"
+ },
+ "threshold_rule": "fixed 0.5 on the pooled GBM probability (as zs_lane_v1 / v2); Z3R floor 0.9 on the Z3-alone GBM probability",
+ "variants": {
+  "zs": {
+   "feats": "base",
+   "features": "pooled GBM: 21 Z3 + 5 pool flags; Z3-alone GBM (Z3R only): 21 Z3",
+   "fix": {
+    "ext": true,
+    "ext_dedupe": true,
+    "ext_min_in": 0.6,
+    "ext_ratio": 1.3,
+    "z3r": true,
+    "z3r_sweep_min": 0.25,
+    "z3r_tau": 0.9
+   },
+   "model": "docs/production/runlog/zeroshot_2026-10-25/v3/models/zs_lane_v3_zs_gbm.pkl",
+   "model_sha256": "ade6cde44ede85dbf8195d0f6c093a2eea50eb4a481a21ec99fa9f17cd49ffeb",
+   "placement": "D1 gated outer-apex snap of every pooled candidate on the Z3 mesh; joined lines span the extreme snapped piece ends along the longest piece; EXT lines span the union with the absorbed Z2 extent along their own axis; Z3R lines at the candidate's snapped placement",
+   "post": {
+    "dedupe_join": true,
+    "join": true,
+    "join_low": 0.0,
+    "sweep_min": 0.25
+   },
+   "threshold": 0.5,
+   "use_z2": true,
+   "use_z3": true,
+   "z3_model": "docs/production/runlog/zeroshot_2026-10-25/v3/models/zs_lane_v3_z3_gbm.pkl",
+   "z3_model_sha256": "62e99d13ccf0945d4b6932b85f19879e757e09ca7f493041c3ce53503e74e28c"
+  }
+ },
+ "z2_fallback": true,
+ "z3_params": {
+  "fallback_frac_only": true
+ }
+}

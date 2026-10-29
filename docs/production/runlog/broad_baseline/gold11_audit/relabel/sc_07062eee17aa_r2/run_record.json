@@ -1,0 +1,61 @@
+{
+ "schema": "sherman.gold11_audit.relabel_run_record.v1",
+ "status": "complete",
+ "scan_id": "sc_07062eee17aa",
+ "round": "r2",
+ "recorded_at": "2026-10-17",
+ "do_not_redo": "r2 lines + 2 blind verifications + write-label (revision 2) finished; reuse.",
+ "reused": "prep (gold11_audit/prep/sc_07062eee17aa) and r1 specs for B1, B3-B6 (lines byte-identical to r1)",
+ "b2_fix": {
+  "r1": "web side plane_from_points seed [-415.428,-38.534,216.531] r160 tol1.2; default envelope apex -> 0.92 mm median from the measured apex, 0.71 toward the sharp",
+  "r2": "web side plane_from_points seed [-368.428,-11.034,218.876] r100 tol0.9 grow false (top skin 14 mm from the fold, +X half) + apex_mode station_median (new opt-in override, research/bench_labeling README_OVERRIDES.md section 4); extent_xyz unchanged",
+  "why_new_override": "the fold apex bows ~3.5 mm along 305 mm; the default apex rule (one offset at the outer envelope) keeps any straight line on the envelope, so plane/margin/extent overrides alone plateaued at 0.68-0.72 mm median, signed -0.42 (random search of 140 variants); station_median uses the median of per-1 mm apex heights",
+  "result": "apex_stations: median 0.450 / p90 1.234 / max 1.838 mm (best LSQ straight line 0.562/1.061/1.708; r1 0.916/1.192/1.888); signed bisector offset median -0.04; 77% of length within 0.5 mm of the outer skin (r1 38%)"
+ },
+ "tool_change": {
+  "files": [
+   "research/bench_labeling/geometry.py",
+   "research/bench_labeling/lines.py",
+   "research/bench_labeling/README_OVERRIDES.md",
+   "tests/test_bench_labeling_overrides.py"
+  ],
+  "nature": "additive opt-in per-bend key apex_mode (envelope default | station_median); bends without it are unchanged (B1,B3-B6 byte-identical label lines); 14 bench_labeling tests pass"
+ },
+ "steps": [
+  {
+   "step": "lines",
+   "rc": 0,
+   "out": "docs/production/runlog/broad_baseline/gold11_audit/relabel/sc_07062eee17aa_r2",
+   "pairs_sha256": "2a8170b9e62069bb5ef170f5b14708cf3e1f57cf4d9a5dde8bec267ab3872c04",
+   "lines_json_sha256": "d126fbedfa1ae4c88542fc5486ffb3cda9a04eea91ad9714166d1625eb559087",
+   "n_ok": 6,
+   "n_failed": 0
+  },
+  {
+   "step": "labeler vision check",
+   "out": "docs/production/runlog/broad_baseline/gold11_audit/relabel/sc_07062eee17aa_r2/vision",
+   "pass": true
+  },
+  {
+   "step": "blind verifiers",
+   "file": "docs/production/runlog/broad_baseline/gold11_audit/relabel/sc_07062eee17aa_r2/VERIFICATION.json",
+   "verifier1": "PASS",
+   "verifier2": "PASS (B2 marginal)"
+  },
+  {
+   "step": "write-label",
+   "rc": 0,
+   "label": "data/bend_corpus/annotations/ai_bend_lines_gold11_relabel_v1/a962166c3019434c10628722.json",
+   "label_sha256": "b5e5ff8972b72f06f0991aafddd1939cfa0aa156212175685dc6cb87b80d284f",
+   "revision": 2,
+   "annotator": "claude-vision-ai-v1",
+   "provenance": "data/bend_corpus/annotations/ai_bend_lines_gold11_relabel_v1/provenance/a962166c3019434c10628722.json",
+   "asset_path": "/Users/idantal/ShermanQC/source-assets/02_CAD_QC_3D/38172000_01_SCAN_1.ply"
+  }
+ ],
+ "explore": "docs/production/runlog/broad_baseline/gold11_audit/relabel/sc_07062eee17aa_r2/explore_envelope_only (r2 without apex_mode: 0.693 mm median; superseded)",
+ "human_gold_untouched": {
+  "path": "data/bend_corpus/annotations/human_bend_lines_v1/a962166c3019434c10628722.json",
+  "sha256": "15f2f1288e9fa33e84b0bb9f47630ee8db19076d8303dbe87a85e72404fa6620"
+ }
+}

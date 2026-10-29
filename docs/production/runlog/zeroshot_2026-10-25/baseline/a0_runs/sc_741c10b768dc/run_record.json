@@ -1,0 +1,161 @@
+{
+  "schema": "sherman.broad_baseline.run_record.v1",
+  "lane": "best_f1",
+  "status": "A0_ONLY_NO_CAD",
+  "line_count": 2,
+  "scan": {
+    "source": "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260726_31327ff4/46128000_01.ply",
+    "sha256": "741c10b768dcd6ae949f2145d9135e4386afaf2b3e092c2edb010757bb093797",
+    "staged": "/private/tmp/claude-501/sherman_zeroshot_work/dev/sc_741c10b768dc/staged/scan_741c10b768dc.ply"
+  },
+  "cad": null,
+  "opaque_token": "BB741c10b768dc",
+  "work_dir": "/private/tmp/claude-501/sherman_zeroshot_work/dev/sc_741c10b768dc",
+  "lane_wall_s": 202.806,
+  "lane_excluded_wait_s": 0.1,
+  "heavy_step_wall_s": 202.173,
+  "peak_rss_bytes": 1509998592,
+  "limits": {
+    "step_timeout_s": 600.0,
+    "lane_timeout_s": 600.0,
+    "rss_limit_gib": 12.0
+  },
+  "steps": [
+    {
+      "name": "stage",
+      "status": "OK",
+      "scan": "/private/tmp/claude-501/sherman_zeroshot_work/dev/sc_741c10b768dc/staged/scan_741c10b768dc.ply",
+      "cad": null,
+      "opaque": true
+    },
+    {
+      "name": "a0_decompose",
+      "command": [
+        "/Users/idantal/ShermanQC/FullProject/.venv/bin/python",
+        "-B",
+        "/Users/idantal/ShermanQC/FullProject/research/broad_baseline/bb_steps.py",
+        "decompose",
+        "--scan",
+        "/private/tmp/claude-501/sherman_zeroshot_work/dev/sc_741c10b768dc/staged/scan_741c10b768dc.ply",
+        "--out-json",
+        "/private/tmp/claude-501/sherman_zeroshot_work/dev/sc_741c10b768dc/a0/BB741c10b768dc/result/decomposition_result.json",
+        "--cache-dir",
+        "/private/tmp/claude-501/sherman_zeroshot_work/dev/sc_741c10b768dc/a0_cache"
+      ],
+      "returncode": 0,
+      "timed_out": false,
+      "timeout_s": 599.9017833750695,
+      "wall_s": 7.08,
+      "time_real_s": 7.07,
+      "time_user_s": 6.89,
+      "time_sys_s": 0.16,
+      "time_max_rss_bytes": 740507648,
+      "sampled_peak_group_rss_bytes": 590462976,
+      "stdout_log": "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/zeroshot_2026-10-25/baseline/a0_runs/sc_741c10b768dc/logs/a0_decompose.stdout.log",
+      "stderr_log": "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/zeroshot_2026-10-25/baseline/a0_runs/sc_741c10b768dc/logs/a0_decompose.stderr.log",
+      "python_rss_gib_at_start": 1.398,
+      "rss_waits": 0,
+      "rss_wait_s": 0.0,
+      "rss_limit_gib": 12.0,
+      "status": "OK",
+      "pre_step_rss_gate": {
+        "python_rss_gib_at_start": 1.398,
+        "rss_waits": 0,
+        "rss_wait_s": 0.0,
+        "rss_limit_gib": 12.0
+      },
+      "lane_excluded_wait_s_so_far": 0.0
+    },
+    {
+      "name": "a0_pool",
+      "command": [
+        "/Users/idantal/ShermanQC/FullProject/.venv/bin/python",
+        "-B",
+        "/Users/idantal/ShermanQC/FullProject/research/broad_baseline/bb_steps.py",
+        "pool",
+        "--decomposition-root",
+        "/private/tmp/claude-501/sherman_zeroshot_work/dev/sc_741c10b768dc/a0",
+        "--token",
+        "BB741c10b768dc",
+        "--source-scan",
+        "/private/tmp/claude-501/sherman_zeroshot_work/dev/sc_741c10b768dc/staged/scan_741c10b768dc.ply",
+        "--source-sha",
+        "741c10b768dcd6ae949f2145d9135e4386afaf2b3e092c2edb010757bb093797",
+        "--out-dir",
+        "/private/tmp/claude-501/sherman_zeroshot_work/dev/sc_741c10b768dc/pool",
+        "--voxel-mm",
+        "1.8"
+      ],
+      "returncode": 0,
+      "timed_out": false,
+      "timeout_s": 592.5108180842362,
+      "wall_s": 36.417,
+      "time_real_s": 36.4,
+      "time_user_s": 36.17,
+      "time_sys_s": 0.24,
+      "time_max_rss_bytes": 742899712,
+      "sampled_peak_group_rss_bytes": 698351616,
+      "stdout_log": "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/zeroshot_2026-10-25/baseline/a0_runs/sc_741c10b768dc/logs/a0_pool.stdout.log",
+      "stderr_log": "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/zeroshot_2026-10-25/baseline/a0_runs/sc_741c10b768dc/logs/a0_pool.stderr.log",
+      "python_rss_gib_at_start": 1.623,
+      "rss_waits": 0,
+      "rss_wait_s": 0.0,
+      "rss_limit_gib": 12.0,
+      "status": "OK",
+      "pre_step_rss_gate": {
+        "python_rss_gib_at_start": 1.622,
+        "rss_waits": 0,
+        "rss_wait_s": 0.0,
+        "rss_limit_gib": 12.0
+      },
+      "lane_excluded_wait_s_so_far": 0.1
+    },
+    {
+      "name": "a0_typed_union",
+      "command": [
+        "/Users/idantal/ShermanQC/FullProject/.venv/bin/python",
+        "-B",
+        "/Users/idantal/ShermanQC/FullProject/scripts/run_f1_structured_union_e2e.py",
+        "--candidate-pool",
+        "/private/tmp/claude-501/sherman_zeroshot_work/dev/sc_741c10b768dc/pool/BB741c10b768dc.json",
+        "--output-dir",
+        "/private/tmp/claude-501/sherman_zeroshot_work/dev/sc_741c10b768dc/a0_union",
+        "--disable-birth",
+        "--solver-python",
+        "/Users/idantal/ShermanQC/FullProject/.venv-f1-structured/bin/python"
+      ],
+      "returncode": 0,
+      "timed_out": false,
+      "timeout_s": 556.0552936682943,
+      "wall_s": 158.676,
+      "time_real_s": 158.66,
+      "time_user_s": 157.79,
+      "time_sys_s": 0.67,
+      "time_max_rss_bytes": 1379565568,
+      "sampled_peak_group_rss_bytes": 1509998592,
+      "stdout_log": "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/zeroshot_2026-10-25/baseline/a0_runs/sc_741c10b768dc/logs/a0_typed_union.stdout.log",
+      "stderr_log": "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/zeroshot_2026-10-25/baseline/a0_runs/sc_741c10b768dc/logs/a0_typed_union.stderr.log",
+      "python_rss_gib_at_start": 4.127,
+      "rss_waits": 0,
+      "rss_wait_s": 0.0,
+      "rss_limit_gib": 12.0,
+      "status": "OK",
+      "pre_step_rss_gate": {
+        "python_rss_gib_at_start": 4.127,
+        "rss_waits": 0,
+        "rss_wait_s": 0.0,
+        "rss_limit_gib": 12.0
+      },
+      "lane_excluded_wait_s_so_far": 0.1
+    }
+  ],
+  "environment": {
+    "python": "3.11.15",
+    "platform": "macOS-26.5-arm64-arm-64bit",
+    "app_python": "/Users/idantal/ShermanQC/FullProject/.venv/bin/python",
+    "solver_python": "/Users/idantal/ShermanQC/FullProject/.venv-f1-structured/bin/python"
+  },
+  "lock": "/private/tmp/claude-501/zs_a0_lane_0.lock",
+  "lock_wait_s": 0.0,
+  "finished_at": "2026-10-24T23:24:12Z"
+}

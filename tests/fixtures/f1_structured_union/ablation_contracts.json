@@ -1,0 +1,85 @@
+{
+  "schema_version": 1,
+  "kind": "sherman_qc_f1_professor_falsifiable_ablation_contracts",
+  "outline_free_edge_rejection": {
+    "factor_policy": "457_specific_chord_factor_disabled_in_all_arms",
+    "shared_inputs": [
+      "candidate_pools",
+      "completed_incidence",
+      "continuation_settings",
+      "solver_settings",
+      "outer_family_folds"
+    ],
+    "arms": {
+      "A0": {"class_conditioned_side_ownership": false, "perimeter_semantics": false},
+      "A1": {"class_conditioned_side_ownership": true, "perimeter_semantics": false},
+      "A2": {"class_conditioned_side_ownership": true, "perimeter_semantics": true}
+    },
+    "forbidden_discriminator": "span_or_length_threshold",
+    "primary_metrics": [
+      "counted_outline_free_edge_fp_per_scan",
+      "family_macro_bend_precision",
+      "family_macro_bend_recall",
+      "exact_object_count",
+      "perimeter_vs_bend_confusion",
+      "hole_boundary_counted_fp",
+      "deterministic_replay_rate"
+    ],
+    "go": {
+      "minimum_relative_outline_fp_reduction": 0.5,
+      "maximum_absolute_bend_recall_loss": 0.05,
+      "precision_change_bootstrap_lower_bound_strictly_positive": true,
+      "maximum_hole_boundary_fp_increase": 0,
+      "required_deterministic_replay_rate": 1.0
+    },
+    "stop": {
+      "outline_fp_reduction_below": 0.3,
+      "bend_recall_loss_above": 0.05,
+      "reject_single_family_or_457_only_gain": true,
+      "reject_length_threshold_behavior": true
+    }
+  },
+  "missing_bend_birth": {
+    "arms": {
+      "B0": {"birth_profile": null},
+      "B1": {"birth_profile": "BIRTH_V1"}
+    },
+    "deletion_protocol": {
+      "truth_use_scope": "research_perturbation_construction_only",
+      "selection_key": ["scan_geometry_sha256", "canonical_truth_geometry"],
+      "remove_matching_candidates_from_every_source": true,
+      "retain_support_atom_table": true,
+      "retain_support_atom_edges": true,
+      "retain_plane_table": true,
+      "require_pre_solve_candidate_recall_zero": true,
+      "expose_deleted_identity_to_inference": false,
+      "expose_expected_count_to_inference": false,
+      "require_undeleted_false_birth_control": true
+    },
+    "primary_metrics": [
+      "deleted_object_recovery_rate",
+      "false_births_per_undeleted_scan",
+      "birth_precision",
+      "natural_miss_recovery",
+      "exact_count_change",
+      "residual_atoms_reclaimed_per_birth",
+      "deterministic_replay_rate"
+    ],
+    "go": {
+      "minimum_deleted_object_recovery_rate": 0.5,
+      "maximum_false_births_per_undeleted_scan": 0.25,
+      "maximum_family_macro_precision_loss": 0.03,
+      "minimum_outer_families_improved_or_tied": 18,
+      "required_deterministic_replay_rate": 1.0,
+      "require_no_surviving_matching_candidate": true
+    },
+    "stop": {
+      "deleted_object_recovery_below": 0.3,
+      "false_births_per_scan_above": 0.5,
+      "reject_perimeter_or_hole_dominated_births": true,
+      "reject_expected_count_or_deletion_identity_dependency": true,
+      "reject_sibling_candidate_dependency": true,
+      "reject_nonimproving_negative_reduced_cost_columns": true
+    }
+  }
+}

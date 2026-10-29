@@ -24,11 +24,8 @@ def _normalize_scan_state(scan_state: Optional[str], scan_name: Optional[str]) -
     text = str(scan_state or "").strip().lower()
     if text in {"full", "partial", "unknown"}:
         return text
-    name = str(scan_name or "").strip().lower()
-    if any(token in name for token in ("full", "final", "complete")):
-        return "full"
-    if name:
-        return "partial"
+    # scan_name is retained for API compatibility but is intentionally not an
+    # inference feature.  Unknown source-observation state must abstain.
     return "unknown"
 
 

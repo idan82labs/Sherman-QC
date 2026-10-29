@@ -1,0 +1,29 @@
+{
+  "schema": "sherman.broad_baseline.eval_lines.v1",
+  "lane": "runtime_gated",
+  "status": "LANE_FAILED",
+  "frame": "scan_raw",
+  "frame_definition": "coordinates of the scan file exactly as stored (source_ply_raw == scan_raw)",
+  "units": "scan file units (mm for every Sherman scan inspected so far; not re-estimated)",
+  "scan": {
+    "path": "/Users/idantal/ShermanQC/source-assets/02_CAD_QC_3D/10839000/10839000_01_scan_1.ply",
+    "sha256": "08686dc1d5d4c89725393907082e8cc4e4c0f5a21427697760ff44d29c7939fc"
+  },
+  "source": {
+    "kind": "lane_failure",
+    "path": null,
+    "sha256": null
+  },
+  "conversion": {},
+  "line_count": 0,
+  "owned_bend_regions": [],
+  "dropped": [],
+  "failure": {
+    "reason": "RUNTIME_WORKER_FAILED",
+    "returncode": 1,
+    "timed_out": false,
+    "worker_error": "Alignment unavailable: insufficient shared registration fitness",
+    "stderr_tail": "  File \"/Users/idantal/ShermanQC/FullProject/backend/bend_analysis_worker.py\", line 134, in _export_aligned_scan_visualization\n    return build_bend_heatmap_evidence(\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/idantal/ShermanQC/FullProject/domains/bend/services/heatmap_evidence_service.py\", line 170, in build_bend_heatmap_evidence\n    raise ValueError('Alignment unavailable: insufficient shared registration fitness')\nValueError: Alignment unavailable: insufficient shared registration fitness\n\n       11.51 real        10.80 user         0.19 sys\n           485097472  maximum resident set size\n                   0  average shared memory size\n                   0  average unshared data size\n                   0  average unshared stack size\n               63296  page reclaims\n                   0  page faults\n                   0  swaps\n                   0  block input operations\n                   0  block output operations\n                   0  messages sent\n                   0  messages received\n                   0  signals received\n                  57  voluntary context switches\n                3533  involuntary context switches\n        159250120112  instructions retired\n         45908220095  cycles elapsed\n           381060152  peak memory footprint"
+  },
+  "created_at": "2026-10-17T10:10:22Z"
+}

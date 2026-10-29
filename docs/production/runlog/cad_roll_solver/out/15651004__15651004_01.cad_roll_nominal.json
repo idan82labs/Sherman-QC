@@ -1,0 +1,257 @@
+{
+ "schema": "cad_roll_nominal_v0",
+ "rule_version": "ROLL-RULE-0 (2026-10-25): E1 graph bend keeps E1 class unless E1 ROLLED(a); paired feature with Ri > 10 t is a ROLL; Ri <= 10 t tangent to a roll is a junction BEND; thresholds reused from E1-UNSUPPORTED-RULE-2 (2026-10-17; rule 1 thresholds, review fixes)",
+ "source": {
+  "file": "15651004_01.stp",
+  "sha256": "1f88d309a738ef326fdd98f78c7d51f60c3c1529405e067185948f1cdd6d596c",
+  "name": "15651004__15651004_01"
+ },
+ "frame": "cad_model_mm (STEP frame, no transform)",
+ "units": {
+  "length": "mm",
+  "angle": "deg"
+ },
+ "e1": {
+  "flange_graph_error": null,
+  "part_model_error": null,
+  "thickness_mm": 2.0,
+  "panels": 4,
+  "graph_bends": 3,
+  "features": []
+ },
+ "thickness": {
+  "t_mm": 2.0,
+  "source": "E1_FLANGE_GRAPH"
+ },
+ "summary": {
+  "rolls": 0,
+  "junction_bends": 0,
+  "e1_bends": 3,
+  "solver_bends": 3,
+  "cones": 0,
+  "all_checks_pass": true,
+  "roll_faces_overlap_e1_bend_faces": []
+ },
+ "rolls": [],
+ "junction_bends": [],
+ "e1_bends": [
+  {
+   "graph_bend_id": "G1",
+   "class": null,
+   "parent": "P3",
+   "child": "P2",
+   "inner_radius_mm": 0.8,
+   "thickness_mm": 2.0,
+   "sweep_deg": 90.0,
+   "length_mm": 28.4,
+   "oml_virtual_sharp": {
+    "start_mm": [
+     0.0,
+     -78.785,
+     -14.2
+    ],
+    "end_mm": [
+     0.0,
+     -78.785,
+     14.2
+    ]
+   },
+   "faces": {
+    "inner": [
+     36
+    ],
+    "outer": [
+     37
+    ]
+   },
+   "solver_cross_check": {
+    "paired": true,
+    "ri_diff_mm": 0.0,
+    "t_diff_mm": 0.0,
+    "sweep_diff_deg": 0.0
+   }
+  },
+  {
+   "graph_bend_id": "G2",
+   "class": null,
+   "parent": "P0",
+   "child": "P2",
+   "inner_radius_mm": 0.8,
+   "thickness_mm": 2.0,
+   "sweep_deg": 90.0,
+   "length_mm": 154.77,
+   "oml_virtual_sharp": {
+    "start_mm": [
+     2.0,
+     -75.985,
+     -17.0
+    ],
+    "end_mm": [
+     2.0,
+     78.785,
+     -17.0
+    ]
+   },
+   "faces": {
+    "inner": [
+     30
+    ],
+    "outer": [
+     31
+    ]
+   },
+   "solver_cross_check": {
+    "paired": true,
+    "ri_diff_mm": 0.0,
+    "t_diff_mm": 0.0,
+    "sweep_diff_deg": 0.0
+   }
+  },
+  {
+   "graph_bend_id": "G3",
+   "class": null,
+   "parent": "P1",
+   "child": "P2",
+   "inner_radius_mm": 0.8,
+   "thickness_mm": 2.0,
+   "sweep_deg": 90.0,
+   "length_mm": 154.77,
+   "oml_virtual_sharp": {
+    "start_mm": [
+     2.0,
+     -75.985,
+     17.0
+    ],
+    "end_mm": [
+     2.0,
+     78.785,
+     17.0
+    ]
+   },
+   "faces": {
+    "inner": [
+     32
+    ],
+    "outer": [
+     33
+    ]
+   },
+   "solver_cross_check": {
+    "paired": true,
+    "ri_diff_mm": 0.0,
+    "t_diff_mm": 0.0,
+    "sweep_diff_deg": 0.0
+   }
+  }
+ ],
+ "solver_bends": [
+  {
+   "id": "G1",
+   "source": "E1",
+   "class": null
+  },
+  {
+   "id": "G2",
+   "source": "E1",
+   "class": null
+  },
+  {
+   "id": "G3",
+   "source": "E1",
+   "class": null
+  }
+ ],
+ "graph": {
+  "nodes": [
+   {
+    "id": "P0",
+    "type": "PANEL",
+    "source": "E1"
+   },
+   {
+    "id": "P1",
+    "type": "PANEL",
+    "source": "E1"
+   },
+   {
+    "id": "P2",
+    "type": "PANEL",
+    "source": "E1"
+   },
+   {
+    "id": "P3",
+    "type": "PANEL",
+    "source": "E1"
+   }
+  ],
+  "edges": [
+   {
+    "id": "G1",
+    "type": "BEND",
+    "source": "E1",
+    "ends": [
+     "P3",
+     "P2"
+    ],
+    "e1_class": null
+   },
+   {
+    "id": "G2",
+    "type": "BEND",
+    "source": "E1",
+    "ends": [
+     "P0",
+     "P2"
+    ],
+    "e1_class": null
+   },
+   {
+    "id": "G3",
+    "type": "BEND",
+    "source": "E1",
+    "ends": [
+     "P1",
+     "P2"
+    ],
+    "e1_class": null
+   }
+  ],
+  "components": 1,
+  "coherent": true
+ },
+ "unclassified_paired_features": [
+  {
+   "faces": [
+    21,
+    29
+   ],
+   "surface": "cylinder",
+   "r_inner_mm": 2.7,
+   "thickness_mm": 1.25,
+   "sweep_deg": 360.0,
+   "e1_roles": [
+    "wall"
+   ]
+  },
+  {
+   "faces": [
+    25,
+    27
+   ],
+   "surface": "cylinder",
+   "r_inner_mm": 2.7,
+   "thickness_mm": 1.25,
+   "sweep_deg": 360.0,
+   "e1_roles": [
+    "wall"
+   ]
+  }
+ ],
+ "unpaired_large_curved_skins": [],
+ "large_radius_curved_faces": [],
+ "curved_faces": {
+  "cylinder": 10,
+  "cone": 0
+ },
+ "runtime_s": 0.19
+}

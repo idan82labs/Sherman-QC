@@ -16,6 +16,7 @@ import logging
 import time
 import threading
 from io import BytesIO
+from pathlib import Path
 from typing import Optional, Dict, List, Any, Tuple, Sequence
 from dataclasses import dataclass, field
 from enum import Enum
@@ -30,6 +31,52 @@ from material_prompts import (
 )
 
 logger = logging.getLogger(__name__)
+
+SNAPSHOT_RENDER_TRIANGLE_BUDGET = 120_000
+
+
+def _bounded_snapshot_reference_mesh(mesh, *, triangle_budget: int = SNAPSHOT_RENDER_TRIANGLE_BUDGET):
+    """Return a render-only mesh bounded for deterministic 1080p review snapshots."""
+    source_triangle_count = int(len(mesh.triangles))
+    source_vertex_count = int(len(mesh.vertices))
+    if source_triangle_count <= max(1, int(triangle_budget)):
+        return mesh, {
+            "source_triangle_count": source_triangle_count,
+            "source_vertex_count": source_vertex_count,
+            "render_triangle_count": source_triangle_count,
+            "render_vertex_count": source_vertex_count,
+            "simplified": False,
+        }
+
+    bbox = mesh.get_axis_aligned_bounding_box()
+    diagonal = float(np.linalg.norm(np.asarray(bbox.get_extent(), dtype=np.float64)))
+    # Quadric decimation is super-linear on the million-triangle scanner meshes
+    # used by the release corpus.  Vertex clustering is deterministic and keeps
+    # the render-only reduction close to linear time.  Start conservatively and
+    # grow the voxel until the hard triangle budget is met.
+    budget = max(1, int(triangle_budget))
+    voxel_size = max(diagonal / np.sqrt(budget * (4.0 / 3.0)), 1e-9)
+    clustered = mesh
+    for _ in range(10):
+        clustered = mesh.simplify_vertex_clustering(voxel_size=voxel_size)
+        if len(clustered.triangles) <= budget:
+            break
+        voxel_size *= 1.25
+    mesh = clustered
+    if len(mesh.triangles) > budget:
+        # This fallback only sees an already clustered mesh, never the full
+        # source mesh, so pathological topology remains bounded in practice.
+        mesh = mesh.simplify_quadric_decimation(target_number_of_triangles=budget)
+    mesh.remove_degenerate_triangles()
+    mesh.remove_duplicated_triangles()
+    mesh.remove_unreferenced_vertices()
+    return mesh, {
+        "source_triangle_count": source_triangle_count,
+        "source_vertex_count": source_vertex_count,
+        "render_triangle_count": int(len(mesh.triangles)),
+        "render_vertex_count": int(len(mesh.vertices)),
+        "simplified": True,
+    }
 
 
 class AIProvider(Enum):
@@ -331,6 +378,7 @@ class Model3DSnapshotRenderer:
 
     def __init__(self):
         self._o3d = None
+        self._bounded_reference_mesh_cache: Dict[Tuple[str, int, int], Tuple[Any, Any, Any, Dict[str, Any]]] = {}
         # Set environment for headless rendering before Open3D import
         import os
         os.environ.setdefault('OPEN3D_CPU_RENDERING', 'true')
@@ -363,6 +411,37 @@ class Model3DSnapshotRenderer:
             # Orange to Red (out of tolerance)
             t = (normalized - 0.75) * 4
             return [1.0, 0.4 - t * 0.4, 0.0]
+
+    def _load_bounded_reference_mesh(self, reference_mesh_path: str):
+        """Load and bound a snapshot mesh once per immutable source identity."""
+        path = Path(reference_mesh_path).resolve()
+        stat = path.stat()
+        cache_key = (str(path), int(stat.st_size), int(stat.st_mtime_ns))
+        cached = self._bounded_reference_mesh_cache.get(cache_key)
+        if cached is not None:
+            return cached
+
+        mesh = self.o3d.io.read_triangle_mesh(str(path))
+        if not mesh.has_triangles():
+            return None
+        bbox = mesh.get_axis_aligned_bounding_box()
+        mesh, render_mesh_stats = _bounded_snapshot_reference_mesh(mesh)
+        logger.debug("Bounded snapshot reference mesh: %s", render_mesh_stats)
+        mesh.compute_vertex_normals()
+        mesh.paint_uniform_color([0.73, 0.76, 0.81])
+        wire = self.o3d.geometry.LineSet.create_from_triangle_mesh(mesh)
+        wire.colors = self.o3d.utility.Vector3dVector(
+            np.tile(np.array([[0.86, 0.89, 0.93]], dtype=np.float64), (len(wire.lines), 1))
+        )
+        # A renderer normally sees one source mesh. Remove stale identities for
+        # the same path and cap defensive multi-source use to four bounded meshes.
+        for old_key in [key for key in self._bounded_reference_mesh_cache if key[0] == str(path)]:
+            self._bounded_reference_mesh_cache.pop(old_key, None)
+        if len(self._bounded_reference_mesh_cache) >= 4:
+            self._bounded_reference_mesh_cache.pop(next(iter(self._bounded_reference_mesh_cache)))
+        loaded = (mesh, bbox, wire, render_mesh_stats)
+        self._bounded_reference_mesh_cache[cache_key] = loaded
+        return loaded
 
     def render_3d_snapshot(
         self,
@@ -900,6 +979,8 @@ class Model3DSnapshotRenderer:
         show_detected_lines: bool = True,
         show_3d_markers: bool = True,
         show_cad_lines: bool = True,
+        compact_bend_labels: bool = False,
+        title_override: Optional[str] = None,
     ) -> bytes:
         """
         Render a CAD-first bend overlay image.
@@ -919,23 +1000,62 @@ class Model3DSnapshotRenderer:
             "NOT_DETECTED": [0.39, 0.45, 0.55],
         }
 
+        # Open3D's legacy GLFW visualizer can abort (not raise) when invoked from
+        # a non-GUI macOS worker. Default to the deterministic CPU projection on
+        # macOS; an interactive process may explicitly opt back in.
+        import sys
+
+        force_cpu_overlay = os.environ.get("SHERMAN_QC_FORCE_CPU_RENDERER", "").lower() in {
+            "1", "true", "yes", "on"
+        }
+        allow_macos_glfw = os.environ.get("SHERMAN_QC_ALLOW_MACOS_GLFW", "").lower() in {
+            "1", "true", "yes", "on"
+        }
+        if force_cpu_overlay or (sys.platform == "darwin" and not allow_macos_glfw):
+            return self._render_bend_status_overlay_matplotlib(
+                bends=bends,
+                reference_mesh_path=reference_mesh_path,
+                view=view,
+                width=width,
+                height=height,
+                focused_bend_ids=focused_bend_ids,
+                show_detected_lines=show_detected_lines,
+                show_cad_lines=show_cad_lines,
+                compact_bend_labels=compact_bend_labels,
+                title_override=title_override,
+            )
+
         vis = o3d.visualization.Visualizer()
-        vis.create_window(visible=False, width=width, height=height)
+        window_created = bool(vis.create_window(visible=False, width=width, height=height))
+        if not window_created:
+            # On macOS workers and other headless sessions GLFW can return false
+            # without raising. Calling get_render_option/get_view_control after
+            # that aborts the interpreter, so switch surfaces immediately.
+            try:
+                vis.destroy_window()
+            except Exception:
+                pass
+            return self._render_bend_status_overlay_matplotlib(
+                bends=bends,
+                reference_mesh_path=reference_mesh_path,
+                view=view,
+                width=width,
+                height=height,
+                focused_bend_ids=focused_bend_ids,
+                show_detected_lines=show_detected_lines,
+                show_cad_lines=show_cad_lines,
+                compact_bend_labels=compact_bend_labels,
+                title_override=title_override,
+            )
 
         bbox = None
         if reference_mesh_path:
             try:
-                mesh = o3d.io.read_triangle_mesh(reference_mesh_path)
-                if mesh.has_triangles():
-                    mesh.compute_vertex_normals()
-                    mesh.paint_uniform_color([0.73, 0.76, 0.81])
+                loaded_reference = self._load_bounded_reference_mesh(reference_mesh_path)
+                if loaded_reference is not None:
+                    mesh, bbox, wire, _render_mesh_stats = loaded_reference
                     vis.add_geometry(mesh)
-                    wire = o3d.geometry.LineSet.create_from_triangle_mesh(mesh)
-                    wire.colors = o3d.utility.Vector3dVector(
-                        np.tile(np.array([[0.86, 0.89, 0.93]], dtype=np.float64), (len(wire.lines), 1))
-                    )
                     vis.add_geometry(wire)
-                    bbox = mesh.get_axis_aligned_bounding_box()
             except Exception as exc:
                 logger.warning("Could not load bend overlay reference mesh: %s", exc)
 
@@ -1128,11 +1248,11 @@ class Model3DSnapshotRenderer:
                 textcoords="offset points",
                 ha="center",
                 va="bottom",
-                fontsize=8 if not is_focus else 9,
+                fontsize=(7 if compact_bend_labels else 8) if not is_focus else (8 if compact_bend_labels else 9),
                 fontweight="bold",
                 color=label_color,
                 bbox=dict(
-                    boxstyle="round,pad=0.28",
+                    boxstyle=f"round,pad={0.2 if compact_bend_labels else 0.28}",
                     facecolor=badge_color,
                     edgecolor="white",
                     linewidth=0.6,
@@ -1211,7 +1331,7 @@ class Model3DSnapshotRenderer:
         issue_count = sum(1 for bend in bends if str(bend.get("status", "NOT_DETECTED")).upper() in {"FAIL", "WARNING"})
         ax.text(
             0.02, 0.97,
-            f"{view.capitalize()} — {measured}/{len(bends)} bends, {issue_count} flagged",
+            title_override or f"{view.capitalize()} — {measured}/{len(bends)} bends, {issue_count} flagged",
             transform=ax.transAxes,
             fontsize=8,
             fontweight="bold",
@@ -1234,7 +1354,190 @@ class Model3DSnapshotRenderer:
             return optimized.getvalue()
         except Exception:
             buf.seek(0)
-            return buf.getvalue()
+        return buf.getvalue()
+
+    def _render_bend_status_overlay_matplotlib(
+        self,
+        *,
+        bends: List[Dict[str, Any]],
+        reference_mesh_path: Optional[str],
+        view: str,
+        width: int,
+        height: int,
+        focused_bend_ids: Optional[List[str]],
+        show_detected_lines: bool,
+        show_cad_lines: bool,
+        compact_bend_labels: bool,
+        title_override: Optional[str],
+    ) -> bytes:
+        """CPU-only overlay used when an Open3D window cannot be created."""
+        import matplotlib
+
+        matplotlib.use("Agg", force=True)
+        import matplotlib.pyplot as plt
+        from matplotlib.lines import Line2D
+        from matplotlib.collections import PolyCollection
+
+        focused = {str(value) for value in (focused_bend_ids or [])}
+        status_color = {
+            "PASS": "#16a34a",
+            "WARNING": "#d97706",
+            "FAIL": "#dc2626",
+            "NOT_DETECTED": "#475569",
+        }
+        points = np.zeros((0, 3), dtype=np.float64)
+        triangles = np.zeros((0, 3), dtype=np.int64)
+        visibility_scene = None
+        if reference_mesh_path:
+            try:
+                mesh = self.o3d.io.read_triangle_mesh(str(reference_mesh_path))
+                if mesh.has_vertices():
+                    mesh, _ = _bounded_snapshot_reference_mesh(mesh, triangle_budget=20_000)
+                    points = np.asarray(mesh.vertices, dtype=np.float64)
+                    triangles = np.asarray(mesh.triangles, dtype=np.int64)
+                    if len(triangles):
+                        visibility_scene = self.o3d.t.geometry.RaycastingScene(nthreads=1)
+                        visibility_scene.add_triangles(self.o3d.t.geometry.TriangleMesh.from_legacy(mesh))
+            except Exception as exc:
+                logger.warning("Could not load CPU fallback reference mesh: %s", exc)
+
+        if not len(triangles) and len(points) > 60_000:
+            indices = np.linspace(0, len(points) - 1, 60_000, dtype=np.int64)
+            points = points[indices]
+        if len(points):
+            center = np.median(points, axis=0)
+        else:
+            anchors = [
+                np.asarray(bend.get("anchor")[:3], dtype=np.float64)
+                for bend in bends
+                if isinstance(bend.get("anchor"), list) and len(bend.get("anchor")) >= 3
+            ]
+            center = np.median(np.asarray(anchors), axis=0) if anchors else np.zeros(3)
+
+        if view == "front":
+            front = np.array([0.0, -1.0, 0.0])
+            up_hint = np.array([0.0, 0.0, 1.0])
+        elif view == "side":
+            front = np.array([-1.0, 0.0, 0.0])
+            up_hint = np.array([0.0, 0.0, 1.0])
+        elif view == "top":
+            front = np.array([0.0, 0.0, -1.0])
+            up_hint = np.array([0.0, 1.0, 0.0])
+        else:
+            front = np.array([-0.52, -0.52, -0.67])
+            front /= np.linalg.norm(front)
+            up_hint = np.array([0.0, 0.0, 1.0])
+        right = np.cross(front, up_hint)
+        right /= max(np.linalg.norm(right), 1e-9)
+        screen_up = np.cross(right, front)
+        screen_up /= max(np.linalg.norm(screen_up), 1e-9)
+
+        def project(value: Sequence[float]) -> np.ndarray:
+            offset = np.asarray(value[:3], dtype=np.float64) - center
+            return np.array([np.dot(offset, right), np.dot(offset, screen_up)])
+
+        fig, ax = plt.subplots(figsize=(width / 100, height / 100), dpi=100)
+        fig.patch.set_facecolor("#f2f6fa")
+        ax.set_facecolor("#f2f6fa")
+        if len(points):
+            offsets = points - center
+            projected = np.column_stack(
+                (
+                    np.einsum("ij,j->i", offsets, right),
+                    np.einsum("ij,j->i", offsets, screen_up),
+                )
+            )
+            if len(triangles):
+                # Paint far faces first. Visibility queries below also suppress
+                # line portions hidden behind this opaque CAD reference surface.
+                depth = np.einsum("ij,j->i", offsets, front)
+                order = np.argsort(np.mean(depth[triangles], axis=1))[::-1]
+                faces = projected[triangles[order]]
+                normals = np.cross(points[triangles[:, 1]] - points[triangles[:, 0]],
+                                   points[triangles[:, 2]] - points[triangles[:, 0]])
+                norms = np.maximum(np.linalg.norm(normals, axis=1), 1e-9)
+                shade = 0.62 + 0.20 * np.abs(normals @ front / norms)
+                face_colors = np.column_stack([shade * 0.91, shade * 0.96, shade])[order]
+                ax.add_collection(PolyCollection(faces, facecolors=face_colors,
+                                                edgecolors="none", rasterized=True, zorder=1))
+                ax.update_datalim(projected)
+                ax.autoscale_view()
+            else:
+                ax.scatter(projected[:, 0], projected[:, 1], s=0.18,
+                           color="#9ca8b7", alpha=0.48, linewidths=0, rasterized=True)
+
+        def plot_visible_axis(start, end, **style):
+            start = np.asarray(start[:3], dtype=np.float64)
+            end = np.asarray(end[:3], dtype=np.float64)
+            samples = np.linspace(start, end, 257)
+            visible = np.ones(len(samples), dtype=bool)
+            if visibility_scene is not None:
+                far = max(float(np.linalg.norm(np.ptp(points, axis=0))) * 4, 10.0)
+                rays = np.column_stack([samples - front * far, np.tile(front, (len(samples), 1))])
+                hits = visibility_scene.cast_rays(self.o3d.core.Tensor(rays.astype(np.float32)), nthreads=1)
+                visible = hits["t_hit"].numpy() >= far - 0.05
+            projected_axis = np.asarray([project(point) for point in samples])
+            projected_axis[~visible] = np.nan
+            ax.plot(projected_axis[:, 0], projected_axis[:, 1], zorder=2, **style)
+
+        for bend in bends:
+            bend_id = str(bend.get("bend_id") or "?")
+            status = str(bend.get("status") or "NOT_DETECTED").upper()
+            color = status_color.get(status, status_color["NOT_DETECTED"])
+            linewidth = 3.2 if bend_id in focused else 2.0
+            if show_cad_lines:
+                line = bend.get("cad_line") or {}
+                start, end = line.get("display_start"), line.get("display_end")
+                if isinstance(start, list) and isinstance(end, list):
+                    plot_visible_axis(
+                        start, end,
+                        color="#0e7490", linewidth=linewidth + 1.0, alpha=0.95,
+                    )
+            if show_detected_lines:
+                line = bend.get("detected_line") or {}
+                start, end = line.get("display_start"), line.get("display_end")
+                if isinstance(start, list) and isinstance(end, list):
+                    plot_visible_axis(
+                        start, end,
+                        color=color, linewidth=linewidth, linestyle="--", alpha=0.96,
+                    )
+            anchor = bend.get("anchor")
+            if isinstance(anchor, list) and len(anchor) >= 3:
+                p = project(anchor)
+                ax.text(
+                    p[0], p[1], bend_id,
+                    ha="center", va="center",
+                    fontsize=7 if compact_bend_labels else 8,
+                    fontweight="bold", color="white",
+                    bbox=dict(boxstyle="round,pad=0.25", facecolor=color, edgecolor="white", linewidth=0.6),
+                )
+
+        ax.margins(x=0.12, y=0.12)
+        ax.set_aspect("equal", adjustable="datalim")
+        ax.axis("off")
+        ax.set_title(
+            title_override or "Bend inspection overlay — CPU fallback",
+            fontsize=13,
+            fontweight="bold",
+            color="#243244",
+            pad=12,
+        )
+        legend_handles = [
+            Line2D([0], [0], color="#0e7490", linewidth=3, label="CAD reference axis"),
+            Line2D([0], [0], marker="s", color="none", markerfacecolor="#9ca8b7", markersize=5, label="CAD reference surface"),
+        ]
+        if show_detected_lines and any((bend.get("detected_line") or {}).get("display_start") is not None for bend in bends):
+            legend_handles.append(Line2D([0], [0], color="#d97706", linestyle="--", linewidth=2,
+                                         label="Detected axis (reference-supported)"))
+        ax.legend(handles=legend_handles, loc="lower right", frameon=True, framealpha=0.9, fontsize=8)
+        # Reserve canvas above the title for the downstream research stamp.
+        # A tight bounding-box export would discard that intentional whitespace.
+        fig.tight_layout(rect=(0, 0.02, 1, 0.86))
+        buf = BytesIO()
+        fig.savefig(buf, format="png", dpi=100, facecolor=fig.get_facecolor())
+        buf.seek(0)
+        plt.close(fig)
+        return buf.getvalue()
 
 
 def retry_with_backoff(max_retries: int = 3, base_delay: float = 1.0, max_delay: float = 30.0):

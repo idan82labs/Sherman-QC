@@ -1,0 +1,417 @@
+Ruling
+
+ANTIPODAL_MIDSURFACE_HINGE_CURRENT_V1 is terminal. Its positive fixture demonstrated that the source-domain response is correctly band-like, while AMHC’s own line-selectivity gates require the opposite. No AMHC threshold, fixture, radius, line-support, or aggregation rescue is authorized.
+
+Exactly one new architecture is authorized.
+
+1. Architecture token and causal hypothesis
+CONCENTRIC_FOCAL_AXIS_COLLAPSE_V1 — CFAC_V1
+
+For a locally cylindrical skin point p, let n be its fitted unit normal, κ
+d
+	​
+
+ the signed dominant principal curvature, and a the weak-curvature principal direction. Define
+
+f(p)=p+
+κ
+d
+	​
+
+n
+	​
+
+.
+
+Under the frozen shape-operator convention below, f(p) is the local center of curvature. On a cylinder, the entire two-dimensional surface band therefore maps onto its one-dimensional cylinder axis. Reversing the fitted normal also reverses signed curvature, so n/κ
+d
+	​
+
+ and hence f(p) are orientation-invariant.
+
+A true through-thickness sheet bend should contribute two independently estimated cylindrical bands, with different source radii but the same focal axis. No reciprocal skin pairing, midsurface, director current, Gauss-sphere ribbon, cubical persistence, or shortest-path deficit is constructed.
+
+Published machinery is limited to degree-two osculating-jet estimation of normals, principal curvatures, and principal directions from sampled surfaces, following the established point-cloud differential-estimation framework of Cazals and Pouget. 
+ScienceDirect
+ The focal collapse, twin-radius requirement, tangent-continuation test, constants, and fund logic are new Sherman-specific hypotheses.
+
+Causal distinction: local curvature is only an estimator. No curvature maximum, tensor maximum, transition-mode birth, or source-space line response becomes a candidate. Candidate objects exist only after the nonlinear focal transform has collapsed a surface band into focal space.
+
+2. Exact frozen computation
+
+All arithmetic is float64. Set all BLAS/OpenMP worker counts to one. There is no randomness, RANSAC, threshold sweep, or multiscale voting.
+
+A. Canonical source and scale
+
+Retain finite XYZ rows, remove exact duplicate rows, and lexicographically sort.
+
+Build an exact deterministic Euclidean k-d tree; ties are ordered by distance and then canonical row index.
+
+Let s be the median distance to the fourth non-self nearest neighbour.
+
+Reject structurally if s≤0, fewer than 50,000 unique points remain, or any mandatory allocation cap is exceeded.
+
+B. Local degree-two jet
+
+For every point, use its 48 non-self nearest neighbours. With d
+48
+	​
+
+ the farthest neighbourhood distance,
+
+w
+j
+	​
+
+=(1−(d
+j
+	​
+
+/d
+48
+	​
+
+)
+2
+)
+2
+.
+
+Weighted PCA provides an initial tangent frame. Fit the normalized Monge jet
+
+Z=β
+0
+	​
+
++β
+x
+	​
+
+X+β
+y
+	​
+
+Y+
+2
+1
+	​
+
+β
+xx
+	​
+
+X
+2
++β
+xy
+	​
+
+XY+
+2
+1
+	​
+
+β
+yy
+	​
+
+Y
+2
+,
+
+where X=x/s,Y=y/s,Z=z/s. Compute the exact first and second fundamental forms at the origin and solve their generalized eigenproblem for signed κ
+d
+	​
+
+,κ
+w
+	​
+
+, n, and weak direction a.
+
+A point becomes a focal vote only when all conditions hold:
+
+Quantity	Frozen condition
+Occupied tangent-angle sectors	at least 10 of 12
+d
+48
+	​
+
+	≤5.5s
+Weighted vertical RMS	≤0.08s
+Jet normal-matrix condition number	≤10
+8
+
+Monge gradient norm	≤0.35
+Dominant radius (\rho=1/	\kappa_d
+Cylindrical anisotropy	(
+
+Emit in memory only:
+
+f=p+n/κ
+d
+	​
+
+,a=weak principal direction,ρ.
+
+There is deliberately no source active-fraction selectivity gate. A broad source band is permitted.
+
+C. Rotation-invariant focal graph
+
+Let M be the focal-vote count. Stop as nonselective if
+
+M>min(0.60N,120,000).
+
+Build a k-d tree over focal points.
+
+A focal vote is locally dense when:
+
+its sixth-nearest focal vote, including itself, lies within 1.25s; and
+
+the projective-direction coherence of neighbours within 2s,
+
+tr(∑aa
+⊤
+)
+λ
+max
+	​
+
+(∑aa
+⊤
+)
+	​
+
+,
+
+is at least 0.90.
+
+For each dense vote, query the nearest focal vote to the four invariant target locations
+
+f±1.5sa,f±3sa.
+
+Add an undirected edge only when:
+
+target miss distance is ≤1.25s;
+
+projective axis disagreement is ≤15
+∘
+;
+
+displacement perpendicular to a is ≤1.5s.
+
+Connected components are provisional focal axes only when:
+
+Quantity	Frozen condition
+Focal votes	≥256
+5–95% axial span L	≥max(16s,2.5median(ρ))
+Focal PCA line fraction	≥0.96
+Focal transverse RMS	≤1.5s
+Collapse density M
+c
+	​
+
+/(L/s)	≥8
+
+For each provisional component, perform exactly one re-association of all focal votes within 2s of its line, within 15
+∘
+ of its direction, and within its 1–99% axial range expanded by 2s. Refit the final axis once by PCA. No iteration follows.
+
+D. Twin-radius and nuisance rejection
+
+For associated source points, compute their perpendicular radii to the final axis. Find the deterministic optimal two-segment L1 split of sorted radii, considering only splits with at least 64 points and 20% of support in each segment.
+
+Require:
+
+two-mode L1 gain 1−E
+2
+	​
+
+/E
+1
+	​
+
+≥0.70;
+
+radius separation Δr≥2s;
+
+each mode MAD ≤max(0.35s,0.06r
+j
+	​
+
+);
+
+in at least six of eight axial bins, both modes contain at least 16 points;
+
+axial-bin thickness-gap MAD ≤0.20Δr.
+
+For each radius mode, use the largest circular gap in radial angles to define the occupied arc. Require:
+
+occupied arc width between 20
+∘
+ and 220
+∘
+;
+
+the two modes’ arc widths differ by at most 15
+∘
+;
+
+corresponding endpoints differ by at most 15
+∘
+.
+
+This rejects complete cylinders and hole walls even when they are long and cylindrical.
+
+Finally validate four tangent continuations: two arc endpoints times two radii. Around each observed endpoint, test the fixed offsets
+
+−25
+∘
+,−22.5
+∘
+,…,+25
+∘
+.
+
+For each offset, evaluate 32 sites: eight axial positions times tangent distances 3s,6s,9s,12s. A site is occupied only when its nearest raw source point:
+
+is within 1.25s;
+
+passed the jet quality and 10-of-12 sector gates;
+
+satisfies smax(∣κ
+1
+	​
+
+∣,∣κ
+2
+	​
+
+∣)≤1/80;
+
+has projective normal disagreement ≤15
+∘
+ from the predicted flange normal.
+
+Choose maximum occupancy, breaking ties by smallest absolute offset and then smaller signed offset. All four continuations must reach 0.75 occupancy, and inner/outer fitted endpoint directions must agree within 7.5
+∘
+.
+
+Thus:
+
+an open boundary or rounded terminal edge normally has one radius;
+
+a through-hole wall has one radius and insufficient span;
+
+a complete cylinder fails angular extent;
+
+a planar terminal wall supplies no focal collapse;
+
+a genuine bend must supply two concentric bands and four planar continuations.
+
+3. Mandatory source-free regression
+
+Every fixture uses the production code path and the same constants. Fixture identity may be used only by the test assertion, never by the detector.
+
+Full positive: two concentric 90
+∘
+ cylindrical skins, radii 8 and 16, axis length 96, tangent flanges length 40, unit sampling, deterministic coordinate jitter in [−0.03,0.03], and 5% SHA-256 deletion. Exactly one retained axis; direction error ≤2
+∘
+, line distance ≤1s, each recovered radius error ≤0.75s.
+
+Axial crop positive: the same fixture restricted to axial coordinates 17 through 79. Exactly one retained axis under identical quality gates.
+
+Scale/angle positive: 60
+∘
+ bend, radii 21 and 27, axis length 96, flange length 48, pitch 1.2, relative jitter 0.03 pitch, and 5% hash deletion. Exactly one retained axis.
+
+Flat double skin: zero final axes.
+
+Single-skin 90
+∘
+ bend: it must create a provisional focal line but zero final axes because the twin-radius test fails.
+
+Flat double skin with radius-12 through-hole: zero final axes.
+
+Terminal geometry: double skin joined by a terminal wall with radius-4 quarter-round transitions. Curvature activity is allowed; zero final axes are required.
+
+Concentric full-cylinder decoy: radii 8 and 16, full 360
+∘
+, axis length 96. It must reach the twin-radius stage and then fail the occupied-arc gate.
+
+Metamorphic and resource test: permutation must produce byte-identical canonical JSON. After three fixed rigid transforms and inverse mapping, decisions must match, axis direction error must be ≤2
+∘
+, axis distance ≤1s, and radii must differ by ≤2%. A deterministic approximately 200,000-point positive-plus-hole stress fixture must finish below 240 seconds and 14 GiB RSS.
+
+Any failure ends:
+
+CFAC_V1_SOURCE_FREE_REGRESSION_ARCHITECTURE_STOP
+
+No C006 claim may then be created.
+
+4. One bounded C006 run
+
+After all source-free checks pass:
+
+Freeze and hash code, configuration, schema, fixture generator, and test outputs.
+
+Create and consume exactly one C006 source claim.
+
+Run one producer and one compact-statistics validator. The validator receives component scatter matrices, radial split statistics, eight-bin summaries, arc endpoints, and four 32-bit continuation masks—not source or focal point arrays.
+
+Hard invalid walls
+
+Stop immediately as invalid if any occurs:
+
+wall time reaches 290 seconds;
+
+peak RSS reaches 15.5 GiB;
+
+focal votes exceed min(0.60N,120,000);
+
+graph edges exceed 4M;
+
+provisional components exceed 256;
+
+final components exceed 32;
+
+validator arithmetic or hash mismatch;
+
+artifacts exceed 96 MiB;
+
+any raw, neighbour, source-point, or focal-point array is serialized.
+
+Architecture fund/kill wall
+
+CFAC_V1_C006_FUND requires at least one final axis passing every frozen focal, line, twin-radius, angular, axial-consistency, and four-continuation gate, plus a non-contradictory native visual audit.
+
+A valid zero result, failure of every candidate at a causal gate, source-domain activity without focal collapse, or visually obvious capture of hole rims, open boundaries, or terminal geometry ends:
+
+CFAC_V1_C006_ARCHITECTURE_STOP
+
+Resource, schema, or validator failure ends:
+
+INVALID_CFAC_V1_C006_PREFLIGHT_STOP
+
+There is no same-claim rerun, threshold adjustment, alternative scale, relaxed continuation count, or component rescue.
+
+5. Minimum native-resolution visual package
+
+Render every raw source point; no display decimation.
+
+source_band_axis_4096.png
+Native 4096×4096 orthographic XY/XZ/YZ audit showing all source points, accepted curved-band samples, the two inferred radius modes, final axes, arc endpoints, and tangent-continuation footprints.
+
+focal_collapse_4096.png
+Native 4096×4096 focal-space XY/XZ/YZ audit showing every in-memory focal vote, dense graph components, rejected components, and final PCA axes. A funded component must visibly be line-like here even though its source support is a band.
+
+cross_section_causality_4096.png
+Native 4096×4096 atlas at the 25%, 50%, and 75% axial positions for every retained candidate, showing raw cross-section points, both recovered radii, occupied arc intervals, four tangent rays, and all queried occupancy sites.
+
+A visible two-dimensional focal sheet, a one-radius terminal capture, a hole-axis capture, or missing flange continuation overrides favorable aggregate numbers and triggers the architecture STOP.
+
+6. Authority
+
+This authorizes implementation, all frozen source-free tests, lock creation, claim creation after—and only after—those tests pass, and the single bounded C006 execution. No additional paper-only review is required.
+
+AUTHORIZE_CONCENTRIC_FOCAL_AXIS_COLLAPSE_V1_IMPLEMENT_AND_EXECUTE_C006_FROZEN_SOURCE_ONLY_PREFLIGHT

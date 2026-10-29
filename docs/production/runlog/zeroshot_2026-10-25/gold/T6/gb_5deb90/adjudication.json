@@ -1,0 +1,178 @@
+{
+ "schema": "sherman.zeroshot.gold_adjudication.v1",
+ "batch": "T6",
+ "gid": "gb_5deb90",
+ "scan_id": "sc_3bf77708bb82",
+ "portion": "TEST_B",
+ "original_path": "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20261001_81a86845/36192000_02 (X).ply",
+ "adjudicator": "T6/adjudicator (claude-vision-ai-v1)",
+ "adjudicated_at": "2026-10-25T03:17:59+00:00",
+ "protocol": "PLAN.md 2.4-2.6; frozen matcher research/broad_baseline/score.py score_case (5 deg / 4 mm / 60 % both spans); accept threshold 1.5 mm / 2 deg",
+ "inputs_seen": [
+  "marker_A and marker_B lines/pairs/notes/renders",
+  "raw scan (own per-station skin checks)",
+  "FRESH label as third marking (TEST-B only, at adjudication)"
+ ],
+ "not_seen": "no engine, lane, A0, pool, E3, best_f1, CAD or baseline output",
+ "marker_A_lines_sha256": "8c873aa4eddab0cde4f35b487b1025115a5c7432c39fd641600c13092d79908f",
+ "marker_B_lines_sha256": "af81612d4d6418576327814b8947c08f061299742f7997a5749104497554436f",
+ "final_lines_sha256": "d80c56f4fb0fd44d4acf444950cc613c1bb7bd52db8aa5d01af14b6e7b04c513",
+ "ab_match": {
+  "nA": 4,
+  "nB": 4,
+  "tp": 4,
+  "accepted": 4,
+  "matched_not_accepted": [],
+  "A_only": [],
+  "B_only": [],
+  "f1": 1.0,
+  "matches": [
+   [
+    "B1",
+    "B1",
+    0.0,
+    0.0,
+    1.0,
+    1.0
+   ],
+   [
+    "B2",
+    "B2",
+    0.0,
+    0.0,
+    1.0,
+    1.0
+   ],
+   [
+    "B3",
+    "B3",
+    0.0,
+    0.0,
+    1.0,
+    1.0
+   ],
+   [
+    "B4",
+    "B4",
+    0.0,
+    0.0,
+    1.0,
+    1.0
+   ]
+  ]
+ },
+ "lines": [
+  {
+   "final_id": "B1",
+   "marker_A_id": "B1",
+   "marker_B_id": "B1",
+   "from": "A",
+   "verdict": "AGREED",
+   "ab_offset_mm": 0.0,
+   "ab_angle_deg": 0.0,
+   "ab_span_overlap": [
+    1.0,
+    1.0
+   ],
+   "reason": "A/B matched within 1.5 mm / 2 deg; line from A."
+  },
+  {
+   "final_id": "B2",
+   "marker_A_id": "B2",
+   "marker_B_id": "B2",
+   "from": "A",
+   "verdict": "AGREED",
+   "ab_offset_mm": 0.0,
+   "ab_angle_deg": 0.0,
+   "ab_span_overlap": [
+    1.0,
+    1.0
+   ],
+   "reason": "A/B matched within 1.5 mm / 2 deg; line from A."
+  },
+  {
+   "final_id": "B3",
+   "marker_A_id": "B3",
+   "marker_B_id": "B3",
+   "from": "A",
+   "verdict": "AGREED",
+   "ab_offset_mm": 0.0,
+   "ab_angle_deg": 0.0,
+   "ab_span_overlap": [
+    1.0,
+    1.0
+   ],
+   "reason": "A/B matched within 1.5 mm / 2 deg; line from A."
+  },
+  {
+   "final_id": "B4",
+   "marker_A_id": "B4",
+   "marker_B_id": "B4",
+   "from": "A",
+   "verdict": "AGREED",
+   "ab_offset_mm": 0.0,
+   "ab_angle_deg": 0.0,
+   "ab_span_overlap": [
+    1.0,
+    1.0
+   ],
+   "reason": "A/B matched within 1.5 mm / 2 deg; line from A."
+  }
+ ],
+ "final_vs_reference": {
+  "ref": "FRESH",
+  "f1": 0.6666666666666665,
+  "tp": 3,
+  "n_ref": 5,
+  "n_final": 4,
+  "ref_only": [
+   "B4",
+   "B5"
+  ],
+  "final_only": [
+   "B4"
+  ],
+  "matched_but_off_gt1.5mm_or_2deg": [],
+  "final_vs_A_f1": 1.0,
+  "final_vs_B_f1": 1.0
+ },
+ "fresh_third_marking": {
+  "fresh_label_path": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED/8b024f15447d0c9f2dec22cb.json",
+  "fresh_n_lines": 5,
+  "fresh_vs_A": {
+   "f1": 0.6666666666666665,
+   "tp": 3,
+   "ref_only": [
+    "B4",
+    "B5"
+   ],
+   "m_only": [
+    "B4"
+   ]
+  },
+  "fresh_vs_B": {
+   "f1": 0.6666666666666665,
+   "tp": 3,
+   "ref_only": [
+    "B4",
+    "B5"
+   ],
+   "m_only": [
+    "B4"
+   ]
+  },
+  "fresh_vs_final_f1": 0.6666666666666665,
+  "disagreements": [
+   {
+    "fresh_ids": [
+     "B4",
+     "B5"
+    ],
+    "final_id": "B4",
+    "verdict": "MERGE",
+    "fresh_wrong": true,
+    "reason": "FRESH split the tab fold into two 15 mm lines because a 38.5 mm notch in wall B separates the two coplanar tabs. Both FRESH segments are collinear with the single marker line (perpendicular 0.04-0.11 mm). It is one fold between the same wall plate and the same (coplanar) tab plane, interrupted by a notch, so GOLD_SET_V2 counts ONE line. Both blind markers independently marked one line (fold support 0.46, uncertain). Convention risk noted: if the owner rules that separated coplanar feet are separate plates, this becomes 2 lines."
+   }
+  ]
+ }
+}

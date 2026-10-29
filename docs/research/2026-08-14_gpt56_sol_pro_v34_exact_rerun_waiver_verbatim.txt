@@ -1,0 +1,125 @@
+# RULING — A) EXACT_RERUN_WAIVER
+
+**Granted for exactly one replacement execution of logical ordinal 1, `SF01_FOLD60_MESH_C2`.**
+
+The original detector call remains a consumed physical invocation and must be permanently recorded as:
+
+`ABORTED_ARTIFACT — post-engine public-result serialization failure`
+
+It is **not** an empirical success or failure of OPGT. The defect occurred strictly after the frozen detector returned, within the public-artifact harness, and the reported mechanism outcome was neither persisted nor observed. A narrowly bounded, byte-identical deterministic replacement therefore does not constitute tuning, rescue, or a second outcome-contingent chance.
+
+## 1. Exact correction boundary
+
+The only permitted behavioral change is inserted **after the frozen detector engine has completely returned its result object and before the first canonical JSON serialization attempt**:
+
+```text
+frozen detector evaluation
+        ↓
+complete in-memory result object
+        ↓
+NEW: recursive NumPy-scalar normalization
+        ↓
+unchanged canonical json.dumps(..., allow_nan=False, ...)
+        ↓
+unchanged result/cache persistence and post-visual path
+```
+
+The normalizer may perform only these conversions:
+
+* `numpy.bool_` → Python `bool`
+* any `numpy.integer` scalar → Python `int`
+* any `numpy.floating` scalar → Python `float`
+* recursive traversal through existing dictionaries, lists, and tuples without changing their structure or order
+
+The following are prohibited:
+
+* Any call to the normalizer before or inside detector evaluation.
+* Any modification to predicates, predicate results, constants, paths, geometry, candidate generation, ordering, fixtures, expected values, NMS, or stopping logic.
+* Dropping, adding, renaming, sorting, rounding, clipping, or conditionally rewriting result fields.
+* Converting NumPy arrays with `tolist()`, reshaping arrays, or supporting additional non-scalar NumPy types.
+* Converting dictionary keys; existing keys must remain the same Python string keys.
+* Relaxing `allow_nan=False`. Converted NaN or infinity values must still be rejected by canonical serialization.
+* Branching based on whether a predicate passed or on any other mechanism-result value.
+
+Any unsupported NumPy object must fail closed rather than trigger a broader conversion.
+
+## 2. Required audit evidence before the replacement call
+
+A new append-only waiver/precommit record must bind all of the following:
+
+1. The original mechanism token and precommit hash remain preserved:
+
+   `V34_OPGT_MECHANISM_LOCKED`
+   `471ccf818ee212cfa0c89c2fa1f3d17f3add8cbc388298cce27eda2bf480b1e2`
+
+2. The original invocation-counter checkpoint remains preserved:
+
+   `cc224d2c975fffaae3905a4272800b2317e8fd9b05b5ecffa7c60b0db78a8cd9`
+
+3. A new harness/precommit hash covers:
+
+   * the exact serializer-normalization implementation;
+   * its tests;
+   * the explicit waiver record;
+   * the unchanged command, environment manifest, fixture selection, and sequence;
+   * the relationship between the aborted physical invocation and its replacement.
+
+4. A source or binary diff demonstrates that the only executable-path change is the post-return scalar normalizer. Waiver-ledger and audit-metadata additions may also differ, but no detector-engine file may differ.
+
+5. Fresh hashes confirm byte identity of:
+
+   * the frozen detector engine;
+   * `SF01_FOLD60_MESH_C2`;
+   * the frozen candidate/input bytes;
+   * all mechanism configuration and ordering manifests.
+
+6. Serializer-only tests, with detector invocation count still equal to one, demonstrate:
+
+   * nested NumPy boolean, integer, and floating scalars serialize identically to manually constructed Python-native equivalents;
+   * an already Python-native payload produces byte-identical canonical JSON before and after the wrapper;
+   * dictionary order, list/tuple element order, field presence, and numeric values remain unchanged;
+   * NaN and infinity continue to fail;
+   * arrays, complex values, datetime-like NumPy values, object scalars, and unsupported types fail closed.
+
+7. The preserved incident record states that no predicate values, pass/fail decision, candidate count, final count, or other mechanism outcome from the aborted call was inspected or recovered. Diagnosing the scalar type is permitted; conditioning the waiver on result values is not.
+
+No detector execution is permitted during this audit.
+
+## 3. Counter and ordinal semantics
+
+The physical invocation counter is monotonic and must never be reset, decremented, overwritten, or relabeled.
+
+| Physical invocation | Logical fixture ordinal | Status                                                                         |
+| ------------------- | ----------------------: | ------------------------------------------------------------------------------ |
+| 1                   |                       1 | `ABORTED_ARTIFACT`; no empirical mechanism result                              |
+| 2                   |                       1 | Authorized replacement execution                                               |
+| 3                   |                       2 | Next original-sequence fixture, only if all existing gates permit continuation |
+
+Immediately before the replacement evaluation, an append-only invocation event must be committed identifying:
+
+* physical invocation `2`;
+* logical result ordinal `1`;
+* fixture `SF01_FOLD60_MESH_C2`;
+* `replacement_of_physical_invocation=1`;
+* the new harness/precommit hash;
+* the unchanged engine and fixture hashes;
+* the waiver identifier.
+
+After the call, the replacement result is the **sole empirical result for logical ordinal 1**, while the original aborted event remains visible in the audit history. It must never be represented as though only one physical detector call occurred.
+
+There is no second replacement allowance. If physical invocation 2 fails to produce the required canonical result, cache, and post-visual for any reason, V34 stops without another detector call.
+
+## 4. Engine-hash requirement and continuation
+
+**Yes: the original detector-engine hash must remain exactly identical.** A different engine hash, even from a seemingly harmless source edit, recompilation, refactor, import relocation, or formatting change, voids this waiver.
+
+The original mechanism precommit is not replaced or rewritten. The new hash is an additional **harness-waiver precommit** chained to the original lock.
+
+Following successful serialization and persistence:
+
+1. Generate the unchanged native-resolution post visual.
+2. Perform the mandatory manual 4096px review before any next invocation.
+3. Apply the original frozen pass/fail and sequential-stop rules without reinterpretation.
+4. Continue with logical ordinal 2 only when those original rules authorize continuation.
+
+The first event remains a harness-governance failure and supplies **no evidence for or against `V34_ORDERED_PROJECTIVE_GAUSS_TRANSPORT_V1`**.

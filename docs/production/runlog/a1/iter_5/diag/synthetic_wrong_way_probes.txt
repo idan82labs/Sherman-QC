@@ -1,0 +1,32 @@
+Synthetic wrong-way bend probes (A1 iteration 5, second start). CAD stage models of A1 recipes only; no physical scan.
+Tool: tools/reversed_probe.py. Each listed bend is folded to -frac * its nominal sweep with E3's fold kinematics
+(about the CAD axis), every other bend of the stage to its nominal sweep; E2's scanner (FULL plan, 0.57 mm), then E3.
+"before" = the engine with fixes A+B (e3-1.6.0); "after" = with fix C (e3-1.7.0), run on the same scan file.
+Characteristic tuples: (decision, deviation). ev = state_evidence.formed_fraction.
+
+1) 28870000 recipe (DEV-AAB8C67C31), stage S1, B1 (nominal sweep 25 deg)
+   frac 1.0 (-25 deg), before: inspection WRONG_PART_SUSPECTED (SCAN_EXPLAINED 0.214); B1 UNKNOWN (safe)
+   frac 0.4 (-10 deg), before: VALID; B1 PARTIALLY_FORMED, angle FAIL +13.62, position FAIL -1.69, flanges UNKNOWN, ev +0.455
+                       after:  VALID; B1 PARTIALLY_FORMED, angle FAIL +36.38, position UNKNOWN, flanges UNKNOWN, ev -0.455,
+                               note BEND_FORMED_WRONG_WAY
+
+2) 38172000 recipe (DEV-4D512B5C56), stage S12, B5 (a 30 deg hook)
+   frac 1.0 (-30 deg), before: B5 PARTIALLY_FORMED, every characteristic UNKNOWN, ev +0.253
+                       after:  B5 PARTIALLY_FORMED, every characteristic UNKNOWN, ev -0.253
+   frac 0.33 (-10 deg), before: B5 PARTIALLY_FORMED, flange A FAIL -1.73, flange B REVIEW +0.85, angle FAIL +17.19,
+                                position REVIEW +0.85, ev +0.427 (read as 43 % formed the CAD way)
+                        after:  B5 PARTIALLY_FORMED, angle FAIL +42.81 (included 192.8 vs 150), flanges and position
+                                UNKNOWN (UNSUPPORTED_FEATURE), ev -0.427, note BEND_FORMED_WRONG_WAY
+   every other bend: identical values before and after (B1, B2 shown: all PASS within 0.04 mm / 0.01 deg)
+
+3) 15651004 recipe (DEV-1F88D309A7), stage S3, B1 (90 deg) at frac 0.15 (-13.5 deg)
+   before and after: B1 NOT_YET_FORMED (ev +0.026): the wrong-way flange lies outside the hinge search (theta >= -10 deg)
+   and the flat continuation is read instead. Not a PASS, but the defect is hidden (left for the mirrored search, Next).
+
+4) 10839000 recipe (DEV-EA3E4820DF), stage S12, B5 (90 deg) at frac 1.0 (-90 deg)
+   before and after: B5 UNKNOWN (OCCLUDED: nothing in the hinge search), descendants UNKNOWN; other bends identical.
+
+Reading: without fix C a wrong-way reading inside the search window is taken as partly formed the CAD way; its
+angle FAILs only because the magnitude is far from nominal, and its lengths and position are reported against a
+sharp on the wrong skin. A bend of nominal sweep <= ~11 deg formed fully the wrong way would read its nominal angle
+(PASS). With fix C the sign is kept: the angle reads above 180 and always FAILs.

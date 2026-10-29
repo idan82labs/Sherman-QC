@@ -1,0 +1,650 @@
+diff -ru -x __pycache__ /private/tmp/claude-501/-Users-idantal/db065cf7-f766-4885-b217-ed8d7edd7ade/scratchpad/fixes3/before/domains/production/engine/inspect/config.py domains/production/engine/inspect/config.py
+--- /private/tmp/claude-501/-Users-idantal/db065cf7-f766-4885-b217-ed8d7edd7ade/scratchpad/fixes3/before/domains/production/engine/inspect/config.py	2026-10-19 16:23:19
++++ domains/production/engine/inspect/config.py	2026-10-20 00:29:02
+@@ -32,16 +32,16 @@
+ __all__ = ["ENGINE_VERSION", "ALGORITHM_VERSIONS", "InspectConfig", "ConfigError", "load_config"]
+ 
+ #: Version of the per-scan engine (``result.engine.engine_version``).
+-ENGINE_VERSION = "e3-1.10.0"
++ENGINE_VERSION = "e3-1.12.0"
+ 
+ #: Algorithm identifiers recorded in ``result.engine.algorithm_versions``.
+ ALGORITHM_VERSIONS: dict[str, str] = {
+     "ingest": "ply_stl_explicit_unit_v1",
+-    "registration": "datum_plane_outline_fft_wall_edge_hole_polygon_flange_ends_hole_pairs_weak_dirs_walk_distinct_inscribed_hole_fill_hardware_mirror_symmetric_convert_v5",
++    "registration": "datum_plane_outline_fft_wall_edge_hole_polygon_flange_ends_hole_pairs_weak_dirs_walk_distinct_inscribed_hole_fill_hardware_mirror_symmetric_convert_free_datum_plane_seeds_symmetric_images_flange_end_rank_v6",
+     "articulated_fit": "hinge_hough_region_grow_skin_levels_arc_fold_displaced_fold_window_short_child_window_support_tabs_one_skin_pose_on_plane_joggle_step_one_skin_reread_astray_wide_reversed_mirrored_hinge_v8",
+     "thickness": "datum_tile_two_skin_separation_v1",
+-    "state_decode": "signed_dihedral_fraction_order_prior_symmetric_near_twins_hole_evidence_v4",
+-    "metrology": "station_oml_section_crease_aware_unfolded_island_station_profile_short_side_consistency_footprint_edge_riser_model_reseat_signed_angle_reversed_position_mirrored_flat_start_v9",
++    "state_decode": "signed_dihedral_fraction_order_prior_symmetric_near_twins_hole_evidence_twin_agreement_v5",
++    "metrology": "station_oml_section_crease_aware_unfolded_island_station_profile_short_side_consistency_footprint_edge_riser_model_reseat_signed_angle_reversed_position_mirrored_flat_start_flange_na_at_stage_pose_borne_lengths_v11",
+     "uncertainty": "station_mad_residual_pose_erosion_bias_thickness_station_spread_riser_length_v4",
+     "heatmap": "stage_cloud_nearest_signed_v1",
+ }
+@@ -129,6 +129,15 @@
+     pose_hypotheses: int = 6
+     #: Best refined hypotheses that also get an articulated fit (pose ambiguity, selection).
+     articulated_hypotheses: int = 3
++    #: A datum that fixes none of its in-plane directions, or a symmetric datum that leaves one free
++    #: (``engine._free_datum_trigger``): the in-plane pose must come from the flanges, for every hypothesis.
++    #: Then every candidate plane's best raster peak (at most ``free_datum_seeds``; no in-plane constraint
++    #: only) and the datum's symmetric images of the best ``free_datum_rank_k`` fits are searched too, and
++    #: the best ``free_datum_rank_k`` hypotheses get the articulated fit and the flange-ends variant
++    #: (``engine._free_datum_rank``). ``free_datum_rank_k`` equals ``pose_hypotheses``: every refined pose gets
++    #: its symmetric images. 0 disables it.
++    free_datum_rank_k: int = 6
++    free_datum_seeds: int = 4
+ 
+     # -- fine in-plane refinement (edges + holes) -------------------------------------
+     #: 2D tile for the local skin assignment of the datum (thin sheets, small tilts).
+@@ -419,6 +428,9 @@
+     #: symmetry below 0.3 mm) is a near twin: within ``ambiguity_margin`` of the best total it joins
+     #: the order-prior choice (never the ambiguity decision).
+     near_twin_rms_mm: float = 1.0
++    #: Certified symmetric twins that tie (``pose_ambiguous``): 1 publishes the readings identical under every
++    #: tied twin (contract amendment ENGINE_IO-A2, ``engine._twin_agreement``), 0 measures nothing (before it).
++    twin_agreement: int = 1
+     #: Twins and near twins within ``ambiguity_margin`` are first told apart by the holes of every fitted panel
+     #: (``engine._hole_evidence``): a hole is confirmed when its core (the loop shrunk by
+     #: ``max(hole_evidence_margin_mm, 2 spacings)``) holds at most ``hole_evidence_open_fraction`` of the
+@@ -497,6 +509,7 @@
+     "coarse_candidates_fine": (1, None, False, False), "pose_hypotheses": (1, None, False, False),
+     "hole_pair_hypotheses": (0, 32, False, False), "hole_pair_max_holes": (2, 64, False, False),
+     "articulated_hypotheses": (1, None, False, False), "skin_tile_mm": _POS, "wall_side_band_mm": _POS,
++    "free_datum_rank_k": (0, 16, False, False), "free_datum_seeds": (0, 64, False, False),
+     "wall_side_min_points": (1, None, False, False), "edge_bin_mm": _POS, "edge_band_mm": _POS,
+     "hole_annulus_mm": _POS, "hole_angular_bins": (8, None, False, False), "refine_iterations": (1, None, False, False),
+     "edge_gap_factor": (-2.0, 2.0, False, False), "reg_wall_min_points": (1, None, False, False),
+@@ -542,7 +555,7 @@
+     "explained_tight_fraction": _POS, "explained_tight_min_mm": _POS, "explained_tight_max_mm": _POS,
+     "wrong_part_hole_mismatch_min": (1, None, False, False), "mirror_check_explained": _FRAC,
+     "mirror_check_score": (None, None, False, False), "symmetry_match_deg": _POS, "symmetry_match_mm": _POS,
+-    "near_twin_rms_mm": _POS, "hole_evidence_margin_mm": _POS, "hole_evidence_open_fraction": _FRAC,
++    "near_twin_rms_mm": _POS, "twin_agreement": (0, 1, False, False), "hole_evidence_margin_mm": _POS, "hole_evidence_open_fraction": _FRAC,
+     "hole_evidence_filled_fraction": _FRAC, "hole_evidence_min_density": _POS, "hole_evidence_min_expected": _POS,
+     "hole_evidence_min_diff": (1, None, False, False),
+     "crease_min_area_mm2": _POS, "crease_min_angle_deg": _POS, "crease_hinge_search_mm": _POS,
+diff -ru -x __pycache__ /private/tmp/claude-501/-Users-idantal/db065cf7-f766-4885-b217-ed8d7edd7ade/scratchpad/fixes3/before/domains/production/engine/inspect/engine.py domains/production/engine/inspect/engine.py
+--- /private/tmp/claude-501/-Users-idantal/db065cf7-f766-4885-b217-ed8d7edd7ade/scratchpad/fixes3/before/domains/production/engine/inspect/engine.py	2026-10-19 18:25:45
++++ domains/production/engine/inspect/engine.py	2026-10-20 00:29:02
+@@ -181,6 +181,12 @@
+     explained_tight: float = 0.0
+     total: float = -1.0
+     mirrored: bool = False
++    #: set on the chosen hypothesis by :func:`_ambiguity`: the certified symmetric twins it ties with, and per
++    #: twin the bend permutations of the matching E1 symmetry candidates (twin label = perm[chosen label])
++    twins: list = field(default_factory=list)
++    twin_perms: list = field(default_factory=list)
++    #: added by the free-datum search (``_free_datum_poses``): always articulated, among the best ``free_datum_rank_k``
++    free_extra: bool = False
+ 
+ 
+ def inspect_scan(inputs: Inputs, out_dir: Path, cfg: InspectConfig, opts: InspectOptions,
+@@ -267,6 +273,9 @@
+         if any(_matching_symmetry(h.fit.T @ np.linalg.inv(g.fit.T), part, cfg, rms_max=cfg.near_twin_rms_mm)
+                for g in scored):
+             scored.append(h)
++    # poses the free-datum search added are articulated too (the best ``free_datum_rank_k`` of them)
++    for h in [h for h in proper if h.free_extra and not any(h is g for g in scored)][:cfg.free_datum_rank_k]:
++        scored.append(h)
+     for h in scored:
+         if budget.left() <= 0:
+             break
+@@ -278,6 +287,8 @@
+             if h.art is None and budget.left() > 0:
+                 _articulate(h, pts, vox, part, model, cfg, budget)
+     proper = sorted(proper, key=lambda h: -h.total)
++    if any(h.free_extra for h in proper):
++        proper = _free_datum_rank(proper, pts, vox, part, model, cfg, budget, note, spacing)
+     best = proper[0]
+     note(f"best datum score={best.fit.score:.3f} explained={best.explained:.3f} total={best.total:.3f}"
+          + (f" holes_with_hardware={best.fit.detail.get('holes_hardware')}" if best.fit.detail.get("holes_hardware")
+@@ -291,7 +302,9 @@
+         mvox = _mirror_voxels(vox)
+         mirrored = _register(reg_src * flip, mvox, part, model, cfg, budget, note, reg_spacing, mirrored=True)
+         mpts = pts * flip
+-        for h in mirrored[:cfg.articulated_hypotheses]:
++        m_scored = mirrored[:cfg.articulated_hypotheses]
++        m_scored += [h for h in mirrored[cfg.articulated_hypotheses:] if h.free_extra][:cfg.free_datum_rank_k]
++        for h in m_scored:
+             if budget.left() <= 0:
+                 break
+             _articulate(h, mpts, mvox, part, model, cfg, budget)
+@@ -300,6 +313,8 @@
+                 if h.art is None and budget.left() > 0:
+                     _articulate(h, mpts, mvox, part, model, cfg, budget)
+         mirrored.sort(key=lambda h: -h.total)
++        if any(h.free_extra for h in mirrored):
++            mirrored = _free_datum_rank(mirrored, mpts, mvox, part, model, cfg, budget, note, spacing)
+         if mirrored:
+             mb = mirrored[0]
+             sym_maps: list[np.ndarray] = []
+@@ -432,6 +447,16 @@
+     outcomes = _outcomes(part, best, states, decodes, geoms, lines, transforms, stage_id, exact, reg_degenerate,
+                          ambiguous, idx, cfg, budget, thick, ctx, pos_trust)
+     ctx.general = _general_measurements(part, recipe, states, geoms, best.art, cfg, budget)
++    # -- symmetric twins that tie (amendment ENGINE_IO-A2): publish only what every twin reads the same ---------
++    identity_ambiguous = False
++    if ambiguous and cfg.twin_agreement and best.twins and budget.left() > 0:
++        merged = _twin_agreement(part, recipe, best, pts, vox, cfg, budget, thick, ctx, outcomes, note)
++        if merged is not None:
++            outcomes, ctx.general = merged
++            states = [o.state for o in outcomes]
++            identity_ambiguous = True
++            warnings.append("IDENTITY_AMBIGUOUS_TWINS: certified symmetric twin poses tie; only readings identical "
++                            "under every twin are published, everything else is UNKNOWN(AMBIGUOUS_POSE)")
+     # -- heatmap, labels --------------------------------------------------------------------------------
+     step("heatmap", 85)
+     heat_reason = None
+@@ -449,7 +474,7 @@
+         heat_reason = "TIMEOUT"
+     labels = _segment_labels(part, best.art, vox, reg_pts, geoms, found, ambiguous)
+     registration = _registration_block(best, len(proper), margin, ambiguous, reg_degenerate, cfg,
+-                                       float(opts.unit_factor))
++                                       float(opts.unit_factor), identity_ambiguous=identity_ambiguous)
+     coverage = CoverageV1(surface_coverage_ratio=None if surface_cov is None else float(min(1.0, surface_cov)),
+                           datum_coverage_ratio=float(min(1.0, max(0.0, best.fit.datum_coverage))),
+                           scan_point_count=int(len(pts)))
+@@ -677,9 +702,86 @@
+             continue
+         fits.append(fit)
+     fits.sort(key=lambda f: -f.score)
+-    return [_Hyp(fit=f, mirrored=mirrored) for f in fits]
++    out = [_Hyp(fit=f, mirrored=mirrored) for f in fits]
++    trigger = _free_datum_trigger(model, fits, cfg)
++    if trigger is not None and budget.left() > 0:
++        extra = _free_datum_poses(pts, vox, part, model, cfg, budget, spacing, fits, trigger)
++        note(f"{'mirrored ' if mirrored else ''}free datum ({trigger}): {len(extra)} more pose(s) from plane seeds "
++             "and symmetric images")
++        out = sorted(out + [_Hyp(fit=f, mirrored=mirrored, free_extra=True) for f in extra], key=lambda h: -h.fit.score)
++    return out
+ 
+ 
++def _free_datum_trigger(model: DatumModel, fits: list[InPlaneFit], cfg: InspectConfig) -> str | None:
++    """Why the in-plane pose must come from the flanges for every hypothesis, else None.
++
++    NO_IN_PLANE_CONSTRAINT: the best refined fit leaves all three in-plane directions undetermined (a
++    datum with no usable cut edge and no hole). SYMMETRIC_DATUM: the datum's material maps onto itself
++    under an in-plane rotation (:meth:`DatumModel.rotational_symmetries`) and the best fit leaves some
++    in-plane direction undetermined. A datum whose own edges fix the pose never triggers it."""
++    if cfg.free_datum_rank_k <= 0 or not fits:
++        return None
++    k = int(fits[0].undetermined.shape[0])
++    if k >= 3:
++        return "NO_IN_PLANE_CONSTRAINT"
++    if k and model.rotational_symmetries()[0]:
++        return "SYMMETRIC_DATUM"
++    return None
++
++
++def _free_datum_poses(pts, vox, part: PartView, model: DatumModel, cfg: InspectConfig, budget: "_Budget",
++                      spacing: float, fits: list[InPlaneFit], trigger: str) -> list[InPlaneFit]:
++    """More refined datum poses when the datum does not fix its own in-plane pose (``_free_datum_trigger``).
++
++    - NO_IN_PLANE_CONSTRAINT: the best raster peak of every candidate plane that no global peak represents
++      (``coarse_hypotheses(plane_seeds=True)``, at most ``free_datum_seeds``). Such a datum's outline
++      correlates with the formed part's large planes as well as with its own plane, so the global peaks
++      can all land on those planes and the datum's own plane never gets a fine search.
++    - both triggers: the datum's symmetric images of the best ``free_datum_rank_k`` fits (and seeds). The
++      images tie on everything the datum shows; only the flanges tell them apart.
++    Each pose gets the same fine search and refinement as any coarse peak; repeats of a known pose are dropped.
++    """
++    new: list[InPlaneFit] = []
++
++    def add(T: np.ndarray) -> None:
++        if budget.left() <= 0:
++            return
++        Tf = fine_search(pts, T, model, cfg, walks=0)
++        f = refine_datum(pts, Tf, model, cfg, spacing)
++        if not any(_close(f.T, o.T, dist=min(1.0, 0.4 * part.t)) for o in fits + new):
++            new.append(f)
++
++    if trigger == "NO_IN_PLANE_CONSTRAINT" and cfg.free_datum_seeds > 0:
++        seeds, _ = coarse_hypotheses(vox, part, model, cfg, mirrored=False, budget_left=budget.left, plane_seeds=True)
++        for hp in seeds[:cfg.free_datum_seeds]:
++            add(hp.T)
++    base = sorted(fits + new, key=lambda f: -f.score)[:cfg.free_datum_rank_k]
++    for f in base:
++        for Ti in model.symmetric_images(f.T):
++            add(Ti)
++    return new
++
++
++def _free_datum_rank(hyps: list[_Hyp], pts, vox, part: PartView, model: DatumModel, cfg: InspectConfig,
++                     budget: "_Budget", note: Callable[[str], None], spacing: float) -> list[_Hyp]:
++    """Per-hypothesis flange-ends ranking for a free datum (``_free_datum_trigger``; bounded by ``free_datum_rank_k``).
++
++    The best ``free_datum_rank_k`` articulated hypotheses (by total) whose fit leaves an in-plane direction
++    undetermined get the flange-ends fit (:func:`_refine_free_directions`, the step the chosen pose gets),
++    run on that hypothesis' own articulated fit. A refined pose replaces its hypothesis only when its total
++    is higher; otherwise the hypothesis stays as it was. The list is returned sorted by total."""
++    out = list(hyps)
++    top = sorted((h for h in out if h.art is not None and h.fit.undetermined.size), key=lambda h: -h.total)
++    for h in top[:cfg.free_datum_rank_k]:
++        if budget.left() <= 0:
++            break
++        r = _refine_free_directions(h, pts, vox, part, model, cfg, budget, lambda m: None, spacing)
++        if r is not None and r is not h and r.total > h.total:
++            note(f"free datum: flange ends move a hypothesis, total {h.total:.3f} -> {r.total:.3f}")
++            out[out.index(h)] = r
++    return sorted(out, key=lambda h: -h.total)
++
++
+ def _same_cluster(a: np.ndarray, b: np.ndarray, model: DatumModel, t: float, ang_deg: float = 3.0,
+                   in_plane_mm: float = 2.0) -> bool:
+     """Two candidate poses the refinement would bring together: within ``ang_deg``, their frames within
+@@ -900,6 +1002,7 @@
+     decoded = part.stage_for_formed(formed)
+     out_states = [chosen_states]
+     ambiguous = False
++    chosen.twins, chosen.twin_perms = [], []
+     for h in pool:
+         if h is chosen:
+             continue
+@@ -913,6 +1016,8 @@
+         if st != chosen_states or changes_identity:
+             ambiguous = True
+             out_states.append(st)
++            chosen.twins.append(h)
++            chosen.twin_perms.append([dict(c.bend_permutation) for _, c in matches])
+     return ambiguous, out_states, margin, chosen
+ 
+ 
+@@ -1113,12 +1218,13 @@
+ 
+ 
+ def _registration_block(best: _Hyp, n_cand: int, margin: float, ambiguous: bool, degenerate: bool,
+-                        cfg: InspectConfig, unit_factor: float) -> RegistrationV1:
++                        cfg: InspectConfig, unit_factor: float, identity_ambiguous: bool = False) -> RegistrationV1:
+     rms = best.fit.edge_rms if math.isfinite(best.fit.edge_rms) else None
+     return RegistrationV1(method="datum_plane_outline_edges_holes", raw_to_frame=_mat(best.fit.T), unit_factor=unit_factor,
+                           datum_fitness=float(min(1.0, max(0.0, best.fit.datum_coverage))),
+                           rmse_mm=None if rms is None else float(rms), pose_candidates_considered=int(n_cand),
+                           pose_margin=float(max(0.0, margin)), pose_ambiguous=bool(ambiguous),
++                          identity_ambiguous=bool(ambiguous and identity_ambiguous),
+                           in_plane_degenerate=bool(degenerate and not ambiguous), abstained=False)
+ 
+ 
+@@ -1210,6 +1316,16 @@
+                 o.backgauge_cid = cid
+                 o.backgauge_na = not order_ok
+         if st in _FORMED_LIKE and not ambiguous:
++            # a flange bounded by a bend that is not yet formed has no length at this stage (contract amendment
++            # ENGINE_IO-A1): NOT_APPLICABLE_AT_STAGE, whatever this bend's own geometry shows. An UNKNOWN neighbour
++            # is not the stage: that side stays UNKNOWN(ADJACENT_BEND_NOT_MEASURED)
++            for side in ("A", "B"):
++                nom_f = part.nominals.get(f"{bend.uid}/FLANGE_LENGTH/{side}")
++                if nom_f is None or nom_f.boundary_kind != "ADJACENT_BEND" or nom_f.recipe_requirement == "NOT_INSPECTED":
++                    continue
++                jb = part.bend_index.get(nom_f.adjacent_bend_uid or "")
++                if jb is not None and states[jb] == "NOT_YET_FORMED":
++                    o.stage_na.add(nom_f.characteristic_id)
+             bm = geoms.get(j)
+             if bm is None or not bm.ok:
+                 reason = "TIMEOUT" if budget.left() <= 0 else ((bm.reason if bm else None) or "OCCLUDED")
+@@ -1284,7 +1400,7 @@
+             for side in ("A", "B"):
+                 cid = f"{bend.uid}/FLANGE_LENGTH/{side}"
+                 nom = part.nominals[cid]
+-                if nom.recipe_requirement == "NOT_INSPECTED" or nom.nominal is None:
++                if nom.recipe_requirement == "NOT_INSPECTED" or nom.nominal is None or cid in o.stage_na:
+                     continue
+                 if nom.boundary_kind != "ADJACENT_BEND" and ctx.free_edge_blocked is not None:
+                     o.forced_unknown[cid] = ctx.free_edge_blocked
+@@ -1327,7 +1443,211 @@
+                 o.diagnostics["inner_skin_share_child"] = float(bm.inner_child)
+         out.append(o)
+     _bare_edges(out, part, cfg, ctx.note)
++    if fit.undetermined.size and ctx.model is not None:
++        _pose_borne_lengths(out, part, geoms, lines, fit, ctx.model, ctx.note)
+     return out
++
++
++def _station_free_decision(m: Measurement, nom) -> bool:
++    """True when a station-nominal comparison decides the same whichever station nominal each station had.
++
++    With the stations' place along the bend undetermined, the median deviation can lie anywhere between
++    ``raw_median - max(profile)`` and ``raw_median - min(profile)``; the reading stands only when the guard-band
++    decision is the same over that whole interval: identical at both ends, and either PASS at both ends (the PASS
++    band is one interval) or both ends on the same side of the nominal (FAIL short .. FAIL long passes through PASS)."""
++    from contracts.production.characteristics import guard_band_decision
++
++    if m.profile_range is None or m.raw_median is None or nom is None or nom.tolerance is None or m.u is None:
++        return False
++    lo, hi = m.profile_range
++    ends = [m.raw_median - hi, m.raw_median - lo]
++    decs = [guard_band_decision(d, float(m.u), float(nom.tolerance.plus), float(nom.tolerance.minus)) for d in ends]
++    if decs[0] != decs[1]:
++        return False
++    return decs[0] == "PASS" or (ends[0] > 0) == (ends[1] > 0)
++
++
++def _pose_borne_lengths(outcomes: list[BendOutcome], part: PartView, geoms: dict[int, BendMeasure], lines,
++                        fit: InPlaneFit, model: DatumModel, note: Callable[[str], None] | None = None) -> None:
++    """Flange lengths that depend on an undetermined in-plane pose direction become UNKNOWN(REGISTRATION_UNTRUSTED).
++
++    Lengths are scan-intrinsic only while two things do not come from the pose:
++    - the skin identity of a sharp built from the *inner* skin moved by t (``BendMeasure.one_skin``): the skin is
++      called inner by its height against the registered panel plane, so when that panel's normal lies along an
++      undetermined pose direction (:meth:`InPlaneFit.position_determined`) a pose error of about t flips the skins
++      and moves the sharp by about t. Every length that starts or ends at such a sharp is untrusted;
++    - the station of a length compared with a station-varying nominal profile (``..._VS_STATION_NOMINAL``): the
++      station's place along the bend line comes from the pose, so it is untrusted when the bend line's own
++      direction is undetermined.
++    """
++    skin_borne: dict[int, bool] = {}
++    for j, bm in geoms.items():
++        line = lines.get(part.bends[j].uid)
++        if bm is None or not bm.ok or not bm.one_skin or line is None:
++            continue
++        mid = 0.5 * (np.asarray(line[0], dtype=np.float64) + np.asarray(line[1], dtype=np.float64))
++        sides = [(bm.inner_parent, bm.plane_parent), (bm.inner_child, bm.plane_child)]
++        skin_borne[j] = any(share > 0 and pl is not None and not fit.position_determined(model, mid, unit(pl.n))
++                            for share, pl in sides)
++    hits = []
++    for j, (bend, o) in enumerate(zip(part.bends, outcomes)):
++        line = lines.get(bend.uid)
++        for side in ("A", "B"):
++            cid = f"{bend.uid}/FLANGE_LENGTH/{side}"
++            m = o.measurements.get(cid)
++            if m is None or m.value is None or cid in o.forced_unknown or line is None:
++                continue
++            nom = part.nominals.get(cid)
++            jb = part.bend_index.get((nom.adjacent_bend_uid if nom is not None else None) or "")
++            why = None
++            if skin_borne.get(j) or (jb is not None and skin_borne.get(jb)):
++                why = "skin"
++            elif "VS_STATION_NOMINAL" in (m.method or ""):
++                q0, q1 = np.asarray(line[0], dtype=np.float64), np.asarray(line[1], dtype=np.float64)
++                if not fit.position_determined(model, 0.5 * (q0 + q1), unit(q1 - q0)) \
++                        and not _station_free_decision(m, nom):
++                    why = "station"
++            if why is not None:
++                o.forced_unknown[cid] = "REGISTRATION_UNTRUSTED"
++                o.side_anchor.pop(side, None)
++                hits.append(f"{bend.label}/{side}:{why}")
++    if hits and note is not None:
++        note("pose-borne flange lengths withheld: " + " ".join(hits))
++
++
++def _spec(part: PartView, cid: str) -> tuple | None:
++    nom = part.nominals.get(cid)
++    if nom is None or nom.nominal is None or nom.tolerance is None:
++        return None
++    return (round6(float(nom.nominal)), round6(float(nom.tolerance.plus)), round6(float(nom.tolerance.minus)),
++            nom.recipe_requirement)
++
++
++def _matched_spec_ok(part: PartView, uid: str, kind: str, perms: list[list[dict]]) -> bool:
++    """The matched characteristic (the twin's label of the same physical bend, ``perm[uid]``) has the same
++    nominal and tolerance under every twin's every matching symmetry. Flange sides compare as a set (the
++    symmetry may exchange a bend's sides)."""
++    def specs(u: str) -> tuple:
++        if kind == "FLANGE_LENGTH":
++            return tuple(sorted((str(_spec(part, f"{u}/FLANGE_LENGTH/{s}")) for s in ("A", "B"))))
++        return (str(_spec(part, f"{u}/{kind}")),)
++    own = specs(uid)
++    return all(specs(perm.get(uid, uid)) == own for twin in perms for perm in twin)
++
++
++def _reading(o: BendOutcome, cid: str) -> tuple:
++    if cid in o.stage_na:
++        return ("NA",)
++    if cid in o.forced_unknown:
++        return ("UNKNOWN",)
++    m = o.measurements.get(cid)
++    if m is None or m.value is None or m.u is None:
++        return ("UNKNOWN",)
++    return ("M", float(m.value), max(float(m.u), 1e-6))
++
++
++def _agree(part: PartView, cid: str, readings: list[tuple]) -> bool:
++    """Every twin reads the characteristic, the values agree within the published (first) reading's U and the
++    guard-band decision is the same under each twin's own U (so a PASS holds whichever twin is the part)."""
++    from contracts.production.characteristics import guard_band_decision
++
++    if any(r[0] != "M" for r in readings):
++        return False
++    nom = part.nominals.get(cid)
++    if nom is None or nom.nominal is None or nom.tolerance is None:
++        return False
++    v0, u0 = readings[0][1], readings[0][2]
++    decs = {guard_band_decision(r[1] - float(nom.nominal), r[2], float(nom.tolerance.plus), float(nom.tolerance.minus))
++            for r in readings}
++    return len(decs) == 1 and all(abs(r[1] - v0) <= u0 for r in readings)
++
++
++def _twin_agreement(part: PartView, recipe, chosen: _Hyp, pts, vox, cfg: InspectConfig, budget: _Budget,
++                    thick: Thickness, ctx: _Ctx, ambiguous_outcomes: list[BendOutcome],
++                    note: Callable[[str], None]) -> tuple[list[BendOutcome], tuple] | None:
++    """Readings identical under every tied certified symmetric twin (contract amendment ENGINE_IO-A2).
++
++    Each twin (the chosen pose first) is decoded and measured as an unambiguous pose would be, without the
++    crease search, the wrong-way search or the free-direction refinement. Per bend label: the bend is published
++    only when every twin gives it the same state; a characteristic of a formed bend only when (a) the matched
++    characteristic (the twin's label of the same physical bend, through E1's certified bend permutation) has
++    the same nominal and tolerance, and (b) every twin reads it, within the published U, with the same
++    guard-band decision. Everything else is UNKNOWN(AMBIGUOUS_POSE). Bend-line position, backgauge and the
++    heatmap stay withheld: they depend on which bend is which. None when the budget runs out.
++    """
++    hyps = [chosen] + list(chosen.twins)
++    per = []
++    for h in hyps:
++        if h.art is None or budget.left() <= 0:
++            return None
++        decodes = h.decodes or []
++        states = [d.state for d in decodes]
++        stage_id, exact = choose_stage_model(part, states)
++        formed = [part.bends[j].uid for j, st in enumerate(states) if st in _FORMED_LIKE]
++        lines = part.stage_lines(stage_id, formed)
++        transforms = part.stage_transforms(stage_id, formed)
++        idx = PointIndex(apply(h.fit.T, pts), vox)
++        geoms = {j: measure_bend_geometry(idx, part, h.art, j, cfg) for j, st in enumerate(states)
++                 if st in _FORMED_LIKE and budget.left() > 0}
++        if budget.left() <= 0:
++            return None
++        pos_trust = {j: (False, None) for j in range(part.n)}  # positions are withheld anyway
++        ctx.free_edge_blocked, ctx.crease_sharps = None, {}
++        outs = _outcomes(part, h, states, decodes, geoms, lines, transforms, stage_id, exact, True, False, idx, cfg,
++                         budget, thick, ctx, pos_trust)
++        gen = _general_measurements(part, recipe, states, geoms, h.art, cfg, budget)
++        per.append((states, outs, gen))
++    merged: list[BendOutcome] = []
++    published = 0
++    for j, bend in enumerate(part.bends):
++        sts = {p[0][j] for p in per}
++        o = per[0][1][j]
++        if len(sts) != 1 or o.state == "UNKNOWN":
++            merged.append(ambiguous_outcomes[j])
++            continue
++        o.backgauge_cid, o.backgauge_na = None, False  # the stage model (and its backgauge) depends on the identity
++        if o.state == "NOT_YET_FORMED":
++            merged.append(o)
++            continue
++        o.measured_line = None
++        o.forced_unknown[f"{bend.uid}/BEND_LINE_POSITION"] = "AMBIGUOUS_POSE"
++        for kind, side in (("FLANGE_LENGTH", "A"), ("FLANGE_LENGTH", "B"), ("INCLUDED_ANGLE", None)):
++            cid = f"{bend.uid}/{kind}" + (f"/{side}" if side else "")
++            rs = [_reading(p[1][j], cid) for p in per]
++            if all(r == ("NA",) for r in rs):
++                continue
++            if _matched_spec_ok(part, bend.uid, kind, chosen.twin_perms) and _agree(part, cid, rs):
++                published += 1
++                continue
++            o.forced_unknown[cid] = "AMBIGUOUS_POSE"
++            o.stage_na.discard(cid)
++            if kind == "FLANGE_LENGTH":
++                o.side_anchor.pop(side, None)
++        if all(cid in o.forced_unknown for cid in (f"{bend.uid}/INCLUDED_ANGLE",)):
++            o.measured_included_deg = None
++        o.notes = o.notes + ("IDENTITY_AMBIGUOUS_TWIN_AGREEMENT",)
++        merged.append(o)
++    meas0, anchors0, na0 = per[0][2]
++    meas = dict(meas0)
++    for gm in recipe.general_measurements:
++        cid = f"gm/{gm.measurement_id}"
++        if all(cid in p[2][2] for p in per):
++            continue
++        rs = []
++        for p in per:
++            m = p[2][0].get(cid)
++            rs.append(("M", float(m.value), max(float(m.u), 1e-6)) if m is not None and m.value is not None
++                      and m.u is not None and cid not in p[2][2] else ("UNKNOWN",))
++        if _agree(part, cid, rs):
++            published += 1
++            continue
++        meas[cid] = Measurement.unknown("AMBIGUOUS_POSE", "GENERAL_TWIN_AGREEMENT")
++    na = {cid for cid in na0 if all(cid in p[2][2] for p in per)}
++    for cid in na0 - na:
++        meas[cid] = Measurement.unknown("AMBIGUOUS_POSE", "GENERAL_TWIN_AGREEMENT")
++    note(f"twin agreement over {len(hyps)} certified twins: {published} reading(s) identical under every twin "
++         "published, the rest UNKNOWN(AMBIGUOUS_POSE)")
++    return merged, (meas, anchors0, na)
+ 
+ 
+ def _bare_edges(outcomes: list[BendOutcome], part: PartView, cfg: InspectConfig,
+diff -ru -x __pycache__ /private/tmp/claude-501/-Users-idantal/db065cf7-f766-4885-b217-ed8d7edd7ade/scratchpad/fixes3/before/domains/production/engine/inspect/metrology.py domains/production/engine/inspect/metrology.py
+--- /private/tmp/claude-501/-Users-idantal/db065cf7-f766-4885-b217-ed8d7edd7ade/scratchpad/fixes3/before/domains/production/engine/inspect/metrology.py	2026-10-19 05:36:06
++++ domains/production/engine/inspect/metrology.py	2026-10-20 00:29:02
+@@ -132,6 +132,10 @@
+     #: FREE_EDGE far edges: stations whose cut wall was seen, of the stations with a far edge
+     walls_seen: int = 0
+     wall_stations: int = 0
++    #: station-nominal comparison (``..._VS_STATION_NOMINAL``): the range of the station nominals and the median of
++    #: the raw station values, so a caller can tell whether the decision depends on where the stations lie
++    profile_range: tuple[float, float] | None = None
++    raw_median: float | None = None
+ 
+     @staticmethod
+     def unknown(reason: str, method: str, note: str = "") -> "Measurement":
+@@ -1288,7 +1292,9 @@
+             exp_arr = np.asarray(exp, dtype=np.float64)
+             if flattened or float(np.ptp(exp_arr)) > _PROFILE_MIN_SPREAD_MM:
+                 prof = exp_arr
++    prof_range = raw_med = None
+     if prof is not None:
++        prof_range, raw_med = (float(prof.min()), float(prof.max())), float(np.median(arr))
+         nom_v = float(nom_side.nominal)
+         dev, sig, how = robust_location(arr - prof)
+         value = nom_v + dev
+@@ -1311,7 +1317,8 @@
+     return Measurement(value=value, u=u, count=int(len(arr)), median=float(np.median(arr)), vmin=float(arr.min()),
+                        vmax=float(arr.max()), method=method + "_" + how, support=support,
+                        coverage=float(len(arr) / max(len(bm.z), 1)), fit_rms=bm.fit_rms,
+-                       components=comps, walls_seen=int(sum(walls)), wall_stations=len(walls))
++                       components=comps, walls_seen=int(sum(walls)), wall_stations=len(walls),
++                       profile_range=prof_range, raw_median=raw_med)
+ 
+ 
+ def _crease_covers(crease, bm: BendMeasure, z: float | None = None) -> bool | None:
+diff -ru -x __pycache__ /private/tmp/claude-501/-Users-idantal/db065cf7-f766-4885-b217-ed8d7edd7ade/scratchpad/fixes3/before/domains/production/engine/inspect/registration.py domains/production/engine/inspect/registration.py
+--- /private/tmp/claude-501/-Users-idantal/db065cf7-f766-4885-b217-ed8d7edd7ade/scratchpad/fixes3/before/domains/production/engine/inspect/registration.py	2026-10-19 18:25:45
++++ domains/production/engine/inspect/registration.py	2026-10-19 21:41:52
+@@ -456,6 +456,47 @@
+                                      clearance_window=clearance_window)
+         return cache[key]
+ 
++    def rotational_symmetries(self, pixel: float = 0.5, overlap_min: float = 0.98) -> tuple[list[float], np.ndarray]:
++        """``(angles, centre)``: the in-plane rotations (90, 180, 270 deg about the material's area centroid) that map
++        the datum's material (outline minus holes) onto itself, with at least ``overlap_min`` of the rotated material
++        landing on material. Such a datum cannot tell those images of a pose apart by its own outline."""
++        cache = self.__dict__.setdefault("_rotsym", {})
++        key = (round(float(pixel), 6), round(float(overlap_min), 6))
++        if key not in cache:
++            x0, y0, x1, y1 = self.bbox
++            gx = np.arange(x0, x1 + pixel, pixel)
++            gy = np.arange(y0, y1 + pixel, pixel)
++            xx, yy = np.meshgrid(gx, gy)
++            cells = np.stack([xx.ravel(), yy.ravel()], axis=1)
++            ins, _ = self.material_lookup(cells, pixel)
++            mat = cells[ins]
++            angles: list[float] = []
++            centre = mat.mean(axis=0) if len(mat) else np.zeros(2)
++            if len(mat):
++                for phi in (0.5 * math.pi, math.pi, 1.5 * math.pi):
++                    rot = (mat - centre) @ _rot2(phi).T + centre
++                    on, _ = self.material_lookup(rot, pixel)
++                    if float(on.mean()) >= overlap_min:
++                        angles.append(phi)
++            cache[key] = (angles, centre)
++        return cache[key]
++
++    def symmetric_images(self, T: np.ndarray) -> list[np.ndarray]:
++        """The poses ``S @ T`` for every in-plane rotation ``S`` of :meth:`rotational_symmetries` (CAD frame)."""
++        sym, centre = self.rotational_symmetries()
++        out = []
++        F = np.stack([self.f1, self.f2, self.n0], axis=1)
++        c3 = self.p0 + self.f1 * centre[0] + self.f2 * centre[1]
++        for phi in sym:
++            r3 = np.eye(3)
++            r3[:2, :2] = _rot2(phi)
++            R = F @ r3 @ F.T
++            S = np.eye(4)
++            S[:3, :3] = R
++            S[:3, 3] = c3 - R @ c3
++            out.append(S @ T)
++        return out
++
+     def to2d(self, pts: np.ndarray) -> np.ndarray:
+         q = np.asarray(pts, dtype=np.float64) - self.p0
+         return np.stack([q @ self.f1, q @ self.f2], axis=1)
+@@ -760,13 +801,18 @@
+ 
+ 
+ def coarse_hypotheses(vox: VoxelCloud, part: PartView, model: DatumModel, cfg: InspectConfig, *,
+-                      mirrored: bool, budget_left, segments: list[PlaneSegment] | None = None
+-                      ) -> tuple[list[PoseHypothesis], list[PlaneSegment]]:
++                      mirrored: bool, budget_left, segments: list[PlaneSegment] | None = None,
++                      plane_seeds: bool = False) -> tuple[list[PoseHypothesis], list[PlaneSegment]]:
+     """Coarse datum poses for the scan (or the mirrored scan): see the module docstring.
+ 
+     Peaks of every (candidate plane, family, angle) correlation are pooled and
+     the global best ones (non-maximum suppressed) are angle-polished and turned
+     into 3D transforms (both skin heights unless the other skin was seen).
++
++    ``plane_seeds`` (a datum that fixes none of its in-plane directions, ``engine._register``): the
++    best peak of every (candidate plane, family) that no global peak represents is returned instead
++    of the global peaks. Such a datum's outline correlates with the large planes of the formed part
++    as well as with its own plane, so the global peaks can all land on those planes.
+     """
+     datum_area = float(part.panels[part.datum].area)
+     if segments is None:
+@@ -817,6 +863,14 @@
+                and np.linalg.norm(tau - c[4]) < 10.0 for c in chosen):
+             continue
+         chosen.append(row)
++    if plane_seeds:
++        seen = {(c[1], c[2]) for c in chosen}
++        seeds = []
++        for row in pooled:  # sorted by value: the first row of a (plane, family) is its best peak
++            if (row[1], row[2]) not in seen:
++                seen.add((row[1], row[2]))
++                seeds.append(row)
++        chosen = seeds
+     hyps: list[PoseHypothesis] = []
+     for val, si, family, th, tau in chosen:
+         seg = cands[si]
+diff -ru -x __pycache__ /private/tmp/claude-501/-Users-idantal/db065cf7-f766-4885-b217-ed8d7edd7ade/scratchpad/fixes3/before/domains/production/engine/inspect/result.py domains/production/engine/inspect/result.py
+--- /private/tmp/claude-501/-Users-idantal/db065cf7-f766-4885-b217-ed8d7edd7ade/scratchpad/fixes3/before/domains/production/engine/inspect/result.py	2026-10-17 08:47:33
++++ domains/production/engine/inspect/result.py	2026-10-19 21:19:38
+@@ -91,6 +91,9 @@
+     backgauge_cid: str | None = None
+     #: the decoded stage's backgauge does not describe this formed set (NOT_APPLICABLE_AT_STAGE)
+     backgauge_na: bool = False
++    #: flange characteristic ids bounded by an adjacent bend that is NOT_YET_FORMED: the length is undefined at
++    #: this stage (NOT_APPLICABLE_AT_STAGE, contract amendment ENGINE_IO-A1, owner decision 2026-10-19)
++    stage_na: set[str] = field(default_factory=set)
+ 
+ 
+ @dataclass
+@@ -143,6 +146,9 @@
+     if outcome.state == "UNKNOWN":
+         reason = outcome.state_reasons[0] if outcome.state_reasons else "BEND_STATE_UNKNOWN"
+         return CharacteristicResultV1.not_measured(nominal, reason=reason, expected_source=expected_source)
++    if cid in outcome.stage_na:
++        return CharacteristicResultV1.not_applicable(nominal, reason="NOT_APPLICABLE_AT_STAGE",
++                                                     expected_source=expected_source)
+     if cid in outcome.forced_unknown:
+         return CharacteristicResultV1.not_measured(nominal, reason=outcome.forced_unknown[cid],
+                                                    expected_source=expected_source)

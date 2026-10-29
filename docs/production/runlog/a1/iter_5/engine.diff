@@ -1,0 +1,550 @@
+diff -ru -x __pycache__ domains/production/engine/inspect/articulated.py /Users/idantal/ShermanQC/FullProject/domains/production/engine/inspect/articulated.py
+--- domains/production/engine/inspect/articulated.py	2026-10-18 16:00:33
++++ /Users/idantal/ShermanQC/FullProject/domains/production/engine/inspect/articulated.py	2026-10-18 17:30:19
+@@ -27,12 +27,14 @@
+    the fine reach (a joggle's 3 mm riser) is followed by a parallel sheet about
+    one thickness off the parent; near flat, only material continuous from the
+    hinge counts for it (``continuity`` in :func:`_hough`). When that
+-   leaves a bend of at least ``displaced_min_sweep_deg`` flat or partial, the
++   leaves a bend of at least ``displaced_min_sweep_deg`` flat or partial, or
++   formed but more than ``displaced_check_dev_deg`` off its nominal sweep, the
+    formed-like angles are searched again with ``hinge_rho_slack_wide_mm`` over
+    the fine reach, and a clearly better supported line (a formed flange whose
+    bend line sits millimetres off nominal) replaces the narrow one, so the
+-   defect is measured instead of read as a half-formed bend. On such a child the
+-   window stops, on the side toward the parallel bend, halfway to that bend's
++   defect is measured instead of read as a half-formed bend (or as a line pair
++   crossing that flange's two skins obliquely). On a child that carries a
++   parallel bend the window stops, on the side toward the parallel bend, halfway to that bend's
+    hinge (``grand_u`` in :func:`_hough`): a formed tab beyond a still flat riser
+    is the parallel bend's line, not this one's displaced. Its line support also
+    stops where the riser ends, at the parallel bend's tangent lines (``s_cut``,
+@@ -40,7 +42,11 @@
+    are that bend's, and a shallow line crossing them must not outscore the riser's
+    own line. A line seen on one skin
+    reads alike as either skin; the reading nearer the nominal kinematics is
+-   taken (:func:`_one_skin_tie`).
++   taken (:func:`_one_skin_tie`). A formed-like line the window reads on one
++   skin is also read the other way, its partner one thickness past the window
++   (:func:`_one_skin_reread`): a hinge frame placed a few millimetres off (an
++   ancestor's bend line moved along the blank) leaves only the flange's near
++   skin inside the window, and that skin must not be taken for the inner one.
+ 3. **Region growing.** Seeds are the points on the winning line. The child's
+    material slab (mid-plane +- t/2 + tolerance, voxel normals within a cone)
+    is grown over the voxel neighbour graph from the seeds, the plane is refitted
+@@ -258,6 +264,17 @@
+     off, and both readings score alike: the tie (within ``one_skin_tie_fraction``)
+     goes to the reading nearer the window centre (the nominal kinematics), never
+     to whichever lies first in ``rho``.
++
++    A formed-like line (``|theta| >= one_skin_reread_min_deg``) that the window
++    reads on one skin only may be a sheet whose *other* skin lies just outside
++    the window: a hinge frame placed a few millimetres off (an ancestor's bend
++    line moved along its blank) leaves the flange's skin nearer the nominal
++    inside the window and the far one outside, and the window then takes the
++    near skin for the inner one, one thickness off. The other reading of that
++    visible skin (its partner on the other side) is read even outside the window
++    (never past the grandchild limit): when that partner skin holds at least
++    ``one_skin_reread_min_share`` of the visible skin's support, the two-skin
++    pair stands. With the partner unseen nothing changes.
+     """
+     hb = cfg.hough_bin_mm
+     slack = cfg.hinge_rho_slack_mm
+@@ -266,14 +283,20 @@
+     centres = np.asarray([c for c, _ in win]) if win else np.asarray([frame.rho_iml])
+     halves = np.asarray([h for _, h in win]) if win else np.asarray([slack])
+     lows, highs = halves.copy(), halves.copy()
++    # the one-skin re-reading may reach one thickness past the window, except on the grandchild's side
++    re_lo = halves + abs(frame.delta)
++    re_hi = halves + abs(frame.delta)
+     if grand_u is not None and grand_u > 0:
+         for k, th in enumerate(thetas):
+             sth = math.sin(float(th))
+             lim = max(float(cfg.hinge_rho_slack_flat_mm), 0.5 * float(grand_u) * abs(sth))
+             if sth >= 0:
+                 lows[k] = min(lows[k], lim)
++                re_lo[k] = lows[k]
+             else:
+                 highs[k] = min(highs[k], lim)
++                re_hi[k] = highs[k]
++    # the histogram reaches one thickness past every pair's skins: the re-reading's pairs lie inside that too
+     lo_r = float(np.min(np.minimum(centres, centres + frame.delta) - halves)) - abs(frame.delta) - 1.0
+     hi_r = float(np.max(np.maximum(centres, centres + frame.delta) + halves)) + abs(frame.delta) + 1.0
+     nb = int(math.ceil((hi_r - lo_r) / hb)) + 1
+@@ -321,9 +344,54 @@
+         rhos[k] = lo_r + (cand[j] + 0.5) * hb
+         n_i[k] = sm[cand[j]]
+         n_o[k] = h_o[j]
++        if abs(th) >= math.radians(cfg.one_skin_reread_min_deg):
++            alt = _one_skin_reread(int(cand[j]), float(n_i[k]), float(n_o[k]), hist, sm, shift, nb, centres[k],
++                                   re_lo[k], re_hi[k], lo_r, hb, cfg)
++            if alt is not None and alt[1] + alt[2] > scores[k]:
++                rhos[k] = lo_r + (alt[0] + 0.5) * hb
++                n_i[k], n_o[k] = alt[1], alt[2]
++                scores[k] = alt[1] + alt[2]
+     return scores, rhos, n_i, n_o
+ 
+ 
++def _one_skin_reread(ci: int, ni: float, no: float, hist: np.ndarray, sm: np.ndarray, shift: int, nb: int,
++                     centre: float, reach_lo: float, reach_hi: float, lo_r: float, hb: float, cfg: InspectConfig
++                     ) -> tuple[int, float, float] | None:
++    """``(inner-skin bin, n_iml, n_oml)`` of the other reading of a one-skin line when its partner skin is seen.
++
++    The window's winner at inner bin ``ci`` reads one skin (``ni`` or ``no`` at most
++    ``one_skin_fraction`` of the other). Its visible skin taken as the other skin puts
++    the pair one thickness over (``shift`` bins). That pair is read within
++    ``reach_lo`` / ``reach_hi`` of the window centre (the window plus one thickness,
++    the grandchild's side excepted) and stands for the line when its partner skin holds
++    at least ``one_skin_reread_min_share`` of the visible skin's support.
++    """
++    if shift == 0 or max(ni, no) <= 0.0 or min(ni, no) > cfg.one_skin_fraction * max(ni, no):
++        return None
++    vis = ci if ni >= no else ci + shift
++    # the window's candidate may sit up to the smoothing half-width off the visible skin's own level (the
++    # centroid of its raw counts there): the other reading is built on that level, so the offset is not
++    # carried twice onto the partner skin
++    w = max(1, int(round(cfg.hough_window_mm / hb)))
++    lo, hi = max(0, vis - w), min(nb, vis + w + 1)
++    mass = hist[lo:hi]
++    if hi <= lo or float(mass.sum()) <= 0.0:
++        return None
++    vis = int(round(float((np.arange(lo, hi) * mass).sum() / mass.sum())))
++    # visible skin read as the inner one: the other reading takes it for the outer skin, and the reverse
++    new_i = vis - shift if ni >= no else vis
++    new_o = new_i + shift
++    if not (0 <= new_i < nb and 0 <= new_o < nb):
++        return None
++    off = lo_r + (new_i + 0.5) * hb - centre
++    if off < -reach_lo or off > reach_hi:
++        return None
++    partner = float(sm[new_i] if vis == new_o else sm[new_o])
++    if partner < max(3.0, cfg.one_skin_reread_min_share * float(sm[vis])):
++        return None
++    return int(new_i), float(sm[new_i]), float(sm[new_o])
++
++
+ def _one_skin_tie(j: int, cand: np.ndarray, comb: np.ndarray, sm: np.ndarray, h_o: np.ndarray, shift: int,
+                   centre: float, lo_r: float, hb: float, cfg: InspectConfig) -> int:
+     """The candidate index for one visible skin: the reading nearer ``centre`` when both readings tie.
+@@ -407,6 +475,21 @@
+     return float(fine[k2]), float(rh2[k2]), float(sc2[k2]), float(ni2[k2]), float(no2[k2])
+ 
+ 
++def _wide_search_needed(narrow_deg: float, sweep_deg: float, cfg: InspectConfig) -> tuple[bool, bool]:
++    """``(search, astray)``: does a bend whose narrow line lies at ``narrow_deg`` get the wide (displaced) search?
++
++    Bends of at least ``displaced_min_sweep_deg`` do when the narrow line reads flat or
++    partial (below ``formed_fraction_min`` of the sweep), and when it reads formed but more
++    than ``displaced_check_dev_deg`` off the nominal sweep (``astray``).
++    """
++    if sweep_deg < cfg.displaced_min_sweep_deg:
++        return False, False
++    if narrow_deg < cfg.formed_fraction_min * sweep_deg:
++        return True, False
++    astray = abs(narrow_deg - sweep_deg) > cfg.displaced_check_dev_deg
++    return astray, astray
++
++
+ def _short_child(part: PartView, bend: BendView, reach: float) -> int | None:
+     """The nearest bend of the child parallel to this one within ``reach`` of its axis, else None.
+ 
+@@ -721,13 +804,18 @@
+             detail["short_child"] = 1.0
+         # a formed flange whose bend line sits beyond the slack (a backgauge error, a flange cut long)
+         # leaves the narrow search on clutter at a flat or partial angle: a formed-like line found with
+-        # the wide slack over the full reach replaces it when its support is clearly stronger
+-        if sweep_deg >= cfg.displaced_min_sweep_deg and math.degrees(theta) < cfg.formed_fraction_min * sweep_deg:
++        # the wide slack over the full reach replaces it when its support is clearly stronger. So it does
++        # when the narrow line reads formed but strays more than ``displaced_check_dev_deg`` from the
++        # nominal sweep: a pair of lines crossing a displaced sheet's two skins obliquely is such clutter
++        wide, astray = _wide_search_needed(math.degrees(theta), sweep_deg, cfg)
++        if wide:
+             alt = _displaced_formed(wz, wu, wv, frame, sweep_deg, cfg, reach, grand_u=grand_u, s_cut_fn=_cut)
+             if alt is not None and alt[2] >= cfg.displaced_support_ratio * max(score, 1.0):
+                 detail.update({"narrow_theta_deg": math.degrees(theta), "narrow_score": score,
+                                "displaced_mm": float(alt[1] - frame.rho_iml_at(alt[0])), "n_iml": alt[3],
+                                "n_oml": alt[4]})
++                if astray:
++                    detail["narrow_astray"] = 1.0
+                 theta, rho_i, score = alt[0], alt[1], alt[2]
+         # a joggle's riser: the far flange beyond it (found directly, parallel to the parent) gives the step,
+         # and the step the riser's angle. On a riser without flat material (a curved S) the convex skin offers
+diff -ru -x __pycache__ domains/production/engine/inspect/config.py /Users/idantal/ShermanQC/FullProject/domains/production/engine/inspect/config.py
+--- domains/production/engine/inspect/config.py	2026-10-18 15:58:55
++++ /Users/idantal/ShermanQC/FullProject/domains/production/engine/inspect/config.py	2026-10-18 20:54:50
+@@ -32,16 +32,16 @@
+ __all__ = ["ENGINE_VERSION", "ALGORITHM_VERSIONS", "InspectConfig", "ConfigError", "load_config"]
+ 
+ #: Version of the per-scan engine (``result.engine.engine_version``).
+-ENGINE_VERSION = "e3-1.5.0"
++ENGINE_VERSION = "e3-1.7.0"
+ 
+ #: Algorithm identifiers recorded in ``result.engine.algorithm_versions``.
+ ALGORITHM_VERSIONS: dict[str, str] = {
+     "ingest": "ply_stl_explicit_unit_v1",
+     "registration": "datum_plane_outline_fft_wall_edge_hole_polygon_flange_ends_hole_pairs_weak_dirs_walk_distinct_v4",
+-    "articulated_fit": "hinge_hough_region_grow_skin_levels_arc_fold_displaced_fold_window_short_child_window_support_tabs_one_skin_pose_on_plane_joggle_step_v6",
++    "articulated_fit": "hinge_hough_region_grow_skin_levels_arc_fold_displaced_fold_window_short_child_window_support_tabs_one_skin_pose_on_plane_joggle_step_one_skin_reread_astray_wide_v7",
+     "thickness": "datum_tile_two_skin_separation_v1",
+-    "state_decode": "dihedral_fraction_order_prior_symmetric_near_twins_hole_evidence_v3",
+-    "metrology": "station_oml_section_crease_aware_unfolded_island_station_profile_short_side_consistency_footprint_edge_riser_model_reseat_v6",
++    "state_decode": "signed_dihedral_fraction_order_prior_symmetric_near_twins_hole_evidence_v4",
++    "metrology": "station_oml_section_crease_aware_unfolded_island_station_profile_short_side_consistency_footprint_edge_riser_model_reseat_signed_angle_v7",
+     "uncertainty": "station_mad_residual_pose_erosion_bias_thickness_station_spread_riser_length_v4",
+     "heatmap": "stage_cloud_nearest_signed_v1",
+ }
+@@ -209,6 +209,10 @@
+     hinge_rho_slack_wide_mm: float = 10.0
+     displaced_support_ratio: float = 1.5
+     displaced_min_sweep_deg: float = 45.0
++    #: ... and so are they when the narrow line reads formed but more than this (deg) off the nominal sweep: the
++    #: narrow window then holds clutter (lines crossing a displaced sheet's two skins obliquely), or the bend is
++    #: truly mis-formed, whose own line the wide search finds again and leaves standing.
++    displaced_check_dev_deg: float = 8.0
+     #: A child carrying a bend parallel to its own within the fine reach (a joggle's riser) is followed by
+     #: a parallel sheet about one thickness off the parent: within this angle of flat its line counts
+     #: only when its material is continuous from the hinge over the first ``flat_continuity_mm`` (every
+@@ -223,6 +227,12 @@
+     #: ``one_skin_tie_fraction`` of each other, the one nearer the nominal kinematics is taken.
+     one_skin_fraction: float = 0.05
+     one_skin_tie_fraction: float = 0.1
++    #: A formed-like line (at least this angle, deg) read on one skin in its window is read the other way too, its
++    #: visible skin taken for the other skin even when that puts the pair up to one thickness past the window: the
++    #: pair stands when its partner skin holds at least this share of the visible skin's support (a flange whose
++    #: hinge frame sits a few millimetres off, its far skin just outside the window; ``articulated._hough``).
++    one_skin_reread_min_deg: float = 20.0
++    one_skin_reread_min_share: float = 0.3
+     min_child_points: int = 25
+     min_child_axial_coverage: float = 0.12
+     grow_plane_tol_mm: float = 0.35
+@@ -258,6 +268,10 @@
+     formed_fraction_min: float = 0.82
+     #: Band around the thresholds in which the order prior breaks the tie.
+     prior_band: float = 0.04
++    #: The sweep is signed by the side the child lies on (``geom.signed_sweep_deg``): negative when it turned the
++    #: other way about the hinge axis (formed the wrong way). A reading within this margin (deg) of 180 keeps its
++    #: positive sign whatever its sense of turn (a hem's 180 deg is no wrong-way fold).
++    reversed_wrap_margin_deg: float = 30.0
+ 
+     # -- metrology -------------------------------------------------------------------------
+     stations_min: int = 5
+@@ -473,9 +487,10 @@
+     "theta_min_deg": (-45.0, 0.0, False, False), "theta_coarse_step_deg": (0.0, 10.0, True, False),
+     "hough_bin_mm": _POS, "hough_window_mm": _POS, "hough_fine_reach": (1.0, None, False, False),
+     "hinge_rho_slack_mm": _POS, "hinge_rho_slack_flat_mm": _POS, "hinge_rho_slack_wide_mm": _POS, "displaced_support_ratio": (1.0, None, False, False),
+-    "displaced_min_sweep_deg": (0.0, 180.0, False, False),
++    "displaced_min_sweep_deg": (0.0, 180.0, False, False), "displaced_check_dev_deg": (0.0, 90.0, True, False),
+     "flat_continuity_max_deg": (0.0, 45.0, False, False), "flat_continuity_mm": _POS, "flat_continuity_step_mm": _POS,
+     "short_child_margin_mm": _POS, "one_skin_fraction": _FRAC, "one_skin_tie_fraction": _FRAC,
++    "one_skin_reread_min_deg": (0.0, 90.0, False, False), "one_skin_reread_min_share": (0.0, 1.0, True, False),
+     "min_child_points": (1, None, False, False), "min_child_axial_coverage": _FRAC,
+     "grow_plane_tol_mm": _POS, "grow_normal_tol_deg": (0.0, 90.0, True, True), "grow_iterations": (1, None, False, False),
+     "child_orient_max_deg": (0.0, 25.0, False, False), "child_orient_min_depth_mm": _POS,
+@@ -485,6 +500,7 @@
+     "joggle_parallel_deg": (0.0, 45.0, False, False), "joggle_min_points": (1, None, False, False),
+     "joggle_theta_tol_deg": (0.0, 90.0, False, False), "joggle_riser_length_u_fraction": _FRAC,
+     "flat_fraction_max": (0.0, 1.0, False, True), "formed_fraction_min": (0.0, 1.0, True, False),
++    "reversed_wrap_margin_deg": (0.0, 90.0, False, True),
+     "stations_min": (1, None, False, False), "stations_max": (1, None, False, False), "station_target_mm": _POS,
+     "min_visible_length_mm": _POS, "local_fit_depth_mm": _POS, "local_fit_min_depth_mm": _POS,
+     "station_region_max_deg": (0.0, 180.0, True, False),
+diff -ru -x __pycache__ domains/production/engine/inspect/decode.py /Users/idantal/ShermanQC/FullProject/domains/production/engine/inspect/decode.py
+--- domains/production/engine/inspect/decode.py	2026-10-17 07:21:13
++++ /Users/idantal/ShermanQC/FullProject/domains/production/engine/inspect/decode.py	2026-10-18 20:54:50
+@@ -3,7 +3,11 @@
+ **Evidence.** For every bend the measured sweep (the dihedral between the
+ fitted parent and child OML planes; the Hough angle when the child slab could
+ only be seen near the hinge) is compared with the compiled nominal sweep and
+-with flat. ``formed_fraction = measured sweep / nominal sweep``:
++with flat. ``formed_fraction = measured sweep / nominal sweep``. The dihedral is
++signed by the side the child lies on (negative: it turned the other way about
++the hinge axis); a negative sweep beyond the flat limits is a bend formed the
++wrong way, FORMED or PARTIALLY_FORMED by its magnitude, whose angle then reads
++above 180 and FAILs (:mod:`.metrology`). Otherwise:
+ 
+ - ``<= flat_fraction_max`` (or within ``flat_sweep_max_deg`` of flat): NOT_YET_FORMED;
+ - ``>= formed_fraction_min``: FORMED;
+@@ -51,6 +55,14 @@
+ def _raw_state(sweep_meas: float | None, sweep_nom: float, cfg: InspectConfig) -> str | None:
+     if sweep_meas is None:
+         return None
++    if sweep_meas < 0.0:
++        # the child lies on the other side of its parent's plane: a kink within the flat limits is a flat
++        # sheet; beyond them the bend was formed the wrong way, FORMED or PARTIALLY_FORMED by its magnitude
++        # (its angle then reads above 180 and FAILs: :mod:`.metrology`)
++        mag = -sweep_meas
++        if mag <= cfg.flat_sweep_max_deg or mag / sweep_nom <= cfg.flat_fraction_max:
++            return "NOT_YET_FORMED"
++        return "FORMED" if mag / sweep_nom >= cfg.formed_fraction_min else "PARTIALLY_FORMED"
+     frac = sweep_meas / sweep_nom
+     if abs(sweep_meas) <= cfg.flat_sweep_max_deg or frac <= cfg.flat_fraction_max:
+         return "NOT_YET_FORMED"
+diff -ru -x __pycache__ domains/production/engine/inspect/engine.py /Users/idantal/ShermanQC/FullProject/domains/production/engine/inspect/engine.py
+--- domains/production/engine/inspect/engine.py	2026-10-18 15:37:34
++++ /Users/idantal/ShermanQC/FullProject/domains/production/engine/inspect/engine.py	2026-10-18 20:54:50
+@@ -86,7 +86,7 @@
+ )
+ from domains.production.engine.inspect.config import ALGORITHM_VERSIONS, ENGINE_VERSION, InspectConfig
+ from domains.production.engine.inspect.decode import BendDecode, choose_stage_model, decode_states
+-from domains.production.engine.inspect.geom import apply, robust_plane, skin_peaks, unit
++from domains.production.engine.inspect.geom import apply, robust_plane, signed_sweep_deg, skin_peaks, unit
+ from domains.production.engine.inspect.metrology import (
+     BendMeasure,
+     Measurement,
+@@ -687,7 +687,11 @@
+         skin = part.bends[j].oml_skin
+         try:
+             pp, pc = parent.skin_plane(skin), child.skin_plane(skin)
+-            sweep = math.degrees(math.acos(max(-1.0, min(1.0, float(pp.n @ pc.n)))))
++            if bf.frame is not None:
++                # signed by the side the child lies on: negative when it was formed the wrong way
++                sweep = signed_sweep_deg(pp.n, pc.n, bf.frame.a, cfg.reversed_wrap_margin_deg)
++            else:
++                sweep = math.degrees(math.acos(max(-1.0, min(1.0, float(pp.n @ pc.n)))))
+         except (AssertionError, TypeError):
+             sweep = abs(bf.theta_deg or 0.0)
+         evidence.append((sweep, None))
+@@ -1099,7 +1103,9 @@
+             reason = "AMBIGUOUS_POSE" if ambiguous else ((d.reasons[0] if d and d.reasons else None) or "OCCLUDED")
+             o.state_reasons = (reason,)
+         if d is not None and not ambiguous:
+-            o.measured_included_deg = None if d.measured_sweep_deg is None else 180.0 - float(d.measured_sweep_deg)
++            # a negative sweep is a child formed the wrong way: its included angle (above 180) is no evidence value
++            o.measured_included_deg = None if d.measured_sweep_deg is None or d.measured_sweep_deg < 0.0 \
++                else 180.0 - float(d.measured_sweep_deg)
+             o.formed_fraction = d.formed_fraction
+         bf = art.bends[j]
+         o.diagnostics = {k2: v for k2, v in {
+@@ -1131,6 +1137,20 @@
+             o.measurements[f"{bend.uid}/INCLUDED_ANGLE"] = ang
+             o.measured_included_deg = ang.value
+             o.formed_fraction = (180.0 - float(ang.value)) / math.degrees(bend.sweep)
++            if bm.reversed:
++                # formed the wrong way: the angle (180 + |sweep|) FAILs; the OML sharp sits on the CAD's inner skin,
++                # so the position and the lengths that start or end there are not this bend's characteristics
++                o.notes = o.notes + ("BEND_FORMED_WRONG_WAY",)
++                o.measured_included_deg = None
++                o.forced_unknown[f"{bend.uid}/BEND_LINE_POSITION"] = "UNSUPPORTED_FEATURE"
++                for side in ("A", "B"):
++                    o.forced_unknown[f"{bend.uid}/FLANGE_LENGTH/{side}"] = "UNSUPPORTED_FEATURE"
++                if o.backgauge_cid and not o.backgauge_na:
++                    o.forced_unknown[o.backgauge_cid] = "UNSUPPORTED_FEATURE"
++                o.diagnostics["visible_length_mm"] = float(bm.visible[1] - bm.visible[0])
++                o.diagnostics["stations"] = float(len(bm.z))
++                out.append(o)
++                continue
+             # the measured lines are the station-fitted ones: the global sharp (and the apex derived from
+             # it) moved onto the station median
+             shift = np.zeros(3)
+@@ -1249,6 +1269,10 @@
+             meas[cid] = Measurement.unknown("BEND_STATE_UNKNOWN", "GENERAL_BEND_PAIR")
+             continue
+         bms = [geoms.get(j) for j in js]
++        if any(bm is not None and bm.ok and bm.reversed for bm in bms):
++            # a bend formed the wrong way: its OML sharp sits on the wrong skin, not on the anchor's locus
++            meas[cid] = Measurement.unknown("UNSUPPORTED_FEATURE", "GENERAL_BEND_PAIR", "bend formed the wrong way")
++            continue
+         if any(bm is None or not bm.ok for bm in bms):
+             missing = [bm for bm in bms if bm is None or not bm.ok]
+             reason = "TIMEOUT" if any(bm is None for bm in missing) and budget.left() <= 0 else \
+diff -ru -x __pycache__ domains/production/engine/inspect/geom.py /Users/idantal/ShermanQC/FullProject/domains/production/engine/inspect/geom.py
+--- domains/production/engine/inspect/geom.py	2026-10-17 09:42:38
++++ /Users/idantal/ShermanQC/FullProject/domains/production/engine/inspect/geom.py	2026-10-18 20:54:50
+@@ -22,6 +22,7 @@
+     "inverse",
+     "rotation_about_line",
+     "angle_between_deg",
++    "signed_sweep_deg",
+     "Plane",
+     "fit_plane",
+     "robust_plane",
+@@ -113,6 +114,26 @@
+ def angle_between_deg(a, b) -> float:
+     a, b = unit(a), unit(b)
+     return math.degrees(math.atan2(float(np.linalg.norm(np.cross(a, b))), float(a @ b)))
++
++
++def signed_sweep_deg(n_parent, n_child, axis, wrap_margin_deg: float = 30.0) -> float:
++    """Sweep (deg) between a bend's parent and child OML normals, signed by the side the child lies on.
++
++    ``axis`` is the hinge axis oriented so that the CAD fold turns the child from the
++    parent's flat continuation ``u`` toward ``v = axis x u``. The magnitude is the
++    unsigned angle between the normals (``acos`` of their dot product, exactly as
++    before); it is negative when the child turned the other way about ``axis`` (it
++    lies on the other side of its parent's plane: formed the wrong way). A reading
++    within ``wrap_margin_deg`` of 180 keeps its positive sign, whatever the noise in
++    its sense of turn (a hem's 180 deg is no wrong-way fold).
++    """
++    a = np.asarray(n_parent, dtype=np.float64)
++    b = np.asarray(n_child, dtype=np.float64)
++    mag = math.degrees(math.acos(max(-1.0, min(1.0, float(a @ b)))))
++    turn = float(np.asarray(axis, dtype=np.float64) @ np.cross(a, b))
++    if turn < 0.0 and mag < 180.0 - float(wrap_margin_deg):
++        return -mag
++    return mag
+ 
+ 
+ def rotation_angle_deg(m: np.ndarray) -> float:
+diff -ru -x __pycache__ domains/production/engine/inspect/metrology.py /Users/idantal/ShermanQC/FullProject/domains/production/engine/inspect/metrology.py
+--- domains/production/engine/inspect/metrology.py	2026-10-18 16:00:53
++++ /Users/idantal/ShermanQC/FullProject/domains/production/engine/inspect/metrology.py	2026-10-18 20:54:50
+@@ -7,7 +7,12 @@
+ excluded, never past an adjacent bend's tangent line: a short riser is fitted
+ on its own flat material, not on the arc and flange beyond it) and give:
+ 
+-- the **included angle** ``180 - angle(n_parent_out, n_child_out)``;
++- the **included angle** ``180 - angle(n_parent_out, n_child_out)``. The angle is
++  signed by the side the child lies on (:func:`~domains.production.engine.inspect.geom.signed_sweep_deg`,
++  about the hinge axis): a child formed the wrong way, on the other side of its
++  parent's plane, reads ``180 + angle`` (above 180, never its nominal), and its OML
++  sharp, which sits on the wrong skin, carries no flange length or position
++  (``BendMeasure.reversed``);
+ - the **OML virtual sharp**: the two OML planes intersected, evaluated at the
+   station's axial position. When only the inner skin of a flange is visible,
+   its OML is that skin moved by ``t``: the sheet thickness measured on the
+@@ -69,7 +74,16 @@
+ from domains.production.engine.inspect.articulated import ArticulatedFit, HingeFrame, PanelFit
+ from domains.production.engine.inspect.cloud import VoxelCloud
+ from domains.production.engine.inspect.config import InspectConfig
+-from domains.production.engine.inspect.geom import Plane, apply, rigid, robust_plane, rotation_between, skin_peaks, unit
++from domains.production.engine.inspect.geom import (
++    Plane,
++    apply,
++    rigid,
++    robust_plane,
++    rotation_between,
++    signed_sweep_deg,
++    skin_peaks,
++    unit,
++)
+ from domains.production.engine.inspect.part import BendView, PartView
+ 
+ __all__ = ["Measurement", "BendMeasure", "Thickness", "measure_bend_geometry", "measure_flange", "measure_backgauge",
+@@ -164,6 +178,10 @@
+     #: the region-wide OML planes (parent, child) when a side was re-seated on its station strip
+     #: (:func:`_reseat_plane`): a long FREE_EDGE side's far edge is retried on them
+     region_planes: tuple | None = None
++    #: the child turned the other way about the hinge axis (it lies on the other side of its parent's plane:
++    #: formed the wrong way). ``sweep_deg`` stays the magnitude; the station angles are ``180 - signed sweep``
++    #: (above 180), so the angle can never read its nominal; the OML sharp sits on the wrong skin
++    reversed: bool = False
+ 
+ 
+ class PointIndex:
+@@ -271,8 +289,9 @@
+         return out
+     lp, ld = line
+     a = unit(ld if float(ld @ frame.a) > 0 else -ld)
+-    sweep = math.degrees(math.acos(max(-1.0, min(1.0, float(pp.n @ pc.n)))))
+-    if sweep < 2.0:
++    # signed by the side the child lies on (negative: formed the wrong way); its magnitude is the unsigned dihedral
++    sweep = signed_sweep_deg(pp.n, pc.n, a, cfg.reversed_wrap_margin_deg)
++    if abs(sweep) < 2.0:
+         out.reason = "AMBIGUOUS_SEGMENTATION"
+         return out
+     ro = bend.ro
+@@ -283,7 +302,7 @@
+     need = cfg.min_station_points * cfg.stations_min
+     pp0, pc0 = pp, pc
+     for attempt in range(2):
+-        d_t = ro * math.tan(math.radians(min(sweep, 170.0)) / 2.0)  # sharp -> tangent line along each flange
++        d_t = ro * math.tan(math.radians(min(abs(sweep), 170.0)) / 2.0)  # sharp -> tangent line along each flange
+         rel = pts - lp
+         z = rel @ a
+         z_frame0 = float((lp - frame.o) @ frame.a)  # axial origin shift between the line point and the frame
+@@ -322,10 +341,11 @@
+             return out
+         lp, ld = line
+         a = unit(ld if float(ld @ frame.a) > 0 else -ld)
+-        sweep = math.degrees(math.acos(max(-1.0, min(1.0, float(pp.n @ pc.n)))))
+-        if sweep < 2.0:
++        sweep = signed_sweep_deg(pp.n, pc.n, a, cfg.reversed_wrap_margin_deg)
++        if abs(sweep) < 2.0:
+             out.reason = "AMBIGUOUS_SEGMENTATION"
+             return out
++    reversed_fold = sweep < 0.0
+     dp = pp.distance(pts)
+     dc = pc.distance(pts)
+     slab = 0.5 * t + 0.6
+@@ -369,8 +389,13 @@
+             continue
+         q = p0 + ((zi - float((p0 - lp) @ a)) / da) * d0
+         sharp[i] = q
+-        c = max(-1.0, min(1.0, float(fp.n @ fc.n)))
+-        ang[i] = 180.0 - math.degrees(math.acos(c))
++        if reversed_fold:
++            # a child on the other side of its parent's plane: the included angle on the CAD's inner side is
++            # 180 - (negative sweep), above 180, never the nominal
++            ang[i] = 180.0 - signed_sweep_deg(fp.n, fc.n, a, cfg.reversed_wrap_margin_deg)
++        else:
++            c = max(-1.0, min(1.0, float(fp.n @ fc.n)))
++            ang[i] = 180.0 - math.degrees(math.acos(c))
+         valid[i] = True
+         one_skin |= op or oc
+         n_inner_p += int(op)
+@@ -400,7 +425,7 @@
+         lp = lp + off
+     # apex (outer surface at mid-sweep) from the sharp: back along the bisector by Ro (sec(theta/2) - 1)
+     bis = unit(-(pp.n + pc.n)) if float(np.linalg.norm(pp.n + pc.n)) > 1e-9 else -pp.n
+-    back = ro * (1.0 / math.cos(math.radians(min(sweep, 170.0)) / 2.0) - 1.0)
++    back = ro * (1.0 / math.cos(math.radians(min(abs(sweep), 170.0)) / 2.0) - 1.0)
+     a_lo, a_hi = lp + a * lo, lp + a * hi
+     apex = (a_lo + bis * back, a_hi + bis * back)
+     out.ok = True
+@@ -411,7 +436,8 @@
+     out.angles = ang
+     out.plane_parent, out.plane_child = pp, pc
+     out.line_point, out.line_dir = lp, a
+-    out.sweep_deg = sweep
++    out.sweep_deg = abs(sweep)
++    out.reversed = reversed_fold
+     out.one_skin = one_skin
+     nv = max(int(valid.sum()), 1)
+     out.inner_parent, out.inner_child = n_inner_p / nv, n_inner_c / nv
+@@ -422,7 +448,7 @@
+     out.rms_child = float(np.median(rms_c)) if rms_c else out.fit_rms
+     out.depth_parent = float(max(depth_p - (d_t + 0.5), cfg.local_fit_min_depth_mm))
+     out.depth_child = float(max(depth_c - (d_t + 0.5), cfg.local_fit_min_depth_mm))
+-    out.sin_sweep = float(max(math.sin(math.radians(min(sweep, 179.0))), 0.05))
++    out.sin_sweep = float(max(math.sin(math.radians(min(abs(sweep), 179.0))), 0.05))
+     out.visible = (float(lo), float(hi))
+     out.w = {bend.parent: w_p, bend.child: w_c}
+     out.w_parent, out.w_child = w_p, w_c
+@@ -977,6 +1003,10 @@
+     bend = part.bends[j]
+     if bm is None or not bm.ok:
+         return Measurement.unknown((bm.reason if bm is not None else None) or "OCCLUDED", "STATION_OML")
++    if bm.reversed:
++        # formed the wrong way: the CAD's OML skin is the inner one of this fold, so the sharp the length starts
++        # from is not the characteristic's locus
++        return Measurement.unknown("UNSUPPORTED_FEATURE", "STATION_OML", "bend formed the wrong way")
+     panel_idx = bend.side_panel[side]
+     panel = art.panels[panel_idx]
+     if panel.model_plane:
+@@ -1005,7 +1035,7 @@
+     if boundary_kind == "ADJACENT_BEND":
+         jb = part.bend_index.get(adjacent_uid or "")
+         other = geoms.get(jb) if jb is not None else None
+-        if other is None or not other.ok:
++        if other is None or not other.ok or other.reversed:
+             return Measurement.unknown("ADJACENT_BEND_NOT_MEASURED", "OML_SHARP_TO_OML_SHARP")
+         for i in np.nonzero(bm.valid)[0]:
+             origin = bm.sharp[i]
+@@ -1300,6 +1330,8 @@
+     bend = part.bends[j]
+     if bm is None or not bm.ok:
+         return Measurement.unknown((bm.reason if bm is not None else None) or "OCCLUDED", "BACKGAUGE")
++    if bm.reversed:
++        return Measurement.unknown("UNSUPPORTED_FEATURE", "BACKGAUGE", "bend formed the wrong way")
+     panel_idx = bend.side_panel[side]
+     plane = bm.plane_parent if panel_idx == bend.parent else bm.plane_child
+     w = bm.w[panel_idx]
+@@ -1313,7 +1345,7 @@
+     if boundary_kind == "ADJACENT_BEND":
+         jb = part.bend_index.get(adjacent_uid or "")
+         other = geoms.get(jb) if jb is not None else None
+-        if other is None or not other.ok:
++        if other is None or not other.ok or other.reversed:
+             return Measurement.unknown("ADJACENT_BEND_NOT_MEASURED", "BACKGAUGE_TO_OML_SHARP")
+         for i in np.nonzero(bm.valid)[0]:
+             ls = _station_crossing(bm.sharp[i], bm.line_dir, w, other.line_point, other.line_dir)

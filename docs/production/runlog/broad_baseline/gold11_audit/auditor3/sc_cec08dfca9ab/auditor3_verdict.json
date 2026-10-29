@@ -1,0 +1,25 @@
+{
+ "scan_id": "sc_cec08dfca9ab",
+ "part": "10839000_01_scan_2.ply",
+ "gold": "bend_line_gold_catalog_v1.json#corpus/03_10839000 (HB1-HB6, human_two_point)",
+ "auditor": "auditor3",
+ "completed_at": "2026-10-17T21:05+03:00",
+ "note": "Completion marker so this audit is not redone. It reuses the earlier auditor-3 artifacts in this folder (bench_prep, bench_lines, bench_lines_sharp, stations_*, joggle_*, match_report). The only new outputs are the light evidence renders a3_E1/E2/E3. a3_joggle_fit.png is an empty figure from the earlier pass and is superseded by a3_E3_missing_joggles.png.",
+ "offset_reference": "outer-skin apex line (bench_labeling 'lines' apex and the dense station apex agree within 0.1 mm); offset = median perpendicular distance over the fold",
+ "lines": {
+  "HB1": {"verdict": "REAL_ERROR", "kind": "locus", "offset_mm": 5.6, "side": "concave (free air)", "angle_deg": 0.04, "fold_coverage_pct": 99.6, "gold_on_fold_pct": 99.7},
+  "HB2": {"verdict": "REAL_ERROR", "kind": "locus", "offset_mm": 4.8, "side": "concave (free air)", "angle_deg": 0.03, "fold_coverage_pct": 99.9, "gold_on_fold_pct": 99.7},
+  "HB3": {"verdict": "REAL_ERROR", "kind": "locus+extent", "offset_mm": 5.85, "side": "concave (free air)", "angle_deg": 0.10, "fold_coverage_pct": 99.5, "gold_on_fold_pct": 72, "overshoot_mm": {"start": 77, "end": 0}},
+  "HB4": {"verdict": "REAL_ERROR", "kind": "locus+extent", "offset_mm": 5.5, "side": "concave (free air)", "angle_deg": 0.04, "fold_coverage_pct": 98.8, "gold_on_fold_pct": 72, "overshoot_mm": {"start": 77, "end": 0}},
+  "HB5": {"verdict": "REAL_ERROR", "kind": "locus+extent", "offset_mm": 5.4, "side": "concave (free air)", "angle_deg": 0.11, "fold_coverage_pct": 100, "gold_on_fold_pct": 65, "overshoot_mm": {"start": 34, "end": 36}},
+  "HB6": {"verdict": "REAL_ERROR", "kind": "locus+extent", "offset_mm": 5.1, "side": "concave (free air)", "angle_deg": 0.43, "fold_coverage_pct": 100, "gold_on_fold_pct": 65, "overshoot_mm": {"start": 34, "end": 36}}
+ },
+ "missing_bends": [
+  {"id": "JT1", "what": "top-lip joggle, outer bend", "bend_deg": 47, "bench": "B7", "raw_apex_full_width": [[-348.8, -315.1, 149.1], [-136.6, -98.7, 191.4]]},
+  {"id": "JT2", "what": "top-lip joggle, inner bend (inner-skin pair)", "bend_deg": 49, "bench": "B8", "raw_apex_full_width": [[-349.0, -315.4, 151.4], [-137.0, -99.0, 194.5]]},
+  {"id": "JB1", "what": "bottom-strip joggle, floor -> web", "bend_deg": 50, "bench": "B9 (auto extent 228 mm; joggle is full width)", "raw_apex_full_width": [[-505.2, -189.9, 294.3], [-293.1, 26.7, 336.1]]},
+  {"id": "JB2", "what": "bottom-strip joggle, web -> raised strip", "bend_deg": 49, "bench": "B10 (auto extent 154 mm; joggle is full width)", "raw_apex_full_width": [[-506.6, -188.3, 292.9], [-294.7, 28.6, 334.2]]}
+ ],
+ "convention_hypothesis": "rejected for this scan: every gold line sits 4.8-5.9 mm from the outer apex on the concave side. The outer virtual sharp is on the opposite side (6.0-6.9 mm away). The gold lies 3.5-4.35 mm beyond the inner skin (t about 1.27 mm), 4.9-5.0 mm from the inner virtual sharp (HB1/HB3/HB4, well sampled) and 2.8-3.9 mm from the arc centre. It is a systematic, near-constant bias, not a locus convention. No rigid or similarity transform removes it. An affine does (RMS 0.7 mm), but only with a +24% Z / +2-3% XY stretch about the tray centre, which is not a plausible frame error.",
+ "evidence": ["a3_E1_gold_vs_apex_sections.png", "a3_E2_extent_overshoot.png", "a3_E3_missing_joggles.png", "a3_corner_side_flange.png", "a3_side_flanges.png", "a3_joggle_top.png", "a3_joggle_bottom.png", "stations_summary.json", "match_report.json", "bench_lines/lines.json"]
+}

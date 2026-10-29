@@ -1,0 +1,98 @@
+{
+  "schema_version": 1,
+  "freeze_id": "F1_CYLINDRICAL_CONSENSUS_V1_FAMILY_B_FREEZE_20260810",
+  "status": "FROZEN_BEFORE_FAMILY_B_ORACLE_OPEN",
+  "objective": "Sherman QC scan-only F1 bend-line generalization",
+  "profile": "F1_CYLINDRICAL_CONSENSUS_SELECTOR_V1",
+  "governance": {
+    "oracle_lock_path": "docs/research/F1_QUARANTINED_TWO_FAMILY_SEMANTIC_ORACLE_LOCK_20260810.json",
+    "oracle_lock_sha256": "72eee09d4ceedb68a4e66c3bc4d5ee90407e29e1b9cdae80dc1efba176fbd860",
+    "catalog_sha256": "4ad243c1f8d7332749c854f32729607f156cd2e0f47454acd4b0ff61f1793b36",
+    "family_b_execution_count": "EXACTLY_ONE",
+    "family_b_truth_opened_before_freeze": false,
+    "c006_opened": false,
+    "cad_opened": false,
+    "expected_count_opened": false,
+    "filename_or_identity_features_used": false,
+    "runtime_main_or_production_write": false
+  },
+  "selector": {
+    "path": "scripts/select_f1_cylindrical_consensus_v1.py",
+    "sha256": "66b045ddb155430e29954473f1f341a1025935c19ba2e9aec6377ce8d9c46950",
+    "near_orthogonal_group_rule": {
+      "peak_two_sided_transition_score_min": 0.88,
+      "median_two_sided_transition_score_min": 0.30,
+      "representative_source": "cylindrical_standard",
+      "finite_support_fraction_min": 0.80,
+      "endpoint_support_fraction_min": 0.50,
+      "p90_line_distance_mm_max": 3.0,
+      "two_sided_normal_angle_deg_min": 45.0,
+      "representative_order": [
+        "consensus_count_desc",
+        "score_desc",
+        "candidate_id_desc"
+      ]
+    },
+    "shallow_partial_cylinder_rule": {
+      "representative_source": "cylindrical_standard",
+      "finite_support_fraction_min": 0.80,
+      "endpoint_support_fraction_min": 0.50,
+      "p90_line_distance_mm_max": 3.0,
+      "span_mm_max": 60.0,
+      "two_sided_normal_angle_deg_min": 10.0,
+      "two_sided_normal_angle_deg_max": 35.0,
+      "two_sided_transition_score_min": 0.15,
+      "two_sided_support_balance_min": 0.90,
+      "maximum_selected": 1,
+      "representative_order": [
+        "consensus_count_desc",
+        "score_desc",
+        "candidate_id_desc"
+      ]
+    }
+  },
+  "family_A_development": {
+    "case_id": "corpus/09_47959001",
+    "candidate_pool_path": "output/research/f1-corpus-evidence-20260729-v1/scorecard_candidate_pool_v1/09_47959001.json",
+    "candidate_pool_sha256": "85c177daedea0a33b30db57b5c52352c431a0b6bc50cd8d6453b0da3dca86d06",
+    "submission_path": "output/research/f1-quarantined-semantic-oracle-v1/family_A/cylindrical_consensus_v1_submission.json",
+    "submission_sha256": "f6c84bc6ee3e5dd93a9dcc3c310e419b9e76b2db5e0da452aced7a3eea20d7e9",
+    "feedback_path": "output/research/f1-quarantined-semantic-oracle-v1/family_A/cylindrical_consensus_v1_feedback.json",
+    "feedback_sha256": "f6f73285ffddad7f17fb499c077ab4d08d716b290c19448f5d35b47a8ddc033b",
+    "metrics": {
+      "true_positive": 5,
+      "false_positive": 0,
+      "false_negative": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "exact": true
+    },
+    "native_visual_path": "output/research/f1-quarantined-semantic-oracle-v1/family_A/cylindrical_consensus_v1_native_4096.png",
+    "native_visual_sha256": "47a39fcb37328e48c13a4b5943ab650bf258d1087d7964afea1bb4cf8211047b",
+    "manual_visual_result": "PASS_FIVE_DISTINCT_PLAUSIBLE_FOLD_AXES_NO_OBVIOUS_PERIMETER_ALIAS"
+  },
+  "family_B_transfer": {
+    "case_id": "corpus/13_ysherman",
+    "candidate_pool_path": "output/research/f1-corpus-evidence-20260729-v1/scorecard_candidate_pool_v1/13_ysherman.json",
+    "candidate_pool_sha256": "5639f2df36a262fe615b0dd288557f574f0ff8a08a3e487ba91292dde99ae332",
+    "submission_path": "output/research/f1-quarantined-semantic-oracle-v1/family_B/cylindrical_consensus_v1_submission.json",
+    "submission_sha256": "beb089e02fe622a216a71f893f122631e546f65274ed641095aaa4742a61e0b7",
+    "candidate_count": 11,
+    "precommit_native_visual_path": "output/research/f1-quarantined-semantic-oracle-v1/family_B/cylindrical_consensus_v1_precommit_native_4096.png",
+    "precommit_native_visual_sha256": "7ddb936221b3cb13398684bca16ee82f22abc8fffc89edb27105ddc76bb5b41a",
+    "manual_visual_result": "PASS_NO_GROSS_POSE_ERROR_CANDIDATES_LAND_ON_DISTINCT_VISIBLE_FOLD_BOUNDARIES",
+    "oracle_feedback_opened": false
+  },
+  "verification": {
+    "command": ".venv/bin/pytest -q tests/test_f1_cylindrical_consensus_v1.py tests/test_f1_semantic_oracle_v1.py",
+    "result": "3 passed",
+    "input_permutation_invariance": true,
+    "python_compile": true
+  },
+  "new_scan_quality_batch": {
+    "path": "data/bend_corpus/incoming/2026-08-04_shaked_scan_quality_parts/intake_manifest.json",
+    "sha256": "3b07170a2b4602b5fbdb0dec45319b46ca5e1f6a2ba4d0e89bd952dd5259a2ec",
+    "f1_transfer_membership": "excluded_duplicate_post_transfer_regression_data"
+  }
+}

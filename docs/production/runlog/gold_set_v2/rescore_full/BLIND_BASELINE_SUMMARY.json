@@ -1,0 +1,1723 @@
+{
+  "schema": "sherman.gold_set_v2.blind_track_baseline.v1",
+  "created_at": "2026-10-18T11:51:44Z",
+  "lane": "best_f1 (headline: A0 scan-only UNION gated CAD half where a STEP exists; a0_scan_only = the A0 half alone, i.e. strictly blind on every scan)",
+  "runtime_lane": "dropped (owner discarded the shipped runtime engine as a comparator)",
+  "matcher": {
+    "source": "scripts/evaluate_f1_against_manual_gold.match_lines (via score.score_case)",
+    "axis_angle_deg": 5.0,
+    "transverse_offset_mm": 4.0,
+    "gold_span_overlap": 0.6,
+    "prediction_span_overlap": 0.6,
+    "assignment": "one_to_one_minimum_cost Hungarian",
+    "frame": "scan_raw"
+  },
+  "conventions": "micro = summed TP/FP/FN over complete-label line scans; family-macro = mean over families of family-micro P/R/F1; CIs = percentile bootstrap resampling families with replacement; zero-bend controls outside line-F1 (every line = FP); a scan whose lane failed or produced nothing counts as all-FN",
+  "case_lists": {
+    "all": "docs/production/runlog/gold_set_v2/rescore_full/case_list_gold_v2_all__full.json",
+    "cad": "docs/production/runlog/gold_set_v2/rescore_full/case_list_gold_v2_cad__full.json",
+    "nocad": "docs/production/runlog/gold_set_v2/rescore_full/case_list_gold_v2_nocad__full.json"
+  },
+  "score_runs": {
+    "all": {
+      "command": "-B research/broad_baseline/score.py broad --case-list docs/production/runlog/gold_set_v2/rescore_full/case_list_gold_v2_all__full.json --runs-root docs/production/runlog/broad_baseline/runs --lane best_f1 --variant predictions_a0.json --frame-records docs/production/runlog/broad_baseline/broad_frame_records.json --out-dir docs/production/runlog/gold_set_v2/rescore_full/all",
+      "rc": 0
+    },
+    "cad": {
+      "command": "-B research/broad_baseline/score.py broad --case-list docs/production/runlog/gold_set_v2/rescore_full/case_list_gold_v2_cad__full.json --runs-root docs/production/runlog/broad_baseline/runs --lane best_f1 --variant predictions_a0.json --frame-records docs/production/runlog/broad_baseline/broad_frame_records.json --out-dir docs/production/runlog/gold_set_v2/rescore_full/cad",
+      "rc": 0
+    },
+    "nocad": {
+      "command": "-B research/broad_baseline/score.py broad --case-list docs/production/runlog/gold_set_v2/rescore_full/case_list_gold_v2_nocad__full.json --runs-root docs/production/runlog/broad_baseline/runs --lane best_f1 --variant predictions_a0.json --frame-records docs/production/runlog/broad_baseline/broad_frame_records.json --out-dir docs/production/runlog/gold_set_v2/rescore_full/nocad",
+      "rc": 0
+    }
+  },
+  "fill_runtime": {
+    "cases": 46,
+    "ran": 46,
+    "status_counts": {
+      "A0_ONLY_NO_CAD": 38,
+      "OK": 6,
+      "LANE_FAILED": 2
+    },
+    "wall_s": {
+      "median": 159.2,
+      "p95": 494.4,
+      "max": 600.6,
+      "total_h": 2.43
+    },
+    "peak_rss_gib": {
+      "median": 0.96,
+      "p95": 1.48,
+      "max": 1.6
+    },
+    "per_case": [
+      {
+        "case_id": "sc_c27168a2de83",
+        "status": "A0_ONLY_NO_CAD",
+        "cad": false,
+        "line_count": 1,
+        "lane_wall_s": 126.839,
+        "peak_rss_gib": 0.827,
+        "failed_steps": [],
+        "failure": null
+      },
+      {
+        "case_id": "sc_8026eedce786",
+        "status": "OK",
+        "cad": true,
+        "line_count": 6,
+        "lane_wall_s": 408.58,
+        "peak_rss_gib": 1.573,
+        "failed_steps": [],
+        "failure": null
+      },
+      {
+        "case_id": "sc_32099fb52638",
+        "status": "OK",
+        "cad": true,
+        "line_count": 5,
+        "lane_wall_s": 128.366,
+        "peak_rss_gib": 0.865,
+        "failed_steps": [],
+        "failure": null
+      },
+      {
+        "case_id": "sc_ef0abac61ae7",
+        "status": "OK",
+        "cad": true,
+        "line_count": 4,
+        "lane_wall_s": 85.066,
+        "peak_rss_gib": 0.697,
+        "failed_steps": [],
+        "failure": null
+      },
+      {
+        "case_id": "sc_4057ba2144fb",
+        "status": "OK",
+        "cad": true,
+        "line_count": 7,
+        "lane_wall_s": 181.375,
+        "peak_rss_gib": 1.043,
+        "failed_steps": [],
+        "failure": null
+      },
+      {
+        "case_id": "sc_050cba324c35",
+        "status": "A0_ONLY_NO_CAD",
+        "cad": false,
+        "line_count": 0,
+        "lane_wall_s": 152.777,
+        "peak_rss_gib": 0.85,
+        "failed_steps": [],
+        "failure": null
+      },
+      {
+        "case_id": "sc_1aeb5ee39ef0",
+        "status": "A0_ONLY_NO_CAD",
+        "cad": false,
+        "line_count": 1,
+        "lane_wall_s": 99.753,
+        "peak_rss_gib": 0.815,
+        "failed_steps": [],
+        "failure": null
+      },
+      {
+        "case_id": "sc_1d601c46ff9c",
+        "status": "A0_ONLY_NO_CAD",
+        "cad": false,
+        "line_count": 2,
+        "lane_wall_s": 25.427,
+        "peak_rss_gib": 0.385,
+        "failed_steps": [],
+        "failure": null
+      },
+      {
+        "case_id": "sc_203b95d7a753",
+        "status": "OK",
+        "cad": true,
+        "line_count": 2,
+        "lane_wall_s": 87.486,
+        "peak_rss_gib": 0.907,
+        "failed_steps": [],
+        "failure": null
+      },
+      {
+        "case_id": "sc_24c57f2660b3",
+        "status": "A0_ONLY_NO_CAD",
+        "cad": false,
+        "line_count": 0,
+        "lane_wall_s": 18.433,
+        "peak_rss_gib": 0.52,
+        "failed_steps": [],
+        "failure": null
+      },
+      {
+        "case_id": "sc_2852c2845b94",
+        "status": "OK",
+        "cad": true,
+        "line_count": 10,
+        "lane_wall_s": 310.019,
+        "peak_rss_gib": 1.319,
+        "failed_steps": [],
+        "failure": null
+      },
+      {
+        "case_id": "sc_28a25c37a928",
+        "status": "LANE_FAILED",
+        "cad": false,
+        "line_count": 0,
+        "lane_wall_s": 600.637,
+        "peak_rss_gib": 1.429,
+        "failed_steps": [
+          {
+            "name": "a0_typed_union",
+            "rc": -9,
+            "timed_out": true,
+            "stderr_tail": ""
+          }
+        ],
+        "failure": null
+      },
+      {
+        "case_id": "sc_2c807204c472",
+        "status": "A0_ONLY_NO_CAD",
+        "cad": false,
+        "line_count": 4,
+        "lane_wall_s": 208.649,
+        "peak_rss_gib": 1.203,
+        "failed_steps": [],
+        "failure": null
+      },
+      {
+        "case_id": "sc_3435e688d344",
+        "status": "A0_ONLY_NO_CAD",
+        "cad": false,
+        "line_count": 1,
+        "lane_wall_s": 217.452,
+        "peak_rss_gib": 1.379,
+        "failed_steps": [],
+        "failure": null
+      },
+      {
+        "case_id": "sc_3e4b28f24a9a",
+        "status": "A0_ONLY_NO_CAD",
+        "cad": false,
+        "line_count": 1,
+        "lane_wall_s": 169.785,
+        "peak_rss_gib": 0.983,
+        "failed_steps": [],
+        "failure": null
+      },
+      {
+        "case_id": "sc_43417f858d5a",
+        "status": "A0_ONLY_NO_CAD",
+        "cad": false,
+        "line_count": 3,
+        "lane_wall_s": 124.262,
+        "peak_rss_gib": 0.874,
+        "failed_steps": [],
+        "failure": null
+      },
+      {
+        "case_id": "sc_469febe1cd7d",
+        "status": "A0_ONLY_NO_CAD",
+        "cad": false,
+        "line_count": 0,
+        "lane_wall_s": 134.036,
+        "peak_rss_gib": 0.929,
+        "failed_steps": [],
+        "failure": null
+      },
+      {
+        "case_id": "sc_49e5e7a1c973",
+        "status": "A0_ONLY_NO_CAD",
+        "cad": false,
+        "line_count": 0,
+        "lane_wall_s": 58.676,
+        "peak_rss_gib": 0.614,
+        "failed_steps": [],
+        "failure": null
+      },
+      {
+        "case_id": "sc_521e2ee69b21",
+        "status": "A0_ONLY_NO_CAD",
+        "cad": false,
+        "line_count": 1,
+        "lane_wall_s": 50.541,
+        "peak_rss_gib": 0.546,
+        "failed_steps": [],
+        "failure": null
+      },
+      {
+        "case_id": "sc_589688be58d2",
+        "status": "A0_ONLY_NO_CAD",
+        "cad": false,
+        "line_count": 4,
+        "lane_wall_s": 304.056,
+        "peak_rss_gib": 1.193,
+        "failed_steps": [],
+        "failure": null
+      },
+      {
+        "case_id": "sc_633e26e28e56",
+        "status": "A0_ONLY_NO_CAD",
+        "cad": false,
+        "line_count": 1,
+        "lane_wall_s": 28.384,
+        "peak_rss_gib": 0.438,
+        "failed_steps": [],
+        "failure": null
+      },
+      {
+        "case_id": "sc_711eb2a389a4",
+        "status": "A0_ONLY_NO_CAD",
+        "cad": false,
+        "line_count": 0,
+        "lane_wall_s": 246.681,
+        "peak_rss_gib": 1.093,
+        "failed_steps": [],
+        "failure": null
+      },
+      {
+        "case_id": "sc_7d28946d9f49",
+        "status": "A0_ONLY_NO_CAD",
+        "cad": false,
+        "line_count": 1,
+        "lane_wall_s": 77.905,
+        "peak_rss_gib": 0.6,
+        "failed_steps": [],
+        "failure": null
+      },
+      {
+        "case_id": "sc_891a8e4a2ee1",
+        "status": "A0_ONLY_NO_CAD",
+        "cad": false,
+        "line_count": 1,
+        "lane_wall_s": 180.598,
+        "peak_rss_gib": 1.006,
+        "failed_steps": [],
+        "failure": null
+      },
+      {
+        "case_id": "sc_8b72c3ff233f",
+        "status": "A0_ONLY_NO_CAD",
+        "cad": false,
+        "line_count": 6,
+        "lane_wall_s": 220.88,
+        "peak_rss_gib": 1.176,
+        "failed_steps": [],
+        "failure": null
+      },
+      {
+        "case_id": "sc_9b38b1167834",
+        "status": "A0_ONLY_NO_CAD",
+        "cad": false,
+        "line_count": 1,
+        "lane_wall_s": 457.18,
+        "peak_rss_gib": 1.289,
+        "failed_steps": [],
+        "failure": null
+      },
+      {
+        "case_id": "sc_b3cde5d10544",
+        "status": "A0_ONLY_NO_CAD",
+        "cad": false,
+        "line_count": 4,
+        "lane_wall_s": 219.121,
+        "peak_rss_gib": 1.503,
+        "failed_steps": [],
+        "failure": null
+      },
+      {
+        "case_id": "sc_b76452ea6fa7",
+        "status": "A0_ONLY_NO_CAD",
+        "cad": false,
+        "line_count": 1,
+        "lane_wall_s": 8.902,
+        "peak_rss_gib": 0.279,
+        "failed_steps": [],
+        "failure": null
+      },
+      {
+        "case_id": "sc_b7bd53831ee2",
+        "status": "A0_ONLY_NO_CAD",
+        "cad": false,
+        "line_count": 0,
+        "lane_wall_s": 42.407,
+        "peak_rss_gib": 0.478,
+        "failed_steps": [],
+        "failure": null
+      },
+      {
+        "case_id": "sc_b92f211e6ec0",
+        "status": "A0_ONLY_NO_CAD",
+        "cad": false,
+        "line_count": 0,
+        "lane_wall_s": 233.361,
+        "peak_rss_gib": 1.06,
+        "failed_steps": [],
+        "failure": null
+      },
+      {
+        "case_id": "sc_baa71ce6bc5d",
+        "status": "A0_ONLY_NO_CAD",
+        "cad": false,
+        "line_count": 3,
+        "lane_wall_s": 445.275,
+        "peak_rss_gib": 1.597,
+        "failed_steps": [],
+        "failure": null
+      },
+      {
+        "case_id": "sc_be840127c462",
+        "status": "A0_ONLY_NO_CAD",
+        "cad": false,
+        "line_count": 1,
+        "lane_wall_s": 506.807,
+        "peak_rss_gib": 1.414,
+        "failed_steps": [],
+        "failure": null
+      },
+      {
+        "case_id": "sc_c1a1d6de4681",
+        "status": "A0_ONLY_NO_CAD",
+        "cad": false,
+        "line_count": 0,
+        "lane_wall_s": 228.649,
+        "peak_rss_gib": 1.096,
+        "failed_steps": [],
+        "failure": null
+      },
+      {
+        "case_id": "sc_c1d112196ae5",
+        "status": "A0_ONLY_NO_CAD",
+        "cad": false,
+        "line_count": 0,
+        "lane_wall_s": 23.465,
+        "peak_rss_gib": 0.349,
+        "failed_steps": [],
+        "failure": null
+      },
+      {
+        "case_id": "sc_cca7d7680a51",
+        "status": "A0_ONLY_NO_CAD",
+        "cad": false,
+        "line_count": 0,
+        "lane_wall_s": 19.21,
+        "peak_rss_gib": 0.345,
+        "failed_steps": [],
+        "failure": null
+      },
+      {
+        "case_id": "sc_d27acfe5468d",
+        "status": "A0_ONLY_NO_CAD",
+        "cad": false,
+        "line_count": 0,
+        "lane_wall_s": 205.972,
+        "peak_rss_gib": 1.204,
+        "failed_steps": [],
+        "failure": null
+      },
+      {
+        "case_id": "sc_d741e1d515bf",
+        "status": "LANE_FAILED",
+        "cad": false,
+        "line_count": 0,
+        "lane_wall_s": 600.435,
+        "peak_rss_gib": 1.287,
+        "failed_steps": [
+          {
+            "name": "a0_typed_union",
+            "rc": -9,
+            "timed_out": true,
+            "stderr_tail": ""
+          }
+        ],
+        "failure": null
+      },
+      {
+        "case_id": "sc_d82bd4f417a2",
+        "status": "A0_ONLY_NO_CAD",
+        "cad": false,
+        "line_count": 0,
+        "lane_wall_s": 6.833,
+        "peak_rss_gib": 0.299,
+        "failed_steps": [],
+        "failure": null
+      },
+      {
+        "case_id": "sc_d891ea8c5891",
+        "status": "A0_ONLY_NO_CAD",
+        "cad": false,
+        "line_count": 0,
+        "lane_wall_s": 283.106,
+        "peak_rss_gib": 1.248,
+        "failed_steps": [],
+        "failure": null
+      },
+      {
+        "case_id": "sc_dff6419eacc4",
+        "status": "A0_ONLY_NO_CAD",
+        "cad": false,
+        "line_count": 0,
+        "lane_wall_s": 10.798,
+        "peak_rss_gib": 0.287,
+        "failed_steps": [],
+        "failure": null
+      },
+      {
+        "case_id": "sc_e0285cea8c56",
+        "status": "A0_ONLY_NO_CAD",
+        "cad": false,
+        "line_count": 2,
+        "lane_wall_s": 165.656,
+        "peak_rss_gib": 0.74,
+        "failed_steps": [],
+        "failure": null
+      },
+      {
+        "case_id": "sc_e104a6f42d31",
+        "status": "A0_ONLY_NO_CAD",
+        "cad": false,
+        "line_count": 0,
+        "lane_wall_s": 99.51,
+        "peak_rss_gib": 0.81,
+        "failed_steps": [],
+        "failure": null
+      },
+      {
+        "case_id": "sc_e218b16ed070",
+        "status": "A0_ONLY_NO_CAD",
+        "cad": false,
+        "line_count": 2,
+        "lane_wall_s": 424.805,
+        "peak_rss_gib": 1.316,
+        "failed_steps": [],
+        "failure": null
+      },
+      {
+        "case_id": "sc_e8c946b837aa",
+        "status": "A0_ONLY_NO_CAD",
+        "cad": false,
+        "line_count": 0,
+        "lane_wall_s": 109.795,
+        "peak_rss_gib": 0.911,
+        "failed_steps": [],
+        "failure": null
+      },
+      {
+        "case_id": "sc_eb1eab182228",
+        "status": "A0_ONLY_NO_CAD",
+        "cad": false,
+        "line_count": 13,
+        "lane_wall_s": 147.487,
+        "peak_rss_gib": 0.987,
+        "failed_steps": [],
+        "failure": null
+      },
+      {
+        "case_id": "sc_f4bc782eff8b",
+        "status": "A0_ONLY_NO_CAD",
+        "cad": false,
+        "line_count": 3,
+        "lane_wall_s": 264.527,
+        "peak_rss_gib": 1.33,
+        "failed_steps": [],
+        "failure": null
+      }
+    ]
+  },
+  "results": {
+    "all": {
+      "best_f1": {
+        "coverage": {
+          "gold_scans": 103,
+          "scored_line_scans": 99,
+          "zero_bend_controls": 4,
+          "excluded_before_scoring": [],
+          "with_run_record": 103,
+          "not_run": [],
+          "lane_failed": [
+            "sc_85a7f8cca6bc",
+            "sc_28a25c37a928",
+            "sc_d741e1d515bf"
+          ],
+          "lane_status_counts": {
+            "OK": 41,
+            "NO_PREDICTIONS": 2,
+            "A0_ONLY_NO_CAD": 57,
+            "LANE_FAILED": 3
+          }
+        },
+        "cohorts": {
+          "ALL": {
+            "scans": 99,
+            "families": 75,
+            "gold_lines": 494,
+            "predicted_lines": 296,
+            "tp": 163,
+            "fp": 133,
+            "fn": 331,
+            "micro_precision": 0.5507,
+            "micro_recall": 0.33,
+            "micro_f1": 0.4127,
+            "family_macro_precision": 0.4393,
+            "family_macro_recall": 0.3005,
+            "family_macro_f1": 0.338,
+            "bootstrap": {
+              "resample_unit": "family",
+              "n_boot": 10000,
+              "seed": 20261018,
+              "micro_f1_95ci": [
+                0.3442,
+                0.4684
+              ],
+              "micro_precision_95ci": [
+                0.4602,
+                0.6357
+              ],
+              "micro_recall_95ci": [
+                0.2665,
+                0.384
+              ],
+              "family_macro_f1_95ci": [
+                0.261,
+                0.4188
+              ]
+            }
+          },
+          "FULL": {
+            "scans": 85,
+            "families": 73,
+            "gold_lines": 411,
+            "predicted_lines": 240,
+            "tp": 135,
+            "fp": 105,
+            "fn": 276,
+            "micro_precision": 0.5625,
+            "micro_recall": 0.3285,
+            "micro_f1": 0.4147,
+            "family_macro_precision": 0.4456,
+            "family_macro_recall": 0.3084,
+            "family_macro_f1": 0.3448,
+            "bootstrap": {
+              "resample_unit": "family",
+              "n_boot": 10000,
+              "seed": 20261018,
+              "micro_f1_95ci": [
+                0.3396,
+                0.4794
+              ],
+              "micro_precision_95ci": [
+                0.4636,
+                0.6545
+              ],
+              "micro_recall_95ci": [
+                0.257,
+                0.3961
+              ],
+              "family_macro_f1_95ci": [
+                0.2654,
+                0.4292
+              ]
+            }
+          },
+          "STAGED": {
+            "scans": 14,
+            "families": 9,
+            "gold_lines": 83,
+            "predicted_lines": 56,
+            "tp": 28,
+            "fp": 28,
+            "fn": 55,
+            "micro_precision": 0.5,
+            "micro_recall": 0.3373,
+            "micro_f1": 0.4029,
+            "family_macro_precision": 0.5254,
+            "family_macro_recall": 0.4186,
+            "family_macro_f1": 0.4428,
+            "bootstrap": {
+              "resample_unit": "family",
+              "n_boot": 10000,
+              "seed": 20261018,
+              "micro_f1_95ci": [
+                0.3308,
+                0.4928
+              ],
+              "micro_precision_95ci": [
+                0.3714,
+                0.6604
+              ],
+              "micro_recall_95ci": [
+                0.2839,
+                0.4265
+              ],
+              "family_macro_f1_95ci": [
+                0.3279,
+                0.5777
+              ]
+            }
+          },
+          "GOLD_SET_V1_PART": {
+            "scans": 55,
+            "families": 37,
+            "gold_lines": 328,
+            "predicted_lines": 222,
+            "tp": 131,
+            "fp": 91,
+            "fn": 197,
+            "micro_precision": 0.5901,
+            "micro_recall": 0.3994,
+            "micro_f1": 0.4764,
+            "family_macro_precision": 0.5818,
+            "family_macro_recall": 0.4308,
+            "family_macro_f1": 0.4739,
+            "bootstrap": {
+              "resample_unit": "family",
+              "n_boot": 10000,
+              "seed": 20261018,
+              "micro_f1_95ci": [
+                0.4168,
+                0.5308
+              ],
+              "micro_precision_95ci": [
+                0.5042,
+                0.6765
+              ],
+              "micro_recall_95ci": [
+                0.3426,
+                0.4549
+              ],
+              "family_macro_f1_95ci": [
+                0.3709,
+                0.5761
+              ]
+            }
+          },
+          "GOLD_SET_V2_NEW_PART": {
+            "scans": 44,
+            "families": 39,
+            "gold_lines": 166,
+            "predicted_lines": 74,
+            "tp": 32,
+            "fp": 42,
+            "fn": 134,
+            "micro_precision": 0.4324,
+            "micro_recall": 0.1928,
+            "micro_f1": 0.2667,
+            "family_macro_precision": 0.3073,
+            "family_macro_recall": 0.1861,
+            "family_macro_f1": 0.2159,
+            "bootstrap": {
+              "resample_unit": "family",
+              "n_boot": 10000,
+              "seed": 20261018,
+              "micro_f1_95ci": [
+                0.1478,
+                0.3875
+              ],
+              "micro_precision_95ci": [
+                0.2353,
+                0.6515
+              ],
+              "micro_recall_95ci": [
+                0.1029,
+                0.2956
+              ],
+              "family_macro_f1_95ci": [
+                0.1191,
+                0.3226
+              ]
+            }
+          }
+        },
+        "covered_only": "same as ALL",
+        "zero_bend_controls": {
+          "scans": 4,
+          "fp_lines": 5,
+          "scans_with_fp": [
+            "sc_3bde9996f14d",
+            "sc_b4719db3dd69"
+          ]
+        },
+        "scores_file": "docs/production/runlog/gold_set_v2/rescore_full/all/scores_best_f1.json"
+      },
+      "a0_scan_only": {
+        "coverage": {
+          "gold_scans": 103,
+          "scored_line_scans": 99,
+          "zero_bend_controls": 4,
+          "excluded_before_scoring": [],
+          "with_run_record": 103,
+          "not_run": [],
+          "lane_failed": [
+            "sc_85a7f8cca6bc",
+            "sc_28a25c37a928",
+            "sc_d741e1d515bf"
+          ],
+          "lane_status_counts": {
+            "OK": 41,
+            "NO_PREDICTIONS": 2,
+            "A0_ONLY_NO_CAD": 57,
+            "LANE_FAILED": 3
+          }
+        },
+        "cohorts": {
+          "ALL": {
+            "scans": 99,
+            "families": 75,
+            "gold_lines": 494,
+            "predicted_lines": 183,
+            "tp": 115,
+            "fp": 68,
+            "fn": 379,
+            "micro_precision": 0.6284,
+            "micro_recall": 0.2328,
+            "micro_f1": 0.3397,
+            "family_macro_precision": 0.4368,
+            "family_macro_recall": 0.2171,
+            "family_macro_f1": 0.2733,
+            "bootstrap": {
+              "resample_unit": "family",
+              "n_boot": 10000,
+              "seed": 20261018,
+              "micro_f1_95ci": [
+                0.2741,
+                0.3982
+              ],
+              "micro_precision_95ci": [
+                0.4923,
+                0.7454
+              ],
+              "micro_recall_95ci": [
+                0.1852,
+                0.2795
+              ],
+              "family_macro_f1_95ci": [
+                0.2059,
+                0.3449
+              ]
+            }
+          },
+          "FULL": {
+            "scans": 85,
+            "families": 73,
+            "gold_lines": 411,
+            "predicted_lines": 156,
+            "tp": 99,
+            "fp": 57,
+            "fn": 312,
+            "micro_precision": 0.6346,
+            "micro_recall": 0.2409,
+            "micro_f1": 0.3492,
+            "family_macro_precision": 0.4434,
+            "family_macro_recall": 0.2227,
+            "family_macro_f1": 0.2805,
+            "bootstrap": {
+              "resample_unit": "family",
+              "n_boot": 10000,
+              "seed": 20261018,
+              "micro_f1_95ci": [
+                0.2745,
+                0.4165
+              ],
+              "micro_precision_95ci": [
+                0.4865,
+                0.7667
+              ],
+              "micro_recall_95ci": [
+                0.186,
+                0.2961
+              ],
+              "family_macro_f1_95ci": [
+                0.211,
+                0.3558
+              ]
+            }
+          },
+          "STAGED": {
+            "scans": 14,
+            "families": 9,
+            "gold_lines": 83,
+            "predicted_lines": 27,
+            "tp": 16,
+            "fp": 11,
+            "fn": 67,
+            "micro_precision": 0.5926,
+            "micro_recall": 0.1928,
+            "micro_f1": 0.2909,
+            "family_macro_precision": 0.6444,
+            "family_macro_recall": 0.2779,
+            "family_macro_f1": 0.3512,
+            "bootstrap": {
+              "resample_unit": "family",
+              "n_boot": 10000,
+              "seed": 20261018,
+              "micro_f1_95ci": [
+                0.1982,
+                0.4
+              ],
+              "micro_precision_95ci": [
+                0.4412,
+                0.8
+              ],
+              "micro_recall_95ci": [
+                0.1222,
+                0.2881
+              ],
+              "family_macro_f1_95ci": [
+                0.2071,
+                0.5389
+              ]
+            }
+          },
+          "GOLD_SET_V1_PART": {
+            "scans": 55,
+            "families": 37,
+            "gold_lines": 328,
+            "predicted_lines": 114,
+            "tp": 85,
+            "fp": 29,
+            "fn": 243,
+            "micro_precision": 0.7456,
+            "micro_recall": 0.2591,
+            "micro_f1": 0.3846,
+            "family_macro_precision": 0.5781,
+            "family_macro_recall": 0.2752,
+            "family_macro_f1": 0.3513,
+            "bootstrap": {
+              "resample_unit": "family",
+              "n_boot": 10000,
+              "seed": 20261018,
+              "micro_f1_95ci": [
+                0.3224,
+                0.4452
+              ],
+              "micro_precision_95ci": [
+                0.6514,
+                0.8254
+              ],
+              "micro_recall_95ci": [
+                0.2091,
+                0.313
+              ],
+              "family_macro_f1_95ci": [
+                0.2586,
+                0.4484
+              ]
+            }
+          },
+          "GOLD_SET_V2_NEW_PART": {
+            "scans": 44,
+            "families": 39,
+            "gold_lines": 166,
+            "predicted_lines": 69,
+            "tp": 30,
+            "fp": 39,
+            "fn": 136,
+            "micro_precision": 0.4348,
+            "micro_recall": 0.1807,
+            "micro_f1": 0.2553,
+            "family_macro_precision": 0.3132,
+            "family_macro_recall": 0.1701,
+            "family_macro_f1": 0.2086,
+            "bootstrap": {
+              "resample_unit": "family",
+              "n_boot": 10000,
+              "seed": 20261018,
+              "micro_f1_95ci": [
+                0.1391,
+                0.3734
+              ],
+              "micro_precision_95ci": [
+                0.2281,
+                0.6833
+              ],
+              "micro_recall_95ci": [
+                0.0968,
+                0.2737
+              ],
+              "family_macro_f1_95ci": [
+                0.1177,
+                0.3093
+              ]
+            }
+          }
+        },
+        "covered_only": "same as ALL",
+        "zero_bend_controls": {
+          "scans": 4,
+          "fp_lines": 0,
+          "scans_with_fp": []
+        },
+        "scores_file": "docs/production/runlog/gold_set_v2/rescore_full/all/scores_best_f1__a0.json"
+      }
+    },
+    "cad": {
+      "best_f1": {
+        "coverage": {
+          "gold_scans": 43,
+          "scored_line_scans": 40,
+          "zero_bend_controls": 3,
+          "excluded_before_scoring": [],
+          "with_run_record": 43,
+          "not_run": [],
+          "lane_failed": [],
+          "lane_status_counts": {
+            "OK": 41,
+            "NO_PREDICTIONS": 2
+          }
+        },
+        "cohorts": {
+          "ALL": {
+            "scans": 40,
+            "families": 23,
+            "gold_lines": 251,
+            "predicted_lines": 203,
+            "tp": 115,
+            "fp": 88,
+            "fn": 136,
+            "micro_precision": 0.5665,
+            "micro_recall": 0.4582,
+            "micro_f1": 0.5066,
+            "family_macro_precision": 0.5782,
+            "family_macro_recall": 0.5062,
+            "family_macro_f1": 0.5276,
+            "bootstrap": {
+              "resample_unit": "family",
+              "n_boot": 10000,
+              "seed": 20261018,
+              "micro_f1_95ci": [
+                0.4444,
+                0.5682
+              ],
+              "micro_precision_95ci": [
+                0.472,
+                0.6563
+              ],
+              "micro_recall_95ci": [
+                0.4077,
+                0.528
+              ],
+              "family_macro_f1_95ci": [
+                0.3989,
+                0.6538
+              ]
+            }
+          },
+          "FULL": {
+            "scans": 26,
+            "families": 21,
+            "gold_lines": 168,
+            "predicted_lines": 147,
+            "tp": 87,
+            "fp": 60,
+            "fn": 81,
+            "micro_precision": 0.5918,
+            "micro_recall": 0.5179,
+            "micro_f1": 0.5524,
+            "family_macro_precision": 0.6133,
+            "family_macro_recall": 0.5532,
+            "family_macro_f1": 0.5691,
+            "bootstrap": {
+              "resample_unit": "family",
+              "n_boot": 10000,
+              "seed": 20261018,
+              "micro_f1_95ci": [
+                0.4852,
+                0.6312
+              ],
+              "micro_precision_95ci": [
+                0.5,
+                0.6887
+              ],
+              "micro_recall_95ci": [
+                0.4469,
+                0.6166
+              ],
+              "family_macro_f1_95ci": [
+                0.435,
+                0.7048
+              ]
+            }
+          },
+          "STAGED": {
+            "scans": 14,
+            "families": 9,
+            "gold_lines": 83,
+            "predicted_lines": 56,
+            "tp": 28,
+            "fp": 28,
+            "fn": 55,
+            "micro_precision": 0.5,
+            "micro_recall": 0.3373,
+            "micro_f1": 0.4029,
+            "family_macro_precision": 0.5254,
+            "family_macro_recall": 0.4186,
+            "family_macro_f1": 0.4428,
+            "bootstrap": {
+              "resample_unit": "family",
+              "n_boot": 10000,
+              "seed": 20261018,
+              "micro_f1_95ci": [
+                0.3284,
+                0.4912
+              ],
+              "micro_precision_95ci": [
+                0.3684,
+                0.6585
+              ],
+              "micro_recall_95ci": [
+                0.2838,
+                0.4237
+              ],
+              "family_macro_f1_95ci": [
+                0.3273,
+                0.5722
+              ]
+            }
+          },
+          "GOLD_SET_V1_PART": {
+            "scans": 38,
+            "families": 22,
+            "gold_lines": 241,
+            "predicted_lines": 191,
+            "tp": 107,
+            "fp": 84,
+            "fn": 134,
+            "micro_precision": 0.5602,
+            "micro_recall": 0.444,
+            "micro_f1": 0.4954,
+            "family_macro_precision": 0.5573,
+            "family_macro_recall": 0.4797,
+            "family_macro_f1": 0.5032,
+            "bootstrap": {
+              "resample_unit": "family",
+              "n_boot": 10000,
+              "seed": 20261018,
+              "micro_f1_95ci": [
+                0.4329,
+                0.5577
+              ],
+              "micro_precision_95ci": [
+                0.4602,
+                0.6524
+              ],
+              "micro_recall_95ci": [
+                0.3983,
+                0.5102
+              ],
+              "family_macro_f1_95ci": [
+                0.3813,
+                0.6265
+              ]
+            }
+          },
+          "GOLD_SET_V2_NEW_PART": {
+            "scans": 2,
+            "families": 2,
+            "gold_lines": 10,
+            "predicted_lines": 12,
+            "tp": 8,
+            "fp": 4,
+            "fn": 2,
+            "micro_precision": 0.6667,
+            "micro_recall": 0.8,
+            "micro_f1": 0.7273,
+            "family_macro_precision": 0.8,
+            "family_macro_recall": 0.875,
+            "family_macro_f1": 0.8333,
+            "bootstrap": {
+              "resample_unit": "family",
+              "n_boot": 10000,
+              "seed": 20261018,
+              "micro_f1_95ci": [
+                0.6667,
+                1.0
+              ],
+              "micro_precision_95ci": [
+                0.6,
+                1.0
+              ],
+              "micro_recall_95ci": [
+                0.75,
+                1.0
+              ],
+              "family_macro_f1_95ci": [
+                0.6667,
+                1.0
+              ]
+            }
+          }
+        },
+        "covered_only": "same as ALL",
+        "zero_bend_controls": {
+          "scans": 3,
+          "fp_lines": 5,
+          "scans_with_fp": [
+            "sc_3bde9996f14d",
+            "sc_b4719db3dd69"
+          ]
+        },
+        "scores_file": "docs/production/runlog/gold_set_v2/rescore_full/cad/scores_best_f1.json"
+      },
+      "a0_scan_only": {
+        "coverage": {
+          "gold_scans": 43,
+          "scored_line_scans": 40,
+          "zero_bend_controls": 3,
+          "excluded_before_scoring": [],
+          "with_run_record": 43,
+          "not_run": [],
+          "lane_failed": [],
+          "lane_status_counts": {
+            "OK": 41,
+            "NO_PREDICTIONS": 2
+          }
+        },
+        "cohorts": {
+          "ALL": {
+            "scans": 40,
+            "families": 23,
+            "gold_lines": 251,
+            "predicted_lines": 90,
+            "tp": 67,
+            "fp": 23,
+            "fn": 184,
+            "micro_precision": 0.7444,
+            "micro_recall": 0.2669,
+            "micro_f1": 0.393,
+            "family_macro_precision": 0.5702,
+            "family_macro_recall": 0.2342,
+            "family_macro_f1": 0.3165,
+            "bootstrap": {
+              "resample_unit": "family",
+              "n_boot": 10000,
+              "seed": 20261018,
+              "micro_f1_95ci": [
+                0.3113,
+                0.4685
+              ],
+              "micro_precision_95ci": [
+                0.6125,
+                0.8427
+              ],
+              "micro_recall_95ci": [
+                0.2038,
+                0.3349
+              ],
+              "family_macro_f1_95ci": [
+                0.2144,
+                0.42
+              ]
+            }
+          },
+          "FULL": {
+            "scans": 26,
+            "families": 21,
+            "gold_lines": 168,
+            "predicted_lines": 63,
+            "tp": 51,
+            "fp": 12,
+            "fn": 117,
+            "micro_precision": 0.8095,
+            "micro_recall": 0.3036,
+            "micro_f1": 0.4416,
+            "family_macro_precision": 0.6056,
+            "family_macro_recall": 0.2553,
+            "family_macro_f1": 0.3455,
+            "bootstrap": {
+              "resample_unit": "family",
+              "n_boot": 10000,
+              "seed": 20261018,
+              "micro_f1_95ci": [
+                0.3422,
+                0.5269
+              ],
+              "micro_precision_95ci": [
+                0.6944,
+                0.9077
+              ],
+              "micro_recall_95ci": [
+                0.2232,
+                0.3881
+              ],
+              "family_macro_f1_95ci": [
+                0.2325,
+                0.4621
+              ]
+            }
+          },
+          "STAGED": {
+            "scans": 14,
+            "families": 9,
+            "gold_lines": 83,
+            "predicted_lines": 27,
+            "tp": 16,
+            "fp": 11,
+            "fn": 67,
+            "micro_precision": 0.5926,
+            "micro_recall": 0.1928,
+            "micro_f1": 0.2909,
+            "family_macro_precision": 0.6444,
+            "family_macro_recall": 0.2779,
+            "family_macro_f1": 0.3512,
+            "bootstrap": {
+              "resample_unit": "family",
+              "n_boot": 10000,
+              "seed": 20261018,
+              "micro_f1_95ci": [
+                0.1982,
+                0.4
+              ],
+              "micro_precision_95ci": [
+                0.4444,
+                0.7917
+              ],
+              "micro_recall_95ci": [
+                0.1222,
+                0.2889
+              ],
+              "family_macro_f1_95ci": [
+                0.2108,
+                0.5416
+              ]
+            }
+          },
+          "GOLD_SET_V1_PART": {
+            "scans": 38,
+            "families": 22,
+            "gold_lines": 241,
+            "predicted_lines": 83,
+            "tp": 61,
+            "fp": 22,
+            "fn": 180,
+            "micro_precision": 0.7349,
+            "micro_recall": 0.2531,
+            "micro_f1": 0.3765,
+            "family_macro_precision": 0.5512,
+            "family_macro_recall": 0.2181,
+            "family_macro_f1": 0.297,
+            "bootstrap": {
+              "resample_unit": "family",
+              "n_boot": 10000,
+              "seed": 20261018,
+              "micro_f1_95ci": [
+                0.3043,
+                0.4451
+              ],
+              "micro_precision_95ci": [
+                0.6022,
+                0.8393
+              ],
+              "micro_recall_95ci": [
+                0.1971,
+                0.3125
+              ],
+              "family_macro_f1_95ci": [
+                0.1965,
+                0.3998
+              ]
+            }
+          },
+          "GOLD_SET_V2_NEW_PART": {
+            "scans": 2,
+            "families": 2,
+            "gold_lines": 10,
+            "predicted_lines": 7,
+            "tp": 6,
+            "fp": 1,
+            "fn": 4,
+            "micro_precision": 0.8571,
+            "micro_recall": 0.6,
+            "micro_f1": 0.7059,
+            "family_macro_precision": 0.9167,
+            "family_macro_recall": 0.5625,
+            "family_macro_f1": 0.6905,
+            "bootstrap": {
+              "resample_unit": "family",
+              "n_boot": 10000,
+              "seed": 20261018,
+              "micro_f1_95ci": [
+                0.6667,
+                0.7143
+              ],
+              "micro_precision_95ci": [
+                0.8333,
+                1.0
+              ],
+              "micro_recall_95ci": [
+                0.5,
+                0.625
+              ],
+              "family_macro_f1_95ci": [
+                0.6667,
+                0.7143
+              ]
+            }
+          }
+        },
+        "covered_only": "same as ALL",
+        "zero_bend_controls": {
+          "scans": 3,
+          "fp_lines": 0,
+          "scans_with_fp": []
+        },
+        "scores_file": "docs/production/runlog/gold_set_v2/rescore_full/cad/scores_best_f1__a0.json"
+      }
+    },
+    "nocad": {
+      "best_f1": {
+        "coverage": {
+          "gold_scans": 60,
+          "scored_line_scans": 59,
+          "zero_bend_controls": 1,
+          "excluded_before_scoring": [],
+          "with_run_record": 60,
+          "not_run": [],
+          "lane_failed": [
+            "sc_85a7f8cca6bc",
+            "sc_28a25c37a928",
+            "sc_d741e1d515bf"
+          ],
+          "lane_status_counts": {
+            "A0_ONLY_NO_CAD": 57,
+            "LANE_FAILED": 3
+          }
+        },
+        "cohorts": {
+          "ALL": {
+            "scans": 59,
+            "families": 52,
+            "gold_lines": 243,
+            "predicted_lines": 93,
+            "tp": 48,
+            "fp": 45,
+            "fn": 195,
+            "micro_precision": 0.5161,
+            "micro_recall": 0.1975,
+            "micro_f1": 0.2857,
+            "family_macro_precision": 0.3778,
+            "family_macro_recall": 0.2095,
+            "family_macro_f1": 0.2542,
+            "bootstrap": {
+              "resample_unit": "family",
+              "n_boot": 10000,
+              "seed": 20261018,
+              "micro_f1_95ci": [
+                0.1955,
+                0.3771
+              ],
+              "micro_precision_95ci": [
+                0.3363,
+                0.7067
+              ],
+              "micro_recall_95ci": [
+                0.1321,
+                0.2678
+              ],
+              "family_macro_f1_95ci": [
+                0.168,
+                0.3453
+              ]
+            }
+          },
+          "FULL": {
+            "scans": 59,
+            "families": 52,
+            "gold_lines": 243,
+            "predicted_lines": 93,
+            "tp": 48,
+            "fp": 45,
+            "fn": 195,
+            "micro_precision": 0.5161,
+            "micro_recall": 0.1975,
+            "micro_f1": 0.2857,
+            "family_macro_precision": 0.3778,
+            "family_macro_recall": 0.2095,
+            "family_macro_f1": 0.2542,
+            "bootstrap": {
+              "resample_unit": "family",
+              "n_boot": 10000,
+              "seed": 20261018,
+              "micro_f1_95ci": [
+                0.1966,
+                0.3765
+              ],
+              "micro_precision_95ci": [
+                0.3333,
+                0.7076
+              ],
+              "micro_recall_95ci": [
+                0.1333,
+                0.2691
+              ],
+              "family_macro_f1_95ci": [
+                0.1681,
+                0.3451
+              ]
+            }
+          },
+          "STAGED": {
+            "scans": 0
+          },
+          "GOLD_SET_V1_PART": {
+            "scans": 17,
+            "families": 15,
+            "gold_lines": 87,
+            "predicted_lines": 31,
+            "tp": 24,
+            "fp": 7,
+            "fn": 63,
+            "micro_precision": 0.7742,
+            "micro_recall": 0.2759,
+            "micro_f1": 0.4068,
+            "family_macro_precision": 0.6176,
+            "family_macro_recall": 0.359,
+            "family_macro_f1": 0.4309,
+            "bootstrap": {
+              "resample_unit": "family",
+              "n_boot": 10000,
+              "seed": 20261018,
+              "micro_f1_95ci": [
+                0.2791,
+                0.5437
+              ],
+              "micro_precision_95ci": [
+                0.7,
+                0.8824
+              ],
+              "micro_recall_95ci": [
+                0.1714,
+                0.4091
+              ],
+              "family_macro_f1_95ci": [
+                0.2579,
+                0.6064
+              ]
+            }
+          },
+          "GOLD_SET_V2_NEW_PART": {
+            "scans": 42,
+            "families": 37,
+            "gold_lines": 156,
+            "predicted_lines": 62,
+            "tp": 24,
+            "fp": 38,
+            "fn": 132,
+            "micro_precision": 0.3871,
+            "micro_recall": 0.1538,
+            "micro_f1": 0.2202,
+            "family_macro_precision": 0.2806,
+            "family_macro_recall": 0.1489,
+            "family_macro_f1": 0.1826,
+            "bootstrap": {
+              "resample_unit": "family",
+              "n_boot": 10000,
+              "seed": 20261018,
+              "micro_f1_95ci": [
+                0.1165,
+                0.3433
+              ],
+              "micro_precision_95ci": [
+                0.1935,
+                0.6512
+              ],
+              "micro_recall_95ci": [
+                0.0791,
+                0.2465
+              ],
+              "family_macro_f1_95ci": [
+                0.0954,
+                0.2854
+              ]
+            }
+          }
+        },
+        "covered_only": "same as ALL",
+        "zero_bend_controls": {
+          "scans": 1,
+          "fp_lines": 0,
+          "scans_with_fp": []
+        },
+        "scores_file": "docs/production/runlog/gold_set_v2/rescore_full/nocad/scores_best_f1.json"
+      },
+      "a0_scan_only": {
+        "coverage": {
+          "gold_scans": 60,
+          "scored_line_scans": 59,
+          "zero_bend_controls": 1,
+          "excluded_before_scoring": [],
+          "with_run_record": 60,
+          "not_run": [],
+          "lane_failed": [
+            "sc_85a7f8cca6bc",
+            "sc_28a25c37a928",
+            "sc_d741e1d515bf"
+          ],
+          "lane_status_counts": {
+            "A0_ONLY_NO_CAD": 57,
+            "LANE_FAILED": 3
+          }
+        },
+        "cohorts": {
+          "ALL": {
+            "scans": 59,
+            "families": 52,
+            "gold_lines": 243,
+            "predicted_lines": 93,
+            "tp": 48,
+            "fp": 45,
+            "fn": 195,
+            "micro_precision": 0.5161,
+            "micro_recall": 0.1975,
+            "micro_f1": 0.2857,
+            "family_macro_precision": 0.3778,
+            "family_macro_recall": 0.2095,
+            "family_macro_f1": 0.2542,
+            "bootstrap": {
+              "resample_unit": "family",
+              "n_boot": 10000,
+              "seed": 20261018,
+              "micro_f1_95ci": [
+                0.1954,
+                0.3772
+              ],
+              "micro_precision_95ci": [
+                0.3367,
+                0.7093
+              ],
+              "micro_recall_95ci": [
+                0.1316,
+                0.2703
+              ],
+              "family_macro_f1_95ci": [
+                0.1694,
+                0.3473
+              ]
+            }
+          },
+          "FULL": {
+            "scans": 59,
+            "families": 52,
+            "gold_lines": 243,
+            "predicted_lines": 93,
+            "tp": 48,
+            "fp": 45,
+            "fn": 195,
+            "micro_precision": 0.5161,
+            "micro_recall": 0.1975,
+            "micro_f1": 0.2857,
+            "family_macro_precision": 0.3778,
+            "family_macro_recall": 0.2095,
+            "family_macro_f1": 0.2542,
+            "bootstrap": {
+              "resample_unit": "family",
+              "n_boot": 10000,
+              "seed": 20261018,
+              "micro_f1_95ci": [
+                0.195,
+                0.3795
+              ],
+              "micro_precision_95ci": [
+                0.3361,
+                0.7059
+              ],
+              "micro_recall_95ci": [
+                0.1313,
+                0.2714
+              ],
+              "family_macro_f1_95ci": [
+                0.1699,
+                0.3474
+              ]
+            }
+          },
+          "STAGED": {
+            "scans": 0
+          },
+          "GOLD_SET_V1_PART": {
+            "scans": 17,
+            "families": 15,
+            "gold_lines": 87,
+            "predicted_lines": 31,
+            "tp": 24,
+            "fp": 7,
+            "fn": 63,
+            "micro_precision": 0.7742,
+            "micro_recall": 0.2759,
+            "micro_f1": 0.4068,
+            "family_macro_precision": 0.6176,
+            "family_macro_recall": 0.359,
+            "family_macro_f1": 0.4309,
+            "bootstrap": {
+              "resample_unit": "family",
+              "n_boot": 10000,
+              "seed": 20261018,
+              "micro_f1_95ci": [
+                0.2804,
+                0.5424
+              ],
+              "micro_precision_95ci": [
+                0.7045,
+                0.875
+              ],
+              "micro_recall_95ci": [
+                0.172,
+                0.4118
+              ],
+              "family_macro_f1_95ci": [
+                0.2602,
+                0.6045
+              ]
+            }
+          },
+          "GOLD_SET_V2_NEW_PART": {
+            "scans": 42,
+            "families": 37,
+            "gold_lines": 156,
+            "predicted_lines": 62,
+            "tp": 24,
+            "fp": 38,
+            "fn": 132,
+            "micro_precision": 0.3871,
+            "micro_recall": 0.1538,
+            "micro_f1": 0.2202,
+            "family_macro_precision": 0.2806,
+            "family_macro_recall": 0.1489,
+            "family_macro_f1": 0.1826,
+            "bootstrap": {
+              "resample_unit": "family",
+              "n_boot": 10000,
+              "seed": 20261018,
+              "micro_f1_95ci": [
+                0.1132,
+                0.3404
+              ],
+              "micro_precision_95ci": [
+                0.1897,
+                0.6462
+              ],
+              "micro_recall_95ci": [
+                0.0774,
+                0.2455
+              ],
+              "family_macro_f1_95ci": [
+                0.0925,
+                0.2822
+              ]
+            }
+          }
+        },
+        "covered_only": "same as ALL",
+        "zero_bend_controls": {
+          "scans": 1,
+          "fp_lines": 0,
+          "scans_with_fp": []
+        },
+        "scores_file": "docs/production/runlog/gold_set_v2/rescore_full/nocad/scores_best_f1__a0.json"
+      }
+    }
+  }
+}

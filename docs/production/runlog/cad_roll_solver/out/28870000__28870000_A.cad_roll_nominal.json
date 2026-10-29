@@ -1,0 +1,779 @@
+{
+ "schema": "cad_roll_nominal_v0",
+ "rule_version": "ROLL-RULE-0 (2026-10-25): E1 graph bend keeps E1 class unless E1 ROLLED(a); paired feature with Ri > 10 t is a ROLL; Ri <= 10 t tangent to a roll is a junction BEND; thresholds reused from E1-UNSUPPORTED-RULE-2 (2026-10-17; rule 1 thresholds, review fixes)",
+ "source": {
+  "file": "28870000_A.stp",
+  "sha256": "aab8c67c31908a873a134f2c0aff4f1c518d050d98db32e265e186a732248d32",
+  "name": "28870000__28870000_A"
+ },
+ "frame": "cad_model_mm (STEP frame, no transform)",
+ "units": {
+  "length": "mm",
+  "angle": "deg"
+ },
+ "e1": {
+  "flange_graph_error": null,
+  "part_model_error": null,
+  "thickness_mm": 1.5,
+  "panels": 2,
+  "graph_bends": 1,
+  "features": [
+   {
+    "kind": "ROLLED",
+    "reason": "bend cylinders meet 1 tangent ends",
+    "faces": [
+     5,
+     27
+    ]
+   },
+   {
+    "kind": "STEPPED_BOSS",
+    "reason": "formed feature surfaces (offset plane)",
+    "faces": [
+     11,
+     12,
+     16
+    ]
+   }
+  ]
+ },
+ "thickness": {
+  "t_mm": 1.5,
+  "source": "E1_FLANGE_GRAPH"
+ },
+ "summary": {
+  "rolls": 1,
+  "junction_bends": 1,
+  "e1_bends": 1,
+  "solver_bends": 2,
+  "cones": 0,
+  "all_checks_pass": true,
+  "roll_faces_overlap_e1_bend_faces": []
+ },
+ "rolls": [
+  {
+   "id": "R1",
+   "kind": "ROLL",
+   "subtype": "ROLL",
+   "surface": "cylinder",
+   "is_cone": false,
+   "axis": {
+    "point_mm": [
+     0.0,
+     0.0,
+     -38.25
+    ],
+    "direction": [
+     0.0,
+     0.0,
+     1.0
+    ],
+    "segment": {
+     "start_mm": [
+      0.0,
+      0.0,
+      -76.5
+     ],
+     "end_mm": [
+      0.0,
+      0.0,
+      0.0
+     ]
+    }
+   },
+   "frame": {
+    "e1": [
+     0.0,
+     1.0,
+     0.0
+    ],
+    "e2": [
+     -1.0,
+     0.0,
+     0.0
+    ],
+    "note": "angles about the axis: atan2((p-axis.point)\u00b7e2, (p-axis.point)\u00b7e1), e1 x e2 = direction"
+   },
+   "r_inner_mm": 30.0,
+   "r_outer_mm": 31.5,
+   "thickness_mm": 1.5,
+   "r_inner_over_t": 20.0,
+   "r_mid_mm": 30.75,
+   "sweep_deg": 154.075834,
+   "sweep_inner_deg": 154.060683,
+   "sweep_outer_deg": 154.075834,
+   "start_angle_deg": 60.0,
+   "closed": false,
+   "axial_length_mm": 76.5,
+   "axial_length_inner_mm": 76.5,
+   "axial_length_outer_mm": 76.5,
+   "chord_inner_mm": 58.471123,
+   "chord_outer_mm": 61.394679,
+   "opening_mm": 58.471123,
+   "opening_gap_deg": 205.924166,
+   "arc_length_mid_mm": 82.690766,
+   "taper": {
+    "dr_dz": 0.0,
+    "mm_per_m": 0.0,
+    "semi_angle_deg": 0.0,
+    "r_inner_at_axis_ends_mm": [
+     30.0,
+     30.0
+    ],
+    "r_outer_at_axis_ends_mm": [
+     31.5,
+     31.5
+    ]
+   },
+   "convexity": {
+    "concave_skin": "inner",
+    "convex_skin": "outer",
+    "bulge_direction": [
+     -0.681514,
+     -0.731805,
+     0.0
+    ],
+    "note": "unit radial from the axis to the angular middle of the sweep (the convex side)"
+   },
+   "faces": {
+    "inner": [
+     4
+    ],
+    "outer": [
+     0
+    ]
+   },
+   "e1": {
+    "graph_bend_id": null,
+    "class": null,
+    "face_roles": [
+     "wall"
+    ]
+   },
+   "runouts": [
+    {
+     "which": "start",
+     "angle_deg": 60.0,
+     "inner": {
+      "start_mm": [
+       -25.980762,
+       15.0,
+       -76.5
+      ],
+      "end_mm": [
+       -25.980762,
+       15.0,
+       -7.5
+      ],
+      "length_mm": 69.0,
+      "class": "BEND",
+      "neighbour_ids": [
+       "J1"
+      ],
+      "neighbour_faces": [
+       5
+      ],
+      "edges": [
+       29
+      ],
+      "coverage": 0.901961
+     },
+     "outer": {
+      "start_mm": [
+       -27.2798,
+       15.75,
+       -76.5
+      ],
+      "end_mm": [
+       -27.2798,
+       15.75,
+       -7.5
+      ],
+      "length_mm": 69.0,
+      "class": "BEND",
+      "neighbour_ids": [
+       "J1"
+      ],
+      "neighbour_faces": [
+       27
+      ],
+      "edges": [
+       10
+      ],
+      "coverage": 0.901961
+     },
+     "class": "BEND",
+     "end_type": "TANGENT_RUNOUT"
+    },
+    {
+     "which": "end",
+     "angle_deg": 214.075834,
+     "inner": {
+      "start_mm": [
+       16.808691,
+       -24.848902,
+       -76.5
+      ],
+      "end_mm": [
+       16.808691,
+       -24.848902,
+       0.0
+      ],
+      "length_mm": 76.5,
+      "class": "EDGE_ROUND",
+      "neighbour_ids": [],
+      "neighbour_faces": [
+       3
+      ],
+      "edges": [
+       20
+      ],
+      "coverage": 1.0
+     },
+     "outer": {
+      "start_mm": [
+       17.649125,
+       -26.091347,
+       -76.5
+      ],
+      "end_mm": [
+       17.649125,
+       -26.091347,
+       0.0
+      ],
+      "length_mm": 76.5,
+      "class": "EDGE_ROUND",
+      "neighbour_ids": [],
+      "neighbour_faces": [
+       1
+      ],
+      "edges": [
+       12
+      ],
+      "coverage": 1.0
+     },
+     "class": "EDGE_ROUND",
+     "end_type": "FREE_END"
+    }
+   ],
+   "neighbours": [
+    "J1"
+   ],
+   "stations": [
+    {
+     "fraction": 0.25,
+     "z_mm": -173.835022,
+     "centre_mm": [
+      0.0,
+      0.0,
+      -57.375
+     ],
+     "r_inner_mm": 30.0,
+     "r_outer_mm": 31.5,
+     "start_angle_deg": 60.0,
+     "sweep_deg": 154.075834
+    },
+    {
+     "fraction": 0.5,
+     "z_mm": -154.710022,
+     "centre_mm": [
+      0.0,
+      0.0,
+      -38.25
+     ],
+     "r_inner_mm": 30.0,
+     "r_outer_mm": 31.5,
+     "start_angle_deg": 60.0,
+     "sweep_deg": 154.075834
+    },
+    {
+     "fraction": 0.75,
+     "z_mm": -135.585022,
+     "centre_mm": [
+      0.0,
+      0.0,
+      -19.125
+     ],
+     "r_inner_mm": 30.0,
+     "r_outer_mm": 31.5,
+     "start_angle_deg": 60.0,
+     "sweep_deg": 154.075834
+    }
+   ],
+   "interior_generator_edges": 2,
+   "notes": [],
+   "checks": [
+    {
+     "check": "SKINS_COAXIAL_ANGLE_DEG",
+     "status": "PASS",
+     "value": 0.0,
+     "tol": 0.25,
+     "detail": ""
+    },
+    {
+     "check": "SKINS_COAXIAL_OFFSET_MM",
+     "status": "PASS",
+     "value": 0.0,
+     "tol": 0.020315,
+     "detail": ""
+    },
+    {
+     "check": "THICKNESS_CONSISTENT_MM",
+     "status": "PASS",
+     "value": 0.0,
+     "tol": 0.08,
+     "detail": "roll t 1.5000 vs part t 1.5000 (E1 flange graph)"
+    },
+    {
+     "check": "SKIN_SWEEPS_AGREE_DEG",
+     "status": "PASS",
+     "value": -0.015152,
+     "tol": 1.0,
+     "detail": ""
+    },
+    {
+     "check": "SKIN_AXIAL_OVERLAP_FRACTION",
+     "status": "PASS",
+     "value": 1.0,
+     "tol": 0.9,
+     "detail": ""
+    },
+    {
+     "check": "RUNOUT_TANGENT_MM",
+     "status": "PASS",
+     "value": 0.0,
+     "tol": 0.02,
+     "detail": "4 smooth run-out edges"
+    }
+   ],
+   "checks_pass": true
+  }
+ ],
+ "junction_bends": [
+  {
+   "id": "J1",
+   "kind": "BEND",
+   "subtype": "JUNCTION_BEND",
+   "surface": "cylinder",
+   "is_cone": false,
+   "axis": {
+    "point_mm": [
+     -27.712813,
+     16.0,
+     -42.0
+    ],
+    "direction": [
+     0.0,
+     0.0,
+     1.0
+    ],
+    "segment": {
+     "start_mm": [
+      -27.712813,
+      16.0,
+      -76.5
+     ],
+     "end_mm": [
+      -27.712813,
+      16.0,
+      -7.5
+     ]
+    }
+   },
+   "frame": {
+    "e1": [
+     1.0,
+     0.0,
+     0.0
+    ],
+    "e2": [
+     0.0,
+     1.0,
+     0.0
+    ],
+    "note": "angles about the axis: atan2((p-axis.point)\u00b7e2, (p-axis.point)\u00b7e1), e1 x e2 = direction"
+   },
+   "r_inner_mm": 0.5,
+   "r_outer_mm": 2.0,
+   "thickness_mm": 1.5,
+   "r_inner_over_t": 0.333333,
+   "r_mid_mm": 1.25,
+   "sweep_deg": 27.0,
+   "sweep_inner_deg": 27.0,
+   "sweep_outer_deg": 27.0,
+   "start_angle_deg": 330.0,
+   "closed": false,
+   "axial_length_mm": 69.0,
+   "axial_length_inner_mm": 69.0,
+   "axial_length_outer_mm": 69.0,
+   "chord_inner_mm": 0.233445,
+   "chord_outer_mm": 0.933781,
+   "opening_mm": 0.233445,
+   "opening_gap_deg": 333.0,
+   "arc_length_mid_mm": 0.589049,
+   "taper": {
+    "dr_dz": 0.0,
+    "mm_per_m": 0.0,
+    "semi_angle_deg": 0.0,
+    "r_inner_at_axis_ends_mm": [
+     0.5,
+     0.5
+    ],
+    "r_outer_at_axis_ends_mm": [
+     2.0,
+     2.0
+    ]
+   },
+   "convexity": {
+    "concave_skin": "inner",
+    "convex_skin": "outer",
+    "bulge_direction": [
+     0.95882,
+     -0.284015,
+     0.0
+    ],
+    "note": "unit radial from the axis to the angular middle of the sweep (the convex side)"
+   },
+   "faces": {
+    "inner": [
+     27
+    ],
+    "outer": [
+     5
+    ]
+   },
+   "e1": {
+    "graph_bend_id": null,
+    "class": null,
+    "face_roles": [
+     "feature/0"
+    ]
+   },
+   "runouts": [
+    {
+     "which": "start",
+     "angle_deg": 330.0,
+     "inner": {
+      "start_mm": [
+       -27.2798,
+       15.75,
+       -76.5
+      ],
+      "end_mm": [
+       -27.2798,
+       15.75,
+       -7.5
+      ],
+      "length_mm": 69.0,
+      "class": "ROLL",
+      "neighbour_ids": [
+       "R1"
+      ],
+      "neighbour_faces": [
+       0
+      ],
+      "edges": [
+       10
+      ],
+      "coverage": 1.0
+     },
+     "outer": {
+      "start_mm": [
+       -25.980762,
+       15.0,
+       -76.5
+      ],
+      "end_mm": [
+       -25.980762,
+       15.0,
+       -7.5
+      ],
+      "length_mm": 69.0,
+      "class": "ROLL",
+      "neighbour_ids": [
+       "R1"
+      ],
+      "neighbour_faces": [
+       4
+      ],
+      "edges": [
+       29
+      ],
+      "coverage": 1.0
+     },
+     "class": "ROLL",
+     "end_type": "TANGENT_RUNOUT"
+    },
+    {
+     "which": "end",
+     "angle_deg": 357.0,
+     "inner": {
+      "start_mm": [
+       -27.213498,
+       15.973832,
+       -76.5
+      ],
+      "end_mm": [
+       -27.213498,
+       15.973832,
+       -7.5
+      ],
+      "length_mm": 69.0,
+      "class": "FLANGE",
+      "neighbour_ids": [
+       "P0"
+      ],
+      "neighbour_faces": [
+       14
+      ],
+      "edges": [
+       69
+      ],
+      "coverage": 1.0
+     },
+     "outer": {
+      "start_mm": [
+       -25.715554,
+       15.895328,
+       -76.5
+      ],
+      "end_mm": [
+       -25.715554,
+       15.895328,
+       -7.5
+      ],
+      "length_mm": 69.0,
+      "class": "FLANGE",
+      "neighbour_ids": [
+       "P0"
+      ],
+      "neighbour_faces": [
+       6
+      ],
+      "edges": [
+       35
+      ],
+      "coverage": 1.0
+     },
+     "class": "FLANGE",
+     "end_type": "TANGENT_RUNOUT"
+    }
+   ],
+   "neighbours": [
+    "P0",
+    "R1"
+   ],
+   "stations": [
+    {
+     "fraction": 0.25,
+     "z_mm": 21.75,
+     "centre_mm": [
+      -27.712813,
+      16.0,
+      -59.25
+     ],
+     "r_inner_mm": 0.5,
+     "r_outer_mm": 2.0,
+     "start_angle_deg": 330.0,
+     "sweep_deg": 27.0
+    },
+    {
+     "fraction": 0.5,
+     "z_mm": 39.0,
+     "centre_mm": [
+      -27.712813,
+      16.0,
+      -42.0
+     ],
+     "r_inner_mm": 0.5,
+     "r_outer_mm": 2.0,
+     "start_angle_deg": 330.0,
+     "sweep_deg": 27.0
+    },
+    {
+     "fraction": 0.75,
+     "z_mm": 56.25,
+     "centre_mm": [
+      -27.712813,
+      16.0,
+      -24.75
+     ],
+     "r_inner_mm": 0.5,
+     "r_outer_mm": 2.0,
+     "start_angle_deg": 330.0,
+     "sweep_deg": 27.0
+    }
+   ],
+   "interior_generator_edges": 0,
+   "notes": [],
+   "checks": [
+    {
+     "check": "SKINS_COAXIAL_ANGLE_DEG",
+     "status": "PASS",
+     "value": 0.0,
+     "tol": 0.25,
+     "detail": ""
+    },
+    {
+     "check": "SKINS_COAXIAL_OFFSET_MM",
+     "status": "PASS",
+     "value": 0.0,
+     "tol": 0.02002,
+     "detail": ""
+    },
+    {
+     "check": "THICKNESS_CONSISTENT_MM",
+     "status": "PASS",
+     "value": 0.0,
+     "tol": 0.08,
+     "detail": "roll t 1.5000 vs part t 1.5000 (E1 flange graph)"
+    },
+    {
+     "check": "SKIN_SWEEPS_AGREE_DEG",
+     "status": "PASS",
+     "value": 0.0,
+     "tol": 1.0,
+     "detail": ""
+    },
+    {
+     "check": "SKIN_AXIAL_OVERLAP_FRACTION",
+     "status": "PASS",
+     "value": 1.0,
+     "tol": 0.9,
+     "detail": ""
+    },
+    {
+     "check": "RUNOUT_TANGENT_MM",
+     "status": "PASS",
+     "value": 0.0,
+     "tol": 0.02,
+     "detail": "4 smooth run-out edges"
+    }
+   ],
+   "checks_pass": true
+  }
+ ],
+ "e1_bends": [
+  {
+   "graph_bend_id": "G1",
+   "class": null,
+   "parent": "P0",
+   "child": "P1",
+   "inner_radius_mm": 0.5,
+   "thickness_mm": 1.5,
+   "sweep_deg": 25.0,
+   "length_mm": 69.0,
+   "oml_virtual_sharp": {
+    "start_mm": [
+     -26.692063,
+     25.92341,
+     -76.5
+    ],
+    "end_mm": [
+     -26.692063,
+     25.92341,
+     -7.5
+    ]
+   },
+   "faces": {
+    "inner": [
+     7
+    ],
+    "outer": [
+     13
+    ]
+   },
+   "solver_cross_check": {
+    "paired": true,
+    "ri_diff_mm": 0.0,
+    "t_diff_mm": 0.0,
+    "sweep_diff_deg": 0.0
+   }
+  }
+ ],
+ "solver_bends": [
+  {
+   "id": "G1",
+   "source": "E1",
+   "class": null
+  },
+  {
+   "id": "J1",
+   "source": "ROLL_SOLVER_JUNCTION",
+   "class": null
+  }
+ ],
+ "graph": {
+  "nodes": [
+   {
+    "id": "P0",
+    "type": "PANEL",
+    "source": "E1"
+   },
+   {
+    "id": "P1",
+    "type": "PANEL",
+    "source": "E1"
+   },
+   {
+    "id": "R1",
+    "type": "ROLL",
+    "source": "ROLL_SOLVER"
+   }
+  ],
+  "edges": [
+   {
+    "id": "G1",
+    "type": "BEND",
+    "source": "E1",
+    "ends": [
+     "P0",
+     "P1"
+    ],
+    "e1_class": null
+   },
+   {
+    "id": "J1",
+    "type": "JUNCTION_BEND",
+    "source": "ROLL_SOLVER",
+    "ends": [
+     "R1",
+     "P0"
+    ]
+   }
+  ],
+  "components": 1,
+  "coherent": true
+ },
+ "unclassified_paired_features": [],
+ "unpaired_large_curved_skins": [],
+ "large_radius_curved_faces": [
+  {
+   "face": 0,
+   "surface": "cylinder",
+   "radius_mm": 31.5,
+   "r_over_t": 21.0,
+   "convex": true,
+   "area_mm2": 6310.618052,
+   "axial_extent_mm": 76.5,
+   "solver": "R1",
+   "e1_role": "wall"
+  },
+  {
+   "face": 4,
+   "surface": "cylinder",
+   "radius_mm": 30.0,
+   "r_over_t": 20.0,
+   "convex": false,
+   "area_mm2": 6067.764491,
+   "axial_extent_mm": 76.5,
+   "solver": "R1",
+   "e1_role": "wall"
+  }
+ ],
+ "curved_faces": {
+  "cylinder": 16,
+  "cone": 5
+ },
+ "runtime_s": 0.22
+}

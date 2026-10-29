@@ -16,7 +16,7 @@ The extracted CAD bends serve as ground truth for comparing against scan measure
 import numpy as np
 from typing import List, Tuple, Optional, Dict, Any
 from dataclasses import dataclass, field
-from collections import defaultdict
+from collections import defaultdict, deque
 import logging
 import time
 
@@ -350,12 +350,17 @@ class CADBendExtractor:
             if face_labels[start_face] >= 0:
                 continue
 
-            queue = [start_face]
+            # A list with pop(0) makes dense scan meshes quadratic.  A deque
+            # preserves the same deterministic breadth-first order in O(1)
+            # per face, which is essential when scan PLY connectivity is used
+            # as an identity-free F1 candidate source.
+            queue = deque([start_face])
             region = []
             ref_normal = face_normals[start_face].copy()
+            weighted_normal_sum = np.zeros(3, dtype=np.float64)
 
             while queue:
-                fi = queue.pop(0)
+                fi = queue.popleft()
                 if face_labels[fi] >= 0:
                     continue
 
@@ -369,17 +374,18 @@ class CADBendExtractor:
                 region.append(fi)
 
                 # Update reference normal (area-weighted average)
-                if len(region) > 1:
-                    region_arr = np.array(region)
-                    weights = face_areas[region_arr]
-                    weighted_normals = face_normals[region_arr] * weights[:, None]
-                    avg = weighted_normals.sum(axis=0)
-                    norm = np.linalg.norm(avg)
-                    if norm > 0:
-                        ref_normal = avg / norm
+                weighted_normal_sum += face_normals[fi] * face_areas[fi]
+                norm = np.linalg.norm(weighted_normal_sum)
+                if norm > 0:
+                    ref_normal = weighted_normal_sum / norm
 
                 # Add neighbors connected by flat edges
                 for neighbor in face_adj.get(fi, set()):
+                    # Preserve historical retry semantics: a face rejected
+                    # against the evolving region normal can be reconsidered
+                    # through another accepted neighbor after that normal
+                    # changes.  A permanent queued set fragmented surfaces and
+                    # moved scan-derived bend axes.
                     if face_labels[neighbor] < 0:
                         queue.append(neighbor)
 
@@ -468,8 +474,8 @@ class CADBendExtractor:
                 # Compute bounding box overlap
                 overlap_u = max(0, min(proj1_u.max(), proj2_u.max()) - max(proj1_u.min(), proj2_u.min()))
                 overlap_v = max(0, min(proj1_v.max(), proj2_v.max()) - max(proj1_v.min(), proj2_v.min()))
-                extent1_u = proj1_u.ptp()
-                extent1_v = proj1_v.ptp()
+                extent1_u = np.ptp(proj1_u)
+                extent1_v = np.ptp(proj1_v)
 
                 if extent1_u > 0 and extent1_v > 0:
                     overlap_ratio = (overlap_u * overlap_v) / (extent1_u * extent1_v)

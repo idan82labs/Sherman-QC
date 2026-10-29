@@ -1,0 +1,363 @@
+{
+ "schema": "sherman.generality_check.v1",
+ "created_at": "2026-10-19",
+ "label": "families never used for engine tuning; labels are Claude vision gold (CONSUMED dev split); NOT the sealed FRESH/DEV-CHECK final evaluation",
+ "engine": {
+  "e3_version": "e3-1.9.0",
+  "a1_iteration": "iter_7 (final; A1 paused)",
+  "e1_compiler_version": "e1-1.1.0",
+  "inspect_tree_sha256_of_concatenated_py": "619d314fe859b392131128d28ddd58b01fc3adb5c0184d8580665dff70a88978",
+  "note": "config.py last modified 04:40Z, before these runs (04:49Z); same E3 version at start and end of every case; engine code read-only"
+ },
+ "matcher": "research/broad_baseline/score.py cases (frozen scripts/evaluate_f1_against_manual_gold.match_lines; 5 deg / 4 mm / 0.6 / Hungarian; apex locus; raw frame); E3 lines = line_metric.engine_lines(OUTER_APEX, raw)",
+ "case_selection": {
+  "source": "docs/production/runlog/gold_set_v2/case_list_gold_v2_cad.json",
+  "non_A1_family_cases": 17,
+  "dropped_devcheck_sealed_count_only": 14,
+  "dropped_other_custody": 0,
+  "codex_fetch_cases_kept": 0,
+  "kept": 3,
+  "kept_families": 3,
+  "custody_method": "count-only script: devcheck_SEALED.json sha verified against LEDGER.json, membership by family / scan sha / CAD sha; no sealed identifiers printed or stored. Remaining cases checked against BENCHMARK_V3 split (all CONSUMED) and FRESH/SEALED/HOLDOUT10/N001-N016/EHO4/LIDAR_DEMO path tags.",
+  "note": "superseded by scope_v2"
+ },
+ "scores": {
+  "tier_A": {
+   "e3": {
+    "micro": {
+     "tp": 2,
+     "fp": 0,
+     "fn": 2,
+     "precision": 1.0,
+     "recall": 0.5,
+     "f1": 0.6667
+    },
+    "family_macro": {
+     "precision": 0.5,
+     "recall": 0.5,
+     "f1": 0.5
+    },
+    "families": 2,
+    "per_family": {
+     "37126000": {
+      "tp": 0,
+      "fp": 0,
+      "fn": 2,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0
+     },
+     "49201000": {
+      "tp": 2,
+      "fp": 0,
+      "fn": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+     }
+    }
+   },
+   "best_f1_rescore_full": {
+    "micro": {
+     "tp": 2,
+     "fp": 3,
+     "fn": 2,
+     "precision": 0.4,
+     "recall": 0.5,
+     "f1": 0.4444
+    },
+    "family_macro": {
+     "precision": 0.5,
+     "recall": 0.5,
+     "f1": 0.5
+    },
+    "families": 2,
+    "per_family": {
+     "37126000": {
+      "tp": 0,
+      "fp": 3,
+      "fn": 2,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0
+     },
+     "49201000": {
+      "tp": 2,
+      "fp": 0,
+      "fn": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+     }
+    }
+   }
+  },
+  "tier_B": "NOT_SCORED (custody gate, see scope_v2)",
+  "supplementary_A1_seen_zero_bend_control_sc_b4719db3dd69": {
+   "e3_fp_lines": 0,
+   "e3": "compile BLOCKED DATUM_PANEL_UNDETERMINED -> E3 refusal",
+   "best_f1_fp_lines": 2
+  }
+ },
+ "per_bend_formed_agreement": {
+  "tier_A_gold_formed_bends": 4,
+  "engine_formed_and_matched": 2,
+  "no_engine_state_no_recipe": 2,
+  "engine_not_formed_on_gold_formed": 0,
+  "agreement_over_gold_bends": 0.5,
+  "agreement_over_engine_reported": 1.0
+ },
+ "compile": {
+  "tier_A": {
+   "attempted": 2,
+   "compiled": 1,
+   "no_recipe": 1
+  },
+  "tier_B": {
+   "attempted": 5,
+   "compiled": 5
+  },
+  "supplementary": {
+   "blocked": 1
+  },
+  "all_attempted": {
+   "attempted": 8,
+   "compiled": 6,
+   "rate": 0.75
+  }
+ },
+ "refusals": {
+  "tier_A": {
+   "e3_ok": 1,
+   "not_run_no_recipe": 1,
+   "crash": 0
+  },
+  "supplementary": {
+   "e3_explicit_refusal": 1
+  },
+  "tier_B": {
+   "e3_blocked_by_custody_gate": 5
+  }
+ },
+ "label_problems_found": [],
+ "cases": [
+  {
+   "case_id": "sc_822f083e3dfc",
+   "family_id": "37126000",
+   "gold_tier": "GOLD_SET_V1",
+   "gold_path": "data/bend_corpus/annotations/ai_bend_lines_gold_v1/c769e053715d973985c0c85c.json",
+   "gold_lines": 2,
+   "zero_bend_control": false,
+   "recipe": {
+    "policy": "E1-DEV-POLICY-1 DEV_AUTO_CONFIRMED (freeze amendment 4d rule)",
+    "status": "NO_RECIPE",
+    "candidates": 0,
+    "extractor_counts": {
+     "native": 0,
+     "v10": 0
+    },
+    "merge_error": null,
+    "build_wall_s": 1.59,
+    "build_peak_rss_bytes": 339640320
+   },
+   "compile": {
+    "status": "NO_RECIPE",
+    "reason": "NO_CANDIDATE_BENDS",
+    "compiler_version": null,
+    "bends": null,
+    "thickness_mm": null,
+    "warning_codes": null,
+    "wall_s": null,
+    "peak_rss_bytes": null
+   },
+   "e3": {
+    "status": "NOT_RUN_NO_COMPILED_PART"
+   },
+   "engine_version": "e3-1.9.0",
+   "engine_version_end": "e3-1.9.0",
+   "engine_bend_states": null,
+   "line_score_e3": {
+    "disposition": "SCORED_COMPLETE_LABEL",
+    "gold_count": 2,
+    "prediction_count": 0,
+    "true_positive": 0,
+    "false_positive": 0,
+    "false_negative": 2,
+    "false_positive_lines": null,
+    "lane_status": "PREDICTIONS_MISSING"
+   },
+   "line_score_best_f1_rescore_full": {
+    "disposition": "SCORED_COMPLETE_LABEL",
+    "gold_count": 2,
+    "prediction_count": 3,
+    "true_positive": 0,
+    "false_positive": 3,
+    "false_negative": 2,
+    "false_positive_lines": null,
+    "lane_status": "OK"
+   },
+   "best_f1_runtime": {
+    "lane_wall_s": 8.566,
+    "peak_rss_gib": 0.253
+   },
+   "overlay": "docs/production/runlog/generality_check_2026-10-19/overlays/sc_822f083e3dfc.png",
+   "tier": "A_unseen_family"
+  },
+  {
+   "case_id": "sc_b4719db3dd69",
+   "family_id": "47479000",
+   "gold_tier": "GOLD_SET_V1",
+   "gold_path": "data/bend_corpus/annotations/ai_bend_lines_gold_v1/af36cde5bd3c635214303345.json",
+   "gold_lines": 0,
+   "zero_bend_control": true,
+   "recipe": {
+    "policy": "E1-DEV-POLICY-1 DEV_AUTO_CONFIRMED (freeze amendment 4d rule)",
+    "status": "RECIPE_BUILT",
+    "candidates": 1,
+    "extractor_counts": {
+     "native": 1,
+     "v10": 0
+    },
+    "merge_error": "GraphError: DATUM_PANEL_UNDETERMINED: the CAD has no planar flange panel joined by a bend",
+    "build_wall_s": 1.89,
+    "build_peak_rss_bytes": 370343936
+   },
+   "compile": {
+    "status": "BLOCKED",
+    "reason": "DATUM_PANEL_UNDETERMINED",
+    "compiler_version": "e1-1.1.0",
+    "bends": 0,
+    "thickness_mm": null,
+    "warning_codes": [],
+    "wall_s": 0.981,
+    "peak_rss_bytes": 361922560
+   },
+   "e3": {
+    "status": "ENGINE_EXIT_2",
+    "detail": "COMPILE_BLOCKED",
+    "wall_s": 0.3,
+    "peak_rss_bytes": 91865088
+   },
+   "engine_version": "e3-1.9.0",
+   "engine_version_end": "e3-1.9.0",
+   "engine_bend_states": null,
+   "line_score_e3": {
+    "disposition": "ZERO_BEND_CONTROL",
+    "gold_count": 0,
+    "prediction_count": 0,
+    "true_positive": null,
+    "false_positive": null,
+    "false_negative": null,
+    "false_positive_lines": 0,
+    "lane_status": "PREDICTIONS_MISSING"
+   },
+   "line_score_best_f1_rescore_full": {
+    "disposition": "ZERO_BEND_CONTROL",
+    "gold_count": 0,
+    "prediction_count": 2,
+    "true_positive": null,
+    "false_positive": null,
+    "false_negative": null,
+    "false_positive_lines": 2,
+    "lane_status": "OK"
+   },
+   "best_f1_runtime": {
+    "lane_wall_s": 379.519,
+    "peak_rss_gib": 1.397
+   },
+   "overlay": "docs/production/runlog/generality_check_2026-10-19/overlays/sc_b4719db3dd69.png",
+   "tier": "SUPPLEMENTARY_A1_SEEN (G2_COMPLETE_A1)"
+  },
+  {
+   "case_id": "sc_203b95d7a753",
+   "family_id": "49201000",
+   "gold_tier": "GOLD_SET_V2",
+   "gold_path": "data/bend_corpus/annotations/ai_bend_lines_gold_v1/24e4eadba66bc5a43a90d072.json",
+   "gold_lines": 2,
+   "zero_bend_control": false,
+   "recipe": {
+    "policy": "E1-DEV-POLICY-1 DEV_AUTO_CONFIRMED (freeze amendment 4d rule)",
+    "status": "RECIPE_BUILT",
+    "candidates": 2,
+    "extractor_counts": {
+     "native": 2,
+     "v10": 2
+    },
+    "merge_error": null,
+    "build_wall_s": 1.12,
+    "build_peak_rss_bytes": 356417536
+   },
+   "compile": {
+    "status": "COMPILED",
+    "reason": null,
+    "compiler_version": "e1-1.1.0",
+    "bends": 2,
+    "thickness_mm": 1.5,
+    "warning_codes": [
+     "FLAT_NOT_BOUND",
+     "K_FACTOR_DEFAULTED"
+    ],
+    "wall_s": 2.284,
+    "peak_rss_bytes": 540737536
+   },
+   "e3": {
+    "status": "OK",
+    "detail": "",
+    "wall_s": 14.661,
+    "peak_rss_bytes": 995786752
+   },
+   "engine_version": "e3-1.9.0",
+   "engine_version_end": "e3-1.9.0",
+   "engine_bend_states": [
+    {
+     "bend_uid": "bu_df748a461bd4d2bf6f40",
+     "label": "B1",
+     "state": "FORMED"
+    },
+    {
+     "bend_uid": "bu_acf23dd9e43b0270acf6",
+     "label": "B2",
+     "state": "FORMED"
+    }
+   ],
+   "line_score_e3": {
+    "disposition": "SCORED_COMPLETE_LABEL",
+    "gold_count": 2,
+    "prediction_count": 2,
+    "true_positive": 2,
+    "false_positive": 0,
+    "false_negative": 0,
+    "false_positive_lines": null,
+    "lane_status": "OK"
+   },
+   "line_score_best_f1_rescore_full": {
+    "disposition": "SCORED_COMPLETE_LABEL",
+    "gold_count": 2,
+    "prediction_count": 2,
+    "true_positive": 2,
+    "false_positive": 0,
+    "false_negative": 0,
+    "false_positive_lines": null,
+    "lane_status": "OK"
+   },
+   "best_f1_runtime": {
+    "lane_wall_s": 87.486,
+    "peak_rss_gib": 0.907
+   },
+   "overlay": "docs/production/runlog/generality_check_2026-10-19/overlays/sc_203b95d7a753.png",
+   "tier": "A_unseen_family"
+  }
+ ],
+ "scope_v2": {
+  "rule": "every GOLD_SET_V2 CAD case (43) whose scan sha256 is not in any A1 run list (freeze/*_A1.json cases/broad/g2/g3/gold/known_good/repeatability; excluded_scans not counted as run)",
+  "a1_seen": 22,
+  "unseen": 21,
+  "dropped_devcheck_count_only": 14,
+  "dropped_other_custody": 0,
+  "tier_A_unseen_family_kept": 2,
+  "tier_B_seen_family_new_scan_kept": 5,
+  "tier_B_twin_note": "4 of the 5 tier-B PLYs are vertex-identical copies (twin_vertex_check, max NN 0.0 mm) of STL scans A1 ran on: sc_3c93a0bf6f97=sc_d45186653eed, sc_1a5377ac7c15=sc_8dfdab44605d, sc_43a32fe3b4a3=sc_927a2fa13067, sc_db487cbd29a7=sc_9b9fd762f361. Only sc_8026eedce786 (38172000 FULL SCAN 1, 12 gold lines) is a genuinely new scan.",
+  "tier_B_status": "NOT SCORED. E1 compiled all 5 DEV recipes, but E3 was refused by the freeze custody gate (eval/freeze/common.custody_check forbids incoming_codex_fetch_2026-10-17/, the A1-isolation rule), although BENCHMARK_V3 marks all 5 CONSUMED. A sha-verified bypass was denied by the permission system; needs owner/coordinator authorization.",
+  "sc_b4719db3dd69": "47479000 is in G2_COMPLETE_A1, so A1 has seen it; it was moved out of tier A and is reported as supplementary only"
+ }
+}

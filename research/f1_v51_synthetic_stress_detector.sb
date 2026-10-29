@@ -1,0 +1,38 @@
+(version 1)
+
+; Quarantined detector boundary for SYNTHETIC_LIDAR_STRESS_V2_NON_CONFIRMATORY.
+; The detector may read synthetic scan meshes, code, and frozen source-only
+; models. Synthetic truth, family/deviation metadata, visual adjudication, all
+; historical labels/evaluations, CAD, and drawings remain unreadable.
+(allow default)
+
+(deny file-read*
+  (subpath "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/annotations"))
+(deny file-read*
+  (subpath "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/evaluation"))
+(deny file-read*
+  (subpath "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/evaluation_slices"))
+(deny file-read*
+  (subpath "/Users/idantal/ShermanQC/FullProject/output/research/f1-gold27-20260803"))
+(deny file-read*
+  (subpath "/Users/idantal/ShermanQC/FullProject/output/research/f1-v51-gold37-blind-once-20260814"))
+
+(deny file-read*
+  (literal "/Users/idantal/ShermanQC/FullProject/output/research/f1-synthetic-lidar-stress-v2-20260814/truth.json"))
+(deny file-read*
+  (literal "/Users/idantal/ShermanQC/FullProject/output/research/f1-synthetic-lidar-stress-v2-20260814/family_map.json"))
+(deny file-read*
+  (literal "/Users/idantal/ShermanQC/FullProject/output/research/f1-synthetic-lidar-stress-v2-20260814/generation_metadata.json"))
+(deny file-read*
+  (literal "/Users/idantal/ShermanQC/FullProject/output/research/f1-synthetic-lidar-stress-v2-20260814/density_calibration.json"))
+(deny file-read*
+  (literal "/Users/idantal/ShermanQC/FullProject/output/research/f1-synthetic-lidar-stress-v2-20260814/truth_visual_manual_audit.json"))
+(deny file-read*
+  (subpath "/Users/idantal/ShermanQC/FullProject/output/research/f1-synthetic-lidar-stress-v2-20260814/truth_cases"))
+(deny file-read*
+  (subpath "/Users/idantal/ShermanQC/FullProject/output/research/f1-synthetic-lidar-stress-v2-20260814/truth_overlays"))
+(deny file-read*
+  (subpath "/Users/idantal/ShermanQC/FullProject/output/research/f1-synthetic-lidar-stress-v2-20260814/contact_sheets"))
+
+(deny file-read*
+  (regex #"(?i).*/[^/]*\.(stp|step|sldprt|sldasm|dxf|dwg|pdf)$"))

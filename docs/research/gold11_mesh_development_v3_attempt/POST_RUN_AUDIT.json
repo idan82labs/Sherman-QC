@@ -1,0 +1,2205 @@
+{
+  "schema": "GOLD11_MESH_DEVELOPMENT_V3_INDEPENDENT_POST_RUN_AUDIT_V1",
+  "decision": "BLOCKED_FORMAL_RELEASE_INCOMPLETE_ARTIFACT_CUSTODY",
+  "review_date": "2026-09-10",
+  "reviewer": "/root/production_architecture_review — independent AI engineering retained-evidence reviewer; not human manufacturing approval",
+  "attempt": "docs/research/gold11_mesh_development_v3_attempt",
+  "bundle_sha256": "ffee4c1012393ff67607160c888bd5d00ea0ac5b81784b6f4ab32d40d3fa9a27",
+  "pre_run_audit_raw_sha256": "6cb07d52cc35739ef908fdb5b2c73fdbf3c00796f2bc2f8cb4bfe7c7dee3018a",
+  "formal_scientific_release_allowed": false,
+  "production_use_allowed": false,
+  "floor_release_allowed": false,
+  "inference_retry_or_resume_allowed": false,
+  "blocking_findings": [
+    {
+      "id": "UNMANIFESTED_TERMINAL_FILL_CONTROL_PARTIALS",
+      "disposition": "FORMAL_RELEASE_WITHHELD_NO_RETROACTIVE_PROTOCOL_RELAXATION",
+      "finding": "44 complete fallback-control JSON files survive as unpublished .partial-* names outside the parent's116-file owned-artifact manifest: one SCORING_INPUT partial and one COMPLETED partial in each of22case/arm directories.",
+      "count": 44,
+      "logical_bytes": 7348,
+      "all_regular_files": true,
+      "hardlink_aliases_of_canonical_destinations": 0,
+      "all_distinct_from_canonical_destination_inodes": true,
+      "source_cause": "terminalize_case_records unconditionally calls exclusive_json for both target names even when they exist. publish_bytes writes/fsyncs a new temporary file before os.link; FileExistsError bypasses temporary.unlink. The terminalizer catches FileExistsError and validates the existing canonical target, leaving the attempted fallback unmanifested. The parent invokes terminalization on the nominal success path too.",
+      "source_references": [
+        "scripts/run_gold11_mesh_development_v3.py:421",
+        "scripts/run_gold11_mesh_development_v3.py:1035",
+        "scripts/run_gold11_mesh_development_v3.py:1461"
+      ],
+      "parent_manifest_claim": "116entries /773409755bytes /complete=true; every one of those bindings independently matches, but the manifest is not the entire retained control/artifact set.",
+      "including_omitted_control_partials_entries": 160,
+      "including_omitted_control_partials_bytes": 773417103,
+      "frozen_parent_manifest_entry_cap": 128,
+      "protocol_conflict": "The frozen complete/partial retention and final artifact-custody claim is incomplete. Adding these44 files to the current manifest would exceed its128-entry bound; no started artifact/limit/source may be rewritten to rescue release.",
+      "scoring_effect": "No canonical target was overwritten. Partials were never linked as canonical records, selected by INFERENCE_TERMINAL, or supplied to the scorer. Required source/report/reference hashes and already matched zero-output counts remain authenticated.",
+      "preservation": "All44 files were read, hashed and recorded below; none deleted, rewritten, linked into canonical names or used as scoring input.",
+      "future_repair": "A separately versioned terminal-fill/publication fix must test existing-target and failed-link behavior plus partial-artifact accounting. This spent attempt is not rerun or retroactively declared clean."
+    }
+  ],
+  "review_scope": {
+    "original_raw_scan_cad_catalog_or_cached_prediction_roots_opened": false,
+    "other_attempt_geometry_opened": false,
+    "inference_scorer_matcher_or_geometry_rerun": false,
+    "source_or_existing_control_edits": false,
+    "full_results_read": "19 bounded complete RESULT files individually parsed only for retained fields/counters/IDs/ledgers; each hashed sequentially, never loaded as an inference input.",
+    "compressed_plane_metadata": "Preserved encoded bytes; no array reconstruction, decoder execution or refit. The one membership refusal's schema-table scalar names/values were inspected directly.",
+    "metrics_check": "Arithmetic and complete-denominator reconciliation of already matched case records; no geometric pair or assignment recomputation.",
+    "sole_owned_edit": "docs/research/gold11_mesh_development_v3_attempt/POST_RUN_AUDIT.json"
+  },
+  "execution_evidence": {
+    "root_observed_parent_exit_code": 0,
+    "parent_exit_observer": "/root integrating agent, terminal observation through session49811 explicitly supplied to reviewer",
+    "parent_receipt_status": "COMPUTED_PENDING_INDEPENDENT_POST_AUDIT",
+    "final_gate_status": "PENDING_INDEPENDENT_POST_AUDIT",
+    "parent_failures": [],
+    "parent_reported_campaign_budget_stop": null,
+    "independently_confirmed_case_terminals": 22,
+    "independently_confirmed_case_exit_zero": 19,
+    "independently_confirmed_sigxcpu_terminals": 3,
+    "sigxcpu_exit_code": -24,
+    "signal_number_verified_from_stdlib": 24,
+    "successful_engine_outputs": 0,
+    "parent_exit_is_not_engine_or_custody_success": true,
+    "existing_pending_controls_left_unchanged": true,
+    "absent_veto_files_at_audit": [
+      "FINALIZATION_FAILED.json",
+      "SCORING_UNAVAILABLE.json"
+    ],
+    "independent_blocker_not_reported_by_parent_gate": true
+  },
+  "source_and_control_audit": {
+    "declared_source_count": 38,
+    "live_and_frozen_files_hashed": 76,
+    "all_expected_source_hashes_match": true,
+    "source_bytes_per_copy": 964653,
+    "all_initial_file_size_identity_and_mtime_ctime_checks_stable_after_reads": true,
+    "untouched_frozen_and_pre_run_raw_hashes_verified": true,
+    "canonical_bundle_sha256": "ffee4c1012393ff67607160c888bd5d00ea0ac5b81784b6f4ab32d40d3fa9a27",
+    "frozen_raw_sha256": "dc0c0cdff5d5095d18d2e4d6129c9401b915fcc5b7da3b9d46326dc42eba58c3",
+    "final_gate_canonical_completed_sha256": "b10054d814ee6218b60414a9a7f24b7900b50bcf7d32336e570c2d675a657bb1",
+    "final_gate_source_audit_sha256": "6663a93faf4d31e22b41ef78ec5988f4d095708f6da2caf44357b8fe7851dcf6",
+    "final_gate_manifest_sha256": "b8a04427826983a12e57a79a338799ccdf61518c536aa4573abdc0456e5a5c58",
+    "final_gate_control_digests_independently_recomputed": true,
+    "current_and_frozen_source_sha256": {
+      "backend/cad_guided_cad_sampling_v1.py": "f1d32159a50b455d6b9a0b5f646586f0d79e7f9c26e8fffbe67f97c5b74e181a",
+      "backend/cad_guided_cad_surface_v2.py": "b7364234a716f283f46246a452451f47c8efb07c18b2d37375c6fda0636da0d1",
+      "backend/cad_guided_face_box_screen_v1.py": "c8f66cc25f5c4cb6a6ba3c1e1beeb205540813796bb2ab30d72eb596cdf3abb7",
+      "backend/cad_guided_global_registration_v1.py": "7700541063c4bfb40c72fb66baf2a78fea1c631e5e3f93eabbb51edfdb59eff7",
+      "backend/cad_guided_global_registration_v2.py": "5a1b039d17b6d5bb5840ebb16b5ab3d131ca3df1b6c186746804327921627dc3",
+      "backend/cad_guided_global_registration_v3.py": "088c0b5e9fd940094fd44462e7e5c831299fe2c69b87418d09c362772263bae0",
+      "backend/cad_guided_instances.py": "d30b3fc8579b0a2d44d37bfe093343b3f7d703661793784d78b50efbc38eacda",
+      "backend/cad_guided_local_measurement_v1.py": "5b07e8c14d3eededfb7cbdb2cb628e6d631a30662280fc2d39b2528d862b541b",
+      "backend/cad_guided_measurement.py": "d3a11bde2b14c6ece39414360e3146bf60e3801190b9e04cd6c5178ed903f2cb",
+      "backend/cad_guided_mesh_input_v1.py": "c4d936e2f60837d7c5221c9a46b64abd68c4ccee01ea72e9fd3c4050bde47917",
+      "backend/cad_guided_mesh_offline_v1.py": "55243b2a557e77a9c50e27a7fdef9257d60ed2468bc23c1788c391d7a836bdba",
+      "backend/cad_guided_mesh_offline_v10.py": "81d9411ccfff00c9f9fe5aa9b6fc25d7384acf993d34cfdbb0349dfe109c7fa4",
+      "backend/cad_guided_mesh_offline_v2.py": "fa30bc1ed575f9174414e3737eaaffecc6eafdcbcd9e3b1d68475f1af7ea8cbf",
+      "backend/cad_guided_mesh_offline_v8.py": "afdfc7f859eb5fdbf0fa7d796cc06a4180d40c02f6b0e590362f83e3f339e7ec",
+      "backend/cad_guided_mesh_plane_proposals_v4.py": "55356d900ce933b4dd4ff9fc8d055fdb46038422b69b6e05f7f9509d73f5ed48",
+      "backend/cad_guided_mesh_topology_v4.py": "4d061b56a39aee6b7d9e8c04eb7af88b0573a7916d3d679c610c4aca81ee0734",
+      "backend/cad_guided_native_features.py": "f8c681027af231546974633a02f12038d522c604bec14196f2ae5d49b439c99f",
+      "backend/cad_guided_native_features_v1.py": "3804a583f5642df41cd3eb02be36b3f5024347b6514861d404389e85c1ccf98b",
+      "backend/cad_guided_noisy_mesh_planes_v5.py": "9a045e2f7c7fe5fc21c38cf169236ea7d3fa181f5d8298c6b9882935b3793b75",
+      "backend/cad_guided_noisy_mesh_planes_v7.py": "b0822289cf3abbde9c7cbf263b45c8d8ef4c4f45d7913e452c47a46ed881449f",
+      "backend/cad_guided_plane_hypotheses_v4.py": "7e69fce8bf79216342071aacfbbb7c0d73972c78334cc81d7f0fe15c831f1370",
+      "backend/cad_guided_plane_initialization_v10.py": "398c40055c00fd3432410242a7a2ee399d9d716ea8cb3c1755916904b6074331",
+      "backend/cad_guided_plane_initialization_v4.py": "a4586cd02c490493472ea842622efeafe9ae18f246979ad4be364313bad72724",
+      "backend/cad_guided_plane_initialization_v8.py": "cd225b4642816f76cfd4b8bd725e3b8ffa5d9f6177ddbfa9b03fb6a22128c28b",
+      "backend/cad_guided_plane_search_v6.py": "aa2f9067c5e4e65129c0c8c42d39b6d980c3e33fadac6daf881e544648292676",
+      "backend/cad_guided_report_envelope_v6.py": "c7cc45a362c5972aff78265b2ce63fa4d41ec023b662640d7d197c23003ba28e",
+      "backend/cad_guided_triangle_distance_bounds_v3.py": "2404278ebd8872dafa6752d9bf977879e7d0a21ea41752ec740501b7044058d7",
+      "backend/cad_guided_triangle_surface_v2.py": "7b5333e18817d30905f3a1ace1cbf1e85129ad904324c5e6ccf2baff665a5cc1",
+      "backend/cad_guided_triangle_surface_v3.py": "8e3222bd425451e2e89b2fe0083db34a3702577018b3f557b1f026a86add9f10",
+      "docs/research/2026-09-10_gold11_mesh_development_v3_protocol.md": "12d5ed1e5b11af055f6a7702f66cfe75dde4686a0d0adf934698a0d417becd85",
+      "scripts/evaluate_f1_against_manual_gold.py": "1e9420558b91f9b136fb32ed012b56c64cdaeecf7599ee1ef9fe336915d75c62",
+      "scripts/f1_physical_evaluation_contract_v2.py": "28522ee7c63d6886304042a97c736397ea6f043bf77f064cb42efc17a8b1a9b7",
+      "scripts/gold11_mesh_scoring_v1.py": "aa34a2f71bac4edacba41a7e82af0b0a6d4c3d17560fb5e05dab8991ccd0b234",
+      "scripts/gold11_owned_process_supervision_v1.py": "1b90b86ef77510e32d72d3e08e85417860a8fb06ba0ad3294274a83bfb65ba74",
+      "scripts/review_gold11_inputs_v1.py": "41a79da155cf9955bf231fd3374baa5a9e4c79c1a0e6002af6f6a1dab4592955",
+      "scripts/run_gold11_mesh_development_v2.py": "94d51b90faef0d88b15ed2d3d84d5b7d36ba94bfb6f63f90b9cc555a35e26422",
+      "scripts/run_gold11_mesh_development_v3.py": "77bbcffbf10f05a22d0c72c8a645112e489469b4af92b4dbba3ca6243fcecea7",
+      "tests/test_gold11_mesh_development_runner_v3.py": "9b6c1059ac53c8b788dfbe7b8f4d86f61ed87bef41648230526e69c0d29852f2"
+    },
+    "raw_control_hashes": {
+      "FROZEN.json": "dc0c0cdff5d5095d18d2e4d6129c9401b915fcc5b7da3b9d46326dc42eba58c3",
+      "PRE_RUN_AUDIT.json": "6cb07d52cc35739ef908fdb5b2c73fdbf3c00796f2bc2f8cb4bfe7c7dee3018a",
+      "STARTED.json": "e5eaab20178a581c0167bb0ebebebfac9ac5924b7bc718d340e94e231ba58bcc",
+      "COMPLETED.json": "9570277bb6781406a5199d4a5c37a2aaeea560437558543f58a9a10ec53412fc",
+      "FINAL_GATE.json": "82e6a8534f308783c9a057b731af7ff38373ac228e36e646a2541e7b32900021",
+      "COORDINATOR_DISPATCH.json": "a94c2767b112eb005f89d8457283406536f756e1d133c69a6ffafb72cfd597fd",
+      "COORDINATOR_VERIFIED.json": "1bde8337032fb71bd06d3df846f4b28cc521f4f46f09b639e4cd86ad51e372f8",
+      "COORDINATOR_COMPLETED.json": "bd027115ec70478ae4be30c742e261eccb621056b5bb30a331794f6326c1800a",
+      "COORDINATOR_OUTPUT.txt": "f6e1f7a4b2ce83607ef3249675b0f3e4e6392a76e66643872f55e9c90d3fc104",
+      "INFERENCE_TERMINAL.json": "4da46d5d348acd057b44d730fdd33d12b8bafcb41f398f124711c6b17eea2ae6",
+      "SCORED.json": "5f4d0359bdf8ebd079fa6dcfda174d4d24db5950dac42068352b9b331cdfd166",
+      "SCORER_ARTIFACT_RETENTION.json": "dceef1cc953bad3bd1c4b791cec07fbb4fc940aaf9cc10d359a8c3ae10ecc4b8",
+      "SCORER_OUTPUT.txt": "f1994d2e8261c763fa56af3ece3f73de2070fd98482a8b4614e2982331bfad47",
+      "SCORER_RECEIPT.json": "d5bf5e5b998a65c9b6346063b8431d3ce6f526d95cc364f919e515ea10baeb0c",
+      "SCORER_RESULT.json": "2ebf8c0d62281323aaf301ef6c737a7fb18db21f998c4f18cdc91a1da1ca4f2d",
+      "SELECTED_REFERENCES.json": "d16390b2c05157874444f4c3507558bddf28e93b54ccb148228f75248c2b45dc"
+    },
+    "runtime_metadata_unchanged_receipt": true,
+    "binary_attestation": "NOT_ESTABLISHED_VERSION_METADATA_ONLY"
+  },
+  "dispatch_and_logs": {
+    "coordinator_outer_pid": 47736,
+    "coordinator_pid": 47738,
+    "outer_direct_child_reaped": true,
+    "outer_owned_group_empty_confirmed": true,
+    "cleanup_errors": [],
+    "control_close_errors": [],
+    "observed_foreign_identity_or_group_escape": false,
+    "neutral_inference_leaf_dispatches_and_claims": 22,
+    "neutral_scorer_leaf_dispatches_and_claims": 1,
+    "leaf_control_file_count": 46,
+    "all_leaf_role_parent_context_canonical_dispatch_hash_and_worker_identity_bindings_verified": true,
+    "all_inference_leaf_arms_scan_and_cad_hash_bindings_match_fixed_cases": true,
+    "scorer_request_binding_reconstructed_from_owned_selected_refs_and22projections": true,
+    "temporary_input_cache_paths_not_reopened_or_statted": true,
+    "leaf_control_sha256": {
+      "leaf_dispatch/14230361b9b44349fb877955c4c35a597331dc7c8cb799510e4ee95801ec04f4.json": "cb2c492586e2e8e19bab43531cc5b4e8f7d6adfb21626d8016c10a2a927a1178",
+      "leaf_dispatch/14230361b9b44349fb877955c4c35a597331dc7c8cb799510e4ee95801ec04f4.CLAIMED.json": "57b7ff5f0c878ce5ad9fdc3176783f66772d165db812f30150fec54f1823dd14",
+      "leaf_dispatch/14d190097a30f1cda0afc4fb97b4d5b6711fd1308cbdaee2c98e81bb145014fa.json": "0e1de90d140500c9089f8487a87c99cd780eb6bc37fb64ed0629de4228933653",
+      "leaf_dispatch/14d190097a30f1cda0afc4fb97b4d5b6711fd1308cbdaee2c98e81bb145014fa.CLAIMED.json": "194d46e558dc7dce14bb10513139655fc5ba3caa08c1fcb699155d480675da53",
+      "leaf_dispatch/24510e4ba79c57d3da3a5d247f1dfca2890fde3908744aee22fe61fe394b7296.json": "1aaf639f056b278bb4b6f92ff0cb02d143b0ba33bbc144381bc8096c4e0f5b3a",
+      "leaf_dispatch/24510e4ba79c57d3da3a5d247f1dfca2890fde3908744aee22fe61fe394b7296.CLAIMED.json": "19b61c18c17fdfeec7a35c2def16286a10f0f2c76f272456c7df51730155be0e",
+      "leaf_dispatch/35a127aaea6f09bb626ecefd87e33a19a0daa1045d293d7679c9ba37a481e24f.json": "aa7d3d481c64f3d91efded6d3a4d335c74feaed76bb7a1a47e42176409116ba6",
+      "leaf_dispatch/35a127aaea6f09bb626ecefd87e33a19a0daa1045d293d7679c9ba37a481e24f.CLAIMED.json": "2857b50a9568eedfefab23ee74fe99f26778db6d90b3b78d7d0681cc429ded03",
+      "leaf_dispatch/3c8495646d4d833f33e1a0cd24bf0b4e62e8008585b971f9b525f8f298aa9c16.json": "435e1ac495e69568098932334b5c7c072b128b3f246c2f2acbe4886b71a0cd2e",
+      "leaf_dispatch/3c8495646d4d833f33e1a0cd24bf0b4e62e8008585b971f9b525f8f298aa9c16.CLAIMED.json": "91f7c96127141da9a65c4e4b8e92972de1552f1cb277c549a6065a253e9902c6",
+      "leaf_dispatch/3e59545b78df1651c2ddd3f65a3b4e4921b76eb1260d82b58a94e88ae569d563.json": "bd0cb5092c3f053898a9e8269fdc4c5adaf7c658bb55d9348b40bc229bdc5de1",
+      "leaf_dispatch/3e59545b78df1651c2ddd3f65a3b4e4921b76eb1260d82b58a94e88ae569d563.CLAIMED.json": "16c83fbf478a99dc13fd34e8555c59ce1b167c91ecb94d63e7c35a13c9e353b5",
+      "leaf_dispatch/46083ce5eab63e47733385c0cacd46d8d9feea40234576ec865b3ae0e22975e3.json": "cff50e6060c2b5c2cb19a2a1f72595a27a0c4b550a57929d03a1ecbe98515843",
+      "leaf_dispatch/46083ce5eab63e47733385c0cacd46d8d9feea40234576ec865b3ae0e22975e3.CLAIMED.json": "b0a28feeee6581e7bd707639317a5ec507a5f39c223758a0daae3f8308bffa82",
+      "leaf_dispatch/4e2db4e678dc91913c2208b581f6d5a7c88c5013ef6cb2bb231b659ceb69b8e9.json": "e904eaf86d21fd1bbda1a9c87417440a865ae85855e739cb35e052d8dccac898",
+      "leaf_dispatch/4e2db4e678dc91913c2208b581f6d5a7c88c5013ef6cb2bb231b659ceb69b8e9.CLAIMED.json": "d203a2bbe1ef8ccf4898a36fc9e436be53df502cc845ae3393b368cd729fa576",
+      "leaf_dispatch/57a1ae9cd1d62c0d981fdd74ec13bc3a2400dbe773f96c0158bc7de5dc6ec034.json": "33e885c5f2fd67dde44ceb5fbbfab8401a69171e42cdabfdf138dfbf412d2cad",
+      "leaf_dispatch/57a1ae9cd1d62c0d981fdd74ec13bc3a2400dbe773f96c0158bc7de5dc6ec034.CLAIMED.json": "e546abfccf6fcd9d3ce9d039d4aa12df2d20fb4f4eec22cc1e9258be629e23a4",
+      "leaf_dispatch/635859adf41c11e54cc762a8a31c64ac29369cf1c260687fd6942a9a82a8c700.json": "18fa5528d8fc442f3952539b2d4ec3e6d4471e2a2eca40ba36a3f10b034d21da",
+      "leaf_dispatch/635859adf41c11e54cc762a8a31c64ac29369cf1c260687fd6942a9a82a8c700.CLAIMED.json": "e13c0b70ceff8ec202d5e052e8a21beb7461a8df5726ebbf5cc4b8ea1f02cf42",
+      "leaf_dispatch/6b04067598e6d2914edaca1923b92cabcc9f9afd84ba316f8db684af51b9d59d.json": "5b2b703b823d5f9506750040d0e19695b895ecef82e4091ed3fd9f1532999c46",
+      "leaf_dispatch/6b04067598e6d2914edaca1923b92cabcc9f9afd84ba316f8db684af51b9d59d.CLAIMED.json": "fe8e7791ed3c3bc65bffdd8f09acd375f5dfe81d57fb09bced2263fb95a10a89",
+      "leaf_dispatch/768bbd218b0ffab4a5a0dd9642a038a4378dd900fc4d10e395cff9cdd407c26e.json": "9ba93b19147c85a6bde4e4d5613391136d07048f0ba8b851a68488af731007be",
+      "leaf_dispatch/768bbd218b0ffab4a5a0dd9642a038a4378dd900fc4d10e395cff9cdd407c26e.CLAIMED.json": "3b88587fdda87926bb0ed328e88664eb0eeae1277436a5697d47a6c7a414d1ad",
+      "leaf_dispatch/9557697a5a8b7b77f6ce8b3206fff0b928c69db06e3b6c046a59954dd72fa861.json": "f5c3a01968e6ccaea405323df3dd224aa418fb62693465a2cb7ab57ab7ba173a",
+      "leaf_dispatch/9557697a5a8b7b77f6ce8b3206fff0b928c69db06e3b6c046a59954dd72fa861.CLAIMED.json": "ba0c4b02829e01e54e541e8574b4f7fcaec20237e4ec47d345ecb3e3f4f79fd7",
+      "leaf_dispatch/98b4126a7e75e3c0a35b48a4199c8f57088d8c9f1930020be8729103d1c62618.json": "cf84633777ff8a6bfc2bba2f69317d1238d7f7db1d126151a4e0a6fba06267ae",
+      "leaf_dispatch/98b4126a7e75e3c0a35b48a4199c8f57088d8c9f1930020be8729103d1c62618.CLAIMED.json": "7c3717c308e4ac2cd8ab9b11c0525a3db477955629b6485c4537bc6f55853d44",
+      "leaf_dispatch/9a794a2b3451db3d7f38e964b03913a3082ab51f71f2f86f0ab50604e006596b.json": "01b1e3078177a49b6bda1ef2ecdcd2575845d52a033417dcc5d53bd3bbf71f0b",
+      "leaf_dispatch/9a794a2b3451db3d7f38e964b03913a3082ab51f71f2f86f0ab50604e006596b.CLAIMED.json": "e136b596bf050605b88c667c344f8120364f5651104b1fde6270202064d8e9c7",
+      "leaf_dispatch/9e9621e5fd21b0bf52dc4866621b867cb7f0b6f27083820309f3a15de993c8e4.json": "e7bc15f88785fe68b0e781ced4bca7171bb6bbf39fc15c59c18ce8418a7258c2",
+      "leaf_dispatch/9e9621e5fd21b0bf52dc4866621b867cb7f0b6f27083820309f3a15de993c8e4.CLAIMED.json": "43e5fae39529466477e6b1f0cbdff88a6e3d9eb448d3a7cea723ed76f6f7fbde",
+      "leaf_dispatch/aef4324298562b4632efcf2f92823d9f1c2fdf3678394cae630b63ed74b8aabd.json": "ffd5f571aa37f2201fa7f2c45dd1cc3d1238d17e5b69d613f1f2ce66c8adc32a",
+      "leaf_dispatch/aef4324298562b4632efcf2f92823d9f1c2fdf3678394cae630b63ed74b8aabd.CLAIMED.json": "876a925303d1527b8082deaebdc848de6e645fd5757a57a1837a2c9dc085cf44",
+      "leaf_dispatch/b1b3c70eb2aa33d378f76ebf76c48e756fc8842cf06d99ac255212b1b8f41482.json": "ec2ce1bd77e332e064f28536ff99c35df0938e185cc8b81285979eed2874bbd9",
+      "leaf_dispatch/b1b3c70eb2aa33d378f76ebf76c48e756fc8842cf06d99ac255212b1b8f41482.CLAIMED.json": "25543899394a4b8813f1f3ce8d2ec390ea7a9f531cfcbacf68e4b9d43d1af117",
+      "leaf_dispatch/b26dc66988d87ecc136fa0a28f449f1708f77475e06e5af72da9d62e5e734e39.json": "9cbe808da6e34fabbf1c5c7ba5190f9d21d030963420cebdc5157e0dc8f421ac",
+      "leaf_dispatch/b26dc66988d87ecc136fa0a28f449f1708f77475e06e5af72da9d62e5e734e39.CLAIMED.json": "2139068eab35745394413ddbef6554cd77b990aae3b72413abb73d71b77783ad",
+      "leaf_dispatch/d6a4b732a2938b898ac9cb55f02e70469a6c08d3d1daa9f6c5139071d1a21034.json": "8a3a5f87941438809fdf4eb448ce39020f266871f2e35072a944408c518b5850",
+      "leaf_dispatch/d6a4b732a2938b898ac9cb55f02e70469a6c08d3d1daa9f6c5139071d1a21034.CLAIMED.json": "e833523fd37a05a6d89292bd2383d9ee6acc943d855dd051a7981102536a03ab",
+      "leaf_dispatch/e5ba656b22a9a5594f6a5becb7081b649603ac775a86edde3aca4e7de2eddcb3.json": "77c0b575cfa6fecd38b8f74e8aaaf070f1b04384e325d04f271a8ce77d093fd1",
+      "leaf_dispatch/e5ba656b22a9a5594f6a5becb7081b649603ac775a86edde3aca4e7de2eddcb3.CLAIMED.json": "6ce4146c158fa9539fa9a7e4f5c3d16c0e8b0f6844a701255eab82bf1069681e",
+      "leaf_dispatch/e737ece8493cf43f70734076d316567e487e22b22919cb2cb52a5e10f4e865cc.json": "24e6c00a44699b4265c1974f4db0f64b2bc9d132c89dc81133fde95b6259215a",
+      "leaf_dispatch/e737ece8493cf43f70734076d316567e487e22b22919cb2cb52a5e10f4e865cc.CLAIMED.json": "65404e3f655e5427faabf703f30cadee7ca09b4944289bbc22093deae7b6a169",
+      "leaf_dispatch/f3f527c374d87b9f6eb47041f7635c1677bf80e5ea01e20328002ef8e0fd9167.json": "a5f5f45d4c1eea45b1c42191d944b538154a8e97c10c26902eb077722585031c",
+      "leaf_dispatch/f3f527c374d87b9f6eb47041f7635c1677bf80e5ea01e20328002ef8e0fd9167.CLAIMED.json": "c694e0c50e0b8fa9ccf30ed5c7fc3e78cc0f3043d3beda90048e1071719d40c0"
+    },
+    "full_logs_bound": 24,
+    "complete_case_logs": 22,
+    "coordinator_log_bytes": 3750,
+    "scorer_log_bytes": 115,
+    "three_killed_logs_contain_only_public_workflow_begin": true,
+    "worker_final_cpu_and_HWM_missing_for": [
+      "CG191DEC7F81/challenger",
+      "CG1E0BBA2933/challenger",
+      "CG4BDD1371B6/challenger"
+    ],
+    "missing_worker_internal_stage_and_final_resource_values_not_invented": true,
+    "inner_owned_group_status": "null as required for shared coordinator PGID; outer group emptiness separately observed."
+  },
+  "artifact_inventory": {
+    "parent_manifest_entry_count": 116,
+    "parent_manifest_logical_bytes": 773409755,
+    "all_parent_manifest_sizes_and_sha256_verified": true,
+    "parent_manifest_is_complete_inventory": false,
+    "canonical_required_files_missing": [],
+    "complete_case_result_count": 19,
+    "complete_case_result_bytes_cap": 134217728,
+    "largest_case_result_bytes": 65844348,
+    "returned_result_partials": 0,
+    "killed_case_results_absent": 3,
+    "no_symlinks_found_within_owned_attempt": true,
+    "actual_owned_regular_file_count_before_this_post_audit": 251,
+    "explained_inventory": "116 manifest artifacts +7 additional top-level controls +46 leaf dispatch/claim controls +38 frozen source copies +44 unpublished fallback-control partials.",
+    "expected_inventory_without_unmanifested_partials": 207,
+    "unmanifested_control_partial_count": 44,
+    "unmanifested_control_partial_bytes": 7348,
+    "canonical_manifest": {
+      "COORDINATOR_COMPLETED.json": {
+        "bytes": 184,
+        "sha256": "bd027115ec70478ae4be30c742e261eccb621056b5bb30a331794f6326c1800a"
+      },
+      "COORDINATOR_OUTPUT.txt": {
+        "bytes": 3750,
+        "sha256": "f6e1f7a4b2ce83607ef3249675b0f3e4e6392a76e66643872f55e9c90d3fc104"
+      },
+      "INFERENCE_TERMINAL.json": {
+        "bytes": 1849,
+        "sha256": "4da46d5d348acd057b44d730fdd33d12b8bafcb41f398f124711c6b17eea2ae6"
+      },
+      "SCORED.json": {
+        "bytes": 99591,
+        "sha256": "5f4d0359bdf8ebd079fa6dcfda174d4d24db5950dac42068352b9b331cdfd166"
+      },
+      "SCORER_ARTIFACT_RETENTION.json": {
+        "bytes": 248,
+        "sha256": "dceef1cc953bad3bd1c4b791cec07fbb4fc940aaf9cc10d359a8c3ae10ecc4b8"
+      },
+      "SCORER_OUTPUT.txt": {
+        "bytes": 115,
+        "sha256": "f1994d2e8261c763fa56af3ece3f73de2070fd98482a8b4614e2982331bfad47"
+      },
+      "SCORER_RECEIPT.json": {
+        "bytes": 1196,
+        "sha256": "d5bf5e5b998a65c9b6346063b8431d3ce6f526d95cc364f919e515ea10baeb0c"
+      },
+      "SCORER_RESULT.json": {
+        "bytes": 23552,
+        "sha256": "2ebf8c0d62281323aaf301ef6c737a7fb18db21f998c4f18cdc91a1da1ca4f2d"
+      },
+      "SELECTED_REFERENCES.json": {
+        "bytes": 24751,
+        "sha256": "d16390b2c05157874444f4c3507558bddf28e93b54ccb148228f75248c2b45dc"
+      },
+      "cases/CG08506AE97D/challenger/COMPLETED.json": {
+        "bytes": 6378,
+        "sha256": "3738e817dce55e6e604df630f7bd9166752e6479af629144126531454d9efa70"
+      },
+      "cases/CG08506AE97D/challenger/OUTPUT.txt": {
+        "bytes": 301,
+        "sha256": "faa085e2c03ca351692c1b3a836f18696170a33febcb21fbfd987e01fd1a5415"
+      },
+      "cases/CG08506AE97D/challenger/RESULT.json": {
+        "bytes": 62261600,
+        "sha256": "1be9041d6f4a1f301d713dcc522f457e6337cad5999be5632150af9a29e8fc7f"
+      },
+      "cases/CG08506AE97D/challenger/SCORING_INPUT.json": {
+        "bytes": 470,
+        "sha256": "c9d8e569797b3752ccf5700d27e5112f048d3f5cd8922f316b0b30cabc4edb80"
+      },
+      "cases/CG08506AE97D/challenger/STARTED.json": {
+        "bytes": 632,
+        "sha256": "604efa7dce4e29286d61572f673c8fabbbc09e6ced20ae21524a455d246879c4"
+      },
+      "cases/CG08506AE97D/control/COMPLETED.json": {
+        "bytes": 5443,
+        "sha256": "aa64a9762ae6585fd883bbbdeb0af04f43a28193c6b5b4dec4fd8d8c8abd7fd6"
+      },
+      "cases/CG08506AE97D/control/OUTPUT.txt": {
+        "bytes": 298,
+        "sha256": "f75d7456dd4a6d10d42d0a56c8b48d8596f0e50c504670314db750459159e007"
+      },
+      "cases/CG08506AE97D/control/RESULT.json": {
+        "bytes": 56342339,
+        "sha256": "32374ac0d4d66c4d29f41a9eccf0b6736829352852c615fcdbb8b2a2feb8bf80"
+      },
+      "cases/CG08506AE97D/control/SCORING_INPUT.json": {
+        "bytes": 468,
+        "sha256": "0a0609855170953ecf3253c260059579efaad1c386670a16bd56f88e4820ce82"
+      },
+      "cases/CG08506AE97D/control/STARTED.json": {
+        "bytes": 629,
+        "sha256": "303f9fcebd985194041df568812744d0392cdfe9de9b951b139b601aebf4666a"
+      },
+      "cases/CG191DEC7F81/challenger/COMPLETED.json": {
+        "bytes": 1947,
+        "sha256": "62516474253acf2f372673ec3006c9e58d3fc1be5eaf84d56e7eb308b453e916"
+      },
+      "cases/CG191DEC7F81/challenger/OUTPUT.txt": {
+        "bytes": 113,
+        "sha256": "fc4594b86d4cc900020ee36660191c266744144d8a6911f78c91c74babd0e358"
+      },
+      "cases/CG191DEC7F81/challenger/SCORING_INPUT.json": {
+        "bytes": 159,
+        "sha256": "3a4dd85d5df2c5ccbeac7047f13d17d607889b5e718b725ccd17d19ee1ddeea1"
+      },
+      "cases/CG191DEC7F81/challenger/STARTED.json": {
+        "bytes": 632,
+        "sha256": "f662ecbe5cd3147f5a7915292c4aa885a46b482450d3723f06c8d5c9428652e3"
+      },
+      "cases/CG191DEC7F81/control/COMPLETED.json": {
+        "bytes": 5468,
+        "sha256": "17fd45249e1e4f31cf5b9c7a2341b132c42a248b7829b81b30928ff7ec308866"
+      },
+      "cases/CG191DEC7F81/control/OUTPUT.txt": {
+        "bytes": 298,
+        "sha256": "7c2b7651efb7b5cfd3f2e41e749d2bbab8ba8b29cc237838c2e27476c76a9e93"
+      },
+      "cases/CG191DEC7F81/control/RESULT.json": {
+        "bytes": 41064255,
+        "sha256": "c1eeef44188bb2ed406f8ce3c511d92804f65939b106f7532c28a5ea8caa7e93"
+      },
+      "cases/CG191DEC7F81/control/SCORING_INPUT.json": {
+        "bytes": 468,
+        "sha256": "0a0609855170953ecf3253c260059579efaad1c386670a16bd56f88e4820ce82"
+      },
+      "cases/CG191DEC7F81/control/STARTED.json": {
+        "bytes": 629,
+        "sha256": "dc59b364ae8cad9fb14050f39e51ec7ee359a5324f906ef3efad0ca2d8489596"
+      },
+      "cases/CG1E0BBA2933/challenger/COMPLETED.json": {
+        "bytes": 1947,
+        "sha256": "90a89116dc4de024791da3b46e3214403e63a489fe65098d3b509fe01cc390aa"
+      },
+      "cases/CG1E0BBA2933/challenger/OUTPUT.txt": {
+        "bytes": 113,
+        "sha256": "fc4594b86d4cc900020ee36660191c266744144d8a6911f78c91c74babd0e358"
+      },
+      "cases/CG1E0BBA2933/challenger/SCORING_INPUT.json": {
+        "bytes": 159,
+        "sha256": "3a4dd85d5df2c5ccbeac7047f13d17d607889b5e718b725ccd17d19ee1ddeea1"
+      },
+      "cases/CG1E0BBA2933/challenger/STARTED.json": {
+        "bytes": 632,
+        "sha256": "239320a7d65b99d6718f6ea0b5e6888b1b08f729fc15e5d29a8ed4a10c9ba541"
+      },
+      "cases/CG1E0BBA2933/control/COMPLETED.json": {
+        "bytes": 5444,
+        "sha256": "4a252ff07b8ab77a6f540f7145c7c80901124abc5267bf1fd3be75f335bbb591"
+      },
+      "cases/CG1E0BBA2933/control/OUTPUT.txt": {
+        "bytes": 298,
+        "sha256": "88eabd073d416805b43a84493cc2fd1204d8cfdd67b5c4fd920043c3f541ae5a"
+      },
+      "cases/CG1E0BBA2933/control/RESULT.json": {
+        "bytes": 49457773,
+        "sha256": "9f319a672d1a99839109d7dac159ccb37728f2b77cc1b2d305ee7874333dde5c"
+      },
+      "cases/CG1E0BBA2933/control/SCORING_INPUT.json": {
+        "bytes": 468,
+        "sha256": "0a0609855170953ecf3253c260059579efaad1c386670a16bd56f88e4820ce82"
+      },
+      "cases/CG1E0BBA2933/control/STARTED.json": {
+        "bytes": 629,
+        "sha256": "7c7a85071c3ebc87e3d6b2861e54e36e1dbf235364e52c915bed49df58f06c15"
+      },
+      "cases/CG4BDD1371B6/challenger/COMPLETED.json": {
+        "bytes": 1947,
+        "sha256": "55dd8b96b048c1c97d1fb4a2b093a8fd08b1d8fc706d25cc5c944469f42b065b"
+      },
+      "cases/CG4BDD1371B6/challenger/OUTPUT.txt": {
+        "bytes": 113,
+        "sha256": "fc4594b86d4cc900020ee36660191c266744144d8a6911f78c91c74babd0e358"
+      },
+      "cases/CG4BDD1371B6/challenger/SCORING_INPUT.json": {
+        "bytes": 159,
+        "sha256": "3a4dd85d5df2c5ccbeac7047f13d17d607889b5e718b725ccd17d19ee1ddeea1"
+      },
+      "cases/CG4BDD1371B6/challenger/STARTED.json": {
+        "bytes": 632,
+        "sha256": "4223cf245b2fdea17c115eb89b628958195755de71a4e17834874912f90aa1b8"
+      },
+      "cases/CG4BDD1371B6/control/COMPLETED.json": {
+        "bytes": 5442,
+        "sha256": "c136c916543fb500559bb84485aa5d2b9e84902c1034d1a2354a892f430c7628"
+      },
+      "cases/CG4BDD1371B6/control/OUTPUT.txt": {
+        "bytes": 298,
+        "sha256": "feae74d857e0ba12048de73bfc3d86a016f7c80e11808909251c724178fd404b"
+      },
+      "cases/CG4BDD1371B6/control/RESULT.json": {
+        "bytes": 42703952,
+        "sha256": "3dcf6e5113fac9d3c322b4c1fdac76dcdf43110e489bb14f638ee642839c0aa4"
+      },
+      "cases/CG4BDD1371B6/control/SCORING_INPUT.json": {
+        "bytes": 468,
+        "sha256": "0a0609855170953ecf3253c260059579efaad1c386670a16bd56f88e4820ce82"
+      },
+      "cases/CG4BDD1371B6/control/STARTED.json": {
+        "bytes": 629,
+        "sha256": "1e58a046f583a967de5c1382e0fddf6e2d5b4e7579c5358e279f7eb38a44c260"
+      },
+      "cases/CG4FAF273093/challenger/COMPLETED.json": {
+        "bytes": 6324,
+        "sha256": "7c9bcaa1d75ec4f9c15943e9a47c299981a1bf1d9203adf8311a4da6579c753c"
+      },
+      "cases/CG4FAF273093/challenger/OUTPUT.txt": {
+        "bytes": 309,
+        "sha256": "34c89c8434481263bf6e292ff2800d3a6e2c323605fbea354ef88d606234bc8f"
+      },
+      "cases/CG4FAF273093/challenger/RESULT.json": {
+        "bytes": 2521882,
+        "sha256": "40e1ea21ac978c427af60682f368731d3129ea97a9c1730aaeb1dbba25f25c2f"
+      },
+      "cases/CG4FAF273093/challenger/SCORING_INPUT.json": {
+        "bytes": 470,
+        "sha256": "c9d8e569797b3752ccf5700d27e5112f048d3f5cd8922f316b0b30cabc4edb80"
+      },
+      "cases/CG4FAF273093/challenger/STARTED.json": {
+        "bytes": 632,
+        "sha256": "eb4d5bbce1626379479f4b837b8fd58a5ef296e61f911f9d10c89fdd83d0c329"
+      },
+      "cases/CG4FAF273093/control/COMPLETED.json": {
+        "bytes": 5473,
+        "sha256": "cfeaa757d9f93f4727833e5c03eebc78ca838210a3e05243fb115dc5abd93bd3"
+      },
+      "cases/CG4FAF273093/control/OUTPUT.txt": {
+        "bytes": 295,
+        "sha256": "540f6d52f8fb42261fe05e1e9e4e0dbd57699dd21059d56326be882021596b93"
+      },
+      "cases/CG4FAF273093/control/RESULT.json": {
+        "bytes": 2520169,
+        "sha256": "641542703e60ae0a87d835a89112f8b95b25a4c8caf913567ebdb60616effdb4"
+      },
+      "cases/CG4FAF273093/control/SCORING_INPUT.json": {
+        "bytes": 470,
+        "sha256": "c9d8e569797b3752ccf5700d27e5112f048d3f5cd8922f316b0b30cabc4edb80"
+      },
+      "cases/CG4FAF273093/control/STARTED.json": {
+        "bytes": 629,
+        "sha256": "5a8099b36ebc67079603c89e1ef5c9e7119c7227eb98bb9c000fdae2460a982a"
+      },
+      "cases/CG64C412CC73/challenger/COMPLETED.json": {
+        "bytes": 6405,
+        "sha256": "a7fcab8c94e0d135dd19eda347b8644776aae653d2b2ca9a9ea08e6e692e7ee1"
+      },
+      "cases/CG64C412CC73/challenger/OUTPUT.txt": {
+        "bytes": 301,
+        "sha256": "c966ce32f2cbfc0e5b8ba077f46ac5f88e4c3c169505018c731ddd7aac37607e"
+      },
+      "cases/CG64C412CC73/challenger/RESULT.json": {
+        "bytes": 40774643,
+        "sha256": "2eab3cc17f9c87099c795315c88ad85128b07507fae0cc4d777610a2c9f086dd"
+      },
+      "cases/CG64C412CC73/challenger/SCORING_INPUT.json": {
+        "bytes": 470,
+        "sha256": "c9d8e569797b3752ccf5700d27e5112f048d3f5cd8922f316b0b30cabc4edb80"
+      },
+      "cases/CG64C412CC73/challenger/STARTED.json": {
+        "bytes": 632,
+        "sha256": "9c85d3693c0dda22196050c52761449da143f9a806e0d567cebf09239aa9350f"
+      },
+      "cases/CG64C412CC73/control/COMPLETED.json": {
+        "bytes": 5469,
+        "sha256": "3d825b199b3b8715c8da0adf7baf39793a3a35f59784eca08faa0b9649756980"
+      },
+      "cases/CG64C412CC73/control/OUTPUT.txt": {
+        "bytes": 307,
+        "sha256": "9a6bf795b39a947ee7fb1ba48fded3e5012f19f0b5bd1ec71b7bc7ffd9d94aca"
+      },
+      "cases/CG64C412CC73/control/RESULT.json": {
+        "bytes": 34631023,
+        "sha256": "ed703cee8af72243fa42cb4919adfd15fef574fe0b7ad117d1d66afb90f11941"
+      },
+      "cases/CG64C412CC73/control/SCORING_INPUT.json": {
+        "bytes": 468,
+        "sha256": "0a0609855170953ecf3253c260059579efaad1c386670a16bd56f88e4820ce82"
+      },
+      "cases/CG64C412CC73/control/STARTED.json": {
+        "bytes": 629,
+        "sha256": "074b0239a7fabac9f9841434b20fd280cbbfe259aa586eb7eac3780ee1e32432"
+      },
+      "cases/CG65CD575B1C/challenger/COMPLETED.json": {
+        "bytes": 6351,
+        "sha256": "55b927ad9bf6e2cd4f35f2703a716bf6717ed33f50db2a1b9cf09387683a41a0"
+      },
+      "cases/CG65CD575B1C/challenger/OUTPUT.txt": {
+        "bytes": 310,
+        "sha256": "0f9fffc2e18d9b04672f7fb2bae6ab81283ece30d4791e1bc84c2e2fc7c1c4ee"
+      },
+      "cases/CG65CD575B1C/challenger/RESULT.json": {
+        "bytes": 53219063,
+        "sha256": "aa1d498ef7248f87b7951db90af8106b11809fcf2dd64e29e5db3996e7a77130"
+      },
+      "cases/CG65CD575B1C/challenger/SCORING_INPUT.json": {
+        "bytes": 470,
+        "sha256": "c9d8e569797b3752ccf5700d27e5112f048d3f5cd8922f316b0b30cabc4edb80"
+      },
+      "cases/CG65CD575B1C/challenger/STARTED.json": {
+        "bytes": 632,
+        "sha256": "459c98367e4ba2632c579d140596b3e0294f17a70950f8d76d55db282f528bfb"
+      },
+      "cases/CG65CD575B1C/control/COMPLETED.json": {
+        "bytes": 5443,
+        "sha256": "6f245a298b3d99f5cb16443489066ac2d77f188f864f7e719e283e5cf9915cbe"
+      },
+      "cases/CG65CD575B1C/control/OUTPUT.txt": {
+        "bytes": 298,
+        "sha256": "d147bebe0259509e9cd87e5fd458e42061fc38ad5b267587c4ba450b62fd1a8e"
+      },
+      "cases/CG65CD575B1C/control/RESULT.json": {
+        "bytes": 50050905,
+        "sha256": "6bbe8dc9f21ad460957ffc686c6c0ecac574450fd64ca1dbf0a8b3edf6a7d79c"
+      },
+      "cases/CG65CD575B1C/control/SCORING_INPUT.json": {
+        "bytes": 468,
+        "sha256": "0a0609855170953ecf3253c260059579efaad1c386670a16bd56f88e4820ce82"
+      },
+      "cases/CG65CD575B1C/control/STARTED.json": {
+        "bytes": 629,
+        "sha256": "cb019df482392a54d25f4e0e5135371c7b9f38e53e39824ca16c20f8535f2f73"
+      },
+      "cases/CG84C8FA12D2/challenger/COMPLETED.json": {
+        "bytes": 6375,
+        "sha256": "83ebf31f2d9e5f4eacc40202a6501fa9f674e0a5fc347f64d90b7ab0e7465947"
+      },
+      "cases/CG84C8FA12D2/challenger/OUTPUT.txt": {
+        "bytes": 301,
+        "sha256": "46f50fb9b633c28956c0e087b395c1e07ef9c45439fe1b62b4a06f7d1006f05e"
+      },
+      "cases/CG84C8FA12D2/challenger/RESULT.json": {
+        "bytes": 65844348,
+        "sha256": "b744ca4cd5e8ddcf2158a5023a269cecc4301275980ec449b01aa20dbbcd7cec"
+      },
+      "cases/CG84C8FA12D2/challenger/SCORING_INPUT.json": {
+        "bytes": 470,
+        "sha256": "c9d8e569797b3752ccf5700d27e5112f048d3f5cd8922f316b0b30cabc4edb80"
+      },
+      "cases/CG84C8FA12D2/challenger/STARTED.json": {
+        "bytes": 632,
+        "sha256": "94fe728bc4f22b844ff1e2c75ae5f5b2eb373d21e1f68f05681ad15f24600c9c"
+      },
+      "cases/CG84C8FA12D2/control/COMPLETED.json": {
+        "bytes": 5443,
+        "sha256": "8e9aff95435ba8db6d32a6f232e32445ab0e6d8352e542449ffb73348c22bf49"
+      },
+      "cases/CG84C8FA12D2/control/OUTPUT.txt": {
+        "bytes": 298,
+        "sha256": "702c08ee286219312dd32b002bf765a5c5fbca15d7c48a26095e1ff3c6161ee0"
+      },
+      "cases/CG84C8FA12D2/control/RESULT.json": {
+        "bytes": 60022395,
+        "sha256": "6f1cb3724e6f74615bc2c79d2808464de9c3ab21654e2b1ed0d3bd6419079e94"
+      },
+      "cases/CG84C8FA12D2/control/SCORING_INPUT.json": {
+        "bytes": 468,
+        "sha256": "0a0609855170953ecf3253c260059579efaad1c386670a16bd56f88e4820ce82"
+      },
+      "cases/CG84C8FA12D2/control/STARTED.json": {
+        "bytes": 629,
+        "sha256": "e0482749b3b64c44c33adbc1b261e2d5de8098674ed57bda3895bf832f6c1476"
+      },
+      "cases/CGE4B0549E41/challenger/COMPLETED.json": {
+        "bytes": 5594,
+        "sha256": "f1c42bb4065c769e97a0c1bfe860cf9b1c3cef0d51fa971796dc0ffb62e1874d"
+      },
+      "cases/CGE4B0549E41/challenger/OUTPUT.txt": {
+        "bytes": 301,
+        "sha256": "67a17cd453e1147bea5cba3ea346f7d7f95e867f255b7869aef1dd93a2064867"
+      },
+      "cases/CGE4B0549E41/challenger/RESULT.json": {
+        "bytes": 74104,
+        "sha256": "84b75ed004eb0952d35a22f17c219472313d8eca17d151f61ba4dfe6572c442c"
+      },
+      "cases/CGE4B0549E41/challenger/SCORING_INPUT.json": {
+        "bytes": 468,
+        "sha256": "0a0609855170953ecf3253c260059579efaad1c386670a16bd56f88e4820ce82"
+      },
+      "cases/CGE4B0549E41/challenger/STARTED.json": {
+        "bytes": 632,
+        "sha256": "ec03a31e242ce80164e4e465cc77a9602ccc80685f7b90d75ed281fe2b81ba2e"
+      },
+      "cases/CGE4B0549E41/control/COMPLETED.json": {
+        "bytes": 4742,
+        "sha256": "6fb142d6d8d8ff92b5b45b4a6aa22fa1e28134a2f674b895a9a151019f3c3abb"
+      },
+      "cases/CGE4B0549E41/control/OUTPUT.txt": {
+        "bytes": 307,
+        "sha256": "756619e2021580fb8e4bd4954fcf27c57346ba1f9f370d3eac79ea17aab1d8af"
+      },
+      "cases/CGE4B0549E41/control/RESULT.json": {
+        "bytes": 72389,
+        "sha256": "56eacfc41b47f94ffb288758a3d4ef119d5b697e286b97a6366ca3ca6ef870b6"
+      },
+      "cases/CGE4B0549E41/control/SCORING_INPUT.json": {
+        "bytes": 468,
+        "sha256": "0a0609855170953ecf3253c260059579efaad1c386670a16bd56f88e4820ce82"
+      },
+      "cases/CGE4B0549E41/control/STARTED.json": {
+        "bytes": 629,
+        "sha256": "63e12d2595ab87ced8e459872ae8f2d534a3248298f1a64bf5786795d1416be8"
+      },
+      "cases/CGEBA9A869AC/challenger/COMPLETED.json": {
+        "bytes": 6371,
+        "sha256": "fe05cff7ea16ff4b7524e1312d286974b7b24baab553408b3b78421ebf9f3c04"
+      },
+      "cases/CGEBA9A869AC/challenger/OUTPUT.txt": {
+        "bytes": 301,
+        "sha256": "d28ac162f141f05dd75c70db41a14ee10b988e483575b8888ad16f765b49355f"
+      },
+      "cases/CGEBA9A869AC/challenger/RESULT.json": {
+        "bytes": 49896127,
+        "sha256": "fe7a15f85b1404b88bdb412fb0fba04aeff220ca17c26ca6412f97eb17077b23"
+      },
+      "cases/CGEBA9A869AC/challenger/SCORING_INPUT.json": {
+        "bytes": 470,
+        "sha256": "c9d8e569797b3752ccf5700d27e5112f048d3f5cd8922f316b0b30cabc4edb80"
+      },
+      "cases/CGEBA9A869AC/challenger/STARTED.json": {
+        "bytes": 632,
+        "sha256": "5de3548bba6ab3b945fb2271877ca6d805516945fbe3a0c7d3fca534b294ffaa"
+      },
+      "cases/CGEBA9A869AC/control/COMPLETED.json": {
+        "bytes": 5444,
+        "sha256": "d01b7af08dbf1662ce9a19a39a39196248915d1deed6153ee9d9105f0ed9c3cf"
+      },
+      "cases/CGEBA9A869AC/control/OUTPUT.txt": {
+        "bytes": 297,
+        "sha256": "ca9b2e14f0ab33ee08e443186c65208376445e542400b2b964b687a783beaab1"
+      },
+      "cases/CGEBA9A869AC/control/RESULT.json": {
+        "bytes": 44860540,
+        "sha256": "58d821464fe68f84ae70b9d070bba47519e2219c10e61048283f700ed3561c37"
+      },
+      "cases/CGEBA9A869AC/control/SCORING_INPUT.json": {
+        "bytes": 468,
+        "sha256": "0a0609855170953ecf3253c260059579efaad1c386670a16bd56f88e4820ce82"
+      },
+      "cases/CGEBA9A869AC/control/STARTED.json": {
+        "bytes": 629,
+        "sha256": "eb821c147c914b41853dd66fa273421ef553167fb94230f78f14cf90e33ec8cb"
+      },
+      "cases/CGF41F49066A/challenger/COMPLETED.json": {
+        "bytes": 6382,
+        "sha256": "eab8b89b2f518cc47c849838dd785cc4c69b7f96702931c64688c5bb80f51470"
+      },
+      "cases/CGF41F49066A/challenger/OUTPUT.txt": {
+        "bytes": 301,
+        "sha256": "ff0f9652e322b4126751a106dadaf603e3755ee2b00edd76caf60f826d4b8987"
+      },
+      "cases/CGF41F49066A/challenger/RESULT.json": {
+        "bytes": 61694313,
+        "sha256": "48f06525a88e45fd845adb03781803ec04a659d02b5f84da6c7504ae1cd3bf27"
+      },
+      "cases/CGF41F49066A/challenger/SCORING_INPUT.json": {
+        "bytes": 470,
+        "sha256": "c9d8e569797b3752ccf5700d27e5112f048d3f5cd8922f316b0b30cabc4edb80"
+      },
+      "cases/CGF41F49066A/challenger/STARTED.json": {
+        "bytes": 632,
+        "sha256": "3f10e87ddfe1d86b333a37822766204602628b78e02bd91604e2ec48f605e82f"
+      },
+      "cases/CGF41F49066A/control/COMPLETED.json": {
+        "bytes": 5442,
+        "sha256": "1067b2f22f1b5c10ebf607ef299de013871cf5c75245e4bad86dfed715881971"
+      },
+      "cases/CGF41F49066A/control/OUTPUT.txt": {
+        "bytes": 298,
+        "sha256": "56547b0a58af01e32995b7096fd7b48b2b5ec7da7da6815e6ddb3b0c1d53c8ce"
+      },
+      "cases/CGF41F49066A/control/RESULT.json": {
+        "bytes": 55098113,
+        "sha256": "3bdde5677eef5f7b97116bc5c0d8d583d65736e1e4199e3c1564cb9f4ea6781e"
+      },
+      "cases/CGF41F49066A/control/SCORING_INPUT.json": {
+        "bytes": 468,
+        "sha256": "0a0609855170953ecf3253c260059579efaad1c386670a16bd56f88e4820ce82"
+      },
+      "cases/CGF41F49066A/control/STARTED.json": {
+        "bytes": 629,
+        "sha256": "a6aceabbc5823fe9eea657c9ca57604f28bd0dbeb0f62ce84dd67735ea5ba6b3"
+      }
+    },
+    "unmanifested_control_partials": [
+      {
+        "path": "cases/CG08506AE97D/challenger/.COMPLETED.json.partial-1f9dda6e4503003c",
+        "bytes": 147,
+        "sha256": "57cda9ab84a8005db87d80a9d709d502f7404a51ea751dbce60da2baff455a65",
+        "device": "16777231",
+        "inode": "35621749",
+        "canonical_path": "cases/CG08506AE97D/challenger/COMPLETED.json",
+        "same_inode_as_canonical": false,
+        "payload_kind": "UNPUBLISHED_GLOBAL_TERMINALIZATION_FALLBACK_COMPLETION"
+      },
+      {
+        "path": "cases/CG08506AE97D/challenger/.SCORING_INPUT.json.partial-4fbcf35888da9479",
+        "bytes": 187,
+        "sha256": "e04f58768d26888acbd2d332e32d34e0092350e10652f1ea4a74159e888cce4e",
+        "device": "16777231",
+        "inode": "35621748",
+        "canonical_path": "cases/CG08506AE97D/challenger/SCORING_INPUT.json",
+        "same_inode_as_canonical": false,
+        "payload_kind": "UNPUBLISHED_GLOBAL_TERMINALIZATION_FALLBACK_SCORING_INPUT"
+      },
+      {
+        "path": "cases/CG08506AE97D/control/.COMPLETED.json.partial-0d918ace77692fdc",
+        "bytes": 147,
+        "sha256": "57cda9ab84a8005db87d80a9d709d502f7404a51ea751dbce60da2baff455a65",
+        "device": "16777231",
+        "inode": "35621747",
+        "canonical_path": "cases/CG08506AE97D/control/COMPLETED.json",
+        "same_inode_as_canonical": false,
+        "payload_kind": "UNPUBLISHED_GLOBAL_TERMINALIZATION_FALLBACK_COMPLETION"
+      },
+      {
+        "path": "cases/CG08506AE97D/control/.SCORING_INPUT.json.partial-4519e7a2bbe58b37",
+        "bytes": 187,
+        "sha256": "e04f58768d26888acbd2d332e32d34e0092350e10652f1ea4a74159e888cce4e",
+        "device": "16777231",
+        "inode": "35621746",
+        "canonical_path": "cases/CG08506AE97D/control/SCORING_INPUT.json",
+        "same_inode_as_canonical": false,
+        "payload_kind": "UNPUBLISHED_GLOBAL_TERMINALIZATION_FALLBACK_SCORING_INPUT"
+      },
+      {
+        "path": "cases/CG191DEC7F81/challenger/.COMPLETED.json.partial-3fa3297b8cd8d6ef",
+        "bytes": 147,
+        "sha256": "57cda9ab84a8005db87d80a9d709d502f7404a51ea751dbce60da2baff455a65",
+        "device": "16777231",
+        "inode": "35621753",
+        "canonical_path": "cases/CG191DEC7F81/challenger/COMPLETED.json",
+        "same_inode_as_canonical": false,
+        "payload_kind": "UNPUBLISHED_GLOBAL_TERMINALIZATION_FALLBACK_COMPLETION"
+      },
+      {
+        "path": "cases/CG191DEC7F81/challenger/.SCORING_INPUT.json.partial-0d40deb8294bfd4e",
+        "bytes": 187,
+        "sha256": "e04f58768d26888acbd2d332e32d34e0092350e10652f1ea4a74159e888cce4e",
+        "device": "16777231",
+        "inode": "35621752",
+        "canonical_path": "cases/CG191DEC7F81/challenger/SCORING_INPUT.json",
+        "same_inode_as_canonical": false,
+        "payload_kind": "UNPUBLISHED_GLOBAL_TERMINALIZATION_FALLBACK_SCORING_INPUT"
+      },
+      {
+        "path": "cases/CG191DEC7F81/control/.COMPLETED.json.partial-65429b16a54be066",
+        "bytes": 147,
+        "sha256": "57cda9ab84a8005db87d80a9d709d502f7404a51ea751dbce60da2baff455a65",
+        "device": "16777231",
+        "inode": "35621751",
+        "canonical_path": "cases/CG191DEC7F81/control/COMPLETED.json",
+        "same_inode_as_canonical": false,
+        "payload_kind": "UNPUBLISHED_GLOBAL_TERMINALIZATION_FALLBACK_COMPLETION"
+      },
+      {
+        "path": "cases/CG191DEC7F81/control/.SCORING_INPUT.json.partial-8983fa945b19dd0f",
+        "bytes": 187,
+        "sha256": "e04f58768d26888acbd2d332e32d34e0092350e10652f1ea4a74159e888cce4e",
+        "device": "16777231",
+        "inode": "35621750",
+        "canonical_path": "cases/CG191DEC7F81/control/SCORING_INPUT.json",
+        "same_inode_as_canonical": false,
+        "payload_kind": "UNPUBLISHED_GLOBAL_TERMINALIZATION_FALLBACK_SCORING_INPUT"
+      },
+      {
+        "path": "cases/CG1E0BBA2933/challenger/.COMPLETED.json.partial-6257c74ba54a7a6f",
+        "bytes": 147,
+        "sha256": "57cda9ab84a8005db87d80a9d709d502f7404a51ea751dbce60da2baff455a65",
+        "device": "16777231",
+        "inode": "35621757",
+        "canonical_path": "cases/CG1E0BBA2933/challenger/COMPLETED.json",
+        "same_inode_as_canonical": false,
+        "payload_kind": "UNPUBLISHED_GLOBAL_TERMINALIZATION_FALLBACK_COMPLETION"
+      },
+      {
+        "path": "cases/CG1E0BBA2933/challenger/.SCORING_INPUT.json.partial-f8b1b88ca22d7086",
+        "bytes": 187,
+        "sha256": "e04f58768d26888acbd2d332e32d34e0092350e10652f1ea4a74159e888cce4e",
+        "device": "16777231",
+        "inode": "35621756",
+        "canonical_path": "cases/CG1E0BBA2933/challenger/SCORING_INPUT.json",
+        "same_inode_as_canonical": false,
+        "payload_kind": "UNPUBLISHED_GLOBAL_TERMINALIZATION_FALLBACK_SCORING_INPUT"
+      },
+      {
+        "path": "cases/CG1E0BBA2933/control/.COMPLETED.json.partial-437734cb326228b6",
+        "bytes": 147,
+        "sha256": "57cda9ab84a8005db87d80a9d709d502f7404a51ea751dbce60da2baff455a65",
+        "device": "16777231",
+        "inode": "35621755",
+        "canonical_path": "cases/CG1E0BBA2933/control/COMPLETED.json",
+        "same_inode_as_canonical": false,
+        "payload_kind": "UNPUBLISHED_GLOBAL_TERMINALIZATION_FALLBACK_COMPLETION"
+      },
+      {
+        "path": "cases/CG1E0BBA2933/control/.SCORING_INPUT.json.partial-0e48b3ce6251c1fa",
+        "bytes": 187,
+        "sha256": "e04f58768d26888acbd2d332e32d34e0092350e10652f1ea4a74159e888cce4e",
+        "device": "16777231",
+        "inode": "35621754",
+        "canonical_path": "cases/CG1E0BBA2933/control/SCORING_INPUT.json",
+        "same_inode_as_canonical": false,
+        "payload_kind": "UNPUBLISHED_GLOBAL_TERMINALIZATION_FALLBACK_SCORING_INPUT"
+      },
+      {
+        "path": "cases/CG4BDD1371B6/challenger/.COMPLETED.json.partial-76bcb4967d6e5b34",
+        "bytes": 147,
+        "sha256": "57cda9ab84a8005db87d80a9d709d502f7404a51ea751dbce60da2baff455a65",
+        "device": "16777231",
+        "inode": "35621761",
+        "canonical_path": "cases/CG4BDD1371B6/challenger/COMPLETED.json",
+        "same_inode_as_canonical": false,
+        "payload_kind": "UNPUBLISHED_GLOBAL_TERMINALIZATION_FALLBACK_COMPLETION"
+      },
+      {
+        "path": "cases/CG4BDD1371B6/challenger/.SCORING_INPUT.json.partial-9c38c067c6b3fa3a",
+        "bytes": 187,
+        "sha256": "e04f58768d26888acbd2d332e32d34e0092350e10652f1ea4a74159e888cce4e",
+        "device": "16777231",
+        "inode": "35621760",
+        "canonical_path": "cases/CG4BDD1371B6/challenger/SCORING_INPUT.json",
+        "same_inode_as_canonical": false,
+        "payload_kind": "UNPUBLISHED_GLOBAL_TERMINALIZATION_FALLBACK_SCORING_INPUT"
+      },
+      {
+        "path": "cases/CG4BDD1371B6/control/.COMPLETED.json.partial-946992d1e8e52930",
+        "bytes": 147,
+        "sha256": "57cda9ab84a8005db87d80a9d709d502f7404a51ea751dbce60da2baff455a65",
+        "device": "16777231",
+        "inode": "35621759",
+        "canonical_path": "cases/CG4BDD1371B6/control/COMPLETED.json",
+        "same_inode_as_canonical": false,
+        "payload_kind": "UNPUBLISHED_GLOBAL_TERMINALIZATION_FALLBACK_COMPLETION"
+      },
+      {
+        "path": "cases/CG4BDD1371B6/control/.SCORING_INPUT.json.partial-cdc8dd9382a5338e",
+        "bytes": 187,
+        "sha256": "e04f58768d26888acbd2d332e32d34e0092350e10652f1ea4a74159e888cce4e",
+        "device": "16777231",
+        "inode": "35621758",
+        "canonical_path": "cases/CG4BDD1371B6/control/SCORING_INPUT.json",
+        "same_inode_as_canonical": false,
+        "payload_kind": "UNPUBLISHED_GLOBAL_TERMINALIZATION_FALLBACK_SCORING_INPUT"
+      },
+      {
+        "path": "cases/CG4FAF273093/challenger/.COMPLETED.json.partial-0e6c8fc90a746a6a",
+        "bytes": 147,
+        "sha256": "57cda9ab84a8005db87d80a9d709d502f7404a51ea751dbce60da2baff455a65",
+        "device": "16777231",
+        "inode": "35621765",
+        "canonical_path": "cases/CG4FAF273093/challenger/COMPLETED.json",
+        "same_inode_as_canonical": false,
+        "payload_kind": "UNPUBLISHED_GLOBAL_TERMINALIZATION_FALLBACK_COMPLETION"
+      },
+      {
+        "path": "cases/CG4FAF273093/challenger/.SCORING_INPUT.json.partial-d7a178677eb4c6f7",
+        "bytes": 187,
+        "sha256": "e04f58768d26888acbd2d332e32d34e0092350e10652f1ea4a74159e888cce4e",
+        "device": "16777231",
+        "inode": "35621764",
+        "canonical_path": "cases/CG4FAF273093/challenger/SCORING_INPUT.json",
+        "same_inode_as_canonical": false,
+        "payload_kind": "UNPUBLISHED_GLOBAL_TERMINALIZATION_FALLBACK_SCORING_INPUT"
+      },
+      {
+        "path": "cases/CG4FAF273093/control/.COMPLETED.json.partial-1d194e8dee7dba20",
+        "bytes": 147,
+        "sha256": "57cda9ab84a8005db87d80a9d709d502f7404a51ea751dbce60da2baff455a65",
+        "device": "16777231",
+        "inode": "35621763",
+        "canonical_path": "cases/CG4FAF273093/control/COMPLETED.json",
+        "same_inode_as_canonical": false,
+        "payload_kind": "UNPUBLISHED_GLOBAL_TERMINALIZATION_FALLBACK_COMPLETION"
+      },
+      {
+        "path": "cases/CG4FAF273093/control/.SCORING_INPUT.json.partial-d4ec4c60022d8c98",
+        "bytes": 187,
+        "sha256": "e04f58768d26888acbd2d332e32d34e0092350e10652f1ea4a74159e888cce4e",
+        "device": "16777231",
+        "inode": "35621762",
+        "canonical_path": "cases/CG4FAF273093/control/SCORING_INPUT.json",
+        "same_inode_as_canonical": false,
+        "payload_kind": "UNPUBLISHED_GLOBAL_TERMINALIZATION_FALLBACK_SCORING_INPUT"
+      },
+      {
+        "path": "cases/CG64C412CC73/challenger/.COMPLETED.json.partial-33ff1ffc7d0e2bd3",
+        "bytes": 147,
+        "sha256": "57cda9ab84a8005db87d80a9d709d502f7404a51ea751dbce60da2baff455a65",
+        "device": "16777231",
+        "inode": "35621769",
+        "canonical_path": "cases/CG64C412CC73/challenger/COMPLETED.json",
+        "same_inode_as_canonical": false,
+        "payload_kind": "UNPUBLISHED_GLOBAL_TERMINALIZATION_FALLBACK_COMPLETION"
+      },
+      {
+        "path": "cases/CG64C412CC73/challenger/.SCORING_INPUT.json.partial-823ceb1105eb6bc2",
+        "bytes": 187,
+        "sha256": "e04f58768d26888acbd2d332e32d34e0092350e10652f1ea4a74159e888cce4e",
+        "device": "16777231",
+        "inode": "35621768",
+        "canonical_path": "cases/CG64C412CC73/challenger/SCORING_INPUT.json",
+        "same_inode_as_canonical": false,
+        "payload_kind": "UNPUBLISHED_GLOBAL_TERMINALIZATION_FALLBACK_SCORING_INPUT"
+      },
+      {
+        "path": "cases/CG64C412CC73/control/.COMPLETED.json.partial-7426a4a005bdcf26",
+        "bytes": 147,
+        "sha256": "57cda9ab84a8005db87d80a9d709d502f7404a51ea751dbce60da2baff455a65",
+        "device": "16777231",
+        "inode": "35621767",
+        "canonical_path": "cases/CG64C412CC73/control/COMPLETED.json",
+        "same_inode_as_canonical": false,
+        "payload_kind": "UNPUBLISHED_GLOBAL_TERMINALIZATION_FALLBACK_COMPLETION"
+      },
+      {
+        "path": "cases/CG64C412CC73/control/.SCORING_INPUT.json.partial-209e1d74ff515b6f",
+        "bytes": 187,
+        "sha256": "e04f58768d26888acbd2d332e32d34e0092350e10652f1ea4a74159e888cce4e",
+        "device": "16777231",
+        "inode": "35621766",
+        "canonical_path": "cases/CG64C412CC73/control/SCORING_INPUT.json",
+        "same_inode_as_canonical": false,
+        "payload_kind": "UNPUBLISHED_GLOBAL_TERMINALIZATION_FALLBACK_SCORING_INPUT"
+      },
+      {
+        "path": "cases/CG65CD575B1C/challenger/.COMPLETED.json.partial-01a031dcc8c306db",
+        "bytes": 147,
+        "sha256": "57cda9ab84a8005db87d80a9d709d502f7404a51ea751dbce60da2baff455a65",
+        "device": "16777231",
+        "inode": "35621773",
+        "canonical_path": "cases/CG65CD575B1C/challenger/COMPLETED.json",
+        "same_inode_as_canonical": false,
+        "payload_kind": "UNPUBLISHED_GLOBAL_TERMINALIZATION_FALLBACK_COMPLETION"
+      },
+      {
+        "path": "cases/CG65CD575B1C/challenger/.SCORING_INPUT.json.partial-b11bd55710e1517d",
+        "bytes": 187,
+        "sha256": "e04f58768d26888acbd2d332e32d34e0092350e10652f1ea4a74159e888cce4e",
+        "device": "16777231",
+        "inode": "35621772",
+        "canonical_path": "cases/CG65CD575B1C/challenger/SCORING_INPUT.json",
+        "same_inode_as_canonical": false,
+        "payload_kind": "UNPUBLISHED_GLOBAL_TERMINALIZATION_FALLBACK_SCORING_INPUT"
+      },
+      {
+        "path": "cases/CG65CD575B1C/control/.COMPLETED.json.partial-fe803296a273e5fe",
+        "bytes": 147,
+        "sha256": "57cda9ab84a8005db87d80a9d709d502f7404a51ea751dbce60da2baff455a65",
+        "device": "16777231",
+        "inode": "35621771",
+        "canonical_path": "cases/CG65CD575B1C/control/COMPLETED.json",
+        "same_inode_as_canonical": false,
+        "payload_kind": "UNPUBLISHED_GLOBAL_TERMINALIZATION_FALLBACK_COMPLETION"
+      },
+      {
+        "path": "cases/CG65CD575B1C/control/.SCORING_INPUT.json.partial-8fecce0ae3fa76c0",
+        "bytes": 187,
+        "sha256": "e04f58768d26888acbd2d332e32d34e0092350e10652f1ea4a74159e888cce4e",
+        "device": "16777231",
+        "inode": "35621770",
+        "canonical_path": "cases/CG65CD575B1C/control/SCORING_INPUT.json",
+        "same_inode_as_canonical": false,
+        "payload_kind": "UNPUBLISHED_GLOBAL_TERMINALIZATION_FALLBACK_SCORING_INPUT"
+      },
+      {
+        "path": "cases/CG84C8FA12D2/challenger/.COMPLETED.json.partial-446ff5e5a8ce5be4",
+        "bytes": 147,
+        "sha256": "57cda9ab84a8005db87d80a9d709d502f7404a51ea751dbce60da2baff455a65",
+        "device": "16777231",
+        "inode": "35621777",
+        "canonical_path": "cases/CG84C8FA12D2/challenger/COMPLETED.json",
+        "same_inode_as_canonical": false,
+        "payload_kind": "UNPUBLISHED_GLOBAL_TERMINALIZATION_FALLBACK_COMPLETION"
+      },
+      {
+        "path": "cases/CG84C8FA12D2/challenger/.SCORING_INPUT.json.partial-516b9eee1e5c5008",
+        "bytes": 187,
+        "sha256": "e04f58768d26888acbd2d332e32d34e0092350e10652f1ea4a74159e888cce4e",
+        "device": "16777231",
+        "inode": "35621776",
+        "canonical_path": "cases/CG84C8FA12D2/challenger/SCORING_INPUT.json",
+        "same_inode_as_canonical": false,
+        "payload_kind": "UNPUBLISHED_GLOBAL_TERMINALIZATION_FALLBACK_SCORING_INPUT"
+      },
+      {
+        "path": "cases/CG84C8FA12D2/control/.COMPLETED.json.partial-791b96d1a6c00019",
+        "bytes": 147,
+        "sha256": "57cda9ab84a8005db87d80a9d709d502f7404a51ea751dbce60da2baff455a65",
+        "device": "16777231",
+        "inode": "35621775",
+        "canonical_path": "cases/CG84C8FA12D2/control/COMPLETED.json",
+        "same_inode_as_canonical": false,
+        "payload_kind": "UNPUBLISHED_GLOBAL_TERMINALIZATION_FALLBACK_COMPLETION"
+      },
+      {
+        "path": "cases/CG84C8FA12D2/control/.SCORING_INPUT.json.partial-64434d0a6f73d261",
+        "bytes": 187,
+        "sha256": "e04f58768d26888acbd2d332e32d34e0092350e10652f1ea4a74159e888cce4e",
+        "device": "16777231",
+        "inode": "35621774",
+        "canonical_path": "cases/CG84C8FA12D2/control/SCORING_INPUT.json",
+        "same_inode_as_canonical": false,
+        "payload_kind": "UNPUBLISHED_GLOBAL_TERMINALIZATION_FALLBACK_SCORING_INPUT"
+      },
+      {
+        "path": "cases/CGE4B0549E41/challenger/.COMPLETED.json.partial-4a051da0e25c0e5a",
+        "bytes": 147,
+        "sha256": "57cda9ab84a8005db87d80a9d709d502f7404a51ea751dbce60da2baff455a65",
+        "device": "16777231",
+        "inode": "35621781",
+        "canonical_path": "cases/CGE4B0549E41/challenger/COMPLETED.json",
+        "same_inode_as_canonical": false,
+        "payload_kind": "UNPUBLISHED_GLOBAL_TERMINALIZATION_FALLBACK_COMPLETION"
+      },
+      {
+        "path": "cases/CGE4B0549E41/challenger/.SCORING_INPUT.json.partial-d78851b61ce68aad",
+        "bytes": 187,
+        "sha256": "e04f58768d26888acbd2d332e32d34e0092350e10652f1ea4a74159e888cce4e",
+        "device": "16777231",
+        "inode": "35621780",
+        "canonical_path": "cases/CGE4B0549E41/challenger/SCORING_INPUT.json",
+        "same_inode_as_canonical": false,
+        "payload_kind": "UNPUBLISHED_GLOBAL_TERMINALIZATION_FALLBACK_SCORING_INPUT"
+      },
+      {
+        "path": "cases/CGE4B0549E41/control/.COMPLETED.json.partial-f58793b9800d0baa",
+        "bytes": 147,
+        "sha256": "57cda9ab84a8005db87d80a9d709d502f7404a51ea751dbce60da2baff455a65",
+        "device": "16777231",
+        "inode": "35621779",
+        "canonical_path": "cases/CGE4B0549E41/control/COMPLETED.json",
+        "same_inode_as_canonical": false,
+        "payload_kind": "UNPUBLISHED_GLOBAL_TERMINALIZATION_FALLBACK_COMPLETION"
+      },
+      {
+        "path": "cases/CGE4B0549E41/control/.SCORING_INPUT.json.partial-d4c7bf2f95b936ba",
+        "bytes": 187,
+        "sha256": "e04f58768d26888acbd2d332e32d34e0092350e10652f1ea4a74159e888cce4e",
+        "device": "16777231",
+        "inode": "35621778",
+        "canonical_path": "cases/CGE4B0549E41/control/SCORING_INPUT.json",
+        "same_inode_as_canonical": false,
+        "payload_kind": "UNPUBLISHED_GLOBAL_TERMINALIZATION_FALLBACK_SCORING_INPUT"
+      },
+      {
+        "path": "cases/CGEBA9A869AC/challenger/.COMPLETED.json.partial-eda231cdc770fab8",
+        "bytes": 147,
+        "sha256": "57cda9ab84a8005db87d80a9d709d502f7404a51ea751dbce60da2baff455a65",
+        "device": "16777231",
+        "inode": "35621785",
+        "canonical_path": "cases/CGEBA9A869AC/challenger/COMPLETED.json",
+        "same_inode_as_canonical": false,
+        "payload_kind": "UNPUBLISHED_GLOBAL_TERMINALIZATION_FALLBACK_COMPLETION"
+      },
+      {
+        "path": "cases/CGEBA9A869AC/challenger/.SCORING_INPUT.json.partial-dbd16c85bd5b3720",
+        "bytes": 187,
+        "sha256": "e04f58768d26888acbd2d332e32d34e0092350e10652f1ea4a74159e888cce4e",
+        "device": "16777231",
+        "inode": "35621784",
+        "canonical_path": "cases/CGEBA9A869AC/challenger/SCORING_INPUT.json",
+        "same_inode_as_canonical": false,
+        "payload_kind": "UNPUBLISHED_GLOBAL_TERMINALIZATION_FALLBACK_SCORING_INPUT"
+      },
+      {
+        "path": "cases/CGEBA9A869AC/control/.COMPLETED.json.partial-4c72f43eecb37d1d",
+        "bytes": 147,
+        "sha256": "57cda9ab84a8005db87d80a9d709d502f7404a51ea751dbce60da2baff455a65",
+        "device": "16777231",
+        "inode": "35621783",
+        "canonical_path": "cases/CGEBA9A869AC/control/COMPLETED.json",
+        "same_inode_as_canonical": false,
+        "payload_kind": "UNPUBLISHED_GLOBAL_TERMINALIZATION_FALLBACK_COMPLETION"
+      },
+      {
+        "path": "cases/CGEBA9A869AC/control/.SCORING_INPUT.json.partial-9eb741b14f6e5e0a",
+        "bytes": 187,
+        "sha256": "e04f58768d26888acbd2d332e32d34e0092350e10652f1ea4a74159e888cce4e",
+        "device": "16777231",
+        "inode": "35621782",
+        "canonical_path": "cases/CGEBA9A869AC/control/SCORING_INPUT.json",
+        "same_inode_as_canonical": false,
+        "payload_kind": "UNPUBLISHED_GLOBAL_TERMINALIZATION_FALLBACK_SCORING_INPUT"
+      },
+      {
+        "path": "cases/CGF41F49066A/challenger/.COMPLETED.json.partial-750e2ee7c6ffdcb4",
+        "bytes": 147,
+        "sha256": "57cda9ab84a8005db87d80a9d709d502f7404a51ea751dbce60da2baff455a65",
+        "device": "16777231",
+        "inode": "35621789",
+        "canonical_path": "cases/CGF41F49066A/challenger/COMPLETED.json",
+        "same_inode_as_canonical": false,
+        "payload_kind": "UNPUBLISHED_GLOBAL_TERMINALIZATION_FALLBACK_COMPLETION"
+      },
+      {
+        "path": "cases/CGF41F49066A/challenger/.SCORING_INPUT.json.partial-83f5f350ff3c5ed8",
+        "bytes": 187,
+        "sha256": "e04f58768d26888acbd2d332e32d34e0092350e10652f1ea4a74159e888cce4e",
+        "device": "16777231",
+        "inode": "35621788",
+        "canonical_path": "cases/CGF41F49066A/challenger/SCORING_INPUT.json",
+        "same_inode_as_canonical": false,
+        "payload_kind": "UNPUBLISHED_GLOBAL_TERMINALIZATION_FALLBACK_SCORING_INPUT"
+      },
+      {
+        "path": "cases/CGF41F49066A/control/.COMPLETED.json.partial-e0045d9191e6dedd",
+        "bytes": 147,
+        "sha256": "57cda9ab84a8005db87d80a9d709d502f7404a51ea751dbce60da2baff455a65",
+        "device": "16777231",
+        "inode": "35621787",
+        "canonical_path": "cases/CGF41F49066A/control/COMPLETED.json",
+        "same_inode_as_canonical": false,
+        "payload_kind": "UNPUBLISHED_GLOBAL_TERMINALIZATION_FALLBACK_COMPLETION"
+      },
+      {
+        "path": "cases/CGF41F49066A/control/.SCORING_INPUT.json.partial-8956951f230e1080",
+        "bytes": 187,
+        "sha256": "e04f58768d26888acbd2d332e32d34e0092350e10652f1ea4a74159e888cce4e",
+        "device": "16777231",
+        "inode": "35621786",
+        "canonical_path": "cases/CGF41F49066A/control/SCORING_INPUT.json",
+        "same_inode_as_canonical": false,
+        "payload_kind": "UNPUBLISHED_GLOBAL_TERMINALIZATION_FALLBACK_SCORING_INPUT"
+      }
+    ],
+    "fallback_partial_payloads": [
+      {
+        "kind": "COMPLETED",
+        "inference_started": "UNKNOWN_IF_STARTED_WITHOUT_RECEIPT",
+        "no_resume": true,
+        "reason": "GLOBAL_ABORT_OR_MISSING_TERMINAL_RECORD",
+        "status": "TERMINAL"
+      },
+      {
+        "kind": "SCORING_INPUT",
+        "observed_bend_count": null,
+        "phase": "GLOBAL_TERMINALIZATION",
+        "predictions": [],
+        "production_use_allowed": false,
+        "reasons": [
+          "GLOBAL_ABORT_OR_MISSING_TERMINAL_RECORD"
+        ],
+        "status": "UNAVAILABLE"
+      }
+    ],
+    "partial_payloads_are_not_authoritative_attempt_dispositions": true
+  },
+  "authenticated_numerical_observations_not_formal_release": {
+    "case_count": 11,
+    "family_count": 6,
+    "arm_count": 2,
+    "reference_line_count_per_arm": 71,
+    "selected_reference_sha256": "d16390b2c05157874444f4c3507558bddf28e93b54ccb148228f75248c2b45dc",
+    "all_selected_reference_case_family_scan_path_and_ids_match_frozen_declarations": true,
+    "original_scorer_sha256": "2ebf8c0d62281323aaf301ef6c737a7fb18db21f998c4f18cdc91a1da1ca4f2d",
+    "enriched_report_sha256": "5f4d0359bdf8ebd079fa6dcfda174d4d24db5950dac42068352b9b331cdfd166",
+    "original_scorer_fields_preserved_except_allowed_control_identity": true,
+    "all22_complete_scoring_projection_hashes_and_terminal_barrier_reconcile": true,
+    "original_scorer_request_sha256": "e94f825a635223c4edf5d2ea1bb8c86efd170be08ea4d50e762256471b7a0e16",
+    "all_declared_input_byte_verification_receipts": true,
+    "original_inputs_not_rehashed_by_post_reviewer": true,
+    "per_case_dispositions_verified": 22,
+    "family_summaries_verified": 12,
+    "aggregate_summaries_verified": 2,
+    "control": {
+      "geometry": {
+        "case_count": 11,
+        "count_metric_semantics": "EMITTED_SUPPORT_LINES_NOT_PHYSICAL_OBSERVED_BENDS",
+        "emitted_support_line_count": 0,
+        "exact_emitted_support_count_accuracy": 0,
+        "exact_emitted_support_count_cases": 0,
+        "exact_localized_target_set_accuracy": 0,
+        "exact_localized_target_set_cases": 0,
+        "f1": null,
+        "false_negative": 71,
+        "false_positive": 0,
+        "precision": null,
+        "recall": 0,
+        "reference_line_count": 71,
+        "true_positive": 0
+      },
+      "refused_case_count": 11,
+      "malformed_case_count": 0,
+      "minimum_family_recall": 0
+    },
+    "challenger": {
+      "geometry": {
+        "case_count": 11,
+        "count_metric_semantics": "EMITTED_SUPPORT_LINES_NOT_PHYSICAL_OBSERVED_BENDS",
+        "emitted_support_line_count": 0,
+        "exact_emitted_support_count_accuracy": 0,
+        "exact_emitted_support_count_cases": 0,
+        "exact_localized_target_set_accuracy": 0,
+        "exact_localized_target_set_cases": 0,
+        "f1": null,
+        "false_negative": 71,
+        "false_positive": 0,
+        "precision": null,
+        "recall": 0,
+        "reference_line_count": 71,
+        "true_positive": 0
+      },
+      "refused_case_count": 11,
+      "malformed_case_count": 0,
+      "minimum_family_recall": 0
+    },
+    "all_case_and_family_precision_and_f1": null,
+    "recall_all_cases_and_families": 0,
+    "paired_f1_and_precision_delta": null,
+    "no_undefined_metric_replaced_by_numeric_zero": true,
+    "observed_bend_count": null,
+    "cases": [
+      {
+        "case_id": "CG08506AE97D",
+        "family_id": "10839000",
+        "arm": "control",
+        "reference_line_count": 6,
+        "status": "UNAVAILABLE",
+        "phase": "WHOLE_PART_REGISTRATION",
+        "reasons": [
+          "PROVISIONAL_REGISTRATION_UNAVAILABLE",
+          "NOISY_PLANE_INITIALIZATION_UNAVAILABLE"
+        ],
+        "exit_code": 0,
+        "outer_budget_stop_field": null,
+        "parent_wall_seconds": 35.165445749647915,
+        "source_binding_valid": true,
+        "returned_result_status": "COMPLETE_RESULT_BYTES_RETAINED",
+        "result_sha256": "32374ac0d4d66c4d29f41a9eccf0b6736829352852c615fcdbb8b2a2feb8bf80",
+        "partial_result_returned": false,
+        "prediction_count": 0,
+        "true_positive": 0,
+        "false_positive": 0,
+        "false_negative": 6,
+        "precision": null,
+        "recall": 0,
+        "f1": null,
+        "observed_bend_count": null,
+        "native_status": "PARTIAL",
+        "native_reasons": [],
+        "initialization_status": "UNAVAILABLE",
+        "initialization_reasons": [
+          "ASSIGNED_FACE_SURFACE_UNAVAILABLE"
+        ],
+        "numerical_consumer_complete": null,
+        "finite_query_calls": 0,
+        "passing_start_groups": 0,
+        "internal_stages_for_killed_worker": "UNKNOWN_NOT_COPIED_FROM_CONTROL_OR_NEIGHBOR",
+        "leaf_dispatch_id": "3c8495646d4d833f33e1a0cd24bf0b4e62e8008585b971f9b525f8f298aa9c16"
+      },
+      {
+        "case_id": "CG08506AE97D",
+        "family_id": "10839000",
+        "arm": "challenger",
+        "reference_line_count": 6,
+        "status": "UNAVAILABLE",
+        "phase": "WHOLE_PART_REGISTRATION",
+        "reasons": [
+          "PROVISIONAL_REGISTRATION_UNAVAILABLE",
+          "NO_FINITE_PREFILTERED_NOISY_PLANE_STARTS"
+        ],
+        "exit_code": 0,
+        "outer_budget_stop_field": null,
+        "parent_wall_seconds": 37.83248387509957,
+        "source_binding_valid": true,
+        "returned_result_status": "COMPLETE_RESULT_BYTES_RETAINED",
+        "result_sha256": "1be9041d6f4a1f301d713dcc522f457e6337cad5999be5632150af9a29e8fc7f",
+        "partial_result_returned": false,
+        "prediction_count": 0,
+        "true_positive": 0,
+        "false_positive": 0,
+        "false_negative": 6,
+        "precision": null,
+        "recall": 0,
+        "f1": null,
+        "observed_bend_count": null,
+        "native_status": "PARTIAL",
+        "native_reasons": [],
+        "initialization_status": "COMPLETE",
+        "initialization_reasons": [
+          "NO_FINITE_PREFILTERED_NOISY_PLANE_STARTS"
+        ],
+        "numerical_consumer_complete": true,
+        "finite_query_calls": 149,
+        "passing_start_groups": 0,
+        "internal_stages_for_killed_worker": "UNKNOWN_NOT_COPIED_FROM_CONTROL_OR_NEIGHBOR",
+        "leaf_dispatch_id": "768bbd218b0ffab4a5a0dd9642a038a4378dd900fc4d10e395cff9cdd407c26e"
+      },
+      {
+        "case_id": "CG191DEC7F81",
+        "family_id": "49001000",
+        "arm": "control",
+        "reference_line_count": 5,
+        "status": "UNAVAILABLE",
+        "phase": "WHOLE_PART_REGISTRATION",
+        "reasons": [
+          "PROVISIONAL_REGISTRATION_UNAVAILABLE",
+          "NOISY_PLANE_INITIALIZATION_UNAVAILABLE"
+        ],
+        "exit_code": 0,
+        "outer_budget_stop_field": null,
+        "parent_wall_seconds": 27.512703584041446,
+        "source_binding_valid": true,
+        "returned_result_status": "COMPLETE_RESULT_BYTES_RETAINED",
+        "result_sha256": "c1eeef44188bb2ed406f8ce3c511d92804f65939b106f7532c28a5ea8caa7e93",
+        "partial_result_returned": false,
+        "prediction_count": 0,
+        "true_positive": 0,
+        "false_positive": 0,
+        "false_negative": 5,
+        "precision": null,
+        "recall": 0,
+        "f1": null,
+        "observed_bend_count": null,
+        "native_status": "UNAVAILABLE",
+        "native_reasons": [
+          "INVALID_NATIVE_SOLID"
+        ],
+        "initialization_status": "UNAVAILABLE",
+        "initialization_reasons": [
+          "ASSIGNED_FACE_SURFACE_UNAVAILABLE"
+        ],
+        "numerical_consumer_complete": null,
+        "finite_query_calls": 0,
+        "passing_start_groups": 0,
+        "internal_stages_for_killed_worker": "UNKNOWN_NOT_COPIED_FROM_CONTROL_OR_NEIGHBOR",
+        "leaf_dispatch_id": "3e59545b78df1651c2ddd3f65a3b4e4921b76eb1260d82b58a94e88ae569d563"
+      },
+      {
+        "case_id": "CG191DEC7F81",
+        "family_id": "49001000",
+        "arm": "challenger",
+        "reference_line_count": 5,
+        "status": "UNAVAILABLE",
+        "phase": "SUPERVISOR",
+        "reasons": [
+          "INFERENCE_WORKER_FAILED"
+        ],
+        "exit_code": -24,
+        "outer_budget_stop_field": null,
+        "parent_wall_seconds": 150.99972725007683,
+        "source_binding_valid": true,
+        "returned_result_status": "NO_RETURNED_RESULT_INTERNAL_STAGES_UNKNOWN",
+        "result_sha256": null,
+        "partial_result_returned": false,
+        "prediction_count": 0,
+        "true_positive": 0,
+        "false_positive": 0,
+        "false_negative": 5,
+        "precision": null,
+        "recall": 0,
+        "f1": null,
+        "observed_bend_count": null,
+        "native_status": "UNKNOWN_NO_RETURNED_RESULT",
+        "native_reasons": null,
+        "initialization_status": "UNKNOWN_NO_RETURNED_RESULT",
+        "initialization_reasons": null,
+        "numerical_consumer_complete": null,
+        "finite_query_calls": null,
+        "passing_start_groups": null,
+        "internal_stages_for_killed_worker": "UNKNOWN_NOT_COPIED_FROM_CONTROL_OR_NEIGHBOR",
+        "leaf_dispatch_id": "14230361b9b44349fb877955c4c35a597331dc7c8cb799510e4ee95801ec04f4"
+      },
+      {
+        "case_id": "CG1E0BBA2933",
+        "family_id": "38172000",
+        "arm": "control",
+        "reference_line_count": 10,
+        "status": "UNAVAILABLE",
+        "phase": "WHOLE_PART_REGISTRATION",
+        "reasons": [
+          "PROVISIONAL_REGISTRATION_UNAVAILABLE",
+          "NOISY_PLANE_INITIALIZATION_UNAVAILABLE"
+        ],
+        "exit_code": 0,
+        "outer_budget_stop_field": null,
+        "parent_wall_seconds": 31.141266792081296,
+        "source_binding_valid": true,
+        "returned_result_status": "COMPLETE_RESULT_BYTES_RETAINED",
+        "result_sha256": "9f319a672d1a99839109d7dac159ccb37728f2b77cc1b2d305ee7874333dde5c",
+        "partial_result_returned": false,
+        "prediction_count": 0,
+        "true_positive": 0,
+        "false_positive": 0,
+        "false_negative": 10,
+        "precision": null,
+        "recall": 0,
+        "f1": null,
+        "observed_bend_count": null,
+        "native_status": "PARTIAL",
+        "native_reasons": [],
+        "initialization_status": "UNAVAILABLE",
+        "initialization_reasons": [
+          "ASSIGNED_FACE_SURFACE_UNAVAILABLE"
+        ],
+        "numerical_consumer_complete": null,
+        "finite_query_calls": 0,
+        "passing_start_groups": 0,
+        "internal_stages_for_killed_worker": "UNKNOWN_NOT_COPIED_FROM_CONTROL_OR_NEIGHBOR",
+        "leaf_dispatch_id": "14d190097a30f1cda0afc4fb97b4d5b6711fd1308cbdaee2c98e81bb145014fa"
+      },
+      {
+        "case_id": "CG1E0BBA2933",
+        "family_id": "38172000",
+        "arm": "challenger",
+        "reference_line_count": 10,
+        "status": "UNAVAILABLE",
+        "phase": "SUPERVISOR",
+        "reasons": [
+          "INFERENCE_WORKER_FAILED"
+        ],
+        "exit_code": -24,
+        "outer_budget_stop_field": null,
+        "parent_wall_seconds": 150.78720812499523,
+        "source_binding_valid": true,
+        "returned_result_status": "NO_RETURNED_RESULT_INTERNAL_STAGES_UNKNOWN",
+        "result_sha256": null,
+        "partial_result_returned": false,
+        "prediction_count": 0,
+        "true_positive": 0,
+        "false_positive": 0,
+        "false_negative": 10,
+        "precision": null,
+        "recall": 0,
+        "f1": null,
+        "observed_bend_count": null,
+        "native_status": "UNKNOWN_NO_RETURNED_RESULT",
+        "native_reasons": null,
+        "initialization_status": "UNKNOWN_NO_RETURNED_RESULT",
+        "initialization_reasons": null,
+        "numerical_consumer_complete": null,
+        "finite_query_calls": null,
+        "passing_start_groups": null,
+        "internal_stages_for_killed_worker": "UNKNOWN_NOT_COPIED_FROM_CONTROL_OR_NEIGHBOR",
+        "leaf_dispatch_id": "635859adf41c11e54cc762a8a31c64ac29369cf1c260687fd6942a9a82a8c700"
+      },
+      {
+        "case_id": "CG4BDD1371B6",
+        "family_id": "37361005",
+        "arm": "control",
+        "reference_line_count": 4,
+        "status": "UNAVAILABLE",
+        "phase": "WHOLE_PART_REGISTRATION",
+        "reasons": [
+          "PROVISIONAL_REGISTRATION_UNAVAILABLE",
+          "NOISY_PLANE_INITIALIZATION_UNAVAILABLE"
+        ],
+        "exit_code": 0,
+        "outer_budget_stop_field": null,
+        "parent_wall_seconds": 28.17136437492445,
+        "source_binding_valid": true,
+        "returned_result_status": "COMPLETE_RESULT_BYTES_RETAINED",
+        "result_sha256": "3dcf6e5113fac9d3c322b4c1fdac76dcdf43110e489bb14f638ee642839c0aa4",
+        "partial_result_returned": false,
+        "prediction_count": 0,
+        "true_positive": 0,
+        "false_positive": 0,
+        "false_negative": 4,
+        "precision": null,
+        "recall": 0,
+        "f1": null,
+        "observed_bend_count": null,
+        "native_status": "PARTIAL",
+        "native_reasons": [],
+        "initialization_status": "UNAVAILABLE",
+        "initialization_reasons": [
+          "ASSIGNED_FACE_SURFACE_UNAVAILABLE"
+        ],
+        "numerical_consumer_complete": null,
+        "finite_query_calls": 0,
+        "passing_start_groups": 0,
+        "internal_stages_for_killed_worker": "UNKNOWN_NOT_COPIED_FROM_CONTROL_OR_NEIGHBOR",
+        "leaf_dispatch_id": "46083ce5eab63e47733385c0cacd46d8d9feea40234576ec865b3ae0e22975e3"
+      },
+      {
+        "case_id": "CG4BDD1371B6",
+        "family_id": "37361005",
+        "arm": "challenger",
+        "reference_line_count": 4,
+        "status": "UNAVAILABLE",
+        "phase": "SUPERVISOR",
+        "reasons": [
+          "INFERENCE_WORKER_FAILED"
+        ],
+        "exit_code": -24,
+        "outer_budget_stop_field": null,
+        "parent_wall_seconds": 150.70784904109314,
+        "source_binding_valid": true,
+        "returned_result_status": "NO_RETURNED_RESULT_INTERNAL_STAGES_UNKNOWN",
+        "result_sha256": null,
+        "partial_result_returned": false,
+        "prediction_count": 0,
+        "true_positive": 0,
+        "false_positive": 0,
+        "false_negative": 4,
+        "precision": null,
+        "recall": 0,
+        "f1": null,
+        "observed_bend_count": null,
+        "native_status": "UNKNOWN_NO_RETURNED_RESULT",
+        "native_reasons": null,
+        "initialization_status": "UNKNOWN_NO_RETURNED_RESULT",
+        "initialization_reasons": null,
+        "numerical_consumer_complete": null,
+        "finite_query_calls": null,
+        "passing_start_groups": null,
+        "internal_stages_for_killed_worker": "UNKNOWN_NOT_COPIED_FROM_CONTROL_OR_NEIGHBOR",
+        "leaf_dispatch_id": "aef4324298562b4632efcf2f92823d9f1c2fdf3678394cae630b63ed74b8aabd"
+      },
+      {
+        "case_id": "CG4FAF273093",
+        "family_id": "49024000",
+        "arm": "control",
+        "reference_line_count": 3,
+        "status": "UNAVAILABLE",
+        "phase": "WHOLE_PART_REGISTRATION",
+        "reasons": [
+          "PROVISIONAL_REGISTRATION_UNAVAILABLE",
+          "NO_FINITE_PREFILTERED_NOISY_PLANE_STARTS"
+        ],
+        "exit_code": 0,
+        "outer_budget_stop_field": null,
+        "parent_wall_seconds": 2.7654324579052627,
+        "source_binding_valid": true,
+        "returned_result_status": "COMPLETE_RESULT_BYTES_RETAINED",
+        "result_sha256": "641542703e60ae0a87d835a89112f8b95b25a4c8caf913567ebdb60616effdb4",
+        "partial_result_returned": false,
+        "prediction_count": 0,
+        "true_positive": 0,
+        "false_positive": 0,
+        "false_negative": 3,
+        "precision": null,
+        "recall": 0,
+        "f1": null,
+        "observed_bend_count": null,
+        "native_status": "UNAVAILABLE",
+        "native_reasons": [
+          "INVALID_NATIVE_SOLID"
+        ],
+        "initialization_status": "COMPLETE",
+        "initialization_reasons": [
+          "NO_FINITE_PREFILTERED_NOISY_PLANE_STARTS"
+        ],
+        "numerical_consumer_complete": null,
+        "finite_query_calls": 0,
+        "passing_start_groups": 0,
+        "internal_stages_for_killed_worker": "UNKNOWN_NOT_COPIED_FROM_CONTROL_OR_NEIGHBOR",
+        "leaf_dispatch_id": "f3f527c374d87b9f6eb47041f7635c1677bf80e5ea01e20328002ef8e0fd9167"
+      },
+      {
+        "case_id": "CG4FAF273093",
+        "family_id": "49024000",
+        "arm": "challenger",
+        "reference_line_count": 3,
+        "status": "UNAVAILABLE",
+        "phase": "WHOLE_PART_REGISTRATION",
+        "reasons": [
+          "PROVISIONAL_REGISTRATION_UNAVAILABLE",
+          "NO_FINITE_PREFILTERED_NOISY_PLANE_STARTS"
+        ],
+        "exit_code": 0,
+        "outer_budget_stop_field": null,
+        "parent_wall_seconds": 2.8069117083214223,
+        "source_binding_valid": true,
+        "returned_result_status": "COMPLETE_RESULT_BYTES_RETAINED",
+        "result_sha256": "40e1ea21ac978c427af60682f368731d3129ea97a9c1730aaeb1dbba25f25c2f",
+        "partial_result_returned": false,
+        "prediction_count": 0,
+        "true_positive": 0,
+        "false_positive": 0,
+        "false_negative": 3,
+        "precision": null,
+        "recall": 0,
+        "f1": null,
+        "observed_bend_count": null,
+        "native_status": "UNAVAILABLE",
+        "native_reasons": [
+          "INVALID_NATIVE_SOLID"
+        ],
+        "initialization_status": "COMPLETE",
+        "initialization_reasons": [
+          "NO_FINITE_PREFILTERED_NOISY_PLANE_STARTS"
+        ],
+        "numerical_consumer_complete": true,
+        "finite_query_calls": 0,
+        "passing_start_groups": 0,
+        "internal_stages_for_killed_worker": "UNKNOWN_NOT_COPIED_FROM_CONTROL_OR_NEIGHBOR",
+        "leaf_dispatch_id": "9557697a5a8b7b77f6ce8b3206fff0b928c69db06e3b6c046a59954dd72fa861"
+      },
+      {
+        "case_id": "CG64C412CC73",
+        "family_id": "40500000",
+        "arm": "control",
+        "reference_line_count": 7,
+        "status": "UNAVAILABLE",
+        "phase": "WHOLE_PART_REGISTRATION",
+        "reasons": [
+          "PROVISIONAL_REGISTRATION_UNAVAILABLE",
+          "NOISY_PLANE_INITIALIZATION_UNAVAILABLE"
+        ],
+        "exit_code": 0,
+        "outer_budget_stop_field": null,
+        "parent_wall_seconds": 17.942616417072713,
+        "source_binding_valid": true,
+        "returned_result_status": "COMPLETE_RESULT_BYTES_RETAINED",
+        "result_sha256": "ed703cee8af72243fa42cb4919adfd15fef574fe0b7ad117d1d66afb90f11941",
+        "partial_result_returned": false,
+        "prediction_count": 0,
+        "true_positive": 0,
+        "false_positive": 0,
+        "false_negative": 7,
+        "precision": null,
+        "recall": 0,
+        "f1": null,
+        "observed_bend_count": null,
+        "native_status": "UNAVAILABLE",
+        "native_reasons": [
+          "INVALID_NATIVE_SOLID"
+        ],
+        "initialization_status": "UNAVAILABLE",
+        "initialization_reasons": [
+          "ASSIGNED_FACE_SURFACE_UNAVAILABLE"
+        ],
+        "numerical_consumer_complete": null,
+        "finite_query_calls": 0,
+        "passing_start_groups": 0,
+        "internal_stages_for_killed_worker": "UNKNOWN_NOT_COPIED_FROM_CONTROL_OR_NEIGHBOR",
+        "leaf_dispatch_id": "9e9621e5fd21b0bf52dc4866621b867cb7f0b6f27083820309f3a15de993c8e4"
+      },
+      {
+        "case_id": "CG64C412CC73",
+        "family_id": "40500000",
+        "arm": "challenger",
+        "reference_line_count": 7,
+        "status": "UNAVAILABLE",
+        "phase": "WHOLE_PART_REGISTRATION",
+        "reasons": [
+          "PROVISIONAL_REGISTRATION_UNAVAILABLE",
+          "NO_FINITE_PREFILTERED_NOISY_PLANE_STARTS"
+        ],
+        "exit_code": 0,
+        "outer_budget_stop_field": null,
+        "parent_wall_seconds": 24.261863708961755,
+        "source_binding_valid": true,
+        "returned_result_status": "COMPLETE_RESULT_BYTES_RETAINED",
+        "result_sha256": "2eab3cc17f9c87099c795315c88ad85128b07507fae0cc4d777610a2c9f086dd",
+        "partial_result_returned": false,
+        "prediction_count": 0,
+        "true_positive": 0,
+        "false_positive": 0,
+        "false_negative": 7,
+        "precision": null,
+        "recall": 0,
+        "f1": null,
+        "observed_bend_count": null,
+        "native_status": "UNAVAILABLE",
+        "native_reasons": [
+          "INVALID_NATIVE_SOLID"
+        ],
+        "initialization_status": "COMPLETE",
+        "initialization_reasons": [
+          "NO_FINITE_PREFILTERED_NOISY_PLANE_STARTS"
+        ],
+        "numerical_consumer_complete": true,
+        "finite_query_calls": 95,
+        "passing_start_groups": 0,
+        "internal_stages_for_killed_worker": "UNKNOWN_NOT_COPIED_FROM_CONTROL_OR_NEIGHBOR",
+        "leaf_dispatch_id": "e737ece8493cf43f70734076d316567e487e22b22919cb2cb52a5e10f4e865cc"
+      },
+      {
+        "case_id": "CG65CD575B1C",
+        "family_id": "38172000",
+        "arm": "control",
+        "reference_line_count": 6,
+        "status": "UNAVAILABLE",
+        "phase": "WHOLE_PART_REGISTRATION",
+        "reasons": [
+          "PROVISIONAL_REGISTRATION_UNAVAILABLE",
+          "NOISY_PLANE_INITIALIZATION_UNAVAILABLE"
+        ],
+        "exit_code": 0,
+        "outer_budget_stop_field": null,
+        "parent_wall_seconds": 32.37369591696188,
+        "source_binding_valid": true,
+        "returned_result_status": "COMPLETE_RESULT_BYTES_RETAINED",
+        "result_sha256": "6bbe8dc9f21ad460957ffc686c6c0ecac574450fd64ca1dbf0a8b3edf6a7d79c",
+        "partial_result_returned": false,
+        "prediction_count": 0,
+        "true_positive": 0,
+        "false_positive": 0,
+        "false_negative": 6,
+        "precision": null,
+        "recall": 0,
+        "f1": null,
+        "observed_bend_count": null,
+        "native_status": "PARTIAL",
+        "native_reasons": [],
+        "initialization_status": "UNAVAILABLE",
+        "initialization_reasons": [
+          "ASSIGNED_FACE_SURFACE_UNAVAILABLE"
+        ],
+        "numerical_consumer_complete": null,
+        "finite_query_calls": 0,
+        "passing_start_groups": 0,
+        "internal_stages_for_killed_worker": "UNKNOWN_NOT_COPIED_FROM_CONTROL_OR_NEIGHBOR",
+        "leaf_dispatch_id": "24510e4ba79c57d3da3a5d247f1dfca2890fde3908744aee22fe61fe394b7296"
+      },
+      {
+        "case_id": "CG65CD575B1C",
+        "family_id": "38172000",
+        "arm": "challenger",
+        "reference_line_count": 6,
+        "status": "UNAVAILABLE",
+        "phase": "WHOLE_PART_REGISTRATION",
+        "reasons": [
+          "PROVISIONAL_REGISTRATION_UNAVAILABLE",
+          "NO_FINITE_PREFILTERED_NOISY_PLANE_STARTS"
+        ],
+        "exit_code": 0,
+        "outer_budget_stop_field": null,
+        "parent_wall_seconds": 32.50170020898804,
+        "source_binding_valid": true,
+        "returned_result_status": "COMPLETE_RESULT_BYTES_RETAINED",
+        "result_sha256": "aa1d498ef7248f87b7951db90af8106b11809fcf2dd64e29e5db3996e7a77130",
+        "partial_result_returned": false,
+        "prediction_count": 0,
+        "true_positive": 0,
+        "false_positive": 0,
+        "false_negative": 6,
+        "precision": null,
+        "recall": 0,
+        "f1": null,
+        "observed_bend_count": null,
+        "native_status": "PARTIAL",
+        "native_reasons": [],
+        "initialization_status": "COMPLETE",
+        "initialization_reasons": [
+          "NO_FINITE_PREFILTERED_NOISY_PLANE_STARTS"
+        ],
+        "numerical_consumer_complete": true,
+        "finite_query_calls": 1,
+        "passing_start_groups": 0,
+        "internal_stages_for_killed_worker": "UNKNOWN_NOT_COPIED_FROM_CONTROL_OR_NEIGHBOR",
+        "leaf_dispatch_id": "b26dc66988d87ecc136fa0a28f449f1708f77475e06e5af72da9d62e5e734e39"
+      },
+      {
+        "case_id": "CG84C8FA12D2",
+        "family_id": "10839000",
+        "arm": "control",
+        "reference_line_count": 8,
+        "status": "UNAVAILABLE",
+        "phase": "WHOLE_PART_REGISTRATION",
+        "reasons": [
+          "PROVISIONAL_REGISTRATION_UNAVAILABLE",
+          "NOISY_PLANE_INITIALIZATION_UNAVAILABLE"
+        ],
+        "exit_code": 0,
+        "outer_budget_stop_field": null,
+        "parent_wall_seconds": 38.923044708091766,
+        "source_binding_valid": true,
+        "returned_result_status": "COMPLETE_RESULT_BYTES_RETAINED",
+        "result_sha256": "6f1cb3724e6f74615bc2c79d2808464de9c3ab21654e2b1ed0d3bd6419079e94",
+        "partial_result_returned": false,
+        "prediction_count": 0,
+        "true_positive": 0,
+        "false_positive": 0,
+        "false_negative": 8,
+        "precision": null,
+        "recall": 0,
+        "f1": null,
+        "observed_bend_count": null,
+        "native_status": "PARTIAL",
+        "native_reasons": [],
+        "initialization_status": "UNAVAILABLE",
+        "initialization_reasons": [
+          "ASSIGNED_FACE_SURFACE_UNAVAILABLE"
+        ],
+        "numerical_consumer_complete": null,
+        "finite_query_calls": 0,
+        "passing_start_groups": 0,
+        "internal_stages_for_killed_worker": "UNKNOWN_NOT_COPIED_FROM_CONTROL_OR_NEIGHBOR",
+        "leaf_dispatch_id": "9a794a2b3451db3d7f38e964b03913a3082ab51f71f2f86f0ab50604e006596b"
+      },
+      {
+        "case_id": "CG84C8FA12D2",
+        "family_id": "10839000",
+        "arm": "challenger",
+        "reference_line_count": 8,
+        "status": "UNAVAILABLE",
+        "phase": "WHOLE_PART_REGISTRATION",
+        "reasons": [
+          "PROVISIONAL_REGISTRATION_UNAVAILABLE",
+          "NO_FINITE_PREFILTERED_NOISY_PLANE_STARTS"
+        ],
+        "exit_code": 0,
+        "outer_budget_stop_field": null,
+        "parent_wall_seconds": 41.372338166926056,
+        "source_binding_valid": true,
+        "returned_result_status": "COMPLETE_RESULT_BYTES_RETAINED",
+        "result_sha256": "b744ca4cd5e8ddcf2158a5023a269cecc4301275980ec449b01aa20dbbcd7cec",
+        "partial_result_returned": false,
+        "prediction_count": 0,
+        "true_positive": 0,
+        "false_positive": 0,
+        "false_negative": 8,
+        "precision": null,
+        "recall": 0,
+        "f1": null,
+        "observed_bend_count": null,
+        "native_status": "PARTIAL",
+        "native_reasons": [],
+        "initialization_status": "COMPLETE",
+        "initialization_reasons": [
+          "NO_FINITE_PREFILTERED_NOISY_PLANE_STARTS"
+        ],
+        "numerical_consumer_complete": true,
+        "finite_query_calls": 141,
+        "passing_start_groups": 0,
+        "internal_stages_for_killed_worker": "UNKNOWN_NOT_COPIED_FROM_CONTROL_OR_NEIGHBOR",
+        "leaf_dispatch_id": "98b4126a7e75e3c0a35b48a4199c8f57088d8c9f1930020be8729103d1c62618"
+      },
+      {
+        "case_id": "CGE4B0549E41",
+        "family_id": "10839000",
+        "arm": "control",
+        "reference_line_count": 4,
+        "status": "UNAVAILABLE",
+        "phase": "WHOLE_PART_REGISTRATION",
+        "reasons": [
+          "PROVISIONAL_REGISTRATION_UNAVAILABLE",
+          "NOISY_PLANE_INITIALIZATION_UNAVAILABLE"
+        ],
+        "exit_code": 0,
+        "outer_budget_stop_field": null,
+        "parent_wall_seconds": 13.808160624932498,
+        "source_binding_valid": true,
+        "returned_result_status": "COMPLETE_RESULT_BYTES_RETAINED",
+        "result_sha256": "56eacfc41b47f94ffb288758a3d4ef119d5b697e286b97a6366ca3ca6ef870b6",
+        "partial_result_returned": false,
+        "prediction_count": 0,
+        "true_positive": 0,
+        "false_positive": 0,
+        "false_negative": 4,
+        "precision": null,
+        "recall": 0,
+        "f1": null,
+        "observed_bend_count": null,
+        "native_status": "PARTIAL",
+        "native_reasons": [],
+        "initialization_status": "UNAVAILABLE",
+        "initialization_reasons": [
+          "NOISY_SCAN_PLANE_PROPOSALS_UNAVAILABLE"
+        ],
+        "numerical_consumer_complete": null,
+        "finite_query_calls": 0,
+        "passing_start_groups": 0,
+        "internal_stages_for_killed_worker": "UNKNOWN_NOT_COPIED_FROM_CONTROL_OR_NEIGHBOR",
+        "leaf_dispatch_id": "6b04067598e6d2914edaca1923b92cabcc9f9afd84ba316f8db684af51b9d59d"
+      },
+      {
+        "case_id": "CGE4B0549E41",
+        "family_id": "10839000",
+        "arm": "challenger",
+        "reference_line_count": 4,
+        "status": "UNAVAILABLE",
+        "phase": "WHOLE_PART_REGISTRATION",
+        "reasons": [
+          "PROVISIONAL_REGISTRATION_UNAVAILABLE",
+          "NOISY_PLANE_INITIALIZATION_UNAVAILABLE"
+        ],
+        "exit_code": 0,
+        "outer_budget_stop_field": null,
+        "parent_wall_seconds": 13.825606666970998,
+        "source_binding_valid": true,
+        "returned_result_status": "COMPLETE_RESULT_BYTES_RETAINED",
+        "result_sha256": "84b75ed004eb0952d35a22f17c219472313d8eca17d151f61ba4dfe6572c442c",
+        "partial_result_returned": false,
+        "prediction_count": 0,
+        "true_positive": 0,
+        "false_positive": 0,
+        "false_negative": 4,
+        "precision": null,
+        "recall": 0,
+        "f1": null,
+        "observed_bend_count": null,
+        "native_status": "PARTIAL",
+        "native_reasons": [],
+        "initialization_status": "UNAVAILABLE",
+        "initialization_reasons": [
+          "NOISY_SCAN_PLANE_PROPOSALS_UNAVAILABLE"
+        ],
+        "numerical_consumer_complete": false,
+        "finite_query_calls": 0,
+        "passing_start_groups": 0,
+        "internal_stages_for_killed_worker": "UNKNOWN_NOT_COPIED_FROM_CONTROL_OR_NEIGHBOR",
+        "leaf_dispatch_id": "57a1ae9cd1d62c0d981fdd74ec13bc3a2400dbe773f96c0158bc7de5dc6ec034"
+      },
+      {
+        "case_id": "CGEBA9A869AC",
+        "family_id": "38172000",
+        "arm": "control",
+        "reference_line_count": 8,
+        "status": "UNAVAILABLE",
+        "phase": "WHOLE_PART_REGISTRATION",
+        "reasons": [
+          "PROVISIONAL_REGISTRATION_UNAVAILABLE",
+          "NOISY_PLANE_INITIALIZATION_UNAVAILABLE"
+        ],
+        "exit_code": 0,
+        "outer_budget_stop_field": null,
+        "parent_wall_seconds": 27.311239040922374,
+        "source_binding_valid": true,
+        "returned_result_status": "COMPLETE_RESULT_BYTES_RETAINED",
+        "result_sha256": "58d821464fe68f84ae70b9d070bba47519e2219c10e61048283f700ed3561c37",
+        "partial_result_returned": false,
+        "prediction_count": 0,
+        "true_positive": 0,
+        "false_positive": 0,
+        "false_negative": 8,
+        "precision": null,
+        "recall": 0,
+        "f1": null,
+        "observed_bend_count": null,
+        "native_status": "PARTIAL",
+        "native_reasons": [],
+        "initialization_status": "UNAVAILABLE",
+        "initialization_reasons": [
+          "ASSIGNED_FACE_SURFACE_UNAVAILABLE"
+        ],
+        "numerical_consumer_complete": null,
+        "finite_query_calls": 0,
+        "passing_start_groups": 0,
+        "internal_stages_for_killed_worker": "UNKNOWN_NOT_COPIED_FROM_CONTROL_OR_NEIGHBOR",
+        "leaf_dispatch_id": "35a127aaea6f09bb626ecefd87e33a19a0daa1045d293d7679c9ba37a481e24f"
+      },
+      {
+        "case_id": "CGEBA9A869AC",
+        "family_id": "38172000",
+        "arm": "challenger",
+        "reference_line_count": 8,
+        "status": "UNAVAILABLE",
+        "phase": "WHOLE_PART_REGISTRATION",
+        "reasons": [
+          "PROVISIONAL_REGISTRATION_UNAVAILABLE",
+          "NO_FINITE_PREFILTERED_NOISY_PLANE_STARTS"
+        ],
+        "exit_code": 0,
+        "outer_budget_stop_field": null,
+        "parent_wall_seconds": 29.295902624726295,
+        "source_binding_valid": true,
+        "returned_result_status": "COMPLETE_RESULT_BYTES_RETAINED",
+        "result_sha256": "fe7a15f85b1404b88bdb412fb0fba04aeff220ca17c26ca6412f97eb17077b23",
+        "partial_result_returned": false,
+        "prediction_count": 0,
+        "true_positive": 0,
+        "false_positive": 0,
+        "false_negative": 8,
+        "precision": null,
+        "recall": 0,
+        "f1": null,
+        "observed_bend_count": null,
+        "native_status": "PARTIAL",
+        "native_reasons": [],
+        "initialization_status": "COMPLETE",
+        "initialization_reasons": [
+          "NO_FINITE_PREFILTERED_NOISY_PLANE_STARTS"
+        ],
+        "numerical_consumer_complete": true,
+        "finite_query_calls": 116,
+        "passing_start_groups": 0,
+        "internal_stages_for_killed_worker": "UNKNOWN_NOT_COPIED_FROM_CONTROL_OR_NEIGHBOR",
+        "leaf_dispatch_id": "b1b3c70eb2aa33d378f76ebf76c48e756fc8842cf06d99ac255212b1b8f41482"
+      },
+      {
+        "case_id": "CGF41F49066A",
+        "family_id": "38172000",
+        "arm": "control",
+        "reference_line_count": 10,
+        "status": "UNAVAILABLE",
+        "phase": "WHOLE_PART_REGISTRATION",
+        "reasons": [
+          "PROVISIONAL_REGISTRATION_UNAVAILABLE",
+          "NOISY_PLANE_INITIALIZATION_UNAVAILABLE"
+        ],
+        "exit_code": 0,
+        "outer_budget_stop_field": null,
+        "parent_wall_seconds": 32.46871054219082,
+        "source_binding_valid": true,
+        "returned_result_status": "COMPLETE_RESULT_BYTES_RETAINED",
+        "result_sha256": "3bdde5677eef5f7b97116bc5c0d8d583d65736e1e4199e3c1564cb9f4ea6781e",
+        "partial_result_returned": false,
+        "prediction_count": 0,
+        "true_positive": 0,
+        "false_positive": 0,
+        "false_negative": 10,
+        "precision": null,
+        "recall": 0,
+        "f1": null,
+        "observed_bend_count": null,
+        "native_status": "PARTIAL",
+        "native_reasons": [],
+        "initialization_status": "UNAVAILABLE",
+        "initialization_reasons": [
+          "ASSIGNED_FACE_SURFACE_UNAVAILABLE"
+        ],
+        "numerical_consumer_complete": null,
+        "finite_query_calls": 0,
+        "passing_start_groups": 0,
+        "internal_stages_for_killed_worker": "UNKNOWN_NOT_COPIED_FROM_CONTROL_OR_NEIGHBOR",
+        "leaf_dispatch_id": "4e2db4e678dc91913c2208b581f6d5a7c88c5013ef6cb2bb231b659ceb69b8e9"
+      },
+      {
+        "case_id": "CGF41F49066A",
+        "family_id": "38172000",
+        "arm": "challenger",
+        "reference_line_count": 10,
+        "status": "UNAVAILABLE",
+        "phase": "WHOLE_PART_REGISTRATION",
+        "reasons": [
+          "PROVISIONAL_REGISTRATION_UNAVAILABLE",
+          "NO_FINITE_PREFILTERED_NOISY_PLANE_STARTS"
+        ],
+        "exit_code": 0,
+        "outer_budget_stop_field": null,
+        "parent_wall_seconds": 35.72918816609308,
+        "source_binding_valid": true,
+        "returned_result_status": "COMPLETE_RESULT_BYTES_RETAINED",
+        "result_sha256": "48f06525a88e45fd845adb03781803ec04a659d02b5f84da6c7504ae1cd3bf27",
+        "partial_result_returned": false,
+        "prediction_count": 0,
+        "true_positive": 0,
+        "false_positive": 0,
+        "false_negative": 10,
+        "precision": null,
+        "recall": 0,
+        "f1": null,
+        "observed_bend_count": null,
+        "native_status": "PARTIAL",
+        "native_reasons": [],
+        "initialization_status": "COMPLETE",
+        "initialization_reasons": [
+          "NO_FINITE_PREFILTERED_NOISY_PLANE_STARTS"
+        ],
+        "numerical_consumer_complete": true,
+        "finite_query_calls": 170,
+        "passing_start_groups": 0,
+        "internal_stages_for_killed_worker": "UNKNOWN_NOT_COPIED_FROM_CONTROL_OR_NEIGHBOR",
+        "leaf_dispatch_id": "e5ba656b22a9a5594f6a5becb7081b649603ac775a86edde3aca4e7de2eddcb3"
+      }
+    ],
+    "formal_paired_gain": "UNESTABLISHED_REQUIRED_PRECISION_AND_F1_UNDEFINED",
+    "no_positive_output_or_accuracy_gain": true,
+    "physical_measurement_truth": "NOT_AVAILABLE_OR_EVALUATED"
+  },
+  "authenticated_stage_observations": {
+    "nineteen_full_result_compact_projections_equal_retained_scoring_inputs": true,
+    "all_retained_stage_projection_fields_equal_full_result_fields": true,
+    "enriched_stage_attribution_equals_case_receipts": true,
+    "all_returned_cad_byte_hashes_match_frozen_case_declarations": true,
+    "challenger_partition": {
+      "completed_finite_screening_zero_starts": {
+        "cases": 6,
+        "references": 45,
+        "case_ids": [
+          "CG08506AE97D",
+          "CG64C412CC73",
+          "CG65CD575B1C",
+          "CG84C8FA12D2",
+          "CGEBA9A869AC",
+          "CGF41F49066A"
+        ]
+      },
+      "sigxcpu_no_returned_result": {
+        "cases": 3,
+        "references": 19,
+        "case_ids": [
+          "CG191DEC7F81",
+          "CG1E0BBA2933",
+          "CG4BDD1371B6"
+        ],
+        "internal_stages": "UNKNOWN"
+      },
+      "membership_refusal": {
+        "cases": 1,
+        "references": 4,
+        "case_ids": [
+          "CGE4B0549E41"
+        ],
+        "reason": "MAX_TRIANGLE_MEMBERSHIPS_EXCEEDED",
+        "retained_attempted_triangle_memberships": 19518222,
+        "discarded_core_records": 21392,
+        "discarded_closure_records": 15,
+        "discarded_proposals": 9450,
+        "evidence_scope": "ATTEMPTED_WORK_ONLY_ALL_PROPOSALS_INVALIDATED"
+      },
+      "zero_generated_pose": {
+        "cases": 1,
+        "references": 3,
+        "case_ids": [
+          "CG4FAF273093"
+        ]
+      }
+    },
+    "six_completed_finite_screening_counters": {
+      "poses": 18541,
+      "supports": 55623,
+      "box_exclusions": 54951,
+      "finite_queries": 672,
+      "certificate_pairs": 3340144,
+      "passing_starts": 0
+    },
+    "complete_box_support_count_equals_assigned_support_count": true,
+    "box_excluded_plus_completed_finite_support_partition_verified": true,
+    "excluded_rows_plus_completed_query_rows_equal_box_screened_rows": true,
+    "numerical_consumer_complete_for_six_returned_screening_cases": true,
+    "zero_passing_start_groups": true,
+    "no_refinement_or_measurement_output_claim": true,
+    "control_native_invalid_cases": [
+      "CG191DEC7F81",
+      "CG4FAF273093",
+      "CG64C412CC73"
+    ],
+    "control_native_invalid_reference_count": 15,
+    "returned_challenger_native_invalid_cases": [
+      "CG4FAF273093",
+      "CG64C412CC73"
+    ],
+    "returned_challenger_native_invalid_reference_count": 10,
+    "CG191_challenger_native_status": "UNKNOWN_NO_RESULT_DO_NOT_COPY_CONTROL_NATIVE_INVALIDITY",
+    "native_validity_is_overlapping_not_exclusive_stage_partition": true,
+    "additional_root_reported_support_histograms": "Not independently recomputed by this audit; do not attribute those separate root-only aggregates to this review.",
+    "limits": "These counters cover only six complete returned ledgers, not the three killed cases. Rejection counts do not prove a correct pose was generated, absent, excluded or globally observable."
+  },
+  "resource_observations": {
+    "parent_completion_wall_seconds": 959.1119512501173,
+    "final_gate_wall_seconds": 959.113146583084,
+    "campaign_limit_seconds": 4200,
+    "parent_peak_rss_bytes": 944046080,
+    "outer_sampled_group_descendants_plus_parent_peak_rss_bytes": 2012168192,
+    "outer_limit_rss_bytes": 12884901888,
+    "maximum_sampled_leaf_tree_rss_bytes": 1683587072,
+    "leaf_limit_rss_bytes": 8589934592,
+    "maximum_available_worker_HWM_bytes": 1692434432,
+    "maximum_available_worker_CPU_seconds": 40.460707,
+    "worker_cpu_limit_seconds": 150,
+    "sum_of19_available_worker_cpu_logs_seconds": 492.838603,
+    "that_sum_is_not_campaign_CPU": true,
+    "killed_worker_final_CPU_and_HWM_unavailable": true,
+    "three_case_CPU_allocations_exhausted": true,
+    "no_outer_campaign_budget_stop": true,
+    "log_caps_and_report_result_caps_verified": true,
+    "sampled_rss_is_not_hard_allocation_or_continuous_peak_proof": true,
+    "timing_boundary": "BEFORE_FINAL_GATE_FSYNC_RECHECKED_BEFORE_PARENT_EXIT",
+    "receipt_and_fsync_boundaries_preserved": true,
+    "custody_defect_is_independent_of_numerical_zero_or_CPU_failures": true
+  },
+  "separate_cached_control_comparison": {
+    "cached_control_independent_release_unchanged": true,
+    "cached_bundle_sha256": "f6129f40e48f6c1c95712bfdaac4433903b2fa7ef3d1f529ede37b88ed2b7213",
+    "cached_report_sha256": "6307f41ef3677a822e69969ba8da03b3ce5664375fbfc6ec642f52de6cb956b3",
+    "cached_post_audit_sha256": "bdc2e3a67559358a035beb35e13de9b6c13dad72a899939efedd1c9a69595f92",
+    "same_reference_snapshot_and_matcher_hashes_verified": true,
+    "cached_union": {
+      "true_positive": 30,
+      "false_positive": 30,
+      "false_negative": 41,
+      "precision": 0.5,
+      "recall": 0.4225352112676056,
+      "f1": 0.4580152671755725
+    },
+    "observation": "No V3 emitted line or true positive surpasses the separately released cached control. Fresh V3 F1 is undefined, not zero; no numeric F1 delta or formally released superiority claim is created.",
+    "current_V3_formal_release_withheld": true,
+    "no_cached_line_wrapped_as_modern_measured_carrier": true,
+    "historical_engine_replay_or_score_beaten": false,
+    "common_frame_units_and_legacy_carrier_compatibility": "PROVISIONAL_UNVERIFIED"
+  },
+  "required_disposition": {
+    "retain_all_existing_bytes_and_negative_observations": true,
+    "do_not_modify_frozen_source_PRE_FROZEN_or_pending_runtime_receipts": true,
+    "do_not_delete_unmanifested_partials": true,
+    "do_not_rerun_this_attempt": true,
+    "no_engine_default_change_or_promotion": true,
+    "next_engineering": "Separately fix and qualify failed/existing-target publication accounting. Continue label-independent pose/runtime work from authenticated negative observations without upgrading this run's incomplete custody release or copying killed-stage evidence.",
+    "independent_human_manufacturing_approval": false
+  }
+}

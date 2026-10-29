@@ -1,0 +1,126 @@
+{
+ "schema": "sherman.final_eval.gold_adjudication.v1",
+ "batch": "FE1",
+ "gid": "gb_1f3fe0",
+ "scan_id": "sc_d71703bfa660",
+ "role": "SCORED",
+ "subset": "N001_N016",
+ "part_id": "38173000",
+ "original_path": "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/incoming/2026-08-17_20_shaked_new_good_bad_pairs/authenticated_source/scans/N002.ply",
+ "scan_sha256": "d71703bfa660b1787b84746abb113e7ff348a2c9915f8baa136cd06e1f9d5c21",
+ "adjudicator": "FE1/adjudicator (claude-vision-ai-v1)",
+ "adjudicated_at": "2026-10-28T21:21:57+00:00",
+ "protocol": "PREREG.md section 4 (sha c50f58e0...); frozen matcher research/broad_baseline/score.py score_case (5 deg / 4 mm / 60 % both spans, one-to-one); accept threshold 1.5 mm / 2 deg; gold rule GOLD_SET_V2 (MARKER_INSTRUCTIONS.md)",
+ "inputs_seen": [
+  "marker_A and marker_B lines/pairs/notes/renders/sweeps",
+  "shared prep renders",
+  "adjudicator raw-scan sections and station checks (adjudication/evidence/)",
+  "private key (gid -> original)"
+ ],
+ "not_seen": "no engine, lane, pool, E3, CAD or baseline output",
+ "marker_A_lines_sha256": "4d4e56d2a59fac736197d8f1a52b513d501ed9446f4d131d8ad3b87acdd694fd",
+ "marker_B_lines_sha256": "aac13c226eac8d0fcb7bf73bf3fa728f2331fe8e877ab6a254cf41ef5d26ddd2",
+ "final_source": "A",
+ "final_lines_sha256": "aa5a0ab54ad61e8fe3f31a58265b707126e1bd7f3d8205b494107bf6cc887ace",
+ "final_line_count": 4,
+ "no_bends_present": false,
+ "label_complete": true,
+ "part_class": "bent",
+ "zero_bend": false,
+ "partial_scan": false,
+ "partial_note": "complete scan (both markers; all views)",
+ "excluded": false,
+ "ab_match": {
+  "nA": 4,
+  "nB": 2,
+  "tp": 2,
+  "fp_B_only": 0,
+  "fn_A_only": 2,
+  "f1": 0.6666666666666666,
+  "disposition": "SCORED_COMPLETE_LABEL",
+  "accepted_within_1p5mm_2deg": 2,
+  "matched_not_accepted": [],
+  "A_only": [
+   "B3",
+   "B4"
+  ],
+  "B_only": [],
+  "matches": [
+   [
+    "B1",
+    "B2",
+    0.0,
+    0.0,
+    1.0,
+    1.0
+   ],
+   [
+    "B2",
+    "B1",
+    0.0,
+    0.0,
+    1.0,
+    1.0
+   ]
+  ]
+ },
+ "lines": [
+  {
+   "final_id": "B1",
+   "bend_angle_deg": 89.75,
+   "length_mm": 256.4,
+   "confidence": "certain",
+   "marker_A_id": "B1",
+   "marker_B_id": "B2",
+   "verdict": "AGREED",
+   "from": "A",
+   "ab_offset_mm": 0.0,
+   "ab_angle_deg": 0.0
+  },
+  {
+   "final_id": "B2",
+   "bend_angle_deg": 90.05,
+   "length_mm": 261.9,
+   "confidence": "certain",
+   "marker_A_id": "B2",
+   "marker_B_id": "B1",
+   "verdict": "AGREED",
+   "from": "A",
+   "ab_offset_mm": 0.0,
+   "ab_angle_deg": 0.0
+  },
+  {
+   "final_id": "B3",
+   "bend_angle_deg": 101.06,
+   "length_mm": 5.4,
+   "confidence": "uncertain",
+   "marker_A_id": "B3",
+   "marker_B_id": null,
+   "verdict": "ACCEPT_A (A only)",
+   "from": "A"
+  },
+  {
+   "final_id": "B4",
+   "bend_angle_deg": 96.56,
+   "length_mm": 5.0,
+   "confidence": "uncertain",
+   "marker_A_id": "B4",
+   "marker_B_id": null,
+   "verdict": "ACCEPT_A (A only)",
+   "from": "A"
+  }
+ ],
+ "rejected_marker_lines": [],
+ "doubts_adjudicated": [
+  {
+   "lines_A": [
+    "B3",
+    "B4"
+   ],
+   "doubt": "short ears (~5 mm folds)",
+   "verdict": "ACCEPT_A",
+   "rule": "GOLD_SET_V2 gold rule (docs/production/GOLD_SET_V2.md; packets/MARKER_INSTRUCTIONS.md); T5 / N1 gb_4dd5ba short-fold precedent",
+   "reason": "Same design as gb_138090. A closeup_B3 section shows a formed ~100 deg arc with the dot on the outer apex. Station check: outer envelope 2.65-2.9 mm (B4, expected 2.48) and 3.1-4.6 mm (B3, expected 2.83; the ear is slightly twisted so the straight line drifts <= 1.8 mm off the arc, inside tolerance). Formed folds; tool confidence uncertain kept."
+  }
+ ]
+}

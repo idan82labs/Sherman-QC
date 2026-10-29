@@ -1,0 +1,105 @@
+{
+ "schema": "sherman.broad_baseline.eval_lines.v1",
+ "lane": "zs_lane_v1:zs",
+ "status": "OK",
+ "frame": "scan_raw",
+ "frame_definition": "coordinates of the scan file exactly as stored (source_ply_raw == scan_raw)",
+ "units": "scan file units (mm for every Sherman scan inspected so far; not re-estimated)",
+ "scan": {
+  "path": "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260726_08dd61b5/49783000_00.ply",
+  "sha256": "ead69b8181a833db7bca714247768e1f671143cdad21110c549e55fbcc0bf235"
+ },
+ "source": {
+  "kind": "zs_lane_v1:zs",
+  "path": null,
+  "sha256": null
+ },
+ "conversion": {
+  "rule": "zs_lane_v1 variant zs",
+  "variant": "zs",
+  "threshold": 0.5,
+  "model": "docs/production/runlog/zeroshot_2026-10-25/integration/models/zs_lane_v1_zs_gbm.pkl",
+  "model_sha256": "ccc28773687b7a32c1c72e127448445794e75cee5e26f896395cc14b9eb1b052",
+  "code_fingerprint": "af87df2f96426a9e69a46ed942ced4f19f0eb770e71e50aada43ddd27ec1441c",
+  "pins_ok": true,
+  "pin_mismatch": [],
+  "errors": {},
+  "stages": {
+   "z3": {
+    "wall": 9.889,
+    "t_mm": 3.8550305366516113,
+    "n_candidates": 24
+   },
+   "z2": {
+    "wall": 4.947,
+    "t_mm": 3.856,
+    "n_lines": 2
+   },
+   "pool": {
+    "wall": 0.002,
+    "n": 24
+   },
+   "snap": {
+    "wall": 0.223,
+    "n": 2,
+    "moved": 2
+   }
+  },
+  "final_testb": false,
+  "guard_basis": "SPLIT_FROZEN_DEV_GOLD_OF_RECORD"
+ },
+ "line_count": 2,
+ "owned_bend_regions": [
+  {
+   "bend_id": "ZS001",
+   "line_start": [
+    371.6796181297656,
+    -626.9790814673861,
+    -71.96174096606985
+   ],
+   "line_end": [
+    171.5498653089692,
+    313.06355309378114,
+    353.32572320451123
+   ],
+   "score": 0.9971125957842999,
+   "incl": 111.73609735690171,
+   "src": [
+    "z2",
+    "z3"
+   ],
+   "d1_snap": {
+    "moved": true,
+    "locus": "outer_apex",
+    "shift_mm": 0.0126
+   }
+  },
+  {
+   "bend_id": "ZS002",
+   "line_start": [
+    257.17404485918763,
+    -657.0882312413631,
+    -59.08834064090547
+   ],
+   "line_end": [
+    57.41635726410088,
+    282.65410296779476,
+    366.41958435726195
+   ],
+   "score": 0.9965812069089893,
+   "incl": 89.31807486947692,
+   "src": [
+    "z2",
+    "z3"
+   ],
+   "d1_snap": {
+    "moved": true,
+    "locus": "outer_apex",
+    "shift_mm": 0.0339
+   }
+  }
+ ],
+ "dropped": [],
+ "failure": null,
+ "created_at": "2026-10-25T04:45:17Z"
+}

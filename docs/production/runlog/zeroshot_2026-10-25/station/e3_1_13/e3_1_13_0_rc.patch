@@ -1,0 +1,710 @@
+diff -ruN a/domains/production/engine/inspect/config.py b/domains/production/engine/inspect/config.py
+--- a/domains/production/engine/inspect/config.py	2026-10-26 05:55:35
++++ b/domains/production/engine/inspect/config.py	2026-10-26 05:55:35
+@@ -32,7 +32,7 @@
+ __all__ = ["ENGINE_VERSION", "ALGORITHM_VERSIONS", "InspectConfig", "ConfigError", "load_config"]
+ 
+ #: Version of the per-scan engine (``result.engine.engine_version``).
+-ENGINE_VERSION = "e3-1.12.0"
++ENGINE_VERSION = "e3-1.13.0-rc"
+ 
+ #: Algorithm identifiers recorded in ``result.engine.algorithm_versions``.
+ ALGORITHM_VERSIONS: dict[str, str] = {
+@@ -41,7 +41,7 @@
+     "articulated_fit": "hinge_hough_region_grow_skin_levels_arc_fold_displaced_fold_window_short_child_window_support_tabs_one_skin_pose_on_plane_joggle_step_one_skin_reread_astray_wide_reversed_mirrored_hinge_v8",
+     "thickness": "datum_tile_two_skin_separation_v1",
+     "state_decode": "signed_dihedral_fraction_order_prior_symmetric_near_twins_hole_evidence_twin_agreement_v5",
+-    "metrology": "station_oml_section_crease_aware_unfolded_island_station_profile_short_side_consistency_footprint_edge_riser_model_reseat_signed_angle_reversed_position_mirrored_flat_start_flange_na_at_stage_pose_borne_lengths_v11",
++    "metrology": "station_oml_section_crease_aware_unfolded_island_station_profile_short_side_consistency_footprint_edge_riser_model_reseat_signed_angle_reversed_position_mirrored_flat_start_flange_na_at_stage_pose_borne_lengths_one_skin_swap_branch_withhold_v12",
+     "uncertainty": "station_mad_residual_pose_erosion_bias_thickness_station_spread_riser_length_v4",
+     "heatmap": "stage_cloud_nearest_signed_v1",
+ }
+@@ -306,6 +306,28 @@
+     local_reseat_max_mm: float = 3.0
+     local_reseat_max_tilt_deg: float = 6.0
+     local_reseat_min_share: float = 0.25
++    #: e3-1.13 root fix (1 on, 0 off). A side whose panel region holds one skin may have taken its inner skin for
++    #: the OML (or the reverse): when its station strip shows two parallel skins one measured thickness apart and
++    #: the plane sits on the inner one (or one thickness outside the outer one), the plane is re-seated on the
++    #: outer skin (a shift of +-t); the share guard then counts that two-skin band, not the whole strip.
++    one_skin_swap: int = 1
++    #: e3-1.13 root fix (1 on, 0 off). A discrete skin / window choice taken within a margin of its alternative
++    #: (two candidate levels whose counts are within ``branch_tie_ratio``) is measured both ways; a characteristic
++    #: whose value differs between the two carries the difference in its U (|delta| added), so it is decided only
++    #: when both readings decide the same, and is REVIEW otherwise.
++    branch_withhold: int = 1
++    branch_tie_ratio: float = 0.75
++    #: e3-1.13 safety net. Extra deterministic 95 % resamples of the scan (fixed seeds) run after the primary
++    #: inspection (0 = off). ``resample_check_policy`` 1: a decided characteristic that any resample decides
++    #: differently becomes REVIEW (its U widened); 2: U' = sqrt(U^2 + (2 sigma)^2), sigma over the primary and the
++    #: resamples. Neither can create a PASS.
++    resample_check_k: int = 0
++    resample_check_policy: int = 1
++    resample_check_fraction: float = 0.95
++    #: 1: also write ``resample_check.json`` (primary and per-resample readings) next to the result (evaluation).
++    resample_check_record: int = 0
++    #: 1: run the resamples in forked worker processes (one per resample) instead of serially.
++    resample_check_parallel: int = 0
+     local_fit_min_depth_mm: float = 4.0
+     #: Each side's station window starts on that side's own flat material (``metrology._flat_start``): a real inner
+     #: radius larger than the CAD's, or a springback transition, keeps bending beyond the CAD tangent line (+0.5 mm),
+@@ -531,6 +553,10 @@
+     "child_orient_max_deg": (0.0, 25.0, False, False), "child_orient_min_depth_mm": _POS,
+     "local_reseat_min_mm": _POS, "local_reseat_max_mm": _POS, "local_reseat_max_tilt_deg": (0.0, 45.0, True, False),
+     "local_reseat_min_share": _FRAC,
++    "one_skin_swap": (0, 1, False, False), "branch_withhold": (0, 1, False, False), "branch_tie_ratio": _FRAC,
++    "resample_check_k": (0, 8, False, False), "resample_check_policy": (1, 2, False, False),
++    "resample_check_fraction": (0.5, 1.0, False, True), "resample_check_record": (0, 1, False, False),
++    "resample_check_parallel": (0, 1, False, False),
+     "joggle_window_gap_mm": (0.0, None, False, False), "joggle_window_mm": _POS,
+     "joggle_parallel_deg": (0.0, 45.0, False, False), "joggle_min_points": (1, None, False, False),
+     "joggle_theta_tol_deg": (0.0, 90.0, False, False), "joggle_riser_length_u_fraction": _FRAC,
+diff -ruN a/domains/production/engine/inspect/engine.py b/domains/production/engine/inspect/engine.py
+--- a/domains/production/engine/inspect/engine.py	2026-10-26 05:55:35
++++ b/domains/production/engine/inspect/engine.py	2026-10-26 05:55:35
+@@ -140,6 +140,10 @@
+     time_budget_s: float | None = None
+     created_at: str | None = None
+     write_outputs: bool = True
++    #: e3-1.13 safety net (internal): inspect a seeded subsample ``(fraction, seed)`` of the scan's points
++    subsample: tuple[float, int] | None = None
++    #: e3-1.13 safety net (internal): build the result but defer writing it (``_Ctx.finish_args`` keeps the inputs)
++    defer_finish: bool = False
+ 
+ 
+ @dataclass
+@@ -189,8 +193,178 @@
+     free_extra: bool = False
+ 
+ 
++#: e3-1.13 safety net: fixed seeds of the extra resamples (the first ``resample_check_k`` are used)
++RESAMPLE_SEEDS = (7101, 7102, 7103, 7104, 7105, 7106, 7107, 7108)
++
++
+ def inspect_scan(inputs: Inputs, out_dir: Path, cfg: InspectConfig, opts: InspectOptions,
+                  progress: Callable[[str, int], None] | None = None) -> InspectOutcome:
++    """Run the per-scan pipeline and write the output directory (module docstring).
++
++    e3-1.13 safety net (``resample_check_k`` > 0): the primary inspection is built but not yet written; then
++    ``resample_check_k`` deterministic subsamples of the scan (``resample_check_fraction``, seeds
++    :data:`RESAMPLE_SEEDS`) are inspected the same way, within what is left of the time budget, serially or in
++    forked worker processes (``resample_check_parallel``). Their readings widen the U of the primary's decided
++    characteristics (:func:`_resample_policy`), and the primary result is built again and written. A check that
++    cannot finish (budget, or a resample that is not VALID while the primary is) withholds every decided
++    characteristic: the check never lets an unchecked decision through, and it never creates a PASS.
++    """
++    k = int(cfg.resample_check_k)
++    if k <= 0 or opts.subsample is not None:
++        return _inspect_once(inputs, out_dir, cfg, opts, progress)
++    import dataclasses
++    budget = _Budget(opts.time_budget_s if opts.time_budget_s is not None else cfg.time_budget_s)
++    popts = dataclasses.replace(opts, defer_finish=True)
++    primary, ctx = _inspect_once(inputs, out_dir, cfg, popts, progress, keep_ctx=True)
++    if ctx is None or ctx.finish_args is None:
++        return primary
++    seeds = RESAMPLE_SEEDS[:k]
++    readings: list[dict | None] = []
++    t_primary = budget.elapsed()
++    valid = primary.result.inspection_validity.state == "VALID"
++    if valid:
++        if progress is not None:
++            progress("resample_check", 90)
++        readings = _resample_readings(inputs, out_dir, cfg, opts, seeds, budget, t_primary)
++    ctx.note(f"resample check: k={k} policy={cfg.resample_check_policy} parallel={cfg.resample_check_parallel} "
++             f"primary {t_primary:.1f}s total {budget.elapsed():.1f}s; "
++             + " ".join(f"s{sd}={'-' if r is None else r['validity']}" for sd, r in zip(seeds, readings)))
++    rec = None
++    if valid:
++        rec = _resample_policy(ctx, readings, cfg)
++    ctx.opts = dataclasses.replace(opts, defer_finish=False)
++    ctx.budget = budget
++    out = ctx.finish(*ctx.finish_args[0], **ctx.finish_args[1])
++    if cfg.resample_check_record and opts.write_outputs:
++        rec = rec or {}
++        rec.update(seeds=list(seeds), primary_s=round(t_primary, 3), total_s=round(budget.elapsed(), 3),
++                   resamples=readings, primary_raw=_readings_of(primary.result))
++        write_json(Path(out_dir) / "resample_check.json", rec)
++    return out
++
++
++def _readings_of(result) -> dict:
++    """Per characteristic (decision, actual, U) and the validity of a result (safety-net bookkeeping)."""
++    chars = {}
++    for b in result.bends:
++        for c in b.characteristics:
++            chars[c.characteristic_id] = (c.decision, c.actual, c.uncertainty)
++    for g in result.general_measurements:
++        c = g.characteristic
++        chars[c.characteristic_id] = (c.decision, c.actual, c.uncertainty)
++    return {"validity": result.inspection_validity.state, "summary": result.summary.state, "chars": chars}
++
++
++def _one_resample(inputs: Inputs, out_dir: Path, cfg: InspectConfig, opts: InspectOptions, seed: int,
++                  seconds: float) -> dict:
++    import dataclasses
++    t0 = time.monotonic()
++    o2 = dataclasses.replace(opts, write_outputs=False, defer_finish=False, time_budget_s=max(seconds, 1.0),
++                             subsample=(float(cfg.resample_check_fraction), int(seed)))
++    res = _inspect_once(inputs, out_dir, cfg, o2, None)
++    r = _readings_of(res.result)
++    r["seconds"] = round(time.monotonic() - t0, 3)
++    r["peak_rss_bytes"] = _peak_rss()
++    return r
++
++
++def _resample_readings(inputs, out_dir, cfg: InspectConfig, opts: InspectOptions, seeds, budget: _Budget,
++                       t_primary: float) -> list[dict | None]:
++    """Readings of the resamples (None: not run, the budget would not hold it)."""
++    out: list[dict | None] = []
++    if cfg.resample_check_parallel:
++        import multiprocessing as mp
++        from concurrent.futures import ProcessPoolExecutor
++        left = budget.left() - 2.0
++        if left < 0.5 * t_primary:
++            return [None for _ in seeds]
++        with ProcessPoolExecutor(max_workers=len(seeds), mp_context=mp.get_context("fork")) as ex:
++            futs = [ex.submit(_one_resample, inputs, out_dir, cfg, opts, sd, left) for sd in seeds]
++            for f in futs:
++                try:
++                    out.append(f.result(timeout=max(left + 5.0, 1.0)))
++                except Exception:  # noqa: BLE001 - a failed check run withholds (fail safe)
++                    out.append(None)
++        return out
++    for i, sd in enumerate(seeds):
++        left = budget.left() - 2.0
++        share = left / (len(seeds) - i)
++        # a resample takes about as long as the primary: one that cannot get that much is not started
++        if share < 0.8 * t_primary or left <= 1.0:
++            out.append(None)
++            continue
++        try:
++            out.append(_one_resample(inputs, out_dir, cfg, opts, sd, share))
++        except Exception:  # noqa: BLE001 - a failed check run withholds (fail safe)
++            out.append(None)
++    return out
++
++
++def _resample_policy(ctx: "_Ctx", readings: list[dict | None], cfg: InspectConfig) -> dict:
++    """Widen the primary's decided characteristics' U from the resamples (``resample_check_policy``).
++
++    1 (self-check): a PASS or FAIL that any resample decides otherwise (another decision, UNKNOWN, a resample
++    that could not run or is not VALID) becomes REVIEW (U = U + spread, at least the guard-band width).
++    2 (honest U): U' = sqrt(U^2 + (2 sigma)^2), sigma the sample deviation of the primary and resample values;
++    a resample without a value (or not run) withholds. Characteristics already REVIEW / UNKNOWN are untouched.
++    """
++    part = ctx.part
++    args = ctx.finish_args[0]
++    outcomes, general = args[4], ctx.general[0]
++    incomplete = any(r is None or r["validity"] != "VALID" for r in readings)
++    if incomplete:
++        ctx.warnings.append("RESAMPLE_CHECK_INCOMPLETE: decided characteristics withheld (REVIEW)")
++    changed: dict[str, list] = {}
++    primary_raw = {}
++    items = [(cid, m, o) for o in outcomes for cid, m in o.measurements.items()] + \
++        [(cid, m, None) for cid, m in general.items()]
++    for cid, m, o in items:
++        if m.value is None or m.u is None or (o is not None and (cid in o.forced_unknown or cid in o.stage_na)):
++            continue
++        if o is not None and o.state in ("UNKNOWN", "NOT_YET_FORMED"):
++            continue
++        nom = part.nominals.get(cid)
++        d0 = _gb(nom, m.value, m.u)
++        primary_raw[cid] = (d0, float(m.value), float(m.u))
++        if d0 not in ("PASS", "FAIL"):
++            continue
++        others = [None if (r is None or r["validity"] != "VALID") else r["chars"].get(cid) for r in readings]
++        vals = [float(x[1]) for x in others if x is not None and x[1] is not None]
++        u0 = float(m.u)
++        if cfg.resample_check_policy == 1:
++            agree = all(x is not None and x[0] == d0 for x in others)
++            if agree:
++                continue
++            spread = max([abs(v - float(m.value)) for v in vals] + [0.0])
++            m.u = withhold_u(nom, m.value, u0, spread)
++        else:
++            if len(vals) < len(others):
++                m.u = withhold_u(nom, m.value, u0, 0.0)
++            else:
++                allv = np.asarray([float(m.value)] + vals)
++                sig = float(allv.std(ddof=1)) if len(allv) > 1 else 0.0
++                m.u = float(math.hypot(u0, 2.0 * sig))
++        d1 = _gb(nom, m.value, m.u)
++        if d1 != d0:
++            m.notes = tuple(m.notes) + ("RESAMPLE_CHECK_WITHHELD",)
++            changed[cid] = [d0, d1, round(u0, 6), round(float(m.u), 6)]
++    ctx.primary_raw = primary_raw
++    if changed:
++        ctx.note("resample check withheld: " + " ".join(changed))
++    return {"policy": int(cfg.resample_check_policy), "incomplete": incomplete, "changed": changed}
++
++
++def _inspect_once(inputs: Inputs, out_dir: Path, cfg: InspectConfig, opts: InspectOptions,
++                  progress: Callable[[str, int], None] | None = None, keep_ctx: bool = False):
++    """One pass of the per-scan pipeline (``inspect_scan`` without the safety net)."""
++    out = _inspect_core(inputs, out_dir, cfg, opts, progress)
++    if keep_ctx:
++        return out, getattr(out, "_ctx", None)
++    return out
++
++
++def _inspect_core(inputs: Inputs, out_dir: Path, cfg: InspectConfig, opts: InspectOptions,
++                  progress: Callable[[str, int], None] | None = None) -> InspectOutcome:
+     """Run the per-scan pipeline and write the output directory (module docstring)."""
+     budget = _Budget(opts.time_budget_s if opts.time_budget_s is not None else cfg.time_budget_s)
+     log: list[str] = []
+@@ -216,6 +390,9 @@
+         return ctx.invalid("UNSUPPORTED_INPUT", (f"SCAN_UNREADABLE: {exc}"[:200],), None, None, log)
+     ctx.scan = scan
+     pts = scan.points * float(opts.unit_factor)
++    if opts.subsample is not None:  # e3-1.13 safety net: a seeded subsample of the points
++        rng = np.random.default_rng(int(opts.subsample[1]))
++        pts = pts[np.sort(rng.choice(len(pts), size=int(round(float(opts.subsample[0]) * len(pts))), replace=False))]
+     if scan.dropped_nonfinite:
+         warnings.append(f"SCAN_NONFINITE_POINTS_DROPPED:{scan.dropped_nonfinite}")
+     # gross outliers (a finite sentinel vertex metres or 1e38 away) are dropped like non-finite
+@@ -446,6 +623,13 @@
+             f"{part.bends[j].label}={'ok' if ok else 'withheld'}" for j, (ok, _) in sorted(pos_trust.items())) or "none"))
+     outcomes = _outcomes(part, best, states, decodes, geoms, lines, transforms, stage_id, exact, reg_degenerate,
+                          ambiguous, idx, cfg, budget, thick, ctx, pos_trust)
++    # e3-1.13: one-thickness skin swaps and near-tie skin / window choices (``metrology._BranchRec``)
++    swaps = [f"{part.bends[j].label}:{s}" for j, g in sorted(geoms.items()) if g is not None for s in g.skin_swaps]
++    if swaps:
++        note("one-skin side re-seated one thickness onto its outer skin: " + " ".join(swaps))
++    if cfg.branch_withhold and not ambiguous:
++        _branch_withhold(outcomes, part, best, states, decodes, geoms, lines, transforms, stage_id, exact,
++                         reg_degenerate, ambiguous, idx, cfg, budget, thick, ctx, pos_trust)
+     ctx.general = _general_measurements(part, recipe, states, geoms, best.art, cfg, budget)
+     # -- symmetric twins that tie (amendment ENGINE_IO-A2): publish only what every twin reads the same ---------
+     identity_ambiguous = False
+@@ -523,6 +707,9 @@
+     general: tuple = ({}, {}, set())
+     #: UNKNOWN reason for every FREE_EDGE side when the unplanned-crease search could not run
+     free_edge_blocked: str | None = None
++    #: e3-1.13 safety net: the arguments of the deferred :meth:`finish`, and the primary's own readings
++    finish_args: tuple | None = None
++    primary_raw: dict = field(default_factory=dict)
+ 
+     def _engine(self) -> EngineInfoV1:
+         return EngineInfoV1(engine_version=ENGINE_VERSION, config_sha256=self.cfg.sha256(),
+@@ -549,9 +736,12 @@
+ 
+     def finish(self, state, reasons, registration, coverage, outcomes, stage_id, detail, creases, deviations, labels,
+                heat_reason, log, publish_scan: bool = True) -> InspectOutcome:
++        if self.opts.defer_finish:
++            self.finish_args = ((state, reasons, registration, coverage, outcomes, stage_id, detail, creases,
++                                 deviations, labels, heat_reason, log), {"publish_scan": publish_scan})
+         files: dict[str, str] = {}
+         out = self.out_dir
+-        write = self.opts.write_outputs
++        write = self.opts.write_outputs and not self.opts.defer_finish
+         part = self.part
+         reg_rel = dev_rel = lab_rel = stage_rel = final_rel = None
+         npts = None
+@@ -611,7 +801,9 @@
+                 files[key] = rel
+         files["bend_geometry"] = ENGINE_OUTPUT_FILES["bend_geometry"]
+         files["result"] = ENGINE_OUTPUT_FILES["result"]
+-        return InspectOutcome(result=result, files=files, log=log)
++        res = InspectOutcome(result=result, files=files, log=log)
++        res._ctx = self  # e3-1.13 safety net: the deferred finish is redone on this context
++        return res
+ 
+ 
+ def _sniff_format(path: Path) -> str:
+@@ -1446,6 +1638,73 @@
+     if fit.undetermined.size and ctx.model is not None:
+         _pose_borne_lengths(out, part, geoms, lines, fit, ctx.model, ctx.note)
+     return out
++
++
++def _gb(nom, value: float, u: float) -> str | None:
++    """The contract's guard-band decision of ``value`` with U ``u`` (rounded as the row factory rounds), else None."""
++    from contracts.production.characteristics import guard_band_decision
++
++    if nom is None or nom.nominal is None or nom.tolerance is None or value is None or u is None:
++        return None
++    dev = round6(round6(float(value)) - round6(float(nom.nominal)))
++    return guard_band_decision(dev, max(round6(float(u)), 1e-6), float(nom.tolerance.plus), float(nom.tolerance.minus))
++
++
++def review_u(nom, value: float) -> float:
++    """The smallest U (plus 1e-3) that puts ``value`` in the guard band (REVIEW): never PASS, never FAIL."""
++    dev = round6(round6(float(value)) - round6(float(nom.nominal)))
++    p, m = float(nom.tolerance.plus), float(nom.tolerance.minus)
++    not_fail = max(dev - p, -m - dev, 0.0)
++    not_pass = max(min(p - dev, dev + m), 0.0)
++    return max(not_fail, not_pass) + 1e-3
++
++
++def withhold_u(nom, value: float, u: float, delta: float) -> float:
++    """U of a withheld reading: the observed alternative spread added, and at least :func:`review_u`."""
++    return max(float(u) + float(delta), review_u(nom, value))
++
++
++def _branch_withhold(outcomes: list[BendOutcome], part: PartView, best: _Hyp, states, decodes, geoms, lines,
++                     transforms, stage_id, exact, degenerate, ambiguous, idx: PointIndex, cfg: InspectConfig,
++                     budget: _Budget, thick: Thickness, ctx: "_Ctx", pos_trust) -> None:
++    """e3-1.13 ``branch_withhold``: a characteristic that a near-tie choice decides.
++
++    Every bend measured with a near-tie skin / window choice (``BendMeasure.alt``) is substituted by its
++    alternative reading and the characteristics are measured again. A decided characteristic (PASS or FAIL)
++    whose alternative reading is not the same decision is withheld: REVIEW, with the alternative's difference
++    added to its U. A characteristic both readings decide the same keeps its reading. Nothing becomes PASS.
++    """
++    alts = [j for j, g in sorted(geoms.items()) if g is not None and g.ok and g.alt is not None]
++    if not alts:
++        return
++    withheld: list[str] = []
++    for j in alts:
++        if budget.left() <= 0:
++            break
++        g2 = dict(geoms)
++        g2[j] = geoms[j].alt
++        ctx.note(f"branch near-tie {part.bends[j].label}: {','.join(sorted(set(geoms[j].ties)))}"
++                 + ("" if geoms[j].alt.ok else f" (alternative not measured: {geoms[j].alt.reason})"))
++        alt_out = _outcomes(part, best, states, decodes, g2, lines, transforms, stage_id, exact, degenerate,
++                            ambiguous, idx, cfg, budget, thick, ctx, pos_trust)
++        for o, oa in zip(outcomes, alt_out):
++            for cid, m in o.measurements.items():
++                if m.value is None or m.u is None or cid in o.forced_unknown:
++                    continue
++                nom = part.nominals.get(cid)
++                d0 = _gb(nom, m.value, m.u)
++                if d0 not in ("PASS", "FAIL"):
++                    continue
++                ma = oa.measurements.get(cid)
++                if ma is None or ma.value is None or ma.u is None or cid in oa.forced_unknown:
++                    continue  # the alternative reading cannot measure it: no evidence against this one
++                if _gb(nom, ma.value, ma.u) == d0:
++                    continue
++                m.u = withhold_u(nom, m.value, m.u, abs(float(ma.value) - float(m.value)))
++                m.notes = tuple(m.notes) + ("BRANCH_NEAR_TIE_WITHHELD",)
++                withheld.append(cid.split("/", 1)[-1] if "/" in cid else cid)
++    if withheld:
++        ctx.note("branch near-tie withheld: " + " ".join(withheld))
+ 
+ 
+ def _station_free_decision(m: Measurement, nom) -> bool:
+diff -ruN a/domains/production/engine/inspect/metrology.py b/domains/production/engine/inspect/metrology.py
+--- a/domains/production/engine/inspect/metrology.py	2026-10-26 05:55:35
++++ b/domains/production/engine/inspect/metrology.py	2026-10-26 05:55:35
+@@ -71,6 +71,7 @@
+ from __future__ import annotations
+ 
+ import math
++import threading
+ from collections.abc import Callable
+ from dataclasses import dataclass, field
+ 
+@@ -198,6 +199,12 @@
+     rev_sharp: np.ndarray | None = None
+     rev_line_point: np.ndarray | None = None
+     rev_mirror: tuple[np.ndarray, float] | None = None
++    #: e3-1.13: the same bend measured with every near-tie skin / window choice taken the other way
++    #: (:class:`_BranchRec`), None when no choice was within ``branch_tie_ratio`` of its alternative
++    alt: "BendMeasure | None" = None
++    #: e3-1.13: the near-tie choices met (kind strings) and the one-thickness skin swaps applied (side names)
++    ties: tuple[str, ...] = ()
++    skin_swaps: tuple[str, ...] = ()
+     #: how far (mm) each side's station window was moved out past the CAD tangent line + 0.5 mm, onto the side's
+     #: own flat material (:func:`_flat_start`; parent, child)
+     flat_shift: tuple[float, float] = (0.0, 0.0)
+@@ -220,6 +227,60 @@
+         return self._masks[key]
+ 
+ 
++class _BranchRec:
++    """Near-tie choices met while one bend is measured (e3-1.13 ``branch_withhold``).
++
++    A discrete choice between two candidate skin levels (the densest level against the second one, the denser
++    skin of a window) whose counts lie within ``branch_tie_ratio`` of each other is a near-tie: a 5 % change in
++    the points can take it either way. ``flip`` takes every such choice the other way (the alternative reading).
++    """
++
++    def __init__(self, flip: bool, ratio: float) -> None:
++        self.flip = flip
++        self.ratio = ratio
++        self.ties: list[str] = []
++        self.swaps: list[str] = []
++
++
++_BRANCH = threading.local()
++
++
++def _branch() -> _BranchRec | None:
++    return getattr(_BRANCH, "rec", None)
++
++
++def _tie(kind: str, c1: float, c2: float) -> bool:
++    """Record a near-tie between counts ``c1 >= c2`` and return True when the alternative is to be taken."""
++    rec = _branch()
++    if rec is None or c1 <= 0 or c2 < rec.ratio * c1:
++        return False
++    rec.ties.append(kind)
++    return rec.flip
++
++
++def _two_levels(h: np.ndarray, t: float, sep_min: float) -> tuple[tuple[float, float], tuple[float, float] | None]:
++    """The densest 0.05 mm level ``(level, count)`` of heights ``h`` and the densest other *peak* (a local maximum
++    of the smoothed histogram) at least ``max(sep_min, 0.3)`` from it and not its partner skin (one thickness
++    ``t`` away, +-0.3 mm), or None."""
++    hb = 0.05
++    lo = float(h.min()) - 1.0
++    hist = np.bincount(np.floor((h - lo) / hb).astype(np.int64))
++    sm = np.convolve(hist, np.ones(5), mode="same")
++    p1 = int(np.argmax(sm))
++    h1 = lo + (p1 + 0.5) * hb
++    centres = lo + (np.arange(len(sm)) + 0.5) * hb
++    pad = np.r_[np.zeros(3), sm, np.zeros(3)]
++    peak = np.ones(len(sm), dtype=bool)
++    for k in range(1, 4):
++        peak &= (sm >= pad[3 - k:3 - k + len(sm)]) & (sm >= pad[3 + k:3 + k + len(sm)])
++    sep = np.abs(centres - h1)
++    ok = peak & (sep >= max(sep_min, 0.3)) & (np.abs(sep - t) > 0.3) & (sm > 0)
++    if not ok.any():
++        return (h1, float(sm[p1])), None
++    p2 = int(np.argmax(np.where(ok, sm, -1.0)))
++    return (h1, float(sm[p1])), (float(centres[p2]), float(sm[p2]))
++
++
+ def _oml_plane(panel: PanelFit, skin: int) -> Plane:
+     return panel.skin_plane(skin)
+ 
+@@ -255,7 +316,13 @@
+     peak = lo + (int(np.argmax(sm)) + 0.5) * hb
+     at_peak = int((np.abs(win - peak) < tol).sum())
+     at_target = int((np.abs(win - target) < tol).sum())
+-    if at_target >= max(min_points, 0.5 * at_peak):
++    take_target = at_target >= max(min_points, 0.5 * at_peak)
++    # e3-1.13: the target and a distinct densest level (more than ``tol`` apart, both supported) nearly tie
++    if abs(peak - target) > tol and min(at_target, at_peak) >= min_points:
++        a, b = float(at_target), 0.5 * float(at_peak)
++        if _tie("station_skin_level", max(a, b), min(a, b)):
++            take_target = not take_target
++    if take_target and at_target >= min_points:
+         return target
+     if at_peak < min_points:
+         return None
+@@ -347,7 +414,23 @@
+     skins = [(m, lv) for m, lv in ((np.abs(dd) < band, 0.0), (np.abs(dd + t) < band, -t)) if int(m.sum()) >= need]
+     if not skins:
+         return start0
+-    keep, level = max(skins, key=lambda k: int(k[0].sum()))
++    skins = sorted(skins, key=lambda k: -int(k[0].sum()))
++    first = _flat_scan(ss, dd, zz, skins[0][0], skins[0][1], start0, limit, depth, band, zlo, zhi, cfg)
++    if len(skins) == 2 and _branch() is not None:
++        c1, c2 = float(skins[0][0].sum()), float(skins[1][0].sum())
++        rec = _branch()
++        if c2 >= rec.ratio * c1:
++            # e3-1.13: the two skins nearly tie for the test; it matters only when the other skin flattens elsewhere
++            other = _flat_scan(ss, dd, zz, skins[1][0], skins[1][1], start0, limit, depth, band, zlo, zhi, cfg)
++            if abs(other - first) >= 2.0 * step - 1e-9 and _tie("flat_start_skin", c1, c2):
++                return other
++    return first
++
++
++def _flat_scan(ss: np.ndarray, dd: np.ndarray, zz: np.ndarray, keep: np.ndarray, level: float, start0: float,
++               limit: float, depth: float, band: float, zlo: float, zhi: float, cfg: InspectConfig) -> float:
++    """:func:`_flat_start`'s outward walk on one skin (``keep``, at ``level``)."""
++    g, gap, step = cfg.flat_start_test_mm, cfg.flat_start_gap_mm, cfg.flat_start_step_mm
+     ss, dd, zz = ss[keep], dd[keep] - level, zz[keep]
+     n_chunks = max(1, int(round((zhi - zlo) / cfg.flat_start_chunk_mm)))
+     chunk = np.clip(((zz - zlo) / max(zhi - zlo, 1e-9) * n_chunks).astype(np.int64), 0, n_chunks - 1)
+@@ -390,6 +473,30 @@
+ 
+ def measure_bend_geometry(idx: PointIndex, part: PartView, art: ArticulatedFit, j: int, cfg: InspectConfig
+                           ) -> BendMeasure:
++    """Station planes, angles and OML sharps of bend ``j`` (its child must be FITTED).
++
++    e3-1.13: with ``branch_withhold`` the bend is measured with a :class:`_BranchRec`; when a near-tie choice was
++    met, it is measured again with every such choice taken the other way, and that reading is ``alt``.
++    """
++    prev = _branch()
++    try:
++        rec = _BranchRec(False, cfg.branch_tie_ratio)
++        _BRANCH.rec = rec
++        out = _measure_bend_geometry(idx, part, art, j, cfg)
++        out.ties, out.skin_swaps = tuple(rec.ties), tuple(rec.swaps)
++        if cfg.branch_withhold and rec.ties and out.ok:
++            alt_rec = _BranchRec(True, cfg.branch_tie_ratio)
++            _BRANCH.rec = alt_rec
++            alt = _measure_bend_geometry(idx, part, art, j, cfg)
++            alt.ties, alt.skin_swaps = tuple(alt_rec.ties), tuple(alt_rec.swaps)
++            out.alt = alt
++        return out
++    finally:
++        _BRANCH.rec = prev
++
++
++def _measure_bend_geometry(idx: PointIndex, part: PartView, art: ArticulatedFit, j: int, cfg: InspectConfig
++                           ) -> BendMeasure:
+     """Station planes, angles and OML sharps of bend ``j`` (its child must be FITTED)."""
+     bend = part.bends[j]
+     bf = art.bends[j]
+@@ -446,7 +553,9 @@
+             if (model_p if is_parent else model_c):
+                 continue
+             strip = ((s_p > d_t + 0.5) & (s_p < depth_p) if is_parent else (s_c > d_t + 0.5) & (s_c < depth_c)) & inz
+-            q = _reseat_plane(pts[strip], pp if is_parent else pc, t, cfg)
++            panel = parent if is_parent else child
++            q = _reseat_plane(pts[strip], pp if is_parent else pc, t, cfg, one_skin=len(panel.skins_seen) == 1,
++                              side="parent" if is_parent else "child")
+             if q is not None:
+                 moved = True
+                 if is_parent:
+@@ -603,13 +712,21 @@
+     return out
+ 
+ 
+-def _reseat_plane(pts: np.ndarray, plane: Plane, t: float, cfg: InspectConfig) -> Plane | None:
++def _reseat_plane(pts: np.ndarray, plane: Plane, t: float, cfg: InspectConfig, one_skin: bool = False,
++                  side: str = "") -> Plane | None:
+     """``plane`` (an OML plane, outward normal) re-seated on the material of a station strip, else None.
+ 
+     The strip's points within ``local_reseat_max_mm`` outside and ``t +
+     local_reseat_max_mm`` inside the plane give the skin levels (``skin_peaks``):
+     with two skins the outer one is the OML, with one the reading nearer the
+-    plane's own levels (OML at 0, inner skin at ``-t``). When the OML level lies
++    plane's own levels (OML at 0, inner skin at ``-t``).
++
++    e3-1.13: on a side whose panel region holds one skin (``one_skin``), two skins one thickness apart in the
++    strip with the plane on the inner one (OML level near ``+t``) or one thickness outside the outer one (near
++    ``-t``) mean the region took one skin for the other: the plane moves onto the outer skin (``+-t``), and the
++    share guard counts that two-skin band (the strip also holds the arc and other sheets). With
++    ``branch_withhold``, a densest level that a second, non-partner level nearly ties is a near-tie
++    (:func:`_tie`); the alternative reading starts from the second level. When the OML level lies
+     more than ``local_reseat_min_mm`` off, the plane is refitted on that skin's
+     points (or the inner skin's, moved out by ``t``), three times on the band the
+     last refit selects; a refit holding less than ``local_reseat_min_share`` of the
+@@ -625,10 +742,20 @@
+     if int(win.sum()) < need:
+         return None
+     top, bottom = skin_peaks(d[win], t)
++    if cfg.branch_withhold and _branch() is not None:
++        first, second = _two_levels(d[win], t, cfg.local_reseat_min_mm)
++        if second is not None and _tie("reseat_level", first[1], second[1]):
++            dw = d[win]
++            # the alternative: the second level's sheet (that level and its partner skin, if seen), the first
++            # level's band left out
++            near2 = dw[(np.abs(dw - second[0]) < t + 0.3) & (np.abs(dw - first[0]) >= 0.15)]
++            top, bottom = skin_peaks(near2, t) if len(near2) >= 10 else (second[0], None)
+     oml = top if (bottom is not None or abs(top) <= abs(top + t)) else top + t
++    tol = min(0.25, 0.3 * t)
++    swap = bool(cfg.one_skin_swap and one_skin and bottom is not None and abs(abs(oml) - t) < 0.3 * t
++                and abs((top - bottom) - t) < 0.25 * t)
+     if abs(oml) <= cfg.local_reseat_min_mm:
+         return None
+-    tol = min(0.25, 0.3 * t)
+     inner = int((win & (np.abs(d - oml) < tol)).sum()) < need
+     pl = plane.offset(oml - t if inner else oml)  # the seen skin's plane, refitted on its band (it widens as it turns)
+     sel = None
+@@ -641,10 +768,15 @@
+     sel = np.abs(pl.distance(pts)) < tol
+     # the refit must stand for the strip's material (a skin holds about half of a two-skin strip), not a narrow
+     # band across a sheet that runs off at an angle
+-    if int(sel.sum()) < cfg.local_reseat_min_share * len(pts):
++    base = len(pts)
++    if swap:
++        base = int((win & ((np.abs(d - top) < tol) | (np.abs(d - bottom) < tol))).sum())
++    if int(sel.sum()) < cfg.local_reseat_min_share * base:
+         return None
+     if math.degrees(math.acos(max(-1.0, min(1.0, float(pl.n @ plane.n))))) > cfg.local_reseat_max_tilt_deg:
+         return None
++    if swap and _branch() is not None:
++        _branch().swaps.append(side)
+     return pl.offset(t) if inner else pl
+ 
+ 
+diff -ruN a/tests/test_prod_engine_e3_1_13_candidate.py b/tests/test_prod_engine_e3_1_13_candidate.py
+--- a/tests/test_prod_engine_e3_1_13_candidate.py	1970-01-01 02:00:00
++++ b/tests/test_prod_engine_e3_1_13_candidate.py	2026-10-26 05:55:35
+@@ -0,0 +1,89 @@
++"""e3-1.13.0-rc candidate: one-skin swap in the station re-seat, near-tie withholding helpers, safety-net U rules."""
++import math
++from types import SimpleNamespace
++
++import numpy as np
++import pytest
++
++from contracts.production.characteristics import guard_band_decision
++from domains.production.engine.inspect import metrology as M
++from domains.production.engine.inspect.config import ENGINE_VERSION, InspectConfig, load_config
++from domains.production.engine.inspect.engine import _gb, review_u, withhold_u
++from domains.production.engine.inspect.geom import Plane
++
++
++def _strip(t=0.92, clutter=6000, seed=0):
++    """A flat strip whose two skins lie at z = 0 and z = t (outer), plus clutter far from both (the arc, other sheets)."""
++    rng = np.random.default_rng(seed)
++    xy = rng.uniform(0, 20, size=(3000, 2))
++    inner = np.c_[xy[:1500], rng.normal(0.0, 0.01, 1500)]
++    outer = np.c_[xy[1500:], rng.normal(t, 0.01, 1500)]
++    junk = np.c_[rng.uniform(0, 20, size=(clutter, 2)), rng.uniform(-30, -10, clutter)]
++    return np.r_[inner, outer, junk]
++
++
++def test_version_is_the_candidate():
++    assert ENGINE_VERSION == "e3-1.13.0-rc"
++
++
++def test_one_skin_side_on_its_inner_skin_moves_one_thickness_out():
++    t, cfg = 0.92, InspectConfig()
++    pts = _strip(t)
++    plane = Plane(np.array([0.0, 0.0, 1.0]), 0.0)  # the region took the inner skin for the OML
++    assert M._reseat_plane(pts, plane, t, cfg) is None  # e3-1.12 behaviour: the share guard counts the clutter
++    q = M._reseat_plane(pts, plane, t, cfg, one_skin=True)
++    assert q is not None and abs(float(q.d) - t) < 0.05 and float(q.n @ plane.n) > 0.999
++
++
++def test_swap_needs_a_one_skin_panel_and_can_be_switched_off():
++    t = 0.92
++    pts = _strip(t)
++    plane = Plane(np.array([0.0, 0.0, 1.0]), 0.0)
++    assert M._reseat_plane(pts, plane, t, InspectConfig(), one_skin=False) is None
++    assert M._reseat_plane(pts, plane, t, InspectConfig(one_skin_swap=0), one_skin=True) is None
++
++
++def test_plane_one_thickness_outside_the_outer_skin_moves_in():
++    t, cfg = 0.92, InspectConfig()
++    pts = _strip(t)
++    plane = Plane(np.array([0.0, 0.0, 1.0]), 2 * t)  # one thickness above the outer skin
++    q = M._reseat_plane(pts, plane, t, cfg, one_skin=True)
++    assert q is not None and abs(float(q.d) - t) < 0.05
++
++
++def test_a_true_two_skin_side_is_left_alone():
++    t, cfg = 0.92, InspectConfig()
++    pts = _strip(t)
++    plane = Plane(np.array([0.0, 0.0, 1.0]), t)  # already on the outer skin
++    assert M._reseat_plane(pts, plane, t, cfg, one_skin=True) is None
++
++
++def _nom(nominal=10.0, plus=0.5, minus=0.5):
++    return SimpleNamespace(nominal=nominal, tolerance=SimpleNamespace(plus=plus, minus=minus))
++
++
++@pytest.mark.parametrize("value,u", [(10.0, 0.1), (10.3, 0.1), (11.0, 0.1), (8.0, 0.2), (9.45, 0.04), (10.6, 0.05)])
++def test_withheld_u_is_always_review_and_never_smaller(value, u):
++    nom = _nom()
++    for delta in (0.0, 0.3, 2.0):
++        u2 = withhold_u(nom, value, u, delta)
++        assert u2 >= u
++        assert _gb(nom, value, u2) == "REVIEW"
++
++
++def test_widening_u_never_turns_fail_into_pass():
++    nom = _nom()
++    for value in np.linspace(8.0, 12.0, 81):
++        for u in (0.05, 0.2):
++            d0 = _gb(nom, value, u)
++            for s in (0.0, 0.1, 1.0):
++                d1 = _gb(nom, value, math.hypot(u, 2 * s))
++                assert not (d0 == "FAIL" and d1 == "PASS")
++                assert not (d0 != "PASS" and d1 == "PASS")
++
++
++def test_safety_net_config_flags():
++    assert InspectConfig().resample_check_k == 0  # off by default in the rc; the promoted arm sets it
++    c = load_config(None, resample_check_k=2, resample_check_policy=1)
++    assert c.resample_check_k == 2 and c.resample_check_policy == 1
++    assert guard_band_decision(0.0, 0.1, 0.5, 0.5) == "PASS"

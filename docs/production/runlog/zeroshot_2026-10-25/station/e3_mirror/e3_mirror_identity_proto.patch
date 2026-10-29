@@ -1,0 +1,192 @@
+--- domains/production/engine/inspect/config.py	2026-10-28 01:58:53
++++ domains/production/engine/inspect/config.py	2026-10-28 04:34:20
+@@ -473,6 +473,16 @@
+     #: The mirrored scan is registered too when the best proper pose looks suspicious.
+     mirror_check_explained: float = 0.85
+     mirror_check_score: float = 0.9
++    #: [e3-mirror prototype] mirror identity check: 1 = on. The mirrored scan is registered too when the best proper
++    #: pose explains less than ``mirror_identity_explained`` of the scan, or when the decoded stage has an uncertified
++    #: near mirror image (an E1 MIRROR candidate above its threshold but within ``near_twin_rms_mm``); a near-achiral
++    #: stage's mirror poses are also seeded from the proper poses through those candidates.
++    mirror_identity: int = 1
++    mirror_identity_explained: float = 0.99
++    #: A chiral stage is called mirrored when the mirrored fit's total beats the proper one by this margin ...
++    mirror_identity_margin: float = 0.03
++    #: ... or explains at least this much more of the scan (with a total that is not lower).
++    mirror_identity_explained_gain: float = 0.02
+     #: Pose hypotheses within this score margin are ambiguous (if E1's symmetry test agrees).
+     ambiguity_margin: float = 0.03
+     symmetry_match_deg: float = 6.0
+@@ -617,7 +627,8 @@
+     "min_datum_coverage": _FRAC, "wrong_part_explained_min": _FRAC, "explained_tol_mm": _POS,
+     "explained_tight_fraction": _POS, "explained_tight_min_mm": _POS, "explained_tight_max_mm": _POS,
+     "wrong_part_hole_mismatch_min": (1, None, False, False), "mirror_check_explained": _FRAC,
+-    "mirror_check_score": (None, None, False, False), "symmetry_match_deg": _POS, "symmetry_match_mm": _POS,
++    "mirror_check_score": (None, None, False, False), "mirror_identity": (0, 1, False, False),
++    "mirror_identity_explained": _FRAC, "mirror_identity_margin": _POS, "mirror_identity_explained_gain": _POS, "symmetry_match_deg": _POS, "symmetry_match_mm": _POS,
+     "near_twin_rms_mm": _POS, "twin_agreement": (0, 1, False, False), "hole_evidence_margin_mm": _POS, "hole_evidence_open_fraction": _FRAC,
+     "hole_evidence_filled_fraction": _FRAC, "hole_evidence_min_density": _POS, "hole_evidence_min_expected": _POS,
+     "hole_evidence_min_diff": (1, None, False, False),
+--- domains/production/engine/inspect/engine.py	2026-10-28 01:58:43
++++ domains/production/engine/inspect/engine.py	2026-10-28 06:29:14
+@@ -509,11 +509,31 @@
+     # -- mirrored part check -----------------------------------------------------------------
+     suspicious = best.fit.hole_mismatch > 0 or best.explained < cfg.mirror_check_explained or \
+         best.fit.score < cfg.mirror_check_score
++    # [e3-mirror prototype] the mirror identity check widens the trigger (module docstring of the research note)
++    near_maps: list[np.ndarray] = []
++    identity = bool(cfg.mirror_identity)
++    seed_only = False
++    if identity:
++        # the nearest compiled stage of the decode (exact or not: the near mirror images only trigger and seed)
++        _sid = choose_stage_model(part, [d.state for d in best.decodes])[0] if best.decodes else None
++        near_maps = _near_mirror_maps(part, _sid or f"S{part.n}", cfg)
++        if not suspicious and (best.explained < cfg.mirror_identity_explained or near_maps):
++            # a near-achiral stage that explains the scan well: its mirror poses come from the proper ones (below);
++            # the full mirrored registration runs only on the wider explained trigger
++            seed_only = best.explained >= cfg.mirror_identity_explained
++            suspicious = True
++            note(f"mirror identity check: explained={best.explained:.4f} near-mirror maps={len(near_maps)}")
++    _mi = {"sub": None if opts.subsample is None else [float(v) for v in opts.subsample], "ran": False,
++           "best_total": best.total, "best_explained": best.explained, "near_maps": len(near_maps),
++           "seed_only": seed_only}
+     if suspicious and budget.left() > 0:
++        _mi["ran"] = True
++        _t_m0 = budget.elapsed()
+         step("mirror_check", 45)
+         flip = np.array([-1.0, 1.0, 1.0])
+         mvox = _mirror_voxels(vox)
+-        mirrored = _register(reg_src * flip, mvox, part, model, cfg, budget, note, reg_spacing, mirrored=True)
++        mirrored = [] if seed_only else _register(reg_src * flip, mvox, part, model, cfg, budget, note, reg_spacing,
++                                                   mirrored=True)
+         mpts = pts * flip
+         m_scored = mirrored[:cfg.articulated_hypotheses]
+         m_scored += [h for h in mirrored[cfg.articulated_hypotheses:] if h.free_extra][:cfg.free_datum_rank_k]
+@@ -525,6 +545,22 @@
+             for h in mirrored:  # the same chance the proper poses had
+                 if h.art is None and budget.left() > 0:
+                     _articulate(h, mpts, mvox, part, model, cfg, budget)
++        if identity and near_maps:
++            # a near-achiral stage: its mirror poses are the proper poses carried through the stage's near mirror
++            # images (S T MIRROR, refined on the mirrored scan): the coarse search may miss them on a part that
++            # barely tells the two apart
++            seeds = [h for h in sorted(proper, key=lambda h: -h.total) if h.art is not None][:2]
++            for h in seeds:
++                for S in near_maps:
++                    if budget.left() <= 0:
++                        break
++                    hm = _Hyp(fit=refine_datum(reg_src * flip, S @ h.fit.T @ MIRROR, model, cfg, reg_spacing),
++                              mirrored=True)
++                    if any(_close(hm.fit.T, o.fit.T, dist=min(1.0, 0.4 * part.t)) for o in mirrored if o.art is not None):
++                        continue
++                    _articulate(hm, mpts, mvox, part, model, cfg, budget)
++                    if hm.art is not None:
++                        mirrored.append(hm)
+         mirrored.sort(key=lambda h: -h.total)
+         if any(h.free_extra for h in mirrored):
+             mirrored = _free_datum_rank(mirrored, mpts, mvox, part, model, cfg, budget, note, spacing)
+@@ -533,7 +569,10 @@
+             sym_maps: list[np.ndarray] = []
+             note(f"mirrored best total={mb.total:.3f} holes_mismatch={mb.fit.hole_mismatch} vs proper {best.total:.3f}"
+                  f"/{best.fit.hole_mismatch}")
+-            if mb.total > best.total + cfg.mirror_margin and mb.fit.hole_mismatch <= best.fit.hole_mismatch:
++            # [e3-mirror prototype] the identity check converts at its own (smaller) margin: a certified mirror
++            # symmetry turns a better mirrored fit into a proper pose first, and only what still differs counts
++            conv_margin = cfg.mirror_identity_margin if identity else cfg.mirror_margin
++            if mb.total > best.total + conv_margin and mb.fit.hole_mismatch <= best.fit.hole_mismatch:
+                 # a CAD that is its own mirror image (a certified MIRROR self-map of a compiled stage) cannot tell
+                 # a mirrored part from a proper one: its mirrored fit is a proper pose the proper search missed.
+                 # That pose (the self-map composed with the mirrored fit) joins the proper hypotheses and competes
+@@ -559,8 +598,16 @@
+                          f"total={best.total:.3f} explained={best.explained:.3f}")
+             why = _mirror_refusal(mb.total, best.total, mb.fit.hole_mismatch, best.fit.hole_mismatch,
+                                   symmetric=bool(sym_maps), margin=cfg.mirror_margin)
++            if why is None and identity and budget.left() > 0:
++                why = _mirror_identity(proper, mirrored, pts, vox, mpts, mvox, part, cfg, spacing,
++                                       symmetric=bool(sym_maps), stage_known=_decoded_stage_id(part, mb) is not None,
++                                       note=note, info=_mi)
++            _mi.update(mirror_total=mb.total, mirror_explained=mb.explained, why=why,
++                       mirror_s=round(budget.elapsed() - _t_m0, 2))
+             if why is not None:
++                _mi_write(_mi)
+                 return ctx.invalid("MIRRORED_PART_SUSPECTED", (why,), None, None, log, abstained=True)
++    _mi_write(_mi)
+     # the pose is chosen by comparing complete articulated fits (and, when the best looks suspicious,
+     # the mirrored scan's): a budget that ran out on the way left that comparison unfinished, and a
+     # cut articulation explains less of the scan, which must never read as a wrong part. Nothing could
+@@ -1478,6 +1525,75 @@
+         return f"MIRROR_HOLES_FIT_BETTER:{mirror_holes}<{proper_holes}" if mirror_holes < proper_holes else None
+     if mirror_total > proper_total + margin and mirror_holes <= proper_holes:
+         return f"MIRROR_FITS_BETTER:{mirror_total:.3f}>{proper_total:.3f}"
++    return None
++
++
++def _mi_write(info: dict) -> None:
++    """[e3-mirror prototype] research log line (E3M_LOG), no effect on the result."""
++    import json as _json, os as _os
++    if _os.environ.get("E3M_LOG"):
++        with open(_os.environ["E3M_LOG"], "a") as fh:
++            fh.write(_json.dumps(info, default=float) + "\n")
++
++
++def _near_mirror_maps(part: PartView, stage_id: str | None, cfg: InspectConfig) -> list[np.ndarray]:
++    """[e3-mirror prototype] Uncertified near mirror images of compiled stage ``stage_id``: E1 MIRROR candidates above
++    the stage's symmetry threshold but within ``near_twin_rms_mm`` (a part that is its own mirror image except for a
++    few features), deduplicated. [] for no exact stage or a stage E1 certifies as mirror-symmetric."""
++    out: list[np.ndarray] = []
++    for stage in part.compiled.stages:
++        if stage_id is None or stage.stage_model_id != stage_id:
++            continue
++        sym = stage.symmetry
++        if any(c.kind == "MIRROR" and c.rms_mm <= sym.threshold_rms_mm + 1e-12 for c in sym.candidates):
++            return []
++        for cand in sym.candidates:
++            if cand.kind == "MIRROR" and cand.rms_mm <= float(cfg.near_twin_rms_mm):
++                m = np.asarray(cand.transform, dtype=np.float64)
++                if not any(np.allclose(m, o, atol=1e-3) for o in out):
++                    out.append(m)
++    return out
++
++
++def _mirror_identity(proper: list["_Hyp"], mirrored: list["_Hyp"], pts, vox, mpts, mvox, part: PartView,
++                     cfg: InspectConfig, spacing: float, *, symmetric: bool, stage_known: bool, note,
++                     info: dict) -> str | None:
++    """[e3-mirror prototype] The MIRRORED_PART_SUSPECTED reason of the mirror identity check, or None.
++
++    The best proper and mirrored fits are compared on their complete articulated fits. Holes first, on every fitted
++    panel (:func:`_hole_evidence`, the best confirmed-minus-contradicted score among the poses within
++    ``ambiguity_margin`` of each side's best total): a mirrored fit whose holes score ``hole_evidence_min_diff``
++    better, with a total and an explained share that are not lower, is the mirrored part. For a chiral stage (no
++    certified mirror self-map, or a certified one after the mirrored fit was converted to a proper pose; the mirrored
++    fit's decode names an exact stage) a mirrored fit whose total still beats the best proper one by
++    ``mirror_identity_margin``, or (any decode) one which explains
++    ``mirror_identity_explained_gain`` more of the scan without a lower total, is the mirrored part too, unless its
++    holes score lower."""
++    P = sorted([h for h in proper if h.art is not None], key=lambda h: -h.total)
++    M = sorted([h for h in mirrored if h.art is not None], key=lambda h: -h.total)
++    if not P or not M:
++        return None
++    if max(P[0].explained, M[0].explained) < cfg.wrong_part_explained_min:
++        return None  # neither image explains the scan: the wrong-part check speaks, not the mirror one
++    pool_p = [h for h in P if h.total >= P[0].total - cfg.ambiguity_margin][:3]
++    pool_m = [h for h in M if h.total >= M[0].total - cfg.ambiguity_margin][:3]
++    hp = max(c - x for c, x in (_hole_evidence(h, pts, vox, part, cfg, spacing) for h in pool_p))
++    hm = max(c - x for c, x in (_hole_evidence(h, mpts, mvox, part, cfg, spacing) for h in pool_m))
++    dt = M[0].total - P[0].total
++    de = max(h.explained for h in pool_m) - max(h.explained for h in pool_p)
++    info.update(hole_p=hp, hole_m=hm, dt=dt, de=de, symmetric=symmetric, stage_known=stage_known)
++    note(f"mirror identity: total {P[0].total:.4f} vs mirrored {M[0].total:.4f}, explained gain {de:+.4f}, "
++         f"holes {hp} vs mirrored {hm}")
++    if hm - hp >= cfg.hole_evidence_min_diff and dt >= -cfg.ambiguity_margin and de >= 0.0:
++        return f"MIRROR_HOLES_FIT_BETTER:{hm}>{hp}"
++    if hm < hp:
++        return None
++    # the total margin needs an exact decoded stage: only then is a certified mirror symmetry converted first (an
++    # inexact decode of a mirror-symmetric part leaves the proper search's misses to look like a better mirror)
++    if stage_known and dt > cfg.mirror_identity_margin:
++        return f"MIRROR_FITS_BETTER:{M[0].total:.3f}>{P[0].total:.3f}"
++    if de >= cfg.mirror_identity_explained_gain and dt >= 0.0:
++        return f"MIRROR_EXPLAINS_MORE:{de:+.3f}"
+     return None
+ 
+ 

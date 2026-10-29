@@ -1,0 +1,174 @@
+{
+ "schema": "sherman.zeroshot.gold_adjudication.v1",
+ "batch": "T4",
+ "gid": "gb_2dcda5",
+ "scan_id": "sc_d1732de18023",
+ "portion": "DEV_CANARY",
+ "original_path": "/Users/idantal/ShermanQC/source-assets/02_CAD_QC_3D/37361005_01.ply",
+ "adjudicator": "T4/adjudicator (claude-vision-ai-v1)",
+ "adjudicated_at": "2026-10-25T04:12:11+00:00",
+ "protocol": "PLAN.md 2.4-2.6; frozen matcher research/broad_baseline/score.py score_case; accept threshold 1.5 mm / 2 deg",
+ "inputs_seen": [
+  "marker_A and marker_B lines/pairs/notes/renders",
+  "raw scan (adjudicator per-station skin checks, gap maps, sections, slope fits)",
+  "canary GOLD_SET_V2 gold (QC only)"
+ ],
+ "not_seen": "no engine, lane, A0, pool, E3, best_f1, CAD or baseline output",
+ "marker_A_lines_sha256": "f36746c405b68008a594cba6b670db3900740a0be6510d41aa03f75f551074f3",
+ "marker_B_lines_sha256": "d13a8f12ed6b0ae2f0a44bafcb9cec8fe1f3b31df428b7fa216b8bebe2765c17",
+ "final_lines_sha256": "16d6c941ba52fcdaeda66a8d448d1d8a8d365c1d55cb930a39c0e2b30f22f2aa",
+ "ab_match": {
+  "nA": 4,
+  "nB": 4,
+  "tp": 4,
+  "accepted": 4,
+  "matched_not_accepted": [],
+  "A_only": [],
+  "B_only": [],
+  "f1": 1.0,
+  "matches": [
+   [
+    "B1",
+    "B2",
+    0.0,
+    0.0,
+    1.0,
+    0.98
+   ],
+   [
+    "B2",
+    "B1",
+    0.0,
+    0.0,
+    1.0,
+    1.0
+   ],
+   [
+    "B3",
+    "B3",
+    0.0,
+    0.0,
+    1.0,
+    1.0
+   ],
+   [
+    "B4",
+    "B4",
+    0.0,
+    0.0,
+    0.99,
+    0.9
+   ]
+  ]
+ },
+ "lines": [
+  {
+   "final_id": "B1",
+   "marker_A_id": "B1",
+   "marker_B_id": "B2",
+   "from": "A",
+   "verdict": "AGREED",
+   "ab_offset_mm": 0.0,
+   "ab_angle_deg": 0.0,
+   "ab_span_overlap": [
+    1.0,
+    0.98
+   ],
+   "reason": "A/B matched within 1.5 mm / 2 deg; line from A."
+  },
+  {
+   "final_id": "B2",
+   "marker_A_id": "B2",
+   "marker_B_id": "B1",
+   "from": "A",
+   "verdict": "AGREED",
+   "ab_offset_mm": 0.0,
+   "ab_angle_deg": 0.0,
+   "ab_span_overlap": [
+    1.0,
+    1.0
+   ],
+   "reason": "A/B matched within 1.5 mm / 2 deg; line from A."
+  },
+  {
+   "final_id": "B3",
+   "marker_A_id": "B3",
+   "marker_B_id": "B3",
+   "from": "A",
+   "verdict": "AGREED",
+   "ab_offset_mm": 0.0,
+   "ab_angle_deg": 0.0,
+   "ab_span_overlap": [
+    1.0,
+    1.0
+   ],
+   "reason": "A/B matched within 1.5 mm / 2 deg; line from A."
+  },
+  {
+   "final_id": "B4",
+   "marker_A_id": "B4",
+   "marker_B_id": "B4",
+   "from": "B",
+   "verdict": "AGREED",
+   "ab_offset_mm": 0.0,
+   "ab_angle_deg": 0.0,
+   "ab_span_overlap": [
+    0.99,
+    0.9
+   ],
+   "reason": "Accepted pair (0.0 mm / 0.0 deg). Line from B: raw profile shows both plates and the rounded fold from t=-95 to 105; B extent (-98..105, 203 mm) covers it, A stopped at 84 (183 mm, 91 %)."
+  }
+ ],
+ "final_vs_reference": {
+  "f1": 1.0,
+  "tp": 4,
+  "n_ref": 4,
+  "n_m": 4,
+  "ref_only": [],
+  "m_only": [],
+  "matches": [
+   [
+    "B1",
+    "B4",
+    0.0,
+    0.0,
+    1.0,
+    1.0
+   ],
+   [
+    "B2",
+    "B2",
+    0.0,
+    0.0,
+    1.0,
+    1.0
+   ],
+   [
+    "B3",
+    "B1",
+    0.0,
+    0.0,
+    0.97,
+    1.0
+   ],
+   [
+    "B4",
+    "B3",
+    0.0,
+    0.0,
+    1.0,
+    1.0
+   ]
+  ]
+ },
+ "canary_qc": {
+  "gold_path": "data/bend_corpus/annotations/ai_bend_lines_gold11_relabel_v1/05df0a708054946a1d77f7ee.json",
+  "gold_set": "GOLD_SET_V2/GOLD11_RELABEL",
+  "marker_A_f1": 1.0,
+  "marker_B_f1": 1.0,
+  "adjudicated_f1": 1.0,
+  "rule": ">= 0.95",
+  "pass": true,
+  "label_written": false
+ }
+}

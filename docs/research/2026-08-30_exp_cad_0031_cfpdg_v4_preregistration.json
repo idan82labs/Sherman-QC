@@ -1,0 +1,171 @@
+{
+  "schema": "EXP_CAD_0031_CFPDG_V4_PREREGISTRATION_V1",
+  "experiment_id": "EXP_CAD_0031",
+  "architecture": "CROSSFIT_PAIRWISE_DEFORMATION_GRAPH_V4_SOURCE_INTERFACE_FILTER",
+  "preregistered_before_any_exp31_physical_scan_hash_or_load": true,
+  "scope": "fresh source-interface correction only; deterministic invalid-row filtering before transform and partition; CF-PDG scientific semantics, thresholds, CAD atlas, nuisance model, component logic, attribution, robustness inventory, and native visual contract remain byte-bound to the terminal EXP30 parent",
+  "lineage": {
+    "terminal_parent_experiment_id": "EXP_CAD_0030",
+    "terminal_parent_result_path": "output/research/autoresearch-loop/EXP_CAD_0030_RESULT.json",
+    "terminal_parent_result_sha256": "e0f477e22b8562b178d0185ec25941dbe4c7532271ad792eca9a7174f26ad03f",
+    "terminal_parent_report_path": "docs/research/2026-08-30_exp_cad_0030_terminal_source_interface_failure.md",
+    "terminal_parent_report_sha256": "5f74be9d9601a433f5aaf1ba211894d25e28d75f7a34933e8a86829f7d14d42b",
+    "terminal_parent_orchestration_path": "output/research/autoresearch-loop/EXP_CAD_0030_ORCHESTRATION_RESULT.json",
+    "terminal_parent_orchestration_sha256": "c77fa40df26929675be34d3cdbc958fad18e7dfa7f8ea785639770942eedd39c",
+    "scientific_parent_preregistration_path": "docs/research/2026-08-30_exp_cad_0030_cfpdg_v3_preregistration.json",
+    "scientific_parent_preregistration_sha256": "c9129ccc103d45c89ccdc67eef938b242ccdbb081d3d0f261145cc5a5b9b8368",
+    "scientific_semantics_module_path": "scripts/exp_cad_0029_cfpdg_source.py",
+    "scientific_semantics_module_sha256": "a620567c3d2ff5aab48f30a7fac8b2bbf95e75d74660cf22b98ba5063a6dcb68",
+    "scientific_execute_source_parent_path": "scripts/run_exp_cad_0029_cfpdg_source.py",
+    "scientific_execute_source_parent_sha256_at_preregistration": "149b1a256ca7a3c78d61727c463741b52194e1b099668d7afbacb97999c48adf",
+    "exp30_patch_or_rerun_permitted": false
+  },
+  "immutable_inputs": {
+    "source_cad_sha256": "fdb2b5ca0a9a572f5320a3644543fca595330b0800d0e0d2ecd04e41f313e571",
+    "accepted_mesh_sha256": "9e6571704780383e99b6fa4f2800fa69a50a3e187467698fe5dd7414d9d2a716",
+    "mesh_report_sha256": "01b60ca43635854a04df68a536c5daf15cf8650decb743caf8bb7ae593535fbf",
+    "opaque_case_tokens_in_canonical_order": ["N009", "N010"],
+    "scan_sha256_without_loading_bytes": {
+      "N009": "3567fd96870a93f39fcc1e203cef847bb44b72f5a5868e355693c1bfadd87833",
+      "N010": "823e6a7dc7c42091c6565393c82122eea9fbed2bda3e079247189d463a28f1b3"
+    },
+    "frozen_transform_semantic_sha256": {
+      "N009": "02e85cc8bc4e58c0ef0f9ddfb5eca097d26d3d3492378781babf42b65da67aca",
+      "N010": "766aef6c8d286798b793f32c05405ca00b2bd67ca9656fab2f1daf360b372b14"
+    },
+    "cad_only_preflight_sha256": "e96daf9288f59a8d7f156981f6d13e9fd3204b344523d96bba587bbbd84c8f82",
+    "cad_graph_nodes_sha256": "575c19d404efd6733051d611dd46f123fbbee3117be13ef001514d658e2618b0",
+    "cad_graph_edges_sha256": "0bf773fc65af9152bb8491830f98faf2e14c10fe999e8e4bf81a3db687513e3d",
+    "cad_graph_edge_geodesic_mm_sha256": "92605624e786450ca260134555b6e71bbac56875e9e3e49b4aceac6d5e9de185"
+  },
+  "source_interface_filter": {
+    "application_order": "after one approved point-cloud load of both members and exact Nx3/equal-length array validation, before rigid transform, normal canonicalization, identity partition, spatial partition, voxelization, local fit, or any CF-PDG scientific operation",
+    "original_row_identity": "uint64 acquisition-row ordinal 0..N-1 assigned before filtering and carried with every retained row; reports include exact original/retained/rejected identity SHA-256 values and the sorted rejected identity list",
+    "identity_serialization": "strict little-endian uint64 contiguous bytes; set hashes sort identities ascending with stable mergesort before hashing; empty identity vector hashes SHA-256 of zero bytes",
+    "exclusive_rejection_precedence": [
+      "NONFINITE_POINT",
+      "NONFINITE_NORMAL",
+      "NORMAL_NORM_LE_1E_12"
+    ],
+    "nonfinite_point": "reject when any x/y/z coordinate is not finite",
+    "nonfinite_normal": "after point finiteness, reject when any nx/ny/nz component, the stable hypot(hypot(nx,ny),nz) norm, or the frozen-parent numpy.linalg.norm(axis=1) value is not finite; this guarantees every retained normal is accepted by the byte-frozen parent canonicalizer",
+    "zero_normal": "after point and normal finiteness, reject when stable Euclidean normal norm <=1e-12 inclusive",
+    "normal_norm_algorithm": "zero-threshold classification uses numpy.hypot(numpy.hypot(nx,ny),nz) in float64; parent-compatibility rejection additionally evaluates numpy.linalg.norm(axis=1) under overflow/invalid suppression and rejects nonfinite output",
+    "retained_order": "preserve input acquisition order; no row sorting, duplication, replacement, interpolation, normal estimation, or neighbor borrowing",
+    "overlapping_predicate_reporting": "report the three raw predicate counts plus mutually exclusive precedence counts; exclusive counts sum exactly to rejected_count",
+    "filter_determinism": "same numeric rows and original identities produce byte-identical filtered arrays, reports, and identity vectors; permutation with identities carried is equivariant and scientific partition membership is compared by original identity"
+  },
+  "source_interface_actionability": {
+    "maximum_invalid_fraction_per_member": 0.01,
+    "maximum_invalid_fraction_inclusive": true,
+    "minimum_valid_row_count_per_member": 100000,
+    "invalid_fraction": "rejected_count/original_count in binary64; original_count==0 is terminal nonactionable",
+    "all_members_must_pass": true,
+    "gate_order": "evaluate both member reports immediately after filtering and before transform/partition/scientific execution",
+    "failure_status": "ABSTAIN_SOURCE_INTERFACE_NONACTIONABLE_TERMINAL_NO_RERUN",
+    "post_gate_threshold_or_filter_change_permitted": false
+  },
+  "scientific_semantics": {
+    "configuration_source": "the exact scientific_parent_preregistration_sha256",
+    "unchanged": [
+      "CAD graph and fixed centroid",
+      "permutation-invariant voxel aggregation",
+      "height clustering and runner ambiguity",
+      "2x16 footprint and local plane fits",
+      "four-fold 6.408002808988148mm-halo cross-fit nuisance",
+      "split noise and frozen thresholds",
+      "active component topology/area/span",
+      "late CAD-relative attribution",
+      "R00-R31 robustness and R31 member swap",
+      "semantic/visual separation and native visual obligations"
+    ],
+    "parameter_or_threshold_change": false,
+    "input_after_filter": "only retained point/normal rows in acquisition order; original identities are audit metadata and never a scientific feature",
+    "identity_envelope": "SOURCE_RESULT is an EXP31 interface/execution envelope containing the exact unchanged nested EXP30 parent-science semantic payload plus its canonical SHA-256; SOURCE_VISUAL_PAYLOAD is the exact unchanged EXP30 parent visual payload consumed by the exact EXP30 renderer, while the EXP31 orchestrator/result explicitly labels EXP31 intake successor and EXP30 scientific core; silent relabeling is forbidden"
+  },
+  "required_source_free_tests": [
+    "zero-normal tail is removed exactly and clean retained rows are byte-identical",
+    "nonfinite point/normal precedence and per-reason accounting",
+    "1% invalid-fraction inclusive boundary and minimum-valid-count boundary",
+    "permutation equivariance with original identities carried",
+    "identity-hash and spatial-checker partitions match the clean corpus by original identity",
+    "no replacement/interpolation/normal estimation",
+    "filter primary/replay report and retained-array bytes are identical",
+    "durable accounting journal is atomically checkpointed before every attempted scan hash/load and survives crash, timeout, and persistence failure",
+    "EXP30 remains unchanged and its terminal hashes still validate"
+  ],
+  "forbidden_inputs": {
+    "evaluator_manifest": true,
+    "roles": true,
+    "labels": true,
+    "gold": true,
+    "expected_counts": true,
+    "quality_tokens_or_filenames": true,
+    "rejected_row_location_as_scientific_feature": true,
+    "replacement_or_interpolation": true,
+    "normal_estimation": true,
+    "post_source_tuning_or_rescue": true
+  },
+  "approval_contract": {
+    "fresh_exp31_cad_reuse_approval_required": true,
+    "fresh_exp31_source_runner_approval_required": true,
+    "exp30_approvals_do_not_authorize_exp31": true,
+    "cad_reuse_approval_schema": "EXP_CAD_0031_V4_INDEPENDENT_CAD_REUSE_APPROVAL_V1",
+    "cad_reuse_approval_decision": "PASS_REUSED_EXP30_CAD_FREEZE_FOR_EXP31_SOURCE_INTERFACE",
+    "cad_reuse_approval_physical_source_execution_authorized": false,
+    "source_runner_approval_schema": "EXP_CAD_0031_V4_INDEPENDENT_SOURCE_RUNNER_APPROVAL_V1",
+    "source_runner_approval_decision": "APPROVE_ONE_EXP31_PHYSICAL_PRIMARY_REPLAY_EXECUTION",
+    "source_runner_approval_physical_source_execution_authorized": true,
+    "cad_reuse_approval_exact_bound_files": [
+      "v4_preregistration", "parent_preregistration", "terminal_parent_result",
+      "terminal_parent_report", "terminal_parent_orchestration", "cad_reuse_audit_packet",
+      "cad_preflight", "nodes", "edges", "edge_geodesic_mm", "mesh", "cad_core",
+      "cad_only_runner", "cad_only_wrapper", "cad_only_tests", "cad_identity_tests"
+    ],
+    "source_runner_approval_exact_bound_files": [
+      "v4_preregistration", "parent_preregistration", "terminal_parent_result",
+      "terminal_parent_report", "terminal_parent_orchestration", "cad_reuse_audit_packet",
+      "cad_preflight", "nodes", "edges", "edge_geodesic_mm", "mesh", "cad_core",
+      "cad_only_runner", "cad_only_wrapper", "cad_only_tests", "cad_identity_tests",
+      "cad_reuse_approval", "source_runner_audit_packet", "interface_module", "parent_science_module",
+      "parent_execute_source", "source_runner", "source_tests", "parent_renderer",
+      "parent_renderer_tests", "orchestrator", "orchestrator_tests"
+    ],
+    "cad_reuse_approval_exact_artifacts": [
+      "CAD_ONLY_PREFLIGHT.json", "CAD_GRAPH_NODES.npy", "CAD_GRAPH_EDGES.npy",
+      "CAD_GRAPH_EDGE_GEODESIC_MM.npy"
+    ],
+    "all_approvals_bind_exact_preregistration_interface_runner_tests_parent_scientific_files_cad_artifacts_renderer_and_orchestrator_hashes": true,
+    "physical_source_execution_authorized_before_both_fresh_approvals": false
+  },
+  "execution_lock": {
+    "source_execution_before_source_free_audit": false,
+    "source_failure_allows_rerun": false,
+    "durable_scan_access_accounting": {
+      "journal_path_within_each_source_child": "SOURCE_SCAN_ACCOUNTING_JOURNAL.json",
+      "checkpoint_rule": "atomically persist the journal before every attempted physical scan SHA-256 hash operation and before every attempted physical point-cloud load operation",
+      "counter_semantics": "hash, point-cloud-load, and byte-open counters count attempted operations, including an operation whose process subsequently crashes, times out, or fails while persisting later outputs",
+      "failure_survival": "the last atomic journal checkpoint is durable across source-child crash, source-child timeout, and any post-byte persistence failure",
+      "terminal_aggregation_precedence": "orchestrator and terminal accounting prefer the durable journal over result or failure artifacts whenever the journal exists",
+      "timeout_child_rule": "a timed-out source process counts as one spawned source child even when it returns no source result or failure artifact",
+      "successful_source_child_exact_counts": {
+        "physical_scan_hash_call_count": 2,
+        "physical_scan_point_cloud_load_call_count": 2,
+        "physical_scan_byte_open_operation_count": 4
+      },
+      "successful_primary_plus_replay_exact_totals": {
+        "physical_scan_hash_call_count": 4,
+        "physical_scan_point_cloud_load_call_count": 4,
+        "physical_scan_byte_open_operation_count": 8
+      }
+    },
+    "orchestration_branch": "run PRIMARY_SOURCE first; if its pre-science interface gate is nonactionable, atomically persist terminal ABSTAIN_SOURCE_INTERFACE_NONACTIONABLE_TERMINAL_NO_RERUN and stop with replay=0 and renderer=0; if and only if primary reaches and returns the unchanged parent science successfully, render the primary, execute exactly one fresh replay source child, render the replay, and require full-tree byte equality",
+    "primary_replay_required": "ONLY_AFTER_PRIMARY_PARENT_SCIENCE_SUCCESS",
+    "native_resolution_visual_review_required": true,
+    "evaluator_roles_remain_sealed": true,
+    "generalization_evidence": false,
+    "bend_line_f1_authorized": false,
+    "production_promotion_authorized": false,
+    "gpi_ceiling": "GPI-C_SOURCE_ONLY_OPAQUE_PAIR_DIAGNOSTIC"
+  }
+}

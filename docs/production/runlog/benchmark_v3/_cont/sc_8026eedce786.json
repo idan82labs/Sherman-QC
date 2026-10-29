@@ -1,0 +1,97 @@
+{
+ "reconciler": {
+  "real_bends": 12,
+  "no_bends_present": false,
+  "unusable": false,
+  "not_a_scan": false,
+  "reason": "Reconciled. Blind labelers A and B gave the same 12 outer-skin pairs, and my checks confirm all 12. This is a real mesh scan of part 38172000 (split CONSUMED, so the non-sealed dir is correct). t is about 1.44 mm, plane rms 0.01-0.04 mm, with blotches, and the inner skin of lip 13 is mostly missing.\n\nThe part is a Z-step tray:\n- Plate 1/2 has three 90 deg down-lips (12, 11, 13).\n- The plate folds into step wall 5/6, which folds into lower flange 3/4.\n- Flange 3/4 has an outer lip 7/8 and end lips 20 and 21. Sections at x=115/130 show these end lips folding from 3/4.\n- Two lanced tabs stand up 90 deg from the outer edges of the slots: [2,17] and [2,15]. For tab B the outer skin is 15, on the slot side.\n- Each tab has an end kink of about 29 deg about a vertical axis: [17,22] and [15,23].\n\nThe only real question was the tab end portions, so I took raw-resolution slices and sections there:\n- Horizontal slices from z=2 to 12.5 show both skins bending continuously, with a radius, into the angled end. So the kink is a formed fold.\n- The end portions are not folded from the plate. Next to the kink their bottom is a free cut edge at z about +1, with a relief gap to the plate. Further out they meet the plate at a square corner with no radius, unlike every real fold on this part. I added no extra bend for this.\n\nCorners 9-12/5-6, 18-21/7-8 and 9-12/13 are open gaps between separate lip ends, not folds. Patch 26 is a facet of lip 13's inner arc. Every unsegmented point lies within 2.7 mm of a patch.\n\nLines run (geometry lock) rc=0: 12 ok, 0 failed. All 12 bends came out certain, outer skin, coverage 1.0, fold support 1.0. Lengths in mm: 220.4, 219.1, 220.0, 43.6, 43.5, 217.6, 216.9, 202.6, 77.5, 77.8, 11.8, 12.4. I opened the verify and close-up renders: every line runs the full fold on the outer apex, so no overrides or reruns were needed (1 iteration).\n\nOutput is in /Users/idantal/ShermanQC/FullProject/docs/production/runlog/benchmark_v3/label_lines/sc_8026eedce786 (pairs.json, lines.json, render/). No label was written.",
+  "bends": [
+   {
+    "patches": [
+     1,
+     5
+    ],
+    "note": "plate to step wall 5/6, 90 deg down, ~220 mm; outer = plate top 1 + wall +x face 5"
+   },
+   {
+    "patches": [
+     3,
+     6
+    ],
+    "note": "step wall to lower flange 3/4, ~89.4 deg, ~219 mm (2nd fold of Z-step); outer = wall -x face 6 + flange underside 3"
+   },
+   {
+    "patches": [
+     4,
+     8
+    ],
+    "note": "lower flange to outer down-lip 7/8, ~89.2 deg, ~220 mm"
+   },
+   {
+    "patches": [
+     4,
+     20
+    ],
+    "note": "lower flange to +y end lip 18/20, ~89.6 deg, ~43.6 mm; rounded arc from 3/4, open corner vs 7/8"
+   },
+   {
+    "patches": [
+     4,
+     21
+    ],
+    "note": "lower flange to -y end lip 19/21, ~90 deg, ~43.5 mm; rounded arc from 3/4, open corner vs 7/8"
+   },
+   {
+    "patches": [
+     1,
+     11
+    ],
+    "note": "plate to +y down-lip 9/11, ~89.3 deg, ~218 mm"
+   },
+   {
+    "patches": [
+     1,
+     12
+    ],
+    "note": "plate to -y down-lip 10/12, ~89.5 deg, ~217 mm"
+   },
+   {
+    "patches": [
+     1,
+     13
+    ],
+    "note": "plate to far-end down-lip 13, ~88.8 deg, ~203 mm; inner skin mostly unscanned, patch 26 = inner-arc facet"
+   },
+   {
+    "patches": [
+     2,
+     17
+    ],
+    "note": "lanced tab A bent up ~92 deg from slot -y edge, ~77.5 mm; outer = plate underside 2 + tab slot-side face 17"
+   },
+   {
+    "patches": [
+     2,
+     15
+    ],
+    "note": "lanced tab B bent up ~93 deg from slot +y edge, ~77.8 mm; outer = plate underside 2 + slot-side face 15 (mirror of tab A)"
+   },
+   {
+    "patches": [
+     17,
+     22
+    ],
+    "note": "tab A end kink, ~29 deg (incl 151.2) formed fold about vertical axis, full ~12 mm tab height; convex skin 17/22; raw slices show continuous skins with radius"
+   },
+   {
+    "patches": [
+     15,
+     23
+    ],
+    "note": "tab B end kink, ~29 deg (incl 150.8), mirror of tab A; convex skin 15/23"
+   }
+  ]
+ },
+ "verifier1": null,
+ "verifier2": null
+}

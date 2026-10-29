@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { bendInspectionApi } from '../services/api'
 import BenderView from '../components/BenderView'
 import { ArrowLeft } from 'lucide-react'
+import { presentBendDecision } from '../features/bend-inspection/model/decisionContract'
 
 export default function BenderViewPage() {
   const { jobId } = useParams<{ jobId: string }>()
@@ -30,7 +31,8 @@ export default function BenderViewPage() {
     )
   }
 
-  const matches = job.report?.matches ?? []
+  const decision = job.report ? presentBendDecision(job.report) : null
+  const matches = decision?.matches ?? []
 
   return (
     <div className="min-h-screen bg-dark-900 p-6">
@@ -59,6 +61,7 @@ export default function BenderViewPage() {
           matches={matches}
           jobId={jobId}
           scannedAt={job.completed_at ?? job.created_at}
+          observedFormedRatio={decision?.observedFormedRatio ?? null}
         />
       </div>
     </div>

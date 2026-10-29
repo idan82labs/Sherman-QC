@@ -1,0 +1,112 @@
+{
+ "schema": "sherman.final_eval.gold_adjudication.v1",
+ "batch": "FE1",
+ "gid": "gb_1baa22",
+ "scan_id": "sc_5fcc83e4f716",
+ "role": "SCORED",
+ "subset": "N001_N016",
+ "part_id": "31409000",
+ "original_path": "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/incoming/2026-08-17_20_shaked_new_good_bad_pairs/authenticated_source/scans/N003.ply",
+ "scan_sha256": "5fcc83e4f716e4261539515ef75717bb8a3e21ba77ceca55ff24404c95278b65",
+ "adjudicator": "FE1/adjudicator (claude-vision-ai-v1)",
+ "adjudicated_at": "2026-10-28T21:21:57+00:00",
+ "protocol": "PREREG.md section 4 (sha c50f58e0...); frozen matcher research/broad_baseline/score.py score_case (5 deg / 4 mm / 60 % both spans, one-to-one); accept threshold 1.5 mm / 2 deg; gold rule GOLD_SET_V2 (MARKER_INSTRUCTIONS.md)",
+ "inputs_seen": [
+  "marker_A and marker_B lines/pairs/notes/renders/sweeps",
+  "shared prep renders",
+  "adjudicator raw-scan sections and station checks (adjudication/evidence/)",
+  "private key (gid -> original)"
+ ],
+ "not_seen": "no engine, lane, pool, E3, CAD or baseline output",
+ "marker_A_lines_sha256": "9789410bfe1e4e5e3d02ca60bb15306c1c1812f3349de8104621ae635d549ba5",
+ "marker_B_lines_sha256": "0ab8ba1b908b62ce1249044c7b5f79c84e13e42519109d878cab6bd1f4c6f550",
+ "final_source": "ADJ",
+ "final_lines_sha256": "9f729173b72a0050cd2976728bb119683d015dd749ab162d6357b219402762bb",
+ "final_line_count": 3,
+ "no_bends_present": false,
+ "label_complete": true,
+ "part_class": "bent",
+ "zero_bend": false,
+ "partial_scan": false,
+ "partial_note": "complete scan (both markers; all views)",
+ "excluded": false,
+ "ab_match": {
+  "nA": 2,
+  "nB": 2,
+  "tp": 2,
+  "fp_B_only": 0,
+  "fn_A_only": 0,
+  "f1": 1.0,
+  "disposition": "SCORED_COMPLETE_LABEL",
+  "accepted_within_1p5mm_2deg": 2,
+  "matched_not_accepted": [],
+  "A_only": [],
+  "B_only": [],
+  "matches": [
+   [
+    "B1",
+    "B1",
+    0.0,
+    0.0,
+    1.0,
+    1.0
+   ],
+   [
+    "B2",
+    "B2",
+    0.0,
+    0.0,
+    1.0,
+    1.0
+   ]
+  ]
+ },
+ "lines": [
+  {
+   "final_id": "B1",
+   "bend_angle_deg": 90.41,
+   "length_mm": 45.5,
+   "confidence": "certain",
+   "marker_A_id": "B1",
+   "marker_B_id": "B1",
+   "verdict": "AGREED",
+   "from": "A",
+   "ab_offset_mm": 0.0,
+   "ab_angle_deg": 0.0
+  },
+  {
+   "final_id": "B2",
+   "bend_angle_deg": 90.9,
+   "length_mm": 22.6,
+   "confidence": "certain",
+   "marker_A_id": "B2",
+   "marker_B_id": "B2",
+   "verdict": "AGREED",
+   "from": "A",
+   "ab_offset_mm": 0.0,
+   "ab_angle_deg": 0.0
+  },
+  {
+   "final_id": "B3",
+   "bend_angle_deg": 131.95,
+   "length_mm": 19.0,
+   "confidence": "certain",
+   "marker_A_id": null,
+   "marker_B_id": null,
+   "verdict": "MISSING_ADD (hem, adjudicator line)",
+   "from": "ADJ"
+  }
+ ],
+ "rejected_marker_lines": [],
+ "doubts_adjudicated": [
+  {
+   "lines_final": [
+    "B3"
+   ],
+   "doubt": "180 deg open hem at the short end (both markers flagged)",
+   "verdict": "MISSING_ADD",
+   "rule": "D0 gb_44b168 hem ruling (zeroshot gold/D0/ADJUDICATION_D0.json: closed 180 deg hem counts; tangent-band construction)",
+   "reason": "180 deg hem: both skins of one sheet run round a ~180 deg arc to a folded-back leg (adjudicator raw sections, adjudication/evidence/sections/*_v2.png). A formed fold >= 10 deg counts; the tool refuses parallel planes, so the line is built with the D0 tangent-band construction (two plane_from_points bands at +-45 deg on the outer arc, extent = measured crown extent); no manual line. Check: label line vs measured crown in evidence/hemcheck.json. Open hem, outer stack 5.0 mm, crown 19 mm; line 0.14-0.16 mm from the crown."
+  }
+ ]
+}

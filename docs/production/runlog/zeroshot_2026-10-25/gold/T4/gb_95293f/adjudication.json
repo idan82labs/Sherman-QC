@@ -1,0 +1,126 @@
+{
+ "schema": "sherman.zeroshot.gold_adjudication.v1",
+ "batch": "T4",
+ "gid": "gb_95293f",
+ "scan_id": "sc_4f72b44afd5a",
+ "portion": "TEST_B",
+ "original_path": "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260906_489f3982/49565000_A.ply",
+ "adjudicator": "T4/adjudicator (claude-vision-ai-v1)",
+ "adjudicated_at": "2026-10-25T04:12:11+00:00",
+ "protocol": "PLAN.md 2.4-2.6; frozen matcher research/broad_baseline/score.py score_case; accept threshold 1.5 mm / 2 deg",
+ "inputs_seen": [
+  "marker_A and marker_B lines/pairs/notes/renders",
+  "raw scan (adjudicator per-station skin checks, gap maps, sections, slope fits)",
+  "FRESH label as third marking (TEST-B only, only after the A/B adjudication)"
+ ],
+ "not_seen": "no engine, lane, A0, pool, E3, best_f1, CAD or baseline output",
+ "marker_A_lines_sha256": "cdd6057fb3a0b4533a46811dc26b06c66e7252ece009a6432222d2c908a1f7e3",
+ "marker_B_lines_sha256": "82695d379544131765d102bf540ee5e69ea2c76f149f99deea3755e722a1a416",
+ "final_lines_sha256": "1bdd615872e9b3d7fb387842017f0eaf823d55ed90df11cda014aa0866c58a6f",
+ "ab_match": {
+  "nA": 0,
+  "nB": 0,
+  "tp": 0,
+  "accepted": 0,
+  "matched_not_accepted": [],
+  "A_only": [],
+  "B_only": [],
+  "f1": null,
+  "matches": []
+ },
+ "lines": [
+  {
+   "final_id": "B1",
+   "from": "adjudicator",
+   "verdict": "MISSING_ADD",
+   "marker_A_id": null,
+   "marker_B_id": null,
+   "fresh_ids": [
+    "B1"
+   ],
+   "reason": "Both blind markers marked 0 bends (A flagged the seam offset as a possible joggle; B called it a butt/weld seam step). The FRESH third marking has a 2-line lap-seam joggle. Adjudicator raw sections at 3 stations along the seam, plus slope fits at 9 stations: the overlapping sheet ends in a ~1 mm edge step; ~8 mm round from it the same sheet ramps back down to the shell radius over ~2-3 mm. Slopes (5 consistently-oriented stations): lip ~+7.5 deg, ramp ~-23 deg, shell ~-9 deg, i.e. folds of ~30 deg (crest) and ~12-14 deg (ramp to shell), both >= 10 deg, along the full 346 mm seam. That is a formed joggle (counts as 2), not the lap edge or rolled curvature, matching the T1 lap-seam ruling. MISSING_ADD x2. Fold 2 is convex on the unscanned inner skin, so its apex is estimated (confidence noted). Borderline: fold 2 is only a few degrees above the 10 deg threshold."
+  },
+  {
+   "final_id": "B2",
+   "from": "adjudicator",
+   "verdict": "MISSING_ADD",
+   "marker_A_id": null,
+   "marker_B_id": null,
+   "fresh_ids": [
+    "B2"
+   ],
+   "reason": "Both blind markers marked 0 bends (A flagged the seam offset as a possible joggle; B called it a butt/weld seam step). The FRESH third marking has a 2-line lap-seam joggle. Adjudicator raw sections at 3 stations along the seam, plus slope fits at 9 stations: the overlapping sheet ends in a ~1 mm edge step; ~8 mm round from it the same sheet ramps back down to the shell radius over ~2-3 mm. Slopes (5 consistently-oriented stations): lip ~+7.5 deg, ramp ~-23 deg, shell ~-9 deg, i.e. folds of ~30 deg (crest) and ~12-14 deg (ramp to shell), both >= 10 deg, along the full 346 mm seam. That is a formed joggle (counts as 2), not the lap edge or rolled curvature, matching the T1 lap-seam ruling. MISSING_ADD x2. Fold 2 is convex on the unscanned inner skin, so its apex is estimated (confidence noted). Borderline: fold 2 is only a few degrees above the 10 deg threshold."
+  }
+ ],
+ "final_vs_reference": {
+  "f1": 1.0,
+  "tp": 2,
+  "n_ref": 2,
+  "n_m": 2,
+  "ref_only": [],
+  "m_only": [],
+  "matches": [
+   [
+    "B1",
+    "B1",
+    0.11,
+    0.18,
+    1.0,
+    1.0
+   ],
+   [
+    "B2",
+    "B2",
+    0.06,
+    0.3,
+    1.0,
+    1.0
+   ]
+  ]
+ },
+ "adjudicator_rebuild": {
+  "pairs": "T4/gb_95293f/adjudicator/pairs.json",
+  "pairs_sha256": "4ae7161e2a788d082cc70f95fd2e1ab6ef58292eb1156e999e5ea305e6683b7f",
+  "pre_fresh_final_sha256": "46c5afd4f0414b2003a7fa122ae59aeb31a0e3244f943e12e6881c5169cf3a99"
+ },
+ "fresh_third_marking": {
+  "fresh_label_path": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED/81496aadc024b62ef75c1b02.json",
+  "fresh_label_sha256": "5f23e49e4a37fdaeaeed45d644e6b36fff3d62064f22605fd220066192ce9371",
+  "fresh_n_lines": 2,
+  "fresh_vs_A": {
+   "f1": 0.0,
+   "tp": 0,
+   "ref_only": [
+    "B1",
+    "B2"
+   ],
+   "m_only": []
+  },
+  "fresh_vs_B": {
+   "f1": 0.0,
+   "tp": 0,
+   "ref_only": [
+    "B1",
+    "B2"
+   ],
+   "m_only": []
+  },
+  "fresh_vs_final_f1": 1.0,
+  "disagreements": [
+   {
+    "fresh_ids": [
+     "B1",
+     "B2"
+    ],
+    "final_ids": [
+     "B1",
+     "B2"
+    ],
+    "verdict": "MISSING_ADD",
+    "fresh_wrong": false,
+    "reason": "FRESH right: lap-seam joggle (2 lines) that both markers judged a seam step (see per-line reasons; fold 2 borderline ~12-16 deg on raw slope fits, tool plane-fit angle 8.5 deg)."
+   }
+  ],
+  "fresh_lines_judged_wrong": 0
+ }
+}

@@ -1,0 +1,28 @@
+{
+  "labeler": "claude-vision-ai-v1",
+  "no_bends_present": false,
+  "notes": "Gold11 parallel AI relabel of sc_07062eee17aa (38172000_01_SCAN_1.ply, Gold11 CG65CD575B1C); human gold untouched. Owner conventions: line locus = outer-skin apex (outer-skin patch pairs, --locus apex); a fold interrupted by a notch but folding the same two plates collinearly = one line spanning the fold; small formed bends count. Part (partial production stage): flat 1.5 mm web with 2 side flanges (90 deg, one notch each), 2 tabs lanced from windows (90 deg, the other way), and a 30 deg ear bend (vertical axis) at the -X end of each tab (CAD STEP F65_69 / F90_92, 30 deg, R 0.8). 6 formed bends; nothing else is formed (patch renders, YZ sections, 3 independent auditors). t 1.5 / Ri 0.8 = CAD nominal (measured twin offsets 1.41-1.52). Prep run once (no earlier prep of this scan existed). Tab-B fold and -Y flange fold use a plane_from_points web side because the single web patch is unusable there (tab B: web lies on both sides of the line so the patch side direction flips to the window side; -Y flange: the web edge strip is bowed ~1.8 mm along X and the patch's 0.6 mm plane gate drops it).",
+  "thickness_mm": 1.5,
+  "ri_mm": 0.8,
+  "bends": [
+    {"patches": [2, [6, 14]],
+     "note": "+Y side flange fold (human M02), 90 deg: web top skin 2 + flange outer faces 6 (long segment) and 14 (short segment); one line across the notch (fold support gap = the notch only). Auto extent = measured fold ends.",
+     "confidence": "auto"},
+    {"patches": [{"plane_from_points": {"seed_xyz": [-415.428, -38.534, 216.531], "radius_mm": 160.0, "grow": false, "tol_mm": 1.2}}, [3, 11]],
+     "extent_xyz": [[-544.403, -119.35, 207.077], [-295.806, 55.858, 230.022]],
+     "note": "-Y side flange fold (human M05), 90 deg: web top skin as a plane side (no 0.6 mm patch gate; the web edge strip next to this flange is bowed ~1.8 mm along X so patch 2 lost it, coverage 0.37) + flange outer faces 3 (long) and 11 (short); one line across the notch. Extent = measured fold ends from YZ sections. The measured outer apex bows 3.5 mm along the fold, so no straight line sits on it everywhere: this line is ~0.9 mm median / ~1.9 mm max from the per-station apex (best possible straight line ~0.56 / ~1.7). The plane rms flag reflects that bow, not a doubtful bend, so confidence is set certain.",
+     "confidence": "certain"},
+    {"patches": [1, 10],
+     "note": "tab A fold (human M01, which ran 295 mm across flat web), 90 deg: web bottom skin 1 + tab A window-side face 10. Fold exists only along the tab (~78 mm, CAD 78 mm); it ends at the ear relief at the -X end. Auto extent.",
+     "confidence": "auto"},
+    {"patches": [{"plane_from_points": {"seed_xyz": [-388.928, -21.534, 219.723], "radius_mm": 41.0, "grow": false}}, 8],
+     "note": "tab B fold (human M04, which ran 300 mm across flat web), 90 deg: web bottom skin of the strip beside the fold as a plane side (patch 1 spans both sides of this line, so its side direction pointed into the window: mixed skin, coverage 0) + tab B window-side face 8. Fold ~78 mm. Auto extent.",
+     "confidence": "auto"},
+    {"patches": [10, 19],
+     "note": "ear A bend (missing from human gold; auditor-3 finding), ~31 deg about an axis perpendicular to the web, at the -X end of tab A: tab A outer face 10 + ear outer face 19. Spans the tab height above the main fold zone (~12 mm; CAD F65_69 12.7 mm). Auto extent.",
+     "confidence": "auto"},
+    {"patches": [8, 17],
+     "note": "ear B bend (missing from human gold; auditor-3 finding), ~31 deg about an axis in the tab-B plane, at the -X end of tab B: tab B outer face 8 + ear outer face 17. ~12 mm (CAD F90_92 12.7 mm). Auto extent.",
+     "confidence": "auto"}
+  ]
+}

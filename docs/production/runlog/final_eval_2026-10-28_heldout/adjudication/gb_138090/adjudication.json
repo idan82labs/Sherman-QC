@@ -1,0 +1,126 @@
+{
+ "schema": "sherman.final_eval.gold_adjudication.v1",
+ "batch": "FE1",
+ "gid": "gb_138090",
+ "scan_id": "sc_bff7833d2fbd",
+ "role": "SCORED",
+ "subset": "N001_N016",
+ "part_id": "38173000",
+ "original_path": "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/incoming/2026-08-17_20_shaked_new_good_bad_pairs/authenticated_source/scans/N001.ply",
+ "scan_sha256": "bff7833d2fbd28b3afa75c865e3a0da558fcad8038431883cf5bda70e7f5d009",
+ "adjudicator": "FE1/adjudicator (claude-vision-ai-v1)",
+ "adjudicated_at": "2026-10-28T21:21:57+00:00",
+ "protocol": "PREREG.md section 4 (sha c50f58e0...); frozen matcher research/broad_baseline/score.py score_case (5 deg / 4 mm / 60 % both spans, one-to-one); accept threshold 1.5 mm / 2 deg; gold rule GOLD_SET_V2 (MARKER_INSTRUCTIONS.md)",
+ "inputs_seen": [
+  "marker_A and marker_B lines/pairs/notes/renders/sweeps",
+  "shared prep renders",
+  "adjudicator raw-scan sections and station checks (adjudication/evidence/)",
+  "private key (gid -> original)"
+ ],
+ "not_seen": "no engine, lane, pool, E3, CAD or baseline output",
+ "marker_A_lines_sha256": "a9d21bd582f3651bc3a39ad944c195bf55edf9df3522937cbd5daa9e31182adb",
+ "marker_B_lines_sha256": "5a64105d9caf58bdab41babb7ab80c67196327d088f6c50d4cf871009dd9538e",
+ "final_source": "A",
+ "final_lines_sha256": "cb17f3025f3b410058eeddb399419bdd736cf7c06eeba9bc645e7fddeabeb51c",
+ "final_line_count": 4,
+ "no_bends_present": false,
+ "label_complete": true,
+ "part_class": "bent",
+ "zero_bend": false,
+ "partial_scan": false,
+ "partial_note": "complete scan (both markers; all views)",
+ "excluded": false,
+ "ab_match": {
+  "nA": 4,
+  "nB": 2,
+  "tp": 2,
+  "fp_B_only": 0,
+  "fn_A_only": 2,
+  "f1": 0.6666666666666666,
+  "disposition": "SCORED_COMPLETE_LABEL",
+  "accepted_within_1p5mm_2deg": 2,
+  "matched_not_accepted": [],
+  "A_only": [
+   "B3",
+   "B4"
+  ],
+  "B_only": [],
+  "matches": [
+   [
+    "B1",
+    "B1",
+    0.0,
+    0.0,
+    1.0,
+    1.0
+   ],
+   [
+    "B2",
+    "B2",
+    0.0,
+    0.0,
+    1.0,
+    1.0
+   ]
+  ]
+ },
+ "lines": [
+  {
+   "final_id": "B1",
+   "bend_angle_deg": 90.42,
+   "length_mm": 264.7,
+   "confidence": "certain",
+   "marker_A_id": "B1",
+   "marker_B_id": "B1",
+   "verdict": "AGREED",
+   "from": "A",
+   "ab_offset_mm": 0.0,
+   "ab_angle_deg": 0.0
+  },
+  {
+   "final_id": "B2",
+   "bend_angle_deg": 90.35,
+   "length_mm": 265.1,
+   "confidence": "certain",
+   "marker_A_id": "B2",
+   "marker_B_id": "B2",
+   "verdict": "AGREED",
+   "from": "A",
+   "ab_offset_mm": 0.0,
+   "ab_angle_deg": 0.0
+  },
+  {
+   "final_id": "B3",
+   "bend_angle_deg": 89.38,
+   "length_mm": 5.7,
+   "confidence": "certain",
+   "marker_A_id": "B3",
+   "marker_B_id": null,
+   "verdict": "ACCEPT_A (A only)",
+   "from": "A"
+  },
+  {
+   "final_id": "B4",
+   "bend_angle_deg": 88.65,
+   "length_mm": 5.6,
+   "confidence": "certain",
+   "marker_A_id": "B4",
+   "marker_B_id": null,
+   "verdict": "ACCEPT_A (A only)",
+   "from": "A"
+  }
+ ],
+ "rejected_marker_lines": [],
+ "doubts_adjudicated": [
+  {
+   "lines_A": [
+    "B3",
+    "B4"
+   ],
+   "doubt": "short ears (~6 mm folds) at one end of each long flange",
+   "verdict": "ACCEPT_A",
+   "rule": "GOLD_SET_V2 gold rule (docs/production/GOLD_SET_V2.md; packets/MARKER_INSTRUCTIONS.md): formed fold >= 10 deg between two flat plates; short folds counted in T5 (6.5 mm feet) and N1 gb_4dd5ba (5 mm hook lips)",
+   "reason": "A sweep ear_end_B1/B2 and closeups: the flange overhang turns ~90 deg into an ~11 mm ear with a visible concentric radius. Adjudicator station check on the raw scan (evidence/st_out.json): outer envelope 1.83-1.95 mm from the plane sharp along the whole line vs expected outer apex 2.0 mm, i.e. a formed arc. B classed the ear strips as end faces without a section. Lines cover the full flange height."
+  }
+ ]
+}

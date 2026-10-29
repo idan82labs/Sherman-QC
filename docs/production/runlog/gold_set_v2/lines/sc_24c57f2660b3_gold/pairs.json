@@ -1,0 +1,85 @@
+{
+  "labeler": "claude-vision-ai-v1",
+  "no_bends_present": false,
+  "notes": "GOLD v2 fixer round 1 (2026-10-18), sc_24c57f2660b3, CONSUMED scan 49191054_02.ply, stage FULL_PRESUMED_NO_STAGE_HINT, t 1.52 mm. Part: flat irregular base plate (outer skin 2 / inner 1) with four ~90 deg downward flanges ~12 mm tall: back (outer 3, two extruded holes), right (outer 4), left (outer 7) and notch edge (outer 10). Six formed bends under the owner rule of 2026-10-18 (formed bends >= 10 deg count). B1-B4 are the plate-to-flange 90 deg folds. B2 and B3 now stop where the bend-relief slit begins (B2 t=-18.9, B3 t=-5.9). Past that point the flange end tab is cut free from the plate by a 0.7-1 mm slit: the full-res sections show no fold arc, so the initial lines ran 2.5 mm (B2) and 1.4 mm (B3) into the slit. B5 and B6 are the free end tabs of the right and left flanges, each about 4.7 mm long beyond its crease. Each tab is turned inward about a straight crease perpendicular to the plate, 1.8 mm (right) and 0.9 mm (left) past the slit start. Both sides of each crease are flat (outer-skin plane rms 0.004-0.008 mm), the crease runs the full tab height (~9 mm), and the turn is confined to ~1-2 mm. Angle: right tab 10.3-10.4 deg (outer and inner skin plane fits agree; 1 mm stations 10.1-10.5 on the outer skin); left tab 11.2-11.5 deg outer and 10.0-10.4 inner. The two tabs mirror each other in position and direction, so this is a deliberate formed toe-in, not a rolled kink or damage. Only the old 15 deg floor excluded them before; they are borderline above the 10 deg floor. The tabs turn inward, so the convex skin is the flange outer face (4 / 7) and the apex lies on that face. Not bends: the extruded hole collars in the back flange, the flange-to-flange box corners, the height step on the notch flange, the relief slits, and thickness/perimeter edges.",
+  "bends": [
+    {
+      "patches": [
+        2,
+        3
+      ],
+      "confidence": "auto",
+      "note": "plate outer skin 2 to back flange outer skin 3, ~90 deg; runs box corner to box corner (the extruded hole collars in the flange are not bends)"
+    },
+    {
+      "patches": [
+        2,
+        4
+      ],
+      "extent_t": [
+        -18.9,
+        26.91
+      ],
+      "confidence": "auto",
+      "note": "plate outer skin 2 to right flange outer skin 4, ~91 deg; from the start of the bend-relief slit (t=-18.9; beyond it the end tab is cut free from the plate and there is no fold) to the back box corner"
+    },
+    {
+      "patches": [
+        2,
+        7
+      ],
+      "extent_t": [
+        -5.9,
+        17.55
+      ],
+      "confidence": "auto",
+      "note": "plate outer skin 2 to left flange outer skin 7, ~90 deg; from the start of the bend-relief slit (t=-5.9; beyond it the end tab is cut free from the plate and there is no fold) to the back box corner"
+    },
+    {
+      "patches": [
+        2,
+        10
+      ],
+      "confidence": "auto",
+      "note": "plate outer skin 2 to notch-edge flange outer skin 10, ~89 deg; plate bottom edge to the inner end of the notch"
+    },
+    {
+      "patches": [
+        4,
+        {
+          "plane_from_points": {
+            "seed_xyz": [
+              -90.18,
+              -70.74,
+              142.8
+            ],
+            "radius_mm": 1.6,
+            "grow": true,
+            "tol_mm": 0.03
+          }
+        }
+      ],
+      "confidence": "auto",
+      "note": "right flange free end tab toe-in: main flange outer face 4 to the end-tab outer facet (not segmented; plane seeded at the tab middle). 10.3 deg inward turn about a crease perpendicular to the plate, 1.8 mm past the relief-slit start. Convex (outer) skin = flange outer face. The crease spans the tab height, top slit edge to bottom edge."
+    },
+    {
+      "patches": [
+        7,
+        {
+          "plane_from_points": {
+            "seed_xyz": [
+              -147.72,
+              -77.34,
+              147.0
+            ],
+            "radius_mm": 1.6,
+            "grow": true,
+            "tol_mm": 0.03
+          }
+        }
+      ],
+      "confidence": "auto",
+      "note": "left flange free end tab toe-in, mirror of B5: main flange outer face 7 to the end-tab outer facet (not segmented; plane seeded at the tab middle). 11.3 deg outer skin / 10.2 deg inner skin inward turn about a crease perpendicular to the plate, 0.9 mm past the relief-slit start. Convex (outer) skin = flange outer face. The crease spans the tab height."
+    }
+  ]
+}

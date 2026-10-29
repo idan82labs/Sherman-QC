@@ -1,0 +1,251 @@
+{
+ "schema": "sherman.zeroshot.gold_adjudication.v1",
+ "batch": "T4",
+ "gid": "gb_7fc007",
+ "scan_id": "sc_705ec5de123b",
+ "portion": "TEST_B",
+ "original_path": "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260906_938ae886/44001000_B.ply",
+ "adjudicator": "T4/adjudicator (claude-vision-ai-v1)",
+ "adjudicated_at": "2026-10-25T04:12:11+00:00",
+ "protocol": "PLAN.md 2.4-2.6; frozen matcher research/broad_baseline/score.py score_case; accept threshold 1.5 mm / 2 deg",
+ "inputs_seen": [
+  "marker_A and marker_B lines/pairs/notes/renders",
+  "raw scan (adjudicator per-station skin checks, gap maps, sections, slope fits)",
+  "FRESH label as third marking (TEST-B only, only after the A/B adjudication)"
+ ],
+ "not_seen": "no engine, lane, A0, pool, E3, best_f1, CAD or baseline output",
+ "marker_A_lines_sha256": "7c3c7f33246dc692e479b70e64b35478c4c1ceadf49a9d7a7edc149012fccc3b",
+ "marker_B_lines_sha256": "78af8b3ad7f84cfbfb2c448d39156dea97fa73e190ffc168455e9e1e874ee2bf",
+ "final_lines_sha256": "2f32146906969fa3beaedfd78a9f2808e35a1eb324c620132b149293f387c142",
+ "ab_match": {
+  "nA": 6,
+  "nB": 6,
+  "tp": 6,
+  "accepted": 5,
+  "matched_not_accepted": [
+   [
+    "B4",
+    "B3",
+    1.534924,
+    0.440797
+   ]
+  ],
+  "A_only": [],
+  "B_only": [],
+  "f1": 1.0,
+  "matches": [
+   [
+    "B1",
+    "B6",
+    0.02,
+    0.1,
+    0.96,
+    0.9
+   ],
+   [
+    "B2",
+    "B5",
+    0.69,
+    0.6,
+    1.0,
+    0.94
+   ],
+   [
+    "B3",
+    "B4",
+    0.77,
+    0.66,
+    1.0,
+    0.93
+   ],
+   [
+    "B4",
+    "B3",
+    1.53,
+    0.44,
+    1.0,
+    0.93
+   ],
+   [
+    "B5",
+    "B2",
+    0.95,
+    1.01,
+    1.0,
+    0.95
+   ],
+   [
+    "B6",
+    "B1",
+    0.08,
+    0.82,
+    0.95,
+    0.92
+   ]
+  ]
+ },
+ "lines": [
+  {
+   "final_id": "B1",
+   "marker_A_id": "B1",
+   "marker_B_id": "B6",
+   "from": "A",
+   "verdict": "AGREED",
+   "ab_offset_mm": 0.02,
+   "ab_angle_deg": 0.1,
+   "ab_span_overlap": [
+    0.96,
+    0.9
+   ],
+   "reason": "A/B matched within 1.5 mm / 2 deg; line from A."
+  },
+  {
+   "final_id": "B2",
+   "marker_A_id": "B2",
+   "marker_B_id": "B5",
+   "from": "A",
+   "verdict": "AGREED",
+   "ab_offset_mm": 0.69,
+   "ab_angle_deg": 0.6,
+   "ab_span_overlap": [
+    1.0,
+    0.94
+   ],
+   "reason": "A/B matched within 1.5 mm / 2 deg; line from A."
+  },
+  {
+   "final_id": "B3",
+   "marker_A_id": "B3",
+   "marker_B_id": "B4",
+   "from": "A",
+   "verdict": "AGREED",
+   "ab_offset_mm": 0.77,
+   "ab_angle_deg": 0.66,
+   "ab_span_overlap": [
+    1.0,
+    0.93
+   ],
+   "reason": "A/B matched within 1.5 mm / 2 deg; line from A."
+  },
+  {
+   "final_id": "B4",
+   "marker_A_id": "B4",
+   "marker_B_id": "B3",
+   "from": "A",
+   "verdict": "ACCEPT_A",
+   "ab_offset_mm": 1.53,
+   "ab_angle_deg": 0.44,
+   "ab_span_overlap": [
+    1.0,
+    0.93
+   ],
+   "reason": "Middle tab to U2 side; A B4 vs B B3 matched at 1.53 mm / 0.44 deg (just over 1.5 mm). The middle \"tab\" is a ~4 mm crest with a hole, so the two markers split the crest angle differently (A 60+52 deg, B 76+38 deg; sums agree at ~112-114 deg). Tight bend: on the outer skin the apex should lie close to the plane sharp. A apex offset 0.29 mm and 0.06-0.15 mm from the mesh at all 13 stations; B apex sits 1.69 mm from its own sharp and drifts 0.48-0.76 mm off the mesh over the middle third of the line. A is on the outer skin; A taken. Count (6) agreed by both markers: the two ~110-120 deg saddle arcs (Ri ~2.7-3.4 t, distinct straight sides) are die-formed bends, not rolled kinks."
+  },
+  {
+   "final_id": "B5",
+   "marker_A_id": "B5",
+   "marker_B_id": "B2",
+   "from": "A",
+   "verdict": "AGREED",
+   "ab_offset_mm": 0.95,
+   "ab_angle_deg": 1.01,
+   "ab_span_overlap": [
+    1.0,
+    0.95
+   ],
+   "reason": "A/B matched within 1.5 mm / 2 deg; line from A."
+  },
+  {
+   "final_id": "B6",
+   "marker_A_id": "B6",
+   "marker_B_id": "B1",
+   "from": "A",
+   "verdict": "AGREED",
+   "ab_offset_mm": 0.08,
+   "ab_angle_deg": 0.82,
+   "ab_span_overlap": [
+    0.95,
+    0.92
+   ],
+   "reason": "A/B matched within 1.5 mm / 2 deg; line from A."
+  }
+ ],
+ "final_vs_reference": {
+  "f1": 1.0,
+  "tp": 6,
+  "n_ref": 6,
+  "n_m": 6,
+  "ref_only": [],
+  "m_only": [],
+  "matches": [
+   [
+    "B1",
+    "B1",
+    0.2,
+    0.18,
+    1.0,
+    0.96
+   ],
+   [
+    "B2",
+    "B2",
+    0.41,
+    1.31,
+    1.0,
+    0.95
+   ],
+   [
+    "B3",
+    "B3",
+    0.1,
+    0.12,
+    1.0,
+    0.99
+   ],
+   [
+    "B4",
+    "B4",
+    0.16,
+    0.27,
+    1.0,
+    0.98
+   ],
+   [
+    "B5",
+    "B5",
+    0.6,
+    0.84,
+    1.0,
+    0.95
+   ],
+   [
+    "B6",
+    "B6",
+    0.09,
+    0.12,
+    1.0,
+    0.95
+   ]
+  ]
+ },
+ "fresh_third_marking": {
+  "fresh_label_path": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED/b10d0f24da1e7682b498f5cc.json",
+  "fresh_label_sha256": "69fac983f694316b766124d0429691246fb4831b70d4b51ff5b4e565a9569189",
+  "fresh_n_lines": 6,
+  "fresh_vs_A": {
+   "f1": 1.0,
+   "tp": 6,
+   "ref_only": [],
+   "m_only": []
+  },
+  "fresh_vs_B": {
+   "f1": 1.0,
+   "tp": 6,
+   "ref_only": [],
+   "m_only": []
+  },
+  "fresh_vs_final_f1": 1.0,
+  "disagreements": [],
+  "fresh_lines_judged_wrong": 0
+ }
+}

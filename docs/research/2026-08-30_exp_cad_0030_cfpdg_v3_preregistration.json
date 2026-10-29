@@ -1,0 +1,364 @@
+{
+  "schema": "EXP_CAD_0030_CFPDG_V3_PREREGISTRATION_V1",
+  "experiment_id": "EXP_CAD_0030",
+  "architecture": "CROSSFIT_PAIRWISE_DEFORMATION_GRAPH_V3_HARDENED",
+  "preregistered_before_physical_scan_load": true,
+  "lineage": {
+    "superseded_experiment_id": "EXP_CAD_0029",
+    "superseded_terminal_record_path": "docs/research/2026-08-30_exp_cad_0029_source_free_protocol_superseded_no_scan.json",
+    "superseded_terminal_record_sha256": "a3a313731fa76d61b72c0a9598db5eae1973a50cadb62847780493259249a06f",
+    "physical_scan_open_call_count_before_exp30_preregistration": 0,
+    "exp29_cad_preflights_and_approval_are_not_authority_for_exp30": true
+  },
+  "scope": "SOURCE_ONLY_OPAQUE_PAIR_SCREENING_NOT_QC_TOLERANCE_NOT_ACCURACY_NOT_F1",
+  "immutable_inputs": {
+    "source_cad_basename": "42637000_B.SLDPRT",
+    "source_cad_sha256": "fdb2b5ca0a9a572f5320a3644543fca595330b0800d0e0d2ecd04e41f313e571",
+    "accepted_mesh_sha256": "9e6571704780383e99b6fa4f2800fa69a50a3e187467698fe5dd7414d9d2a716",
+    "mesh_report_sha256": "01b60ca43635854a04df68a536c5daf15cf8650decb743caf8bb7ae593535fbf",
+    "sheet_thickness_mm": 1.5,
+    "opaque_case_tokens_in_canonical_order": [
+      "N009",
+      "N010"
+    ],
+    "scan_sha256_without_loading_bytes": {
+      "N009": "3567fd96870a93f39fcc1e203cef847bb44b72f5a5868e355693c1bfadd87833",
+      "N010": "823e6a7dc7c42091c6565393c82122eea9fbed2bda3e079247189d463a28f1b3"
+    },
+    "frozen_transform_semantic_sha256": {
+      "N009": "02e85cc8bc4e58c0ef0f9ddfb5eca097d26d3d3492378781babf42b65da67aca",
+      "N010": "766aef6c8d286798b793f32c05405ca00b2bd67ca9656fab2f1daf360b372b14"
+    },
+    "frozen_transform_validation": "before first scan hash/open, require exact semantic hash/case-token/scan-hash binding, finite 4x4, exact [0,0,0,1] bottom row, R^T R within atol1e-8 rtol0, and proper determinant +1 within atol1e-8 rtol0",
+    "pre_scan_loadability_order": "after both approvals: validate both transforms and load/validate CAD node, edge, geodesic-weight, and mesh artifacts before the first physical scan hash call"
+  },
+  "forbidden_inputs": {
+    "evaluator_manifest": true,
+    "roles": true,
+    "labels": true,
+    "gold": true,
+    "expected_counts": true,
+    "quality_tokens_or_filenames": true,
+    "bend_event_or_ntrc_guard_rescue": true,
+    "local_or_component_specific_pose_optimization": true
+  },
+  "permutation_invariant_voxel_aggregation": {
+    "method": "VOXEL_CENTROID_AND_NORMALIZED_SUMMED_NORMAL_CANONICAL_LEXSORT_FSUM_V1",
+    "voxel_key": "floor(point_xyz_mm / voxel_mm)",
+    "within_voxel_order": "lexicographic(point_x,point_y,point_z,normal_x,normal_y,normal_z)",
+    "point_representative": "coordinatewise_math_fsum_divided_by_count",
+    "normal_representative": "coordinatewise_math_fsum_then_unit_normalize",
+    "acquisition_order_used": false
+  },
+  "cad_graph": {
+    "candidate_target_area_mm2": 1.125,
+    "candidate_generator": "PER_TRIANGLE_HAMMERSLEY_EQUAL_AREA_WITH_PARENT_FACE_TIE_BREAK_V1",
+    "candidate_canonical_order": "lexicographic(x,y,z,nx,ny,nz,parent_face,candidate_ordinal) after 1e-12 rounding",
+    "poisson_min_spacing_mm": 3.0,
+    "weld_method": "FLOAT64_EUCLIDEAN_LEQ_1E-8_TRANSITIVE_CLOSURE_CANONICAL_PAIR_ORDER_LEXICOGRAPHIC_REPRESENTATIVE",
+    "smooth_region_max_dihedral_deg_inclusive": 5.0,
+    "poisson_suppression": "same exact welded five-degree smooth region only; squared distance strictly less than 9.0mm2; equality allowed; first canonical candidate wins",
+    "minimum_boundary_or_hole_mesh_geodesic_clearance_mm": 3.0,
+    "boundary_clearance_certificate": "exact ambient point-to-every-effective-region-boundary-segment distance >=3mm; conservative because ambient distance is a lower bound on every surface path",
+    "effective_region_boundary": "one-owner, nonmanifold, or manifold edge whose two faces have different exact five-degree smooth-region IDs",
+    "tangent_disk_radius_mm": 3.0,
+    "interior_probe_radii_mm": [
+      1.0,
+      2.0,
+      3.0
+    ],
+    "interior_probe_azimuth_count": 8,
+    "interior_probe_max_surface_distance_mm": 0.075,
+    "interior_probe_max_normal_angle_deg": 5.0,
+    "raycast_and_radial_probes_are_diagnostic_only": true,
+    "graph_edge_max_length_mm": 4.5,
+    "graph_edge_max_surface_geodesic_to_euclidean_ratio": 1.1,
+    "graph_edge_query_boundary": "exact float64 inclusive <=4.5mm and <=1.1 ratio after recomputation; no additive epsilon",
+    "surface_path_atlas_edge_sample_spacing_mm": 0.75,
+    "surface_path_atlas": "region-copied welded vertices and exact edge-fraction samples plus accepted nodes; within each parent triangle all atlas pairs within 4.95mm receive exact in-triangle chords; canonical sparse Dijkstra",
+    "graph_edge_endpoints_must_share_exact_smooth_region": true,
+    "graph_edge_quarter_probe_fractions": [
+      0.25,
+      0.5,
+      0.75
+    ],
+    "coordinate_weld_tolerance_mm": 1e-08,
+    "node_area_assignment_max_distance_mm": 3.0,
+    "node_area_query_boundary": "KD query radius exactly 3.0mm with no additive epsilon, followed by exact float64 squared-distance <=9.0mm2 recomputation",
+    "node_area_tie_break": "recompute float64 squared distances over canonical KD radius candidates; exact ties select lowest canonical node ID",
+    "area_accounting": "canonical math.fsum; candidate_total=interior+excluded_boundary; interior=assigned+unassigned; candidate_total versus mesh area relative residual <=1e-12; every fraction and gate is area-based",
+    "component_geodesic_span": "deterministic two-sweep on induced component graph using stored surface-atlas edge distances; anchor and farthest ties lowest canonical node ID"
+  },
+  "cad_only_actionability": {
+    "minimum_node_count": 1000,
+    "minimum_interior_area_fraction": 0.3,
+    "minimum_assigned_fraction_of_interior_area": 0.99,
+    "maximum_unassigned_fraction_of_interior_area": 1e-9,
+    "minimum_largest_graph_component_area_fraction": 0.25,
+    "minimum_degree_two_assigned_area_fraction": 0.9,
+    "maximum_nonmanifold_edge_count": 0,
+    "required_mesh_component_count": 1,
+    "fold_count": 4,
+    "minimum_fold_area_fraction": 0.2,
+    "maximum_fold_area_fraction": 0.3,
+    "minimum_pca_leading_to_second_eigenvalue_ratio": 1.01,
+    "fold_method": "area-weighted PCA first-axis contiguous assigned-area quartiles; sign makes the largest-absolute Cartesian component positive (axis-order tie); projection ties lowest canonical node ID",
+    "fold_exclusion_halo_mm_strictly_greater_than": 6.408002808988148,
+    "fold_halo_derivation": "2*sqrt(tangent_radius_mm^2+normal_height_limit_mm^2)=2*sqrt(3^2+1.125^2), proving disjoint local support cylinders across held-out/training rows",
+    "fold_halo_method": "same-region ambient clearance and finite node-graph geodesic clearance must both be >6.408002808988148mm; infinite disconnected graph distance passes",
+    "minimum_post_halo_training_node_count": 500,
+    "minimum_post_halo_training_assigned_area_fraction": 0.5,
+    "required_rigid_design_rank": 6,
+    "maximum_normalized_rigid_design_condition_number": 10000.0,
+    "failure_ruling": "EXP30_CAD_ACTIONABILITY_STOP_SCANS_REMAIN_UNOPENED"
+  },
+  "local_surface_fit": {
+    "central_voxel_mm": 0.1875,
+    "voxel_robustness_mm": [
+      0.15,
+      0.225
+    ],
+    "tangent_radius_mm": 3.0,
+    "normal_height_limit_mm": 1.125,
+    "local_query_boundary": "ambient prequery radius exactly sqrt(3.0^2+1.125^2)mm and exact float64 cylinder tests rho<=3.0mm and abs(height)<=1.125mm; no additive epsilon",
+    "height_cluster_gap_mm": 0.375,
+    "height_cluster_runner_separation_mm": 0.75,
+    "maximum_selected_cluster_median_abs_height_mm": 1.125,
+    "maximum_scan_normal_to_cad_normal_angle_deg": 20.0,
+    "minimum_points": 32,
+    "footprint_angular_sector_count": 16,
+    "footprint_radial_band_count": 2,
+    "minimum_occupied_footprint_cells": 24,
+    "footprint_exact_semantics": "count selected cluster voxels only; inner band rho<=1.5mm inclusive, outer band 1.5mm<rho<=3.0mm inclusive; theta=atan2(v,u) modulo 2pi with exact 2pi mapped to0; sector=floor(16*theta/(2pi)); occupied cell is (band,sector)",
+    "minimum_member_point_count_ratio": 0.25,
+    "maximum_member_point_count_ratio": 4.0,
+    "huber_iteration_count": 3,
+    "huber_delta_mm": 0.15,
+    "canonical_scan_normal": "unoriented hemisphere canonicalization: unit normal sign makes its largest-absolute Cartesian component positive, with x<y<z axis-order tie; -0.0 canonicalized to +0.0 before voxel sum and the same gauge is used by identity hashing",
+    "cad_normal_gate_is_absolute_dot": true,
+    "nearest_cad_primitive_must_share_node_smooth_region": true,
+    "height_cluster_construction": "sort by (height,x,y,z,nx,ny,nz,voxel_key); maximal consecutive rows remain together when gap<=0.375mm and split only on strict greater-than",
+    "height_cluster_selection": "eligible cluster score abs(exact ordered median height); minimum score wins; exact score ties use larger count then lowest canonical first-row key; unresolved remaining tie invalidates node",
+    "height_cluster_runner_rule": "runner_score-winner_score >=0.75mm inclusive; no runner passes",
+    "plane_fit": "design [1,u,v]; initial unweighted float64 SVD solve then exactly three Huber refits; weights min(1,0.15/abs(residual)); rank3 required; p90 is sorted linear interpolation type-7 and <=0.3mm",
+    "maximum_plane_fit_p90_mm": 0.3,
+    "maximum_fitted_normal_to_cad_normal_angle_deg": 20.0,
+    "interpolation_allowed": false
+  },
+  "pair_actionability": {
+    "minimum_common_support_node_count": 1000,
+    "minimum_common_support_area_fraction_of_cad_interior": 0.3,
+    "maximum_one_sided_support_area_fraction_of_union": 0.02,
+    "required_common_support_rigid_rank": 6,
+    "maximum_common_support_rigid_condition_number": 10000.0,
+    "split_complete_intersection_rechecks_all_pair_gates": true,
+    "per_fold_per_row_minimum_post_halo_training_node_count": 500,
+    "per_fold_per_row_minimum_post_halo_training_area_fraction_of_that_row_common_support": 0.5,
+    "per_fold_per_row_required_rigid_rank": 6,
+    "per_fold_per_row_maximum_condition_number": 10000.0
+  },
+  "split_complete_support_exact": {
+    "first_star": "intersection of FIRST member valid local-fit masks over IDENTITY_0, IDENTITY_1, SPATIAL_0, SPATIAL_1 after each row's own count-ratio gate",
+    "second_star": "intersection of SECOND member valid local-fit masks over IDENTITY_0, IDENTITY_1, SPATIAL_0, SPATIAL_1 after each row's own count-ratio gate",
+    "common_star": "first_star AND second_star",
+    "union_star": "first_star OR second_star",
+    "one_sided_star": "union_star AND NOT common_star",
+    "gates": "common_star count and assigned area fraction, one_sided_star/union_star area fraction, fixed-centroid rank6 and condition<=1e4; no hardcoded zero one-sided support"
+  },
+  "global_crossfit_nuisance": {
+    "parameter_count": 6,
+    "height_design_row": "[normal, cross(point-area_centroid, normal)]",
+    "slope_design_rows": "[zeros3, 2t*cross(tangent_axis, normal)]",
+    "fold_id": "CAD-only frozen spatial PCA assigned-area quartile",
+    "fixed_centroid": "one full hardened assigned-interior area centroid C frozen by CAD preflight and used unchanged in global, common-support, every fold design, and every pose rotation",
+    "least_trimmed_iteration_count": 5,
+    "retained_training_area_fraction": 0.7,
+    "least_trimmed_rule": "five refits; trim whole nodes by Euclidean norm of their 3-row residual [h,3g1,3g2]; retain smallest canonical cumulative assigned area reaching >=70%; residual ties lowest node ID",
+    "out_of_fold_only": "each held node residual comes only from its own held fold fit trained after the frozen >6.408002808988148mm halo",
+    "translation_bound_per_axis_mm": 0.375,
+    "rotation_norm_bound_deg": 0.5,
+    "maximum_fold_translation_dispersion_mm": 0.15,
+    "maximum_fold_rotation_dispersion_deg": 0.1,
+    "per_event_face_or_component_fit_allowed": false,
+    "bounds_application": "fit unconstrained; any translation or rotation bound violation rejects/abstains; never clip",
+    "fold_dispersion": "maximum pairwise Euclidean translation-vector norm and maximum pairwise rotation-vector norm across four fold solutions"
+  },
+  "node_and_component": {
+    "combined_amplitude": "sqrt(height_residual_mm^2 + (3.0mm * tangent_gradient_residual_norm)^2)",
+    "node_threshold": "strictly_greater_than_max(0.15mm,0.1t,4*split_noise_mm)",
+    "minimum_component_node_count": 4,
+    "minimum_component_area_mm2": 9.0,
+    "minimum_component_geodesic_span_mm": 4.5,
+    "component_interpolation_allowed": false,
+    "component_id_freeze": "active-induced frozen CAD graph connected components ordered by lowest canonical node ID; sorted node IDs and SHA-256 persisted before any member CAD-relative energy is read",
+    "component_area_medoid": "node minimizing math.fsum(area_j*stored_graph_geodesic(i,j)) within component; infinite distance invalid; exact ties lowest canonical node ID"
+  },
+  "late_cad_attribution": {
+    "component_node_ids_hash_frozen_before_attribution": true,
+    "symmetric_relative_nuisance_removal": "first_minus_half_prediction_second_plus_half_prediction",
+    "minimum_larger_to_smaller_energy_ratio": 2.0,
+    "member_energy": "area mean of squared norm of symmetric CAD-relative corrected vector [h,3g1,3g2] within already-frozen component",
+    "energy_ratio_denominator_floor_mm2": 1e-12,
+    "energy_ratio": "max(EA,EB)/max(min(EA,EB),1e-12mm2)",
+    "pairwise_component_energy": "math.fsum(area_i*||corrected_A_i-corrected_B_i||^2)",
+    "major_energy_denominator": "math.fsum pairwise component energy over every retained frozen component; zero is terminal abstention",
+    "major_component_pairwise_energy_fraction": 0.25,
+    "all_major_components_must_attribute_same_member": true
+  },
+  "partitions": {
+    "identity_partition": "low_bit_sha256(canonical CENTRAL-CAD-frame transformed point plus canonical unoriented unit-normal little-endian float64 bytes after frozen base transform, before pose perturbation and before voxelization; -0.0 canonicalized to +0.0)",
+    "spatial_checker_partition": "low_bit(floor(x/0.75t)+floor(y/0.75t)+floor(z/0.75t))",
+    "identity_hash_record": "canonical little-endian float64 transformed point and canonical unoriented unit-normal bytes; -0.0 to +0.0; reject nonfinite",
+    "spatial_checker_frame": "central CAD frame after frozen base transform, before pose perturbation and before voxelization; byte identities are resolved once here and reused unchanged under member swap",
+    "partition_order": "partition raw points before voxel aggregation",
+    "split_noise_rows": [
+      "IDENTITY_0",
+      "IDENTITY_1",
+      "SPATIAL_0",
+      "SPATIAL_1"
+    ],
+    "split_noise_estimator": "after each row's own crossfit, z=[h,3g1,3g2]; max(0.5*||z_IDENTITY_0-z_IDENTITY_1||2,0.5*||z_SPATIAL_0-z_SPATIAL_1||2)",
+    "missing_split_rule": "if either member lacks any of the four valid split-row fits, split_noise=+inf and node is excluded; split-complete intersection independently rechecks support area/rank/condition/one-sided gates"
+  },
+  "robustness_inventory": {
+    "semantic_row_count": 32,
+    "rows": {
+      "CENTRAL": 1,
+      "VOXEL_NONCENTRAL": 2,
+      "IDENTITY_PARTITIONS": 2,
+      "SPATIAL_PARTITIONS": 2,
+      "POSE_TRANSLATION_AND_ROTATION_ONE_MEMBER_AT_A_TIME": 24,
+      "MEMBER_SWAP": 1
+    },
+    "exact_row_ids": {
+      "R00": "CENTRAL", "R01": "VOXEL_0.15", "R02": "VOXEL_0.225",
+      "R03": "IDENTITY_0", "R04": "IDENTITY_1", "R05": "SPATIAL_0", "R06": "SPATIAL_1",
+      "R07": "FIRST_TRANSLATION_X_NEG", "R08": "FIRST_TRANSLATION_X_POS",
+      "R09": "FIRST_TRANSLATION_Y_NEG", "R10": "FIRST_TRANSLATION_Y_POS",
+      "R11": "FIRST_TRANSLATION_Z_NEG", "R12": "FIRST_TRANSLATION_Z_POS",
+      "R13": "FIRST_ROTATION_X_NEG", "R14": "FIRST_ROTATION_X_POS",
+      "R15": "FIRST_ROTATION_Y_NEG", "R16": "FIRST_ROTATION_Y_POS",
+      "R17": "FIRST_ROTATION_Z_NEG", "R18": "FIRST_ROTATION_Z_POS",
+      "R19": "SECOND_TRANSLATION_X_NEG", "R20": "SECOND_TRANSLATION_X_POS",
+      "R21": "SECOND_TRANSLATION_Y_NEG", "R22": "SECOND_TRANSLATION_Y_POS",
+      "R23": "SECOND_TRANSLATION_Z_NEG", "R24": "SECOND_TRANSLATION_Z_POS",
+      "R25": "SECOND_ROTATION_X_NEG", "R26": "SECOND_ROTATION_X_POS",
+      "R27": "SECOND_ROTATION_Y_NEG", "R28": "SECOND_ROTATION_Y_POS",
+      "R29": "SECOND_ROTATION_Z_NEG", "R30": "SECOND_ROTATION_Z_POS",
+      "R31": "MEMBER_SWAP"
+    },
+    "pose_translation_mm": 0.1875,
+    "pose_rotation_deg": 0.25,
+    "pose_rotation_center": "CAD_INTERIOR_AREA_WEIGHTED_CENTROID",
+    "minimum_area_weighted_component_jaccard": 0.6,
+    "maximum_geodesic_component_centroid_displacement_mm": 3.0,
+    "component_matching": "equal retained-component cardinality required; solve canonical maximum-total area-weighted-Jaccard bijection; ties choose lexicographically smallest variant-component ID vector in ascending central component ID; any extra or unmatched component fails",
+    "component_matching_lex_refinement": "Hungarian maximum-total score followed by ascending central-row prefix refinement choosing the lowest remaining variant ID that can still attain the optimum within 1e-12*max(1,abs(optimum)); failure to reconstruct optimum is terminal abstention",
+    "component_location": "stored-graph area medoid, not Euclidean centroid; matched medoid graph-geodesic displacement <=3mm",
+    "row_changed_exact": "true only on row status, retained-component cardinality, matching ID/completeness/duplicate/out-of-range state, component node IDs/hash, area-weighted Jaccard<1, area-medoid ID or nonzero graph-geodesic displacement, or attributed opaque-token change; ordinary within-gate member energy/ratio/pair-energy/fraction drift is recorded in the global persistence panel but does not create a full local pack",
+    "member_swap_row_changed_semantics": "R31's expected FIRST/SECOND slot flip is representational and does not set row_changed when the remapped physical opaque attribution, component geometry, and matching are unchanged; any R31 gate failure still requires local evidence because passed=false, and any opaque-token attribution change sets row_changed=true",
+    "same_attributed_member_required": true,
+    "pose_application_order": "after frozen base transform and before partition/voxelization",
+    "empty_jaccard": "J(empty,empty)=1 diagnostic only; exactly one empty gives 0",
+    "central_zero_rule": "central has no retained components only if every variant is also empty; result remains terminal visual abstention and cannot vacuously pass robustness or attribution",
+    "minimum_energy_ratio_every_variant": 2.0,
+    "frozen_threshold": "compute central split-complete nodewise T_i exactly once as max(0.15mm,0.1t,4*central_split_noise_i); reuse the identical T_i in every R00-R31 row; a variant-invalid node is inactive and T is never recomputed",
+    "primary_replay_full_tree_byte_exact_required": true
+  },
+  "member_swap_contract": {
+    "common_support_and_component_node_ids_identical": true,
+    "nuisance_parameters_negate_atol": 1e-12,
+    "residual_vectors_negate_atol": 1e-12,
+    "amplitudes_and_areas_equal_atol": 1e-12,
+    "per_component_member_energies_exchange_atol": 1e-12,
+    "both_member_swap_attributions_must_be_nonnull": true,
+    "slot_attribution_swaps_before_token_remap": true,
+    "attributed_opaque_member_is_identical_after_token_remap": true
+  },
+  "native_visual_contract": {
+    "width_px": 3000,
+    "height_px": 2400,
+    "same_camera_and_color_scale_for_both_members": true,
+    "required_panels": [
+      "SAME_CAMERA_RAW_AND_VOXEL_SUPPORT_BOTH_MEMBERS",
+      "CAD_INTERIOR_COMMON_SUPPORT_AND_EXCLUSIONS",
+      "SELECTED_AND_REJECTED_SHEET_OWNERSHIP",
+      "ALL_HEIGHT_CLUSTERS_WITH_WINNER_RUNNER_SCORES",
+      "SIXTEEN_BY_TWO_FOOTPRINT_OCCUPANCY_AND_PLANE_FIT_P90",
+      "FIRST_MEMBER_CAD_RELATIVE_HEIGHT_PLUS_SLOPE_ENERGY",
+      "SECOND_MEMBER_CAD_RELATIVE_HEIGHT_PLUS_SLOPE_ENERGY",
+      "SIGNED_FEATURE_VECTOR_PRE_AND_POST_NUISANCE",
+      "FOLD_AND_6.408002808988148MM_HALO",
+      "SPLIT_NOISE_AND_FROZEN_THRESHOLD_T",
+      "ACTIVE_INDUCED_GRAPH_AND_COMPONENTS",
+      "CORRECTED_MEMBER_ENERGIES_RATIO_AND_ATTRIBUTION",
+      "VARIANT_PERSISTENCE_AND_COMPONENT_MATCHING"
+    ],
+    "all_node_diagnostic_required_even_with_zero_retained_components": true,
+    "fixed_case_local_panels": "global all-node plus every retained component, every failed-or-row_changed robustness component with row-local support, and the fixed top-12 central amplitudes by descending amplitude then node ID, even when zero components survive",
+    "variant_visual_evidence_rule": "full member_support, changed_component_local_diagnostics, and changed_visual_components are required when row passed=false OR row_changed=true, including passed-but-changed rows; all three must be empty only for passed=true AND row_changed=false",
+    "manual_original_resolution_review_required": true
+  },
+  "approval_contract": {
+    "cad_approval_schema": "EXP_CAD_0030_V3_INDEPENDENT_CAD_ONLY_APPROVAL_V1",
+    "cad_approval_experiment_and_architecture_must_match": true,
+    "cad_approval_decision": "PASS_CAD_ONLY_FREEZE_FOR_SOURCE_RUNNER_IMPLEMENTATION",
+    "cad_approval_physical_source_execution_authorized": false,
+    "source_approval_schema": "EXP_CAD_0030_V3_INDEPENDENT_SOURCE_RUNNER_APPROVAL_V1",
+    "source_approval_experiment_and_architecture_must_match": true,
+    "source_approval_decision": "APPROVE_ONE_PHYSICAL_PRIMARY_REPLAY_EXECUTION",
+    "source_approval_physical_source_execution_authorized": true,
+    "cad_approval_exact_named_hashes": [
+      "preregistration", "cad_preflight", "cad_only_audit_packet", "nodes", "edges",
+      "edge_geodesic_mm", "mesh", "core", "cad_only_runner", "cad_only_wrapper",
+      "cad_only_tests", "cad_identity_tests"
+    ],
+    "source_approval_exact_named_hashes": [
+      "preregistration", "cad_preflight", "cad_only_audit_packet", "nodes", "edges",
+      "edge_geodesic_mm", "mesh", "core", "cad_only_runner", "cad_only_wrapper",
+      "cad_only_tests", "cad_identity_tests", "cad_approval", "source_module", "source_runner", "source_runner_base",
+      "source_tests", "renderer", "renderer_tests", "orchestration",
+      "orchestration_tests"
+    ],
+    "recursive_or_any_hex_hash_acceptance_forbidden": true,
+    "cad_preflight_identity_gate": "exact EXP_CAD_0030_CFPDG_V3_CAD_ONLY_PREFLIGHT_V1 schema, EXP30 experiment and V3 architecture, status/actionability/no-source-authority, and preregistration_sha256 equal to the currently loaded preregistration"
+  },
+  "primary_replay_contract": {
+    "execution": "two fresh child processes with identical immutable arguments, independent output roots, followed by renderer in each tree",
+    "output_topology": "primary and replay roots are distinct and neither may be an ancestor of the other; terminal result path is outside both compared trees",
+    "renderer_execution": "execute the exact source-approval-bound resolved renderer file by its path; basename/package substitution is forbidden",
+    "failure_publication": "source timeout/failure, renderer timeout/failure, missing required artifact, or tree mismatch atomically publishes FAIL_TERMINAL_NO_RETRY outside both compared trees before nonzero exit",
+    "scan_byte_accounting": "each successful source child performs exactly two physical-scan SHA-256 file opens plus two point-cloud loads = four physical-scan byte-open operations; successful primary+replay totals are hash4, load4, byte-open8",
+    "full_tree_byte_exact": true,
+    "required_relative_paths": [
+      "SOURCE_RESULT.json", "SOURCE_VISUAL_PAYLOAD.json", "native/native_visual_manifest.json"
+    ],
+    "comparison": "canonical sorted map of every regular-file relative path to SHA-256 must be exactly equal; missing, extra, or unequal file fails",
+    "single_process_double_call_is_not_replay": true
+  },
+  "invalid_visual_value_contract": {
+    "nonfinite_scientific_value": "JSON null with valid=false and explicit invalid_reason",
+    "numeric_sentinel_for_display": false,
+    "sheet_ownership": "nearest-CAD-valid support serializes exact -1 or +1; nearest-CAD-invalid support serializes JSON null iff its validity mask is false; sheet ID 0 is forbidden",
+    "changed_visual_node_inventory": "union of central and variant component node IDs for every failed/changed robustness row, with row-specific voxel support and local fit diagnostics",
+    "selection_labels": "nearest-CAD-valid and winning-cluster-selected masks are separate and must not be conflated"
+  },
+  "semantic_visual_separation": {
+    "source_result_robustness": "decision-scale R00-R31 status, matches, component hashes, attribution, swap checks, exact row descriptors, row_changed boolean, and sorted row_change_reasons only; no full per-variant component arrays or local support",
+    "visual_payload_only_fields": [
+      "variant_components",
+      "member_support",
+      "changed_component_local_diagnostics",
+      "changed_visual_components"
+    ],
+    "multi_gigabyte_duplicate_support_forbidden": true
+  },
+  "execution_lock": {
+    "physical_scan_load_authorized_before_prereg_hash_and_cad_preflight_audit": false,
+    "threshold_or_algorithm_change_requires_new_experiment_id": true,
+    "cad_actionability_does_not_authorize_source_execution": true,
+    "source_runner_must_verify_separate_hash_bound_independent_audit_approval": true,
+    "source_run_failure_allows_rescue_or_rerun": false,
+    "evaluator_roles_remain_sealed_after_source_run": true
+  }
+}

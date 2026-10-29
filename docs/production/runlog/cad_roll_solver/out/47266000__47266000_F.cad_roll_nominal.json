@@ -1,0 +1,193 @@
+{
+ "schema": "cad_roll_nominal_v0",
+ "rule_version": "ROLL-RULE-0 (2026-10-25): E1 graph bend keeps E1 class unless E1 ROLLED(a); paired feature with Ri > 10 t is a ROLL; Ri <= 10 t tangent to a roll is a junction BEND; thresholds reused from E1-UNSUPPORTED-RULE-2 (2026-10-17; rule 1 thresholds, review fixes)",
+ "source": {
+  "file": "47266000_F.stp",
+  "sha256": "fdf1a1c728d1f1104650b98238c9b26a3c3462aa4dd3302b795431ed5f040ceb",
+  "name": "47266000__47266000_F"
+ },
+ "frame": "cad_model_mm (STEP frame, no transform)",
+ "units": {
+  "length": "mm",
+  "angle": "deg"
+ },
+ "e1": {
+  "flange_graph_error": null,
+  "part_model_error": null,
+  "thickness_mm": 3.175,
+  "panels": 2,
+  "graph_bends": 1,
+  "features": [
+   {
+    "kind": "STEPPED_BOSS",
+    "reason": "formed feature surfaces (torus, offset plane)",
+    "faces": [
+     30,
+     31,
+     32,
+     49,
+     50,
+     51,
+     52,
+     61,
+     63,
+     64,
+     66,
+     360,
+     361,
+     362,
+     363,
+     364,
+     367,
+     368,
+     369,
+     370,
+     371,
+     372,
+     373,
+     374,
+     375,
+     376,
+     377,
+     378,
+     379,
+     380,
+     381,
+     382,
+     383,
+     384,
+     385,
+     386,
+     387,
+     388,
+     389,
+     390,
+     393,
+     394,
+     395,
+     396,
+     397,
+     398,
+     399,
+     400,
+     401,
+     402,
+     403,
+     404,
+     405,
+     406,
+     407,
+     408,
+     409,
+     410,
+     411,
+     412,
+     413,
+     414,
+     415,
+     416,
+     417,
+     418,
+     419,
+     420
+    ]
+   }
+  ]
+ },
+ "thickness": {
+  "t_mm": 3.175,
+  "source": "E1_FLANGE_GRAPH"
+ },
+ "summary": {
+  "rolls": 0,
+  "junction_bends": 0,
+  "e1_bends": 1,
+  "solver_bends": 1,
+  "cones": 0,
+  "all_checks_pass": true,
+  "roll_faces_overlap_e1_bend_faces": []
+ },
+ "rolls": [],
+ "junction_bends": [],
+ "e1_bends": [
+  {
+   "graph_bend_id": "G1",
+   "class": null,
+   "parent": "P1",
+   "child": "P0",
+   "inner_radius_mm": 7.0,
+   "thickness_mm": 3.175,
+   "sweep_deg": 90.0,
+   "length_mm": 27.5,
+   "oml_virtual_sharp": {
+    "start_mm": [
+     18.675,
+     7.0,
+     -3.175
+    ],
+    "end_mm": [
+     18.675,
+     34.5,
+     -3.175
+    ]
+   },
+   "faces": {
+    "inner": [
+     62
+    ],
+    "outer": [
+     34
+    ]
+   },
+   "solver_cross_check": {
+    "paired": true,
+    "ri_diff_mm": 0.0,
+    "t_diff_mm": 0.0,
+    "sweep_diff_deg": 0.0
+   }
+  }
+ ],
+ "solver_bends": [
+  {
+   "id": "G1",
+   "source": "E1",
+   "class": null
+  }
+ ],
+ "graph": {
+  "nodes": [
+   {
+    "id": "P0",
+    "type": "PANEL",
+    "source": "E1"
+   },
+   {
+    "id": "P1",
+    "type": "PANEL",
+    "source": "E1"
+   }
+  ],
+  "edges": [
+   {
+    "id": "G1",
+    "type": "BEND",
+    "source": "E1",
+    "ends": [
+     "P1",
+     "P0"
+    ],
+    "e1_class": null
+   }
+  ],
+  "components": 1,
+  "coherent": true
+ },
+ "unclassified_paired_features": [],
+ "unpaired_large_curved_skins": [],
+ "large_radius_curved_faces": [],
+ "curved_faces": {
+  "cylinder": 191,
+  "cone": 2
+ },
+ "runtime_s": 2.66
+}

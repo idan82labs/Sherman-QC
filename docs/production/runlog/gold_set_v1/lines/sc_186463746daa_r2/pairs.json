@@ -1,0 +1,119 @@
+{
+  "labeler": "claude-vision-ai-v1",
+  "no_bends_present": false,
+  "notes": "GOLD v1 r2 (gold fixer round 2, 2026-10-18), from the round-1 pairs in gold_set_v1/lines/sc_186463746daa for this CONSUMED staged scan (23553000 PARTIAL_SCAN_2, t 0.92 mm). The 9 bends and their patch pairs are unchanged: on each arm's top end a plate-to-slope fold (~60 deg) and a V-bottom fold (~118 deg); on each arm's bottom end a return lip (~119 deg); the root of the arched hanging tab at the window edge (90 deg); and the two joggle folds (90 deg each). Round 2 re-checked all 9 lines with perpendicular sections at 7 stations, fold-end sections and close-ups: B1-B2 and B4-B9 lie on the outer-skin apex, parallel, and cover 90-100% of their folds (B7 and B8 end where the tab and the joggle wall end; past the ends the plate is flat). B3 is STILL ON THE INNER SKIN: the right arm's top (outer) skin is not scanned within 45 mm of B3, so no documented override (margin_mm, extent_t/extent_xyz, plane_from_points, apex_mode station_median) can put the line on its outer apex; every apex search lands on the only scanned skin. Moving B3 needs an outward shift that the tool cannot express; this stays an owner decision (see the B3 note). Not bends: hole and window walls, perimeter and thickness edges, thin strip 18 (an outer-arc facet of the tab root), noise patch 19, and the top-skin dropout squares on the left end, the right arm and the right end.",
+  "bends": [
+    {
+      "patches": [
+        {
+          "plane_from_points": {
+            "seed_xyz": [
+              -523.165,
+              -294.915,
+              307.822
+            ],
+            "radius_mm": 10.0,
+            "grow": true
+          }
+        },
+        9
+      ],
+      "confidence": "auto",
+      "note": "left arm top end: plate-to-slope fold (~60 deg bend, outer skin = top skin). The global plate patch is one plane over the warped 487x236 sheet, so near the arm end the plate skin is >0.41 mm off it. The plate side is therefore a local plane seeded on the arm skin ~10 mm from the fold."
+    },
+    {
+      "patches": [
+        8,
+        12
+      ],
+      "confidence": "auto",
+      "note": "left arm top end: V-bottom fold, slope to upturned flange (~118 deg bend, outer skin = bottom skin)"
+    },
+    {
+      "patches": [
+        {
+          "plane_from_points": {
+            "seed_xyz": [
+              -462.165,
+              -229.415,
+              295.723
+            ],
+            "radius_mm": 10.0,
+            "grow": true
+          }
+        },
+        10
+      ],
+      "confidence": "auto",
+      "note": "right arm top end: plate-to-slope fold (~60 deg bend), the mirror twin of B1. NOT ON THE OUTER APEX (unresolved, owner decision): the right arm's top (outer) skin is not scanned within 45 mm of this fold. Round-2 sections at 7 stations hold 0 outward-facing points, and the cut-edge and mesh-wrap fragments at both fold ends reach only 0.5-0.8 mm above the inner apex, mostly with inward-facing normals, so they are not outer skin. Both sides are therefore inner (bottom) skin planes, and the apex lands on the INNER apex. No documented override can move it: apex_mode station_median also measures the inner arc (tried off-gold: it moved B3 0.008 mm). The physical outer apex is about 0.95 mm (0.92-0.97) outward along -bisector (0.088, 0.071, 0.994), at about (-477.85, -232.96, 303.13) to (-457.84, -212.33, 299.89). Evidence: the right arm's skins are 0.92-0.93 mm apart 45-55 mm from the fold, and B1's arcs are concentric (Ro 3.28, Ri 2.34, Ro-Ri 0.94). B1's scanned apex gap (1.24 mm) is inflated by a top-skin misregistration at the left tip: the slope skins are 1.42 mm apart there and the plate skins 0.97 mm. So the round-1 proposal of 1.2 mm over-shifts by about 0.25 mm. The plate side is a local plane seeded ~10 mm from the fold, because the global plate patch is >0.41 mm off the warped sheet near the arm end."
+    },
+    {
+      "patches": [
+        10,
+        11
+      ],
+      "confidence": "auto",
+      "note": "right arm top end: V-bottom fold, slope to upturned flange (~118 deg bend, outer skin = bottom skin, which is the only skin scanned here)"
+    },
+    {
+      "patches": [
+        {
+          "plane_from_points": {
+            "seed_xyz": [
+              -388.165,
+              -443.915,
+              193.197
+            ],
+            "radius_mm": 10.0,
+            "grow": true
+          }
+        },
+        13
+      ],
+      "confidence": "auto",
+      "note": "left arm bottom end: return lip fold (~119 deg bend, outer skin = top skin). The leg's later foot fold is not formed in this stage. The plate side is a local plane seeded on the arm skin ~10 mm from the fold, because the global plate patch is >0.41 mm off the warped sheet near the arm end."
+    },
+    {
+      "patches": [
+        {
+          "plane_from_points": {
+            "seed_xyz": [
+              -326.165,
+              -378.415,
+              181.737
+            ],
+            "radius_mm": 10.0,
+            "grow": true
+          }
+        },
+        14
+      ],
+      "confidence": "auto",
+      "note": "right arm bottom end: return lip fold (~119 deg bend, outer skin = top skin). The plate side is a local plane seeded on the arm skin ~10 mm from the fold, because the global plate patch is >0.41 mm off the warped sheet near the arm end."
+    },
+    {
+      "patches": [
+        1,
+        5
+      ],
+      "confidence": "auto",
+      "note": "root of the arched hanging tab at the window edge (90 deg), full tab width ~79 mm. The planes are fit to the inner-skin patches (plate bottom 1, tab face 5), but the apex search lands on the outer skin. The line sits on the outer apex where that apex is scanned (10%, 75%); in between, the inner arc is 0.93-1.0 mm below it."
+    },
+    {
+      "patches": [
+        1,
+        7
+      ],
+      "confidence": "auto",
+      "note": "joggle upper fold: plate to offset wall 7 (90 deg). The planes are fit to the inner-skin patches (plate bottom 1, wall face 7), but the label lands on the outer apex, with the inner arc 0.92-1.05 mm below it. The line spans the full wall width (~61 mm), and the relief notches at its ends lie inside that span."
+    },
+    {
+      "patches": [
+        3,
+        7
+      ],
+      "confidence": "auto",
+      "note": "joggle lower fold: offset wall 7 to recessed panel 3 (90 deg, outer skin)"
+    }
+  ]
+}

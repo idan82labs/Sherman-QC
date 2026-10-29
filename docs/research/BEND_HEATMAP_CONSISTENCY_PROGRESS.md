@@ -1,0 +1,177 @@
+# Bend Heatmap Consistency Progress
+
+## 2026-03-26
+- Implemented `domains/bend/services/heatmap_consistency_service.py`
+- Added bend-worker deviation persistence for bend jobs: `aligned_scan.ply`, `deviations.npy`, `deviation_stats.json`
+- Merged per-bend and summary consistency blocks into bend report JSON
+- Added Bend Inspection UI surface for advisory consistency chips and summary strip
+- Extended corpus evaluator with initial consistency aggregation metrics
+- Added backend tests for validator behavior and bend-worker deviation persistence
+- Verified:
+  - backend targeted tests: `73 passed`
+  - frontend build: passed
+
+## 2026-03-26 Backtest v1
+- Output:
+  - `/Users/idant/82Labs/Sherman QC/Full Project/data/bend_corpus/evaluation/heatmap_consistency_backtest_20260326_v2`
+- Corrected the corpus runner before trusting results:
+  - wired validator execution into `/Users/idant/82Labs/Sherman QC/Full Project/scripts/evaluate_bend_case.py`
+  - fixed evaluator aggregation so heatmap metrics are not gated on unary-model availability
+  - fixed UI-contract mapping so `heatmap_consistency` fields survive to the frontend
+- Corpus backtest result:
+  - scans processed: `34`
+  - failed scans: `0`
+  - supported bends: `74`
+  - contradicted bends: `89`
+  - insufficient-evidence bends: `38`
+  - supported rate: `0.368`
+  - contradicted rate: `0.443`
+  - full-scan supported rate: `0.465`
+  - partial-scan supported rate: `0.296`
+- Interpretation:
+  - the validator is live and materially active
+  - the current v1 policy is too contradiction-heavy to promote
+  - the main failure pattern is broad/local-hot ROIs contradicting `PASS` and `NOT_DETECTED` bends too aggressively
+  - this is especially visible on partial scans and on methods with only partial independence from the deviation field
+- Immediate conclusion:
+  - keep the feature as advisory
+  - do not use `CONTRADICTED` to gate or override bend status yet
+  - tune ROI definition and contradiction thresholds before any promotion
+- Independent review conclusions:
+  - the main problem is not missing signal; it is an ROI/policy combination that is too broad
+  - contradiction is especially too aggressive for:
+    - `PASS`
+    - `NOT_DETECTED`
+    - partial/weak-observability cases
+  - `signal_extent_along_flange` should not remain a primary contradiction trigger in the next iteration
+
+## 2026-03-26 Backtest v2
+- Output:
+  - `/Users/idant/82Labs/Sherman QC/Full Project/data/bend_corpus/evaluation/heatmap_consistency_backtest_20260326_v3`
+- Policy version:
+  - `heatmap_consistency_v2`
+- ROI version:
+  - `bend_center_local_v2`
+- Result:
+  - scans processed: `34`
+  - successful scans: `31`
+  - failed scans: `3`
+  - supported bends: `50`
+  - contradicted bends: `17`
+  - insufficient-evidence bends: `126`
+  - supported rate: `0.259`
+  - contradicted rate: `0.088`
+  - `PASS` contradicted: `2`
+  - `NOT_DETECTED` contradicted: `0`
+  - full observed folded bend evaluable rate: `0.581`
+  - full observed `PASS` contradiction rate: `0.087`
+- Comparison against v1:
+  - contradicted bends: `89 -> 17`
+  - contradicted rate: `0.443 -> 0.088`
+  - supported bends: `74 -> 50`
+  - supported rate: `0.368 -> 0.259`
+  - insufficient-evidence bends: `38 -> 126`
+- Interpretation:
+  - the ROI/policy correction worked
+  - the false-contradiction problem is largely fixed
+  - the validator is now too conservative and abstains too often
+  - the remaining contradictions are concentrated in a small set of full-scan `PASS` and quiet `FAIL` cases
+- Caveat:
+  - three heavy full-scan cases timed out under the existing `420s` corpus runner limit:
+    - `47266000_F.stl`
+    - `47266000_F (1).stl`
+    - `47479000_C.ply`
+- Decision:
+  - keep advisory-only
+  - do not relax contradiction policy yet
+  - next iteration should target support-rate recovery without reintroducing `NOT_DETECTED` contradiction
+
+## 2026-03-27 Support-recovery pass
+- Code change:
+  - relaxed only the `FAIL` / `WARNING` support gate in `/Users/idant/82Labs/Sherman QC/Full Project/domains/bend/services/heatmap_consistency_service.py`
+  - left `PASS` contradiction, `NOT_DETECTED`, and `NON_INDEPENDENT` contradiction rules unchanged
+- Output:
+  - `/Users/idant/82Labs/Sherman QC/Full Project/data/bend_corpus/evaluation/heatmap_consistency_backtest_20260327_v4`
+- Result:
+  - scans processed: `34`
+  - successful scans: `33`
+  - failed scans: `1`
+  - supported bends: `57`
+  - contradicted bends: `18`
+  - insufficient-evidence bends: `125`
+  - supported rate: `0.285`
+  - contradicted rate: `0.090`
+  - `PASS` contradicted: `3`
+  - `FAIL` / `WARNING` supported: `33` reported in the original run aggregate
+  - `NOT_DETECTED` contradicted: `0`
+  - full-scan supported rate: `0.329`
+  - partial-scan supported rate: `0.252`
+- Comparison against v2:
+  - supported bends: `50 -> 57`
+  - supported rate: `0.259 -> 0.285`
+  - contradicted bends: `17 -> 18`
+  - contradicted rate: `0.088 -> 0.090`
+  - `FAIL` / `WARNING` support increased on the intended active-fail slice
+  - `NOT_DETECTED` contradicted remained `0`
+- Interpretation:
+  - the support-recovery pass worked in the intended direction
+  - recovered support came from `FAIL` / `WARNING` bends, not from reopening unsafe contradiction paths
+  - the contradiction posture stayed essentially flat
+  - the validator is still too conservative overall and continues to abstain too often
+- Caveat:
+  - v4 is not perfectly apples-to-apples with v2 because corpus runtime improved on two previously failed scans
+  - that makes the support gain directionally valid but not a pure threshold-only comparison
+- Decision:
+  - keep the v2 contradiction gates
+  - keep the feature advisory-only
+  - next iteration should target support recovery on clearly observed full-scan folded bends without touching `PASS` contradiction or `NOT_DETECTED`
+
+## 2026-03-27 Support-recovery pass v2
+- Code change:
+  - added two narrow full-scan-only support paths in `/Users/idant/82Labs/Sherman QC/Full Project/domains/bend/services/heatmap_consistency_service.py`
+  - quiet `PARTIAL`-independence `PASS` bends can now support on strong full-scan coverage
+  - moderate-signal active-fail bends can now support on strong full-scan coverage
+  - contradiction rules remained unchanged
+- Output:
+  - `/Users/idant/82Labs/Sherman QC/Full Project/data/bend_corpus/evaluation/heatmap_consistency_backtest_20260327_v5`
+- Result:
+  - scans processed: `34`
+  - successful scans: `32`
+  - failed scans: `2`
+  - supported bends: `61`
+  - contradicted bends: `18`
+  - insufficient-evidence bends: `120`
+  - supported rate: `0.307`
+  - contradicted rate: `0.090`
+  - full-scan supported rate: `0.369`
+  - partial-scan supported rate: `0.261`
+  - `PASS` contradicted: `3`
+  - active-fail support:
+    - `FAIL`: `35`
+    - `WARNING`: `19`
+    - combined `FAIL/WARNING`: `54`
+  - full observed folded bend evaluable rate: `0.800`
+- Comparison against v4:
+  - supported bends: `57 -> 61`
+  - supported rate: `0.285 -> 0.307`
+  - contradicted bends: `18 -> 18`
+  - contradicted rate: `0.090 -> 0.090`
+  - insufficient-evidence bends: `125 -> 120`
+  - full-scan supported rate: `0.329 -> 0.369`
+  - full observed folded bend evaluable rate: `0.533 -> 0.800`
+- Interpretation:
+  - this is the first pass that clears the support-rate floor without reopening contradiction
+  - the gain came from the intended slice: clearly observed full-scan folded bends
+  - the validator is now useful enough to keep as a default advisory corroboration layer
+- Caveat:
+  - v5 still had `2` corpus timeouts, so it remains a runtime-unstable benchmark, not a final promotion gate
+- Decision:
+  - keep advisory-only
+  - keep the v5 support policy
+  - use this as the new baseline for future threshold or family-specific work
+
+## Next
+- keep `PASS` contradiction and `NOT_DETECTED` contradiction rules unchanged
+- decide whether rolled/hybrid families need a separate validator path
+- investigate the corpus output filename-collision issue before depending on post-hoc regeneration
+- backtest the advisory validator on newly added labeled parts before any promotion discussion

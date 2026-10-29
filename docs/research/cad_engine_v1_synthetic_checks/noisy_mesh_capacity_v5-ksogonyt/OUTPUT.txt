@@ -1,0 +1,69 @@
+..NOISY_MESH_CAPACITY_V5_RECEIPT={"dimensions_cells": [500, 250, 175], "expected_extractor_edge_records": 5400000, "expected_unique_shared_raw_edges": 2700000, "extraction_reasons": ["MAX_METADATA_BYTES_EXCEEDED"], "extraction_seconds": 6.067123834043741, "extraction_status": "UNAVAILABLE", "limits": {"output_bytes": 1048576, "sampled_process_group_rss_bytes": 4294967296, "wall_seconds": 120, "worker_cpu_seconds": 90}, "noise_denominator": 8192, "noise_numerator_maxima": [31, 33, 35], "observed_bend_count": null, "oracle_error": "['MAX_METADATA_BYTES_EXCEEDED']\nassert 'UNAVAILABLE' == 'COMPLETE'\n  \n  - COMPLETE\n  + UNAVAILABLE", "oracle_error_type": "AssertionError", "oracle_status": "FAILED", "physical_plane_count": null, "position_error_bound_mm": 0.05, "production_use_allowed": false, "qualification_scope": "ONE_STIPULATED_NOISY_FULL_SIZE_CONSTRUCTION_NOT_108_STUDY_OR_PHYSICAL_QUALIFICATION", "raw_rows": 900000, "schema": "NOISY_MESH_CAPACITY_V5_INVENTED_ANNULAR_PRISM", "statistics": {"all_qualified_core_closures_evaluated": false, "closure_edge_tests": 0, "closure_triangle_tests": 0, "closures_evaluated": 0, "closures_scheduled": 0, "cone_row_tests": 0, "core_construction_complete": false, "core_count": 0, "core_evaluation_complete": false, "cores_evaluated": 22452, "discarded_closure_records": 0, "discarded_core_records": 22452, "discarded_proposals": 13847, "edge_records": 5400000, "evidence_scope": "ATTEMPTED_WORK_ONLY_ALL_PROPOSALS_INVALIDATED", "fit_evaluations": 22453, "full_support_row_tests": 1999107, "input_raw_rows": 900000, "input_triangles": 1800000, "metadata_bytes": 67106100, "qualified_closure_count": 0, "qualified_core_count": 13847, "raw_memberships": 1999107, "retained_array_bytes": 89204000, "scheduled_closure_evaluation_complete": false, "shared_edge_pairs": 2700000, "triangle_memberships": 5551393, "unique_closure_count": 0, "unscheduled_qualified_core_count": 0}, "triangle_rows": 1800000}
+F
+=================================== FAILURES ===================================
+__________ test_fixed_900000_row_1800000_triangle_noisy_capacity_once __________
+
+    @pytest.mark.skipif(os.environ.get(CAPACITY_FLAG) != "1",
+                        reason="separate reviewed 120 s / 90 worker CPU / 4 GiB capacity gate required")
+    def test_fixed_900000_row_1800000_triangle_noisy_capacity_once():
+        started = time.perf_counter()
+        truth, triangles, labels = _construct(*CAPACITY_DIMENSIONS)
+        observed = _observe(truth)
+        assert (len(truth), len(triangles)) == CAPACITY_COUNTS
+        assert all(actual >= reviewed for actual, reviewed in zip(CAPACITY_COUNTS, REVIEWED_COHORT_MAXIMUM))
+        extraction_started = time.perf_counter()
+        result = extract_noisy_scan_plane_proposals_v5(observed, triangles, position_error_bounds_mm=POSITION_ERROR_MM)
+        extraction_seconds = time.perf_counter()-extraction_started
+        receipt = dict(schema="NOISY_MESH_CAPACITY_V5_INVENTED_ANNULAR_PRISM",
+            dimensions_cells=list(CAPACITY_DIMENSIONS), raw_rows=len(truth), triangle_rows=len(triangles),
+            expected_unique_shared_raw_edges=2_700_000, expected_extractor_edge_records=5_400_000,
+            position_error_bound_mm=POSITION_ERROR_MM, noise_numerator_maxima=[31, 33, 35],
+            noise_denominator=NOISE_DENOMINATOR, extraction_status=result["status"],
+            extraction_reasons=result["reasons"], extraction_seconds=extraction_seconds,
+            qualification_scope="ONE_STIPULATED_NOISY_FULL_SIZE_CONSTRUCTION_NOT_108_STUDY_OR_PHYSICAL_QUALIFICATION",
+            physical_plane_count=None, observed_bend_count=None, production_use_allowed=False,
+            limits=RESOURCE_LIMITS)
+        try:
+>           receipt.update(_verify(truth, observed, triangles, labels, result, CAPACITY_DIMENSIONS), oracle_status="PASSED")
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_cad_guided_noisy_mesh_capacity_v5.py:394: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+truth = array([[  0.,   0.,   0.],
+       [  1.,   0.,   0.],
+       [  2.,   0.,   0.],
+       ...,
+       [125., 128., 174.],
+       [125., 127., 174.],
+       [125., 126., 174.]], shape=(900000, 3))
+observed = array([[-3.54003906e-03, -3.29589844e-03, -3.05175781e-03],
+       [ 9.97680664e-01, -1.58691406e-03, -3.66210938e-04]...1.27002563e+02,  1.74000366e+02],
+       [ 1.25003052e+02,  1.25995972e+02,  1.74003052e+02]],
+      shape=(900000, 3))
+triangles = array([[     0,    502,      1],
+       [     0,    501,    502],
+       [     1,    503,      2],
+       ...,
+       [899998, 252503, 252251],
+       [899999, 251750, 899000],
+       [899999, 252251, 251750]], shape=(1800000, 3))
+labels = array([0, 0, 0, ..., 9, 9, 9], shape=(1800000,), dtype=int8)
+result = {'schema_version': 'noisy_mesh_planes_v5', 'status': 'UNAVAILABLE', 'reasons': ['MAX_METADATA_BYTES_EXCEEDED'], 'result_representation': 'ARRAY_NATIVE_IMMUTABLE_LINEAGE_NOT_JSON_REPORT', ...}
+dimensions = (500, 250, 175)
+
+    def _verify(truth, observed, triangles, labels, result, dimensions):
+        n, h, k = dimensions
+        vertices, count = len(truth), len(triangles)
+>       assert result["status"] == "COMPLETE", result["reasons"]
+E       AssertionError: ['MAX_METADATA_BYTES_EXCEEDED']
+E       assert 'UNAVAILABLE' == 'COMPLETE'
+E         
+E         - COMPLETE
+E         + UNAVAILABLE
+
+tests/test_cad_guided_noisy_mesh_capacity_v5.py:175: AssertionError
+=========================== short test summary info ============================
+FAILED ../../../../dev::test_fixed_900000_row_1800000_triangle_noisy_capacity_once
+1 failed, 2 passed in 6.49s
+{"worker_cpu_seconds": 6.545417, "worker_peak_rss_bytes": 982007808}

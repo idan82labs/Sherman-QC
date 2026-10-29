@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "kind": "sherman_qc_f1_multifamily_selector_v2_transfer_freeze",
+  "status": "frozen_before_oracle_open",
+  "profile": "F1_MULTIFAMILY_NEIGHBOR_CONSENSUS_SELECTOR_V2",
+  "lock_sha256": "fae369c28ca90ae1c8d459a2c5560e6095466a50f482cd735df8f812b7f104d4",
+  "model_sha256": "65297514b2a2da80000cb7872d15b8eefeefa02692c1fab82f3d7acdc55485b8",
+  "development_report_sha256": "a6de71233fd3516e202d373b7003c25a933da90975a5ba92f6b68b4a3ec92376",
+  "development_leave_one_family_out_micro": {
+    "true_positive": 17,
+    "false_positive": 32,
+    "false_negative": 19,
+    "precision": 0.346939,
+    "recall": 0.472222,
+    "f1": 0.4
+  },
+  "transfer_cases": [
+    {
+      "case_token": "C020",
+      "candidate_count": 0,
+      "submission_sha256": "74654ee3aa8cbefcc559fd595f030ab05feab0134c629ce4f999d91bdff654aa",
+      "native_visual_sha256": "f9de9e1282ecc85aee8a8c7b345d362baee9ffccb4a6006a5b0c920a78360002",
+      "visual_precommit_critique": "Zero predictions on visibly multi-surface formed geometry; severe undercall risk."
+    },
+    {
+      "case_token": "C030",
+      "candidate_count": 2,
+      "submission_sha256": "f910d67d65e4e86c9beab2b78f0773919a997cd64881a4b5335259831fc9e3da",
+      "native_visual_sha256": "c9eb2f2120f97ba6a2bdcb92c99540602696c21c31827f6bdb650d916e05005e",
+      "visual_precommit_critique": "Both predictions hug the same long hinge region and may be duplicate aliases; other formed transitions are unrepresented."
+    },
+    {
+      "case_token": "C024",
+      "candidate_count": 6,
+      "submission_sha256": "dca562c8f03f0922bc7018e83b15776614e2bb228ae08970fb99e92ccc6b6796",
+      "native_visual_sha256": "4af87b7b0110a0814874046efc8eba339b4b428fe0f8bd0d8a6ad1745bd0086e",
+      "visual_precommit_critique": "Six nearly parallel predictions stack along one long flange; strong alias/perimeter risk and incomplete topology coverage."
+    },
+    {
+      "case_token": "C017",
+      "candidate_count": 0,
+      "submission_sha256": "cc00796656be3576f4cfd9ef0a5d7e18ba9c0d5f7e2fa10d1f9ac2999001ee31",
+      "native_visual_sha256": "76e681b61529ba0e9eadadbea08b27881478c6e01a8e4eb52fa63cf001e5405b",
+      "visual_precommit_critique": "Zero predictions on bracket-like formed geometry; severe undercall risk."
+    },
+    {
+      "case_token": "C023",
+      "candidate_count": 0,
+      "submission_sha256": "e6e512dcf9195b6ffbd5d02373d1ded6f0212abd64b2696d4cbffa4b663ae4c2",
+      "native_visual_sha256": "821f5650f61e062960404438261197862419a42b8040e989a8a67e1dc76b58da",
+      "visual_precommit_critique": "Zero predictions despite a clear large-radius formed transition; severe undercall risk."
+    }
+  ],
+  "transfer_feedback_used": false,
+  "manual_visual_feedback_used_for_selection": false,
+  "rerun_or_threshold_rescue_authorized": false,
+  "c006_opened": false
+}

@@ -1,0 +1,18 @@
+........................................F
+=================================== FAILURES ===================================
+_____________ test_report_overflow_returns_whole_refusal_envelope ______________
+
+    def test_report_overflow_returns_whole_refusal_envelope():
+        result = _prefilter(_mesh(), budgets=replace(v5.PlaneInitializationBudgetsV5(), max_report_bytes=100))
+        assert result["status"] == "UNAVAILABLE" and result["start_groups"] == []
+        assert result["hypotheses"] == [] and result["transform_scan_to_cad"] is None
+        assert result["detailed_report_discarded_whole"] is True
+        assert result["reasons"] == ["INITIALIZATION_REPORT_BUDGET_EXCEEDED"]
+>       assert result["discarded_hypothesis_records"] > 0
+E       assert 0 > 0
+
+tests/test_cad_guided_plane_initialization_v5.py:486: AssertionError
+=========================== short test summary info ============================
+FAILED ../../../../dev::test_report_overflow_returns_whole_refusal_envelope
+1 failed, 40 passed in 0.72s
+{"worker_cpu_seconds": 0.7231759999999999, "worker_peak_rss_bytes": 87982080}

@@ -1,0 +1,118 @@
+{
+  "schema": "EXP_CAD_0030_V3_CAD_ONLY_HASH_AUDIT_PACKET_V1",
+  "experiment_id": "EXP_CAD_0030",
+  "architecture": "CROSSFIT_PAIRWISE_DEFORMATION_GRAPH_V3_HARDENED",
+  "evidence_scope": "CAD_ONLY_SOURCE_FREE_ACTIONABILITY_AND_DETERMINISM",
+  "physical_scan_hash_call_count": 0,
+  "physical_scan_point_cloud_load_call_count": 0,
+  "physical_scan_byte_open_operation_count": 0,
+  "restricted_evaluator_role_label_gold_expected_count_quality_accessed": false,
+  "source_execution_authorized": false,
+  "audit_request": "Independently verify the exact EXP30 identity, EXP29 no-scan supersession, bound CAD-only files, source-free interface, exact boundary/geodesic/query semantics, area accounting, spatial folds and halo, fixed-centroid rigid actionability, tests, and byte-identical primary/replay. A CAD-only approval may authorize continued source-runner audit but must set physical_source_execution_authorized=false.",
+  "lineage": {
+    "superseded_experiment_id": "EXP_CAD_0029",
+    "supersession_record": {
+      "path": "docs/research/2026-08-30_exp_cad_0029_source_free_protocol_superseded_no_scan.json",
+      "sha256": "a3a313731fa76d61b72c0a9598db5eae1973a50cadb62847780493259249a06f"
+    },
+    "exp29_approval_is_not_authority_for_exp30": true
+  },
+  "bound_files": {
+    "preregistration": {
+      "path": "docs/research/2026-08-30_exp_cad_0030_cfpdg_v3_preregistration.json",
+      "sha256": "c9129ccc103d45c89ccdc67eef938b242ccdbb081d3d0f261145cc5a5b9b8368"
+    },
+    "core": {
+      "path": "scripts/exp_cad_0029_cfpdg_core.py",
+      "sha256": "592787c80beeeafb79d04e645e34681daf470f580267e6df26c4801a2f385d3d"
+    },
+    "cad_only_runner": {
+      "path": "scripts/run_exp_cad_0029_cad_only_preflight.py",
+      "sha256": "d8fea33c787bd1cfc9b802367d32f601bb98367f81c93cc04d72ba21e9a38c9c"
+    },
+    "cad_only_wrapper": {
+      "path": "scripts/run_exp_cad_0030_cad_only_preflight.py",
+      "sha256": "d73d37895d15dcaaefaf3132755943ae3b9c0a0c694ebe99d7e89ae3361ea6c9"
+    },
+    "cad_only_tests": {
+      "path": "tests/test_exp_cad_0029_cfpdg_preflight.py",
+      "sha256": "da049654a2ccfa9373e968e5191c3e74526d87b8a2f333e926f2176bb5ecaacd",
+      "result": "9 passed"
+    },
+    "cad_identity_tests": {
+      "path": "tests/test_exp_cad_0030_cfpdg_cad_identity.py",
+      "sha256": "89b9839620212aace69e17e77bd69d719959f6df1b314e16f31a5a9c12d36aac",
+      "result": "3 passed"
+    },
+    "source_cad": {
+      "path": "data/bend_corpus/incoming/2026-08-17_20_shaked_new_good_bad_pairs/authenticated_source/cad/42637000_B.SLDPRT",
+      "sha256": "fdb2b5ca0a9a572f5320a3644543fca595330b0800d0e0d2ecd04e41f313e571"
+    },
+    "accepted_mesh": {
+      "path": "output/research/autoresearch-loop/exp-cad-0015-new-physical-intake-v1/cad_meshes/42637000_B.ply",
+      "sha256": "9e6571704780383e99b6fa4f2800fa69a50a3e187467698fe5dd7414d9d2a716"
+    },
+    "accepted_mesh_report": {
+      "path": "output/research/autoresearch-loop/exp-cad-0015-new-physical-intake-v1/cad_meshes/42637000_B.report.json",
+      "sha256": "01b60ca43635854a04df68a536c5daf15cf8650decb743caf8bb7ae593535fbf"
+    }
+  },
+  "primary_root": "output/research/autoresearch-loop/exp-cad-0030-cfpdg-v3-cad-preflight-lock3",
+  "replay_root": "output/research/autoresearch-loop/exp-cad-0030-cfpdg-v3-cad-preflight-lock3-replay",
+  "byte_exact_primary_replay": true,
+  "artifact_hashes_equal_in_both_roots": {
+    "CAD_ONLY_PREFLIGHT.json": "e96daf9288f59a8d7f156981f6d13e9fd3204b344523d96bba587bbbd84c8f82",
+    "CAD_GRAPH_NODES.npy": "575c19d404efd6733051d611dd46f123fbbee3117be13ef001514d658e2618b0",
+    "CAD_GRAPH_EDGES.npy": "0bf773fc65af9152bb8491830f98faf2e14c10fe999e8e4bf81a3db687513e3d",
+    "CAD_GRAPH_EDGE_GEODESIC_MM.npy": "92605624e786450ca260134555b6e71bbac56875e9e3e49b4aceac6d5e9de185"
+  },
+  "cad_only_result": {
+    "status": "PASS_CAD_ONLY_ACTIONABLE",
+    "cad_actionable": true,
+    "source_execution_authorized": false,
+    "candidate_count": 100246,
+    "interior_candidate_count": 80993,
+    "node_count": 8077,
+    "total_mesh_area_mm2": 111866.52378706534,
+    "interior_area_mm2": 90790.49072977006,
+    "interior_area_fraction": 0.8115966033108091,
+    "assigned_area_mm2": 90790.49072977006,
+    "unassigned_area_mm2": 0.0,
+    "unassigned_fraction_of_interior_area": 0.0,
+    "graph_edge_count": 19267,
+    "graph_component_count": 28,
+    "largest_graph_component_area_fraction": 0.8769910440648909,
+    "degree_two_assigned_area_fraction": 0.9965627804101773,
+    "fold_area_fractions": [
+      0.2500541888475166,
+      0.2499556664484513,
+      0.250032092591008,
+      0.24995805211302427
+    ],
+    "post_halo_training_area_fraction_range": [
+      0.7204012712539547,
+      0.7369464577394887
+    ],
+    "fold_training_rank": [6, 6, 6, 6],
+    "fold_training_condition_number_range": [
+      1.4973146849202057,
+      1.8015252338411756
+    ],
+    "fixed_cad_interior_area_centroid_mm": [
+      -0.03408522113745011,
+      340.02875948279467,
+      -152.56590807567073
+    ],
+    "all_gates": true
+  },
+  "required_before_any_physical_source_execution": [
+    "OBTAIN_FRESH_INDEPENDENT_EXP30_CAD_ONLY_APPROVAL_BOUND_TO_THIS_PACKET",
+    "COMPLETE_AND_FREEZE_SOURCE_RUNNER_RENDERER_AND_FRESH_PROCESS_ORCHESTRATION",
+    "PASS_THE_FULL_SOURCE_FREE_SYNTHETIC_AND_METAMORPHIC_SUITE",
+    "OBTAIN_SEPARATE_INDEPENDENT_SOURCE_RUNNER_APPROVAL_WITH_PHYSICAL_SOURCE_EXECUTION_AUTHORIZED_TRUE",
+    "KEEP_EVALUATOR_ROLES_LABELS_GOLD_EXPECTED_COUNTS_FILENAMES_IDENTITY_AND_QUALITY_SEALED"
+  ],
+  "generalization_evidence": false,
+  "bend_line_f1_authorized": false,
+  "production_promotion_authorized": false
+}

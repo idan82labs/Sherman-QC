@@ -1,0 +1,12 @@
+# gb_4c3995 marker B
+- Result: 10 bends. Large part (~450 mm, t ~1.8). Panels 1/2, 5/6 and 3/4; panels 5/6 and 3/4 are joined by strip 7/8 (two ~65 deg bends, B2 and B3). Panel 1/2 joins 5/6 at B1 (~88 deg).
+- Side flanges (all ~90 deg):
+  - on panel 1: 9/10 (B4), 11/12 (B5), 19/20 (B6);
+  - on panel 5/6: 15/17 (B7), 21/22 small tab (B8);
+  - on panel 3/4: 13/14 (B9), 16/18 (B10).
+- B1: the fold runs along the window edge in 5/6. Its extent is set to [-39, 108] mm (147 mm) from the close-up: it starts where panel 1 starts (beyond that only the 5/6 tab exists) and ends at the notch. Support 1.0.
+- Rejected:
+  - flange-to-flange corners (9/12, 9/19, 10/20 ...);
+  - thin strips 24 and 25 (arc and edge facets);
+  - 23 and 26, small fragments coplanar with flange 15 or with 7/8.
+- Not partial. Doubt: B1's extent ends.

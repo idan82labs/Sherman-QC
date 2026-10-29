@@ -1,0 +1,183 @@
+{
+ "labeler": "claude-vision-ai-v1",
+ "no_bends_present": false,
+ "thickness_mm": 1.5,
+ "ri_mm": 1.5,
+ "notes": "r3 investigator relabel. Stepped-Z bracket, sheet ~1.5 mm, both skins sampled. 6 formed 90 deg folds: 3 long folds A (wall1/strip), B (strip/wall2), C (wall2/base flange) plus tab fold T, end-flange fold E (two tabs on one bend line, 10 mm relief notch at w 114-124) and chamfer corner-flange fold K. Sides are plane_from_points (seed balls; region growth stalls on this sparse cloud). C's flange side is limited to u>=316.5 because a 66 mm flange cutout removes the fold at u 251-317 (only a ~8 mm stub remains at u 243-250). PROVENANCE: this file is a synthetic LIDAR_DEMO resample (backend/_server_legacy_impl.py _write_lidar_demo_scan: uniform sampling of test_files/11979003_C/scan.stl + N(0,0.08 mm) + 6% dropout), not an independent physical scan.",
+ "bends": [
+  {
+   "patches": [
+    {
+     "plane_from_points": {
+      "seed_xyz": [
+       -338.765,
+       39.409,
+       202.723
+      ],
+      "radius_mm": 160,
+      "grow": true
+     }
+    },
+    {
+     "plane_from_points": {
+      "seed_xyz": [
+       -350.491,
+       27.857,
+       201.747
+      ],
+      "radius_mm": 160,
+      "grow": true
+     }
+    }
+   ],
+   "margin_mm": 15.0,
+   "confidence": "auto",
+   "note": "A: wall1 outer skin (n1 -7.55) to strip outer skin (w 86.15); fold runs u 240-527, crosses the 14 mm window at u 364-378"
+  },
+  {
+   "patches": [
+    {
+     "plane_from_points": {
+      "seed_xyz": [
+       -350.491,
+       27.857,
+       201.747
+      ],
+      "radius_mm": 160,
+      "grow": true
+     }
+    },
+    {
+     "plane_from_points": {
+      "seed_xyz": [
+       -339.651,
+       16.832,
+       199.406
+      ],
+      "radius_mm": 160,
+      "grow": true
+     }
+    }
+   ],
+   "margin_mm": 15.0,
+   "confidence": "auto",
+   "note": "B: strip inner skin (w 86.15) to wall2 inner skin (n1 10.2); fold runs u 240-527, crosses the window at u 364-378"
+  },
+  {
+   "patches": [
+    {
+     "plane_from_points": {
+      "seed_xyz": [
+       -339.651,
+       16.832,
+       199.406
+      ],
+      "radius_mm": 160,
+      "grow": true
+     }
+    },
+    {
+     "plane_from_points": {
+      "seed_xyz": [
+       -383.424,
+       2.466,
+       206.007
+      ],
+      "radius_mm": 113.3,
+      "grow": false
+     }
+    }
+   ],
+   "margin_mm": 15.0,
+   "confidence": "auto",
+   "note": "C: wall2 outer skin (n1 10.2) to base-flange outer skin (w 68.0), flange ball limited to u>=316.5; fold visible u 317-527 (window gap 364-378) plus an ~8 mm stub at u 243-250 beyond the flange cutout"
+  },
+  {
+   "patches": [
+    {
+     "plane_from_points": {
+      "seed_xyz": [
+       -338.765,
+       39.409,
+       202.723
+      ],
+      "radius_mm": 160,
+      "grow": true
+     }
+    },
+    {
+     "plane_from_points": {
+      "seed_xyz": [
+       -406.651,
+       50.525,
+       227.405
+      ],
+      "radius_mm": 28,
+      "grow": true
+     }
+    }
+   ],
+   "margin_mm": 30.0,
+   "confidence": "certain",
+   "note": "T: wall1 inner-of-bend skin (n1 -7.55) to tab lower skin (w 103.8); tab fold u 440-475. verified on perpendicular sections; tool auto-confidence is limited only by its 100-point side-support floor (this sparse cloud has ~70 normal-consistent points on the whole small-flange skin)"
+  },
+  {
+   "patches": [
+    {
+     "plane_from_points": {
+      "seed_xyz": [
+       -338.765,
+       39.409,
+       202.723
+      ],
+      "radius_mm": 160,
+      "grow": true
+     }
+    },
+    {
+     "plane_from_points": {
+      "seed_xyz": [
+       -465.345,
+       57.52,
+       277.293
+      ],
+      "radius_mm": 41,
+      "grow": true
+     }
+    }
+   ],
+   "margin_mm": 20.0,
+   "confidence": "certain",
+   "note": "E: wall1 (n1 -7.55) to end-flange inner skin (u 528.15); one bend line along w 94-144 carrying two coplanar tabs split by a relief notch at w 114-124. verified on perpendicular sections; tool auto-confidence is limited only by its 100-point side-support floor (this sparse cloud has ~70 normal-consistent points on the whole small-flange skin)"
+  },
+  {
+   "patches": [
+    {
+     "plane_from_points": {
+      "seed_xyz": [
+       -338.765,
+       39.409,
+       202.723
+      ],
+      "radius_mm": 160,
+      "grow": true
+     }
+    },
+    {
+     "plane_from_points": {
+      "seed_xyz": [
+       -449.727,
+       69.407,
+       290.385
+      ],
+      "radius_mm": 19,
+      "grow": true
+     }
+    }
+   ],
+   "margin_mm": 20.0,
+   "confidence": "certain",
+   "note": "K: wall1 (n1 -7.55) to corner-flange inner skin on the lobe chamfer, ~20 mm diagonal fold. verified on perpendicular sections; tool auto-confidence is limited only by its 100-point side-support floor (this sparse cloud has ~70 normal-consistent points on the whole small-flange skin)"
+  }
+ ]
+}

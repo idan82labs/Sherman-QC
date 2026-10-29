@@ -1,0 +1,505 @@
+{
+ "schema": "sherman.zeroshot.n1_diag_47085000.v1",
+ "label": "Post-hoc diagnosis of a consumed one-time run (N1). Nothing here is a new N1 score. Prototype numbers are DEV out-of-fold only (dev_folds.json).",
+ "scan": {
+  "scan_id": "sc_3d191f5f8ff8",
+  "gid": "gb_4dd5ba",
+  "part": "47085000",
+  "t_mm": 0.981
+ },
+ "reproduction": {
+  "diag_rerun_reproduces_v1_zs_output": true,
+  "z3_replay_identical_to_slicer_detect": true,
+  "pool_candidates": 42,
+  "selected": 23,
+  "tools": "research/zeroshot/n1_diag/ (diag_run, chain_debug, attrib, dev_classes, proto, z2feat_dump, z2feat_oof, ext_guard, n1_v2evidence, render)"
+ },
+ "caps": "zs_lane_v1 and v2 have no line-count cap. Z3 axis-family cap is 20; this scan has 5 families and every failure lies on family 0 or 1 (the two top-scored). Neither cap applies.",
+ "failures": {
+  "B1": {
+   "what": "end flange, 79.9 mm, ~90 deg",
+   "stage_lost": "POOLING (Z2's full-length line absorbed into a short Z3 candidate); root cause at Z3 SLICING (half-skin coverage at the fold)",
+   "evidence": {
+    "z3": {
+     "family": 1,
+     "corner_track_slices": 17,
+     "track_extent_mm_along_gold": [
+      47.8,
+      79.8
+     ],
+     "isolated_corner_at_s_mm": 5.8,
+     "why_stopped": "For s = 6-46 mm every Z3 section has the fold split over two open chains: the inner-skin chain carries the flange flat and the arc but ends ~2 mm past the arc, and the outer-skin chain carries only the plate. No chain has two flats, so no corner. The 1-slice corner at s = 5.8 is dropped (min_track_slices 2).",
+     "candidate": {
+      "pool_index": 18,
+      "length_mm": 36.25,
+      "n_support": 17,
+      "support_frac": 1.0,
+      "frac_inner": 1.0,
+      "strip_frac": 1.0
+     }
+    },
+    "z2": {
+     "plates_found": true,
+     "flanges": [
+      0,
+      26
+     ],
+     "edge_ok": true,
+     "span_mm": 79.4,
+     "cover": 1.0,
+     "ro_mm": 2.09
+    },
+    "pool": {
+     "z2_line_attached_to": 18,
+     "pair_angle_deg": 0.05,
+     "pair_offset_mm": 0.13,
+     "overlap_of_shorter": 0.88,
+     "result": "flag only (in_z2 = 1); output geometry stays Z3's 36.25 mm"
+    },
+    "gbm": {
+     "p_zs": 0.959,
+     "threshold": 0.5,
+     "selected": true
+    },
+    "d1_snap": {
+     "moved": true,
+     "shift_mm": 0.123,
+     "extent_changed": false
+    },
+    "scorer": {
+     "angle_deg": 0.03,
+     "offset_mm": 0.07,
+     "gold_span_overlap": 0.405,
+     "pred_span_overlap": 0.892,
+     "needs": 0.6,
+     "outcome": "FN + FP (SPAN_LT_60PCT)"
+    }
+   },
+   "failure_class": "POOL_EXTENT (Z3 short, Z2 full, pooling keeps Z3 extent)",
+   "dev_prevalence": {
+    "v1_oof_fn": 8,
+    "of_fn_total": 33,
+    "lines_flagged_z2_absorbed_by_short_z3": 9,
+    "scans": [
+     "47247004 x4",
+     "40500000 x2",
+     "50757000",
+     "45141000",
+     "(48381001 B4, counted under selector)"
+    ]
+   },
+   "proposed_fix": "EXT: in pooling/post-processing, when a selected line's candidate absorbed a Z2 line >= 1.3x longer that contains >= 75 % of it, take the union of extents along the line's own axis and drop lines it now duplicates.",
+   "posthoc_consumed": "EXT would recover B1 (83.7 mm line, gold overlap 1.00, pred overlap 0.95).",
+   "png": "B1_closeup.png",
+   "plain": "The engine saw the end flange, but only its last 36 mm. Along the first 40 mm the scanner captured the two sides of the sheet only partly, so in every Z3 cross-section the fold is split between two loose pieces of surface and no single piece shows both plates meeting. Z2, which works from flat patches rather than cross-sections, found the whole 79 mm fold. But when the two detectors' results are merged, Z2's line only counts as a 'second opinion' vote on Z3's short line, and its length is discarded. The output was therefore correct in position but too short to match (40 % of the gold length), giving one miss and one false line."
+  },
+  "B4": {
+   "what": "saddle-shaped lanced lip, 69.6 mm, ~90 deg",
+   "stage_lost": "Z3 SLICING (track split in two) + Z3 MERGE (gap not bridged) + POOLING (Z2 extent absorbed) + GBM (second piece rejected)",
+   "evidence": {
+    "z3": {
+     "family": 1,
+     "tracks": [
+      {
+       "slices": 14,
+       "extent_mm": [
+        0.5,
+        26.5
+       ]
+      },
+      {
+       "slices": 13,
+       "extent_mm": [
+        42.5,
+        68.5
+       ]
+      }
+     ],
+     "why_stopped": "In the middle of the saddle (s = 28.5-40.5 mm, 7 slices) the lip is under 2 mm tall: its straight runs are 1.6-2.0 mm (below min_flat_mm 2.0) or rejected as arc bows, so no corner.",
+     "merge": "merge_segments gap 16 mm > 2.5 x step, so same_plates is required; with a 7 mm flank the 'short flank' band (2.8-7.7 mm) finds no lip material across the low middle, so the pieces are not chained.",
+     "candidates": {
+      "21": {
+       "length_mm": 30.0
+      },
+      "25": {
+       "length_mm": 30.75
+      }
+     }
+    },
+    "z2": {
+     "plates_found": true,
+     "flanges": [
+      0,
+      20
+     ],
+     "edge_ok": true,
+     "span_mm": 69.1
+    },
+    "pool": {
+     "z2_line_attached_to": 21,
+     "cand_25": "Z3-only (no Z2 flag)"
+    },
+    "gbm": {
+     "cand_21_p_zs": 0.993,
+     "cand_25_p_zs": 0.392,
+     "cand_25_p_z3": 0.944,
+     "threshold": 0.5,
+     "cand_25_top_effects_zs": {
+      "in_z2": 0.503,
+      "n_src": 0.333,
+      "frac_both": 0.304,
+      "len_rel": 0.27,
+      "gap_med": 0.218
+     }
+    },
+    "d1_snap": {
+     "cand_21_shift_mm": 0.182,
+     "cand_25_shift_mm": 0.128
+    },
+    "scorer": {
+     "angle_deg": 0.08,
+     "offset_mm": 0.11,
+     "gold_span_overlap": 0.38,
+     "pred_span_overlap": 0.88,
+     "outcome": "FN + FP (SPAN_LT_60PCT)"
+    },
+    "v2": {
+     "pair": [
+      25,
+      21
+     ],
+     "gap_mm": 15.25,
+     "has_flanks": true,
+     "plate_a_connected": true,
+     "plate_b_connected": true,
+     "join_low": 0.0,
+     "result": "joined 76.0 mm line, gold overlap 1.00, pred overlap 0.92 (TP)"
+    }
+   },
+   "failure_class": "Z3_SPLIT (fold broken by a low section) + POOL_EXTENT",
+   "dev_prevalence": {
+    "v1_oof_fn_z3_split": 3,
+    "plus_pool_extent_overlap": "40500000 B1/B4 and 50757000 B4 carry both flags",
+    "v2_join_already_fixes_most": "v2 DEV +0.0135 vs v1 (paired CI [+0.0023,+0.0277])"
+   },
+   "proposed_fix": "Already handled by v2's evidence join; EXT also recovers it in v1 (Z2 line contains the piece).",
+   "posthoc_consumed": "EXT on v1 would recover B4 (72.4 mm, gold overlap 0.99). v2 already did (76.0 mm).",
+   "png": "B4_closeup.png",
+   "plain": "The lip dips in the middle, and there it is shorter than the 2 mm Z3 needs to call something a flat side. So Z3 found the fold as two 30 mm halves with a 16 mm hole between them. Its own gap check looked for lip material in the hole, found none (the lip really is that low there), and did not join the halves. Z2 found the whole 69 mm fold, but as with B1 its length was discarded at merging. The selector kept one half and rejected the other, because only one half had Z2's vote. v2 adds a plate-continuity join that sees the same two plates on both sides of the hole and merges the halves, which is why v2 got B4."
+  },
+  "B14": {
+   "what": "hook lip on one left leg (foot scanned on one skin only), 25.2 mm, ~116 deg bend",
+   "stage_lost": "GBM SELECTOR (pooled zs model), because Z2 never segmented the lip",
+   "evidence": {
+    "z3": {
+     "family": 0,
+     "corner_track_slices": 12,
+     "track_extent_mm": [
+      1.1,
+      23.1
+     ],
+     "incl_deg": 63.6,
+     "frac_inner": 1.0,
+     "candidate": {
+      "pool_index": 26,
+      "length_mm": 29.75,
+      "snapped_match": {
+       "gold_span_overlap": 1.0,
+       "pred_span_overlap": 0.848,
+       "offset_mm": 0.017
+      }
+     }
+    },
+    "z2": {
+     "plates_found": false,
+     "detail": "Only one Z2 flange near the fold (F25, the foot: single skin, 444 mm2). 82 % of the scan points within 6 mm of the fold are unlabelled, so the 5 mm lip is not a flange and there is no edge to test. Z2 missed the twin B12 the same way."
+    },
+    "pool": "Z3-only candidate (in_z2 0, n_src 1)",
+    "gbm": {
+     "p_zs": 0.215,
+     "p_z3": 0.904,
+     "threshold": 0.5,
+     "p_zs_if_in_z2_were_1": 0.982,
+     "top_effects_zs": {
+      "in_z2": 0.616,
+      "frac_both": 0.409,
+      "len_rel": 0.343,
+      "n_src": 0.336,
+      "gap_med": 0.202
+     },
+     "dev_context": "DEV: Z3 candidates without Z2 agreement are positive 2.1 % of the time (65 / 3029) vs 93.5 % with agreement, so the pooled model treats a missing Z2 vote as strong evidence against the line."
+    },
+    "d1_snap": {
+     "shift_mm": 0.08,
+     "note": "not applied in the lane (line not selected)"
+    },
+    "scorer": {
+     "nearest_engine_line_offset_mm": 13.8,
+     "outcome": "FN (OFFSET_GT_4MM, the nearest line is the leg-to-foot fold B13)"
+    }
+   },
+   "failure_class": "SEL_Z3ONLY_REJECT (true Z3 line, no Z2 agreement, rejected by pooled GBM)",
+   "dev_prevalence": {
+    "v1_oof_fn": 15,
+    "of_fn_total": 33,
+    "largest_class": true,
+    "with_p_z3_ge_0.7": 7,
+    "with_p_z3_ge_0.9": 2
+   },
+   "proposed_fix": "Z3R: keep a rejected Z3-only candidate when the Z3-alone GBM gives >= 0.9 AND v2's station sweep fraction >= 0.25 (the sweep gate is required: without it v2 gains a false line on the rolled zero-bend control 47479000).",
+   "posthoc_consumed": "B14 has p_z3 0.904 and sweep 1.0, so Z3R would keep it. This is borderline: tau 0.95 would not.",
+   "png": "B14_closeup.png",
+   "plain": "Z3 found this fold correctly, at the right place and full length, exactly like its five twins on the other legs. The difference is Z2. On this leg the foot was scanned on one side only and the small lip was never recognised as a flat patch, so Z2 had nothing to say about this fold. The final selector learned on the development set that a Z3 line without a Z2 vote is almost always wrong (only 2 % are real), so it scored this line 0.22 and dropped it. Z3's own selector would have kept it (0.90)."
+  },
+  "B25_B26": {
+   "what": "3 mm edge joggle on a 4 mm window strip; two folds ~1 mm apart (gold), web ~1.5 mm tall",
+   "stage_lost": "GBM SELECTOR (both the pooled and the Z3-alone model); Z2 cannot represent the web",
+   "evidence": {
+    "z3": {
+     "family": 1,
+     "joggle_branch": true,
+     "tracks": [
+      {
+       "slices": 15,
+       "extent_mm": [
+        0.3,
+        36.3
+       ]
+      },
+      {
+       "slices": 14,
+       "extent_mm": [
+        0.5,
+        36.5
+       ]
+      }
+     ],
+     "candidates": {
+      "16": {
+       "length_mm": 41.2,
+       "incl_deg": 134.5,
+       "support_frac": 0.737,
+       "gap_med": 0.0,
+       "frac_outer": 0.43,
+       "frac_both": 0.14
+      },
+      "14": {
+       "length_mm": 40.2,
+       "incl_deg": 134.6,
+       "support_frac": 0.789,
+       "gap_med": 0.0,
+       "frac_outer": 0.73,
+       "frac_both": 0.13
+      }
+     },
+     "match_if_selected": "cand 16 -> B25 (offset 1.15 mm, overlaps 1.00 / 0.93); cand 14 -> B26 (offset 1.07 mm, 1.00 / 0.94)"
+    },
+    "z2": {
+     "plates_found": "plate F0 and strip F27/F30 found, but all parallel (sweep 179.4-179.9 deg, SWEEP_OUT_OF_RANGE); the ~1.5 mm web is not a flange and virtual risers are off",
+     "fold_found": false
+    },
+    "gbm": {
+     "cand16": {
+      "p_zs": 0.016,
+      "p_z3": 0.112
+     },
+     "cand14": {
+      "p_zs": 0.009,
+      "p_z3": 0.04
+     },
+     "top_effects_z3_cand16": {
+      "frac_both": 0.454,
+      "support_frac": 0.251,
+      "gap_med": 0.233,
+      "bend": 0.121
+     },
+     "dev_context": "support_frac 0.74-0.79 is at the 4th-6th percentile of DEV positives. gap_med 0 is the joggle-branch signature: 910 DEV Z3 candidates have it and only 30 (3.3 %) are real."
+    },
+    "d1_snap": {
+     "cand16": "refused, shift 2.57 mm > gate 2.1 mm",
+     "cand14": "refused, shift 3.50 mm > gate"
+    },
+    "scorer": {
+     "outcome": "MISSED (no engine line near either fold)"
+    }
+   },
+   "failure_class": "SHALLOW_JOGGLE_NARROW_STRIP (joggle-branch Z3 pair, short web, low slice support)",
+   "dev_prevalence": {
+    "dev_joggle_lines_in_gold_notes": 67,
+    "dev_joggle_lines_found_v1": 65,
+    "dev_joggle_fn": [
+     "38172000 B12 (12 mm)",
+     "38898000 B1 (173 deg)"
+    ],
+    "same_pattern_fn_on_dev": 0,
+    "joggle_pair_rule_dev": {
+     "pairs": 14,
+     "both_true": 8,
+     "effect_v1": "-0.0090 (adds 12 FP, gains 0 TP)"
+    }
+   },
+   "proposed_fix": "None to ship. DEV has no example of this pattern among its misses, and a joggle-pair rescue costs -0.009 on DEV. Park it and collect examples. A later option is a pair-consistency feature (both members of a joggle pair) trained out-of-fold.",
+   "posthoc_consumed": "Still missed under every prototype.",
+   "png": "B25_B26_closeup.png",
+   "plain": "Z3 did see both bends of this tiny step, at the right place and the right length. But the step is only about 1.5 mm tall on a 4 mm strip. The cross-sections were noisy (only 74-79 % of slices agreed), and the step is built by Z3's special joggle rule, which on the development set produces mostly false lines (97 % are wrong). So both selectors scored the pair near zero. Z2 sees the plate and the strip as two parallel flat patches with no wall between them, so it has no fold to report."
+  }
+ },
+ "why_v2_fixes_B4_not_B1": "v2's join merges two collinear pieces that are both in the pool when the same two plates continue across the gap. B4 has two Z3 pieces (cands 21, 25; gap 15.2 mm; both plates connected), so v2 joins them into 76 mm, using join_low 0 so that the rejected 0.39 piece can take part. B1 has only one Z3 piece. The rest of the fold produced no Z3 track at all (one isolated corner, dropped by min_track_slices 2), so there is nothing to join. Like v1, v2 still uses Z2 only as a vote, so the full 79.4 mm Z2 line is absorbed into the 36 mm piece. The v2 output for B1 is the same 36.3 mm line.",
+ "dev_baselines": {
+  "v1_zs_fixed_snap_OOF": {
+   "micro_f1": 0.9444,
+   "tp": 586,
+   "fp": 36,
+   "fn": 33,
+   "ctrl_fp": 5
+  },
+  "v2_base_final_OOF": {
+   "micro_f1": 0.9579,
+   "tp": 591,
+   "fp": 24,
+   "fn": 28,
+   "ctrl_fp": 1
+  }
+ },
+ "fixes_ranked": [
+  {
+   "rank": 1,
+   "name": "EXT (Z2-extent adoption at pooling)",
+   "fixes": [
+    "B1",
+    "B4 (v1)"
+   ],
+   "dev_v1": {
+    "micro_f1": 0.9627,
+    "d": 0.0183,
+    "paired_ci95": [
+     0.0022,
+     0.0403
+    ],
+    "tp": 594,
+    "fp": 21,
+    "fn": 25,
+    "families_better": 5,
+    "families_worse": 1,
+    "ctrl_fp": 5
+   },
+   "dev_v2": {
+    "micro_f1": 0.9643,
+    "d": 0.0065,
+    "paired_ci95": [
+     -0.0034,
+     0.0232
+    ],
+    "tp": 595,
+    "fp": 20,
+    "fn": 24,
+    "families_better": 2,
+    "families_worse": 1,
+    "ctrl_fp": 1
+   },
+   "params": "r 1.3; containment >= 0.75. DEV is flat for containment 0.5-0.75 and one line worse at 0.9. 0.9 was set a priori and was revisited after the post-hoc N1 check, where B1's line is 88 % contained.",
+   "rolled_risk": "none by construction: no line is added, only extents change (0 lines added on DEV controls / rolled-CAD scans)",
+   "known_risk": "1 DEV regression: 48340008, an 8 mm fold where the Z2 line runs 15 mm along a slot edge. A flank-presence guard (slicer.flank_continuity) did not separate it: every extension scored 0.85-1.0."
+  },
+  {
+   "rank": 2,
+   "name": "Z3R (Z3-alone p >= 0.9 + v2 sweep >= 0.25 rescue of Z3-only rejects)",
+   "fixes": [
+    "B14 (borderline)"
+   ],
+   "dev_v1": {
+    "d": 0.0017,
+    "paired_ci95": [
+     0.0,
+     0.0057
+    ],
+    "families_better": 1,
+    "families_worse": 0,
+    "ctrl_fp": 5
+   },
+   "dev_v2": {
+    "d": 0.0017,
+    "paired_ci95": [
+     0.0,
+     0.0056
+    ],
+    "families_better": 1,
+    "families_worse": 0,
+    "ctrl_fp": 1
+   },
+   "rolled_risk": "needs the sweep gate: without it v2 adds 1 line on the rolled zero-bend control 47479000 (tau 0.9). With the gate, 0 new control lines. On the N1 rolled shells the Z3-alone arm emitted 0 lines at p >= 0.5, so p >= 0.9 adds none (post-hoc, consumed).",
+   "nested_tau_variant": "tau chosen per fold (4-fold inner): v1 +0.0004, 3 families better / 4 worse. Not robust, so a fixed high tau is preferred."
+  },
+  {
+   "rank": 3,
+   "name": "EXT + Z3R combined",
+   "dev_v1": {
+    "micro_f1": 0.9644,
+    "d": 0.02,
+    "paired_ci95": [
+     0.0024,
+     0.0439
+    ],
+    "tp": 596,
+    "fp": 21,
+    "fn": 23,
+    "ctrl_fp": 5
+   },
+   "dev_v2": {
+    "micro_f1": 0.966,
+    "d": 0.0082,
+    "paired_ci95": [
+     -0.0019,
+     0.0251
+    ],
+    "tp": 597,
+    "fp": 20,
+    "fn": 22,
+    "ctrl_fp": 1
+   },
+   "posthoc_consumed_N1": "B1, B4, B14 would be recovered with no new unmatched lines; B25/B26 still missed (not a score)."
+  },
+  {
+   "rank": 4,
+   "name": "Z3 birth: two-skin corner synthesis (pair a flat ending at a fold in one section chain with the matching flat in the other skin's chain)",
+   "fixes": [
+    "B1 root cause"
+   ],
+   "status": "not prototyped (needs a Z3 DEV re-dump); only matters when Z2 also misses the fold; rolled-shell FP risk unknown"
+  },
+  {
+   "rank": 5,
+   "name": "Joggle-pair rescue",
+   "fixes": [
+    "B25/B26"
+   ],
+   "dev_v1": {
+    "d": -0.009
+   },
+   "status": "rejected on DEV evidence"
+  }
+ ],
+ "rejected_prototypes": {
+  "Z2 visibility features (fraction of points in Z2 flanges near the line, number of flanges, Z2 edge status) added to the pooled GBM": {
+   "dev_v1_oof": 0.9392,
+   "d": -0.0052,
+   "paired_ci95": [
+    -0.0141,
+    0.0023
+   ],
+   "families_better": 6,
+   "families_worse": 9,
+   "n1_posthoc_b14_p": 0.435
+  },
+  "TWIN rescue (Z3-only reject with >= 2 selected same-signature twins)": {
+   "dev_effect": "0 changes on DEV (untestable)"
+  }
+ },
+ "pngs": [
+  "B1_closeup.png",
+  "B4_closeup.png",
+  "B14_closeup.png",
+  "B25_B26_closeup.png"
+ ],
+ "evidence_files": "evidence/: dev_classes.json (DEV FN classes), proto*.json (DEV prototypes), z2feat_oof.json, attrib.json (GBM effects), n1_v2ev.json, n1_posthoc_consumed.json, ext_flank_guard.json"
+}

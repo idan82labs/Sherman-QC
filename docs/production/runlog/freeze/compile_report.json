@@ -1,0 +1,3220 @@
+{
+ "compile_rate_min": 0.8,
+ "created_at": "2026-10-17T19:19:37Z",
+ "denominators": {
+  "rates": "every authorized unique STEP: the source tree (plan §9) plus the STEP CAD of every CONSUMED part of BENCHMARK_V2 (owner directions 2026-10-17)",
+  "rates_source_assets": "the source-tree STEPs only (the plan §9 denominator of the first E4b pass)"
+ },
+ "figures": {
+  "diagnostics": [
+   {
+    "label": "strict V10, every bend as reported (E1 ENGINE_COMPILE.md §10 calls it 'the amendment-4d figure'); reported, not gated",
+    "variant": "v10_strict"
+   },
+   {
+    "label": "native extractor only, every bend as reported; reported, not gated",
+    "variant": "native_strict"
+   }
+  ],
+  "gated": {
+   "label": "the frozen DEV_AUTO_CONFIRMED recipes (E1-DEV-POLICY-1: the V10/native union the evaluation runs on)",
+   "variant": "dev"
+  }
+ },
+ "frozen_variant": "dev",
+ "gate": {
+  "rates": "PASS",
+  "rates_source_assets": "PASS",
+  "rule_version": "E4B-4D-GATE-2",
+  "variant": "dev",
+  "verdict": "PASS"
+ },
+ "gate_rule": {
+  "alternative_not_taken": "gate the strict V10 figure as well (the first pass): strict V10 is 20/26 = 0.769 on the widened denominator, so G2 would be FAIL by construction on A1 and on DEV-CHECK whatever the engine does",
+  "basis": "plan §10 amendment 4d: 'The DEV_AUTO_CONFIRMED recipes: every V10/native bend, both flange sides REQUIRED, exclusions only through a pre-written per-feature UNSUPPORTED rule. Compile failures stay in the denominators, and at least 80% of authorized STEPs must compile.' The floor applies to the frozen DEV_AUTO_CONFIRMED recipes (E1-DEV-POLICY-1: the V10/native union, pieces of one fold merged, rule-declared features excluded), i.e. the recipes the evaluation runs on. The strict single-source V10 figure is called 'the amendment-4d figure' only in E1's ENGINE_COMPILE.md §10; it is reported next to the gate as a diagnostic",
+  "decided": "2026-10-17, E4b freeze fix pass, before A1; flagged for owner confirmation before the anchor is published",
+  "diagnostic_variants": [
+   "v10_strict",
+   "native_strict"
+  ],
+  "gated_denominators": [
+   "rates (every authorized unique STEP)",
+   "rates_source_assets (plan §9 source-tree STEPs)"
+  ],
+  "gated_variant": "dev",
+  "rule_version": "E4B-4D-GATE-2"
+ },
+ "meets_floor": {
+  "dev": true,
+  "native_strict": false,
+  "v10_strict": false
+ },
+ "meets_floor_source_assets": {
+  "dev": true,
+  "native_strict": false,
+  "v10_strict": true
+ },
+ "note": "rates are over every authorized unique STEP (DEV-CHECK rows included); the DEV-CHECK rows themselves are in devcheck_SEALED.json",
+ "rates": {
+  "dev": {
+   "authorized_unique_steps": 26,
+   "blocked": 1,
+   "compiled": 24,
+   "failed": 0,
+   "no_recipe": 1,
+   "rate": 0.9230769230769231,
+   "variant": "dev"
+  },
+  "native_strict": {
+   "authorized_unique_steps": 26,
+   "blocked": 7,
+   "compiled": 18,
+   "failed": 0,
+   "no_recipe": 1,
+   "rate": 0.6923076923076923,
+   "variant": "native_strict"
+  },
+  "v10_strict": {
+   "authorized_unique_steps": 26,
+   "blocked": 4,
+   "compiled": 20,
+   "failed": 0,
+   "no_recipe": 2,
+   "rate": 0.7692307692307693,
+   "variant": "v10_strict"
+  }
+ },
+ "rates_source_assets": {
+  "dev": {
+   "authorized_unique_steps": 20,
+   "blocked": 1,
+   "compiled": 19,
+   "failed": 0,
+   "no_recipe": 0,
+   "rate": 0.95,
+   "variant": "dev"
+  },
+  "native_strict": {
+   "authorized_unique_steps": 20,
+   "blocked": 6,
+   "compiled": 14,
+   "failed": 0,
+   "no_recipe": 0,
+   "rate": 0.7,
+   "variant": "native_strict"
+  },
+  "v10_strict": {
+   "authorized_unique_steps": 20,
+   "blocked": 3,
+   "compiled": 16,
+   "failed": 0,
+   "no_recipe": 1,
+   "rate": 0.8,
+   "variant": "v10_strict"
+  }
+ },
+ "rows": [
+  {
+   "build": {
+    "exit_code": 0,
+    "peak_rss_bytes": 363642880,
+    "timed_out": false,
+    "wall_s": 1.446
+   },
+   "cad_aliases": [
+    "10839000/10839000_01.stp"
+   ],
+   "cad_origin": "SOURCE_ASSETS",
+   "cad_rel": "../source-assets/02_CAD_QC_3D/10839000_01.stp",
+   "cad_sha256": "ea3e4820dff568916164c79417925ead79f307fba8aff11c7b3aeda7375e0b37",
+   "dev_policy_report": {
+    "counts": {
+     "native": 12,
+     "v10": 12
+    },
+    "excluded_by_unsupported_rule": [],
+    "final": 12,
+    "merge_notes": [],
+    "policy": {
+     "sha256": "2ea6e87a73183cc0d3c1db2e75f59172d21ed0e0ce93c4765233c91f95158d5b",
+     "sources": [
+      "v10",
+      "native"
+     ],
+     "version": "E1-DEV-POLICY-1"
+    },
+    "union": 12
+   },
+   "extractor_errors": {},
+   "family": "10839000",
+   "part_id": "10839000",
+   "sku": "DEV-EA3E4820DF",
+   "variants": {
+    "dev": {
+     "ambiguous_stages": [],
+     "bends": 12,
+     "blocker_codes": [],
+     "both_sides_required": true,
+     "cad_original_filename": "cad_ea3e4820dff5.step",
+     "candidates": 12,
+     "characteristics": 59,
+     "compiled_part_sha256": "8808fb7fbab2bb2cd8dd51f5fca33af4ec5241af2c46867b682c338dec19e5fb",
+     "compiled_status": "COMPILED",
+     "compiler_version": "e1-1.1.0",
+     "confirmation": "DEV_AUTO_CONFIRMED",
+     "content_sha256": "fb1129de66b5a2af2bbb177d17a27e337d0320ad414974c2d2aece04f9744c7d",
+     "exit_code": 0,
+     "inspection_stage": "FINAL",
+     "k_factor": {
+      "source": "SHOP_DEFAULT",
+      "value": 0.33
+     },
+     "output_bytes": 28123811,
+     "panels": 13,
+     "peak_rss_bytes": 699449344,
+     "reason": null,
+     "recipe_consistency_problems": [],
+     "recipe_file_sha256": "c16978742838dfbd287a409f78a23510d5cd720d9e8532e791d506c3439d5907",
+     "recipe_sha256": "42892a1af2538fa281f5a642e925847996f9162459b34a75ebd4312057b6ae94",
+     "rss_exceeded": false,
+     "signal": null,
+     "sku": "DEV-EA3E4820DF",
+     "stages": 13,
+     "status": "COMPILED",
+     "thickness_mm": 1.5,
+     "timed_out": false,
+     "unavailable_by_reason": {},
+     "unavailable_nominals": 0,
+     "unsupported_features": [],
+     "wall_s": 7.845,
+     "warning_codes": [
+      "FLAT_NOT_BOUND",
+      "K_FACTOR_DEFAULTED"
+     ]
+    },
+    "native_strict": {
+     "ambiguous_stages": [],
+     "bends": 12,
+     "blocker_codes": [],
+     "both_sides_required": true,
+     "cad_original_filename": "cad_ea3e4820dff5.step",
+     "candidates": 12,
+     "characteristics": 59,
+     "compiled_part_sha256": "698446692b22a8160458aae9ea75a16ac83cec71fe1acadf3ca33d044bb19bf3",
+     "compiled_status": "COMPILED",
+     "compiler_version": "e1-1.1.0",
+     "confirmation": "DEV_AUTO_CONFIRMED",
+     "content_sha256": "c0d07fc235704573a6dcbbcd7c7c6a429ea310b816e76710831e17bd8c0b2498",
+     "exit_code": 0,
+     "inspection_stage": "FINAL",
+     "k_factor": {
+      "source": "SHOP_DEFAULT",
+      "value": 0.33
+     },
+     "output_bytes": 28123813,
+     "panels": 13,
+     "peak_rss_bytes": 699645952,
+     "reason": null,
+     "recipe_consistency_problems": [],
+     "recipe_file_sha256": "c86825b687064d2104faa7dcc50ad382c2592a8e3bab4dfdf4e59b9b7ff52038",
+     "recipe_sha256": "be3ff3df59eb79b20400035aea3004df5d22e6526ef9d3ba85773a5e3df1cd4f",
+     "rss_exceeded": false,
+     "signal": null,
+     "sku": "DEV-EA3E4820DF",
+     "stages": 13,
+     "status": "COMPILED",
+     "thickness_mm": 1.5,
+     "timed_out": false,
+     "unavailable_by_reason": {},
+     "unavailable_nominals": 0,
+     "unsupported_features": [],
+     "wall_s": 7.84,
+     "warning_codes": [
+      "FLAT_NOT_BOUND",
+      "K_FACTOR_DEFAULTED"
+     ]
+    },
+    "v10_strict": {
+     "ambiguous_stages": [],
+     "bends": 12,
+     "blocker_codes": [],
+     "both_sides_required": true,
+     "cad_original_filename": "cad_ea3e4820dff5.step",
+     "candidates": 12,
+     "characteristics": 59,
+     "compiled_part_sha256": "8808fb7fbab2bb2cd8dd51f5fca33af4ec5241af2c46867b682c338dec19e5fb",
+     "compiled_status": "COMPILED",
+     "compiler_version": "e1-1.1.0",
+     "confirmation": "DEV_AUTO_CONFIRMED",
+     "content_sha256": "fb1129de66b5a2af2bbb177d17a27e337d0320ad414974c2d2aece04f9744c7d",
+     "exit_code": 0,
+     "inspection_stage": "FINAL",
+     "k_factor": {
+      "source": "SHOP_DEFAULT",
+      "value": 0.33
+     },
+     "output_bytes": 28123812,
+     "panels": 13,
+     "peak_rss_bytes": 699432960,
+     "reason": null,
+     "recipe_consistency_problems": [],
+     "recipe_file_sha256": "c16978742838dfbd287a409f78a23510d5cd720d9e8532e791d506c3439d5907",
+     "recipe_sha256": "42892a1af2538fa281f5a642e925847996f9162459b34a75ebd4312057b6ae94",
+     "rss_exceeded": false,
+     "signal": null,
+     "sku": "DEV-EA3E4820DF",
+     "stages": 13,
+     "status": "COMPILED",
+     "thickness_mm": 1.5,
+     "timed_out": false,
+     "unavailable_by_reason": {},
+     "unavailable_nominals": 0,
+     "unsupported_features": [],
+     "wall_s": 7.962,
+     "warning_codes": [
+      "FLAT_NOT_BOUND",
+      "K_FACTOR_DEFAULTED"
+     ]
+    }
+   }
+  },
+  {
+   "build": {
+    "exit_code": 0,
+    "peak_rss_bytes": 369623040,
+    "timed_out": false,
+    "wall_s": 1.711
+   },
+   "cad_aliases": [
+    "11979003_C (1).stp"
+   ],
+   "cad_origin": "SOURCE_ASSETS",
+   "cad_rel": "../source-assets/02_CAD_QC_3D/11979003_C.stp",
+   "cad_sha256": "bde878d2afcbb2e956db72dd9e4135ba0b9fe2ae914ce8ba3427181c2a86d494",
+   "dev_policy_report": {
+    "counts": {
+     "native": 11,
+     "v10": 11
+    },
+    "excluded_by_unsupported_rule": [],
+    "final": 7,
+    "merge_notes": [
+     "merged 2 pieces of graph bend G3",
+     "merged 2 pieces of graph bend G1",
+     "merged 3 pieces of graph bend G2"
+    ],
+    "policy": {
+     "sha256": "2ea6e87a73183cc0d3c1db2e75f59172d21ed0e0ce93c4765233c91f95158d5b",
+     "sources": [
+      "v10",
+      "native"
+     ],
+     "version": "E1-DEV-POLICY-1"
+    },
+    "union": 11
+   },
+   "extractor_errors": {},
+   "family": "11979003",
+   "part_id": "11979003",
+   "sku": "DEV-BDE878D2AF",
+   "variants": {
+    "dev": {
+     "ambiguous_stages": [],
+     "bends": 7,
+     "blocker_codes": [],
+     "both_sides_required": true,
+     "cad_original_filename": "cad_bde878d2afcb.step",
+     "candidates": 7,
+     "characteristics": 34,
+     "compiled_part_sha256": "618416050b25b5fd3af276799e9516b04bbdaec04c867947702109150d941d03",
+     "compiled_status": "COMPILED",
+     "compiler_version": "e1-1.1.0",
+     "confirmation": "DEV_AUTO_CONFIRMED",
+     "content_sha256": "ca219447b23594d016568e3cbdafc102b3189bc20694ba3ef13601027bcb85c1",
+     "exit_code": 0,
+     "inspection_stage": "FINAL",
+     "k_factor": {
+      "source": "SHOP_DEFAULT",
+      "value": 0.33
+     },
+     "output_bytes": 5469711,
+     "panels": 8,
+     "peak_rss_bytes": 490405888,
+     "reason": null,
+     "recipe_consistency_problems": [],
+     "recipe_file_sha256": "1659a62b404c5bef7e104b45f0ca6371fd9231175c48cd10cdf6debcc186e0b3",
+     "recipe_sha256": "3b192ab72971f6c9b696e2bb125cb251d7c852a3ad17e892eff7a86ec4f2c329",
+     "rss_exceeded": false,
+     "signal": null,
+     "sku": "DEV-BDE878D2AF",
+     "stages": 8,
+     "status": "COMPILED",
+     "thickness_mm": 1.5,
+     "timed_out": false,
+     "unavailable_by_reason": {},
+     "unavailable_nominals": 0,
+     "unsupported_features": [],
+     "wall_s": 3.581,
+     "warning_codes": [
+      "FLAT_NOT_BOUND",
+      "K_FACTOR_DEFAULTED"
+     ]
+    },
+    "native_strict": {
+     "ambiguous_stages": [],
+     "bends": 0,
+     "blocker_codes": [
+      "MARK_AMBIGUOUS"
+     ],
+     "both_sides_required": true,
+     "cad_original_filename": "cad_bde878d2afcb.step",
+     "candidates": 11,
+     "characteristics": 0,
+     "compiled_part_sha256": "e4ad72b3b20e0e4612cca3ee0ccd08e8355e230eacb4d0062671225952ea16c1",
+     "compiled_status": "BLOCKED",
+     "compiler_version": "e1-1.1.0",
+     "confirmation": "DEV_AUTO_CONFIRMED",
+     "content_sha256": "f36bd261a5b642761f48a905cfe0b3807802637bfeb3cc39ed9c67d80cd53608",
+     "exit_code": 2,
+     "inspection_stage": "FINAL",
+     "k_factor": null,
+     "output_bytes": 48938,
+     "panels": 8,
+     "peak_rss_bytes": 415612928,
+     "reason": "MARK_AMBIGUOUS",
+     "recipe_consistency_problems": [],
+     "recipe_file_sha256": "3fb5fefc7f8aac73184ac638784698654d20f330172545adb26d081269b39da0",
+     "recipe_sha256": "b9043b542c75864ce8a5b332f900b440e40783f677d6dc0cfba03acc3d40b521",
+     "rss_exceeded": false,
+     "signal": null,
+     "sku": "DEV-BDE878D2AF",
+     "stages": 0,
+     "status": "BLOCKED",
+     "thickness_mm": 1.5,
+     "timed_out": false,
+     "unavailable_by_reason": {},
+     "unavailable_nominals": 0,
+     "unsupported_features": [],
+     "wall_s": 1.554,
+     "warning_codes": []
+    },
+    "v10_strict": {
+     "ambiguous_stages": [],
+     "bends": 0,
+     "blocker_codes": [
+      "MARK_AMBIGUOUS"
+     ],
+     "both_sides_required": true,
+     "cad_original_filename": "cad_bde878d2afcb.step",
+     "candidates": 11,
+     "characteristics": 0,
+     "compiled_part_sha256": "d7fb2aa6f229d7e69d8979b05bd8bca3204e405f2813438b56086ef79bd1b7a9",
+     "compiled_status": "BLOCKED",
+     "compiler_version": "e1-1.1.0",
+     "confirmation": "DEV_AUTO_CONFIRMED",
+     "content_sha256": "fc3f65e5cb40dda90a59cf16f44f526734148dc388e6a582c8a020eeb7c783ad",
+     "exit_code": 2,
+     "inspection_stage": "FINAL",
+     "k_factor": null,
+     "output_bytes": 48958,
+     "panels": 8,
+     "peak_rss_bytes": 415727616,
+     "reason": "MARK_AMBIGUOUS",
+     "recipe_consistency_problems": [],
+     "recipe_file_sha256": "90e4be53ce6d22a626788b295c84f4abd3427ad68dd3661a1b24ddcde3005434",
+     "recipe_sha256": "5009673cf6ead635a54f44e50d623e193e990e20386f67567b7f8d0c3c5df6f8",
+     "rss_exceeded": false,
+     "signal": null,
+     "sku": "DEV-BDE878D2AF",
+     "stages": 0,
+     "status": "BLOCKED",
+     "thickness_mm": 1.5,
+     "timed_out": false,
+     "unavailable_by_reason": {},
+     "unavailable_nominals": 0,
+     "unsupported_features": [],
+     "wall_s": 1.554,
+     "warning_codes": []
+    }
+   }
+  },
+  {
+   "build": {
+    "exit_code": 0,
+    "peak_rss_bytes": 347340800,
+    "timed_out": false,
+    "wall_s": 0.756
+   },
+   "cad_aliases": [],
+   "cad_origin": "SOURCE_ASSETS",
+   "cad_rel": "../source-assets/02_CAD_QC_3D/15651004_01.stp",
+   "cad_sha256": "1f88d309a738ef326fdd98f78c7d51f60c3c1529405e067185948f1cdd6d596c",
+   "dev_policy_report": {
+    "counts": {
+     "native": 3,
+     "v10": 3
+    },
+    "excluded_by_unsupported_rule": [],
+    "final": 3,
+    "merge_notes": [],
+    "policy": {
+     "sha256": "2ea6e87a73183cc0d3c1db2e75f59172d21ed0e0ce93c4765233c91f95158d5b",
+     "sources": [
+      "v10",
+      "native"
+     ],
+     "version": "E1-DEV-POLICY-1"
+    },
+    "union": 3
+   },
+   "extractor_errors": {},
+   "family": "15651004",
+   "part_id": "15651004",
+   "sku": "DEV-1F88D309A7",
+   "variants": {
+    "dev": {
+     "ambiguous_stages": [],
+     "bends": 3,
+     "blocker_codes": [],
+     "both_sides_required": true,
+     "cad_original_filename": "cad_1f88d309a738.step",
+     "candidates": 3,
+     "characteristics": 14,
+     "compiled_part_sha256": "fd7e61314375370e67474ef2f553f13568f5fa39f19fec176e4d7bc12b3b5949",
+     "compiled_status": "COMPILED",
+     "compiler_version": "e1-1.1.0",
+     "confirmation": "DEV_AUTO_CONFIRMED",
+     "content_sha256": "7656a924e92a8d2b08b06b7494bd71bfdf9fefc9f1bbfcba5c00030b8f35cc4e",
+     "exit_code": 0,
+     "inspection_stage": "FINAL",
+     "k_factor": {
+      "source": "SHOP_DEFAULT",
+      "value": 0.33
+     },
+     "output_bytes": 811233,
+     "panels": 4,
+     "peak_rss_bytes": 414810112,
+     "reason": null,
+     "recipe_consistency_problems": [],
+     "recipe_file_sha256": "846fbac53acc4ebd15ce5dbf3de046bacc421958408e3aef72d1fa032dad44a9",
+     "recipe_sha256": "060b8c0a40fee8c9a0eae2e0b09ae5a54beb12d25c375322593a10335a8c06f2",
+     "rss_exceeded": false,
+     "signal": null,
+     "sku": "DEV-1F88D309A7",
+     "stages": 4,
+     "status": "COMPILED",
+     "thickness_mm": 2.0,
+     "timed_out": false,
+     "unavailable_by_reason": {},
+     "unavailable_nominals": 0,
+     "unsupported_features": [],
+     "wall_s": 1.542,
+     "warning_codes": [
+      "FLAT_NOT_BOUND",
+      "K_FACTOR_DEFAULTED"
+     ]
+    },
+    "native_strict": {
+     "ambiguous_stages": [],
+     "bends": 3,
+     "blocker_codes": [],
+     "both_sides_required": true,
+     "cad_original_filename": "cad_1f88d309a738.step",
+     "candidates": 3,
+     "characteristics": 14,
+     "compiled_part_sha256": "eec9bb7a00e847c2a320285e17b15100ed8f36fe82dab7301375626e2c6a117f",
+     "compiled_status": "COMPILED",
+     "compiler_version": "e1-1.1.0",
+     "confirmation": "DEV_AUTO_CONFIRMED",
+     "content_sha256": "3002c80d19c11bfdc1cd2d2199ac2a1ef12828017ab3a288632d778d779abe86",
+     "exit_code": 0,
+     "inspection_stage": "FINAL",
+     "k_factor": {
+      "source": "SHOP_DEFAULT",
+      "value": 0.33
+     },
+     "output_bytes": 811234,
+     "panels": 4,
+     "peak_rss_bytes": 414416896,
+     "reason": null,
+     "recipe_consistency_problems": [],
+     "recipe_file_sha256": "f21f75b27a68e4df4a327a1219385c53ef1a5b43edd702f016554a845e2320fa",
+     "recipe_sha256": "a304f4a97fbc6bbe736d16dc26b054ec42ff30a7e225d57402ce243cb41cd926",
+     "rss_exceeded": false,
+     "signal": null,
+     "sku": "DEV-1F88D309A7",
+     "stages": 4,
+     "status": "COMPILED",
+     "thickness_mm": 2.0,
+     "timed_out": false,
+     "unavailable_by_reason": {},
+     "unavailable_nominals": 0,
+     "unsupported_features": [],
+     "wall_s": 1.57,
+     "warning_codes": [
+      "FLAT_NOT_BOUND",
+      "K_FACTOR_DEFAULTED"
+     ]
+    },
+    "v10_strict": {
+     "ambiguous_stages": [],
+     "bends": 3,
+     "blocker_codes": [],
+     "both_sides_required": true,
+     "cad_original_filename": "cad_1f88d309a738.step",
+     "candidates": 3,
+     "characteristics": 14,
+     "compiled_part_sha256": "fd7e61314375370e67474ef2f553f13568f5fa39f19fec176e4d7bc12b3b5949",
+     "compiled_status": "COMPILED",
+     "compiler_version": "e1-1.1.0",
+     "confirmation": "DEV_AUTO_CONFIRMED",
+     "content_sha256": "7656a924e92a8d2b08b06b7494bd71bfdf9fefc9f1bbfcba5c00030b8f35cc4e",
+     "exit_code": 0,
+     "inspection_stage": "FINAL",
+     "k_factor": {
+      "source": "SHOP_DEFAULT",
+      "value": 0.33
+     },
+     "output_bytes": 811232,
+     "panels": 4,
+     "peak_rss_bytes": 414924800,
+     "reason": null,
+     "recipe_consistency_problems": [],
+     "recipe_file_sha256": "846fbac53acc4ebd15ce5dbf3de046bacc421958408e3aef72d1fa032dad44a9",
+     "recipe_sha256": "060b8c0a40fee8c9a0eae2e0b09ae5a54beb12d25c375322593a10335a8c06f2",
+     "rss_exceeded": false,
+     "signal": null,
+     "sku": "DEV-1F88D309A7",
+     "stages": 4,
+     "status": "COMPILED",
+     "thickness_mm": 2.0,
+     "timed_out": false,
+     "unavailable_by_reason": {},
+     "unavailable_nominals": 0,
+     "unsupported_features": [],
+     "wall_s": 1.514,
+     "warning_codes": [
+      "FLAT_NOT_BOUND",
+      "K_FACTOR_DEFAULTED"
+     ]
+    }
+   }
+  },
+  {
+   "build": {
+    "exit_code": 0,
+    "peak_rss_bytes": 379748352,
+    "timed_out": false,
+    "wall_s": 2.17
+   },
+   "cad_aliases": [],
+   "cad_origin": "SOURCE_ASSETS",
+   "cad_rel": "../source-assets/02_CAD_QC_3D/23553000_B.stp",
+   "cad_sha256": "6e71609f74b3e7de04a77ccfbe442e54a9bc14554d6d9b7886b56905cdba338a",
+   "dev_policy_report": {
+    "counts": {
+     "native": 16,
+     "v10": 16
+    },
+    "excluded_by_unsupported_rule": [],
+    "final": 16,
+    "merge_notes": [],
+    "policy": {
+     "sha256": "2ea6e87a73183cc0d3c1db2e75f59172d21ed0e0ce93c4765233c91f95158d5b",
+     "sources": [
+      "v10",
+      "native"
+     ],
+     "version": "E1-DEV-POLICY-1"
+    },
+    "union": 16
+   },
+   "extractor_errors": {},
+   "family": "23553000",
+   "part_id": "23553000",
+   "sku": "DEV-6E71609F74",
+   "variants": {
+    "dev": {
+     "ambiguous_stages": [],
+     "bends": 16,
+     "blocker_codes": [],
+     "both_sides_required": true,
+     "cad_original_filename": "cad_6e71609f74b3.step",
+     "candidates": 16,
+     "characteristics": 79,
+     "compiled_part_sha256": "173d8a1c3857a47651a0c74e6771a17ea7c76627f48b599997adc66b6c37be2f",
+     "compiled_status": "COMPILED",
+     "compiler_version": "e1-1.1.0",
+     "confirmation": "DEV_AUTO_CONFIRMED",
+     "content_sha256": "510efd0a906e78378ce3523bea9853618c37777e48f6438557e747ac81dd0f79",
+     "exit_code": 0,
+     "inspection_stage": "FINAL",
+     "k_factor": {
+      "source": "SHOP_DEFAULT",
+      "value": 0.33
+     },
+     "output_bytes": 19029185,
+     "panels": 17,
+     "peak_rss_bytes": 565264384,
+     "reason": null,
+     "recipe_consistency_problems": [],
+     "recipe_file_sha256": "7eef90194f5dff6f9cf30e3f81c1e8a7589ac17f7ebf1b2c2a1cd8df958e03d2",
+     "recipe_sha256": "baef75280a269ccec4c36766589011fc3196faf9436e09753caba6684ee31a6a",
+     "rss_exceeded": false,
+     "signal": null,
+     "sku": "DEV-6E71609F74",
+     "stages": 17,
+     "status": "COMPILED",
+     "thickness_mm": 1.0,
+     "timed_out": false,
+     "unavailable_by_reason": {},
+     "unavailable_nominals": 0,
+     "unsupported_features": [],
+     "wall_s": 7.045,
+     "warning_codes": [
+      "FLAT_NOT_BOUND",
+      "K_FACTOR_DEFAULTED"
+     ]
+    },
+    "native_strict": {
+     "ambiguous_stages": [],
+     "bends": 16,
+     "blocker_codes": [],
+     "both_sides_required": true,
+     "cad_original_filename": "cad_6e71609f74b3.step",
+     "candidates": 16,
+     "characteristics": 79,
+     "compiled_part_sha256": "8877d3fee43bc029840757a853a1a6cd07d0ab9edfb377bc640dbb22fab5d16c",
+     "compiled_status": "COMPILED",
+     "compiler_version": "e1-1.1.0",
+     "confirmation": "DEV_AUTO_CONFIRMED",
+     "content_sha256": "682c975369a789cc80b67edac016b39652d142dbeff3e91a332e6ef30f30e9b6",
+     "exit_code": 0,
+     "inspection_stage": "FINAL",
+     "k_factor": {
+      "source": "SHOP_DEFAULT",
+      "value": 0.33
+     },
+     "output_bytes": 19029186,
+     "panels": 17,
+     "peak_rss_bytes": 566099968,
+     "reason": null,
+     "recipe_consistency_problems": [],
+     "recipe_file_sha256": "dd6502a6922192d2d148226731967173422ef86f91a8d885c668facdd7cb7f7c",
+     "recipe_sha256": "414bbe191291bf54278fd3bdda6477742e5bc202b640b9578b9c0db31f9a6982",
+     "rss_exceeded": false,
+     "signal": null,
+     "sku": "DEV-6E71609F74",
+     "stages": 17,
+     "status": "COMPILED",
+     "thickness_mm": 1.0,
+     "timed_out": false,
+     "unavailable_by_reason": {},
+     "unavailable_nominals": 0,
+     "unsupported_features": [],
+     "wall_s": 7.109,
+     "warning_codes": [
+      "FLAT_NOT_BOUND",
+      "K_FACTOR_DEFAULTED"
+     ]
+    },
+    "v10_strict": {
+     "ambiguous_stages": [],
+     "bends": 16,
+     "blocker_codes": [],
+     "both_sides_required": true,
+     "cad_original_filename": "cad_6e71609f74b3.step",
+     "candidates": 16,
+     "characteristics": 79,
+     "compiled_part_sha256": "173d8a1c3857a47651a0c74e6771a17ea7c76627f48b599997adc66b6c37be2f",
+     "compiled_status": "COMPILED",
+     "compiler_version": "e1-1.1.0",
+     "confirmation": "DEV_AUTO_CONFIRMED",
+     "content_sha256": "510efd0a906e78378ce3523bea9853618c37777e48f6438557e747ac81dd0f79",
+     "exit_code": 0,
+     "inspection_stage": "FINAL",
+     "k_factor": {
+      "source": "SHOP_DEFAULT",
+      "value": 0.33
+     },
+     "output_bytes": 19029185,
+     "panels": 17,
+     "peak_rss_bytes": 564985856,
+     "reason": null,
+     "recipe_consistency_problems": [],
+     "recipe_file_sha256": "7eef90194f5dff6f9cf30e3f81c1e8a7589ac17f7ebf1b2c2a1cd8df958e03d2",
+     "recipe_sha256": "baef75280a269ccec4c36766589011fc3196faf9436e09753caba6684ee31a6a",
+     "rss_exceeded": false,
+     "signal": null,
+     "sku": "DEV-6E71609F74",
+     "stages": 17,
+     "status": "COMPILED",
+     "thickness_mm": 1.0,
+     "timed_out": false,
+     "unavailable_by_reason": {},
+     "unavailable_nominals": 0,
+     "unsupported_features": [],
+     "wall_s": 7.089,
+     "warning_codes": [
+      "FLAT_NOT_BOUND",
+      "K_FACTOR_DEFAULTED"
+     ]
+    }
+   }
+  },
+  {
+   "build": {
+    "exit_code": 0,
+    "peak_rss_bytes": 395739136,
+    "timed_out": false,
+    "wall_s": 1.178
+   },
+   "cad_aliases": [],
+   "cad_origin": "SOURCE_ASSETS",
+   "cad_rel": "../source-assets/02_CAD_QC_3D/28870000_A.stp",
+   "cad_sha256": "aab8c67c31908a873a134f2c0aff4f1c518d050d98db32e265e186a732248d32",
+   "dev_policy_report": {
+    "counts": {
+     "native": 3,
+     "v10": 1
+    },
+    "excluded_by_unsupported_rule": [
+     {
+      "candidate": 1,
+      "faces": [
+       0,
+       4
+      ],
+      "line_end": [
+       -20.958013,
+       -22.501648,
+       0.0
+      ],
+      "line_start": [
+       -20.958013,
+       -22.501648,
+       -76.5
+      ],
+      "rule": "OTHER"
+     },
+     {
+      "candidate": 2,
+      "faces": [
+       0,
+       4,
+       5,
+       27
+      ],
+      "line_end": [
+       -26.514288,
+       15.644981,
+       -7.5
+      ],
+      "line_start": [
+       -26.514288,
+       15.644981,
+       -76.5
+      ],
+      "rule": "ROLLED"
+     }
+    ],
+    "final": 1,
+    "merge_notes": [],
+    "policy": {
+     "sha256": "2ea6e87a73183cc0d3c1db2e75f59172d21ed0e0ce93c4765233c91f95158d5b",
+     "sources": [
+      "v10",
+      "native"
+     ],
+     "version": "E1-DEV-POLICY-1"
+    },
+    "union": 3
+   },
+   "extractor_errors": {},
+   "family": "28870000",
+   "part_id": "28870000",
+   "sku": "DEV-AAB8C67C31",
+   "variants": {
+    "dev": {
+     "ambiguous_stages": [],
+     "bends": 1,
+     "blocker_codes": [],
+     "both_sides_required": true,
+     "cad_original_filename": "cad_aab8c67c3190.step",
+     "candidates": 1,
+     "characteristics": 4,
+     "compiled_part_sha256": "1381fd653ea040aaf01dbb1b6eaf239df92a7868d404ab037e6019475bbd9eb5",
+     "compiled_status": "COMPILED",
+     "compiler_version": "e1-1.1.0",
+     "confirmation": "DEV_AUTO_CONFIRMED",
+     "content_sha256": "f3db60e8124bc6ef2bfc1cccbc71d53203d151c9a3c41d9761971cfc355bf57c",
+     "exit_code": 0,
+     "inspection_stage": "FINAL",
+     "k_factor": {
+      "source": "SHOP_DEFAULT",
+      "value": 0.33
+     },
+     "output_bytes": 412688,
+     "panels": 2,
+     "peak_rss_bytes": 413171712,
+     "reason": null,
+     "recipe_consistency_problems": [],
+     "recipe_file_sha256": "50aa0d6f07c491da2d6d30981539c82e47982fe88d16c9485d4e74b39f86584e",
+     "recipe_sha256": "8acf3fce3d5c6c2cb0e009e34620522cdad85183241cc5c3ec8eac4d9a251837",
+     "rss_exceeded": false,
+     "signal": null,
+     "sku": "DEV-AAB8C67C31",
+     "stages": 2,
+     "status": "COMPILED",
+     "thickness_mm": 1.5,
+     "timed_out": false,
+     "unavailable_by_reason": {
+      "UNSUPPORTED_FEATURE": 2
+     },
+     "unavailable_nominals": 2,
+     "unsupported_features": [
+      "ROLLED",
+      "STEPPED_BOSS",
+      "OTHER",
+      "OTHER",
+      "OTHER",
+      "OTHER",
+      "OTHER",
+      "OTHER",
+      "OTHER",
+      "OTHER",
+      "OTHER",
+      "OTHER",
+      "OTHER",
+      "OTHER",
+      "OTHER"
+     ],
+     "wall_s": 1.493,
+     "warning_codes": [
+      "FLAT_NOT_BOUND",
+      "K_FACTOR_DEFAULTED",
+      "UNSUPPORTED_FEATURE"
+     ]
+    },
+    "native_strict": {
+     "ambiguous_stages": [],
+     "bends": 0,
+     "blocker_codes": [
+      "MARK_NOT_IN_FLANGE_GRAPH"
+     ],
+     "both_sides_required": true,
+     "cad_original_filename": "cad_aab8c67c3190.step",
+     "candidates": 3,
+     "characteristics": 0,
+     "compiled_part_sha256": "c4e08348cd3fd1c7b0c3228dd2d2402ff4aa2b50d57c7ac9a0c785351b5990cb",
+     "compiled_status": "BLOCKED",
+     "compiler_version": "e1-1.1.0",
+     "confirmation": "DEV_AUTO_CONFIRMED",
+     "content_sha256": "fcf5dc02083e3535ebdf38aa00cc2fef5bc6080d1d463139941203a7c8b758d7",
+     "exit_code": 2,
+     "inspection_stage": "FINAL",
+     "k_factor": null,
+     "output_bytes": 9915,
+     "panels": 2,
+     "peak_rss_bytes": 395608064,
+     "reason": "MARK_NOT_IN_FLANGE_GRAPH",
+     "recipe_consistency_problems": [],
+     "recipe_file_sha256": "dd24a593813d1c42c431d5d4f4192e3ab6cd4c0c19e29f064a5d5845638d97ea",
+     "recipe_sha256": "4206e1e293e2f86ee09549a475770a956e7781de149f808b3abd79bb5bda395b",
+     "rss_exceeded": false,
+     "signal": null,
+     "sku": "DEV-AAB8C67C31",
+     "stages": 0,
+     "status": "BLOCKED",
+     "thickness_mm": 1.5,
+     "timed_out": false,
+     "unavailable_by_reason": {},
+     "unavailable_nominals": 0,
+     "unsupported_features": [
+      "ROLLED",
+      "STEPPED_BOSS"
+     ],
+     "wall_s": 0.943,
+     "warning_codes": [
+      "UNSUPPORTED_FEATURE"
+     ]
+    },
+    "v10_strict": {
+     "ambiguous_stages": [],
+     "bends": 1,
+     "blocker_codes": [],
+     "both_sides_required": true,
+     "cad_original_filename": "cad_aab8c67c3190.step",
+     "candidates": 1,
+     "characteristics": 4,
+     "compiled_part_sha256": "1381fd653ea040aaf01dbb1b6eaf239df92a7868d404ab037e6019475bbd9eb5",
+     "compiled_status": "COMPILED",
+     "compiler_version": "e1-1.1.0",
+     "confirmation": "DEV_AUTO_CONFIRMED",
+     "content_sha256": "f3db60e8124bc6ef2bfc1cccbc71d53203d151c9a3c41d9761971cfc355bf57c",
+     "exit_code": 0,
+     "inspection_stage": "FINAL",
+     "k_factor": {
+      "source": "SHOP_DEFAULT",
+      "value": 0.33
+     },
+     "output_bytes": 412688,
+     "panels": 2,
+     "peak_rss_bytes": 413794304,
+     "reason": null,
+     "recipe_consistency_problems": [],
+     "recipe_file_sha256": "50aa0d6f07c491da2d6d30981539c82e47982fe88d16c9485d4e74b39f86584e",
+     "recipe_sha256": "8acf3fce3d5c6c2cb0e009e34620522cdad85183241cc5c3ec8eac4d9a251837",
+     "rss_exceeded": false,
+     "signal": null,
+     "sku": "DEV-AAB8C67C31",
+     "stages": 2,
+     "status": "COMPILED",
+     "thickness_mm": 1.5,
+     "timed_out": false,
+     "unavailable_by_reason": {
+      "UNSUPPORTED_FEATURE": 2
+     },
+     "unavailable_nominals": 2,
+     "unsupported_features": [
+      "ROLLED",
+      "STEPPED_BOSS",
+      "OTHER",
+      "OTHER",
+      "OTHER",
+      "OTHER",
+      "OTHER",
+      "OTHER",
+      "OTHER",
+      "OTHER",
+      "OTHER",
+      "OTHER",
+      "OTHER",
+      "OTHER",
+      "OTHER"
+     ],
+     "wall_s": 1.486,
+     "warning_codes": [
+      "FLAT_NOT_BOUND",
+      "K_FACTOR_DEFAULTED",
+      "UNSUPPORTED_FEATURE"
+     ]
+    }
+   }
+  },
+  {
+   "build": {
+    "exit_code": 0,
+    "peak_rss_bytes": 355467264,
+    "timed_out": false,
+    "wall_s": 1.103
+   },
+   "cad_aliases": [],
+   "cad_origin": "SOURCE_ASSETS",
+   "cad_rel": "../source-assets/02_CAD_QC_3D/37361005_01.stp",
+   "cad_sha256": "81c428a0a55c531d67fcd68d74cac905c8b7b00e88277d836a932e954c7d636e",
+   "dev_policy_report": {
+    "counts": {
+     "native": 4,
+     "v10": 4
+    },
+    "excluded_by_unsupported_rule": [],
+    "final": 4,
+    "merge_notes": [],
+    "policy": {
+     "sha256": "2ea6e87a73183cc0d3c1db2e75f59172d21ed0e0ce93c4765233c91f95158d5b",
+     "sources": [
+      "v10",
+      "native"
+     ],
+     "version": "E1-DEV-POLICY-1"
+    },
+    "union": 4
+   },
+   "extractor_errors": {},
+   "family": "37361005",
+   "part_id": "37361005",
+   "sku": "DEV-81C428A0A5",
+   "variants": {
+    "dev": {
+     "ambiguous_stages": [],
+     "bends": 4,
+     "blocker_codes": [],
+     "both_sides_required": true,
+     "cad_original_filename": "cad_81c428a0a55c.step",
+     "candidates": 4,
+     "characteristics": 19,
+     "compiled_part_sha256": "1862e51f360e249f33d6bdaf781bd237d35c1c5d39dac3d86cee740a872c7b24",
+     "compiled_status": "COMPILED",
+     "compiler_version": "e1-1.1.0",
+     "confirmation": "DEV_AUTO_CONFIRMED",
+     "content_sha256": "2f3688cd6562ad3af9413439fa7928d26a38cf7d0d558d488e84fd64089217ea",
+     "exit_code": 0,
+     "inspection_stage": "FINAL",
+     "k_factor": {
+      "source": "SHOP_DEFAULT",
+      "value": 0.33
+     },
+     "output_bytes": 6631233,
+     "panels": 5,
+     "peak_rss_bytes": 611385344,
+     "reason": null,
+     "recipe_consistency_problems": [],
+     "recipe_file_sha256": "0e15f16e3287674b279e0bedaccb7124e3d4e1622cd69bdee6842093aa764bde",
+     "recipe_sha256": "ffc89c27550734fa2b1b665d6c0411cae3d8f5cbcc888d6e88c276d67c881522",
+     "rss_exceeded": false,
+     "signal": null,
+     "sku": "DEV-81C428A0A5",
+     "stages": 5,
+     "status": "COMPILED",
+     "thickness_mm": 1.5,
+     "timed_out": false,
+     "unavailable_by_reason": {},
+     "unavailable_nominals": 0,
+     "unsupported_features": [],
+     "wall_s": 2.971,
+     "warning_codes": [
+      "FLAT_NOT_BOUND",
+      "K_FACTOR_DEFAULTED"
+     ]
+    },
+    "native_strict": {
+     "ambiguous_stages": [],
+     "bends": 4,
+     "blocker_codes": [],
+     "both_sides_required": true,
+     "cad_original_filename": "cad_81c428a0a55c.step",
+     "candidates": 4,
+     "characteristics": 19,
+     "compiled_part_sha256": "cd0550cccda4a279a0f61751030bc9e46bcb39f53143f8513e82b55fd837f1db",
+     "compiled_status": "COMPILED",
+     "compiler_version": "e1-1.1.0",
+     "confirmation": "DEV_AUTO_CONFIRMED",
+     "content_sha256": "b5a28296876548199786122414856c09858676af1f7f84fbdec828b9060f3a10",
+     "exit_code": 0,
+     "inspection_stage": "FINAL",
+     "k_factor": {
+      "source": "SHOP_DEFAULT",
+      "value": 0.33
+     },
+     "output_bytes": 6631235,
+     "panels": 5,
+     "peak_rss_bytes": 611991552,
+     "reason": null,
+     "recipe_consistency_problems": [],
+     "recipe_file_sha256": "dd9aa2bd658f5c56cbb26654f31b9443a3a8f16ad587258932df11c4e26ea797",
+     "recipe_sha256": "d33d6400b94f970edccd50c6ad58bd23c9af91597796805f71366725785e023c",
+     "rss_exceeded": false,
+     "signal": null,
+     "sku": "DEV-81C428A0A5",
+     "stages": 5,
+     "status": "COMPILED",
+     "thickness_mm": 1.5,
+     "timed_out": false,
+     "unavailable_by_reason": {},
+     "unavailable_nominals": 0,
+     "unsupported_features": [],
+     "wall_s": 2.986,
+     "warning_codes": [
+      "FLAT_NOT_BOUND",
+      "K_FACTOR_DEFAULTED"
+     ]
+    },
+    "v10_strict": {
+     "ambiguous_stages": [],
+     "bends": 4,
+     "blocker_codes": [],
+     "both_sides_required": true,
+     "cad_original_filename": "cad_81c428a0a55c.step",
+     "candidates": 4,
+     "characteristics": 19,
+     "compiled_part_sha256": "1862e51f360e249f33d6bdaf781bd237d35c1c5d39dac3d86cee740a872c7b24",
+     "compiled_status": "COMPILED",
+     "compiler_version": "e1-1.1.0",
+     "confirmation": "DEV_AUTO_CONFIRMED",
+     "content_sha256": "2f3688cd6562ad3af9413439fa7928d26a38cf7d0d558d488e84fd64089217ea",
+     "exit_code": 0,
+     "inspection_stage": "FINAL",
+     "k_factor": {
+      "source": "SHOP_DEFAULT",
+      "value": 0.33
+     },
+     "output_bytes": 6631235,
+     "panels": 5,
+     "peak_rss_bytes": 611254272,
+     "reason": null,
+     "recipe_consistency_problems": [],
+     "recipe_file_sha256": "0e15f16e3287674b279e0bedaccb7124e3d4e1622cd69bdee6842093aa764bde",
+     "recipe_sha256": "ffc89c27550734fa2b1b665d6c0411cae3d8f5cbcc888d6e88c276d67c881522",
+     "rss_exceeded": false,
+     "signal": null,
+     "sku": "DEV-81C428A0A5",
+     "stages": 5,
+     "status": "COMPILED",
+     "thickness_mm": 1.5,
+     "timed_out": false,
+     "unavailable_by_reason": {},
+     "unavailable_nominals": 0,
+     "unsupported_features": [],
+     "wall_s": 2.921,
+     "warning_codes": [
+      "FLAT_NOT_BOUND",
+      "K_FACTOR_DEFAULTED"
+     ]
+    }
+   }
+  },
+  {
+   "build": {
+    "exit_code": 0,
+    "peak_rss_bytes": 364756992,
+    "timed_out": false,
+    "wall_s": 1.516
+   },
+   "cad_aliases": [],
+   "cad_origin": "SOURCE_ASSETS",
+   "cad_rel": "../source-assets/02_CAD_QC_3D/38172000_01.stp",
+   "cad_sha256": "4d512b5c565ab0e9e4d02e73fcaafd164ae82bcd977eba69198c8b0356f5644f",
+   "dev_policy_report": {
+    "counts": {
+     "native": 12,
+     "v10": 12
+    },
+    "excluded_by_unsupported_rule": [],
+    "final": 12,
+    "merge_notes": [],
+    "policy": {
+     "sha256": "2ea6e87a73183cc0d3c1db2e75f59172d21ed0e0ce93c4765233c91f95158d5b",
+     "sources": [
+      "v10",
+      "native"
+     ],
+     "version": "E1-DEV-POLICY-1"
+    },
+    "union": 12
+   },
+   "extractor_errors": {},
+   "family": "38172000",
+   "part_id": "38172000",
+   "sku": "DEV-4D512B5C56",
+   "variants": {
+    "dev": {
+     "ambiguous_stages": [],
+     "bends": 12,
+     "blocker_codes": [],
+     "both_sides_required": true,
+     "cad_original_filename": "cad_4d512b5c565a.step",
+     "candidates": 12,
+     "characteristics": 59,
+     "compiled_part_sha256": "40bf6139bc3b491a86e3475394920ad3a7d72b6291aaf183ea5b84f75cc02997",
+     "compiled_status": "COMPILED",
+     "compiler_version": "e1-1.1.0",
+     "confirmation": "DEV_AUTO_CONFIRMED",
+     "content_sha256": "bdb8a6da53f21372e9e628ed431dfd4b3d4abdf6b43fbe7179a65665fa7e636f",
+     "exit_code": 0,
+     "inspection_stage": "FINAL",
+     "k_factor": {
+      "source": "SHOP_DEFAULT",
+      "value": 0.33
+     },
+     "output_bytes": 20170037,
+     "panels": 13,
+     "peak_rss_bytes": 666992640,
+     "reason": null,
+     "recipe_consistency_problems": [],
+     "recipe_file_sha256": "99e8df92c399d1f02c43689003d9a29854c7ba278ff9933c1f3877a4f9fee965",
+     "recipe_sha256": "8130f462749260f0fdf3f80aaf6a1116aa3e906b33c78e95b58962d84db7204e",
+     "rss_exceeded": false,
+     "signal": null,
+     "sku": "DEV-4D512B5C56",
+     "stages": 13,
+     "status": "COMPILED",
+     "thickness_mm": 1.5,
+     "timed_out": false,
+     "unavailable_by_reason": {},
+     "unavailable_nominals": 0,
+     "unsupported_features": [],
+     "wall_s": 7.28,
+     "warning_codes": [
+      "FLAT_NOT_BOUND",
+      "K_FACTOR_DEFAULTED"
+     ]
+    },
+    "native_strict": {
+     "ambiguous_stages": [],
+     "bends": 12,
+     "blocker_codes": [],
+     "both_sides_required": true,
+     "cad_original_filename": "cad_4d512b5c565a.step",
+     "candidates": 12,
+     "characteristics": 59,
+     "compiled_part_sha256": "f10db8f1055bd9a551dddf49b2c18e82cd9494b0b197258c4a416eaac30f4240",
+     "compiled_status": "COMPILED",
+     "compiler_version": "e1-1.1.0",
+     "confirmation": "DEV_AUTO_CONFIRMED",
+     "content_sha256": "f521c40c4acf28db4f51926d454df030fce085bdedd5929cf759b0f9e389a1c7",
+     "exit_code": 0,
+     "inspection_stage": "FINAL",
+     "k_factor": {
+      "source": "SHOP_DEFAULT",
+      "value": 0.33
+     },
+     "output_bytes": 20170037,
+     "panels": 13,
+     "peak_rss_bytes": 666796032,
+     "reason": null,
+     "recipe_consistency_problems": [],
+     "recipe_file_sha256": "b4da23a2b94d6012a8f15d96a187a90f442b02b8e314a8458b4d14f5bee966f6",
+     "recipe_sha256": "0d8d93dc313b00c6787a47ebb7dda17b9ea8557ea158e188501536ae4cf65acc",
+     "rss_exceeded": false,
+     "signal": null,
+     "sku": "DEV-4D512B5C56",
+     "stages": 13,
+     "status": "COMPILED",
+     "thickness_mm": 1.5,
+     "timed_out": false,
+     "unavailable_by_reason": {},
+     "unavailable_nominals": 0,
+     "unsupported_features": [],
+     "wall_s": 7.316,
+     "warning_codes": [
+      "FLAT_NOT_BOUND",
+      "K_FACTOR_DEFAULTED"
+     ]
+    },
+    "v10_strict": {
+     "ambiguous_stages": [],
+     "bends": 12,
+     "blocker_codes": [],
+     "both_sides_required": true,
+     "cad_original_filename": "cad_4d512b5c565a.step",
+     "candidates": 12,
+     "characteristics": 59,
+     "compiled_part_sha256": "40bf6139bc3b491a86e3475394920ad3a7d72b6291aaf183ea5b84f75cc02997",
+     "compiled_status": "COMPILED",
+     "compiler_version": "e1-1.1.0",
+     "confirmation": "DEV_AUTO_CONFIRMED",
+     "content_sha256": "bdb8a6da53f21372e9e628ed431dfd4b3d4abdf6b43fbe7179a65665fa7e636f",
+     "exit_code": 0,
+     "inspection_stage": "FINAL",
+     "k_factor": {
+      "source": "SHOP_DEFAULT",
+      "value": 0.33
+     },
+     "output_bytes": 20170035,
+     "panels": 13,
+     "peak_rss_bytes": 666877952,
+     "reason": null,
+     "recipe_consistency_problems": [],
+     "recipe_file_sha256": "99e8df92c399d1f02c43689003d9a29854c7ba278ff9933c1f3877a4f9fee965",
+     "recipe_sha256": "8130f462749260f0fdf3f80aaf6a1116aa3e906b33c78e95b58962d84db7204e",
+     "rss_exceeded": false,
+     "signal": null,
+     "sku": "DEV-4D512B5C56",
+     "stages": 13,
+     "status": "COMPILED",
+     "thickness_mm": 1.5,
+     "timed_out": false,
+     "unavailable_by_reason": {},
+     "unavailable_nominals": 0,
+     "unsupported_features": [],
+     "wall_s": 7.352,
+     "warning_codes": [
+      "FLAT_NOT_BOUND",
+      "K_FACTOR_DEFAULTED"
+     ]
+    }
+   }
+  },
+  {
+   "build": {
+    "exit_code": 0,
+    "peak_rss_bytes": 345571328,
+    "timed_out": false,
+    "wall_s": 0.644
+   },
+   "cad_aliases": [],
+   "cad_origin": "SOURCE_ASSETS",
+   "cad_rel": "../source-assets/02_CAD_QC_3D/44211000_A.stp",
+   "cad_sha256": "2139ca09b53079ed2ca7db7e07927d6cf8bc316f969cbec1e0ee6af2aabca9c0",
+   "dev_policy_report": {
+    "counts": {
+     "native": 1,
+     "v10": 1
+    },
+    "excluded_by_unsupported_rule": [],
+    "final": 1,
+    "merge_notes": [],
+    "policy": {
+     "sha256": "2ea6e87a73183cc0d3c1db2e75f59172d21ed0e0ce93c4765233c91f95158d5b",
+     "sources": [
+      "v10",
+      "native"
+     ],
+     "version": "E1-DEV-POLICY-1"
+    },
+    "union": 1
+   },
+   "extractor_errors": {},
+   "family": "44211000",
+   "part_id": "44211000",
+   "sku": "DEV-2139CA09B5",
+   "variants": {
+    "dev": {
+     "ambiguous_stages": [],
+     "bends": 1,
+     "blocker_codes": [],
+     "both_sides_required": true,
+     "cad_original_filename": "cad_2139ca09b530.step",
+     "candidates": 1,
+     "characteristics": 4,
+     "compiled_part_sha256": "72513b4aa96385d8bae8304fae371e4a60aa6d5451ece3f969422ed13bca5d7f",
+     "compiled_status": "COMPILED",
+     "compiler_version": "e1-1.1.0",
+     "confirmation": "DEV_AUTO_CONFIRMED",
+     "content_sha256": "a694498d06c7f60fa902fd06752a2f420ac2dd411f63e6708a413c0919938885",
+     "exit_code": 0,
+     "inspection_stage": "FINAL",
+     "k_factor": {
+      "source": "SHOP_DEFAULT",
+      "value": 0.33
+     },
+     "output_bytes": 70684,
+     "panels": 2,
+     "peak_rss_bytes": 393674752,
+     "reason": null,
+     "recipe_consistency_problems": [],
+     "recipe_file_sha256": "838a071b7ba78e119dadbeb5a99e00ef2b91936aedec16691ca7acb27be2856e",
+     "recipe_sha256": "2dfd87eb864005f7e65da85bef433a2072852c44e3c8f75f6b41013ceb576d8f",
+     "rss_exceeded": false,
+     "signal": null,
+     "sku": "DEV-2139CA09B5",
+     "stages": 2,
+     "status": "COMPILED",
+     "thickness_mm": 1.6,
+     "timed_out": false,
+     "unavailable_by_reason": {},
+     "unavailable_nominals": 0,
+     "unsupported_features": [],
+     "wall_s": 0.871,
+     "warning_codes": [
+      "FLAT_NOT_BOUND",
+      "K_FACTOR_DEFAULTED"
+     ]
+    },
+    "native_strict": {
+     "ambiguous_stages": [],
+     "bends": 1,
+     "blocker_codes": [],
+     "both_sides_required": true,
+     "cad_original_filename": "cad_2139ca09b530.step",
+     "candidates": 1,
+     "characteristics": 4,
+     "compiled_part_sha256": "3b3378d30817e5d39c7570c6d9fe3265072c668564c1024af09c6291546d0634",
+     "compiled_status": "COMPILED",
+     "compiler_version": "e1-1.1.0",
+     "confirmation": "DEV_AUTO_CONFIRMED",
+     "content_sha256": "5624e9edf5420ff8e5d7a86690e6b1c779ea9543ec8432991dfcc998ab8970ef",
+     "exit_code": 0,
+     "inspection_stage": "FINAL",
+     "k_factor": {
+      "source": "SHOP_DEFAULT",
+      "value": 0.33
+     },
+     "output_bytes": 70686,
+     "panels": 2,
+     "peak_rss_bytes": 393691136,
+     "reason": null,
+     "recipe_consistency_problems": [],
+     "recipe_file_sha256": "f218d9b14416ee8c0cf750f8f19fd9cc0b3fec4dfd581c1a2fae8fab3e0a39d4",
+     "recipe_sha256": "bd5d52125e424543e41102afa39bbba4e236744165759231a02b7179f6a23595",
+     "rss_exceeded": false,
+     "signal": null,
+     "sku": "DEV-2139CA09B5",
+     "stages": 2,
+     "status": "COMPILED",
+     "thickness_mm": 1.6,
+     "timed_out": false,
+     "unavailable_by_reason": {},
+     "unavailable_nominals": 0,
+     "unsupported_features": [],
+     "wall_s": 0.852,
+     "warning_codes": [
+      "FLAT_NOT_BOUND",
+      "K_FACTOR_DEFAULTED"
+     ]
+    },
+    "v10_strict": {
+     "ambiguous_stages": [],
+     "bends": 1,
+     "blocker_codes": [],
+     "both_sides_required": true,
+     "cad_original_filename": "cad_2139ca09b530.step",
+     "candidates": 1,
+     "characteristics": 4,
+     "compiled_part_sha256": "72513b4aa96385d8bae8304fae371e4a60aa6d5451ece3f969422ed13bca5d7f",
+     "compiled_status": "COMPILED",
+     "compiler_version": "e1-1.1.0",
+     "confirmation": "DEV_AUTO_CONFIRMED",
+     "content_sha256": "a694498d06c7f60fa902fd06752a2f420ac2dd411f63e6708a413c0919938885",
+     "exit_code": 0,
+     "inspection_stage": "FINAL",
+     "k_factor": {
+      "source": "SHOP_DEFAULT",
+      "value": 0.33
+     },
+     "output_bytes": 70685,
+     "panels": 2,
+     "peak_rss_bytes": 393691136,
+     "reason": null,
+     "recipe_consistency_problems": [],
+     "recipe_file_sha256": "838a071b7ba78e119dadbeb5a99e00ef2b91936aedec16691ca7acb27be2856e",
+     "recipe_sha256": "2dfd87eb864005f7e65da85bef433a2072852c44e3c8f75f6b41013ceb576d8f",
+     "rss_exceeded": false,
+     "signal": null,
+     "sku": "DEV-2139CA09B5",
+     "stages": 2,
+     "status": "COMPILED",
+     "thickness_mm": 1.6,
+     "timed_out": false,
+     "unavailable_by_reason": {},
+     "unavailable_nominals": 0,
+     "unsupported_features": [],
+     "wall_s": 0.867,
+     "warning_codes": [
+      "FLAT_NOT_BOUND",
+      "K_FACTOR_DEFAULTED"
+     ]
+    }
+   }
+  },
+  {
+   "build": {
+    "exit_code": 0,
+    "peak_rss_bytes": 461996032,
+    "timed_out": false,
+    "wall_s": 4.087
+   },
+   "cad_aliases": [],
+   "cad_origin": "SOURCE_ASSETS",
+   "cad_rel": "../source-assets/02_CAD_QC_3D/47266000_F.stp",
+   "cad_sha256": "fdf1a1c728d1f1104650b98238c9b26a3c3462aa4dd3302b795431ed5f040ceb",
+   "dev_policy_report": {
+    "counts": {
+     "native": 1,
+     "v10": 1
+    },
+    "excluded_by_unsupported_rule": [],
+    "final": 1,
+    "merge_notes": [],
+    "policy": {
+     "sha256": "2ea6e87a73183cc0d3c1db2e75f59172d21ed0e0ce93c4765233c91f95158d5b",
+     "sources": [
+      "v10",
+      "native"
+     ],
+     "version": "E1-DEV-POLICY-1"
+    },
+    "union": 1
+   },
+   "extractor_errors": {},
+   "family": "47266000",
+   "part_id": "47266000",
+   "sku": "DEV-FDF1A1C728",
+   "variants": {
+    "dev": {
+     "ambiguous_stages": [],
+     "bends": 1,
+     "blocker_codes": [],
+     "both_sides_required": true,
+     "cad_original_filename": "cad_fdf1a1c728d1.step",
+     "candidates": 1,
+     "characteristics": 4,
+     "compiled_part_sha256": "711e853fc9a6f7389ee788a8a955e7a37f5f3f17511fbcda2ecbcb18b75eb833",
+     "compiled_status": "COMPILED",
+     "compiler_version": "e1-1.1.0",
+     "confirmation": "DEV_AUTO_CONFIRMED",
+     "content_sha256": "2aab282525ad6ee82adeb660f54b98371dcfebe1fbff4450186b8b4e914de055",
+     "exit_code": 0,
+     "inspection_stage": "FINAL",
+     "k_factor": {
+      "source": "SHOP_DEFAULT",
+      "value": 0.33
+     },
+     "output_bytes": 947658,
+     "panels": 2,
+     "peak_rss_bytes": 510443520,
+     "reason": null,
+     "recipe_consistency_problems": [],
+     "recipe_file_sha256": "3273829a3a16027eebf22a2aba70b96535cfba53f3050cf60bde05bf409b93b6",
+     "recipe_sha256": "e3bdab805b2f62511fbb6dbaedd18a64691de0b05507da6ebccb6e0742f62151",
+     "rss_exceeded": false,
+     "signal": null,
+     "sku": "DEV-FDF1A1C728",
+     "stages": 2,
+     "status": "COMPILED",
+     "thickness_mm": 3.175,
+     "timed_out": false,
+     "unavailable_by_reason": {
+      "UNSUPPORTED_FEATURE": 2
+     },
+     "unavailable_nominals": 2,
+     "unsupported_features": [
+      "STEPPED_BOSS"
+     ],
+     "wall_s": 3.539,
+     "warning_codes": [
+      "FLAT_NOT_BOUND",
+      "K_FACTOR_DEFAULTED",
+      "UNSUPPORTED_FEATURE"
+     ]
+    },
+    "native_strict": {
+     "ambiguous_stages": [],
+     "bends": 1,
+     "blocker_codes": [],
+     "both_sides_required": true,
+     "cad_original_filename": "cad_fdf1a1c728d1.step",
+     "candidates": 1,
+     "characteristics": 4,
+     "compiled_part_sha256": "681b0558b2588eb936f7a6d4e6ee847c61492e01d8a4c676d69363352d6143e4",
+     "compiled_status": "COMPILED",
+     "compiler_version": "e1-1.1.0",
+     "confirmation": "DEV_AUTO_CONFIRMED",
+     "content_sha256": "6bdbf53d8a841414a36556d37fb984197908a56280c6e302334a5100a55a6432",
+     "exit_code": 0,
+     "inspection_stage": "FINAL",
+     "k_factor": {
+      "source": "SHOP_DEFAULT",
+      "value": 0.33
+     },
+     "output_bytes": 947658,
+     "panels": 2,
+     "peak_rss_bytes": 506789888,
+     "reason": null,
+     "recipe_consistency_problems": [],
+     "recipe_file_sha256": "bd969e271bc554bfc10d8714624359ee567a7f97082fa7695de731c53d768334",
+     "recipe_sha256": "1ec3cb16f19481f7eaf21b006baffc6651e82bb284ebdaea8ed9d995b06868a8",
+     "rss_exceeded": false,
+     "signal": null,
+     "sku": "DEV-FDF1A1C728",
+     "stages": 2,
+     "status": "COMPILED",
+     "thickness_mm": 3.175,
+     "timed_out": false,
+     "unavailable_by_reason": {
+      "UNSUPPORTED_FEATURE": 2
+     },
+     "unavailable_nominals": 2,
+     "unsupported_features": [
+      "STEPPED_BOSS"
+     ],
+     "wall_s": 3.531,
+     "warning_codes": [
+      "FLAT_NOT_BOUND",
+      "K_FACTOR_DEFAULTED",
+      "UNSUPPORTED_FEATURE"
+     ]
+    },
+    "v10_strict": {
+     "ambiguous_stages": [],
+     "bends": 1,
+     "blocker_codes": [],
+     "both_sides_required": true,
+     "cad_original_filename": "cad_fdf1a1c728d1.step",
+     "candidates": 1,
+     "characteristics": 4,
+     "compiled_part_sha256": "711e853fc9a6f7389ee788a8a955e7a37f5f3f17511fbcda2ecbcb18b75eb833",
+     "compiled_status": "COMPILED",
+     "compiler_version": "e1-1.1.0",
+     "confirmation": "DEV_AUTO_CONFIRMED",
+     "content_sha256": "2aab282525ad6ee82adeb660f54b98371dcfebe1fbff4450186b8b4e914de055",
+     "exit_code": 0,
+     "inspection_stage": "FINAL",
+     "k_factor": {
+      "source": "SHOP_DEFAULT",
+      "value": 0.33
+     },
+     "output_bytes": 947657,
+     "panels": 2,
+     "peak_rss_bytes": 509984768,
+     "reason": null,
+     "recipe_consistency_problems": [],
+     "recipe_file_sha256": "3273829a3a16027eebf22a2aba70b96535cfba53f3050cf60bde05bf409b93b6",
+     "recipe_sha256": "e3bdab805b2f62511fbb6dbaedd18a64691de0b05507da6ebccb6e0742f62151",
+     "rss_exceeded": false,
+     "signal": null,
+     "sku": "DEV-FDF1A1C728",
+     "stages": 2,
+     "status": "COMPILED",
+     "thickness_mm": 3.175,
+     "timed_out": false,
+     "unavailable_by_reason": {
+      "UNSUPPORTED_FEATURE": 2
+     },
+     "unavailable_nominals": 2,
+     "unsupported_features": [
+      "STEPPED_BOSS"
+     ],
+     "wall_s": 3.601,
+     "warning_codes": [
+      "FLAT_NOT_BOUND",
+      "K_FACTOR_DEFAULTED",
+      "UNSUPPORTED_FEATURE"
+     ]
+    }
+   }
+  },
+  {
+   "build": {
+    "exit_code": 0,
+    "peak_rss_bytes": 371048448,
+    "timed_out": false,
+    "wall_s": 1.921
+   },
+   "cad_aliases": [],
+   "cad_origin": "SOURCE_ASSETS",
+   "cad_rel": "../source-assets/02_CAD_QC_3D/47479000_C.stp",
+   "cad_sha256": "ada91a64c69de1badfa0a64c633d0fe428a9a178fb168ea24cb4b9bd3c1f5b1f",
+   "dev_policy_report": {
+    "counts": {
+     "native": 1,
+     "v10": 0
+    },
+    "merge_error": "GraphError: DATUM_PANEL_UNDETERMINED: the CAD has no planar flange panel joined by a bend",
+    "policy": {
+     "sha256": "2ea6e87a73183cc0d3c1db2e75f59172d21ed0e0ce93c4765233c91f95158d5b",
+     "sources": [
+      "v10",
+      "native"
+     ],
+     "version": "E1-DEV-POLICY-1"
+    },
+    "union": 1
+   },
+   "extractor_errors": {},
+   "family": "47479000",
+   "part_id": "47479000",
+   "sku": "DEV-ADA91A64C6",
+   "variants": {
+    "dev": {
+     "ambiguous_stages": [],
+     "bends": 0,
+     "blocker_codes": [
+      "DATUM_PANEL_UNDETERMINED"
+     ],
+     "both_sides_required": true,
+     "cad_original_filename": "cad_ada91a64c69d.step",
+     "candidates": 1,
+     "characteristics": 0,
+     "compiled_part_sha256": "cdeb7b32e0ee1588b1f7db52d983ec4bba33bdb971f3093a2a0169bd7ff4631c",
+     "compiled_status": "BLOCKED",
+     "compiler_version": "e1-1.1.0",
+     "confirmation": "DEV_AUTO_CONFIRMED",
+     "content_sha256": "8f95fc0c1aeddc314ea683b82283238d6c4d3283420cd53493dea11f3011fb5f",
+     "exit_code": 2,
+     "inspection_stage": "FINAL",
+     "k_factor": null,
+     "output_bytes": 2189,
+     "panels": 0,
+     "peak_rss_bytes": 365903872,
+     "reason": "DATUM_PANEL_UNDETERMINED",
+     "recipe_consistency_problems": [],
+     "recipe_file_sha256": "2540e3d05b0749c8527b1ff8a72c532d8c7e0d731d4bd28199779aa500103b02",
+     "recipe_sha256": "aab0325c88bb57f185e02f5ce5fc686a41e76fbe5f2634152fa9fd12774463ba",
+     "rss_exceeded": false,
+     "signal": null,
+     "sku": "DEV-ADA91A64C6",
+     "stages": 0,
+     "status": "BLOCKED",
+     "thickness_mm": null,
+     "timed_out": false,
+     "unavailable_by_reason": {},
+     "unavailable_nominals": 0,
+     "unsupported_features": [],
+     "wall_s": 0.997,
+     "warning_codes": []
+    },
+    "native_strict": {
+     "ambiguous_stages": [],
+     "bends": 0,
+     "blocker_codes": [
+      "DATUM_PANEL_UNDETERMINED"
+     ],
+     "both_sides_required": true,
+     "cad_original_filename": "cad_ada91a64c69d.step",
+     "candidates": 1,
+     "characteristics": 0,
+     "compiled_part_sha256": "cdeb7b32e0ee1588b1f7db52d983ec4bba33bdb971f3093a2a0169bd7ff4631c",
+     "compiled_status": "BLOCKED",
+     "compiler_version": "e1-1.1.0",
+     "confirmation": "DEV_AUTO_CONFIRMED",
+     "content_sha256": "8f95fc0c1aeddc314ea683b82283238d6c4d3283420cd53493dea11f3011fb5f",
+     "exit_code": 2,
+     "inspection_stage": "FINAL",
+     "k_factor": null,
+     "output_bytes": 2189,
+     "panels": 0,
+     "peak_rss_bytes": 365871104,
+     "reason": "DATUM_PANEL_UNDETERMINED",
+     "recipe_consistency_problems": [],
+     "recipe_file_sha256": "2540e3d05b0749c8527b1ff8a72c532d8c7e0d731d4bd28199779aa500103b02",
+     "recipe_sha256": "aab0325c88bb57f185e02f5ce5fc686a41e76fbe5f2634152fa9fd12774463ba",
+     "rss_exceeded": false,
+     "signal": null,
+     "sku": "DEV-ADA91A64C6",
+     "stages": 0,
+     "status": "BLOCKED",
+     "thickness_mm": null,
+     "timed_out": false,
+     "unavailable_by_reason": {},
+     "unavailable_nominals": 0,
+     "unsupported_features": [],
+     "wall_s": 1.009,
+     "warning_codes": []
+    },
+    "v10_strict": {
+     "candidates": 0,
+     "reason": "NO_CANDIDATE_BENDS",
+     "status": "NO_RECIPE"
+    }
+   }
+  },
+  {
+   "build": {
+    "exit_code": 0,
+    "peak_rss_bytes": 351600640,
+    "timed_out": false,
+    "wall_s": 1.007
+   },
+   "cad_aliases": [],
+   "cad_origin": "SOURCE_ASSETS",
+   "cad_rel": "../source-assets/02_CAD_QC_3D/48811000_A.stp",
+   "cad_sha256": "8ce6789edeacf6b8b32627868670ed7b6afdf95839bc5f6b686df9565d343a47",
+   "dev_policy_report": {
+    "counts": {
+     "native": 4,
+     "v10": 4
+    },
+    "excluded_by_unsupported_rule": [],
+    "final": 4,
+    "merge_notes": [
+     "merged 2 pieces of graph bend G4"
+    ],
+    "policy": {
+     "sha256": "2ea6e87a73183cc0d3c1db2e75f59172d21ed0e0ce93c4765233c91f95158d5b",
+     "sources": [
+      "v10",
+      "native"
+     ],
+     "version": "E1-DEV-POLICY-1"
+    },
+    "union": 5
+   },
+   "extractor_errors": {},
+   "family": "48811000",
+   "part_id": "48811000",
+   "sku": "DEV-8CE6789EDE",
+   "variants": {
+    "dev": {
+     "ambiguous_stages": [],
+     "bends": 4,
+     "blocker_codes": [],
+     "both_sides_required": true,
+     "cad_original_filename": "cad_8ce6789edeac.step",
+     "candidates": 4,
+     "characteristics": 19,
+     "compiled_part_sha256": "f8475583183b86f8b0dea0df9b85a217c001bbc4bf53a4f11bfaa1ee7edf0f5d",
+     "compiled_status": "COMPILED",
+     "compiler_version": "e1-1.1.0",
+     "confirmation": "DEV_AUTO_CONFIRMED",
+     "content_sha256": "cc3cbba4552ea937fcedf9446ba19b8d4890b6a6e5594ff59b256410751cdaca",
+     "exit_code": 0,
+     "inspection_stage": "FINAL",
+     "k_factor": {
+      "source": "SHOP_DEFAULT",
+      "value": 0.33
+     },
+     "output_bytes": 1268192,
+     "panels": 5,
+     "peak_rss_bytes": 417120256,
+     "reason": null,
+     "recipe_consistency_problems": [],
+     "recipe_file_sha256": "ed493e48c78b9c9946f5a7c97fccd7febcaa4d28f43be7fd72a6170cd3825452",
+     "recipe_sha256": "34c5326faa0ee6b876e9a55b846484ec2b1a329edd3abdec356d9a0c7b449aa9",
+     "rss_exceeded": false,
+     "signal": null,
+     "sku": "DEV-8CE6789EDE",
+     "stages": 5,
+     "status": "COMPILED",
+     "thickness_mm": 2.0,
+     "timed_out": false,
+     "unavailable_by_reason": {},
+     "unavailable_nominals": 0,
+     "unsupported_features": [],
+     "wall_s": 1.979,
+     "warning_codes": [
+      "FLAT_NOT_BOUND",
+      "K_FACTOR_DEFAULTED"
+     ]
+    },
+    "native_strict": {
+     "ambiguous_stages": [],
+     "bends": 4,
+     "blocker_codes": [],
+     "both_sides_required": true,
+     "cad_original_filename": "cad_8ce6789edeac.step",
+     "candidates": 4,
+     "characteristics": 19,
+     "compiled_part_sha256": "2be83f6afe98bd6bb1af7a3f62e3ea1b4a48b54ad901e70d8ca86363e84e958d",
+     "compiled_status": "COMPILED",
+     "compiler_version": "e1-1.1.0",
+     "confirmation": "DEV_AUTO_CONFIRMED",
+     "content_sha256": "9f75f25fbf3b28fcb1137c081ed055c89c07d52d1918c2850eca93d1d5d01f73",
+     "exit_code": 0,
+     "inspection_stage": "FINAL",
+     "k_factor": {
+      "source": "SHOP_DEFAULT",
+      "value": 0.33
+     },
+     "output_bytes": 1268455,
+     "panels": 5,
+     "peak_rss_bytes": 417677312,
+     "reason": null,
+     "recipe_consistency_problems": [],
+     "recipe_file_sha256": "ab22b21a08d09e5da05c5265d452e5b71d3cd149bd3df783c4c377e588845da7",
+     "recipe_sha256": "2cbba8083293e8034be60dfacea1a5a62d803ab4411db7dfc7607498952a6526",
+     "rss_exceeded": false,
+     "signal": null,
+     "sku": "DEV-8CE6789EDE",
+     "stages": 5,
+     "status": "COMPILED",
+     "thickness_mm": 2.0,
+     "timed_out": false,
+     "unavailable_by_reason": {},
+     "unavailable_nominals": 0,
+     "unsupported_features": [],
+     "wall_s": 1.96,
+     "warning_codes": [
+      "FLAT_NOT_BOUND",
+      "K_FACTOR_DEFAULTED"
+     ]
+    },
+    "v10_strict": {
+     "ambiguous_stages": [],
+     "bends": 4,
+     "blocker_codes": [],
+     "both_sides_required": true,
+     "cad_original_filename": "cad_8ce6789edeac.step",
+     "candidates": 4,
+     "characteristics": 19,
+     "compiled_part_sha256": "4f29c351f93686b8e6e315c72ee85c4eee61ebf2e7f91b7bb55420e86a379475",
+     "compiled_status": "COMPILED",
+     "compiler_version": "e1-1.1.0",
+     "confirmation": "DEV_AUTO_CONFIRMED",
+     "content_sha256": "c2a523e27489cb323dad3cdf5bb39800f3d49f93aebcc4c08181751622bd03df",
+     "exit_code": 0,
+     "inspection_stage": "FINAL",
+     "k_factor": {
+      "source": "SHOP_DEFAULT",
+      "value": 0.33
+     },
+     "output_bytes": 1268192,
+     "panels": 5,
+     "peak_rss_bytes": 417988608,
+     "reason": null,
+     "recipe_consistency_problems": [],
+     "recipe_file_sha256": "8b55d374c761cce596cba9cb3c9b732b26d463cf5f29fb5f3e2d520a93d52aa1",
+     "recipe_sha256": "f0cbf53b007134b8069f7f6ddcc03286fa9c23a746476a874041506190035e58",
+     "rss_exceeded": false,
+     "signal": null,
+     "sku": "DEV-8CE6789EDE",
+     "stages": 5,
+     "status": "COMPILED",
+     "thickness_mm": 2.0,
+     "timed_out": false,
+     "unavailable_by_reason": {},
+     "unavailable_nominals": 0,
+     "unsupported_features": [],
+     "wall_s": 1.933,
+     "warning_codes": [
+      "FLAT_NOT_BOUND",
+      "K_FACTOR_DEFAULTED"
+     ]
+    }
+   }
+  },
+  {
+   "build": {
+    "exit_code": 0,
+    "peak_rss_bytes": 355778560,
+    "timed_out": false,
+    "wall_s": 1.094
+   },
+   "cad_aliases": [],
+   "cad_origin": "SOURCE_ASSETS",
+   "cad_rel": "../source-assets/02_CAD_QC_3D/49024000_A.stp",
+   "cad_sha256": "3cdfcba8fbea3735e3c9b3610b69ccab2bc8bf681919ef2c86839693ef54479f",
+   "dev_policy_report": {
+    "counts": {
+     "native": 3,
+     "v10": 3
+    },
+    "excluded_by_unsupported_rule": [],
+    "final": 3,
+    "merge_notes": [],
+    "policy": {
+     "sha256": "2ea6e87a73183cc0d3c1db2e75f59172d21ed0e0ce93c4765233c91f95158d5b",
+     "sources": [
+      "v10",
+      "native"
+     ],
+     "version": "E1-DEV-POLICY-1"
+    },
+    "union": 3
+   },
+   "extractor_errors": {},
+   "family": "49024000",
+   "part_id": "49024000",
+   "sku": "DEV-3CDFCBA8FB",
+   "variants": {
+    "dev": {
+     "ambiguous_stages": [],
+     "bends": 3,
+     "blocker_codes": [],
+     "both_sides_required": true,
+     "cad_original_filename": "cad_3cdfcba8fbea.step",
+     "candidates": 3,
+     "characteristics": 14,
+     "compiled_part_sha256": "83de015eed775bab2719efc21835dd4461cfec9881836653526ed932e0ea016c",
+     "compiled_status": "COMPILED",
+     "compiler_version": "e1-1.1.0",
+     "confirmation": "DEV_AUTO_CONFIRMED",
+     "content_sha256": "91e98ebe02b5d5b842876d85e2a7ea48925739fe0bbca0dafcb8050bd7fd6cd2",
+     "exit_code": 0,
+     "inspection_stage": "FINAL",
+     "k_factor": {
+      "source": "SHOP_DEFAULT",
+      "value": 0.33
+     },
+     "output_bytes": 738121,
+     "panels": 4,
+     "peak_rss_bytes": 407289856,
+     "reason": null,
+     "recipe_consistency_problems": [],
+     "recipe_file_sha256": "69119a70c4530fb4554dc31d9f8592f880b73cea8ffdef7717585ee57cdd7c4f",
+     "recipe_sha256": "126eeb0a26110394d7c7a3f1a9c20511e766b86c3eeb2583f3811a6ec2e91408",
+     "rss_exceeded": false,
+     "signal": null,
+     "sku": "DEV-3CDFCBA8FB",
+     "stages": 4,
+     "status": "COMPILED",
+     "thickness_mm": 3.0,
+     "timed_out": false,
+     "unavailable_by_reason": {},
+     "unavailable_nominals": 0,
+     "unsupported_features": [],
+     "wall_s": 1.534,
+     "warning_codes": [
+      "FLAT_NOT_BOUND",
+      "K_FACTOR_DEFAULTED"
+     ]
+    },
+    "native_strict": {
+     "ambiguous_stages": [],
+     "bends": 3,
+     "blocker_codes": [],
+     "both_sides_required": true,
+     "cad_original_filename": "cad_3cdfcba8fbea.step",
+     "candidates": 3,
+     "characteristics": 14,
+     "compiled_part_sha256": "9bf9034f509bbac655835bca8c51120c5b8d87ad8352aca08c294eb466ccef67",
+     "compiled_status": "COMPILED",
+     "compiler_version": "e1-1.1.0",
+     "confirmation": "DEV_AUTO_CONFIRMED",
+     "content_sha256": "b555211aaf0426c816dec79a4ac9d9aff7205f3779cd5e02bc049379a13b4948",
+     "exit_code": 0,
+     "inspection_stage": "FINAL",
+     "k_factor": {
+      "source": "SHOP_DEFAULT",
+      "value": 0.33
+     },
+     "output_bytes": 738112,
+     "panels": 4,
+     "peak_rss_bytes": 406978560,
+     "reason": null,
+     "recipe_consistency_problems": [],
+     "recipe_file_sha256": "53edf8d3296a4788a8c36253810db8bf7063a1a09440720c6111eeb22eaee213",
+     "recipe_sha256": "2a2a9f18d9ad06a886f6a03dfa8a62b58220d529b1da598edc49cfa757a065b7",
+     "rss_exceeded": false,
+     "signal": null,
+     "sku": "DEV-3CDFCBA8FB",
+     "stages": 4,
+     "status": "COMPILED",
+     "thickness_mm": 3.0,
+     "timed_out": false,
+     "unavailable_by_reason": {},
+     "unavailable_nominals": 0,
+     "unsupported_features": [],
+     "wall_s": 1.524,
+     "warning_codes": [
+      "FLAT_NOT_BOUND",
+      "K_FACTOR_DEFAULTED"
+     ]
+    },
+    "v10_strict": {
+     "ambiguous_stages": [],
+     "bends": 3,
+     "blocker_codes": [],
+     "both_sides_required": true,
+     "cad_original_filename": "cad_3cdfcba8fbea.step",
+     "candidates": 3,
+     "characteristics": 14,
+     "compiled_part_sha256": "83de015eed775bab2719efc21835dd4461cfec9881836653526ed932e0ea016c",
+     "compiled_status": "COMPILED",
+     "compiler_version": "e1-1.1.0",
+     "confirmation": "DEV_AUTO_CONFIRMED",
+     "content_sha256": "91e98ebe02b5d5b842876d85e2a7ea48925739fe0bbca0dafcb8050bd7fd6cd2",
+     "exit_code": 0,
+     "inspection_stage": "FINAL",
+     "k_factor": {
+      "source": "SHOP_DEFAULT",
+      "value": 0.33
+     },
+     "output_bytes": 738122,
+     "panels": 4,
+     "peak_rss_bytes": 406913024,
+     "reason": null,
+     "recipe_consistency_problems": [],
+     "recipe_file_sha256": "69119a70c4530fb4554dc31d9f8592f880b73cea8ffdef7717585ee57cdd7c4f",
+     "recipe_sha256": "126eeb0a26110394d7c7a3f1a9c20511e766b86c3eeb2583f3811a6ec2e91408",
+     "rss_exceeded": false,
+     "signal": null,
+     "sku": "DEV-3CDFCBA8FB",
+     "stages": 4,
+     "status": "COMPILED",
+     "thickness_mm": 3.0,
+     "timed_out": false,
+     "unavailable_by_reason": {},
+     "unavailable_nominals": 0,
+     "unsupported_features": [],
+     "wall_s": 1.512,
+     "warning_codes": [
+      "FLAT_NOT_BOUND",
+      "K_FACTOR_DEFAULTED"
+     ]
+    }
+   }
+  },
+  {
+   "build": {
+    "exit_code": 0,
+    "peak_rss_bytes": 362397696,
+    "timed_out": false,
+    "wall_s": 1.51
+   },
+   "cad_aliases": [],
+   "cad_origin": "SOURCE_ASSETS",
+   "cad_rel": "../source-assets/02_CAD_QC_3D/49204020_04.stp",
+   "cad_sha256": "7a0e66894fbf21c527972805b015e7e7b92db0437b255e18688945b73b191d42",
+   "dev_policy_report": {
+    "counts": {
+     "native": 12,
+     "v10": 12
+    },
+    "excluded_by_unsupported_rule": [],
+    "final": 12,
+    "merge_notes": [],
+    "policy": {
+     "sha256": "2ea6e87a73183cc0d3c1db2e75f59172d21ed0e0ce93c4765233c91f95158d5b",
+     "sources": [
+      "v10",
+      "native"
+     ],
+     "version": "E1-DEV-POLICY-1"
+    },
+    "union": 12
+   },
+   "extractor_errors": {},
+   "family": "49204020",
+   "part_id": "49204020",
+   "sku": "DEV-7A0E66894F",
+   "variants": {
+    "dev": {
+     "ambiguous_stages": [],
+     "bends": 12,
+     "blocker_codes": [],
+     "both_sides_required": true,
+     "cad_original_filename": "cad_7a0e66894fbf.step",
+     "candidates": 12,
+     "characteristics": 59,
+     "compiled_part_sha256": "b1b11f96ef55f95bba6a2f972c8fa954b71acea6ccb3690de4f28e186460d019",
+     "compiled_status": "COMPILED",
+     "compiler_version": "e1-1.1.0",
+     "confirmation": "DEV_AUTO_CONFIRMED",
+     "content_sha256": "727bb4f350176e6b3bc2c6ec37a283b4af97655fcadb3d971494e47e1b3f75f9",
+     "exit_code": 0,
+     "inspection_stage": "FINAL",
+     "k_factor": {
+      "source": "SHOP_DEFAULT",
+      "value": 0.33
+     },
+     "output_bytes": 15216666,
+     "panels": 13,
+     "peak_rss_bytes": 569278464,
+     "reason": null,
+     "recipe_consistency_problems": [],
+     "recipe_file_sha256": "a3bd0ae5afed6d385380f6942edae7a6a3329ee0c6ef9a4a80da3fb73f96fc8a",
+     "recipe_sha256": "36ad97dccdff31e82e05c3c8e7ab9808ecaf6ce4f501fc0b070fb70797d37534",
+     "rss_exceeded": false,
+     "signal": null,
+     "sku": "DEV-7A0E66894F",
+     "stages": 13,
+     "status": "COMPILED",
+     "thickness_mm": 2.0,
+     "timed_out": false,
+     "unavailable_by_reason": {},
+     "unavailable_nominals": 0,
+     "unsupported_features": [],
+     "wall_s": 5.546,
+     "warning_codes": [
+      "FLAT_NOT_BOUND",
+      "K_FACTOR_DEFAULTED"
+     ]
+    },
+    "native_strict": {
+     "ambiguous_stages": [],
+     "bends": 12,
+     "blocker_codes": [],
+     "both_sides_required": true,
+     "cad_original_filename": "cad_7a0e66894fbf.step",
+     "candidates": 12,
+     "characteristics": 59,
+     "compiled_part_sha256": "7f314fd888ebf14fce7f74a6ae0fa43fb1fe38f80e11af81fe4b8479231ad53f",
+     "compiled_status": "COMPILED",
+     "compiler_version": "e1-1.1.0",
+     "confirmation": "DEV_AUTO_CONFIRMED",
+     "content_sha256": "cecbad24a6db328607d45a8a4e9eaa64c731e2ad6e0472923019520e653ae77b",
+     "exit_code": 0,
+     "inspection_stage": "FINAL",
+     "k_factor": {
+      "source": "SHOP_DEFAULT",
+      "value": 0.33
+     },
+     "output_bytes": 15216665,
+     "panels": 13,
+     "peak_rss_bytes": 568999936,
+     "reason": null,
+     "recipe_consistency_problems": [],
+     "recipe_file_sha256": "15e160ecc1dfef4a2581fe9eab90ebab555326f931105ea6afac467f014dbf4b",
+     "recipe_sha256": "ab177b79f95a5723407bb80e2657c8b9d8fd5dfbc9456675d62da0977c31681c",
+     "rss_exceeded": false,
+     "signal": null,
+     "sku": "DEV-7A0E66894F",
+     "stages": 13,
+     "status": "COMPILED",
+     "thickness_mm": 2.0,
+     "timed_out": false,
+     "unavailable_by_reason": {},
+     "unavailable_nominals": 0,
+     "unsupported_features": [],
+     "wall_s": 5.662,
+     "warning_codes": [
+      "FLAT_NOT_BOUND",
+      "K_FACTOR_DEFAULTED"
+     ]
+    },
+    "v10_strict": {
+     "ambiguous_stages": [],
+     "bends": 12,
+     "blocker_codes": [],
+     "both_sides_required": true,
+     "cad_original_filename": "cad_7a0e66894fbf.step",
+     "candidates": 12,
+     "characteristics": 59,
+     "compiled_part_sha256": "b1b11f96ef55f95bba6a2f972c8fa954b71acea6ccb3690de4f28e186460d019",
+     "compiled_status": "COMPILED",
+     "compiler_version": "e1-1.1.0",
+     "confirmation": "DEV_AUTO_CONFIRMED",
+     "content_sha256": "727bb4f350176e6b3bc2c6ec37a283b4af97655fcadb3d971494e47e1b3f75f9",
+     "exit_code": 0,
+     "inspection_stage": "FINAL",
+     "k_factor": {
+      "source": "SHOP_DEFAULT",
+      "value": 0.33
+     },
+     "output_bytes": 15216665,
+     "panels": 13,
+     "peak_rss_bytes": 568803328,
+     "reason": null,
+     "recipe_consistency_problems": [],
+     "recipe_file_sha256": "a3bd0ae5afed6d385380f6942edae7a6a3329ee0c6ef9a4a80da3fb73f96fc8a",
+     "recipe_sha256": "36ad97dccdff31e82e05c3c8e7ab9808ecaf6ce4f501fc0b070fb70797d37534",
+     "rss_exceeded": false,
+     "signal": null,
+     "sku": "DEV-7A0E66894F",
+     "stages": 13,
+     "status": "COMPILED",
+     "thickness_mm": 2.0,
+     "timed_out": false,
+     "unavailable_by_reason": {},
+     "unavailable_nominals": 0,
+     "unsupported_features": [],
+     "wall_s": 5.643,
+     "warning_codes": [
+      "FLAT_NOT_BOUND",
+      "K_FACTOR_DEFAULTED"
+     ]
+    }
+   }
+  },
+  {
+   "build": {
+    "exit_code": 0,
+    "peak_rss_bytes": 397754368,
+    "timed_out": false,
+    "wall_s": 1.215
+   },
+   "cad_aliases": [
+    "Default (1).stp"
+   ],
+   "cad_origin": "SOURCE_ASSETS",
+   "cad_rel": "../source-assets/02_CAD_QC_3D/Default.stp",
+   "cad_sha256": "85940820151ea94e607d30d46c6731dfbe09f2b94b8664cba26e0d99d1f6919f",
+   "dev_policy_report": {
+    "counts": {
+     "native": 3,
+     "v10": 1
+    },
+    "excluded_by_unsupported_rule": [
+     {
+      "candidate": 1,
+      "faces": [
+       0,
+       4
+      ],
+      "line_end": [
+       -25.687278,
+       -27.662723,
+       0.0
+      ],
+      "line_start": [
+       -25.687278,
+       -27.662723,
+       -76.5
+      ],
+      "rule": "OTHER"
+     },
+     {
+      "candidate": 2,
+      "faces": [
+       0,
+       4,
+       5,
+       27
+      ],
+      "line_end": [
+       -32.576466,
+       19.144981,
+       -7.5
+      ],
+      "line_start": [
+       -32.576466,
+       19.144981,
+       -76.5
+      ],
+      "rule": "ROLLED"
+     }
+    ],
+    "final": 1,
+    "merge_notes": [],
+    "policy": {
+     "sha256": "2ea6e87a73183cc0d3c1db2e75f59172d21ed0e0ce93c4765233c91f95158d5b",
+     "sources": [
+      "v10",
+      "native"
+     ],
+     "version": "E1-DEV-POLICY-1"
+    },
+    "union": 3
+   },
+   "extractor_errors": {},
+   "family": null,
+   "part_id": null,
+   "sku": "DEV-8594082015",
+   "variants": {
+    "dev": {
+     "ambiguous_stages": [],
+     "bends": 1,
+     "blocker_codes": [],
+     "both_sides_required": true,
+     "cad_original_filename": "cad_85940820151e.step",
+     "candidates": 1,
+     "characteristics": 4,
+     "compiled_part_sha256": "f1d2d419835193e03bc43dc7724c0dd5911b208e541fdf78e524e377f8201916",
+     "compiled_status": "COMPILED",
+     "compiler_version": "e1-1.1.0",
+     "confirmation": "DEV_AUTO_CONFIRMED",
+     "content_sha256": "8be01c2912d8eb640c28bab301b945c1b5290e256870c06bdcd205322b883118",
+     "exit_code": 0,
+     "inspection_stage": "FINAL",
+     "k_factor": {
+      "source": "SHOP_DEFAULT",
+      "value": 0.33
+     },
+     "output_bytes": 461168,
+     "panels": 2,
+     "peak_rss_bytes": 418234368,
+     "reason": null,
+     "recipe_consistency_problems": [],
+     "recipe_file_sha256": "e0b259a443662d52a2aae08c03aebb104ff39543acece60d600e8a0975d9e208",
+     "recipe_sha256": "2401cd76a71d0201567292ef21403320f3ad07084bd7ec279dca8dba30136a06",
+     "rss_exceeded": false,
+     "signal": null,
+     "sku": "DEV-8594082015",
+     "stages": 2,
+     "status": "COMPILED",
+     "thickness_mm": 1.5,
+     "timed_out": false,
+     "unavailable_by_reason": {
+      "UNSUPPORTED_FEATURE": 2
+     },
+     "unavailable_nominals": 2,
+     "unsupported_features": [
+      "ROLLED",
+      "STEPPED_BOSS",
+      "OTHER",
+      "OTHER",
+      "OTHER",
+      "OTHER",
+      "OTHER",
+      "OTHER",
+      "OTHER",
+      "OTHER",
+      "OTHER",
+      "OTHER",
+      "OTHER",
+      "OTHER",
+      "OTHER"
+     ],
+     "wall_s": 1.629,
+     "warning_codes": [
+      "FLAT_NOT_BOUND",
+      "K_FACTOR_DEFAULTED",
+      "UNSUPPORTED_FEATURE"
+     ]
+    },
+    "native_strict": {
+     "ambiguous_stages": [],
+     "bends": 0,
+     "blocker_codes": [
+      "MARK_NOT_IN_FLANGE_GRAPH"
+     ],
+     "both_sides_required": true,
+     "cad_original_filename": "cad_85940820151e.step",
+     "candidates": 3,
+     "characteristics": 0,
+     "compiled_part_sha256": "094ff86d85b156b6cbc1e84f929617226be670c113aaabaa16e26021032ad7d3",
+     "compiled_status": "BLOCKED",
+     "compiler_version": "e1-1.1.0",
+     "confirmation": "DEV_AUTO_CONFIRMED",
+     "content_sha256": "ebdb15a70ff73d4070d4d7f77b38d08773fa657592e21c2c0e0d9d6783fcaf16",
+     "exit_code": 2,
+     "inspection_stage": "FINAL",
+     "k_factor": null,
+     "output_bytes": 9893,
+     "panels": 2,
+     "peak_rss_bytes": 395689984,
+     "reason": "MARK_NOT_IN_FLANGE_GRAPH",
+     "recipe_consistency_problems": [],
+     "recipe_file_sha256": "a4d006f971e191dcc05b7058723bdb1ba0fb71b4f98f30ae13097dac0fa515d0",
+     "recipe_sha256": "dde55631a69eb55ae9f4f0af8058e76ab9dd8c7ceacc486bebb8fa7507a123ff",
+     "rss_exceeded": false,
+     "signal": null,
+     "sku": "DEV-8594082015",
+     "stages": 0,
+     "status": "BLOCKED",
+     "thickness_mm": 1.5,
+     "timed_out": false,
+     "unavailable_by_reason": {},
+     "unavailable_nominals": 0,
+     "unsupported_features": [
+      "ROLLED",
+      "STEPPED_BOSS"
+     ],
+     "wall_s": 0.971,
+     "warning_codes": [
+      "UNSUPPORTED_FEATURE"
+     ]
+    },
+    "v10_strict": {
+     "ambiguous_stages": [],
+     "bends": 1,
+     "blocker_codes": [],
+     "both_sides_required": true,
+     "cad_original_filename": "cad_85940820151e.step",
+     "candidates": 1,
+     "characteristics": 4,
+     "compiled_part_sha256": "f1d2d419835193e03bc43dc7724c0dd5911b208e541fdf78e524e377f8201916",
+     "compiled_status": "COMPILED",
+     "compiler_version": "e1-1.1.0",
+     "confirmation": "DEV_AUTO_CONFIRMED",
+     "content_sha256": "8be01c2912d8eb640c28bab301b945c1b5290e256870c06bdcd205322b883118",
+     "exit_code": 0,
+     "inspection_stage": "FINAL",
+     "k_factor": {
+      "source": "SHOP_DEFAULT",
+      "value": 0.33
+     },
+     "output_bytes": 461167,
+     "panels": 2,
+     "peak_rss_bytes": 418217984,
+     "reason": null,
+     "recipe_consistency_problems": [],
+     "recipe_file_sha256": "e0b259a443662d52a2aae08c03aebb104ff39543acece60d600e8a0975d9e208",
+     "recipe_sha256": "2401cd76a71d0201567292ef21403320f3ad07084bd7ec279dca8dba30136a06",
+     "rss_exceeded": false,
+     "signal": null,
+     "sku": "DEV-8594082015",
+     "stages": 2,
+     "status": "COMPILED",
+     "thickness_mm": 1.5,
+     "timed_out": false,
+     "unavailable_by_reason": {
+      "UNSUPPORTED_FEATURE": 2
+     },
+     "unavailable_nominals": 2,
+     "unsupported_features": [
+      "ROLLED",
+      "STEPPED_BOSS",
+      "OTHER",
+      "OTHER",
+      "OTHER",
+      "OTHER",
+      "OTHER",
+      "OTHER",
+      "OTHER",
+      "OTHER",
+      "OTHER",
+      "OTHER",
+      "OTHER",
+      "OTHER",
+      "OTHER"
+     ],
+     "wall_s": 1.66,
+     "warning_codes": [
+      "FLAT_NOT_BOUND",
+      "K_FACTOR_DEFAULTED",
+      "UNSUPPORTED_FEATURE"
+     ]
+    }
+   }
+  },
+  {
+   "build": {
+    "exit_code": 0,
+    "peak_rss_bytes": 341049344,
+    "timed_out": false,
+    "wall_s": 0.587
+   },
+   "cad_aliases": [],
+   "cad_origin": "EXTERNAL_CONSUMED",
+   "cad_rel": "data/bend_corpus/incoming_email_2026-10-17/20260129_19c08b45/37126000_D.stp",
+   "cad_sha256": "da738a95faecd900fb45600cc3e42638013a64e090e7c59d516b7b6de74ae3fb",
+   "dev_policy_report": {
+    "counts": {
+     "native": 0,
+     "v10": 0
+    },
+    "policy": {
+     "sha256": "2ea6e87a73183cc0d3c1db2e75f59172d21ed0e0ce93c4765233c91f95158d5b",
+     "sources": [
+      "v10",
+      "native"
+     ],
+     "version": "E1-DEV-POLICY-1"
+    },
+    "union": 0
+   },
+   "extractor_errors": {},
+   "family": "37126000",
+   "part_id": "37126000",
+   "sku": "DEV-DA738A95FA",
+   "variants": {
+    "dev": {
+     "candidates": 0,
+     "reason": "NO_CANDIDATE_BENDS",
+     "status": "NO_RECIPE"
+    },
+    "native_strict": {
+     "candidates": 0,
+     "reason": "NO_CANDIDATE_BENDS",
+     "status": "NO_RECIPE"
+    },
+    "v10_strict": {
+     "candidates": 0,
+     "reason": "NO_CANDIDATE_BENDS",
+     "status": "NO_RECIPE"
+    }
+   }
+  },
+  {
+   "build": {
+    "exit_code": 0,
+    "peak_rss_bytes": 355647488,
+    "timed_out": false,
+    "wall_s": 1.156
+   },
+   "cad_aliases": [],
+   "cad_origin": "EXTERNAL_CONSUMED",
+   "cad_rel": "data/bend_corpus/incoming_email_2026-10-17/20260813_19ffb1c9/G75141A-B-PD-G75141A.step",
+   "cad_sha256": "6eef41042436832e06e1fee4e71c648a75f589d4ede9efde0df35241b2a97c93",
+   "dev_policy_report": {
+    "counts": {
+     "native": 3,
+     "v10": 3
+    },
+    "excluded_by_unsupported_rule": [],
+    "final": 3,
+    "merge_notes": [],
+    "policy": {
+     "sha256": "2ea6e87a73183cc0d3c1db2e75f59172d21ed0e0ce93c4765233c91f95158d5b",
+     "sources": [
+      "v10",
+      "native"
+     ],
+     "version": "E1-DEV-POLICY-1"
+    },
+    "union": 3
+   },
+   "extractor_errors": {},
+   "family": "34499000",
+   "part_id": "34499000",
+   "sku": "DEV-6EEF410424",
+   "variants": {
+    "dev": {
+     "ambiguous_stages": [],
+     "bends": 3,
+     "blocker_codes": [],
+     "both_sides_required": true,
+     "cad_original_filename": "cad_6eef41042436.step",
+     "candidates": 3,
+     "characteristics": 14,
+     "compiled_part_sha256": "369627ce733bd000e37e2702c28fa2c8cf46914b23817ccd60fb95d52c7b923b",
+     "compiled_status": "COMPILED",
+     "compiler_version": "e1-1.1.0",
+     "confirmation": "DEV_AUTO_CONFIRMED",
+     "content_sha256": "39ca638966294db655bfc149d63e1bb1f5bdb4a8761085c4abd9888b3a837091",
+     "exit_code": 0,
+     "inspection_stage": "FINAL",
+     "k_factor": {
+      "source": "SHOP_DEFAULT",
+      "value": 0.33
+     },
+     "output_bytes": 3006983,
+     "panels": 4,
+     "peak_rss_bytes": 461438976,
+     "reason": null,
+     "recipe_consistency_problems": [],
+     "recipe_file_sha256": "5316411f747bc90b968b445b56b2c79b06729d03491123c603afea93f297ef9c",
+     "recipe_sha256": "577fe3e965aaede7abb601fe02cb1c33ea55b9743c295a05cda9d175408fc87b",
+     "rss_exceeded": false,
+     "signal": null,
+     "sku": "DEV-6EEF410424",
+     "stages": 4,
+     "status": "COMPILED",
+     "thickness_mm": 2.0,
+     "timed_out": false,
+     "unavailable_by_reason": {},
+     "unavailable_nominals": 0,
+     "unsupported_features": [],
+     "wall_s": 2.202,
+     "warning_codes": [
+      "FLAT_NOT_BOUND",
+      "K_FACTOR_DEFAULTED"
+     ]
+    },
+    "native_strict": {
+     "ambiguous_stages": [],
+     "bends": 3,
+     "blocker_codes": [],
+     "both_sides_required": true,
+     "cad_original_filename": "cad_6eef41042436.step",
+     "candidates": 3,
+     "characteristics": 14,
+     "compiled_part_sha256": "7dba1500fbb64f59963aaaa868e93e1696bc1d0e5382f942aa7fc95d8bcc1232",
+     "compiled_status": "COMPILED",
+     "compiler_version": "e1-1.1.0",
+     "confirmation": "DEV_AUTO_CONFIRMED",
+     "content_sha256": "3b3cdc692004be402ef367092135903f766ccbce2e066633b9a9d5d52fb7385a",
+     "exit_code": 0,
+     "inspection_stage": "FINAL",
+     "k_factor": {
+      "source": "SHOP_DEFAULT",
+      "value": 0.33
+     },
+     "output_bytes": 3006987,
+     "panels": 4,
+     "peak_rss_bytes": 461537280,
+     "reason": null,
+     "recipe_consistency_problems": [],
+     "recipe_file_sha256": "3492cd1bd109d66187a4f32e6a272807f7e32d1e9f5ee3fd33de01a3fb7bc3b8",
+     "recipe_sha256": "1efd20929b2de5990be7a3105bfd7cd7385adbb267bf6379f48da0dbbf76b250",
+     "rss_exceeded": false,
+     "signal": null,
+     "sku": "DEV-6EEF410424",
+     "stages": 4,
+     "status": "COMPILED",
+     "thickness_mm": 2.0,
+     "timed_out": false,
+     "unavailable_by_reason": {},
+     "unavailable_nominals": 0,
+     "unsupported_features": [],
+     "wall_s": 2.2,
+     "warning_codes": [
+      "FLAT_NOT_BOUND",
+      "K_FACTOR_DEFAULTED"
+     ]
+    },
+    "v10_strict": {
+     "ambiguous_stages": [],
+     "bends": 3,
+     "blocker_codes": [],
+     "both_sides_required": true,
+     "cad_original_filename": "cad_6eef41042436.step",
+     "candidates": 3,
+     "characteristics": 14,
+     "compiled_part_sha256": "369627ce733bd000e37e2702c28fa2c8cf46914b23817ccd60fb95d52c7b923b",
+     "compiled_status": "COMPILED",
+     "compiler_version": "e1-1.1.0",
+     "confirmation": "DEV_AUTO_CONFIRMED",
+     "content_sha256": "39ca638966294db655bfc149d63e1bb1f5bdb4a8761085c4abd9888b3a837091",
+     "exit_code": 0,
+     "inspection_stage": "FINAL",
+     "k_factor": {
+      "source": "SHOP_DEFAULT",
+      "value": 0.33
+     },
+     "output_bytes": 3006983,
+     "panels": 4,
+     "peak_rss_bytes": 461783040,
+     "reason": null,
+     "recipe_consistency_problems": [],
+     "recipe_file_sha256": "5316411f747bc90b968b445b56b2c79b06729d03491123c603afea93f297ef9c",
+     "recipe_sha256": "577fe3e965aaede7abb601fe02cb1c33ea55b9743c295a05cda9d175408fc87b",
+     "rss_exceeded": false,
+     "signal": null,
+     "sku": "DEV-6EEF410424",
+     "stages": 4,
+     "status": "COMPILED",
+     "thickness_mm": 2.0,
+     "timed_out": false,
+     "unavailable_by_reason": {},
+     "unavailable_nominals": 0,
+     "unsupported_features": [],
+     "wall_s": 2.193,
+     "warning_codes": [
+      "FLAT_NOT_BOUND",
+      "K_FACTOR_DEFAULTED"
+     ]
+    }
+   }
+  },
+  {
+   "build": {
+    "exit_code": 0,
+    "peak_rss_bytes": 357040128,
+    "timed_out": false,
+    "wall_s": 1.148
+   },
+   "cad_aliases": [],
+   "cad_origin": "EXTERNAL_CONSUMED",
+   "cad_rel": "data/bend_corpus/incoming_email_2026-10-17/20260830_1a05196d/BO44666A-C-PD-bo44666a_c.stp",
+   "cad_sha256": "2720c50997492c52c5e302a49d6ad020aff2b9cb1138ee5b1e8bc77d98f38a90",
+   "dev_policy_report": {
+    "counts": {
+     "native": 2,
+     "v10": 2
+    },
+    "excluded_by_unsupported_rule": [],
+    "final": 2,
+    "merge_notes": [],
+    "policy": {
+     "sha256": "2ea6e87a73183cc0d3c1db2e75f59172d21ed0e0ce93c4765233c91f95158d5b",
+     "sources": [
+      "v10",
+      "native"
+     ],
+     "version": "E1-DEV-POLICY-1"
+    },
+    "union": 2
+   },
+   "extractor_errors": {},
+   "family": "49201000",
+   "part_id": "49201000",
+   "sku": "DEV-2720C50997",
+   "variants": {
+    "dev": {
+     "ambiguous_stages": [],
+     "bends": 2,
+     "blocker_codes": [],
+     "both_sides_required": true,
+     "cad_original_filename": "cad_2720c5099749.step",
+     "candidates": 2,
+     "characteristics": 9,
+     "compiled_part_sha256": "ec5f193074669b85f5615dbef4c809ef2267406d4fb4d3987703f8f1d4898da0",
+     "compiled_status": "COMPILED",
+     "compiler_version": "e1-1.1.0",
+     "confirmation": "DEV_AUTO_CONFIRMED",
+     "content_sha256": "565da8d87b73b50b609563739dc4b99ba9bbb3a6ee6fe618135a2f7a2dcc560d",
+     "exit_code": 0,
+     "inspection_stage": "FINAL",
+     "k_factor": {
+      "source": "SHOP_DEFAULT",
+      "value": 0.33
+     },
+     "output_bytes": 2950948,
+     "panels": 3,
+     "peak_rss_bytes": 543916032,
+     "reason": null,
+     "recipe_consistency_problems": [],
+     "recipe_file_sha256": "9eaa909c1db27abd6a592c6355dff332dd90349d6f95cf4aa5c2488e23650486",
+     "recipe_sha256": "128015f1063cc3d85257b842685c9ea2a77bc78999a84c3233fcd42c05c58412",
+     "rss_exceeded": false,
+     "signal": null,
+     "sku": "DEV-2720C50997",
+     "stages": 3,
+     "status": "COMPILED",
+     "thickness_mm": 1.5,
+     "timed_out": false,
+     "unavailable_by_reason": {},
+     "unavailable_nominals": 0,
+     "unsupported_features": [],
+     "wall_s": 2.24,
+     "warning_codes": [
+      "FLAT_NOT_BOUND",
+      "K_FACTOR_DEFAULTED"
+     ]
+    },
+    "native_strict": {
+     "ambiguous_stages": [],
+     "bends": 2,
+     "blocker_codes": [],
+     "both_sides_required": true,
+     "cad_original_filename": "cad_2720c5099749.step",
+     "candidates": 2,
+     "characteristics": 9,
+     "compiled_part_sha256": "f3007a3d486eb4402d3030c36bf5e0ed4e3cb3a5dcc4bc25515c08467541bdae",
+     "compiled_status": "COMPILED",
+     "compiler_version": "e1-1.1.0",
+     "confirmation": "DEV_AUTO_CONFIRMED",
+     "content_sha256": "f2c3e8235c2323d8d87b4157a88aab9f8de4870b37d6e45e26a930a2d21edf1e",
+     "exit_code": 0,
+     "inspection_stage": "FINAL",
+     "k_factor": {
+      "source": "SHOP_DEFAULT",
+      "value": 0.33
+     },
+     "output_bytes": 2950947,
+     "panels": 3,
+     "peak_rss_bytes": 544358400,
+     "reason": null,
+     "recipe_consistency_problems": [],
+     "recipe_file_sha256": "11bc66728955704c52c03d5bc6923ce5cd9d131c269b23514caad4277665eccc",
+     "recipe_sha256": "abb4c63bfc5a6269406c1f96f207ad3b0b42a33f67bec4d7e5e2cd6c05063adf",
+     "rss_exceeded": false,
+     "signal": null,
+     "sku": "DEV-2720C50997",
+     "stages": 3,
+     "status": "COMPILED",
+     "thickness_mm": 1.5,
+     "timed_out": false,
+     "unavailable_by_reason": {},
+     "unavailable_nominals": 0,
+     "unsupported_features": [],
+     "wall_s": 2.228,
+     "warning_codes": [
+      "FLAT_NOT_BOUND",
+      "K_FACTOR_DEFAULTED"
+     ]
+    },
+    "v10_strict": {
+     "ambiguous_stages": [],
+     "bends": 2,
+     "blocker_codes": [],
+     "both_sides_required": true,
+     "cad_original_filename": "cad_2720c5099749.step",
+     "candidates": 2,
+     "characteristics": 9,
+     "compiled_part_sha256": "ec5f193074669b85f5615dbef4c809ef2267406d4fb4d3987703f8f1d4898da0",
+     "compiled_status": "COMPILED",
+     "compiler_version": "e1-1.1.0",
+     "confirmation": "DEV_AUTO_CONFIRMED",
+     "content_sha256": "565da8d87b73b50b609563739dc4b99ba9bbb3a6ee6fe618135a2f7a2dcc560d",
+     "exit_code": 0,
+     "inspection_stage": "FINAL",
+     "k_factor": {
+      "source": "SHOP_DEFAULT",
+      "value": 0.33
+     },
+     "output_bytes": 2950948,
+     "panels": 3,
+     "peak_rss_bytes": 544079872,
+     "reason": null,
+     "recipe_consistency_problems": [],
+     "recipe_file_sha256": "9eaa909c1db27abd6a592c6355dff332dd90349d6f95cf4aa5c2488e23650486",
+     "recipe_sha256": "128015f1063cc3d85257b842685c9ea2a77bc78999a84c3233fcd42c05c58412",
+     "rss_exceeded": false,
+     "signal": null,
+     "sku": "DEV-2720C50997",
+     "stages": 3,
+     "status": "COMPILED",
+     "thickness_mm": 1.5,
+     "timed_out": false,
+     "unavailable_by_reason": {},
+     "unavailable_nominals": 0,
+     "unsupported_features": [],
+     "wall_s": 2.254,
+     "warning_codes": [
+      "FLAT_NOT_BOUND",
+      "K_FACTOR_DEFAULTED"
+     ]
+    }
+   }
+  },
+  {
+   "build": {
+    "exit_code": 0,
+    "peak_rss_bytes": 358154240,
+    "timed_out": false,
+    "wall_s": 1.168
+   },
+   "cad_aliases": [],
+   "cad_origin": "EXTERNAL_CONSUMED",
+   "cad_rel": "~/Downloads/17139000_01.stp",
+   "cad_sha256": "830e9fc0a506c5111faf54764660e59f6153b3858131e329c855ceff4cac19f9",
+   "dev_policy_report": {
+    "counts": {
+     "native": 5,
+     "v10": 5
+    },
+    "excluded_by_unsupported_rule": [],
+    "final": 5,
+    "merge_notes": [],
+    "policy": {
+     "sha256": "2ea6e87a73183cc0d3c1db2e75f59172d21ed0e0ce93c4765233c91f95158d5b",
+     "sources": [
+      "v10",
+      "native"
+     ],
+     "version": "E1-DEV-POLICY-1"
+    },
+    "union": 5
+   },
+   "extractor_errors": {},
+   "family": "17139000",
+   "part_id": "17139000",
+   "sku": "DEV-830E9FC0A5",
+   "variants": {
+    "dev": {
+     "ambiguous_stages": [],
+     "bends": 5,
+     "blocker_codes": [],
+     "both_sides_required": true,
+     "cad_original_filename": "cad_830e9fc0a506.step",
+     "candidates": 5,
+     "characteristics": 24,
+     "compiled_part_sha256": "07fbad7ba1e44579297b640a0b48fb7dbfbfb9e62a36732386bb0fadb68edd54",
+     "compiled_status": "COMPILED",
+     "compiler_version": "e1-1.1.0",
+     "confirmation": "DEV_AUTO_CONFIRMED",
+     "content_sha256": "d1991b6443566db2cac3d01031105b964c3625f845419c6a0c6cc5f3edc079fe",
+     "exit_code": 0,
+     "inspection_stage": "FINAL",
+     "k_factor": {
+      "source": "SHOP_DEFAULT",
+      "value": 0.33
+     },
+     "output_bytes": 2729359,
+     "panels": 6,
+     "peak_rss_bytes": 448757760,
+     "reason": null,
+     "recipe_consistency_problems": [],
+     "recipe_file_sha256": "bc803d25568374cf092441da5800bfb22267e6c949ee10cfb9572c667e70a2ea",
+     "recipe_sha256": "56c07c11627fde5f8159263e8943add693c3043e6a8f279d2037268ed39cd643",
+     "rss_exceeded": false,
+     "signal": null,
+     "sku": "DEV-830E9FC0A5",
+     "stages": 6,
+     "status": "COMPILED",
+     "thickness_mm": 1.5,
+     "timed_out": false,
+     "unavailable_by_reason": {
+      "NOMINAL_UNAVAILABLE": 1
+     },
+     "unavailable_nominals": 1,
+     "unsupported_features": [],
+     "wall_s": 2.463,
+     "warning_codes": [
+      "FLAT_NOT_BOUND",
+      "K_FACTOR_DEFAULTED",
+      "NOMINAL_UNAVAILABLE"
+     ]
+    },
+    "native_strict": {
+     "ambiguous_stages": [],
+     "bends": 5,
+     "blocker_codes": [],
+     "both_sides_required": true,
+     "cad_original_filename": "cad_830e9fc0a506.step",
+     "candidates": 5,
+     "characteristics": 24,
+     "compiled_part_sha256": "087700b9c38ac4efbd6e98b9fd24acd47cc4473e2bec07f4bc748071797f3801",
+     "compiled_status": "COMPILED",
+     "compiler_version": "e1-1.1.0",
+     "confirmation": "DEV_AUTO_CONFIRMED",
+     "content_sha256": "e3603cf23258f45fc20c843a94af5aea8935d413d81adf4253c91e652947521d",
+     "exit_code": 0,
+     "inspection_stage": "FINAL",
+     "k_factor": {
+      "source": "SHOP_DEFAULT",
+      "value": 0.33
+     },
+     "output_bytes": 2729361,
+     "panels": 6,
+     "peak_rss_bytes": 448888832,
+     "reason": null,
+     "recipe_consistency_problems": [],
+     "recipe_file_sha256": "93454310548f7982b08874429ce1e2086acff0602305a8d468a9614b1c656f7b",
+     "recipe_sha256": "647a817b2246d4c3b125ea4471346996f778243c76e563958a81a7e92b773b62",
+     "rss_exceeded": false,
+     "signal": null,
+     "sku": "DEV-830E9FC0A5",
+     "stages": 6,
+     "status": "COMPILED",
+     "thickness_mm": 1.5,
+     "timed_out": false,
+     "unavailable_by_reason": {
+      "NOMINAL_UNAVAILABLE": 1
+     },
+     "unavailable_nominals": 1,
+     "unsupported_features": [],
+     "wall_s": 2.528,
+     "warning_codes": [
+      "FLAT_NOT_BOUND",
+      "K_FACTOR_DEFAULTED",
+      "NOMINAL_UNAVAILABLE"
+     ]
+    },
+    "v10_strict": {
+     "ambiguous_stages": [],
+     "bends": 5,
+     "blocker_codes": [],
+     "both_sides_required": true,
+     "cad_original_filename": "cad_830e9fc0a506.step",
+     "candidates": 5,
+     "characteristics": 24,
+     "compiled_part_sha256": "07fbad7ba1e44579297b640a0b48fb7dbfbfb9e62a36732386bb0fadb68edd54",
+     "compiled_status": "COMPILED",
+     "compiler_version": "e1-1.1.0",
+     "confirmation": "DEV_AUTO_CONFIRMED",
+     "content_sha256": "d1991b6443566db2cac3d01031105b964c3625f845419c6a0c6cc5f3edc079fe",
+     "exit_code": 0,
+     "inspection_stage": "FINAL",
+     "k_factor": {
+      "source": "SHOP_DEFAULT",
+      "value": 0.33
+     },
+     "output_bytes": 2729360,
+     "panels": 6,
+     "peak_rss_bytes": 448266240,
+     "reason": null,
+     "recipe_consistency_problems": [],
+     "recipe_file_sha256": "bc803d25568374cf092441da5800bfb22267e6c949ee10cfb9572c667e70a2ea",
+     "recipe_sha256": "56c07c11627fde5f8159263e8943add693c3043e6a8f279d2037268ed39cd643",
+     "rss_exceeded": false,
+     "signal": null,
+     "sku": "DEV-830E9FC0A5",
+     "stages": 6,
+     "status": "COMPILED",
+     "thickness_mm": 1.5,
+     "timed_out": false,
+     "unavailable_by_reason": {
+      "NOMINAL_UNAVAILABLE": 1
+     },
+     "unavailable_nominals": 1,
+     "unsupported_features": [],
+     "wall_s": 2.492,
+     "warning_codes": [
+      "FLAT_NOT_BOUND",
+      "K_FACTOR_DEFAULTED",
+      "NOMINAL_UNAVAILABLE"
+     ]
+    }
+   }
+  },
+  {
+   "build": {
+    "exit_code": 0,
+    "peak_rss_bytes": 385531904,
+    "timed_out": false,
+    "wall_s": 2.723
+   },
+   "cad_aliases": [],
+   "cad_origin": "EXTERNAL_CONSUMED",
+   "cad_rel": "~/Downloads/MEC003744_02.step",
+   "cad_sha256": "0199d1289e9ff67daabb7b25f9d69de30805b2e81ad43006bb7b916f573eae25",
+   "dev_policy_report": {
+    "counts": {
+     "native": 12,
+     "v10": 12
+    },
+    "excluded_by_unsupported_rule": [],
+    "final": 9,
+    "merge_notes": [
+     "merged 2 pieces of graph bend G9",
+     "merged 3 pieces of graph bend G1"
+    ],
+    "policy": {
+     "sha256": "2ea6e87a73183cc0d3c1db2e75f59172d21ed0e0ce93c4765233c91f95158d5b",
+     "sources": [
+      "v10",
+      "native"
+     ],
+     "version": "E1-DEV-POLICY-1"
+    },
+    "union": 12
+   },
+   "extractor_errors": {},
+   "family": "50757000",
+   "part_id": "50757000",
+   "sku": "DEV-0199D1289E",
+   "variants": {
+    "dev": {
+     "ambiguous_stages": [],
+     "bends": 9,
+     "blocker_codes": [],
+     "both_sides_required": true,
+     "cad_original_filename": "cad_0199d1289e9f.step",
+     "candidates": 9,
+     "characteristics": 44,
+     "compiled_part_sha256": "400bb7595a108b87b90928f3961b2a5cef5bcd73fd0365ad6b2bc02bcc4509bc",
+     "compiled_status": "COMPILED",
+     "compiler_version": "e1-1.1.0",
+     "confirmation": "DEV_AUTO_CONFIRMED",
+     "content_sha256": "e02285e0046aa2dd3e93c6b3255b45abb54eefa5bfaca4de8838328f449f65e4",
+     "exit_code": 0,
+     "inspection_stage": "FINAL",
+     "k_factor": {
+      "source": "SHOP_DEFAULT",
+      "value": 0.33
+     },
+     "output_bytes": 24049373,
+     "panels": 10,
+     "peak_rss_bytes": 786317312,
+     "reason": null,
+     "recipe_consistency_problems": [],
+     "recipe_file_sha256": "2facb20983827f1c2f31a044ceeb03fc42dc62deaa5cdb07a44ee433707d852e",
+     "recipe_sha256": "8596f1bd648e4536364f29c0ca0cf595a01d5b78ecd3c28920930b5fe32ef936",
+     "rss_exceeded": false,
+     "signal": null,
+     "sku": "DEV-0199D1289E",
+     "stages": 10,
+     "status": "COMPILED",
+     "thickness_mm": 3.0,
+     "timed_out": false,
+     "unavailable_by_reason": {
+      "NOMINAL_UNAVAILABLE": 4
+     },
+     "unavailable_nominals": 4,
+     "unsupported_features": [],
+     "wall_s": 7.465,
+     "warning_codes": [
+      "FLAT_NOT_BOUND",
+      "K_FACTOR_DEFAULTED",
+      "NOMINAL_UNAVAILABLE"
+     ]
+    },
+    "native_strict": {
+     "ambiguous_stages": [],
+     "bends": 0,
+     "blocker_codes": [
+      "MARK_AMBIGUOUS"
+     ],
+     "both_sides_required": true,
+     "cad_original_filename": "cad_0199d1289e9f.step",
+     "candidates": 12,
+     "characteristics": 0,
+     "compiled_part_sha256": "1168651736bce4fc93e0e0654b441d1f6674c12662fc7a0c5106b611d236edd0",
+     "compiled_status": "BLOCKED",
+     "compiler_version": "e1-1.1.0",
+     "confirmation": "DEV_AUTO_CONFIRMED",
+     "content_sha256": "2362a620bf7b1518694471c434cd2ad78e6344e58b3393b5cdfee958c0d660bb",
+     "exit_code": 2,
+     "inspection_stage": "FINAL",
+     "k_factor": null,
+     "output_bytes": 125508,
+     "panels": 10,
+     "peak_rss_bytes": 431734784,
+     "reason": "MARK_AMBIGUOUS",
+     "recipe_consistency_problems": [],
+     "recipe_file_sha256": "7aa1ef02620c1e52a6d45fe147ffa8b9e39f9579e52c8a91a3536d22912fbeb0",
+     "recipe_sha256": "c5833a60ad70715bb9534fd4c7fd32ea7be944dbb9cf44db92a41922dbe03f6c",
+     "rss_exceeded": false,
+     "signal": null,
+     "sku": "DEV-0199D1289E",
+     "stages": 0,
+     "status": "BLOCKED",
+     "thickness_mm": 3.0,
+     "timed_out": false,
+     "unavailable_by_reason": {},
+     "unavailable_nominals": 0,
+     "unsupported_features": [],
+     "wall_s": 2.01,
+     "warning_codes": []
+    },
+    "v10_strict": {
+     "ambiguous_stages": [],
+     "bends": 0,
+     "blocker_codes": [
+      "MARK_AMBIGUOUS"
+     ],
+     "both_sides_required": true,
+     "cad_original_filename": "cad_0199d1289e9f.step",
+     "candidates": 12,
+     "characteristics": 0,
+     "compiled_part_sha256": "a098ea258ef480e7829d1d060a9f6c39f5beeb626a8dd997edc84ce87388393c",
+     "compiled_status": "BLOCKED",
+     "compiler_version": "e1-1.1.0",
+     "confirmation": "DEV_AUTO_CONFIRMED",
+     "content_sha256": "61d89035e8644a01517d4224ccbce38d1529327bb64d2b063c96f6ae7d9724c4",
+     "exit_code": 2,
+     "inspection_stage": "FINAL",
+     "k_factor": null,
+     "output_bytes": 125508,
+     "panels": 10,
+     "peak_rss_bytes": 432128000,
+     "reason": "MARK_AMBIGUOUS",
+     "recipe_consistency_problems": [],
+     "recipe_file_sha256": "e17863c6604bdc4800d2ffb7dfe78d7dbdcb2eebef11eee32b969235623485d0",
+     "recipe_sha256": "6e2d639f550d5b26ff12987b7e28afb3f928edad475ef13bc261e3a375255424",
+     "rss_exceeded": false,
+     "signal": null,
+     "sku": "DEV-0199D1289E",
+     "stages": 0,
+     "status": "BLOCKED",
+     "thickness_mm": 3.0,
+     "timed_out": false,
+     "unavailable_by_reason": {},
+     "unavailable_nominals": 0,
+     "unsupported_features": [],
+     "wall_s": 2.032,
+     "warning_codes": []
+    }
+   }
+  }
+ ],
+ "rule": "plan §10 amendment 4d: every V10/native bend, both sides REQUIRED, exclusions only via E1's frozen per-feature UNSUPPORTED rule; failures stay in every denominator; >= 80 % must compile",
+ "schema": "sherman_e4b_compile_report_v2",
+ "sealed_rows": 7
+}

@@ -1,0 +1,198 @@
+{
+  "schema": "sherman.broad_baseline.scout_summary.v1",
+  "created_at": "2026-10-17T08:57:20Z",
+  "historical_gold11": {
+    "line_f1": 0.4580152671755725,
+    "tp_fp_fn": [
+      30,
+      30,
+      41
+    ],
+    "lane": "UNION(A0 scan-only typed union, scan-frame-gated blind CAD+PLY runtime lines)",
+    "reproduced_by": [
+      "research/broad_baseline/score.py gold11-historical --source retained|original",
+      "scripts/diagnose_f1_cad_scan_fusion_gold11.py (original CLI, see command in report)"
+    ],
+    "reproduction_outputs": [
+      "docs/production/runlog/broad_baseline/scout/gold11_historical_retained_direct.json",
+      "docs/production/runlog/broad_baseline/scout/gold11_historical_original_direct.json",
+      "docs/production/runlog/broad_baseline/scout/gold11_historical_retained_frame_recovered.json",
+      "docs/production/runlog/broad_baseline/scout/fusion_gold11_diagnostic_rerun.json"
+    ]
+  },
+  "gold11_frames": {
+    "record": "docs/production/runlog/broad_baseline/gold11_frame_recovery.json",
+    "result": "11/11 RECOVERED; 9 reference_mesh_raw = identity (label display cloud is an exact raw-vertex subset, residual 0.0 mm); 2 scan_raw sha-bound"
+  },
+  "smoke_scan": {
+    "case": "CG4FAF273093 / sc_70b39f530f00",
+    "scan": "~/ShermanQC/source-assets/02_CAD_QC_3D/49024000_A.ply",
+    "cad": "~/ShermanQC/source-assets/02_CAD_QC_3D/49024000_A.stp",
+    "points": 46528,
+    "gold_lines": 3
+  },
+  "smoke_runs": {
+    "best_f1": {
+      "status": "OK",
+      "lane_wall_s": 206.272,
+      "peak_rss_gib": 1.15,
+      "steps": [
+        {
+          "name": "a0_decompose",
+          "status": "OK",
+          "wall_s": 12.134,
+          "time_user_s": 11.99,
+          "time_max_rss_bytes": 248692736,
+          "sampled_peak_group_rss_bytes": 235618304
+        },
+        {
+          "name": "a0_pool",
+          "status": "OK",
+          "wall_s": 19.483,
+          "time_user_s": 19.25,
+          "time_max_rss_bytes": 438091776,
+          "sampled_peak_group_rss_bytes": 379994112
+        },
+        {
+          "name": "a0_typed_union",
+          "status": "OK",
+          "wall_s": 171.829,
+          "time_user_s": 170.18,
+          "time_max_rss_bytes": 1106345984,
+          "sampled_peak_group_rss_bytes": 1234305024
+        },
+        {
+          "name": "cad_blind_runtime",
+          "status": "OK",
+          "wall_s": 1.961,
+          "time_user_s": 1.81,
+          "time_max_rss_bytes": 275005440,
+          "sampled_peak_group_rss_bytes": 276283392
+        }
+      ]
+    },
+    "best_f1_rerun_cadfirst": {
+      "status": "OK",
+      "lane_wall_s": 204.195,
+      "peak_rss_gib": 1.136,
+      "steps": [
+        {
+          "name": "cad_blind_runtime",
+          "status": "OK",
+          "wall_s": 1.958,
+          "time_user_s": 1.79,
+          "time_max_rss_bytes": 275070976,
+          "sampled_peak_group_rss_bytes": 276348928
+        },
+        {
+          "name": "a0_decompose",
+          "status": "OK",
+          "wall_s": 12.685,
+          "time_user_s": 12.51,
+          "time_max_rss_bytes": 267976704,
+          "sampled_peak_group_rss_bytes": 251592704
+        },
+        {
+          "name": "a0_pool",
+          "status": "OK",
+          "wall_s": 18.837,
+          "time_user_s": 18.68,
+          "time_max_rss_bytes": 429883392,
+          "sampled_peak_group_rss_bytes": 378798080
+        },
+        {
+          "name": "a0_typed_union",
+          "status": "OK",
+          "wall_s": 169.887,
+          "time_user_s": 169.23,
+          "time_max_rss_bytes": 1091207168,
+          "sampled_peak_group_rss_bytes": 1220231168
+        }
+      ]
+    },
+    "runtime": {
+      "status": "OK",
+      "lane_wall_s": 7.98,
+      "peak_rss_gib": 0.438,
+      "steps": [
+        {
+          "name": "runtime_worker",
+          "status": "OK",
+          "wall_s": 7.168,
+          "time_user_s": 6.95,
+          "time_max_rss_bytes": 470319104,
+          "sampled_peak_group_rss_bytes": 470269952
+        }
+      ]
+    }
+  },
+  "smoke_scores_vs_gold11": {
+    "best_f1": {
+      "true_positive": 2,
+      "false_positive": 1,
+      "false_negative": 1,
+      "precision": 0.6666666666666666,
+      "recall": 0.6666666666666666,
+      "f1": 0.6666666666666666
+    },
+    "a0": {
+      "true_positive": 1,
+      "false_positive": 0,
+      "false_negative": 2,
+      "precision": 1.0,
+      "recall": 0.3333333333333333,
+      "f1": 0.5
+    },
+    "cad_gated": {
+      "true_positive": 1,
+      "false_positive": 2,
+      "false_negative": 2,
+      "precision": 0.3333333333333333,
+      "recall": 0.3333333333333333,
+      "f1": 0.3333333333333333
+    },
+    "cad_raw_ungated": {
+      "true_positive": 0,
+      "false_positive": 3,
+      "false_negative": 3,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0
+    },
+    "f1_zero_shot_decomposition": {
+      "true_positive": 1,
+      "false_positive": 2,
+      "false_negative": 2,
+      "precision": 0.3333333333333333,
+      "recall": 0.3333333333333333,
+      "f1": 0.3333333333333333
+    },
+    "runtime": {
+      "true_positive": 1,
+      "false_positive": 2,
+      "false_negative": 2,
+      "precision": 0.3333333333333333,
+      "recall": 0.3333333333333333,
+      "f1": 0.3333333333333333
+    },
+    "runtime_gated": {
+      "true_positive": 1,
+      "false_positive": 2,
+      "false_negative": 2,
+      "precision": 0.3333333333333333,
+      "recall": 0.3333333333333333,
+      "f1": 0.3333333333333333
+    },
+    "runtime_with_placeholders": {
+      "true_positive": 1,
+      "false_positive": 2,
+      "false_negative": 2,
+      "precision": 0.3333333333333333,
+      "recall": 0.3333333333333333,
+      "f1": 0.3333333333333333
+    }
+  },
+  "smoke_fidelity": "fresh A0 prediction_owned_regions.json byte-identical to the frozen historical A0 (sha256 af8ce6e7827b1adb...); fresh gated CAD lines identical to retained; fresh union = retained per-case result TP2/FP1/FN1; rerun deterministic",
+  "case_list": "docs/production/runlog/broad_baseline/case_list_consumed_v1.json",
+  "selftest": "docs/production/runlog/broad_baseline/scout/selftest_score.json"
+}

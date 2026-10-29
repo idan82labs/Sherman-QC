@@ -1,0 +1,959 @@
+AUTHORIZE V34_ORDERED_PROJECTIVE_GAUSS_TRANSPORT_V1
+
+Immediate implementation, mechanism lock, one frozen sequential source-free execution, and the conditional one-scan prospective action below are authorized without another architecture-review round.
+
+A formal STOP is premature. V33 discarded an observable that remains present in the source: the coupling between ordered transverse position and projective surface-normal direction. SN06 demonstrates failure of the marginalization, not nonidentifiability from the scan.
+
+1. Architecture and causal distinction
+
+Architecture token: V34_ORDERED_PROJECTIVE_GAUSS_TRANSPORT_V1
+Primitive: TRANSVERSE_MONOTONE_GAUSS_MEASURE_V1
+Short name: OPGT_V1
+
+V33 represented a candidate by fan populations, masses, widths, coverage, and correlations. Those statistics are nearly invariant to rearranging the normal populations across the cross-section. Consequently, 0 → 70 → 35 → 90 can have essentially the same fan moments as 0 → 35 → 70 → 90.
+
+V34 instead retains the joint measure
+
+μ(u,[n]),
+
+where u is ordered transverse position and [n] is an unoriented, projective normal. It accepts only when that measure supports:
+
+two distinct, internally coherent tail-normal populations;
+
+a materially observed intermediate transition;
+
+axial stationarity rather than axial twisting;
+
+one sub-π, one-signed projective-normal progression across u.
+
+This is not a V33 threshold addition. No V33 fan span, fill, phase group, density, width, correlation, coverage, radial-run metric, score, or verdict enters V34.
+
+It is also not V32 reconstructed. V34 has:
+
+no mesh graph;
+
+no adjacency;
+
+no edge or dihedral quantity;
+
+no harmonic potential;
+
+no current field;
+
+no stations or station masks;
+
+no phase-origin solve.
+
+Triangle boundaries are used only to integrate surface area into fixed spatial cells. A triangulation diagonal is never an observable.
+
+2. Research basis versus Sherman hypothesis
+
+For an ideal developable ruled patch, the Gauss map is constant along a ruling. That supports pooling evidence along a candidate bend axis while preserving the ordered variation transverse to it. 
+arXiv
+
+Area-integrated geometric quantities are preferable here to derivatives or edge curvature: integration has established robustness advantages against noise and discretization artifacts. 
+UT Austin Computer Science
+
+Representing surface orientation projectively is also established machinery. Varifold representations were introduced specifically to encode nonoriented curves and surfaces without requiring globally consistent normal signs. 
+SIAM
+
+The following is the Sherman-specific hypothesis, not a published theorem:
+
+Within the frozen V16 candidate class, a recoverable single material bend has two stable tail normals joined by a source-observed, sub-180-degree, one-signed transverse normal progression. A bead, return, opening, disconnected miter, axial twist, or other alias will violate tail separation, transition support, axial coherence, or monotone ordering.
+
+That hypothesis is narrow, source-observable, and directly falsifiable. It does not claim that all possible formed-sheet features are distinguishable by normal order.
+
+3. Exact input contract
+Permitted inputs
+
+V34 receives only:
+
+the frozen V16 rescue-side candidate stream at the existing pre-NMS boundary;
+
+each candidate’s frozen line geometry, candidate frame, local scale, source candidate ID, and existing rescue-order metadata;
+
+raw source-mesh triangle vertex coordinates;
+
+deterministic source-face traversal information;
+
+the exact V33 candidate-frame, prism, and triangle–prism clipping domain, copied into a new neutral utility and separately hashed.
+
+Reusing the immutable prism is deliberate experimental control: it keeps the integration domain fixed while replacing the failed abstraction. No V33 feature or decision code is linked.
+
+Forbidden inputs
+
+The worker may not access:
+
+gold, labels, expected real-scan counts, CAD, drawings, part family, filename, path, opaque scan identity, or benchmark feedback;
+
+V16 historical outcomes beyond the candidate record itself;
+
+V28 or V33 scan results;
+
+any V33 metric array or pass/fail reason;
+
+any V32 graph, potential, station, current, or normal-turn output;
+
+mesh adjacency, edge lengths, face-neighbor lists, dihedral angles, connected components, or topology hashes;
+
+manual visual findings before inference;
+
+production/runtime/main state.
+
+Face normals are recomputed from triangle coordinates. Their signs are not oriented or propagated.
+
+4. Fixed representation and constants
+
+All constants below are frozen before the first detector invocation.
+
+Item	Frozen value
+Transverse integration strips	64
+Axial slabs	8
+Maximum removable outer mass	1/64 from each transverse end
+Left-tail mass target	at least 3/16 of retained mass
+Right-tail mass target	at least 3/16
+Required intermediate-transition mass	at least 1/8
+Minimum effective axial support	2 slabs
+Projective-normal phase step	π/512
+Permitted fitted normal turn	at least one phase step and strictly below π
+Constraint/noise loss ratio	1:1 excess budget
+Maximum rescue candidates	128
+Maximum triangle-cell intersections per candidate	2
+18
+
+Serialized certificate	at most 256 bytes per candidate
+
+None of SN06’s observed angles, area density, widths, tail separation, face count, or correlations is used to set these constants.
+
+Orientation-independent area-normal measure
+
+Let a be the candidate axis, and b,c the transverse plane basis. For every clipped triangle piece of area A and unit face normal n, define
+
+w=A[(n⋅b)
+2
++(n⋅c)
+2
+]
+
+and
+
+z=A[(n⋅b)+i(n⋅c)]
+2
+.
+
+The square makes the representation invariant under n↦−n. A face winding reversal therefore cannot change the normal observation.
+
+For every axial slab k and transverse strip j, accumulate
+
+W
+kj
+	​
+
+=∑w,Z
+kj
+	​
+
+=∑z.
+
+Accumulation is streaming. No triangle-piece, vertex, face, or source-point list is retained.
+
+The implementation must use reduction-order-independent accumulators. Parallelism is permitted only across candidate IDs; each candidate’s clipping and accumulation order is deterministic.
+
+5. Bounded decision algorithm
+5.1 Retained support and tails
+
+Aggregate over axial slabs:
+
+W
+j
+	​
+
+=
+k
+∑
+	​
+
+W
+kj
+	​
+
+,Z
+j
+	​
+
+=
+k
+∑
+	​
+
+Z
+kj
+	​
+
+.
+
+Remove complete outer strips only while the removed mass on that side remains no greater than W/64. No internal strip is deleted.
+
+Beginning at each retained end, include strips until the corresponding tail contains at least 3W/16. The two tail sets must remain disjoint.
+
+Define effective axial support using retained mass:
+
+N
+eff
+	​
+
+=
+∑
+k
+	​
+
+W
+k
+2
+	​
+
+(∑
+k
+	​
+
+W
+k
+	​
+
+)
+2
+	​
+
+.
+
+Require
+
+N
+eff
+	​
+
+≥2.
+
+This is not a station-coverage rule. Missing slabs, nonconsecutive slabs, and complementary fragmentation do not independently veto a candidate.
+
+5.2 Projective-normal loss
+
+For any cell or group with accumulated W,Z, fitting projective normal angle ϕ has chordal loss
+
+E(W,Z;ϕ)=2W−2Re(Ze
+−2iϕ
+).
+
+Its unconstrained minimum is
+
+E
+0
+	​
+
+(W,Z)=2W−2∣Z∣.
+
+Thus E
+0
+	​
+
+ is the unresolved normal dispersion already present in the source. Every V34 structural test compares additional model contradiction with that source-observed dispersion rather than with a tuned angular threshold.
+
+The deterministic phase-grid allowance is
+
+ϵ(W)=2W[1−cos(
+512
+π
+	​
+
+)]+2
+−40
+W.
+5.3 Tail plateau predicates
+
+For either tail G, let
+
+W
+G
+	​
+
+=
+j∈G
+∑
+	​
+
+W
+j
+	​
+
+,Z
+G
+	​
+
+=
+j∈G
+∑
+	​
+
+Z
+j
+	​
+
+.
+
+Its free stripwise loss is
+
+L
+G
+free
+	​
+
+=
+j∈G
+∑
+	​
+
+E
+0
+	​
+
+(W
+j
+	​
+
+,Z
+j
+	​
+
+),
+
+and its best single-normal loss is
+
+L
+G
+const
+	​
+
+=E
+0
+	​
+
+(W
+G
+	​
+
+,Z
+G
+	​
+
+).
+
+Require independently for left and right:
+
+L
+G
+const
+	​
+
+≤2L
+G
+free
+	​
+
++ϵ(W
+G
+	​
+
+).
+
+Equivalently, normal drift within a tail may not exceed its intrinsic stripwise dispersion.
+
+5.4 Tail separation
+
+Let L and R denote the aggregated tails. Fitting both tails with one projective normal has loss
+
+L
+joint
+	​
+
+=E
+0
+	​
+
+(W
+L
+	​
+
++W
+R
+	​
+
+,Z
+L
+	​
+
++Z
+R
+	​
+
+).
+
+Require
+
+L
+joint
+	​
+
+>2(L
+L
+const
+	​
+
++L
+R
+const
+	​
+
+)+ϵ(W
+L
+	​
+
++W
+R
+	​
+
+).
+
+This rejects a single plane, a free edge with only one normal population, and a 180-degree thickness return whose two physical endpoint normals become identical projectively.
+
+5.5 Intermediate material transition
+
+Let
+
+ϕ
+L
+	​
+
+=
+2
+1
+	​
+
+argZ
+L
+	​
+
+,ϕ
+R
+	​
+
+=
+2
+1
+	​
+
+argZ
+R
+	​
+
+,
+
+with branches selected consistently with the final monotone path.
+
+A retained non-tail strip is an observed transition strip only when it is distinguishable from both tails beyond its own dispersion:
+
+E(W
+j
+	​
+
+,Z
+j
+	​
+
+;ϕ
+L
+	​
+
+)>2E
+0
+	​
+
+(W
+j
+	​
+
+,Z
+j
+	​
+
+)+ϵ(W
+j
+	​
+
+)
+
+and
+
+E(W
+j
+	​
+
+,Z
+j
+	​
+
+;ϕ
+R
+	​
+
+)>2E
+0
+	​
+
+(W
+j
+	​
+
+,Z
+j
+	​
+
+)+ϵ(W
+j
+	​
+
+).
+
+Require the total mass of such strips to satisfy
+
+transition j
+∑
+	​
+
+W
+j
+	​
+
+≥
+8
+1
+	​
+
+W.
+
+This prevents a disconnected two-plane miter from being accepted merely because its endpoint normals differ.
+
+5.6 Axial stationarity
+
+The loss obtained by fitting each axial cell separately is
+
+L
+axial,local
+	​
+
+=
+k,j
+∑
+	​
+
+E
+0
+	​
+
+(W
+kj
+	​
+
+,Z
+kj
+	​
+
+).
+
+The loss after pooling each transverse strip across the axis is
+
+L
+axial,pooled
+	​
+
+=
+j
+∑
+	​
+
+E
+0
+	​
+
+(W
+j
+	​
+
+,Z
+j
+	​
+
+).
+
+Require
+
+L
+axial,pooled
+	​
+
+≤2L
+axial,local
+	​
+
++ϵ(W).
+
+The difference between these quantities is disagreement among axial slab means. It may not exceed the normal dispersion already present within slabs. Complementary missing slabs contribute no disagreement; an axially twisted fan does.
+
+5.7 Ordered projective Gauss path
+
+Use the normal-angle lattice
+
+ϕ
+q
+	​
+
+=−
+2
+π
+	​
+
++q
+512
+π
+	​
+
+,q=0,…,1024.
+
+Run a deterministic prefix-minimum dynamic program over all retained nonzero strips. Evaluate both transverse traversal directions. The fitted phase sequence must be nondecreasing and have total span
+
+512
+π
+	​
+
+≤ϕ
+last
+	​
+
+−ϕ
+first
+	​
+
+<π.
+
+Its emission cost is the sum of E(W
+j
+	​
+
+,Z
+j
+	​
+
+;ϕ
+j
+	​
+
+). Let the minimum permitted monotone cost be L
+mono
+	​
+
+, and let
+
+L
+free
+	​
+
+=
+j
+∑
+	​
+
+E
+0
+	​
+
+(W
+j
+	​
+
+,Z
+j
+	​
+
+).
+
+Require
+
+L
+mono
+	​
+
+≤2L
+free
+	​
+
++ϵ(W).
+
+This says that the extra contradiction introduced by enforcing one-signed normal progression may not exceed the source’s intrinsic normal dispersion.
+
+For SN06, the stable reversal at 70→35 degrees should force a positive ordering penalty while L
+free
+	​
+
+ remains small. A monotone wrap such as 35+180 degrees is disallowed because it would require a fitted span of at least π.
+
+5.8 Fixed predicate order
+
+Predicates execute in this order:
+
+numerical validity and resource bounds;
+
+effective axial support;
+
+left and right tail plateaus;
+
+tail separation;
+
+intermediate-transition mass;
+
+axial stationarity;
+
+monotone Gauss-path loss.
+
+SN06 must pass predicates 1–6 and fail only predicate 7, with reason:
+
+NONMONOTONE_GAUSS_PATH
+
+A negative SN06 verdict caused by insufficient support, tail failure, transition failure, or axial failure is a causal mismatch, not a pass.
+
+6. V16 integration and duplicate behavior
+
+V34 is rescue-only.
+
+It runs only on the frozen V16 rejected-candidate side stream.
+
+It never deletes, moves, rescales, refits, or rescores a V16 legacy-positive line.
+
+A V34 pass emits the original V16 candidate line geometry.
+
+At most one V34 record is emitted per source candidate.
+
+The frozen legacy-first sidecar insertion and priority convention is retained.
+
+V16 legacy candidates are supplied first; V34 passes follow in ascending source-candidate ID.
+
+There is no internal suppression, clustering, merging, or secondary ranking.
+
+The unchanged ordinary NMS is invoked exactly once.
+
+An overlapping V34 rescue must lose to the legacy candidate under the frozen legacy-first convention. NMS is allowed to remove a V34 duplicate but may not alter which legacy lines survive.
+
+7. Cache, CPU, memory, and runtime contract
+
+The implementation is deterministic CPU-only.
+
+Approximately 200,000 bounded detector points remain the outer input limit.
+
+Maximum rescue candidates: 128. No truncation is permitted; an overflow is a resource stop.
+
+Maximum triangle-cell intersections: 2
+18
+ per candidate.
+
+Candidate computation is serial and reproducibly reduced; candidates may execute in parallel.
+
+Per-candidate scratch must remain below 64 KiB, excluding the neutral spatial index already present in the frozen research route.
+
+The serialized certificate is fixed-width and at most 256 bytes. It may contain losses, reason code, tail indices, and the bounded phase path. It may not contain source coordinates or face identities.
+
+V34 sidecar RSS must remain below 1 GiB.
+
+The whole process tree must remain below 16 GiB.
+
+The exact 200,000-point/128-candidate stress fixture must finish within 60 seconds on the frozen reference machine.
+
+A prospective scan’s V34 wall time must remain below 120 seconds, and the complete research route must preserve the existing 300-second P95 ceiling.
+
+Any cap breach produces V34_OPGT_RESOURCE_STOP; the candidate is not silently skipped.
+
+8. Pre-invocation visual and mechanism lock
+
+Before detector invocation:
+
+Implement the engine, tests, renderer, and sequential runner.
+
+Render every source-free fixture at native 4096 × 4096 resolution without detector output.
+
+For each fixture, review:
+
+raw oblique geometry;
+
+candidate-axis view;
+
+transverse surface section;
+
+raw projective-normal samples ordered by transverse coordinate.
+
+Confirm specifically:
+
+clean and remeshed folds remain the same physical surface;
+
+SN06 visibly contains the intended reversal;
+
+the twisted fan is axially nonstationary;
+
+fragmented positives remain genuine continuous folds;
+
+the miter is disconnected;
+
+rims and returns are physically valid nuisances.
+
+Freeze engine, constants, fixture, manifest, and previsual hashes.
+
+Verify the forbidden-input audit, absence of V32/V33 feature linkage, one-NMS call graph, bounded caches, and zero invocation count.
+
+The lock token is:
+
+V34_OPGT_MECHANISM_LOCKED
+
+After that token, no source, constant, predicate, fixture, expected result, order, renderer, or resource cap may change.
+
+9. One frozen sequential source-free run
+
+The run stops at the first verdict, reason, visual, metamorphic, replay, or resource mismatch.
+
+Order	Gate	Frozen requirement
+1	SF01 clean 60-degree C2 fold	pre-NMS/final 1/1
+2	all diagonals flipped	1/1
+3	checkerboard diagonals	1/1
+4	skew lattice	1/1
+5	SN06 nonmonotone bead	0/0; predicates 1–6 pass; reason exactly NONMONOTONE_GAUSS_PATH
+6	SN01 silhouette/free edge	0/0
+7	SN02 opening rim	0/0
+8	SN03 1.5s thickness return	0/0
+9	SN04 disconnected 90-degree miter	0/0
+10	SN05 locally rounded 4.5s bridge	0/0
+11	axially twisted fan	0/0; reason must include AXIAL_INCOHERENCE
+12	complementary-skin fragmented fold	1/1
+13	phase-window fragmented fold	1/1
+14	SN07 through SN12	execute numerically in frozen order with their already frozen expected outcomes
+15	SF26 then SF27	execute with their already frozen expected outcomes
+16	SD01 through SD04	execute with their already frozen expected outcomes
+17	historical fixture union	every valid frozen V17–V32 source-free nuisance, alias, positive, fragmentation, and deletion fixture
+18	metamorphic suite	fixed rigid transforms, candidate-axis reversal, transverse-frame reversal, face-winding inversion, face-order permutation, and frozen deletion transforms
+19	replay	full byte identity
+20	stress	exact 200,000-point/128-candidate fixture and all resource caps
+
+The historical union is generated before lock by concatenating the frozen V17–V32 manifests and retaining one entry per fixture SHA-256, ordered by first-introducing version, fixture ID, and SHA-256. Existing expected outcomes remain immutable. A conflicting expected outcome for an identical fixture hash is a pre-invocation manifest failure.
+
+Post-result visual rule
+
+After every sequential result and before advancing, generate and manually inspect a native 4096 × 4096 audit containing:
+
+untouched raw geometry;
+
+candidate and final line overlays;
+
+retained strip support;
+
+left and right tails;
+
+observed transition strips;
+
+per-axial-slab normal phases;
+
+unconstrained and fitted monotone Gauss paths;
+
+the first failing predicate.
+
+A numeric match with a visibly invalid fixture, misplaced line, hidden alias, or wrong causal rejection is a failure.
+
+10. Exact stop and survival tokens
+
+Wrong clean/remesh/positive result: V34_OPGT_RECALL_STOP
+
+SN06 rejected for the wrong predicate, or accepted: V34_OPGT_CAUSAL_STOP
+
+Any expected nuisance or alias activation: V34_OPGT_ALIAS_STOP
+
+Twisted fan not rejected through axial disagreement: V34_OPGT_AXIAL_STOP
+
+Either required fragmented positive rejected: V34_OPGT_FRAGMENT_STOP
+
+Native visual disagreement: V34_OPGT_VISUAL_STOP
+
+Metamorphic mismatch: V34_OPGT_METAMORPHIC_STOP
+
+Replay mismatch: V34_OPGT_REPLAY_STOP
+
+Time, memory, intersection, candidate, or cache breach: V34_OPGT_RESOURCE_STOP
+
+All source-free gates survive: V34_OPGT_SOURCEFREE_SURVIVED
+
+Any stop after mechanism lock terminally retires both V34_ORDERED_PROJECTIVE_GAUSS_TRANSPORT_V1 and TRANSVERSE_MONOTONE_GAUSS_MEASURE_V1.
+
+There is no V34b, altered phase grid, changed loss ratio, different prism, reduced transition mass, relaxed axial test, fixture replacement, favorable rerun, or post-hoc exception.
+
+11. Smallest prospective source-only action
+
+Only after V34_OPGT_SOURCEFREE_SURVIVED may one incoming scan run.
+
+Selection rule
+
+Using only already-frozen V16 pre-NMS records, define the eligible set as scans among U01–U04 having at least one candidate that syntactically enters the V34 rescue-side input contract.
+
+From that eligible set, select the scan with the numerically smallest SHA-256 of the raw PLY bytes.
+
+The following may not influence selection:
+
+U number or path;
+
+V28 result;
+
+remembered scan appearance;
+
+V16 final count;
+
+any V34 feature or score;
+
+manual assessment;
+
+CAD, labels, or expected count.
+
+The selected worker input is renamed to an anonymous run ID; its path and raw hash do not enter inference.
+
+If the eligible set is empty, issue:
+
+V34_OPGT_PROSPECTIVE_NO_OPPORTUNITY
+
+and require one newly arrived, never-inspected scan frozen before any human review.
+
+One-scan execution and adjudication
+
+Run frozen V16 plus V34 exactly once.
+
+Review every V34 pre-NMS pass at native 4096 resolution, including passes later suppressed by ordinary NMS. NMS is not allowed to conceal a false primitive activation.
+
+Outcomes:
+
+Any V34 pass on a visible rim, bead, return, seam, free edge, opening, disconnected surface, or misplaced location:
+V34_OPGT_PROSPECTIVE_ALIAS_STOP
+
+Any alteration of a legacy V16 survivor:
+V34_OPGT_LEGACY_REGRESSION_STOP
+
+No V34 pre-NMS activation:
+V34_OPGT_PROSPECTIVE_NO_ACTIVATION
+
+Only visually valid duplicates suppressed by legacy NMS:
+V34_OPGT_PROSPECTIVE_DUPLICATE_ONLY
+
+At least one novel final V34 line on a visually continuous material bend, with no false pre-NMS passes:
+V34_OPGT_PROSPECTIVE_SURVIVED
+
+PROSPECTIVE_SURVIVED is mechanism-level evidence only. U01–U04’s prior research history prevents treating it as independent generalization or promotion evidence. Gold, CAD, labels, and expected counts remain closed throughout. The next independent claim must use a newly arrived, never-inspected scan.
+
+Implementation, lock, the complete single source-free sequence, and the conditional one-scan prospective execution are authorized now.

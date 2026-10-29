@@ -1,4 +1,4 @@
-#!/opt/homebrew/bin/python3.11
+#!/usr/bin/env python3
 """
 Enrich bend corpus metadata with parsed XLSX bend-angle information.
 
@@ -14,7 +14,7 @@ from typing import Any, Dict, List
 
 import sys
 
-ROOT = Path("/Users/idant/82Labs/Sherman QC/Full Project")
+ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "backend"))
 
 from bend_inspection_pipeline import extract_cad_bend_specs_with_strategy, load_bend_runtime_config, load_cad_geometry  # noqa: E402

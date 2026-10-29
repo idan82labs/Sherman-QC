@@ -41,6 +41,12 @@ from part_catalog import (
     get_catalog, Part, PartBendSpec, LiveScanSession,
     import_parts_from_csv
 )
+from bend_instance_labels import (
+    BendInstanceLabelsValidationError,
+    empty_bend_instance_labels,
+    load_bend_instance_labels,
+    save_bend_instance_labels,
+)
 import numpy as np
 
 logging.basicConfig(level=logging.INFO)
@@ -3161,6 +3167,43 @@ async def get_bend_inspection_result(job_id: str):
     }
 
 
+def _require_bend_inspection_output(job_id: str) -> Path:
+    """Resolve an existing bend job's output directory or raise a 404."""
+    if not job_id or Path(job_id).name != job_id or job_id in {".", ".."}:
+        raise HTTPException(404, "Bend inspection job not found")
+    output_dir = OUTPUT_DIR / job_id
+    is_known_job = (
+        job_id in bend_inspection_results
+        or (output_dir / "bend_inspection_report.json").exists()
+        or (output_dir / "bend_inspection_meta.json").exists()
+    )
+    if not is_known_job or not output_dir.is_dir():
+        raise HTTPException(404, "Bend inspection job not found")
+    return output_dir
+
+
+@app.get("/api/bend-inspection/{job_id}/labels", tags=["Bend Inspection"])
+async def get_bend_inspection_labels(job_id: str):
+    """Return saved manual bend labels, or a canonical empty document."""
+    output_dir = _require_bend_inspection_output(job_id)
+    try:
+        labels = load_bend_instance_labels(output_dir, job_id)
+    except BendInstanceLabelsValidationError as exc:
+        logger.error("Invalid persisted bend labels for job %s: %s", job_id, exc)
+        raise HTTPException(500, "Saved bend labels are invalid") from exc
+    return labels or empty_bend_instance_labels(job_id)
+
+
+@app.put("/api/bend-inspection/{job_id}/labels", tags=["Bend Inspection"])
+async def put_bend_inspection_labels(job_id: str, payload: Dict[str, Any] = Body(...)):
+    """Validate and atomically persist manual bend labels for a job."""
+    output_dir = _require_bend_inspection_output(job_id)
+    try:
+        return save_bend_instance_labels(output_dir, payload, job_id)
+    except BendInstanceLabelsValidationError as exc:
+        raise HTTPException(400, str(exc)) from exc
+
+
 @app.get("/api/bend-inspection/{job_id}/pdf", tags=["Bend Inspection"])
 async def download_bend_inspection_pdf(job_id: str):
     pdf_path = OUTPUT_DIR / job_id / "bend_inspection_report.pdf"
@@ -3280,16 +3323,13 @@ async def extract_cad_bends(
             cad_detector_kwargs=runtime_cfg.cad_detector_kwargs,
             cad_detect_call_kwargs=runtime_cfg.cad_detect_call_kwargs,
         )
-        expected_overrides = load_expected_bend_overrides()
-        expected_bend_count = int(expected_overrides.get(part_id, len(bends)))
-        if expected_bend_count <= 0:
-            expected_bend_count = int(len(bends))
-
         return {
             "part_id": part_id,
             "cad_source": cad_source,
             "total_bends": len(bends),
-            "expected_bend_count": expected_bend_count,
+            # Legacy compatibility route is source-only. Do not use the part
+            # identity to load drawing-derived truth during inference.
+            "expected_bend_count": len(bends),
             "bends": [b.to_dict() for b in bends],
             "message": f"Extracted {len(bends)} bend specifications from CAD"
         }
@@ -3582,11 +3622,17 @@ async def delete_part(part_id: str):
     if not part:
         raise HTTPException(404, "Part not found")
 
-    # Delete CAD file if exists
-    if part.cad_file_path:
-        cad_path = Path(part.cad_file_path)
-        if cad_path.exists():
-            cad_path.unlink()
+    # Only remove files from the catalog-owned upload namespaces. Historical
+    # rows can contain paths; never follow them outside those directories.
+    for stored_path, folder in (
+        (part.cad_file_path, "parts_cad"),
+        (part.drawing_file_path, "parts_drawings"),
+        (part.preview_mesh_path, "parts_previews"),
+    ):
+        if stored_path:
+            target = Path(stored_path).resolve()
+            if target.parent == (UPLOAD_DIR / folder).resolve() and target.is_file():
+                target.unlink()
 
     catalog.delete_part(part_id)
 
@@ -3622,71 +3668,187 @@ async def upload_part_cad(
     cad_dir = UPLOAD_DIR / "parts_cad"
     cad_dir.mkdir(exist_ok=True)
 
-    # Save file with part number as name
-    safe_filename = f"{part.part_number.replace('/', '_')}{ext}"
-    cad_path = cad_dir / safe_filename
+    # Opaque names avoid traversal, collisions and overwriting a previous source.
+    cad_path = cad_dir / f"{uuid.uuid4().hex}{ext}"
+    content = await cad_file.read(MAX_MESH_FILE_SIZE + 1)
+    if not content:
+        raise HTTPException(400, "CAD file is empty")
+    if len(content) > MAX_MESH_FILE_SIZE:
+        raise HTTPException(413, "CAD exceeds the 100 MB limit")
+    import hashlib
+    file_hash = hashlib.sha256(content).hexdigest()
+    reservation = None
+    preview_path = None
+    published = False
+    try:
+        async with aiofiles.open(cad_path, "wb") as f:
+            await f.write(content)
+        # A reservation changes no published CAD, preview or candidate rows.
+        # A later upload supersedes this token even when the CAD bytes match.
+        reservation = catalog.begin_cad_upload(part_id)
+        bends = []
+        cad_source = None
+        bend_rows = []
+        if analyze_bends:
+            if ext in {".step", ".stp"}:
+                # STEP vendor candidates and the folded mesh must come from the
+                # same byte-bound native snapshot as the unfold matcher. The
+                # mesh-crease detector below cannot promise that association.
+                vendor_cad_runtime = os.environ.get("SHERMAN_VENDOR_CAD_RUNTIME")
+                if vendor_cad_runtime == "v2-development":
+                    from backend.vendor_native_step_upload_v2 import preprocess_vendor_step
+                elif not vendor_cad_runtime:
+                    from backend.vendor_native_step_upload_v1 import preprocess_vendor_step
+                else:
+                    raise ValueError("VENDOR_CAD_RUNTIME_UNRECOGNIZED")
+                bends, preview_bytes, cad_source = await asyncio.to_thread(
+                    preprocess_vendor_step, str(cad_path), file_hash, reservation.tolerance_angle,
+                )
+                if not isinstance(cad_source, dict) or cad_source.get("status") != "AVAILABLE":
+                    reason = cad_source.get("reason") if isinstance(cad_source, dict) else None
+                    raise ValueError(f"NATIVE_STEP_PREPROCESS_UNAVAILABLE:{reason or 'UNKNOWN'}")
+                if (cad_source.get("source_sha256") != file_hash
+                        or type(preview_bytes) is not bytes or not preview_bytes
+                        or cad_source.get("folded_mesh_sha256") != hashlib.sha256(preview_bytes).hexdigest()):
+                    raise ValueError("NATIVE_STEP_SOURCE_OR_PREVIEW_BINDING_INVALID")
+                preview_dir = UPLOAD_DIR / "parts_previews"
+                preview_dir.mkdir(exist_ok=True)
+                preview_path = preview_dir / f"{uuid.uuid4().hex}.ply"
+                async with aiofiles.open(preview_path, "wb") as preview_file:
+                    await preview_file.write(preview_bytes)
+            else:
+                # Non-STEP uploads retain the legacy mesh workflow; they do
+                # not acquire native STEP unfolding authority from this route.
+                runtime_cfg = load_bend_runtime_config()
+                cad_vertices, cad_triangles, cad_source = load_cad_geometry(
+                    str(cad_path),
+                    cad_import_deflection=runtime_cfg.cad_import_deflection,
+                )
+                # Bounded display artifact in the extraction coordinate frame.
+                # Large geometry stays unavailable, never silently decimated.
+                if len(cad_vertices) <= 1_000_000 and (cad_triangles is None or len(cad_triangles) <= 500_000):
+                    import trimesh
+                    preview_dir = UPLOAD_DIR / "parts_previews"
+                    preview_dir.mkdir(exist_ok=True)
+                    preview_path = preview_dir / f"{uuid.uuid4().hex}.ply"
+                    verts = np.asarray(cad_vertices, dtype=np.float32)
+                    if cad_triangles is not None and len(cad_triangles):
+                        trimesh.Trimesh(vertices=verts, faces=np.asarray(cad_triangles, dtype=np.int32), process=False).export(str(preview_path))
+                    else:
+                        trimesh.PointCloud(verts).export(str(preview_path))
+                bends = extract_cad_bend_specs(
+                    cad_vertices=cad_vertices,
+                    cad_triangles=cad_triangles,
+                    tolerance_angle=reservation.tolerance_angle,
+                    tolerance_radius=0.5,
+                    cad_extractor_kwargs=runtime_cfg.cad_extractor_kwargs,
+                    cad_detector_kwargs=runtime_cfg.cad_detector_kwargs,
+                    cad_detect_call_kwargs=runtime_cfg.cad_detect_call_kwargs,
+                )
+            bend_rows = [bend.to_dict() for bend in bends]
+        # Do not publish an altered or partially written source under the hash
+        # of the bytes received from the request.
+        check = hashlib.sha256()
+        with cad_path.open("rb") as source:
+            for chunk in iter(lambda: source.read(1024 * 1024), b""):
+                check.update(chunk)
+        if check.hexdigest() != file_hash:
+            raise ValueError("CAD source changed during preprocessing")
+        published = catalog.publish_cad_upload(
+            part_id, reservation, str(cad_path), file_hash,
+            str(preview_path) if preview_path is not None else None,
+            bends, analyzed=analyze_bends,
+        )
+        if not published:
+            return {"status": "CAD_UPLOAD_SUPERSEDED_NOT_PUBLISHED",
+                    "message": "CAD or bend candidates changed; this upload was not published",
+                    "bend_analysis_error": "CAD or bend candidates changed; reload and retry",
+                    "preview_available": False}
+        result = {"status": "CAD_PROCESSED" if analyze_bends else "CAD_UPLOADED_UNANALYZED",
+                  "message": "CAD file uploaded", "cad_path": str(cad_path),
+                  "preview_available": preview_path is not None}
+        if analyze_bends:
+            result.update(cad_source=cad_source, bends_detected=len(bends), bends=bend_rows)
+        return result
+    except Exception as exc:
+        logger.warning("CAD preprocessing failed for part %s: %s", part_id, exc)
+        return {"status": "CAD_ANALYSIS_FAILED_NOT_PUBLISHED",
+                "message": "CAD preprocessing failed; the previously published CAD remains unchanged",
+                "bend_analysis_error": str(exc), "preview_available": False}
+    finally:
+        if not published:
+            if reservation is not None:
+                try:
+                    catalog.cancel_cad_upload(part_id, reservation)
+                except Exception:
+                    logger.exception("Could not clear failed CAD upload reservation for part %s", part_id)
+            # These UUID-named files belong only to this attempt. Never delete
+            # a previously published CAD or a newer upload's artifact.
+            for owned_path in (preview_path, cad_path):
+                if owned_path is not None:
+                    try:
+                        owned_path.unlink(missing_ok=True)
+                    except OSError:
+                        logger.exception("Could not remove unpublished CAD artifact")
 
-    content = await cad_file.read()
-    async with aiofiles.open(cad_path, "wb") as f:
+
+@app.get("/api/parts/{part_id}/preview.ply", tags=["Part Catalog"])
+async def download_part_preview(part_id: str, cad_sha256: Optional[str] = None):
+    """Return the catalog PLY only for the requested published CAD snapshot."""
+    part = get_catalog().get_part(part_id)
+    if not part:
+        raise HTTPException(404, "Part not found")
+    # Legacy callers may omit the query; the vendor setup viewer sends its
+    # response snapshot's hash so a replacement cannot swap its folded mesh.
+    if cad_sha256 is not None and cad_sha256 != part.cad_file_hash:
+        raise HTTPException(409, "CAD changed; reload the vendor setup")
+    if not part.preview_mesh_path:
+        raise HTTPException(404, "No processed preview for this CAD")
+    preview_root = (UPLOAD_DIR / "parts_previews").resolve()
+    preview = Path(part.preview_mesh_path).resolve()
+    if preview.parent != preview_root or preview.suffix != ".ply" or not preview.is_file():
+        raise HTTPException(404, "Processed preview unavailable")
+    return FileResponse(preview, media_type="application/octet-stream", filename=f"{part.id}.ply")
+
+
+@app.post("/api/parts/{part_id}/drawing", tags=["Part Catalog"])
+async def upload_part_drawing(
+    part_id: str,
+    drawing_file: UploadFile = File(..., description="Technical drawing (PDF or image)"),
+):
+    """Attach the technical drawing used to review a part's bend preset."""
+    catalog = get_catalog()
+    part = catalog.get_part(part_id)
+    if not part:
+        raise HTTPException(404, "Part not found")
+
+    filename = drawing_file.filename or "drawing"
+    ext = Path(filename).suffix.lower()
+    allowed_extensions = {'.pdf', '.png', '.jpg', '.jpeg', '.tiff', '.tif'}
+    if ext not in allowed_extensions:
+        raise HTTPException(400, f"Unsupported drawing type: {ext}. Allowed: {sorted(allowed_extensions)}")
+
+    drawing_dir = UPLOAD_DIR / "parts_drawings"
+    drawing_dir.mkdir(exist_ok=True)
+    drawing_path = drawing_dir / f"{uuid.uuid4().hex}{ext}"
+    content = await drawing_file.read(MAX_DRAWING_FILE_SIZE + 1)
+    if not content:
+        raise HTTPException(400, "Drawing file is empty")
+    if len(content) > MAX_DRAWING_FILE_SIZE:
+        raise HTTPException(413, "Drawing exceeds the 50 MB limit")
+
+    async with aiofiles.open(drawing_path, "wb") as f:
         await f.write(content)
 
-    # Update part with CAD path
     import hashlib
-    file_hash = hashlib.md5(content).hexdigest()
-
-    catalog.update_part(
+    file_hash = hashlib.sha256(content).hexdigest()
+    updated = catalog.update_part(
         part_id,
-        cad_file_path=str(cad_path),
-        cad_file_hash=file_hash,
-        cad_uploaded_at=datetime.now().isoformat(),
+        drawing_file_path=str(drawing_path),
+        drawing_file_hash=file_hash,
+        drawing_uploaded_at=datetime.now().isoformat(),
     )
-
-    result = {
-        "message": "CAD file uploaded",
-        "cad_path": str(cad_path),
-    }
-
-    # Optionally analyze bends
-    if analyze_bends:
-        try:
-            runtime_cfg = load_bend_runtime_config()
-            cad_vertices, cad_triangles, cad_source = load_cad_geometry(
-                str(cad_path),
-                cad_import_deflection=runtime_cfg.cad_import_deflection,
-            )
-            bends = extract_cad_bend_specs(
-                cad_vertices=cad_vertices,
-                cad_triangles=cad_triangles,
-                tolerance_angle=part.default_tolerance_angle,
-                tolerance_radius=0.5,
-                cad_extractor_kwargs=runtime_cfg.cad_extractor_kwargs,
-                cad_detector_kwargs=runtime_cfg.cad_detector_kwargs,
-                cad_detect_call_kwargs=runtime_cfg.cad_detect_call_kwargs,
-            )
-
-            # Clear existing bend specs and add new ones
-            catalog.delete_bend_specs_for_part(part_id)
-            for bend in bends:
-                catalog.add_bend_spec(
-                    part_id=part_id,
-                    bend_id=bend.bend_id,
-                    target_angle=bend.target_angle,
-                    target_radius=bend.target_radius,
-                    tolerance_angle=bend.tolerance_angle,
-                    tolerance_radius=bend.tolerance_radius,
-                )
-
-            # Update bend count
-            catalog.update_part(part_id, bend_count=len(bends))
-
-            result["cad_source"] = cad_source
-            result["bends_detected"] = len(bends)
-            result["bends"] = [b.to_dict() for b in bends]
-        except Exception as e:
-            logger.warning(f"Bend analysis failed: {e}")
-            result["bend_analysis_error"] = str(e)
-
-    return result
+    return {"part": updated.to_dict(), "message": "Technical drawing uploaded"}
 
 
 @app.get("/api/parts/{part_id}/cad", tags=["Part Catalog"])

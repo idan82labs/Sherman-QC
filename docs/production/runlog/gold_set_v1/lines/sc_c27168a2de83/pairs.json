@@ -1,0 +1,23 @@
+{
+  "labeler": "claude-vision-ai-v1",
+  "no_bends_present": false,
+  "notes": "GOLD v1 fix (round 1) of sc_c27168a2de83 (28289002_B01.ply, part 28289002, FULL, CAD bend lines 3; custody CONSUMED, BENCHMARK_V3 scans[36]). Started from benchmark_v3/label_lines/sc_c27168a2de83/pairs.json. Part: Z-profile stepped channel bracket, t~1.48 mm. Profile: tabbed wall 3/4, then a ~37 deg fold into the sloped chamfer band 5/8/9, then a ~53 deg fold (same turning direction) into the perforated base 1/7, then a 90 deg fold turning the opposite way into the short wall 2/6 (~99 mm, between relief notches). Base skin 1 is concave at B2 but convex at B3. All three folds are parallel within ~0.15 deg and straight lengthwise. Exactly 3 formed folds, matching the CAD count. The tabs on wall 3 are coplanar with the wall. Holes, slots, relief notches, thickness/end edges and arc facets 10/11 are not bends. Fix: B2 was on the inner (concave) skin [5,1], 1.47 mm off the outer apex (3/3 auditors). It is now rebuilt on the outer skins: chamfer outside [8,9] and base outside [7], with an explicit extent over the full fold. The auto extent clips to ~26 mm because 7 only covers one end. The outer arc is scanned over t~-68.6..-2 (11 plus unsegmented points). Over the rest the fold is evidenced by the inner arc 10 and skins 5/1, which run straight and one thickness inward. B1 and B3 are unchanged (3/3 auditors OK).",
+  "bends": [
+    {
+      "patches": [3, [8, 9]],
+      "note": "~37 deg fold (included ~142.7) from tabbed wall 3/4 to the sloped chamfer band 5/8/9, running the full part length (~138 mm). Outer skin: wall outside 3 plus chamfer outside 8 and 9, which are coplanar; 8 covers one end and 9 the other. The inner pair [4,5] lies one thickness inward and is left out.",
+      "confidence": "auto"
+    },
+    {
+      "patches": [[8, 9], [7]],
+      "extent_xyz": [[-224.1, -43.251, 222.022], [-112.723, 36.318, 241.79]],
+      "note": "~53 deg fold (included ~127.4) from chamfer 5/8/9 to perforated base 1/7, on the OUTER skin: chamfer outside 8/9 plus base outside 7. Extent override: the fold runs the full part length, about -68.5..69.8 along the old inner-line t; the end points are given as outer-apex xyz at those t. The auto extent clips to ~26 mm because base-outside 7 only covers one end (t<-42). The outer arc is directly scanned over ~66 mm (11 plus unsegmented points). The inner arc 10 and inner skins 5/1 confirm the straight fold over the full length.",
+      "confidence": "auto"
+    },
+    {
+      "patches": [1, 2],
+      "note": "90 deg fold from base 1/7 to the short wall 2/6, turning opposite to B1/B2 (Z-profile). Outer skin: base 1, which is convex here, plus wall outside 2. The fold spans the wall's attachment (~99 mm, between the relief notches at about t+-49.9); the base continues flat past both ends.",
+      "confidence": "auto"
+    }
+  ]
+}

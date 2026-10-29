@@ -1,0 +1,337 @@
+{
+ "schema": "sherman_repin_v1",
+ "date": "2026-10-26",
+ "status": "APPLIED (attempt 2; attempt 1 with dense thinning was rolled back, evidence/attempt1_thinning/)",
+ "owner_decision": {
+  "words": "1a, approve the bundle, station is Windows",
+  "ledger_seq": 25
+ },
+ "coordinator_narrowing": "bundle without the dense-thinning component; a fast fail-closed density guard instead",
+ "bundle": {
+  "E3": "e3-1.13.0 = rc patch (one-skin swap + near-tie withholding) + resample safety net policy 1, K=2, serial default + density guard; parallel resamples use spawn (default off)",
+  "ENGINE_IO_A5": "IN FORCE: ENGINE_RSS_LIMIT_BYTES 32 GiB (line_job + store.vocabulary), supervisor MAX_RSS_LIMIT_BYTES 32 GiB, SHERMAN_LINE_RSS_LIMIT_MB default/max 32768",
+  "zs": "zs_lane_v3 rev3 production pin + zs_lane_v1 re-pin (shared E3/contracts files only); DEFAULT_LANE zs_lane_v1"
+ },
+ "density_guard": {
+  "rule": "after cleaning and the unit check: > 15.0 points per occupied 0.63 mm cell (native max 12.94, 132 survey scans) OR > 3,000,000 points (native max 2.40 M) -> not measured; validity UNSUPPORTED_INPUT, reason 'DENSITY_ABOVE_VALIDATED_RANGE:<metric>'; every characteristic UNKNOWN(INVALID_INSPECTION); summary INVALID_INSPECTION; CLI exit 0 with a normal result (not a worker error); never PASS",
+  "vocabulary": "no contract addition: ValidityState is a closed Literal (adding one is a contract amendment, not part of this re-pin); validity reasons are free strings, so the reason code is carried there. A VALID / REVIEW_REQUIRED result is impossible without a registration (InspectionValidityV1 validator), so the closest existing withhold outcome is used",
+  "addition_beyond_coordinator_spec": "the point-count criterion (> 3 M points; native max 2.40 M), strictly more conservative; it catches B_n3 (4.25 M points, 13.2 pts/cell)"
+ },
+ "fingerprints": {
+  "engine": "f319ed5c2934a83bcb0f58b150a35230655e285b11930353f2838c75f9a33432",
+  "compile": "9831f9ae396d58c9a79f3475e790aacfec90c794a0d008598e64541bb37794dd (unchanged)",
+  "eval": "8aa6860c78d85a2daf1d36607b52c691079378c66507a29e6827e73c0f7cae6a (unchanged)",
+  "contracts": "27d553338c024006f75a4251355c9c354b60e89ab6e2f004ff075b17c8afd9d9",
+  "engine_config_sha256": "038eb11fc32ecc98088e9aacdc6ae9b6cb5ad321c4b1df28528dbc9a7e23b4b5",
+  "zs_lane_v1": {
+   "code_fingerprint": "52fd21d65f91351483f204fdc97fc651c793c3641dabdf3df015e9dda4fa22ba",
+   "pin_sha256": "94e71f30782cff72e732ed6849895a12137a13305a380b7df6581d7284be2202",
+   "config_v1_sha256": "5f41595b5573adb74f3f7fa11efc7fa1c52199563e2758d0d011c15ba82d54f1",
+   "before": "af87df2f... / pin e77f1f73... / config dec044e8..."
+  },
+  "zs_lane_v3_rev3": {
+   "code_fingerprint": "49a16399f15349889fd266d1f05cfd1f9b8fce635d9a63a6b08bb233da66782b",
+   "pin_sha256": "0d910b6f8410420197d3518f5cb0e0a643b88cf563f6411e2e1054fcdf43f364",
+   "config_v3_sha256": "9b173ea82033561b4521c37ad6fcb7f243eda56bed88e38b18d01def4376fa87",
+   "before": "research rev3 dc23a905... / config 8e002f3e...; production pin was rev2 ab31d061... / 115b7077..."
+  },
+  "PREREG_FRESH_TEMPLATE_sha256": "90394a42d3d6e2a650ebc875c12363743307c699b6e393d8350c6ce0fa842ba6",
+  "decision_rule_sha256_unchanged": "6ae84658713c1b4e0ed9c4b363d38d424b556ff173ed2b99cf09d13a7f4f0995",
+  "flip_allowed_if_all_sha256_unchanged": "18c0aeec40a79d4f67cce343fb4c30da70f22ff1472d9dd36d490f5ac9d4bd99"
+ },
+ "gates": {
+  "G1": {
+   "result": "PASS",
+   "false_pass": "0/553",
+   "wrong_or_mirrored": "0/32",
+   "accuracy_decision_gates_identical_to_candidate_net": true,
+   "runtime_only_diffs": {
+    "RUNTIME.P95_s": 87.7,
+    "TIER_BUDGET": "FAIL 1923 s (candidate 1115 s; host load 8-25)"
+   }
+  },
+  "A1": {
+   "result": "PASS (G2(e) waived)",
+   "characteristics_identical_to_candidate_net": "26/26 (24 in the main run; pc_07062eee17aa and pc_2714fb7e0c0b first ran under host load, the first resample was skipped by the budget and the fail-safe withheld, values identical; both re-run on the same code with the same runner: identical)",
+   "per_bend_all_v3": "identical except a run-condition effect: false-PASS proxies 2 vs 3 in the main run (the withheld cases); not recomputed after the re-run",
+   "G2e": {
+    "p95_wall_s": 152.55,
+    "max_wall_s": 158.89,
+    "gate": "FAIL (waived)"
+   },
+   "guard_fired_on_native": 0
+  },
+  "frozen_recompile": "18/18",
+  "tests": {
+   "e3": "308 passed, 1 skipped (17 files)",
+   "zs_overlay_contracts_production_line": "447 passed (17 files); overlay tests 50/50 with SHERMAN_ZS_LANE_PIN=zs_lane_v3 and 50/50 with zs_lane_v1"
+  },
+  "dense": {
+   "result": "PASS for 0 FAIL->PASS; guarded meshes withheld in <= 4.6 s",
+   "fail_to_pass_total": 0,
+   "guarded": 11,
+   "per_mesh": [
+    {
+     "mesh": "A_n3",
+     "wall_s": 134.65,
+     "peak_rss_gib": 0.73,
+     "validity": "VALID",
+     "summary": "REVIEW_REQUIRED",
+     "guarded": false,
+     "fail_to_pass": 0,
+     "to_pass": 1,
+     "decided_flips": 0
+    },
+    {
+     "mesh": "A_n3c",
+     "wall_s": 158.41,
+     "peak_rss_gib": 0.82,
+     "validity": "VALID",
+     "summary": "REVIEW_REQUIRED",
+     "guarded": false,
+     "fail_to_pass": 0,
+     "to_pass": 1,
+     "decided_flips": 0
+    },
+    {
+     "mesh": "A_n5",
+     "wall_s": 1.51,
+     "peak_rss_gib": 0.94,
+     "validity": "UNSUPPORTED_INPUT",
+     "summary": "INVALID_INSPECTION",
+     "guarded": true,
+     "fail_to_pass": 0,
+     "to_pass": 0,
+     "decided_flips": 0
+    },
+    {
+     "mesh": "A_n6",
+     "wall_s": 2.33,
+     "peak_rss_gib": 1.29,
+     "validity": "UNSUPPORTED_INPUT",
+     "summary": "INVALID_INSPECTION",
+     "guarded": true,
+     "fail_to_pass": 0,
+     "to_pass": 0,
+     "decided_flips": 0
+    },
+    {
+     "mesh": "A_n9",
+     "wall_s": 4.01,
+     "peak_rss_gib": 2.58,
+     "validity": "UNSUPPORTED_INPUT",
+     "summary": "INVALID_INSPECTION",
+     "guarded": true,
+     "fail_to_pass": 0,
+     "to_pass": 0,
+     "decided_flips": 0
+    },
+    {
+     "mesh": "B_n2",
+     "wall_s": 171.1,
+     "peak_rss_gib": 0.71,
+     "validity": "VALID",
+     "summary": "REVIEW_REQUIRED",
+     "guarded": false,
+     "fail_to_pass": 0,
+     "to_pass": 0,
+     "decided_flips": 0
+    },
+    {
+     "mesh": "B_n2c",
+     "wall_s": 158.81,
+     "peak_rss_gib": 0.63,
+     "validity": "VALID",
+     "summary": "REVIEW_REQUIRED",
+     "guarded": false,
+     "fail_to_pass": 0,
+     "to_pass": 0,
+     "decided_flips": 0
+    },
+    {
+     "mesh": "B_n3",
+     "wall_s": 0.99,
+     "peak_rss_gib": 0.67,
+     "validity": "UNSUPPORTED_INPUT",
+     "summary": "INVALID_INSPECTION",
+     "guarded": true,
+     "fail_to_pass": 0,
+     "to_pass": 0,
+     "decided_flips": 0
+    },
+    {
+     "mesh": "B_n5",
+     "wall_s": 2.2,
+     "peak_rss_gib": 1.5,
+     "validity": "UNSUPPORTED_INPUT",
+     "summary": "INVALID_INSPECTION",
+     "guarded": true,
+     "fail_to_pass": 0,
+     "to_pass": 0,
+     "decided_flips": 0
+    },
+    {
+     "mesh": "B_n7",
+     "wall_s": 4.55,
+     "peak_rss_gib": 2.75,
+     "validity": "UNSUPPORTED_INPUT",
+     "summary": "INVALID_INSPECTION",
+     "guarded": true,
+     "fail_to_pass": 0,
+     "to_pass": 0,
+     "decided_flips": 0
+    },
+    {
+     "mesh": "C_n2",
+     "wall_s": 149.96,
+     "peak_rss_gib": 1.02,
+     "validity": "VALID",
+     "summary": "ALL_MEASURED_IN_TOLERANCE",
+     "guarded": false,
+     "fail_to_pass": 0,
+     "to_pass": 0,
+     "decided_flips": 0
+    },
+    {
+     "mesh": "C_n3",
+     "wall_s": 1.62,
+     "peak_rss_gib": 0.98,
+     "validity": "UNSUPPORTED_INPUT",
+     "summary": "INVALID_INSPECTION",
+     "guarded": true,
+     "fail_to_pass": 0,
+     "to_pass": 0,
+     "decided_flips": 0
+    },
+    {
+     "mesh": "C_n4",
+     "wall_s": 2.52,
+     "peak_rss_gib": 1.31,
+     "validity": "UNSUPPORTED_INPUT",
+     "summary": "INVALID_INSPECTION",
+     "guarded": true,
+     "fail_to_pass": 0,
+     "to_pass": 0,
+     "decided_flips": 0
+    },
+    {
+     "mesh": "C_n5",
+     "wall_s": 3.31,
+     "peak_rss_gib": 1.93,
+     "validity": "UNSUPPORTED_INPUT",
+     "summary": "INVALID_INSPECTION",
+     "guarded": true,
+     "fail_to_pass": 0,
+     "to_pass": 0,
+     "decided_flips": 0
+    },
+    {
+     "mesh": "D_n2",
+     "wall_s": 1.75,
+     "peak_rss_gib": 1.4,
+     "validity": "UNSUPPORTED_INPUT",
+     "summary": "INVALID_INSPECTION",
+     "guarded": true,
+     "fail_to_pass": 0,
+     "to_pass": 0,
+     "decided_flips": 0
+    },
+    {
+     "mesh": "D_n3",
+     "wall_s": 3.15,
+     "peak_rss_gib": 2.49,
+     "validity": "UNSUPPORTED_INPUT",
+     "summary": "INVALID_INSPECTION",
+     "guarded": true,
+     "fail_to_pass": 0,
+     "to_pass": 0,
+     "decided_flips": 0
+    }
+   ],
+   "native": {
+    "A_n1_e3": {
+     "wall_s": 53.11,
+     "rss_gib": 0.35,
+     "summary": "REVIEW_REQUIRED",
+     "resample_check": [
+      "resample check: k=2 policy=1 parallel=0 primary 15.1s total 52.1s; s7101=VALID s7102=VALID"
+     ],
+     "thinned": null
+    },
+    "B_n1_e3": {
+     "wall_s": 138.6,
+     "rss_gib": 0.44,
+     "summary": "OUT_OF_TOLERANCE_FOUND",
+     "resample_check": [
+      "resample check: k=2 policy=1 parallel=0 primary 50.4s total 137.7s; s7101=VALID s7102=VALID",
+      "resample check withheld: bu_a756c2e2336e1530784d/INCLUDED_ANGLE bu_364d82ba11957cd31c62/FLANGE_LENGTH/A"
+     ],
+     "thinned": null
+    },
+    "C_n1_e3": {
+     "wall_s": 72.85,
+     "rss_gib": 0.51,
+     "summary": "ALL_MEASURED_IN_TOLERANCE",
+     "resample_check": [
+      "resample check: k=2 policy=1 parallel=0 primary 23.9s total 72.1s; s7101=VALID s7102=VALID"
+     ],
+     "thinned": null
+    },
+    "D_n1_e3": {
+     "wall_s": 86.09,
+     "rss_gib": 0.67,
+     "summary": "REVIEW_REQUIRED",
+     "resample_check": [
+      "resample check: k=2 policy=1 parallel=0 primary 25.1s total 85.3s; s7101=VALID s7102=VALID"
+     ],
+     "thinned": null
+    }
+   },
+   "qualification": "5 meshes lie inside the native envelope (<= 15 pts/cell and <= 3 M points: A_n3, A_n3c, B_n2, B_n2c, C_n2); they are measured like native scans and took 135-171 s on this loaded host (load 8-25; native B took 139 s in the same window); no FAIL->PASS; A_n3/A_n3c keep e3-1.12.0's REVIEW->PASS on B7 line position"
+  },
+  "zs_rehearsal": {
+   "result": "PASS",
+   "v1": {
+    "status": {
+     "OK": 50
+    },
+    "false_pass": 0,
+    "lines": 288,
+    "wall_max_s": 29.966,
+    "rss_max_gib": 1.819
+   },
+   "v3": {
+    "status": {
+     "OK": 50
+    },
+    "false_pass": 0,
+    "lines": 288,
+    "wall_max_s": 35.826,
+    "rss_max_gib": 1.605
+   },
+   "identical_per_scan_line_counts_and_kinds_vs_rev2_rehearsal": true,
+   "changed_effective_state_v1_vs_v3": []
+  },
+  "E2E": {
+   "result": "PASS on the third run",
+   "runs": {
+    "20261026T-real-repin-e3-1-13": "12/13 (W3b)",
+    "20261026T-real-repin-e3-1-13b": "12/13 (W3b)",
+    "20261026T-real-repin-e3-1-13c": "13/13"
+   },
+   "W3b": "Vendor Setup studio UI step before any E3 job; same assertion signature as the known flake of 20261019T-real-fixes3c/3d (bend markers B7/B10 labels missing); no E3/zs/limit code is on that path",
+   "overlay": "every job: lane zs_lane_v1, fingerprint 52fd21d6..., engine e3-1.13.0, verdict not lowered, effective = E3 state"
+  }
+ },
+ "parallel_resamples": {
+  "default": "serial",
+  "measured_attempt1": "spawn byte-identical to serial on the corpus-max scan, 96.5 vs 131.5 s; not run on Windows"
+ },
+ "unverified": [
+  "Windows station runtime and spawn/RSS accounting on Windows",
+  "timing on an unloaded host (all runtime gates measured under load 8-25)",
+  "in-envelope dense meshes near the budget under load",
+  "deployed station .env may still pin SHERMAN_LINE_RSS_LIMIT_MB=4096 (not read)"
+ ],
+ "custody": "DEV/consumed survey scans, 4 DEV dense mesh families (N1 excluded), consumed-DEV rehearsal cohort, Gold11 dev part for E2E; no FRESH, DEV-CHECK, TEST-B, N1, HOLDOUT10, EHO4 or sealed data"
+}

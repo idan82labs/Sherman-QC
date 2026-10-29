@@ -1,0 +1,85 @@
+{
+ "schema": "sherman.final_eval.gold_adjudication.v1",
+ "batch": "FE1",
+ "gid": "gb_437879",
+ "scan_id": "sc_a2b645309e14",
+ "role": "SCORED",
+ "subset": "HOLDOUT10",
+ "part_id": "47846000",
+ "original_path": "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/incoming/2026-08-30_shaked_daily_scans/source_download/47846000_A.ply",
+ "scan_sha256": "a2b645309e140b19b696fc9bc1d1a6cf701701e82f3ddca5ee6afc0a4c62b9ef",
+ "adjudicator": "FE1/adjudicator (claude-vision-ai-v1)",
+ "adjudicated_at": "2026-10-28T21:21:57+00:00",
+ "protocol": "PREREG.md section 4 (sha c50f58e0...); frozen matcher research/broad_baseline/score.py score_case (5 deg / 4 mm / 60 % both spans, one-to-one); accept threshold 1.5 mm / 2 deg; gold rule GOLD_SET_V2 (MARKER_INSTRUCTIONS.md)",
+ "inputs_seen": [
+  "marker_A and marker_B lines/pairs/notes/renders/sweeps",
+  "shared prep renders",
+  "adjudicator raw-scan sections and station checks (adjudication/evidence/)",
+  "private key (gid -> original)"
+ ],
+ "not_seen": "no engine, lane, pool, E3, CAD or baseline output",
+ "marker_A_lines_sha256": "53c28e9bddee5adbd2cbaec8df62bc7292aa27f0b2ee6b0a1d1bf1213afe6a1e",
+ "marker_B_lines_sha256": "40f6c884663fa1b35db8ec866193ecd1a8edfda16160085d776af8eb6b99811b",
+ "final_source": "B",
+ "final_lines_sha256": "152dcfb883113a7adf374bf69ea9a1e854fb46c7618d3ecdd6f98e5e85d002fa",
+ "final_line_count": 2,
+ "no_bends_present": false,
+ "label_complete": true,
+ "part_class": "bent",
+ "zero_bend": false,
+ "partial_scan": false,
+ "partial_note": "complete scan (both markers; all views)",
+ "excluded": false,
+ "ab_match": {
+  "nA": 0,
+  "nB": 2,
+  "tp": 0,
+  "fp_B_only": 2,
+  "fn_A_only": 0,
+  "f1": 0.0,
+  "disposition": "ZERO_BEND_CONTROL",
+  "accepted_within_1p5mm_2deg": 0,
+  "matched_not_accepted": [],
+  "A_only": [],
+  "B_only": [
+   "B1",
+   "B2"
+  ],
+  "matches": []
+ },
+ "lines": [
+  {
+   "final_id": "B1",
+   "bend_angle_deg": 11.93,
+   "length_mm": 4.9,
+   "confidence": "uncertain",
+   "marker_B_id": "B1",
+   "marker_A_id": null,
+   "verdict": "ACCEPT_B (B only)",
+   "from": "B"
+  },
+  {
+   "final_id": "B2",
+   "bend_angle_deg": 12.3,
+   "length_mm": 5.0,
+   "confidence": "uncertain",
+   "marker_B_id": "B2",
+   "marker_A_id": null,
+   "verdict": "ACCEPT_B (B only)",
+   "from": "B"
+  }
+ ],
+ "rejected_marker_lines": [],
+ "doubts_adjudicated": [
+  {
+   "lines_B": [
+    "B1",
+    "B2"
+   ],
+   "doubt": "A: flat/warped strip, 0 bends; B: shallow joggle, 2 kinks ~12 deg",
+   "verdict": "ACCEPT_B",
+   "rule": "GOLD_SET_V2 gold rule (docs/production/GOLD_SET_V2.md; packets/MARKER_INSTRUCTIONS.md): joggle = 2 lines; formed folds >= 10 deg; a 10-15 deg bend must be a distinct formed fold between two flat plates",
+   "reason": "Adjudicator profile of the raw mesh (evidence/k437.log, both skins, 0.5 mm stations, t ~0.55): three straight segments with constant slope (top-skin heights linear to +-0.01 mm within each): normal tilt -5.0 / +9.0 / -5.3 deg (top) and +5.2 / -9.1 / +5.4 deg (bottom), with ~1-1.5 mm transitions at u ~ -2.4 and +1.9 mm. The end segments are parallel and offset (Z shape). Two distinct folds of 14.0-14.5 deg between flat plates (tool plane fits 11.9 / 12.3 deg); both >= 10 deg. A's own numbers (-4/+8/-5 deg, ~13 deg each) agree; a smooth warp would not give piecewise-flat skins. B's 2 lines (apex on the convex skin at each kink) are the gold; confidence uncertain kept."
+  }
+ ]
+}

@@ -1,14 +1,17 @@
 from __future__ import annotations
 
 import json
+import re
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from fastapi import BackgroundTasks, File, Form, HTTPException, Query, UploadFile
+from fastapi import BackgroundTasks, Depends, File, Form, HTTPException, Query, Request, UploadFile
 from fastapi.responses import FileResponse
+from fastapi.security import HTTPBearer
 
 from apps.api.legacy_context import legacy
+from apps.api.services.bend_readiness_service import load_bend_inspection_readiness
 
 
 bend_inspection_results = legacy.bend_inspection_results
@@ -21,13 +24,99 @@ _run_bend_worker_subprocess = legacy._run_bend_worker_subprocess
 get_catalog = legacy.get_catalog
 _json_safe = legacy._json_safe
 load_bend_runtime_config = legacy.load_bend_runtime_config
-load_expected_bend_overrides = legacy.load_expected_bend_overrides
 load_cad_geometry = legacy.load_cad_geometry
 extract_cad_bend_specs = legacy.extract_cad_bend_specs
 aiofiles = legacy.aiofiles
 asyncio = legacy.asyncio
 shutil = legacy.shutil
 uuid = legacy.uuid
+get_bend_inspection_labels = legacy.get_bend_inspection_labels
+put_bend_inspection_labels = legacy.put_bend_inspection_labels
+_bend_bearer = HTTPBearer(auto_error=False)
+
+
+async def require_bend_operator(user: Any = Depends(legacy.require_auth)) -> Any:
+    """Authorize a current active account, not a role asserted by the client.
+
+    This grants access to the operator-reviewed workflow only. It does not grant
+    production disposition authority or an administrator cross-owner override.
+    """
+    if user is None:
+        raise HTTPException(401, 'Authentication required')
+    if (getattr(user, 'is_active', None) is not True
+            or getattr(user, 'role', None) not in {'operator', 'admin'}
+            or type(getattr(user, 'id', None)) is not int or user.id <= 0):
+        raise HTTPException(403, 'Active bend operator access required')
+    return user
+
+
+def _valid_bend_job_id(job_id: str) -> bool:
+    return isinstance(job_id, str) and re.fullmatch(r'bend_[A-Za-z0-9_-]{1,128}', job_id) is not None
+
+
+def _owned_by(record: Any, user_id: int) -> bool:
+    # Missing/malformed historical ownership must never become shared access.
+    return (isinstance(record, dict)
+            and type(record.get('owner_user_id')) is int
+            and record['owner_user_id'] == user_id)
+
+
+async def require_bend_job_owner(job_id: str, user: Any = Depends(require_bend_operator)) -> None:
+    """Guard every job surface before reports, labels or artifacts are touched."""
+    if not _valid_bend_job_id(job_id):
+        raise HTTPException(404, 'Bend inspection job not found')
+    record = bend_inspection_results.get(job_id)
+    if record is None:
+        record = _safe_read_json(OUTPUT_DIR / job_id / 'bend_inspection_meta.json')
+    if not _owned_by(record, user.id):
+        # Do not disclose whether another operator's job exists.
+        raise HTTPException(404, 'Bend inspection job not found')
+
+
+async def require_bend_job_owner_if_applicable(job_id: str, request: Request) -> None:
+    """Close shared legacy artifact/job aliases without changing non-bend auth.
+
+    Shared routes are registered before this router in the application. Their
+    guard must therefore live on those routes too, rather than relying on order.
+    """
+    # Extraction scratch files are never public job artifacts, even for a
+    # signed-in operator. Deny before resolving paths or looking up credentials.
+    if job_id.casefold().startswith('temp_'):
+        raise HTTPException(404, 'Job not found')
+    if not job_id or job_id in {'.', '..'} or '/' in job_id or '\\' in job_id:
+        raise HTTPException(404, 'Job not found')
+    filename = request.path_params.get('filename')
+    if filename is not None and (Path(filename).is_absolute() or '\\' in filename):
+        raise HTTPException(400, 'Invalid artifact filename')
+    # Case-insensitive filesystems must not turn BEND_* into an unguarded alias.
+    if not job_id.casefold().startswith('bend_'):
+        return
+    credentials = await _bend_bearer(request)
+    user = await legacy.require_auth(credentials=credentials)
+    user = await require_bend_operator(user)
+    await require_bend_job_owner(job_id, user)
+    if request.method == 'DELETE' and bend_inspection_results.get(job_id, {}).get('status') in {'queued', 'running'}:
+        raise HTTPException(409, 'Cannot delete an active bend inspection job')
+    # Bend jobs publish flat filenames. In particular an absolute filename on
+    # /api/files must not discard the authorized job directory during joining.
+    if filename is not None and (not filename or Path(filename).name != filename
+                                 or '..' in filename or '\\' in filename):
+        raise HTTPException(400, 'Invalid bend artifact filename')
+
+
+def _reserve_bend_upload_dir() -> tuple[str, Path]:
+    """Reserve a new namespace without overwriting another operator's job."""
+    for _ in range(5):
+        job_id = f'bend_{uuid.uuid4().hex}'
+        if job_id in bend_inspection_results or (OUTPUT_DIR / job_id).exists():
+            continue
+        job_dir = UPLOAD_DIR / job_id
+        try:
+            job_dir.mkdir(exist_ok=False)
+        except FileExistsError:
+            continue
+        return job_id, job_dir
+    raise HTTPException(503, 'Unable to reserve a new bend inspection job')
 
 
 def _resolve_bend_artifact_urls(artifacts: Optional[Dict[str, Any]], job_id: str) -> Dict[str, Any]:
@@ -69,14 +158,18 @@ def _parse_iso_datetime(value: Any) -> Optional[datetime]:
         return None
 
 
-def _build_persisted_bend_job(job_id: str, include_report: bool = False) -> Optional[Dict[str, Any]]:
+def _build_persisted_bend_job(job_id: str, owner_user_id: int, include_report: bool = False) -> Optional[Dict[str, Any]]:
+    if not _valid_bend_job_id(job_id):
+        return None
     output_dir = OUTPUT_DIR / job_id
+    meta = _safe_read_json(output_dir / 'bend_inspection_meta.json') or {}
+    if not _owned_by(meta, owner_user_id):
+        return None
     report_path = output_dir / 'bend_inspection_report.json'
     if not report_path.exists():
         return None
 
     report = _safe_read_json(report_path) or {}
-    meta = _safe_read_json(output_dir / 'bend_inspection_meta.json') or {}
 
     report_part_id = str(report.get('part_id') or '').strip()
     part_id = str(meta.get('part_id') or report_part_id or job_id).strip()
@@ -101,6 +194,7 @@ def _build_persisted_bend_job(job_id: str, include_report: bool = False) -> Opti
     }
     if isinstance(meta.get('seed_case'), dict):
         payload['seed_case'] = meta.get('seed_case')
+    payload['qualification'] = meta.get('qualification') or load_bend_inspection_readiness()
     artifacts = _resolve_bend_artifact_urls(meta.get('artifacts'), job_id)
     ref_mesh = output_dir / 'reference_mesh.ply'
     if ref_mesh.exists() and 'reference_mesh_url' not in artifacts:
@@ -112,11 +206,14 @@ def _build_persisted_bend_job(job_id: str, include_report: bool = False) -> Opti
     return payload
 
 
-def _list_persisted_bend_jobs(status: Optional[str] = None, include_report: bool = False) -> List[Dict[str, Any]]:
+def _list_persisted_bend_jobs(owner_user_id: int, status: Optional[str] = None, include_report: bool = False) -> List[Dict[str, Any]]:
     jobs: List[Dict[str, Any]] = []
     for report_path in OUTPUT_DIR.glob('bend_*/bend_inspection_report.json'):
         job_id = report_path.parent.name
-        job = _build_persisted_bend_job(job_id, include_report=include_report)
+        current = bend_inspection_results.get(job_id)
+        if current is not None and not _owned_by(current, owner_user_id):
+            continue
+        job = _build_persisted_bend_job(job_id, owner_user_id, include_report=include_report)
         if not job:
             continue
         if status and job.get('status') != status:
@@ -147,6 +244,7 @@ async def run_bend_inspection(
     part_name: str = Form('Unnamed Part'),
     default_tolerance_angle: float = Form(1.0),
     default_tolerance_radius: float = Form(0.5),
+    user: Any = Depends(require_bend_operator),
 ):
     cad_ext = Path(cad_file.filename).suffix.lower()
     scan_ext = Path(scan_file.filename).suffix.lower()
@@ -162,9 +260,7 @@ async def run_bend_inspection(
     await validate_file_size(cad_file, MAX_MESH_FILE_SIZE, 'CAD')
     await validate_file_size(scan_file, MAX_MESH_FILE_SIZE, 'Scan')
 
-    job_id = f'bend_{uuid.uuid4().hex[:8]}'
-    job_dir = UPLOAD_DIR / job_id
-    job_dir.mkdir(exist_ok=True)
+    job_id, job_dir = _reserve_bend_upload_dir()
 
     cad_path = job_dir / f'cad{cad_ext}'
     scan_path = job_dir / f'scan{scan_ext}'
@@ -177,12 +273,15 @@ async def run_bend_inspection(
     async with aiofiles.open(scan_path, 'wb') as handle:
         await handle.write(scan_content)
 
+    qualification = load_bend_inspection_readiness()
     bend_inspection_results[job_id] = {
+        'owner_user_id': user.id,
         'status': 'running',
         'progress': 0,
         'part_id': part_id,
         'part_name': part_name,
         'created_at': datetime.now().isoformat(),
+        'qualification': qualification,
     }
 
     background_tasks.add_task(
@@ -196,7 +295,12 @@ async def run_bend_inspection(
         default_tolerance_radius,
     )
 
-    return {'job_id': job_id, 'status': 'started', 'message': 'Bend inspection started'}
+    return {
+        'job_id': job_id,
+        'status': 'started',
+        'message': 'Bend inspection started',
+        'qualification': qualification,
+    }
 
 
 async def run_bend_inspection_task(
@@ -260,6 +364,7 @@ async def run_bend_inspection_task(
         completed_at = datetime.now().isoformat()
         metadata = {
             'job_id': job_id,
+            'owner_user_id': result_store.get('owner_user_id'),
             'status': 'completed',
             'progress': 100,
             'part_id': part_id,
@@ -270,6 +375,7 @@ async def run_bend_inspection_task(
             'cad_path': cad_path,
             'scan_path': scan_path,
             'artifacts': artifacts_payload,
+            'qualification': result_store.get('qualification') or load_bend_inspection_readiness(),
         }
         meta_path = output_dir / 'bend_inspection_meta.json'
         with open(meta_path, 'w', encoding='utf-8') as handle:
@@ -302,10 +408,12 @@ async def run_bend_inspection_task(
         result_store['error'] = str(exc)
 
 
-async def list_bend_inspection_jobs(status: Optional[str] = Query(None, description='Filter by status'), limit: int = Query(20, ge=1, le=100)):
+async def list_bend_inspection_jobs(status: Optional[str] = Query(None, description='Filter by status'), limit: int = Query(20, ge=1, le=100), user: Any = Depends(require_bend_operator)):
     jobs_by_id: Dict[str, Dict[str, Any]] = {}
 
     for job_id, result in bend_inspection_results.items():
+        if not _owned_by(result, user.id):
+            continue
         if status and result.get('status') != status:
             continue
         jobs_by_id[job_id] = {
@@ -321,7 +429,7 @@ async def list_bend_inspection_jobs(status: Optional[str] = Query(None, descript
             'artifacts': result.get('artifacts'),
         }
 
-    persisted = _list_persisted_bend_jobs(status=status, include_report=True)
+    persisted = _list_persisted_bend_jobs(user.id, status=status, include_report=True)
     for job in persisted:
         current = jobs_by_id.get(job['job_id'])
         if current and current.get('status') == 'running':
@@ -343,11 +451,12 @@ async def list_bend_inspection_jobs(status: Optional[str] = Query(None, descript
     return {'jobs': jobs[:limit], 'total': len(jobs)}
 
 
-async def get_bend_inspection_result(job_id: str):
+async def get_bend_inspection_result(job_id: str, user: Any = Depends(require_bend_operator)):
     result = bend_inspection_results.get(job_id)
     if not result:
-        persisted = _build_persisted_bend_job(job_id, include_report=True)
+        persisted = _build_persisted_bend_job(job_id, user.id, include_report=True)
         if persisted:
+            persisted['qualification'] = load_bend_inspection_readiness()
             table_path = OUTPUT_DIR / job_id / 'bend_inspection_table.txt'
             if table_path.exists():
                 with open(table_path, 'r', encoding='utf-8') as handle:
@@ -371,6 +480,7 @@ async def get_bend_inspection_result(job_id: str):
         'artifacts': result.get('artifacts'),
         'error': result.get('error'),
         'processing_time_ms': result.get('processing_time_ms'),
+        'qualification': result.get('qualification') or load_bend_inspection_readiness(),
     }
 
 
@@ -465,16 +575,13 @@ async def extract_cad_bends(
             cad_detector_kwargs=runtime_cfg.cad_detector_kwargs,
             cad_detect_call_kwargs=runtime_cfg.cad_detect_call_kwargs,
         )
-        expected_overrides = load_expected_bend_overrides()
-        expected_bend_count = int(expected_overrides.get(part_id, len(bends)))
-        if expected_bend_count <= 0:
-            expected_bend_count = int(len(bends))
-
         return {
             'part_id': part_id,
             'cad_source': cad_source,
             'total_bends': len(bends),
-            'expected_bend_count': expected_bend_count,
+            # This endpoint is source-only. A part ID must never unlock a
+            # drawing-derived target count or select the returned CAD bends.
+            'expected_bend_count': len(bends),
             'bends': [bend.to_dict() for bend in bends],
             'message': f'Extracted {len(bends)} bend specifications from CAD',
         }
@@ -487,6 +594,7 @@ async def analyze_from_catalog(
     background_tasks: BackgroundTasks,
     part_id: str = Form(..., description='Part ID from catalog'),
     scan_file: UploadFile = File(..., description='Scan file to analyze'),
+    user: Any = Depends(require_bend_operator),
 ):
     catalog = get_catalog()
     part = catalog.get_part(part_id)
@@ -502,9 +610,7 @@ async def analyze_from_catalog(
 
     await validate_file_size(scan_file, MAX_MESH_FILE_SIZE, 'Scan')
 
-    job_id = f'bend_{uuid.uuid4().hex[:8]}'
-    job_dir = UPLOAD_DIR / job_id
-    job_dir.mkdir(exist_ok=True)
+    job_id, job_dir = _reserve_bend_upload_dir()
 
     try:
         scan_path = job_dir / f'scan{scan_ext}'
@@ -513,6 +619,7 @@ async def analyze_from_catalog(
             await handle.write(scan_content)
 
         bend_inspection_results[job_id] = {
+            'owner_user_id': user.id,
             'status': 'running',
             'progress': 0,
             'part_id': part.id,
@@ -570,6 +677,8 @@ async def get_parts_with_cad():
 
 
 async def delete_bend_inspection_job(job_id: str):
+    if bend_inspection_results.get(job_id, {}).get('status') in {'queued', 'running'}:
+        raise HTTPException(409, 'Cannot delete an active bend inspection job')
     if job_id in bend_inspection_results:
         del bend_inspection_results[job_id]
 

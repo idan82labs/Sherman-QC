@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, lazy, Suspense } from 'react'
+import { useState, useEffect, useCallback, useMemo, lazy, Suspense } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   Radio,
@@ -188,18 +188,8 @@ export default function LiveScan() {
     staleTime: 60000,
   })
 
-  // Update watch path when config loads
-  useEffect(() => {
-    if (config?.watch_path && !watchPathInput) {
-      setWatchPathInput(config.watch_path)
-    }
-  }, [config?.watch_path])
-
-  useEffect(() => {
-    if (!demoPartNumber && demoOptions?.default_part_number) {
-      setDemoPartNumber(demoOptions.default_part_number)
-    }
-  }, [demoOptions?.default_part_number, demoPartNumber])
+  const effectiveWatchPath = watchPathInput || config?.watch_path || ''
+  const effectiveDemoPartNumber = demoPartNumber || demoOptions?.default_part_number || ''
 
   // Mutation to update watch path
   const updateWatchPath = useMutation({
@@ -212,7 +202,7 @@ export default function LiveScan() {
 
   // Mutation to start watcher
   const startWatcher = useMutation({
-    mutationFn: () => liveScanApi.startManager(watchPathInput),
+    mutationFn: () => liveScanApi.startManager(effectiveWatchPath),
     onSuccess: () => {
       refetchStatus()
     },
@@ -230,11 +220,11 @@ export default function LiveScan() {
   const loadTestScan = useMutation({
     mutationFn: () =>
       liveScanApi.loadTestScan({
-        part_number: demoPartNumber || undefined,
+        part_number: effectiveDemoPartNumber || undefined,
       }),
     onSuccess: (data) => {
       setDemoMessage(
-        `${data?.message || 'Demo loaded'}: ${data?.demo_part?.part_number || demoPartNumber}`
+        `${data?.message || 'Demo loaded'}: ${data?.demo_part?.part_number || effectiveDemoPartNumber}`
       )
       queryClient.invalidateQueries({ queryKey: ['recognition-status'] })
       queryClient.invalidateQueries({ queryKey: ['live-scan-status'] })
@@ -246,8 +236,8 @@ export default function LiveScan() {
   })
 
   const handleSaveWatchPath = () => {
-    if (watchPathInput && watchPathInput !== config?.watch_path) {
-      updateWatchPath.mutate(watchPathInput)
+    if (effectiveWatchPath && effectiveWatchPath !== config?.watch_path) {
+      updateWatchPath.mutate(effectiveWatchPath)
     }
   }
 
@@ -311,23 +301,20 @@ export default function LiveScan() {
     refetchInterval: (session?.state === 'idle' || session?.state === 'complete') ? 10000 : 2500,
   })
 
-  // Auto-select top candidate when recognition completes
-  useEffect(() => {
-    if (session?.recognition?.candidates?.length && !selectedCandidate) {
-      const topCandidate = session.recognition.candidates[0]
-      const confidence = topCandidate.match_confidence ?? topCandidate.similarity
-      if (confidence >= 0.75) {
-        setSelectedCandidate(topCandidate.part_id)
-      }
-    }
-  }, [session?.recognition?.candidates, selectedCandidate])
+  const automaticCandidate = useMemo(() => {
+    const topCandidate = session?.recognition?.candidates?.[0]
+    if (!topCandidate) return null
+    const confidence = topCandidate.match_confidence ?? topCandidate.similarity
+    return confidence >= 0.75 ? topCandidate.part_id : null
+  }, [session?.recognition?.candidates])
+  const effectiveSelectedCandidate = selectedCandidate ?? automaticCandidate
 
   // Confirm part selection
   const handleConfirmPart = useCallback(async () => {
-    if (!selectedCandidate || !session) return
+    if (!effectiveSelectedCandidate || !session) return
 
     const candidate = session.recognition?.candidates?.find(
-      (c: RecognitionCandidate) => c.part_id === selectedCandidate
+      (c: RecognitionCandidate) => c.part_id === effectiveSelectedCandidate
     )
     if (!candidate) return
 
@@ -337,7 +324,7 @@ export default function LiveScan() {
     } catch (error) {
       console.error('Failed to confirm part:', error)
     }
-  }, [selectedCandidate, session])
+  }, [effectiveSelectedCandidate, session])
 
   // Complete scan
   const handleCompleteScan = useCallback(async () => {
@@ -456,7 +443,7 @@ export default function LiveScan() {
               </label>
               <input
                 type="text"
-                value={watchPathInput}
+                value={effectiveWatchPath}
                 onChange={(e) => setWatchPathInput(e.target.value)}
                 placeholder="/path/to/vxelements/exports"
                 className="w-full px-3 py-2 bg-dark-800 border border-dark-600 rounded-lg focus:border-primary-500 focus:outline-none"
@@ -468,7 +455,7 @@ export default function LiveScan() {
 
             <button
               onClick={handleSaveWatchPath}
-              disabled={!watchPathInput || watchPathInput === config?.watch_path || updateWatchPath.isPending}
+              disabled={!effectiveWatchPath || effectiveWatchPath === config?.watch_path || updateWatchPath.isPending}
               className="btn btn-secondary flex items-center gap-2"
             >
               {updateWatchPath.isPending ? (
@@ -495,7 +482,7 @@ export default function LiveScan() {
             ) : (
               <button
                 onClick={() => startWatcher.mutate()}
-                disabled={startWatcher.isPending || !watchPathInput}
+                disabled={startWatcher.isPending || !effectiveWatchPath}
                 className="btn btn-primary flex items-center gap-2"
               >
                 {startWatcher.isPending ? (
@@ -530,7 +517,7 @@ export default function LiveScan() {
               <div className="min-w-[220px]">
                 <label className="block text-xs text-dark-400 mb-1">Demo Part</label>
                 <select
-                  value={demoPartNumber}
+                  value={effectiveDemoPartNumber}
                   onChange={(e) => setDemoPartNumber(e.target.value)}
                   className="w-full px-3 py-2 bg-dark-800 border border-dark-600 rounded-lg focus:border-primary-500 focus:outline-none"
                 >
@@ -550,7 +537,7 @@ export default function LiveScan() {
 
               <button
                 onClick={() => loadTestScan.mutate()}
-                disabled={loadTestScan.isPending || !demoPartNumber}
+                disabled={loadTestScan.isPending || !effectiveDemoPartNumber}
                 className="btn btn-secondary flex items-center gap-2"
               >
                 {loadTestScan.isPending ? (
@@ -741,7 +728,7 @@ export default function LiveScan() {
                   <CandidateCard
                     key={candidate.part_id}
                     candidate={candidate}
-                    isSelected={selectedCandidate === candidate.part_id}
+                    isSelected={effectiveSelectedCandidate === candidate.part_id}
                     onSelect={() => setSelectedCandidate(candidate.part_id)}
                   />
                 ))}
@@ -749,7 +736,7 @@ export default function LiveScan() {
                 {state === 'identifying' && (
                   <button
                     onClick={handleConfirmPart}
-                    disabled={!selectedCandidate}
+                    disabled={!effectiveSelectedCandidate}
                     className="btn btn-primary w-full mt-4"
                   >
                     Confirm Selection

@@ -1,0 +1,454 @@
+{
+  "schema": "sherman.gold11_audit.relabel_vs_human.v1",
+  "scan_id": "sc_07062eee17aa",
+  "scan_sha256": "07062eee17aa4e41721b93cdb69ddb4b752e6713a16c5aab0a10df9c86d07880",
+  "human_gold": "data/bend_corpus/annotations/human_bend_lines_v1/a962166c3019434c10628722.json",
+  "human_gold_sha256": "15f2f1288e9fa33e84b0bb9f47630ee8db19076d8303dbe87a85e72404fa6620",
+  "lines_json": "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/broad_baseline/gold11_audit/relabel/sc_07062eee17aa/explore_run2/lines.json",
+  "lines_json_sha256": "e7d906900dfd71a3afc89e1e5cd50aeae6b286571957d18824a0fd5d1f7a24a0",
+  "matcher": "scripts/evaluate_f1_against_manual_gold.match_lines (Thresholds default: 5 deg, 4 mm, 60%/60%)",
+  "human_count": 6,
+  "relabel_count": 3,
+  "match_human_as_gold": {
+    "gold_count": 6,
+    "prediction_count": 3,
+    "true_positive": 1,
+    "false_positive": 2,
+    "false_negative": 5,
+    "exact": false,
+    "matches": [
+      {
+        "gold_id": "M05",
+        "prediction_id": "B1",
+        "axis_angle_deg": 0.359823,
+        "transverse_offset_mm": 0.301157,
+        "gold_span_overlap": 1.0,
+        "prediction_span_overlap": 0.951405,
+        "shorter_span_overlap": 1.0,
+        "gold_length_mm": 290.749226,
+        "prediction_length_mm": 305.6
+      }
+    ],
+    "unmatched_gold_ids": [
+      "M01",
+      "M02",
+      "M03",
+      "M04",
+      "M06"
+    ],
+    "unmatched_prediction_ids": [
+      "B2",
+      "B3"
+    ]
+  },
+  "per_relabel_line": [
+    {
+      "bend_id": "B1",
+      "note": "VARIANT a: patch 2 web top + flange outer faces 3+11, extent to the fold's +X end",
+      "patches": [
+        [
+          2
+        ],
+        [
+          3,
+          11
+        ]
+      ],
+      "label_locus": "apex",
+      "skin": "outer",
+      "confidence": "uncertain",
+      "confidence_reasons": [
+        "plane_a rms 0.26 mm > 0.25"
+      ],
+      "included_angle_deg": 89.78,
+      "length_mm": 305.6,
+      "extent_source": "override",
+      "t_range": [
+        -143.1,
+        162.5
+      ],
+      "t_range_auto": [
+        -143.1,
+        144.74
+      ],
+      "coverage_patch_pair": 0.35,
+      "fold_support_frac": 0.892,
+      "fold_support_gaps_t": [
+        [
+          -93.17,
+          -73.19
+        ],
+        [
+          -72.19,
+          -59.21
+        ]
+      ],
+      "apex_offset_mm": 0.949,
+      "expected_apex_offset_mm": {
+        "outer": 0.959,
+        "inner": 0.334
+      },
+      "surface_dist_mm": {
+        "median": 0.867,
+        "p90": 1.265,
+        "max": 1.332,
+        "frac_le_0p5": 0.267,
+        "n_samples": 307
+      },
+      "vs_human": {
+        "M01": {
+          "axis_angle_deg": 0.619,
+          "transverse_offset_mm": 194.026,
+          "gold_span_overlap": 1.0,
+          "prediction_span_overlap": 0.967,
+          "shorter_span_overlap": 1.0,
+          "gold_length_mm": 295.522,
+          "prediction_length_mm": 305.6
+        },
+        "M02": {
+          "axis_angle_deg": 0.449,
+          "transverse_offset_mm": 223.475,
+          "gold_span_overlap": 1.0,
+          "prediction_span_overlap": 0.965,
+          "shorter_span_overlap": 1.0,
+          "gold_length_mm": 295.05,
+          "prediction_length_mm": 305.6
+        },
+        "M03": {
+          "axis_angle_deg": 0.449,
+          "transverse_offset_mm": 223.945,
+          "gold_span_overlap": 1.0,
+          "prediction_span_overlap": 0.965,
+          "shorter_span_overlap": 1.0,
+          "gold_length_mm": 295.05,
+          "prediction_length_mm": 305.6
+        },
+        "M04": {
+          "axis_angle_deg": 0.281,
+          "transverse_offset_mm": 20.16,
+          "gold_span_overlap": 0.993,
+          "prediction_span_overlap": 0.976,
+          "shorter_span_overlap": 0.993,
+          "gold_length_mm": 300.494,
+          "prediction_length_mm": 305.6
+        },
+        "M05": {
+          "axis_angle_deg": 0.36,
+          "transverse_offset_mm": 0.301,
+          "gold_span_overlap": 1.0,
+          "prediction_span_overlap": 0.951,
+          "shorter_span_overlap": 1.0,
+          "gold_length_mm": 290.749,
+          "prediction_length_mm": 305.6
+        },
+        "M06": {
+          "axis_angle_deg": 0.36,
+          "transverse_offset_mm": 14.068,
+          "gold_span_overlap": 1.0,
+          "prediction_span_overlap": 0.951,
+          "shorter_span_overlap": 1.0,
+          "gold_length_mm": 290.749,
+          "prediction_length_mm": 305.6
+        }
+      },
+      "vs_auditor_apex_lines": {
+        "a1:R_FLANGE": {
+          "axis_angle_deg": 0.174,
+          "transverse_offset_mm": 0.874,
+          "gold_span_overlap": 0.997,
+          "prediction_span_overlap": 1.0,
+          "gold_length_mm": 306.507,
+          "prediction_length_mm": 305.6
+        },
+        "a3:flange_-Y": {
+          "axis_angle_deg": 0.192,
+          "transverse_offset_mm": 0.858,
+          "gold_span_overlap": 1.0,
+          "prediction_span_overlap": 0.995,
+          "gold_length_mm": 304.003,
+          "prediction_length_mm": 305.6
+        }
+      },
+      "line": {
+        "start": [
+          -544.7259838946827,
+          -119.42779845484486,
+          207.3530338010783
+        ],
+        "end": [
+          -295.748237780005,
+          56.31303864861102,
+          230.0818726150549
+        ]
+      }
+    },
+    {
+      "bend_id": "B2",
+      "note": "VARIANT b: web top as plane side (ball r160, tol 1.2, no patch gate) + flange 3+11",
+      "patches": [
+        "plane@-415.4,-38.5,216.5/r160",
+        [
+          3,
+          11
+        ]
+      ],
+      "label_locus": "apex",
+      "skin": "outer",
+      "confidence": "uncertain",
+      "confidence_reasons": [
+        "plane_a rms 0.34 mm > 0.25"
+      ],
+      "included_angle_deg": 91.55,
+      "length_mm": 286.42,
+      "extent_source": "auto",
+      "t_range": [
+        -146.23,
+        140.19
+      ],
+      "t_range_auto": [
+        -146.23,
+        140.19
+      ],
+      "coverage_patch_pair": 0.854,
+      "fold_support_frac": 0.867,
+      "fold_support_gaps_t": [
+        [
+          -106.17,
+          -68.12
+        ]
+      ],
+      "apex_offset_mm": 0.749,
+      "expected_apex_offset_mm": {
+        "outer": 0.91,
+        "inner": 0.316
+      },
+      "surface_dist_mm": {
+        "median": 0.837,
+        "p90": 1.009,
+        "max": 1.076,
+        "frac_le_0p5": 0.302,
+        "n_samples": 288
+      },
+      "vs_human": {
+        "M01": {
+          "axis_angle_deg": 0.612,
+          "transverse_offset_mm": 194.123,
+          "gold_span_overlap": 0.969,
+          "prediction_span_overlap": 1.0,
+          "shorter_span_overlap": 1.0,
+          "gold_length_mm": 295.522,
+          "prediction_length_mm": 286.416
+        },
+        "M02": {
+          "axis_angle_deg": 0.462,
+          "transverse_offset_mm": 223.597,
+          "gold_span_overlap": 0.971,
+          "prediction_span_overlap": 1.0,
+          "shorter_span_overlap": 1.0,
+          "gold_length_mm": 295.05,
+          "prediction_length_mm": 286.416
+        },
+        "M03": {
+          "axis_angle_deg": 0.462,
+          "transverse_offset_mm": 224.039,
+          "gold_span_overlap": 0.971,
+          "prediction_span_overlap": 1.0,
+          "shorter_span_overlap": 1.0,
+          "gold_length_mm": 295.05,
+          "prediction_length_mm": 286.416
+        },
+        "M04": {
+          "axis_angle_deg": 0.263,
+          "transverse_offset_mm": 20.297,
+          "gold_span_overlap": 0.953,
+          "prediction_span_overlap": 1.0,
+          "shorter_span_overlap": 1.0,
+          "gold_length_mm": 300.494,
+          "prediction_length_mm": 286.416
+        },
+        "M05": {
+          "axis_angle_deg": 0.376,
+          "transverse_offset_mm": 0.561,
+          "gold_span_overlap": 0.985,
+          "prediction_span_overlap": 1.0,
+          "shorter_span_overlap": 1.0,
+          "gold_length_mm": 290.749,
+          "prediction_length_mm": 286.416
+        },
+        "M06": {
+          "axis_angle_deg": 0.376,
+          "transverse_offset_mm": 13.625,
+          "gold_span_overlap": 0.985,
+          "prediction_span_overlap": 1.0,
+          "shorter_span_overlap": 1.0,
+          "gold_length_mm": 290.749,
+          "prediction_length_mm": 286.416
+        }
+      },
+      "vs_auditor_apex_lines": {
+        "a1:R_FLANGE": {
+          "axis_angle_deg": 0.158,
+          "transverse_offset_mm": 0.585,
+          "gold_span_overlap": 0.934,
+          "prediction_span_overlap": 1.0,
+          "gold_length_mm": 306.507,
+          "prediction_length_mm": 286.416
+        },
+        "a3:flange_-Y": {
+          "axis_angle_deg": 0.175,
+          "transverse_offset_mm": 0.559,
+          "gold_span_overlap": 0.942,
+          "prediction_span_overlap": 1.0,
+          "gold_length_mm": 304.003,
+          "prediction_length_mm": 286.416
+        }
+      },
+      "line": {
+        "start": [
+          -540.4670252520281,
+          -116.40308064169477,
+          208.22737255939987
+        ],
+        "end": [
+          -307.1264674982591,
+          48.32682774823947,
+          229.44339452983638
+        ]
+      }
+    },
+    {
+      "bend_id": "B3",
+      "note": "VARIANT c: as b with tol 1.0",
+      "patches": [
+        "plane@-415.4,-38.5,216.5/r160",
+        [
+          3,
+          11
+        ]
+      ],
+      "label_locus": "apex",
+      "skin": "outer",
+      "confidence": "uncertain",
+      "confidence_reasons": [
+        "plane_a rms 0.32 mm > 0.25"
+      ],
+      "included_angle_deg": 91.54,
+      "length_mm": 269.03,
+      "extent_source": "auto",
+      "t_range": [
+        -139.41,
+        129.62
+      ],
+      "t_range_auto": [
+        -139.41,
+        129.62
+      ],
+      "coverage_patch_pair": 0.841,
+      "fold_support_frac": 0.855,
+      "fold_support_gaps_t": [
+        [
+          -107.41,
+          -68.41
+        ]
+      ],
+      "apex_offset_mm": 0.819,
+      "expected_apex_offset_mm": {
+        "outer": 0.91,
+        "inner": 0.316
+      },
+      "surface_dist_mm": {
+        "median": 0.796,
+        "p90": 0.949,
+        "max": 1.012,
+        "frac_le_0p5": 0.299,
+        "n_samples": 271
+      },
+      "vs_human": {
+        "M01": {
+          "axis_angle_deg": 0.607,
+          "transverse_offset_mm": 194.072,
+          "gold_span_overlap": 0.91,
+          "prediction_span_overlap": 1.0,
+          "shorter_span_overlap": 1.0,
+          "gold_length_mm": 295.522,
+          "prediction_length_mm": 269.032
+        },
+        "M02": {
+          "axis_angle_deg": 0.471,
+          "transverse_offset_mm": 223.546,
+          "gold_span_overlap": 0.912,
+          "prediction_span_overlap": 1.0,
+          "shorter_span_overlap": 1.0,
+          "gold_length_mm": 295.05,
+          "prediction_length_mm": 269.032
+        },
+        "M03": {
+          "axis_angle_deg": 0.471,
+          "transverse_offset_mm": 223.986,
+          "gold_span_overlap": 0.912,
+          "prediction_span_overlap": 1.0,
+          "shorter_span_overlap": 1.0,
+          "gold_length_mm": 295.05,
+          "prediction_length_mm": 269.032
+        },
+        "M04": {
+          "axis_angle_deg": 0.251,
+          "transverse_offset_mm": 20.248,
+          "gold_span_overlap": 0.895,
+          "prediction_span_overlap": 1.0,
+          "shorter_span_overlap": 1.0,
+          "gold_length_mm": 300.494,
+          "prediction_length_mm": 269.032
+        },
+        "M05": {
+          "axis_angle_deg": 0.387,
+          "transverse_offset_mm": 0.566,
+          "gold_span_overlap": 0.925,
+          "prediction_span_overlap": 1.0,
+          "shorter_span_overlap": 1.0,
+          "gold_length_mm": 290.749,
+          "prediction_length_mm": 269.032
+        },
+        "M06": {
+          "axis_angle_deg": 0.387,
+          "transverse_offset_mm": 13.573,
+          "gold_span_overlap": 0.925,
+          "prediction_span_overlap": 1.0,
+          "shorter_span_overlap": 1.0,
+          "gold_length_mm": 290.749,
+          "prediction_length_mm": 269.032
+        }
+      },
+      "vs_auditor_apex_lines": {
+        "a1:R_FLANGE": {
+          "axis_angle_deg": 0.147,
+          "transverse_offset_mm": 0.518,
+          "gold_span_overlap": 0.878,
+          "prediction_span_overlap": 1.0,
+          "gold_length_mm": 306.507,
+          "prediction_length_mm": 269.032
+        },
+        "a3:flange_-Y": {
+          "axis_angle_deg": 0.163,
+          "transverse_offset_mm": 0.492,
+          "gold_span_overlap": 0.885,
+          "prediction_span_overlap": 1.0,
+          "gold_length_mm": 304.003,
+          "prediction_length_mm": 269.032
+        }
+      },
+      "line": {
+        "start": [
+          -534.5998610886467,
+          -112.34392813417384,
+          208.82193178264603
+        ],
+        "end": [
+          -315.42636907823646,
+          42.40150200380483,
+          228.6954135779656
+        ]
+      }
+    }
+  ]
+}

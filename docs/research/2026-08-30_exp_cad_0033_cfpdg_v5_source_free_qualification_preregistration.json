@@ -1,0 +1,132 @@
+{
+  "schema": "EXP_CAD_0033_CFPDG_V5_SOURCE_FREE_QUALIFICATION_PREREGISTRATION_V1",
+  "experiment_id": "EXP_CAD_0033",
+  "architecture": "CROSSFIT_PAIRWISE_DEFORMATION_GRAPH_V5_SOURCE_FREE_QUALIFICATION_WRAPPER",
+  "status": "FROZEN_BEFORE_EXP33_WRAPPER_IMPLEMENTATION_OR_QUALIFICATION_LOCK_MATERIALIZATION",
+  "chronology": [
+    {
+      "stage": "TERMINAL_PARENT_CONSUMED",
+      "fact": "EXP_CAD_0032 had two source-free attempts without an immutable lock and is terminal; it may not be patched, resumed, replayed, or rerun."
+    },
+    {
+      "stage": "POST_TERMINAL_CANDIDATE_DEPENDENCIES_EXISTED",
+      "fact": "The hash-bound EXP32-named V5 engine, source-free runner, worker, harness, and unit tests existed before this preregistration. They are candidate dependencies only and are not qualification evidence."
+    },
+    {
+      "stage": "EXP33_PROSPECTIVE_FREEZE",
+      "fact": "This preregistration was frozen before any EXP33 wrapper, EXP33 immutable lock, EXP33 unit test, EXP33 data preparation, or EXP33 qualification execution existed."
+    }
+  ],
+  "terminal_parent": {
+    "result_path": "output/research/autoresearch-loop/EXP_CAD_0032_RESULT.json",
+    "result_sha256": "3d560e1b9c62051a2baee068f1cd9e0768744f8b897bd8ca2808c3bc60a1f182",
+    "report_path": "docs/research/2026-08-30_exp_cad_0032_terminal_source_free_qualification_protocol_failure.md",
+    "report_sha256": "94146a1694b0a73fc3cc95e645f398a7f658927ab537e4767b901a3b298820af",
+    "same_identity_rescue_or_rerun_permitted": false
+  },
+  "candidate_dependencies_at_freeze": {
+    "v5_engine": {
+      "path": "scripts/exp_cad_0032_cfpdg_v5_engine.py",
+      "sha256": "ecbcdd434a94dff5606cbbac960f24e2472f64deb2934faf8f638a1bb2cd2e85"
+    },
+    "source_free_runner": {
+      "path": "scripts/run_exp_cad_0032_cfpdg_source_free.py",
+      "sha256": "23b24954f9554b8bf724d20f780f0334229ab85bdaa60772cb1a4f4e3ee176ec"
+    },
+    "candidate_worker": {
+      "path": "scripts/exp_cad_0032_performance_worker.py",
+      "sha256": "a2a9ad0627f12cd4fb16c42d8bc61c6da8c8863dbcdd404c3caa1931bec73cbd"
+    },
+    "candidate_harness": {
+      "path": "scripts/exp_cad_0032_performance_harness.py",
+      "sha256": "14bb17c4cd3b6cc19e0acec0aa819dc6637082261a1060d40b1947a50cafc194"
+    },
+    "candidate_engine_tests": {
+      "path": "tests/test_exp_cad_0032_cfpdg_v5_equivalence.py",
+      "sha256": "2919ca956d25be2e199b4e03e2243f1e2ed8e7ee87ce9f4d17f07a8ee9b0eb07"
+    },
+    "candidate_harness_tests": {
+      "path": "tests/test_exp_cad_0032_performance_harness.py",
+      "sha256": "a03308d22b2f7e221b7090704ac80baabf2cc91ddfe8b6089205cc7b6f0d4a32"
+    }
+  },
+  "prospective_publication_contract": {
+    "nonfinite_float_policy": "Recursively convert every Python or NumPy NaN, positive infinity, and negative infinity in publication payloads to JSON null before strict canonical JSON encoding.",
+    "canonical_json": "UTF-8, sorted keys, separators comma/colon, ensure_ascii false, allow_nan false, atomic replace.",
+    "scientific_arrays_changed_by_canonicalization": false,
+    "frozen_parent_semantics_exact": true,
+    "post_result_serialization_rescue_permitted": false
+  },
+  "scoped_dependency_contract": {
+    "dijkstra_primitive": "scipy.sparse.csgraph.dijkstra",
+    "binding_scope": "Only the duration of one frozen-parent scientific call.",
+    "restoration": "Restore the prior runner attribute exactly, or delete the temporary attribute when it did not previously exist, including exceptional exit.",
+    "algorithm_substitution_permitted": false
+  },
+  "immutable_lock_contract": {
+    "schema": "EXP_CAD_0033_SOURCE_FREE_QUALIFICATION_LOCK_V1",
+    "status": "PASS_SOURCE_FREE_LOCK_EXECUTION_AUTHORIZED",
+    "materialization_timing": "Only after EXP33 implementation and unit tests are complete; strictly before the one qualification invocation.",
+    "bind_every_consumed_static_file_by_repo_relative_path_size_and_sha256": true,
+    "bind_authorized_envelope_root_and_result_root": true,
+    "physical_source_execution_authorized": false,
+    "qualification_invocation_budget": 1,
+    "lock_mutation_after_execution_starts_permitted": false
+  },
+  "confused_deputy_contract": {
+    "static_cli_arguments_must_match_lock_path_and_sha256": true,
+    "same_hash_at_alternate_path_is_rejected": true,
+    "symlink_or_parent_traversal_alias_is_rejected": true,
+    "dynamic_output_monitoring_and_visual_paths_must_resolve_beneath_locked_result_root": true,
+    "benchmark_manifest_must_equal_locked_envelope_root_plus_BENCHMARK_MANIFEST_json": true
+  },
+  "immutable_science": {
+    "cad_node_count": 8077,
+    "cad_edge_count": 19267,
+    "unique_member_fit_count": 38,
+    "robustness_row_ids": "R00-R31 exactly",
+    "threshold_graph_fit_partition_pose_and_payload_semantics": "unchanged from the hash-bound candidate and frozen parents",
+    "fit_or_robustness_row_elision": false,
+    "floating_point_algorithm_change": false
+  },
+  "one_shot_source_free_qualification": {
+    "retained_rows_per_member": 1000000,
+    "full_fresh_source_runs": 3,
+    "full_fresh_renderer_runs": 3,
+    "half_scale_rows_per_member": 500000,
+    "frozen_parent_differential_rows_per_member": 100000,
+    "frozen_parent_differential_runs_per_engine": 3,
+    "maximum_source_wall_seconds_each": 150,
+    "maximum_renderer_wall_seconds_each": 60,
+    "maximum_peak_process_tree_rss_bytes_each": 4294967296,
+    "maximum_scaling_ratio_full_median_over_half": 2.5,
+    "maximum_complete_one_run_bundle_bytes_strict": 2147483648,
+    "three_run_semantic_visual_scientific_tree_and_literal_tree_exact": true,
+    "renderer_tree_exact": true,
+    "operation_counters_exact_and_38_fits_32_rows_required": true,
+    "raycast_and_kd_tie_differentials_required": true,
+    "frozen_parent_candidate_canonical_payload_exact": true,
+    "candidate_median_strictly_faster_than_frozen_parent": true,
+    "failure_policy": "Any protocol, publication, equivalence, wall, RSS, scaling, replay/tree, differential, counter, or render failure is terminal for CF-PDG; no retry, rescue, reduced envelope, or third identity."
+  },
+  "result_identity_contract": {
+    "outer_schema": "EXP_CAD_0033_SOURCE_FREE_QUALIFICATION_RESULT_V1",
+    "outer_experiment_id": "EXP_CAD_0033",
+    "candidate_payload_must_be_nested_verbatim": true,
+    "candidate_schema_or_experiment_id_may_not_be_silently_relabelled": true,
+    "generalization_evidence": false,
+    "bend_line_f1_authorized": false,
+    "production_promotion_authorized": false,
+    "gpi_ceiling": "GPI-C_SOURCE_ONLY_EXECUTION_FEASIBILITY_NOT_F1_PROGRESS"
+  },
+  "forbidden_inputs_and_actions": {
+    "physical_scan_hash_or_load": true,
+    "physical_cli": true,
+    "evaluator_manifest_roles_labels_gold_expected_counts_quality": true,
+    "filename_or_identity_as_quality": true,
+    "data_preparation_before_immutable_lock": true,
+    "qualification_execution_before_immutable_lock": true,
+    "threshold_tuning": true,
+    "posthoc_runtime_or_serialization_rescue": true
+  }
+}

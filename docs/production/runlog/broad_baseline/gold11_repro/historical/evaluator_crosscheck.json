@@ -1,0 +1,142 @@
+{
+  "schema": "sherman.broad_baseline.gold11_evaluator_crosscheck.v1",
+  "created_at": "2026-10-17T09:21:27Z",
+  "method": "frozen evaluator CLI (own gold loader: output/bend_label_NN/bend_instance_labels.json) on the 9 corpus cases + identical match_lines on the catalog gold for shaked_xv C05/C06; union rebuilt from the original historical A0/CAD bytes (sha256-checked) with the frozen fusion rule",
+  "command": [
+    "/Users/idantal/ShermanQC/FullProject/.venv/bin/python",
+    "-B",
+    "/Users/idantal/ShermanQC/FullProject/scripts/evaluate_f1_against_manual_gold.py",
+    "--case-map",
+    "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/broad_baseline/gold11_repro/historical/evaluator_cli_case_map.json",
+    "--output",
+    "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/broad_baseline/gold11_repro/historical/evaluator_cli_union_9_corpus_cases.json"
+  ],
+  "evaluator_cli_metrics_9_corpus": {
+    "case_count": 9,
+    "gold_bend_count": 51,
+    "prediction_count": 40,
+    "true_positive": 15,
+    "false_positive": 25,
+    "false_negative": 36,
+    "precision": 0.375,
+    "recall": 0.294118,
+    "f1": 0.32967,
+    "exact_part_count": 0,
+    "exact_part_rate": 0.0
+  },
+  "shaked_xv_catalog_rows": [
+    {
+      "case_id": "CG1E0BBA2933",
+      "catalog_case": "shaked_xv/C05",
+      "gold_count": 10,
+      "prediction_count": 11,
+      "true_positive": 8,
+      "false_positive": 3,
+      "false_negative": 2
+    },
+    {
+      "case_id": "CGF41F49066A",
+      "catalog_case": "shaked_xv/C06",
+      "gold_count": 10,
+      "prediction_count": 9,
+      "true_positive": 7,
+      "false_positive": 2,
+      "false_negative": 3
+    }
+  ],
+  "label_file_vs_catalog_gold": [
+    {
+      "case_id": "CG08506AE97D",
+      "evaluator_case": "03_10839000",
+      "label_file_bends": 6,
+      "catalog_bends": 6,
+      "identical": true,
+      "max_endpoint_abs_diff_mm": 0.0
+    },
+    {
+      "case_id": "CG191DEC7F81",
+      "evaluator_case": "10_49001000",
+      "label_file_bends": 5,
+      "catalog_bends": 5,
+      "identical": true,
+      "max_endpoint_abs_diff_mm": 0.0
+    },
+    {
+      "case_id": "CG4BDD1371B6",
+      "evaluator_case": "05_37361005",
+      "label_file_bends": 4,
+      "catalog_bends": 4,
+      "identical": true,
+      "max_endpoint_abs_diff_mm": 0.0
+    },
+    {
+      "case_id": "CG4FAF273093",
+      "evaluator_case": "11_49024000",
+      "label_file_bends": 3,
+      "catalog_bends": 3,
+      "identical": true,
+      "max_endpoint_abs_diff_mm": 0.0
+    },
+    {
+      "case_id": "CG64C412CC73",
+      "evaluator_case": "08_40500000",
+      "label_file_bends": 7,
+      "catalog_bends": 7,
+      "identical": true,
+      "max_endpoint_abs_diff_mm": 0.0
+    },
+    {
+      "case_id": "CG65CD575B1C",
+      "evaluator_case": "06_38172000",
+      "label_file_bends": 6,
+      "catalog_bends": 6,
+      "identical": true,
+      "max_endpoint_abs_diff_mm": 0.0
+    },
+    {
+      "case_id": "CG84C8FA12D2",
+      "evaluator_case": "01_10839000",
+      "label_file_bends": 8,
+      "catalog_bends": 8,
+      "identical": true,
+      "max_endpoint_abs_diff_mm": 0.0
+    },
+    {
+      "case_id": "CGE4B0549E41",
+      "evaluator_case": "02_10839000",
+      "label_file_bends": 4,
+      "catalog_bends": 4,
+      "identical": true,
+      "max_endpoint_abs_diff_mm": 0.0
+    },
+    {
+      "case_id": "CGEBA9A869AC",
+      "evaluator_case": "07_38172000",
+      "label_file_bends": 8,
+      "catalog_bends": 8,
+      "identical": true,
+      "max_endpoint_abs_diff_mm": 0.0
+    }
+  ],
+  "total_11": {
+    "true_positive": 30,
+    "false_positive": 30,
+    "false_negative": 41,
+    "gold_bend_count": 71,
+    "prediction_count": 60,
+    "precision": 0.5,
+    "recall": 0.4225352112676056,
+    "f1": 0.4580152671755725,
+    "precision_6": 0.5,
+    "recall_6": 0.422535,
+    "f1_6": 0.458015
+  },
+  "historical_expected": {
+    "lines": 60,
+    "tp": 30,
+    "fp": 30,
+    "fn": 41,
+    "f1": 0.4580152671755725
+  },
+  "matches_historical": true
+}

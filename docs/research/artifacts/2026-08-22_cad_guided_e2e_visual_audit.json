@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "kind": "sherman_qc_f1_cad_guided_native_visual_audit",
+  "lane": "scan_supported_cad_guidance_v1",
+  "case_count": 13,
+  "artifact_root": "output/research/f1-cad-guided-gold13-e2e-20260822/native-visual-audits-scan-frame-gated",
+  "contact_sheets_reviewed": [
+    "contact_sheet_01.png",
+    "contact_sheet_02.png",
+    "contact_sheet_03.png",
+    "contact_sheet_04.png",
+    "contact_sheet_05.png"
+  ],
+  "review_complete": true,
+  "development_actionability_gate": "PASS_WITH_LIMITATIONS",
+  "production_visual_gate": "FAIL",
+  "findings": [
+    "The scan-frame support gate removes the conspicuous off-scan and floating CAD axes present in the raw CAD output.",
+    "Most surviving axes lie on visible outer edges or flange transitions and are geometrically plausible as bend evidence.",
+    "10839000_01_full_scan remains over-segmented around the rectangular frame.",
+    "40500000_0_SCAN2 contains an implausible long interior-spanning proposal.",
+    "Partial 38172000 scans remain under-covered, and endpoint placement is inconsistent around short local features.",
+    "The artifacts support a bounded scan-plus-CAD development experiment, but not production release or a claim of complete bend recovery."
+  ]
+}

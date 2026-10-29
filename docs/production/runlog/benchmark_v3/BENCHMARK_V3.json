@@ -1,0 +1,5423 @@
+{
+ "schema": "sherman.benchmark_v3.v1",
+ "generated_at": "2026-10-17T18:55:25.730547+00:00",
+ "generator": "docs/production/runlog/benchmark_v3/_build/build_benchmark_v3.py",
+ "inputs": {
+  "benchmark_v2": {
+   "path": "docs/production/runlog/benchmark_v2/BENCHMARK_V2.json",
+   "sha256": "c680e4d8bfb615649b88ea489780d66b421322321e4f5112433a603280fca695"
+  },
+  "review11_verdicts": {
+   "path": "docs/production/runlog/benchmark_v2/manifest_build/review11_verdicts_2026-10-17.json",
+   "sha256": "3a3693c6cf6a19c515eae02272a2e87e6de35ca972c95d6711ea70bfc1cc4397"
+  },
+  "synthetic_demo_exclusions": {
+   "path": "docs/production/runlog/benchmark_v2/manifest_build/synthetic_demo_exclusions_2026-10-17.json",
+   "sha256": "29affe6d87316b1583ed579f22cca05fc491b19c8b13ee2e60613e53ff53c4f7"
+  },
+  "v3_inventory": {
+   "path": "docs/production/runlog/benchmark_v3/inventory.json",
+   "sha256": "a6ca0f344ae246811ea2ac33ebdbd1258854399054d95b54d4d746c3865d3718"
+  },
+  "v3_judge_table_SEALED": {
+   "path": "docs/production/runlog/benchmark_v3/fresh_SEALED/_build/judge_table_2026-10-17.json",
+   "sha256": "34ca22beae4d410fa569d502ebad2aab59062c987e672316225dae1bfba604ca"
+  },
+  "v3_label_writes_SEALED": {
+   "path": "docs/production/runlog/benchmark_v3/fresh_SEALED/_build/label_write_results_2026-10-17.json",
+   "sha256": "6c3151a7e69f40c69b50437b5854095f07fe90c19127d79edcee03f8f4b33787"
+  }
+ },
+ "v2_merge_checks": {
+  "review11_scans_in_v2": 11,
+  "review11_scans_total": 11,
+  "lidar_demo_excluded_role_ok": true,
+  "lidar_demo_excluded_count": 9
+ },
+ "fresh_rule": {
+  "definition": "A part is FRESH iff it never appeared in any tuning or evaluation before (not Gold11, Gold37, physical15 or other-consumed per BENCHMARK_V2.json and merged_inventory.json). Split is per part, never per scan.",
+  "use": "FRESH truth is for the single final evaluation only, with one frozen engine config hash. Never for tuning, thresholds, label edits, case selection or any accuracy-loop look. If FRESH truth or results are looked at earlier, or the engine changes after the FRESH run, those parts become CONSUMED and the run is reported as such.",
+  "sealed_locations": [
+   "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED",
+   "docs/production/runlog/benchmark_v3/fresh_SEALED"
+  ],
+  "labeling_note": "Labeling agents looked at FRESH scans to create truth (truth creation is not tuning). The engine/accuracy loop must never read FRESH scans, labels or lines dirs.",
+  "non_sealed_policy": "This manifest and BENCHMARK_V3.md list FRESH scans with split, truth source and status only. Per-scan FRESH bend counts, line geometry, CAD comparisons and judge details are only in fresh_SEALED/BENCHMARK_V3_FRESH_SEALED.json."
+ },
+ "rules": {
+  "split_unit": "part (SKU). A part is FRESH only if every known file of it is prior_use=fresh. Any consumed or unknown-provenance file makes the whole part CONSUMED. Fresh-looking files of a consumed part stay CONSUMED.",
+  "consumed_definition": "Gold11, Gold37, physical15, any other development/F1-tuning use (other-consumed), and unknown provenance.",
+  "fresh_once_rule": "FRESH is evaluated ONCE, at the end of the accuracy loop, with one frozen engine config hash. FRESH results must never feed back into tuning, thresholds, label edits or case selection. If FRESH is looked at earlier, or the engine changes after the FRESH run, those parts become CONSUMED and the run is reported as such.",
+  "gold11_note": "Gold11 is CONSUMED. The engine was tuned on it, so a green result there is expected and is not evidence of accuracy on unseen parts. Before scoring, each Gold label set in reference_mesh_raw must have its raw-to-reference transform recovered (residual <= 0.01 mm) and scoring happens in the raw-scan frame (plan s10 amendment 6(a)). Cases without a recoverable transform are listed and excluded before scoring.",
+  "ai_gold_gate": "AI_GOLD_ACCEPTED requires that an independent verifier agent actually saw the rendered line overlays, every line lands (yes), none is no/unclear, and zero visible bends are missed. Labels whose verifier saw no images are NEEDS_HUMAN_REVIEW even when the upstream step reported accepted=true.",
+  "review11_owner_delegated": "2026-10-17: the owner delegated the final verdict on the 11 scans left in NEEDS_HUMAN_REVIEW to the AI review (investigator, 2 blind verifiers, judge, final pass). Statuses: AI_GOLD_ACCEPTED, AI_GOLD_PARTIAL (label_complete=false: some real folds unlabelled; not usable as a line-F1 denominator), REJECTED_UNUSABLE, REJECTED_NOT_A_SCAN (role EXCLUDED_NOT_A_SCAN, out of the benchmark). Still AI-adjudicated, not human.",
+  "synthetic_demo_exclusions": "2026-10-17: live_scans/*_LIDAR_DEMO_<stamp>.ply files are synthetic resamples of test_files/<part>/scan.stl made by the legacy /api/live-scan/demo/load endpoint (Open3D header, xyz only, ~14000 or 12000 points minus 6% dropout, N(0, 0.08 mm) jitter, mtime = name stamp). They are role EXCLUDED_NOT_A_SCAN, out of every benchmark count. Their AI label files stay on disk; scorers must skip the scan ids listed in the exclusions file.",
+  "truth_tiers": {
+   "GOLD_LINES_HUMAN": "tier authoritative_user_verified (owner-verified line references)",
+   "AI_GOLD_ACCEPTED": "this run's AI vision labels that passed the strict gate; adjudicated by agents, not humans",
+   "GOLD_LINES_AI_LEGACY": "earlier Codex manual-multiview labels (tiers codex_manual_multiview_*). Studio files under human_bend_lines_v1 are Codex imports, not human labels",
+   "CAD_RECIPE": "nominal bends from a STEP CAD (V10 extractor / DEV_AUTO_CONFIRMED recipe). Gives design intent (count, nominal angle), not where a given scan's bend lies, and says nothing about staged scans until stage is decided. Not compiled by this manifest",
+   "NONE": "no truth available"
+  },
+  "custody": "HOLDOUT10, sealed truth, opaque N001-N014, EHO4, authorization/one-shot artifacts and held-out manifests are absent: excluded upstream by name/manifest membership and never opened. Eyal-50 delivery files are quarantined (locked-holdout split unread)."
+ },
+ "summary": {
+  "unique_parts_with_benchmark_scan": 151,
+  "benchmark_scans": 193,
+  "parts_with_benchmark_scan_and_step": 40,
+  "consumed": {
+   "parts": 82,
+   "scans": 112,
+   "from_v2": 106,
+   "new_in_v3": 6,
+   "ply_twins_of_v2_scans_not_counted": 4
+  },
+  "fresh": {
+   "parts_with_scans": 69,
+   "scans": 81,
+   "scans_with_accepted_truth": 79,
+   "parts_with_accepted_truth": 67,
+   "scans_partial_truth": 1,
+   "parts_only_partial_or_no_truth": [
+    "45141000",
+    "48381001"
+   ],
+   "scans_needs_rework_no_truth": 1,
+   "accepted_bend_lines_total": 433,
+   "scans_with_sealed_studio_label": 79,
+   "scans_accepted_without_studio_label": 1,
+   "scans_with_step_part": 14,
+   "parts_with_step": 13
+  },
+  "staged_or_incomplete_scans": {
+   "v2_consumed": 16,
+   "v3_consumed_new": 2,
+   "v3_fresh": 2,
+   "total": 20
+  },
+  "truth_source_counts": {
+   "GOLD_LINES_HUMAN": 13,
+   "AI_GOLD_ACCEPTED": 55,
+   "CAD_RECIPE": 2,
+   "GOLD_LINES_AI_LEGACY": 42,
+   "AI_GOLD_ACCEPTED_SEALED": 79,
+   "AI_GOLD_PARTIAL_SEALED": 1,
+   "NONE_NEEDS_REWORK": 1
+  },
+  "v3_label_writes": {
+   "fresh_written_sealed": 79,
+   "consumed_written_ai_bend_lines_v1": 10,
+   "fresh_bend_lines_written": 426,
+   "consumed_bend_lines_written": 51,
+   "refused": [
+    {
+     "scan_id": "sc_766be04dc456",
+     "split": "FRESH",
+     "error": "LabelWriteError: the studio inventory indexes .ply files only; label a PLY asset"
+    }
+   ],
+   "not_written_needs_rework": [
+    "sc_0178c0155934"
+   ],
+   "replaced_stale_sealed_labels": 5,
+   "partial_label_complete_false": [
+    "sc_4d5dc2b40b67"
+   ]
+  },
+  "ai_vs_cad": {
+   "consumed_v3": {
+    "AI_LT_CAD_CONVENTION": 1,
+    "AI_LT_CAD_STAGED_UNFORMED": 4,
+    "AGREE": 5
+   },
+   "fresh_v3": {
+    "CAD_UNKNOWN": 66,
+    "AGREE": 8,
+    "AI_GT_CAD_EXTRACTOR_UNDERCOUNT": 5,
+    "AI_LT_CAD_STAGED_UNFORMED": 1
+   },
+   "fresh_v3_unexplained_mismatch": 0,
+   "v2_reference": "docs/production/runlog/broad_baseline/cad_crosscheck.json (V2 STEP parts; one confirmed AI error sc_2233372b8df7, fixed 6->8)"
+  },
+  "v3_queue_not_queued": {
+   "FORMAT_ALTERNATE_V2": 3,
+   "HAS_GOLD": 84,
+   "FORMAT_ALTERNATE_OF_PLY": 28,
+   "SKU_OVERLAPS_SEALED_SET": 1,
+   "IN_PROGRESS_label_lines_r2+label_lines_r3": 2,
+   "IN_PROGRESS_label_lines_r3": 3,
+   "EYAL50_QUARANTINE": 4,
+   "OPAQUE_COPY_CUSTODY": 1,
+   "IN_PROGRESS_label_lines_r3+label_prep_r3": 1
+  }
+ },
+ "ai_vs_cad_consumed_v3": [
+  {
+   "scan_id": "sc_3c93a0bf6f97",
+   "part_id": "11979003",
+   "stage_hints": [],
+   "ai_real_bends": 7,
+   "cad_bend_lines": 9,
+   "class": "AI_LT_CAD_CONVENTION",
+   "explained": true,
+   "note": "V10 9 keeps the two step folds split at a full-width window; owner window rule (ENGINE_COMPILE 'Windows', names 11979003) merges each into one line -> 7. All 11 V10 segments covered. The V2 STL twin label (sc_d45186653eed) still has 9 lines; owner should align it (merge its B2+B3 and B4+B5).",
+   "twin_of_v2_scan": "sc_d45186653eed"
+  },
+  {
+   "scan_id": "sc_43a32fe3b4a3",
+   "part_id": "15651004",
+   "stage_hints": [
+    "THIRD_SCAN"
+   ],
+   "ai_real_bends": 2,
+   "cad_bend_lines": 3,
+   "class": "AI_LT_CAD_STAGED_UNFORMED",
+   "explained": true,
+   "note": "15651004_01 3RD_SCAN mid-bending stage; 1 of 3 CAD bends not formed",
+   "twin_of_v2_scan": "sc_927a2fa13067"
+  },
+  {
+   "scan_id": "sc_1a5377ac7c15",
+   "part_id": "15651004",
+   "stage_hints": [
+    "SECOND_SCAN"
+   ],
+   "ai_real_bends": 1,
+   "cad_bend_lines": 3,
+   "class": "AI_LT_CAD_STAGED_UNFORMED",
+   "explained": true,
+   "note": "15651004_01 SECOND_SCAN mid-bending stage; 2 of 3 CAD bends not formed",
+   "twin_of_v2_scan": "sc_8dfdab44605d"
+  },
+  {
+   "scan_id": "sc_c27168a2de83",
+   "part_id": "28289002",
+   "stage_hints": [],
+   "ai_real_bends": 3,
+   "cad_bend_lines": 3,
+   "class": "AGREE",
+   "explained": true,
+   "note": null,
+   "twin_of_v2_scan": null
+  },
+  {
+   "scan_id": "sc_8026eedce786",
+   "part_id": "38172000",
+   "stage_hints": [
+    "FULL_SCAN"
+   ],
+   "ai_real_bends": 12,
+   "cad_bend_lines": 12,
+   "class": "AGREE",
+   "explained": true,
+   "note": null,
+   "twin_of_v2_scan": null
+  },
+  {
+   "scan_id": "sc_ef0abac61ae7",
+   "part_id": "42288005",
+   "stage_hints": [
+    "PARTIAL_SCAN_1"
+   ],
+   "ai_real_bends": 5,
+   "cad_bend_lines": 8,
+   "class": "AI_LT_CAD_STAGED_UNFORMED",
+   "explained": true,
+   "note": "42288005_01 PARTIAL_SCAN_1; 3 long channel folds not formed",
+   "twin_of_v2_scan": null
+  },
+  {
+   "scan_id": "sc_32099fb52638",
+   "part_id": "42288005",
+   "stage_hints": [
+    "PARTIAL_SCAN_2"
+   ],
+   "ai_real_bends": 6,
+   "cad_bend_lines": 8,
+   "class": "AI_LT_CAD_STAGED_UNFORMED",
+   "explained": true,
+   "note": "42288005_01 PARTIAL_SCAN_2; C4/C7 not formed",
+   "twin_of_v2_scan": null
+  },
+  {
+   "scan_id": "sc_2852c2845b94",
+   "part_id": "45796000",
+   "stage_hints": [],
+   "ai_real_bends": 8,
+   "cad_bend_lines": 8,
+   "class": "AGREE",
+   "explained": true,
+   "note": null,
+   "twin_of_v2_scan": null
+  },
+  {
+   "scan_id": "sc_db487cbd29a7",
+   "part_id": "47266000",
+   "stage_hints": [],
+   "ai_real_bends": 1,
+   "cad_bend_lines": 1,
+   "class": "AGREE",
+   "explained": true,
+   "note": null,
+   "twin_of_v2_scan": "sc_9b9fd762f361"
+  },
+  {
+   "scan_id": "sc_4057ba2144fb",
+   "part_id": "47959001",
+   "stage_hints": [
+    "PARTIAL_SCAN_2",
+    "PRELIM_REV"
+   ],
+   "ai_real_bends": 6,
+   "cad_bend_lines": 6,
+   "class": "AGREE",
+   "explained": true,
+   "note": "task header said CAD 3; inventory and step_v10/0d25231fea16.json give 6 (v10 = lenient = same-plates-merged = 6); labels match the 6 CAD bends one to one. PARTIAL_SCAN_2 tag, but every CAD bend is formed.",
+   "twin_of_v2_scan": null
+  }
+ ],
+ "rejected_or_excluded_scans": {
+  "v2": [
+   {
+    "scan_id": "sc_d5d7f0cfa36c",
+    "part_id": "11979003",
+    "role": "EXCLUDED_NOT_A_SCAN",
+    "basis": "LIDAR_DEMO synthetic resample (synthetic_demo_exclusions)",
+    "review11": "REJECTED_NOT_A_SCAN"
+   },
+   {
+    "scan_id": "sc_43e1dbdce7e3",
+    "part_id": "11979003",
+    "role": "EXCLUDED_NOT_A_SCAN",
+    "basis": "LIDAR_DEMO synthetic resample (synthetic_demo_exclusions)",
+    "review11": "REJECTED_NOT_A_SCAN"
+   },
+   {
+    "scan_id": "sc_657b87ceeba6",
+    "part_id": "47266000",
+    "role": "EXCLUDED_NOT_A_SCAN",
+    "basis": "LIDAR_DEMO synthetic resample (synthetic_demo_exclusions)",
+    "review11": null
+   },
+   {
+    "scan_id": "sc_573c999ef6ea",
+    "part_id": "47266000",
+    "role": "EXCLUDED_NOT_A_SCAN",
+    "basis": "LIDAR_DEMO synthetic resample (synthetic_demo_exclusions)",
+    "review11": null
+   },
+   {
+    "scan_id": "sc_123f84b5afcb",
+    "part_id": "47266000",
+    "role": "EXCLUDED_NOT_A_SCAN",
+    "basis": "LIDAR_DEMO synthetic resample (synthetic_demo_exclusions)",
+    "review11": null
+   },
+   {
+    "scan_id": "sc_c2ff6d5b6c2f",
+    "part_id": "47266000",
+    "role": "EXCLUDED_NOT_A_SCAN",
+    "basis": "LIDAR_DEMO synthetic resample (synthetic_demo_exclusions)",
+    "review11": null
+   },
+   {
+    "scan_id": "sc_9018b86ccc9a",
+    "part_id": "47266000",
+    "role": "EXCLUDED_NOT_A_SCAN",
+    "basis": "LIDAR_DEMO synthetic resample (synthetic_demo_exclusions)",
+    "review11": null
+   },
+   {
+    "scan_id": "sc_a0b6add3f6e6",
+    "part_id": "47266000",
+    "role": "EXCLUDED_NOT_A_SCAN",
+    "basis": "LIDAR_DEMO synthetic resample (synthetic_demo_exclusions)",
+    "review11": null
+   },
+   {
+    "scan_id": "sc_e632352b37f2",
+    "part_id": "47266000",
+    "role": "EXCLUDED_NOT_A_SCAN",
+    "basis": "LIDAR_DEMO synthetic resample (synthetic_demo_exclusions)",
+    "review11": null
+   },
+   {
+    "scan_id": "sc_0e4bf3087d81",
+    "part_id": "UNKNOWN:sc_0e4bf3087d81",
+    "role": "EXCLUDED_SYNTHETIC_FIXTURE",
+    "basis": "synthetic test fixture (5000-point Open3D cloud, ~50x40x50 mm ideal L), not a Sherman scan",
+    "review11": null
+   },
+   {
+    "scan_id": "sc_241aa95bfdfc",
+    "part_id": "UNKNOWN:sc_241aa95bfdfc",
+    "role": "EXCLUDED_REDACTED_OPAQUE_COPY",
+    "basis": "only copy is evaluator-opaque; path redacted",
+    "review11": null
+   },
+   {
+    "scan_id": "sc_793a86afb5db",
+    "part_id": "UNKNOWN:sc_793a86afb5db",
+    "role": "EXCLUDED_SYNTHETIC_FIXTURE",
+    "basis": "synthetic test fixture (3500-point Open3D cloud), not a Sherman scan",
+    "review11": null
+   },
+   {
+    "scan_id": "sc_fb35a9f4c6bf",
+    "part_id": "UNKNOWN:sc_fb35a9f4c6bf",
+    "role": "EXCLUDED_SYNTHETIC_FIXTURE",
+    "basis": "synthetic test fixture (5000-point Open3D cloud, ~50x40x50 mm ideal L), not a Sherman scan",
+    "review11": null
+   }
+  ],
+  "v3_not_accepted": [
+   {
+    "scan_id": "sc_0178c0155934",
+    "part_id": "48381001",
+    "split": "FRESH",
+    "status": "NEEDS_REWORK",
+    "note": "judge: every kept line lands, but the label set is incomplete; fixable without redoing labelers/verifiers (add the round-1 pairs kept in the _cont state, one lines run under the lock, check the new close-ups). Not written; no truth yet. Details sealed."
+   }
+  ],
+  "v3_not_queued_counts": {
+   "FORMAT_ALTERNATE_V2": 3,
+   "HAS_GOLD": 84,
+   "FORMAT_ALTERNATE_OF_PLY": 28,
+   "SKU_OVERLAPS_SEALED_SET": 1,
+   "IN_PROGRESS_label_lines_r2+label_lines_r3": 2,
+   "IN_PROGRESS_label_lines_r3": 3,
+   "EYAL50_QUARANTINE": 4,
+   "OPAQUE_COPY_CUSTODY": 1,
+   "IN_PROGRESS_label_lines_r3+label_prep_r3": 1
+  },
+  "crdownload_incomplete_ignored": [
+   "~/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260202_b2262229/Unconfirmed 376520.crdownload",
+   "~/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260726_08dd61b5/Unconfirmed 346072.crdownload",
+   "~/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260830_e04ca4cf/Unconfirmed 899205.crdownload"
+  ]
+ },
+ "source_mismatches": [
+  {
+   "issue": "49182000 / 42725000 source mismatch",
+   "detail": "The SharePoint link listed under email subject '49182000_B' (msg 1a0516d6677aab46, 2026-08-30) served 42725000_B.ply. The part is taken from the filename (42725000). The file is sha256-identical (d82bd4f4...) to the V2 CONSUMED scan sc_d82bd4f417a2 (42725000_B, GOLD_LINES_AI_LEGACY), so it adds nothing new. 49182000 still has no scan on disk and is not in the benchmark; its real scan must be requested again.",
+   "file": "~/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260830_77d65ded/42725000_B.ply"
+  }
+ ],
+ "flags": [
+  {
+   "scan_ids": [
+    "sc_3c93a0bf6f97",
+    "sc_d45186653eed"
+   ],
+   "issue": "Same mesh (PLY vs STL). V3 label 7 lines (window rule) vs V2 label 9 lines. Counted once (V2 scan). Owner: align the V2 label (merge B2+B3, B4+B5) or decide the convention."
+  },
+  {
+   "scan_ids": [
+    "sc_db487cbd29a7",
+    "sc_9b9fd762f361"
+   ],
+   "issue": "PLY copy of the V2 STL scan (same 131655 points); labels agree (1). Counted once."
+  },
+  {
+   "scan_ids": [
+    "sc_43a32fe3b4a3",
+    "sc_927a2fa13067"
+   ],
+   "issue": "PLY twin of the V2 3RD_SCAN STL; labels agree (2). Counted once. Gives the V2 STL-only scan a PLY studio label."
+  },
+  {
+   "scan_ids": [
+    "sc_1a5377ac7c15",
+    "sc_8dfdab44605d"
+   ],
+   "issue": "PLY twin of the V2 SECOND_SCAN STL (human gold n=1); AI label agrees (1). Counted once."
+  },
+  {
+   "scan_ids": [
+    "sc_4057ba2144fb"
+   ],
+   "issue": "Workflow task header gave CAD 3; repo inventory/step_v10 give 6. Other judge prompts may carry wrong CAD counts; V3 uses inventory values."
+  },
+  {
+   "scan_ids": [
+    "sc_c27168a2de83"
+   ],
+   "issue": "Part 28289002 is CONSUMED_UNVERIFIED; its label now sits in ai_bend_lines_v1 (tuning pool), so moving it to FRESH is no longer possible."
+  },
+  {
+   "scan_ids": [
+    "sc_766be04dc456"
+   ],
+   "issue": "FRESH STL scan: write-label refuses non-PLY assets; accepted truth exists only as the sealed lines.json. Export a PLY in the same frame to get a sealed studio label."
+  },
+  {
+   "scan_ids": [],
+   "issue": "Several verifiers saw the labeler/reconciler 'notes' field in lines.json before forming their count, so they were not fully blind; judges checked geometry independently. Strip notes from what verifiers read in future runs."
+  },
+  {
+   "scan_ids": [],
+   "issue": "One FRESH lines dir had pairs.json overwritten by a killed re-run reconciler; restored byte-identical from the preserved copy (lines.json unchanged). One FRESH lines dir holds a stale render PNG that lines.json does not reference (write-label ignores it)."
+  }
+ ],
+ "parts": {
+  "10835000": {
+   "split": "FRESH",
+   "has_step": false,
+   "scans": [
+    "sc_0e5dd5f6490e",
+    "sc_ccdb74afbde5"
+   ]
+  },
+  "10839000": {
+   "split": "CONSUMED",
+   "has_step": true,
+   "scans": [
+    "sc_08686dc1d5d4",
+    "sc_71cf0b216f43",
+    "sc_cec08dfca9ab"
+   ]
+  },
+  "11979003": {
+   "split": "CONSUMED",
+   "has_step": true,
+   "scans": [
+    "sc_3c93a0bf6f97",
+    "sc_43e1dbdce7e3",
+    "sc_d45186653eed",
+    "sc_d5d7f0cfa36c",
+    "sc_f99d883f2754"
+   ]
+  },
+  "12851000": {
+   "split": "FRESH",
+   "has_step": false,
+   "scans": [
+    "sc_ba2286ee9c19"
+   ]
+  },
+  "15651004": {
+   "split": "CONSUMED",
+   "has_step": true,
+   "scans": [
+    "sc_03395097cd96",
+    "sc_1a5377ac7c15",
+    "sc_43a32fe3b4a3",
+    "sc_4d277fbe7854",
+    "sc_8dfdab44605d",
+    "sc_927a2fa13067"
+   ]
+  },
+  "15658000": {
+   "split": "FRESH",
+   "has_step": false,
+   "scans": [
+    "sc_216c636d3bcb",
+    "sc_41d9f652df57",
+    "sc_90688c5ab7be"
+   ]
+  },
+  "17139000": {
+   "split": "CONSUMED",
+   "has_step": true,
+   "scans": [
+    "sc_90257b128d80"
+   ]
+  },
+  "21763000": {
+   "split": "FRESH",
+   "has_step": false,
+   "scans": [
+    "sc_e36194d827bf",
+    "sc_fb178c492b04"
+   ]
+  },
+  "22352000": {
+   "split": "FRESH",
+   "has_step": false,
+   "scans": [
+    "sc_daeb617ca8ae"
+   ]
+  },
+  "23317000": {
+   "split": "FRESH",
+   "has_step": true,
+   "scans": [
+    "sc_afd4de0698d8"
+   ]
+  },
+  "23553000": {
+   "split": "CONSUMED",
+   "has_step": true,
+   "scans": [
+    "sc_186463746daa",
+    "sc_5a1ecd7a4db3",
+    "sc_6eba02723d4b"
+   ]
+  },
+  "23976000": {
+   "split": "FRESH",
+   "has_step": false,
+   "scans": [
+    "sc_f7b2a638e246"
+   ]
+  },
+  "24694000": {
+   "split": "CONSUMED",
+   "has_step": false,
+   "scans": [
+    "sc_8b72c3ff233f"
+   ]
+  },
+  "26687021": {
+   "split": "FRESH",
+   "has_step": false,
+   "scans": [
+    "sc_8700ef964309",
+    "sc_be73cab0e96e"
+   ]
+  },
+  "27796002": {
+   "split": "FRESH",
+   "has_step": false,
+   "scans": [
+    "sc_077889c8aeab",
+    "sc_0e5eca6fd886"
+   ]
+  },
+  "27796005": {
+   "split": "FRESH",
+   "has_step": false,
+   "scans": [
+    "sc_c75fb685efcd",
+    "sc_c768328a70e6"
+   ]
+  },
+  "28289002": {
+   "split": "CONSUMED",
+   "has_step": true,
+   "scans": [
+    "sc_c27168a2de83"
+   ]
+  },
+  "28870000": {
+   "split": "CONSUMED",
+   "has_step": true,
+   "scans": [
+    "sc_38091ac91d9d",
+    "sc_3bde9996f14d"
+   ]
+  },
+  "34371016": {
+   "split": "FRESH",
+   "has_step": false,
+   "scans": [
+    "sc_f5655bd1908e"
+   ]
+  },
+  "34499000": {
+   "split": "CONSUMED",
+   "has_step": true,
+   "scans": [
+    "sc_828bc34d9c8b"
+   ]
+  },
+  "35705010": {
+   "split": "CONSUMED",
+   "has_step": false,
+   "scans": [
+    "sc_050cba324c35",
+    "sc_3e4b28f24a9a"
+   ]
+  },
+  "36192000": {
+   "split": "FRESH",
+   "has_step": false,
+   "scans": [
+    "sc_3bf77708bb82",
+    "sc_4dd0e37dd764"
+   ]
+  },
+  "37071000": {
+   "split": "FRESH",
+   "has_step": false,
+   "scans": [
+    "sc_1bfde19a4430"
+   ]
+  },
+  "37126000": {
+   "split": "CONSUMED",
+   "has_step": true,
+   "scans": [
+    "sc_4a4304bb06f7",
+    "sc_822f083e3dfc",
+    "sc_a7498a51b52a"
+   ]
+  },
+  "37361005": {
+   "split": "CONSUMED",
+   "has_step": true,
+   "scans": [
+    "sc_d1732de18023"
+   ]
+  },
+  "38169000": {
+   "split": "CONSUMED",
+   "has_step": false,
+   "scans": [
+    "sc_db1839480738"
+   ]
+  },
+  "38172000": {
+   "split": "CONSUMED",
+   "has_step": true,
+   "scans": [
+    "sc_07062eee17aa",
+    "sc_2714fb7e0c0b",
+    "sc_4f8188b4d1a8",
+    "sc_8026eedce786",
+    "sc_f2475286312b"
+   ]
+  },
+  "38173000": {
+   "split": "CONSUMED",
+   "has_step": false,
+   "scans": [
+    "sc_3435e688d344",
+    "sc_b3cde5d10544"
+   ]
+  },
+  "38539000": {
+   "split": "FRESH",
+   "has_step": false,
+   "scans": [
+    "sc_8a4a24043800",
+    "sc_92f57084d4c5"
+   ]
+  },
+  "38898000": {
+   "split": "FRESH",
+   "has_step": true,
+   "scans": [
+    "sc_ead8e407c174"
+   ]
+  },
+  "38965002": {
+   "split": "CONSUMED",
+   "has_step": false,
+   "scans": [
+    "sc_6101a12648a9",
+    "sc_c60c74f5ae01"
+   ]
+  },
+  "38968000": {
+   "split": "FRESH",
+   "has_step": true,
+   "scans": [
+    "sc_c0ce5ecd2ba3"
+   ]
+  },
+  "40500000": {
+   "split": "CONSUMED",
+   "has_step": true,
+   "scans": [
+    "sc_152f1b1aacb2",
+    "sc_eaa89c6d1f1f"
+   ]
+  },
+  "40851000": {
+   "split": "FRESH",
+   "has_step": false,
+   "scans": [
+    "sc_c11b80b6d2af"
+   ]
+  },
+  "41017000": {
+   "split": "CONSUMED",
+   "has_step": false,
+   "scans": [
+    "sc_43417f858d5a"
+   ]
+  },
+  "42288005": {
+   "split": "CONSUMED",
+   "has_step": true,
+   "scans": [
+    "sc_2233372b8df7",
+    "sc_32099fb52638",
+    "sc_ef0abac61ae7"
+   ]
+  },
+  "42426000": {
+   "split": "FRESH",
+   "has_step": false,
+   "scans": [
+    "sc_fc2657f59d20"
+   ]
+  },
+  "42725000": {
+   "split": "CONSUMED",
+   "has_step": false,
+   "scans": [
+    "sc_d82bd4f417a2"
+   ]
+  },
+  "42821000": {
+   "split": "FRESH",
+   "has_step": false,
+   "scans": [
+    "sc_f6b7f5e5ae63"
+   ]
+  },
+  "43161000": {
+   "split": "FRESH",
+   "has_step": false,
+   "scans": [
+    "sc_5d7b61913ee0"
+   ]
+  },
+  "43244000": {
+   "split": "FRESH",
+   "has_step": false,
+   "scans": [
+    "sc_ec663db9d917"
+   ]
+  },
+  "43780000": {
+   "split": "FRESH",
+   "has_step": false,
+   "scans": [
+    "sc_1d920838b34b"
+   ]
+  },
+  "43798000": {
+   "split": "FRESH",
+   "has_step": false,
+   "scans": [
+    "sc_5a382360b59f"
+   ]
+  },
+  "43895000": {
+   "split": "CONSUMED",
+   "has_step": false,
+   "scans": [
+    "sc_589688be58d2"
+   ]
+  },
+  "43920000": {
+   "split": "CONSUMED",
+   "has_step": false,
+   "scans": [
+    "sc_633e26e28e56"
+   ]
+  },
+  "43976000": {
+   "split": "CONSUMED",
+   "has_step": false,
+   "scans": [
+    "sc_dff6419eacc4"
+   ]
+  },
+  "44001000": {
+   "split": "FRESH",
+   "has_step": false,
+   "scans": [
+    "sc_705ec5de123b"
+   ]
+  },
+  "44211000": {
+   "split": "CONSUMED",
+   "has_step": true,
+   "scans": [
+    "sc_0adb7d717b35",
+    "sc_361fc1049e39",
+    "sc_cd68c1d49a63"
+   ]
+  },
+  "44556000": {
+   "split": "FRESH",
+   "has_step": false,
+   "scans": [
+    "sc_c35199ee5039"
+   ]
+  },
+  "45141000": {
+   "split": "FRESH",
+   "has_step": false,
+   "scans": [
+    "sc_4d5dc2b40b67"
+   ]
+  },
+  "45352000": {
+   "split": "FRESH",
+   "has_step": false,
+   "scans": [
+    "sc_3f6e22d70e4e"
+   ]
+  },
+  "45796000": {
+   "split": "CONSUMED",
+   "has_step": true,
+   "scans": [
+    "sc_1268c72dcc30",
+    "sc_2852c2845b94",
+    "sc_9ef2cf4e52cb",
+    "sc_c623d2e45bff"
+   ]
+  },
+  "46045000": {
+   "split": "FRESH",
+   "has_step": false,
+   "scans": [
+    "sc_d094d32acc76"
+   ]
+  },
+  "46127000": {
+   "split": "FRESH",
+   "has_step": true,
+   "scans": [
+    "sc_147d3123a21d"
+   ]
+  },
+  "46128000": {
+   "split": "FRESH",
+   "has_step": true,
+   "scans": [
+    "sc_741c10b768dc"
+   ]
+  },
+  "46414000": {
+   "split": "CONSUMED",
+   "has_step": false,
+   "scans": [
+    "sc_b76452ea6fa7"
+   ]
+  },
+  "46465000": {
+   "split": "FRESH",
+   "has_step": true,
+   "scans": [
+    "sc_4d62195d4e2d"
+   ]
+  },
+  "46882000": {
+   "split": "FRESH",
+   "has_step": false,
+   "scans": [
+    "sc_938e948c1d00"
+   ]
+  },
+  "47040000": {
+   "split": "FRESH",
+   "has_step": false,
+   "scans": [
+    "sc_23754ce82e06"
+   ]
+  },
+  "47247004": {
+   "split": "CONSUMED",
+   "has_step": false,
+   "scans": [
+    "sc_8935b8a8e8aa"
+   ]
+  },
+  "47251002": {
+   "split": "CONSUMED",
+   "has_step": false,
+   "scans": [
+    "sc_1059a9192687",
+    "sc_9bd69bc6535c"
+   ]
+  },
+  "47266000": {
+   "split": "CONSUMED",
+   "has_step": true,
+   "scans": [
+    "sc_123f84b5afcb",
+    "sc_573c999ef6ea",
+    "sc_657b87ceeba6",
+    "sc_9018b86ccc9a",
+    "sc_9b9fd762f361",
+    "sc_a0b6add3f6e6",
+    "sc_c2ff6d5b6c2f",
+    "sc_db487cbd29a7",
+    "sc_e632352b37f2"
+   ]
+  },
+  "47479000": {
+   "split": "CONSUMED",
+   "has_step": true,
+   "scans": [
+    "sc_b4719db3dd69"
+   ]
+  },
+  "47480000": {
+   "split": "FRESH",
+   "has_step": false,
+   "scans": [
+    "sc_5d1715d17af6"
+   ]
+  },
+  "47555020": {
+   "split": "CONSUMED",
+   "has_step": false,
+   "scans": [
+    "sc_3b3e8c9f04e3"
+   ]
+  },
+  "47632001": {
+   "split": "CONSUMED",
+   "has_step": false,
+   "scans": [
+    "sc_cca7d7680a51"
+   ]
+  },
+  "47959001": {
+   "split": "CONSUMED",
+   "has_step": true,
+   "scans": [
+    "sc_4057ba2144fb",
+    "sc_a0305a6cf787",
+    "sc_cebb070285b5"
+   ]
+  },
+  "48099000": {
+   "split": "FRESH",
+   "has_step": false,
+   "scans": [
+    "sc_0412d642d936",
+    "sc_76b89855765e"
+   ]
+  },
+  "48101000": {
+   "split": "FRESH",
+   "has_step": true,
+   "scans": [
+    "sc_1f1d06c24e9f"
+   ]
+  },
+  "48333004": {
+   "split": "FRESH",
+   "has_step": false,
+   "scans": [
+    "sc_c54444e2c7df"
+   ]
+  },
+  "48333006": {
+   "split": "CONSUMED",
+   "has_step": false,
+   "scans": [
+    "sc_b7bd53831ee2"
+   ]
+  },
+  "48333018": {
+   "split": "CONSUMED",
+   "has_step": false,
+   "scans": [
+    "sc_7d28946d9f49"
+   ]
+  },
+  "48334000": {
+   "split": "FRESH",
+   "has_step": false,
+   "scans": [
+    "sc_20a96de8b712"
+   ]
+  },
+  "48340007": {
+   "split": "CONSUMED",
+   "has_step": false,
+   "scans": [
+    "sc_c1d112196ae5"
+   ]
+  },
+  "48340008": {
+   "split": "CONSUMED",
+   "has_step": false,
+   "scans": [
+    "sc_521e2ee69b21"
+   ]
+  },
+  "48381001": {
+   "split": "FRESH",
+   "has_step": false,
+   "scans": [
+    "sc_0178c0155934"
+   ]
+  },
+  "48384000": {
+   "split": "FRESH",
+   "has_step": false,
+   "scans": [
+    "sc_2d74c97bb017"
+   ]
+  },
+  "48389000": {
+   "split": "FRESH",
+   "has_step": false,
+   "scans": [
+    "sc_766be04dc456"
+   ]
+  },
+  "48412000": {
+   "split": "CONSUMED",
+   "has_step": false,
+   "scans": [
+    "sc_1aeb5ee39ef0"
+   ]
+  },
+  "48555000": {
+   "split": "FRESH",
+   "has_step": true,
+   "scans": [
+    "sc_7bde16010a96"
+   ]
+  },
+  "48565005": {
+   "split": "CONSUMED",
+   "has_step": false,
+   "scans": [
+    "sc_e104a6f42d31"
+   ]
+  },
+  "48565022": {
+   "split": "CONSUMED",
+   "has_step": false,
+   "scans": [
+    "sc_49e5e7a1c973"
+   ]
+  },
+  "48758000": {
+   "split": "FRESH",
+   "has_step": false,
+   "scans": [
+    "sc_92207963e00b"
+   ]
+  },
+  "48811000": {
+   "split": "CONSUMED",
+   "has_step": true,
+   "scans": [
+    "sc_ff1667a2a80a"
+   ]
+  },
+  "48900035": {
+   "split": "FRESH",
+   "has_step": false,
+   "scans": [
+    "sc_bff1526135fb"
+   ]
+  },
+  "48910000": {
+   "split": "FRESH",
+   "has_step": false,
+   "scans": [
+    "sc_b0fb59a69e99"
+   ]
+  },
+  "48926001": {
+   "split": "FRESH",
+   "has_step": true,
+   "scans": [
+    "sc_d4b9d13966bb"
+   ]
+  },
+  "48932000": {
+   "split": "CONSUMED",
+   "has_step": false,
+   "scans": [
+    "sc_be840127c462"
+   ]
+  },
+  "48933000": {
+   "split": "FRESH",
+   "has_step": false,
+   "scans": [
+    "sc_1dd687fd8ff8"
+   ]
+  },
+  "48934000": {
+   "split": "FRESH",
+   "has_step": false,
+   "scans": [
+    "sc_deba7f81ceec"
+   ]
+  },
+  "48938000": {
+   "split": "CONSUMED",
+   "has_step": false,
+   "scans": [
+    "sc_eb1eab182228"
+   ]
+  },
+  "48963008": {
+   "split": "CONSUMED",
+   "has_step": true,
+   "scans": [
+    "sc_2d3e4a623a31"
+   ]
+  },
+  "48963009": {
+   "split": "FRESH",
+   "has_step": true,
+   "scans": [
+    "sc_217cfc0f4c57"
+   ]
+  },
+  "48991006": {
+   "split": "CONSUMED",
+   "has_step": true,
+   "scans": [
+    "sc_6e5d5a2f60f5"
+   ]
+  },
+  "49001000": {
+   "split": "CONSUMED",
+   "has_step": true,
+   "scans": [
+    "sc_7a1773eca9fa",
+    "sc_8379cebef9e3"
+   ]
+  },
+  "49024000": {
+   "split": "CONSUMED",
+   "has_step": true,
+   "scans": [
+    "sc_3434b523db47",
+    "sc_70b39f530f00"
+   ]
+  },
+  "49025000": {
+   "split": "FRESH",
+   "has_step": false,
+   "scans": [
+    "sc_09aaf245becb"
+   ]
+  },
+  "49125000": {
+   "split": "CONSUMED",
+   "has_step": true,
+   "scans": [
+    "sc_c748537194da",
+    "sc_efd0d987f60b",
+    "sc_fee685eee4db"
+   ]
+  },
+  "49162000": {
+   "split": "CONSUMED",
+   "has_step": false,
+   "scans": [
+    "sc_b92f211e6ec0"
+   ]
+  },
+  "49163000": {
+   "split": "CONSUMED",
+   "has_step": false,
+   "scans": [
+    "sc_469febe1cd7d"
+   ]
+  },
+  "49186000": {
+   "split": "FRESH",
+   "has_step": false,
+   "scans": [
+    "sc_3f6a4a32ffdc"
+   ]
+  },
+  "49187000": {
+   "split": "FRESH",
+   "has_step": false,
+   "scans": [
+    "sc_bfabcec897fd"
+   ]
+  },
+  "49188000": {
+   "split": "CONSUMED",
+   "has_step": false,
+   "scans": [
+    "sc_711eb2a389a4"
+   ]
+  },
+  "49191008": {
+   "split": "FRESH",
+   "has_step": false,
+   "scans": [
+    "sc_cfe91a0336d4"
+   ]
+  },
+  "49191019": {
+   "split": "FRESH",
+   "has_step": false,
+   "scans": [
+    "sc_5dadc4b00c47"
+   ]
+  },
+  "49191023": {
+   "split": "CONSUMED",
+   "has_step": false,
+   "scans": [
+    "sc_28a25c37a928"
+   ]
+  },
+  "49191026": {
+   "split": "FRESH",
+   "has_step": false,
+   "scans": [
+    "sc_7c6712aacca8"
+   ]
+  },
+  "49191030": {
+   "split": "CONSUMED",
+   "has_step": false,
+   "scans": [
+    "sc_e218b16ed070"
+   ]
+  },
+  "49191032": {
+   "split": "CONSUMED",
+   "has_step": false,
+   "scans": [
+    "sc_891a8e4a2ee1"
+   ]
+  },
+  "49191037": {
+   "split": "CONSUMED",
+   "has_step": false,
+   "scans": [
+    "sc_9b38b1167834"
+   ]
+  },
+  "49191038": {
+   "split": "CONSUMED",
+   "has_step": false,
+   "scans": [
+    "sc_d741e1d515bf"
+   ]
+  },
+  "49191054": {
+   "split": "CONSUMED",
+   "has_step": false,
+   "scans": [
+    "sc_24c57f2660b3"
+   ]
+  },
+  "49191061": {
+   "split": "CONSUMED",
+   "has_step": false,
+   "scans": [
+    "sc_e0285cea8c56"
+   ]
+  },
+  "49201000": {
+   "split": "CONSUMED",
+   "has_step": true,
+   "scans": [
+    "sc_203b95d7a753"
+   ]
+  },
+  "49204020": {
+   "split": "CONSUMED",
+   "has_step": true,
+   "scans": [
+    "sc_e080ae094f35"
+   ]
+  },
+  "49207000": {
+   "split": "FRESH",
+   "has_step": true,
+   "scans": [
+    "sc_6fa053514df8"
+   ]
+  },
+  "49227000": {
+   "split": "CONSUMED",
+   "has_step": false,
+   "scans": [
+    "sc_1d601c46ff9c"
+   ]
+  },
+  "49289000": {
+   "split": "FRESH",
+   "has_step": false,
+   "scans": [
+    "sc_57f3d5a23f60"
+   ]
+  },
+  "49291000": {
+   "split": "FRESH",
+   "has_step": false,
+   "scans": [
+    "sc_0f7ac8e49e99"
+   ]
+  },
+  "49292000": {
+   "split": "FRESH",
+   "has_step": false,
+   "scans": [
+    "sc_2fc703f32b3b"
+   ]
+  },
+  "49293001": {
+   "split": "CONSUMED",
+   "has_step": false,
+   "scans": [
+    "sc_e8c946b837aa"
+   ]
+  },
+  "49355000": {
+   "split": "FRESH",
+   "has_step": false,
+   "scans": [
+    "sc_03b571de167d"
+   ]
+  },
+  "49438000": {
+   "split": "FRESH",
+   "has_step": false,
+   "scans": [
+    "sc_f86e40f38a37"
+   ]
+  },
+  "49461000": {
+   "split": "FRESH",
+   "has_step": false,
+   "scans": [
+    "sc_c7aa4f510d75"
+   ]
+  },
+  "49553000": {
+   "split": "FRESH",
+   "has_step": false,
+   "scans": [
+    "sc_9b47565ad2ac"
+   ]
+  },
+  "49565000": {
+   "split": "FRESH",
+   "has_step": false,
+   "scans": [
+    "sc_4f72b44afd5a"
+   ]
+  },
+  "49566000": {
+   "split": "FRESH",
+   "has_step": false,
+   "scans": [
+    "sc_528766342080"
+   ]
+  },
+  "49783000": {
+   "split": "FRESH",
+   "has_step": true,
+   "scans": [
+    "sc_ead69b8181a8"
+   ]
+  },
+  "50278001": {
+   "split": "FRESH",
+   "has_step": false,
+   "scans": [
+    "sc_d02d75eaff89",
+    "sc_d338ed2dced8"
+   ]
+  },
+  "50482000": {
+   "split": "FRESH",
+   "has_step": false,
+   "scans": [
+    "sc_d151c2d71804"
+   ]
+  },
+  "50535000": {
+   "split": "CONSUMED",
+   "has_step": false,
+   "scans": [
+    "sc_9c84cc623d9b"
+   ]
+  },
+  "50537000": {
+   "split": "CONSUMED",
+   "has_step": false,
+   "scans": [
+    "sc_ce3de3af51b6"
+   ]
+  },
+  "50539000": {
+   "split": "CONSUMED",
+   "has_step": false,
+   "scans": [
+    "sc_85a7f8cca6bc"
+   ]
+  },
+  "50545000": {
+   "split": "CONSUMED",
+   "has_step": false,
+   "scans": [
+    "sc_2c807204c472",
+    "sc_d27acfe5468d"
+   ]
+  },
+  "50546000": {
+   "split": "CONSUMED",
+   "has_step": false,
+   "scans": [
+    "sc_baa71ce6bc5d",
+    "sc_f4bc782eff8b"
+   ]
+  },
+  "50552000": {
+   "split": "CONSUMED",
+   "has_step": false,
+   "scans": [
+    "sc_9567d0d3f33d"
+   ]
+  },
+  "50553000": {
+   "split": "CONSUMED",
+   "has_step": false,
+   "scans": [
+    "sc_581c7de10fc6"
+   ]
+  },
+  "50556000": {
+   "split": "CONSUMED",
+   "has_step": false,
+   "scans": [
+    "sc_c1a1d6de4681",
+    "sc_d891ea8c5891"
+   ]
+  },
+  "50566000": {
+   "split": "CONSUMED",
+   "has_step": false,
+   "scans": [
+    "sc_8bb74bda6756"
+   ]
+  },
+  "50567000": {
+   "split": "CONSUMED",
+   "has_step": false,
+   "scans": [
+    "sc_80472dfa8819"
+   ]
+  },
+  "50597000": {
+   "split": "FRESH",
+   "has_step": true,
+   "scans": [
+    "sc_2476a49b0278",
+    "sc_3baf989b1612"
+   ]
+  },
+  "50757000": {
+   "split": "CONSUMED",
+   "has_step": true,
+   "scans": [
+    "sc_752e2bd54aad",
+    "sc_777c64c88967"
+   ]
+  },
+  "UNKNOWN:sc_0e4bf3087d81": {
+   "split": "CONSUMED",
+   "has_step": false,
+   "scans": [
+    "sc_0e4bf3087d81"
+   ]
+  },
+  "UNKNOWN:sc_241aa95bfdfc": {
+   "split": "CONSUMED",
+   "has_step": false,
+   "scans": [
+    "sc_241aa95bfdfc"
+   ]
+  },
+  "UNKNOWN:sc_2e584e9d1ffe": {
+   "split": "CONSUMED",
+   "has_step": false,
+   "scans": [
+    "sc_2e584e9d1ffe"
+   ]
+  },
+  "UNKNOWN:sc_793a86afb5db": {
+   "split": "CONSUMED",
+   "has_step": false,
+   "scans": [
+    "sc_793a86afb5db"
+   ]
+  },
+  "UNKNOWN:sc_7a253806b10b": {
+   "split": "CONSUMED",
+   "has_step": false,
+   "scans": [
+    "sc_7a253806b10b"
+   ]
+  },
+  "UNKNOWN:sc_9b930fe58a1b": {
+   "split": "CONSUMED",
+   "has_step": false,
+   "scans": [
+    "sc_9b930fe58a1b"
+   ]
+  },
+  "UNKNOWN:sc_9c890e76934f": {
+   "split": "CONSUMED",
+   "has_step": false,
+   "scans": [
+    "sc_9c890e76934f"
+   ]
+  },
+  "UNKNOWN:sc_a5e534e6097c": {
+   "split": "CONSUMED",
+   "has_step": false,
+   "scans": [
+    "sc_a5e534e6097c"
+   ]
+  },
+  "UNKNOWN:sc_abe194f04ade": {
+   "split": "CONSUMED",
+   "has_step": false,
+   "scans": [
+    "sc_abe194f04ade"
+   ]
+  },
+  "UNKNOWN:sc_f098dbceaa6d": {
+   "split": "CONSUMED",
+   "has_step": false,
+   "scans": [
+    "sc_f098dbceaa6d"
+   ]
+  },
+  "UNKNOWN:sc_f362d8de507c": {
+   "split": "CONSUMED",
+   "has_step": false,
+   "scans": [
+    "sc_f362d8de507c"
+   ]
+  },
+  "UNKNOWN:sc_fb35a9f4c6bf": {
+   "split": "CONSUMED",
+   "has_step": false,
+   "scans": [
+    "sc_fb35a9f4c6bf"
+   ]
+  },
+  "ysherman": {
+   "split": "CONSUMED",
+   "has_step": false,
+   "scans": [
+    "sc_36e5d6998b9b",
+    "sc_80debe59ce20",
+    "sc_e83b9feb7090"
+   ]
+  }
+ },
+ "scans": [
+  {
+   "scan_id": "sc_0e5dd5f6490e",
+   "part_id": "10835000",
+   "split": "FRESH",
+   "source": "BENCHMARK_V3_queue",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260922_f9468d86/10835000_01 (x).ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED_SEALED",
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED/3e5930cc2d8eb1025860fc6f.json",
+   "write_status": "WRITTEN",
+   "truth_location": {
+    "labels": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED",
+    "lines_dir": "docs/production/runlog/benchmark_v3/fresh_SEALED/label_lines/sc_0e5dd5f6490e"
+   }
+  },
+  {
+   "scan_id": "sc_ccdb74afbde5",
+   "part_id": "10835000",
+   "split": "FRESH",
+   "source": "BENCHMARK_V3_queue",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260922_4323e810/10835000_01.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED_SEALED",
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED/9b04d89d377a6bfcefc474e4.json",
+   "write_status": "WRITTEN",
+   "truth_location": {
+    "labels": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED",
+    "lines_dir": "docs/production/runlog/benchmark_v3/fresh_SEALED/label_lines/sc_ccdb74afbde5"
+   }
+  },
+  {
+   "scan_id": "sc_08686dc1d5d4",
+   "part_id": "10839000",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/source-assets/02_CAD_QC_3D/10839000/10839000_01_scan_1.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "GOLD_LINES_HUMAN",
+   "truth_sources_all": [
+    "GOLD_LINES_HUMAN",
+    "CAD_RECIPE (nominal; not compiled yet)"
+   ],
+   "stage_hints": [
+    "PARTIAL_SCAN_1"
+   ],
+   "staged_or_incomplete": true,
+   "studio_label": null,
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_71cf0b216f43",
+   "part_id": "10839000",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/source-assets/02_CAD_QC_3D/10839000_01_full_scan.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "GOLD_LINES_HUMAN",
+   "truth_sources_all": [
+    "GOLD_LINES_HUMAN",
+    "CAD_RECIPE (nominal; not compiled yet)"
+   ],
+   "stage_hints": [
+    "FULL"
+   ],
+   "staged_or_incomplete": false,
+   "studio_label": null,
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_cec08dfca9ab",
+   "part_id": "10839000",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/source-assets/02_CAD_QC_3D/10839000/10839000_01_scan_2.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "GOLD_LINES_HUMAN",
+   "truth_sources_all": [
+    "GOLD_LINES_HUMAN",
+    "CAD_RECIPE (nominal; not compiled yet)"
+   ],
+   "stage_hints": [
+    "PARTIAL_SCAN_2"
+   ],
+   "staged_or_incomplete": true,
+   "studio_label": null,
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_3c93a0bf6f97",
+   "part_id": "11979003",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V3_queue",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260115_e396e441/11979003_C.ply",
+   "format": "ply",
+   "role": "FORMAT_ALTERNATE_PLY_TWIN",
+   "truth_source": "AI_GOLD_ACCEPTED",
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_v1/3b82060d9cf7d3492afd3949.json",
+   "write_status": "WRITTEN",
+   "stage_hints": [],
+   "staged_or_incomplete": false,
+   "n_lines": 7,
+   "cad_bend_lines": 9,
+   "twin_of_v2_scan": "sc_d45186653eed"
+  },
+  {
+   "scan_id": "sc_43e1dbdce7e3",
+   "part_id": "11979003",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/FullProject/live_scans/11979003_C_LIDAR_DEMO_20260209_155351_508814.ply",
+   "format": "ply",
+   "role": "EXCLUDED_NOT_A_SCAN",
+   "truth_source": "CAD_RECIPE",
+   "truth_sources_all": [
+    "REJECTED_NOT_A_SCAN (not truth)",
+    "CAD_RECIPE (nominal; not compiled yet)"
+   ],
+   "stage_hints": [
+    "LIDAR_DEMO_CAPTURE"
+   ],
+   "staged_or_incomplete": false,
+   "studio_label": null,
+   "role_note": "review11 verdict REJECTED_NOT_A_SCAN: OVERRIDES the judge's ACCEPT. The file is a synthetic Open3D resample of sc_d45186653eed (test_files/11979003_C/scan.stl), made by _write_lidar_demo_scan: 'Created by Open3D', xyz only, 13191 points = 14000 default x 0.94, and the mtime equals the name stamp. Residual to the source mesh is median 0.053 / p95 0.156 mm, exactly N(0, 0.08). All 6 lines coincide with sc_d45186653eed's accepted lines within 0.02-0.14 mm and 0.01-0.15 deg. The geometry label is correct (6/6) but this is not a physical scan."
+  },
+  {
+   "scan_id": "sc_d45186653eed",
+   "part_id": "11979003",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/source-assets/02_CAD_QC_3D/11979003_C.stl",
+   "format": "stl",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED",
+   "truth_sources_all": [
+    "AI_GOLD_ACCEPTED",
+    "CAD_RECIPE (nominal; not compiled yet)"
+   ],
+   "stage_hints": [],
+   "staged_or_incomplete": false,
+   "studio_label": null,
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_d5d7f0cfa36c",
+   "part_id": "11979003",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/FullProject/live_scans/11979003_C_LIDAR_DEMO_20260209_154630_251479.ply",
+   "format": "ply",
+   "role": "EXCLUDED_NOT_A_SCAN",
+   "truth_source": "CAD_RECIPE",
+   "truth_sources_all": [
+    "REJECTED_NOT_A_SCAN (not truth)",
+    "CAD_RECIPE (nominal; not compiled yet)"
+   ],
+   "stage_hints": [
+    "LIDAR_DEMO_CAPTURE"
+   ],
+   "staged_or_incomplete": false,
+   "studio_label": null,
+   "role_note": "review11 verdict REJECTED_NOT_A_SCAN: Synthetic Open3D demo resample of sc_d45186653eed: 11293 points = 12000 x 0.94, and the residual to the source mesh is median 0.053 / p95 0.156 mm, exactly N(0, 0.08). The 6/6 geometry label is correct, but counting it would double-count sc_d45186653eed with idealised noise."
+  },
+  {
+   "scan_id": "sc_f99d883f2754",
+   "part_id": "11979003",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/source-assets/02_CAD_QC_3D/BEFORE BENDING  11979003_C.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED",
+   "truth_sources_all": [
+    "AI_GOLD_ACCEPTED",
+    "CAD_RECIPE (nominal; not compiled yet)"
+   ],
+   "stage_hints": [
+    "STAGE0_BLANK"
+   ],
+   "staged_or_incomplete": true,
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_v1/9fb07af82dbf6c097cd621a1.json",
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_ba2286ee9c19",
+   "part_id": "12851000",
+   "split": "FRESH",
+   "source": "BENCHMARK_V3_queue",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260906_bb670062/12851000_B.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED_SEALED",
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED/cf35af4ce15abb31d3aa7561.json",
+   "write_status": "WRITTEN",
+   "truth_location": {
+    "labels": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED",
+    "lines_dir": "docs/production/runlog/benchmark_v3/fresh_SEALED/label_lines/sc_ba2286ee9c19"
+   }
+  },
+  {
+   "scan_id": "sc_03395097cd96",
+   "part_id": "15651004",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/source-assets/02_CAD_QC_3D/15651004_01.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED",
+   "truth_sources_all": [
+    "AI_GOLD_ACCEPTED",
+    "CAD_RECIPE (nominal; not compiled yet)"
+   ],
+   "stage_hints": [],
+   "staged_or_incomplete": false,
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_v1/1c62d21a1fceedefd236259a.json",
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_1a5377ac7c15",
+   "part_id": "15651004",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V3_queue",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260204_19c279b1/15651004_01_SECOND_SCAN.ply",
+   "format": "ply",
+   "role": "FORMAT_ALTERNATE_PLY_TWIN",
+   "truth_source": "AI_GOLD_ACCEPTED",
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_v1/d214c5f02688bbc714baf2db.json",
+   "write_status": "WRITTEN",
+   "stage_hints": [
+    "SECOND_SCAN"
+   ],
+   "staged_or_incomplete": true,
+   "n_lines": 1,
+   "cad_bend_lines": 3,
+   "twin_of_v2_scan": "sc_8dfdab44605d"
+  },
+  {
+   "scan_id": "sc_43a32fe3b4a3",
+   "part_id": "15651004",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V3_queue",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260204_19c279b1/15651004_01_3RD_SCAN.ply",
+   "format": "ply",
+   "role": "FORMAT_ALTERNATE_PLY_TWIN",
+   "truth_source": "AI_GOLD_ACCEPTED",
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_v1/2a726688d7fb1f9fb769c259.json",
+   "write_status": "WRITTEN",
+   "stage_hints": [
+    "THIRD_SCAN"
+   ],
+   "staged_or_incomplete": true,
+   "n_lines": 2,
+   "cad_bend_lines": 3,
+   "twin_of_v2_scan": "sc_927a2fa13067"
+  },
+  {
+   "scan_id": "sc_4d277fbe7854",
+   "part_id": "15651004",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/gold_source_ply_v1/15651004_01_SECOND_SCAN__source_frame_proxy.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "CAD_RECIPE",
+   "truth_sources_all": [
+    "CAD_RECIPE (nominal; not compiled yet)"
+   ],
+   "stage_hints": [
+    "REPEAT_SECOND_SCAN"
+   ],
+   "staged_or_incomplete": false,
+   "studio_label": null,
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_8dfdab44605d",
+   "part_id": "15651004",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/source-assets/02_CAD_QC_3D/15651004_01_SECOND_SCAN.stl",
+   "format": "stl",
+   "role": "benchmark_scan",
+   "truth_source": "GOLD_LINES_HUMAN",
+   "truth_sources_all": [
+    "GOLD_LINES_HUMAN",
+    "CAD_RECIPE (nominal; not compiled yet)"
+   ],
+   "stage_hints": [
+    "REPEAT_SECOND_SCAN"
+   ],
+   "staged_or_incomplete": false,
+   "studio_label": null,
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_927a2fa13067",
+   "part_id": "15651004",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/source-assets/02_CAD_QC_3D/15651004_01_3RD_SCAN.stl",
+   "format": "stl",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED",
+   "truth_sources_all": [
+    "AI_GOLD_ACCEPTED",
+    "CAD_RECIPE (nominal; not compiled yet)"
+   ],
+   "stage_hints": [
+    "REPEAT_3RD_SCAN"
+   ],
+   "staged_or_incomplete": false,
+   "studio_label": null,
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_216c636d3bcb",
+   "part_id": "15658000",
+   "split": "FRESH",
+   "source": "BENCHMARK_V3_queue",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260930_5732d199/15658000_02 (X1).ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED_SEALED",
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED/0360cce3677f20c7ded7dc78.json",
+   "write_status": "WRITTEN",
+   "truth_location": {
+    "labels": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED",
+    "lines_dir": "docs/production/runlog/benchmark_v3/fresh_SEALED/label_lines/sc_216c636d3bcb"
+   }
+  },
+  {
+   "scan_id": "sc_41d9f652df57",
+   "part_id": "15658000",
+   "split": "FRESH",
+   "source": "BENCHMARK_V3_queue",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260930_4ace7277/15658000_02 (X2).ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED_SEALED",
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED/7fc984ceaea9352978f745ed.json",
+   "write_status": "WRITTEN",
+   "truth_location": {
+    "labels": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED",
+    "lines_dir": "docs/production/runlog/benchmark_v3/fresh_SEALED/label_lines/sc_41d9f652df57"
+   }
+  },
+  {
+   "scan_id": "sc_90688c5ab7be",
+   "part_id": "15658000",
+   "split": "FRESH",
+   "source": "BENCHMARK_V3_queue",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260930_634cf4b3/15658000_02 (V).ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED_SEALED",
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED/e4ed14fde432daa633b91bff.json",
+   "write_status": "WRITTEN",
+   "truth_location": {
+    "labels": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED",
+    "lines_dir": "docs/production/runlog/benchmark_v3/fresh_SEALED/label_lines/sc_90688c5ab7be"
+   }
+  },
+  {
+   "scan_id": "sc_90257b128d80",
+   "part_id": "17139000",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/source-assets/02_CAD_QC_3D/17139000_01.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED",
+   "truth_sources_all": [
+    "AI_GOLD_ACCEPTED",
+    "CAD_RECIPE (nominal; not compiled yet)"
+   ],
+   "stage_hints": [],
+   "staged_or_incomplete": false,
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_v1/af451fb41bee7eec19a26302.json",
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_e36194d827bf",
+   "part_id": "21763000",
+   "split": "FRESH",
+   "source": "BENCHMARK_V3_queue",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260909_0577b7e8/21763000_E (V).ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED_SEALED",
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED/29a74e425a59709514449497.json",
+   "write_status": "WRITTEN",
+   "truth_location": {
+    "labels": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED",
+    "lines_dir": "docs/production/runlog/benchmark_v3/fresh_SEALED/label_lines/sc_e36194d827bf"
+   }
+  },
+  {
+   "scan_id": "sc_fb178c492b04",
+   "part_id": "21763000",
+   "split": "FRESH",
+   "source": "BENCHMARK_V3_queue",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260909_d03c996e/21763000_E (X).ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED_SEALED",
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED/30199598b49bc0934b94864c.json",
+   "write_status": "WRITTEN",
+   "truth_location": {
+    "labels": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED",
+    "lines_dir": "docs/production/runlog/benchmark_v3/fresh_SEALED/label_lines/sc_fb178c492b04"
+   }
+  },
+  {
+   "scan_id": "sc_daeb617ca8ae",
+   "part_id": "22352000",
+   "split": "FRESH",
+   "source": "BENCHMARK_V3_queue",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260726_d812c731/22352000_01.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED_SEALED",
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED/ea9eab2aab9cde16d929a46e.json",
+   "write_status": "WRITTEN",
+   "truth_location": {
+    "labels": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED",
+    "lines_dir": "docs/production/runlog/benchmark_v3/fresh_SEALED/label_lines/sc_daeb617ca8ae"
+   }
+  },
+  {
+   "scan_id": "sc_afd4de0698d8",
+   "part_id": "23317000",
+   "split": "FRESH",
+   "source": "BENCHMARK_V3_queue",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260901_0378c21d/23317000_C.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED_SEALED",
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED/32c605e05bd89d019bc18f8a.json",
+   "write_status": "WRITTEN",
+   "truth_location": {
+    "labels": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED",
+    "lines_dir": "docs/production/runlog/benchmark_v3/fresh_SEALED/label_lines/sc_afd4de0698d8"
+   }
+  },
+  {
+   "scan_id": "sc_186463746daa",
+   "part_id": "23553000",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/source-assets/02_CAD_QC_3D/23553000_B_SCAN_2.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED",
+   "truth_sources_all": [
+    "AI_GOLD_ACCEPTED",
+    "CAD_RECIPE (nominal; not compiled yet)"
+   ],
+   "stage_hints": [
+    "PARTIAL_SCAN_2"
+   ],
+   "staged_or_incomplete": true,
+   "studio_label": "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/annotations/ai_bend_lines_v1/3512f1a354ccad5b70a98083.json",
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_5a1ecd7a4db3",
+   "part_id": "23553000",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/source-assets/02_CAD_QC_3D/23553000_B_SCAN_1.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED",
+   "truth_sources_all": [
+    "AI_GOLD_ACCEPTED",
+    "CAD_RECIPE (nominal; not compiled yet)"
+   ],
+   "stage_hints": [
+    "PARTIAL_SCAN_1"
+   ],
+   "staged_or_incomplete": true,
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_v1/be3bccecf0023ae1e1191702.json",
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_6eba02723d4b",
+   "part_id": "23553000",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/source-assets/02_CAD_QC_3D/23553000_B_FULL_SCAN 1.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED",
+   "truth_sources_all": [
+    "AI_GOLD_ACCEPTED",
+    "CAD_RECIPE (nominal; not compiled yet)"
+   ],
+   "stage_hints": [
+    "FULL"
+   ],
+   "staged_or_incomplete": false,
+   "studio_label": "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/annotations/ai_bend_lines_v1/71f5e686304eac1244183772.json",
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_f7b2a638e246",
+   "part_id": "23976000",
+   "split": "FRESH",
+   "source": "BENCHMARK_V3_queue",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260901_1101e2ab/23976000_C.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED_SEALED",
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED/2471b51fd8252ffb8a9c7898.json",
+   "write_status": "WRITTEN",
+   "truth_location": {
+    "labels": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED",
+    "lines_dir": "docs/production/runlog/benchmark_v3/fresh_SEALED/label_lines/sc_f7b2a638e246"
+   }
+  },
+  {
+   "scan_id": "sc_8b72c3ff233f",
+   "part_id": "24694000",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming/2026-07-16-shaked-count-backed-ply/24694000_02.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "GOLD_LINES_AI_LEGACY",
+   "truth_sources_all": [
+    "GOLD_LINES_AI_LEGACY"
+   ],
+   "stage_hints": [],
+   "staged_or_incomplete": false,
+   "studio_label": null,
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_8700ef964309",
+   "part_id": "26687021",
+   "split": "FRESH",
+   "source": "BENCHMARK_V3_queue",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260809_3427f9e8/26687021_A01 (V).ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED_SEALED",
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED/95c7ed10cf0b43f9a2fd37e5.json",
+   "write_status": "WRITTEN",
+   "truth_location": {
+    "labels": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED",
+    "lines_dir": "docs/production/runlog/benchmark_v3/fresh_SEALED/label_lines/sc_8700ef964309"
+   }
+  },
+  {
+   "scan_id": "sc_be73cab0e96e",
+   "part_id": "26687021",
+   "split": "FRESH",
+   "source": "BENCHMARK_V3_queue",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260809_971d3924/26687021_A01 (X).ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED_SEALED",
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED/46d9ecef7274c78129a19b43.json",
+   "write_status": "WRITTEN",
+   "truth_location": {
+    "labels": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED",
+    "lines_dir": "docs/production/runlog/benchmark_v3/fresh_SEALED/label_lines/sc_be73cab0e96e"
+   }
+  },
+  {
+   "scan_id": "sc_077889c8aeab",
+   "part_id": "27796002",
+   "split": "FRESH",
+   "source": "BENCHMARK_V3_queue",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20261004_dab6dafa/27796002_D (V).ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED_SEALED",
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED/10c36157d73ff680e2caf943.json",
+   "write_status": "WRITTEN",
+   "truth_location": {
+    "labels": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED",
+    "lines_dir": "docs/production/runlog/benchmark_v3/fresh_SEALED/label_lines/sc_077889c8aeab"
+   }
+  },
+  {
+   "scan_id": "sc_0e5eca6fd886",
+   "part_id": "27796002",
+   "split": "FRESH",
+   "source": "BENCHMARK_V3_queue",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20261004_74073374/27796002_D (x).ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED_SEALED",
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED/3ed9f2409e4f7c96adc28142.json",
+   "write_status": "WRITTEN",
+   "truth_location": {
+    "labels": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED",
+    "lines_dir": "docs/production/runlog/benchmark_v3/fresh_SEALED/label_lines/sc_0e5eca6fd886"
+   }
+  },
+  {
+   "scan_id": "sc_c75fb685efcd",
+   "part_id": "27796005",
+   "split": "FRESH",
+   "source": "BENCHMARK_V3_queue",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20261008_294f5ed1/27796005_C (X).ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED_SEALED",
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED/c5eeec29e77248791ae45df1.json",
+   "write_status": "WRITTEN",
+   "truth_location": {
+    "labels": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED",
+    "lines_dir": "docs/production/runlog/benchmark_v3/fresh_SEALED/label_lines/sc_c75fb685efcd"
+   }
+  },
+  {
+   "scan_id": "sc_c768328a70e6",
+   "part_id": "27796005",
+   "split": "FRESH",
+   "source": "BENCHMARK_V3_queue",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20261008_aa0c3d9e/27796005_C (V).ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED_SEALED",
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED/066e4c36bb53835ae9835f01.json",
+   "write_status": "WRITTEN",
+   "truth_location": {
+    "labels": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED",
+    "lines_dir": "docs/production/runlog/benchmark_v3/fresh_SEALED/label_lines/sc_c768328a70e6"
+   }
+  },
+  {
+   "scan_id": "sc_c27168a2de83",
+   "part_id": "28289002",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V3_queue",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260115_19bc0ba6/28289002_B01.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED",
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_v1/f06551a2f3eb9e8e9eba7b30.json",
+   "write_status": "WRITTEN",
+   "stage_hints": [],
+   "staged_or_incomplete": false,
+   "n_lines": 3,
+   "cad_bend_lines": 3,
+   "twin_of_v2_scan": null
+  },
+  {
+   "scan_id": "sc_38091ac91d9d",
+   "part_id": "28870000",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/source-assets/02_CAD_QC_3D/28870000_A_FULL_SCAN.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED",
+   "truth_sources_all": [
+    "AI_GOLD_ACCEPTED",
+    "CAD_RECIPE (nominal; not compiled yet)"
+   ],
+   "stage_hints": [
+    "FULL"
+   ],
+   "staged_or_incomplete": false,
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_v1/8da4836b46c1392161e5fa48.json",
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_3bde9996f14d",
+   "part_id": "28870000",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/source-assets/02_CAD_QC_3D/28870000_A_SCAN_1.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED",
+   "truth_sources_all": [
+    "AI_GOLD_ACCEPTED",
+    "CAD_RECIPE (nominal; not compiled yet)"
+   ],
+   "stage_hints": [
+    "PARTIAL_SCAN_1"
+   ],
+   "staged_or_incomplete": true,
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_v1/a92f04f2ef011fc53a09675c.json",
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_f5655bd1908e",
+   "part_id": "34371016",
+   "split": "FRESH",
+   "source": "BENCHMARK_V3_queue",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260726_72b2bc64/34371016_A.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED_SEALED",
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED/22818cdb505b8e170e513ca9.json",
+   "write_status": "WRITTEN",
+   "truth_location": {
+    "labels": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED",
+    "lines_dir": "docs/production/runlog/benchmark_v3/fresh_SEALED/label_lines/sc_f5655bd1908e"
+   }
+  },
+  {
+   "scan_id": "sc_828bc34d9c8b",
+   "part_id": "34499000",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/Downloads/34499000_B.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED",
+   "truth_sources_all": [
+    "AI_GOLD_ACCEPTED",
+    "CAD_RECIPE (nominal; not compiled yet)"
+   ],
+   "stage_hints": [],
+   "staged_or_incomplete": false,
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_v1/f795a2da509fda73a25e2556.json",
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_050cba324c35",
+   "part_id": "35705010",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming/2026-07-29_shaked_defective_good_pairs/35705010_A/scans/35705010_A_X.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "GOLD_LINES_AI_LEGACY",
+   "truth_sources_all": [
+    "GOLD_LINES_AI_LEGACY"
+   ],
+   "stage_hints": [
+    "DEFECTIVE_X"
+   ],
+   "staged_or_incomplete": false,
+   "studio_label": null,
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_3e4b28f24a9a",
+   "part_id": "35705010",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming/2026-07-29_shaked_defective_good_pairs/35705010_A/scans/35705010_A_V.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "GOLD_LINES_AI_LEGACY",
+   "truth_sources_all": [
+    "GOLD_LINES_AI_LEGACY"
+   ],
+   "stage_hints": [
+    "GOOD_V"
+   ],
+   "staged_or_incomplete": false,
+   "studio_label": null,
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_3bf77708bb82",
+   "part_id": "36192000",
+   "split": "FRESH",
+   "source": "BENCHMARK_V3_queue",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20261001_81a86845/36192000_02 (X).ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED_SEALED",
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED/8b024f15447d0c9f2dec22cb.json",
+   "write_status": "WRITTEN",
+   "truth_location": {
+    "labels": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED",
+    "lines_dir": "docs/production/runlog/benchmark_v3/fresh_SEALED/label_lines/sc_3bf77708bb82"
+   }
+  },
+  {
+   "scan_id": "sc_4dd0e37dd764",
+   "part_id": "36192000",
+   "split": "FRESH",
+   "source": "BENCHMARK_V3_queue",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20261001_acbeebc2/36192000_02 (V) 1.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED_SEALED",
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED/e5fb5ebd65469b64408d9298.json",
+   "write_status": "WRITTEN",
+   "truth_location": {
+    "labels": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED",
+    "lines_dir": "docs/production/runlog/benchmark_v3/fresh_SEALED/label_lines/sc_4dd0e37dd764"
+   }
+  },
+  {
+   "scan_id": "sc_1bfde19a4430",
+   "part_id": "37071000",
+   "split": "FRESH",
+   "source": "BENCHMARK_V3_queue",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260901_4d582ee8/37071000_A.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED_SEALED",
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED/abfeb5540217466bfc010e4d.json",
+   "write_status": "WRITTEN",
+   "truth_location": {
+    "labels": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED",
+    "lines_dir": "docs/production/runlog/benchmark_v3/fresh_SEALED/label_lines/sc_1bfde19a4430"
+   }
+  },
+  {
+   "scan_id": "sc_4a4304bb06f7",
+   "part_id": "37126000",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/source-assets/02_CAD_QC_3D/37126000_D.stl",
+   "format": "stl",
+   "role": "FORMAT_ALTERNATE",
+   "truth_source": "CAD_RECIPE",
+   "truth_sources_all": [
+    "CAD_RECIPE (nominal; not compiled yet)"
+   ],
+   "stage_hints": [],
+   "staged_or_incomplete": false,
+   "studio_label": null,
+   "role_note": "format alternate of 37126000_D.ply (identical vertices/faces/bbox); PLY copy prepped instead"
+  },
+  {
+   "scan_id": "sc_822f083e3dfc",
+   "part_id": "37126000",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming_email_2026-10-17/20260129_19c08b45/37126000_D.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED",
+   "truth_sources_all": [
+    "AI_GOLD_ACCEPTED",
+    "CAD_RECIPE (nominal; not compiled yet)"
+   ],
+   "stage_hints": [],
+   "staged_or_incomplete": false,
+   "studio_label": "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/annotations/ai_bend_lines_v1/c769e053715d973985c0c85c.json",
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_a7498a51b52a",
+   "part_id": "37126000",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming_email_2026-10-17/20260129_19c08b45/37126000_D.obj",
+   "format": "obj",
+   "role": "FORMAT_ALTERNATE",
+   "truth_source": "CAD_RECIPE",
+   "truth_sources_all": [
+    "CAD_RECIPE (nominal; not compiled yet)"
+   ],
+   "stage_hints": [],
+   "staged_or_incomplete": false,
+   "studio_label": null,
+   "role_note": "format alternate of 37126000_D.ply (identical vertices/faces/bbox); PLY copy prepped instead"
+  },
+  {
+   "scan_id": "sc_d1732de18023",
+   "part_id": "37361005",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/source-assets/02_CAD_QC_3D/37361005_01.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "GOLD_LINES_HUMAN",
+   "truth_sources_all": [
+    "GOLD_LINES_HUMAN",
+    "CAD_RECIPE (nominal; not compiled yet)"
+   ],
+   "stage_hints": [],
+   "staged_or_incomplete": false,
+   "studio_label": null,
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_db1839480738",
+   "part_id": "38169000",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/Downloads/38169000_04.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED",
+   "truth_sources_all": [
+    "AI_GOLD_ACCEPTED"
+   ],
+   "stage_hints": [],
+   "staged_or_incomplete": false,
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_v1/6a4c42d3a3e11f0eed7646a6.json",
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_07062eee17aa",
+   "part_id": "38172000",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/source-assets/02_CAD_QC_3D/38172000_01_SCAN_1.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "GOLD_LINES_HUMAN",
+   "truth_sources_all": [
+    "GOLD_LINES_HUMAN",
+    "CAD_RECIPE (nominal; not compiled yet)"
+   ],
+   "stage_hints": [
+    "PARTIAL_SCAN_1"
+   ],
+   "staged_or_incomplete": true,
+   "studio_label": null,
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_2714fb7e0c0b",
+   "part_id": "38172000",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming/2026-07-28-shaked-good-defective-38172000/38172000_01 (V).ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "GOLD_LINES_AI_LEGACY",
+   "truth_sources_all": [
+    "GOLD_LINES_AI_LEGACY",
+    "CAD_RECIPE (nominal; not compiled yet)"
+   ],
+   "stage_hints": [
+    "GOOD_V"
+   ],
+   "staged_or_incomplete": false,
+   "studio_label": null,
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_4f8188b4d1a8",
+   "part_id": "38172000",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming/2026-07-28-shaked-good-defective-38172000/38172000_01 (X).ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "GOLD_LINES_AI_LEGACY",
+   "truth_sources_all": [
+    "GOLD_LINES_AI_LEGACY",
+    "CAD_RECIPE (nominal; not compiled yet)"
+   ],
+   "stage_hints": [
+    "DEFECTIVE_X"
+   ],
+   "staged_or_incomplete": false,
+   "studio_label": null,
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_8026eedce786",
+   "part_id": "38172000",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V3_queue",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260303_8b17a309/38172000_01_FULL SCAN 1.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED",
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_v1/385a0d0badade0917d26fea2.json",
+   "write_status": "WRITTEN",
+   "stage_hints": [
+    "FULL_SCAN"
+   ],
+   "staged_or_incomplete": false,
+   "n_lines": 12,
+   "cad_bend_lines": 12,
+   "twin_of_v2_scan": null
+  },
+  {
+   "scan_id": "sc_f2475286312b",
+   "part_id": "38172000",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/source-assets/02_CAD_QC_3D/38172000_01_SCAN_2 1.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "GOLD_LINES_HUMAN",
+   "truth_sources_all": [
+    "GOLD_LINES_HUMAN",
+    "CAD_RECIPE (nominal; not compiled yet)"
+   ],
+   "stage_hints": [
+    "PARTIAL_SCAN_2"
+   ],
+   "staged_or_incomplete": true,
+   "studio_label": null,
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_3435e688d344",
+   "part_id": "38173000",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming/2026-07-29_shaked_defective_good_pairs/38173000_02/scans/38173000_02_X.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "GOLD_LINES_AI_LEGACY",
+   "truth_sources_all": [
+    "GOLD_LINES_AI_LEGACY"
+   ],
+   "stage_hints": [
+    "DEFECTIVE_X"
+   ],
+   "staged_or_incomplete": false,
+   "studio_label": null,
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_b3cde5d10544",
+   "part_id": "38173000",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming/2026-07-29_shaked_defective_good_pairs/38173000_02/scans/38173000_02_V.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "GOLD_LINES_AI_LEGACY",
+   "truth_sources_all": [
+    "GOLD_LINES_AI_LEGACY"
+   ],
+   "stage_hints": [
+    "GOOD_V"
+   ],
+   "staged_or_incomplete": false,
+   "studio_label": null,
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_8a4a24043800",
+   "part_id": "38539000",
+   "split": "FRESH",
+   "source": "BENCHMARK_V3_queue",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260910_94882b43/38539000_02 (V).ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED_SEALED",
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED/3c537652d65efa4b708c4ae3.json",
+   "write_status": "WRITTEN",
+   "truth_location": {
+    "labels": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED",
+    "lines_dir": "docs/production/runlog/benchmark_v3/fresh_SEALED/label_lines/sc_8a4a24043800"
+   }
+  },
+  {
+   "scan_id": "sc_92f57084d4c5",
+   "part_id": "38539000",
+   "split": "FRESH",
+   "source": "BENCHMARK_V3_queue",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260910_c9c0b064/38539000_02 (X).ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED_SEALED",
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED/935451d3ee022955393413ec.json",
+   "write_status": "WRITTEN",
+   "truth_location": {
+    "labels": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED",
+    "lines_dir": "docs/production/runlog/benchmark_v3/fresh_SEALED/label_lines/sc_92f57084d4c5"
+   }
+  },
+  {
+   "scan_id": "sc_ead8e407c174",
+   "part_id": "38898000",
+   "split": "FRESH",
+   "source": "BENCHMARK_V3_queue",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260204_19c2762d/38898000_A.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED_SEALED",
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED/a6c1a0a271f396de67ff038b.json",
+   "write_status": "WRITTEN",
+   "truth_location": {
+    "labels": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED",
+    "lines_dir": "docs/production/runlog/benchmark_v3/fresh_SEALED/label_lines/sc_ead8e407c174"
+   }
+  },
+  {
+   "scan_id": "sc_6101a12648a9",
+   "part_id": "38965002",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming/2026-08-11_shaked_good_bad_pairs/38965002_A_V.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED",
+   "truth_sources_all": [
+    "AI_GOLD_ACCEPTED"
+   ],
+   "stage_hints": [
+    "GOOD_V"
+   ],
+   "staged_or_incomplete": false,
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_v1/b19061f3e4a792fe31cdd82b.json",
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_c60c74f5ae01",
+   "part_id": "38965002",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming/2026-08-11_shaked_good_bad_pairs/38965002_A_X.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED",
+   "truth_sources_all": [
+    "AI_GOLD_ACCEPTED"
+   ],
+   "stage_hints": [
+    "DEFECTIVE_X"
+   ],
+   "staged_or_incomplete": false,
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_v1/197d7a88dbe776749a98de84.json",
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_c0ce5ecd2ba3",
+   "part_id": "38968000",
+   "split": "FRESH",
+   "source": "BENCHMARK_V3_queue",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260210_b156abe0/38968000_A 1.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED_SEALED",
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED/e5e72c5b31e7c88bd958554c.json",
+   "write_status": "WRITTEN",
+   "truth_location": {
+    "labels": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED",
+    "lines_dir": "docs/production/runlog/benchmark_v3/fresh_SEALED/label_lines/sc_c0ce5ecd2ba3"
+   }
+  },
+  {
+   "scan_id": "sc_152f1b1aacb2",
+   "part_id": "40500000",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/source-assets/02_CAD_QC_3D/40500000_0_SCAN2 1.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "GOLD_LINES_HUMAN",
+   "truth_sources_all": [
+    "GOLD_LINES_HUMAN",
+    "CAD_RECIPE (nominal; not compiled yet)"
+   ],
+   "stage_hints": [
+    "PARTIAL_SCAN_2"
+   ],
+   "staged_or_incomplete": true,
+   "studio_label": null,
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_eaa89c6d1f1f",
+   "part_id": "40500000",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/source-assets/02_CAD_QC_3D/40500000_0_SCAN1 1.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED",
+   "truth_sources_all": [
+    "AI_GOLD_ACCEPTED",
+    "CAD_RECIPE (nominal; not compiled yet)"
+   ],
+   "stage_hints": [
+    "PARTIAL_SCAN_1"
+   ],
+   "staged_or_incomplete": true,
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_v1/a0bf9352332d87f9c8dfc8e0.json",
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_c11b80b6d2af",
+   "part_id": "40851000",
+   "split": "FRESH",
+   "source": "BENCHMARK_V3_queue",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260906_f3cbff78/40851000_C.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED_SEALED",
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED/fe6cc820aae38904da832045.json",
+   "write_status": "WRITTEN",
+   "truth_location": {
+    "labels": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED",
+    "lines_dir": "docs/production/runlog/benchmark_v3/fresh_SEALED/label_lines/sc_c11b80b6d2af"
+   }
+  },
+  {
+   "scan_id": "sc_43417f858d5a",
+   "part_id": "41017000",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming/2026-08-30_shaked_daily_scans/source_download/41017000_B.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "GOLD_LINES_AI_LEGACY",
+   "truth_sources_all": [
+    "GOLD_LINES_AI_LEGACY"
+   ],
+   "stage_hints": [],
+   "staged_or_incomplete": false,
+   "studio_label": null,
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_2233372b8df7",
+   "part_id": "42288005",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/source-assets/02_CAD_QC_3D/42288005_01_FULL_SCAN.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED",
+   "truth_sources_all": [
+    "AI_GOLD_ACCEPTED",
+    "CAD_RECIPE (nominal; not compiled yet)"
+   ],
+   "stage_hints": [
+    "FULL"
+   ],
+   "staged_or_incomplete": false,
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_v1/ae525e4954effa70d87ba8eb.json",
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_32099fb52638",
+   "part_id": "42288005",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V3_queue",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260316_19cf5725/42288005_01_SCAN_2.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED",
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_v1/bd3f29d2ede84ed086a01432.json",
+   "write_status": "WRITTEN",
+   "stage_hints": [
+    "PARTIAL_SCAN_2"
+   ],
+   "staged_or_incomplete": true,
+   "n_lines": 6,
+   "cad_bend_lines": 8,
+   "twin_of_v2_scan": null
+  },
+  {
+   "scan_id": "sc_ef0abac61ae7",
+   "part_id": "42288005",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V3_queue",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260316_19cf5714/42288005_01_SCAN_1.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED",
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_v1/78a5da9c09d1226d20886787.json",
+   "write_status": "WRITTEN",
+   "stage_hints": [
+    "PARTIAL_SCAN_1"
+   ],
+   "staged_or_incomplete": true,
+   "n_lines": 5,
+   "cad_bend_lines": 8,
+   "twin_of_v2_scan": null
+  },
+  {
+   "scan_id": "sc_fc2657f59d20",
+   "part_id": "42426000",
+   "split": "FRESH",
+   "source": "BENCHMARK_V3_queue",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260726_b7ed79bd/42426000_03.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED_SEALED",
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED/01f50bfdb62bf597e97f0d58.json",
+   "write_status": "WRITTEN",
+   "truth_location": {
+    "labels": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED",
+    "lines_dir": "docs/production/runlog/benchmark_v3/fresh_SEALED/label_lines/sc_fc2657f59d20"
+   }
+  },
+  {
+   "scan_id": "sc_d82bd4f417a2",
+   "part_id": "42725000",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming/2026-08-30_shaked_daily_scans/source_download/42725000_B.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "GOLD_LINES_AI_LEGACY",
+   "truth_sources_all": [
+    "GOLD_LINES_AI_LEGACY"
+   ],
+   "stage_hints": [],
+   "staged_or_incomplete": false,
+   "studio_label": null,
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_f6b7f5e5ae63",
+   "part_id": "42821000",
+   "split": "FRESH",
+   "source": "BENCHMARK_V3_queue",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260906_5b8ecf78/42821000_C.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED_SEALED",
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED/71c2912f4ddb45534b0f1cb2.json",
+   "write_status": "WRITTEN",
+   "truth_location": {
+    "labels": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED",
+    "lines_dir": "docs/production/runlog/benchmark_v3/fresh_SEALED/label_lines/sc_f6b7f5e5ae63"
+   }
+  },
+  {
+   "scan_id": "sc_5d7b61913ee0",
+   "part_id": "43161000",
+   "split": "FRESH",
+   "source": "BENCHMARK_V3_queue",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260906_668c9a2b/43161000_A.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED_SEALED",
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED/ede996451bd848fbf2d40455.json",
+   "write_status": "WRITTEN",
+   "truth_location": {
+    "labels": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED",
+    "lines_dir": "docs/production/runlog/benchmark_v3/fresh_SEALED/label_lines/sc_5d7b61913ee0"
+   }
+  },
+  {
+   "scan_id": "sc_ec663db9d917",
+   "part_id": "43244000",
+   "split": "FRESH",
+   "source": "BENCHMARK_V3_queue",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260906_90e72354/43244000_B.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED_SEALED",
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED/41d29b567d30ec96c6740ee7.json",
+   "write_status": "WRITTEN",
+   "truth_location": {
+    "labels": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED",
+    "lines_dir": "docs/production/runlog/benchmark_v3/fresh_SEALED/label_lines/sc_ec663db9d917"
+   }
+  },
+  {
+   "scan_id": "sc_1d920838b34b",
+   "part_id": "43780000",
+   "split": "FRESH",
+   "source": "BENCHMARK_V3_queue",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260901_9ee0c2e6/43780000_B.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED_SEALED",
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED/ea7451cb206e434029d8745f.json",
+   "write_status": "WRITTEN",
+   "truth_location": {
+    "labels": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED",
+    "lines_dir": "docs/production/runlog/benchmark_v3/fresh_SEALED/label_lines/sc_1d920838b34b"
+   }
+  },
+  {
+   "scan_id": "sc_5a382360b59f",
+   "part_id": "43798000",
+   "split": "FRESH",
+   "source": "BENCHMARK_V3_queue",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260906_3dcece9f/43798000_A.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED_SEALED",
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED/de4c31c7f5c90511a0561128.json",
+   "write_status": "WRITTEN",
+   "truth_location": {
+    "labels": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED",
+    "lines_dir": "docs/production/runlog/benchmark_v3/fresh_SEALED/label_lines/sc_5a382360b59f"
+   }
+  },
+  {
+   "scan_id": "sc_589688be58d2",
+   "part_id": "43895000",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming/2026-08-30_shaked_daily_scans/source_download/43895000_B.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "GOLD_LINES_AI_LEGACY",
+   "truth_sources_all": [
+    "GOLD_LINES_AI_LEGACY"
+   ],
+   "stage_hints": [],
+   "staged_or_incomplete": false,
+   "studio_label": null,
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_633e26e28e56",
+   "part_id": "43920000",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming/2026-08-30_shaked_daily_scans/source_download/43920000_A.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "GOLD_LINES_AI_LEGACY",
+   "truth_sources_all": [
+    "GOLD_LINES_AI_LEGACY"
+   ],
+   "stage_hints": [],
+   "staged_or_incomplete": false,
+   "studio_label": null,
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_dff6419eacc4",
+   "part_id": "43976000",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming/2026-08-30_shaked_daily_scans/source_download/43976000_A.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "GOLD_LINES_AI_LEGACY",
+   "truth_sources_all": [
+    "GOLD_LINES_AI_LEGACY"
+   ],
+   "stage_hints": [],
+   "staged_or_incomplete": false,
+   "studio_label": null,
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_705ec5de123b",
+   "part_id": "44001000",
+   "split": "FRESH",
+   "source": "BENCHMARK_V3_queue",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260906_938ae886/44001000_B.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED_SEALED",
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED/b10d0f24da1e7682b498f5cc.json",
+   "write_status": "WRITTEN",
+   "truth_location": {
+    "labels": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED",
+    "lines_dir": "docs/production/runlog/benchmark_v3/fresh_SEALED/label_lines/sc_705ec5de123b"
+   }
+  },
+  {
+   "scan_id": "sc_0adb7d717b35",
+   "part_id": "44211000",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming_email_2026-10-17/20260129_19c0883b/44211000_A.obj",
+   "format": "obj",
+   "role": "FORMAT_ALTERNATE",
+   "truth_source": "CAD_RECIPE",
+   "truth_sources_all": [
+    "CAD_RECIPE (nominal; not compiled yet)"
+   ],
+   "stage_hints": [],
+   "staged_or_incomplete": false,
+   "studio_label": null,
+   "role_note": "format alternate of 44211000_A.ply (identical vertices/faces/bbox); PLY copy prepped instead"
+  },
+  {
+   "scan_id": "sc_361fc1049e39",
+   "part_id": "44211000",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/source-assets/02_CAD_QC_3D/44211000_A.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED",
+   "truth_sources_all": [
+    "AI_GOLD_ACCEPTED",
+    "CAD_RECIPE (nominal; not compiled yet)"
+   ],
+   "stage_hints": [],
+   "staged_or_incomplete": false,
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_v1/fbe906a2187e95605c36ef39.json",
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_cd68c1d49a63",
+   "part_id": "44211000",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/source-assets/02_CAD_QC_3D/44211000_A.stl",
+   "format": "stl",
+   "role": "FORMAT_ALTERNATE",
+   "truth_source": "CAD_RECIPE",
+   "truth_sources_all": [
+    "CAD_RECIPE (nominal; not compiled yet)"
+   ],
+   "stage_hints": [],
+   "staged_or_incomplete": false,
+   "studio_label": null,
+   "role_note": "format alternate of 44211000_A.ply (identical vertices/faces/bbox); PLY copy prepped instead"
+  },
+  {
+   "scan_id": "sc_c35199ee5039",
+   "part_id": "44556000",
+   "split": "FRESH",
+   "source": "BENCHMARK_V3_queue",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260906_74c2b3f9/44556000_A.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED_SEALED",
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED/558c02a3a31b0e9e0b4ea5fd.json",
+   "write_status": "WRITTEN",
+   "truth_location": {
+    "labels": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED",
+    "lines_dir": "docs/production/runlog/benchmark_v3/fresh_SEALED/label_lines/sc_c35199ee5039"
+   }
+  },
+  {
+   "scan_id": "sc_4d5dc2b40b67",
+   "part_id": "45141000",
+   "split": "FRESH",
+   "source": "BENCHMARK_V3_queue",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260726_0ee564ba/45141000_C RFQ.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_PARTIAL_SEALED",
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED/27342dc3bd8bd6f9c5fb97f3.json",
+   "write_status": "WRITTEN",
+   "truth_location": {
+    "labels": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED",
+    "lines_dir": "docs/production/runlog/benchmark_v3/fresh_SEALED/label_lines/sc_4d5dc2b40b67"
+   }
+  },
+  {
+   "scan_id": "sc_3f6e22d70e4e",
+   "part_id": "45352000",
+   "split": "FRESH",
+   "source": "BENCHMARK_V3_queue",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260906_36206c30/45352000_B.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED_SEALED",
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED/18a098f464e6a3492a96c920.json",
+   "write_status": "WRITTEN",
+   "truth_location": {
+    "labels": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED",
+    "lines_dir": "docs/production/runlog/benchmark_v3/fresh_SEALED/label_lines/sc_3f6e22d70e4e"
+   }
+  },
+  {
+   "scan_id": "sc_1268c72dcc30",
+   "part_id": "45796000",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming/2026-08-04_shaked_scan_quality_parts/parts/45796000_A/scans/45796000_A_FULL_SCAN.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED",
+   "truth_sources_all": [
+    "AI_GOLD_ACCEPTED",
+    "CAD_RECIPE (nominal; not compiled yet)"
+   ],
+   "stage_hints": [
+    "FULL"
+   ],
+   "staged_or_incomplete": false,
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_v1/60dc0a2751f6320eb6ddf3d5.json",
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_2852c2845b94",
+   "part_id": "45796000",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V3_queue",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260115_8201c914/45796000_A 5.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED",
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_v1/131ad1dd0948162fc4a5cf75.json",
+   "write_status": "WRITTEN",
+   "stage_hints": [],
+   "staged_or_incomplete": false,
+   "n_lines": 8,
+   "cad_bend_lines": 8,
+   "twin_of_v2_scan": null
+  },
+  {
+   "scan_id": "sc_9ef2cf4e52cb",
+   "part_id": "45796000",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming/2026-08-04_shaked_scan_quality_parts/parts/45796000_A/scans/45796000_A_SCAN_2.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED",
+   "truth_sources_all": [
+    "AI_GOLD_ACCEPTED",
+    "CAD_RECIPE (nominal; not compiled yet)"
+   ],
+   "stage_hints": [
+    "PARTIAL_SCAN_2"
+   ],
+   "staged_or_incomplete": true,
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_v1/b1038070f28cb7792f9d6090.json",
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_c623d2e45bff",
+   "part_id": "45796000",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming/2026-08-04_shaked_scan_quality_parts/parts/45796000_A/scans/45796000_A_SCAN_1.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED",
+   "truth_sources_all": [
+    "AI_GOLD_ACCEPTED",
+    "CAD_RECIPE (nominal; not compiled yet)"
+   ],
+   "stage_hints": [
+    "PARTIAL_SCAN_1"
+   ],
+   "staged_or_incomplete": true,
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_v1/922ee6a9ac06f5df20ef4dd8.json",
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_d094d32acc76",
+   "part_id": "46045000",
+   "split": "FRESH",
+   "source": "BENCHMARK_V3_queue",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260906_56afb3b4/46045000_D.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED_SEALED",
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED/4361dc1c12d45c1b89daf061.json",
+   "write_status": "WRITTEN",
+   "truth_location": {
+    "labels": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED",
+    "lines_dir": "docs/production/runlog/benchmark_v3/fresh_SEALED/label_lines/sc_d094d32acc76"
+   }
+  },
+  {
+   "scan_id": "sc_147d3123a21d",
+   "part_id": "46127000",
+   "split": "FRESH",
+   "source": "BENCHMARK_V3_queue",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260726_4dbc5ec1/46127000_01.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED_SEALED",
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED/8645c3a8faae5028417a25d0.json",
+   "write_status": "WRITTEN",
+   "truth_location": {
+    "labels": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED",
+    "lines_dir": "docs/production/runlog/benchmark_v3/fresh_SEALED/label_lines/sc_147d3123a21d"
+   }
+  },
+  {
+   "scan_id": "sc_741c10b768dc",
+   "part_id": "46128000",
+   "split": "FRESH",
+   "source": "BENCHMARK_V3_queue",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260726_31327ff4/46128000_01.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED_SEALED",
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED/57e7e24fef7921c473a2c5a5.json",
+   "write_status": "WRITTEN",
+   "truth_location": {
+    "labels": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED",
+    "lines_dir": "docs/production/runlog/benchmark_v3/fresh_SEALED/label_lines/sc_741c10b768dc"
+   }
+  },
+  {
+   "scan_id": "sc_b76452ea6fa7",
+   "part_id": "46414000",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming/2026-08-30_shaked_daily_scans/source_download/46414000_C.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "GOLD_LINES_AI_LEGACY",
+   "truth_sources_all": [
+    "GOLD_LINES_AI_LEGACY"
+   ],
+   "stage_hints": [],
+   "staged_or_incomplete": false,
+   "studio_label": null,
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_4d62195d4e2d",
+   "part_id": "46465000",
+   "split": "FRESH",
+   "source": "BENCHMARK_V3_queue",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260412_19d802d7/46465000_D.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED_SEALED",
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED/fd74e6c558ec7db0b48428aa.json",
+   "write_status": "WRITTEN",
+   "truth_location": {
+    "labels": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED",
+    "lines_dir": "docs/production/runlog/benchmark_v3/fresh_SEALED/label_lines/sc_4d62195d4e2d"
+   }
+  },
+  {
+   "scan_id": "sc_938e948c1d00",
+   "part_id": "46882000",
+   "split": "FRESH",
+   "source": "BENCHMARK_V3_queue",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260726_0cf30fb0/46882000_02.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED_SEALED",
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED/4532e0a6b9d57278d860d12f.json",
+   "write_status": "WRITTEN",
+   "truth_location": {
+    "labels": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED",
+    "lines_dir": "docs/production/runlog/benchmark_v3/fresh_SEALED/label_lines/sc_938e948c1d00"
+   }
+  },
+  {
+   "scan_id": "sc_23754ce82e06",
+   "part_id": "47040000",
+   "split": "FRESH",
+   "source": "BENCHMARK_V3_queue",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260906_bb7196d1/47040000_C.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED_SEALED",
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED/ea9c8cb1cb86dec4183a9202.json",
+   "write_status": "WRITTEN",
+   "truth_location": {
+    "labels": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED",
+    "lines_dir": "docs/production/runlog/benchmark_v3/fresh_SEALED/label_lines/sc_23754ce82e06"
+   }
+  },
+  {
+   "scan_id": "sc_8935b8a8e8aa",
+   "part_id": "47247004",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/Downloads/47247004_03.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED",
+   "truth_sources_all": [
+    "AI_GOLD_ACCEPTED"
+   ],
+   "stage_hints": [],
+   "staged_or_incomplete": false,
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_v1/97d359a69811fb0f8e846d43.json",
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_1059a9192687",
+   "part_id": "47251002",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming/2026-08-11_shaked_good_bad_pairs/47251002_02_X.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED",
+   "truth_sources_all": [
+    "AI_GOLD_ACCEPTED"
+   ],
+   "stage_hints": [
+    "DEFECTIVE_X"
+   ],
+   "staged_or_incomplete": false,
+   "studio_label": "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/annotations/ai_bend_lines_v1/393c99fadda689b9b49b561b.json",
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_9bd69bc6535c",
+   "part_id": "47251002",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming/2026-08-11_shaked_good_bad_pairs/47251002_02_V.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED",
+   "truth_sources_all": [
+    "AI_GOLD_ACCEPTED"
+   ],
+   "stage_hints": [
+    "GOOD_V"
+   ],
+   "staged_or_incomplete": false,
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_v1/e1e41c2d133c34b6b5886eb5.json",
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_123f84b5afcb",
+   "part_id": "47266000",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/FullProject/live_scans/47266000_F_LIDAR_DEMO_20260209_155246_866937.ply",
+   "format": "ply",
+   "role": "EXCLUDED_NOT_A_SCAN",
+   "truth_source": "AI_GOLD_ACCEPTED",
+   "truth_sources_all": [
+    "AI_GOLD_ACCEPTED",
+    "CAD_RECIPE (nominal; not compiled yet)"
+   ],
+   "stage_hints": [
+    "LIDAR_DEMO_CAPTURE"
+   ],
+   "staged_or_incomplete": false,
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_v1/a11df0bda44de7b856734cd9.json",
+   "role_note": "synthetic LIDAR_DEMO resample of test_files/47266000_F/scan.stl (see synthetic_demo_exclusions_2026-10-17.json); not a physical scan"
+  },
+  {
+   "scan_id": "sc_573c999ef6ea",
+   "part_id": "47266000",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/FullProject/live_scans/47266000_F_LIDAR_DEMO_20260209_154744_233337.ply",
+   "format": "ply",
+   "role": "EXCLUDED_NOT_A_SCAN",
+   "truth_source": "AI_GOLD_ACCEPTED",
+   "truth_sources_all": [
+    "AI_GOLD_ACCEPTED",
+    "CAD_RECIPE (nominal; not compiled yet)"
+   ],
+   "stage_hints": [
+    "LIDAR_DEMO_CAPTURE"
+   ],
+   "staged_or_incomplete": false,
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_v1/5cbf6ce5c255984ca17a4e4b.json",
+   "role_note": "synthetic LIDAR_DEMO resample of test_files/47266000_F/scan.stl (see synthetic_demo_exclusions_2026-10-17.json); not a physical scan"
+  },
+  {
+   "scan_id": "sc_657b87ceeba6",
+   "part_id": "47266000",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/FullProject/live_scans/47266000_F_LIDAR_DEMO_20260209_154559_545707.ply",
+   "format": "ply",
+   "role": "EXCLUDED_NOT_A_SCAN",
+   "truth_source": "AI_GOLD_ACCEPTED",
+   "truth_sources_all": [
+    "AI_GOLD_ACCEPTED",
+    "CAD_RECIPE (nominal; not compiled yet)"
+   ],
+   "stage_hints": [
+    "LIDAR_DEMO_CAPTURE"
+   ],
+   "staged_or_incomplete": false,
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_v1/7590fd22d5d86158a6baf337.json",
+   "role_note": "synthetic LIDAR_DEMO resample of test_files/47266000_F/scan.stl (see synthetic_demo_exclusions_2026-10-17.json); not a physical scan"
+  },
+  {
+   "scan_id": "sc_9018b86ccc9a",
+   "part_id": "47266000",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/FullProject/live_scans/47266000_F_LIDAR_DEMO_20260209_165235_383038.ply",
+   "format": "ply",
+   "role": "EXCLUDED_NOT_A_SCAN",
+   "truth_source": "AI_GOLD_ACCEPTED",
+   "truth_sources_all": [
+    "AI_GOLD_ACCEPTED",
+    "CAD_RECIPE (nominal; not compiled yet)"
+   ],
+   "stage_hints": [
+    "LIDAR_DEMO_CAPTURE"
+   ],
+   "staged_or_incomplete": false,
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_v1/c1e4bcd502f8b3993cbe7722.json",
+   "role_note": "synthetic LIDAR_DEMO resample of test_files/47266000_F/scan.stl (see synthetic_demo_exclusions_2026-10-17.json); not a physical scan"
+  },
+  {
+   "scan_id": "sc_9b9fd762f361",
+   "part_id": "47266000",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/source-assets/02_CAD_QC_3D/47266000_F.stl",
+   "format": "stl",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED",
+   "truth_sources_all": [
+    "AI_GOLD_ACCEPTED",
+    "CAD_RECIPE (nominal; not compiled yet)"
+   ],
+   "stage_hints": [],
+   "staged_or_incomplete": false,
+   "studio_label": null,
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_a0b6add3f6e6",
+   "part_id": "47266000",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/FullProject/live_scans/47266000_F_LIDAR_DEMO_20260209_211408_450619.ply",
+   "format": "ply",
+   "role": "EXCLUDED_NOT_A_SCAN",
+   "truth_source": "AI_GOLD_ACCEPTED",
+   "truth_sources_all": [
+    "AI_GOLD_ACCEPTED",
+    "CAD_RECIPE (nominal; not compiled yet)"
+   ],
+   "stage_hints": [
+    "LIDAR_DEMO_CAPTURE"
+   ],
+   "staged_or_incomplete": false,
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_v1/387a26b4a83c91527b86793d.json",
+   "role_note": "synthetic LIDAR_DEMO resample of test_files/47266000_F/scan.stl (see synthetic_demo_exclusions_2026-10-17.json); not a physical scan"
+  },
+  {
+   "scan_id": "sc_c2ff6d5b6c2f",
+   "part_id": "47266000",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/FullProject/live_scans/47266000_F_LIDAR_DEMO_20260209_155400_715790.ply",
+   "format": "ply",
+   "role": "EXCLUDED_NOT_A_SCAN",
+   "truth_source": "AI_GOLD_ACCEPTED",
+   "truth_sources_all": [
+    "AI_GOLD_ACCEPTED",
+    "CAD_RECIPE (nominal; not compiled yet)"
+   ],
+   "stage_hints": [
+    "LIDAR_DEMO_CAPTURE"
+   ],
+   "staged_or_incomplete": false,
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_v1/7f7dd0eace422ac665b7df31.json",
+   "role_note": "synthetic LIDAR_DEMO resample of test_files/47266000_F/scan.stl (see synthetic_demo_exclusions_2026-10-17.json); not a physical scan"
+  },
+  {
+   "scan_id": "sc_db487cbd29a7",
+   "part_id": "47266000",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V3_queue",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260129_19c09099/47266000_F.ply",
+   "format": "ply",
+   "role": "FORMAT_ALTERNATE_PLY_TWIN",
+   "truth_source": "AI_GOLD_ACCEPTED",
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_v1/cc735fa27ac03414cb6fc7a8.json",
+   "write_status": "WRITTEN",
+   "stage_hints": [],
+   "staged_or_incomplete": false,
+   "n_lines": 1,
+   "cad_bend_lines": 1,
+   "twin_of_v2_scan": "sc_9b9fd762f361"
+  },
+  {
+   "scan_id": "sc_e632352b37f2",
+   "part_id": "47266000",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/FullProject/live_scans/47266000_F_LIDAR_DEMO_20260209_211721_100645.ply",
+   "format": "ply",
+   "role": "EXCLUDED_NOT_A_SCAN",
+   "truth_source": "AI_GOLD_ACCEPTED",
+   "truth_sources_all": [
+    "AI_GOLD_ACCEPTED",
+    "CAD_RECIPE (nominal; not compiled yet)"
+   ],
+   "stage_hints": [
+    "LIDAR_DEMO_CAPTURE"
+   ],
+   "staged_or_incomplete": false,
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_v1/c9ac548e818e85512c838483.json",
+   "role_note": "synthetic LIDAR_DEMO resample of test_files/47266000_F/scan.stl (see synthetic_demo_exclusions_2026-10-17.json); not a physical scan"
+  },
+  {
+   "scan_id": "sc_b4719db3dd69",
+   "part_id": "47479000",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/source-assets/02_CAD_QC_3D/47479000_C.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED",
+   "truth_sources_all": [
+    "AI_GOLD_ACCEPTED",
+    "CAD_RECIPE (nominal; not compiled yet)"
+   ],
+   "stage_hints": [],
+   "staged_or_incomplete": false,
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_v1/af36cde5bd3c635214303345.json",
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_5d1715d17af6",
+   "part_id": "47480000",
+   "split": "FRESH",
+   "source": "BENCHMARK_V3_queue",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260901_fccfc704/47480000_C.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED_SEALED",
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED/bec8264cfd70224677ebb3fd.json",
+   "write_status": "WRITTEN",
+   "truth_location": {
+    "labels": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED",
+    "lines_dir": "docs/production/runlog/benchmark_v3/fresh_SEALED/label_lines/sc_5d1715d17af6"
+   }
+  },
+  {
+   "scan_id": "sc_3b3e8c9f04e3",
+   "part_id": "47555020",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/Downloads/47555020_1.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED",
+   "truth_sources_all": [
+    "AI_GOLD_ACCEPTED"
+   ],
+   "stage_hints": [],
+   "staged_or_incomplete": false,
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_v1/b238e9f7821479679797b5a9.json",
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_cca7d7680a51",
+   "part_id": "47632001",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming/2026-08-30_shaked_daily_scans/source_download/47632001_A.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "GOLD_LINES_AI_LEGACY",
+   "truth_sources_all": [
+    "GOLD_LINES_AI_LEGACY"
+   ],
+   "stage_hints": [],
+   "staged_or_incomplete": false,
+   "studio_label": null,
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_4057ba2144fb",
+   "part_id": "47959001",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V3_queue",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260204_19c27cec/47959001_01PREL_scan2 1.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED",
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_v1/a97252bf6a4f6f2f2eabe2fa.json",
+   "write_status": "WRITTEN",
+   "stage_hints": [
+    "PARTIAL_SCAN_2",
+    "PRELIM_REV"
+   ],
+   "staged_or_incomplete": false,
+   "n_lines": 6,
+   "cad_bend_lines": 6,
+   "twin_of_v2_scan": null
+  },
+  {
+   "scan_id": "sc_a0305a6cf787",
+   "part_id": "47959001",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/source-assets/02_CAD_QC_3D/47959001_01PREL_scan1.stl",
+   "format": "stl",
+   "role": "benchmark_scan",
+   "truth_source": "GOLD_LINES_HUMAN",
+   "truth_sources_all": [
+    "GOLD_LINES_HUMAN",
+    "CAD_RECIPE (nominal; not compiled yet)"
+   ],
+   "stage_hints": [
+    "PARTIAL_SCAN_1"
+   ],
+   "staged_or_incomplete": true,
+   "studio_label": null,
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_cebb070285b5",
+   "part_id": "47959001",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/source-assets/02_CAD_QC_3D/47959001_01PREL_scan1.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "CAD_RECIPE",
+   "truth_sources_all": [
+    "CAD_RECIPE (nominal; not compiled yet)"
+   ],
+   "stage_hints": [
+    "PARTIAL_SCAN_1"
+   ],
+   "staged_or_incomplete": true,
+   "studio_label": null,
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_0412d642d936",
+   "part_id": "48099000",
+   "split": "FRESH",
+   "source": "BENCHMARK_V3_queue",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260909_4de6430c/48099000_01 (V).ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED_SEALED",
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED/050fe417b63ac16cef1137ba.json",
+   "write_status": "WRITTEN",
+   "truth_location": {
+    "labels": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED",
+    "lines_dir": "docs/production/runlog/benchmark_v3/fresh_SEALED/label_lines/sc_0412d642d936"
+   }
+  },
+  {
+   "scan_id": "sc_76b89855765e",
+   "part_id": "48099000",
+   "split": "FRESH",
+   "source": "BENCHMARK_V3_queue",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260909_1dadd1bd/48099000_01 (X).ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED_SEALED",
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED/2e7c7cd868cce77aa237e49f.json",
+   "write_status": "WRITTEN",
+   "truth_location": {
+    "labels": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED",
+    "lines_dir": "docs/production/runlog/benchmark_v3/fresh_SEALED/label_lines/sc_76b89855765e"
+   }
+  },
+  {
+   "scan_id": "sc_1f1d06c24e9f",
+   "part_id": "48101000",
+   "split": "FRESH",
+   "source": "BENCHMARK_V3_queue",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260129_19c08f3c/48101000_C.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED_SEALED",
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED/6f9dbbde940fbe2d39f0bc64.json",
+   "write_status": "WRITTEN",
+   "truth_location": {
+    "labels": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED",
+    "lines_dir": "docs/production/runlog/benchmark_v3/fresh_SEALED/label_lines/sc_1f1d06c24e9f"
+   }
+  },
+  {
+   "scan_id": "sc_c54444e2c7df",
+   "part_id": "48333004",
+   "split": "FRESH",
+   "source": "BENCHMARK_V3_queue",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260726_f162e486/48333004_00.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED_SEALED",
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED/77f36d3986e93dc12cb2e8f8.json",
+   "write_status": "WRITTEN",
+   "truth_location": {
+    "labels": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED",
+    "lines_dir": "docs/production/runlog/benchmark_v3/fresh_SEALED/label_lines/sc_c54444e2c7df"
+   }
+  },
+  {
+   "scan_id": "sc_b7bd53831ee2",
+   "part_id": "48333006",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming/2026-07-16-shaked-count-backed-ply/48333006_01.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "GOLD_LINES_AI_LEGACY",
+   "truth_sources_all": [
+    "GOLD_LINES_AI_LEGACY"
+   ],
+   "stage_hints": [],
+   "staged_or_incomplete": false,
+   "studio_label": null,
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_7d28946d9f49",
+   "part_id": "48333018",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming/2026-07-16-shaked-count-backed-ply/48333018_00.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "GOLD_LINES_AI_LEGACY",
+   "truth_sources_all": [
+    "GOLD_LINES_AI_LEGACY"
+   ],
+   "stage_hints": [],
+   "staged_or_incomplete": false,
+   "studio_label": null,
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_20a96de8b712",
+   "part_id": "48334000",
+   "split": "FRESH",
+   "source": "BENCHMARK_V3_queue",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260726_65b0cb11/48334000_01.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED_SEALED",
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED/b976a298518dcb43314efeb5.json",
+   "write_status": "WRITTEN",
+   "truth_location": {
+    "labels": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED",
+    "lines_dir": "docs/production/runlog/benchmark_v3/fresh_SEALED/label_lines/sc_20a96de8b712"
+   }
+  },
+  {
+   "scan_id": "sc_c1d112196ae5",
+   "part_id": "48340007",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming/2026-07-16-shaked-count-backed-ply/48340007_01.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "GOLD_LINES_AI_LEGACY",
+   "truth_sources_all": [
+    "GOLD_LINES_AI_LEGACY"
+   ],
+   "stage_hints": [],
+   "staged_or_incomplete": false,
+   "studio_label": null,
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_521e2ee69b21",
+   "part_id": "48340008",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming/2026-07-16-shaked-count-backed-ply/48340008_02.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "GOLD_LINES_AI_LEGACY",
+   "truth_sources_all": [
+    "GOLD_LINES_AI_LEGACY"
+   ],
+   "stage_hints": [],
+   "staged_or_incomplete": false,
+   "studio_label": null,
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_0178c0155934",
+   "part_id": "48381001",
+   "split": "FRESH",
+   "source": "BENCHMARK_V3_queue",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260726_a317ae5f/48381001_00.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "NONE_NEEDS_REWORK",
+   "studio_label": null,
+   "write_status": "NOT_WRITTEN_VERDICT_NEEDS_REWORK",
+   "truth_location": {
+    "labels": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED",
+    "lines_dir": "docs/production/runlog/benchmark_v3/fresh_SEALED/label_lines/sc_0178c0155934"
+   }
+  },
+  {
+   "scan_id": "sc_2d74c97bb017",
+   "part_id": "48384000",
+   "split": "FRESH",
+   "source": "BENCHMARK_V3_queue",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260726_588f0303/48384000_01.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED_SEALED",
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED/f4f46ca1c9952f10adf3d0c1.json",
+   "write_status": "WRITTEN",
+   "truth_location": {
+    "labels": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED",
+    "lines_dir": "docs/production/runlog/benchmark_v3/fresh_SEALED/label_lines/sc_2d74c97bb017"
+   }
+  },
+  {
+   "scan_id": "sc_766be04dc456",
+   "part_id": "48389000",
+   "split": "FRESH",
+   "source": "BENCHMARK_V3_queue",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260108_19b9d7c0/48389000_02.stl",
+   "format": "stl",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED_SEALED",
+   "studio_label": null,
+   "write_status": "REFUSED",
+   "truth_location": {
+    "labels": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED",
+    "lines_dir": "docs/production/runlog/benchmark_v3/fresh_SEALED/label_lines/sc_766be04dc456"
+   },
+   "write_note": "write-label refused (LabelWriteError: the studio inventory indexes .ply files only; label a PLY asset); truth exists as accepted lines.json only; needs a PLY export to get a studio label"
+  },
+  {
+   "scan_id": "sc_1aeb5ee39ef0",
+   "part_id": "48412000",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming/2026-08-30_shaked_daily_scans/source_download/48412000_B.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "GOLD_LINES_AI_LEGACY",
+   "truth_sources_all": [
+    "GOLD_LINES_AI_LEGACY"
+   ],
+   "stage_hints": [],
+   "staged_or_incomplete": false,
+   "studio_label": null,
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_7bde16010a96",
+   "part_id": "48555000",
+   "split": "FRESH",
+   "source": "BENCHMARK_V3_queue",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260115_19bc1a1a/48555000_0102.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED_SEALED",
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED/7a60735a7ff395e2d82b1fa4.json",
+   "write_status": "WRITTEN",
+   "truth_location": {
+    "labels": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED",
+    "lines_dir": "docs/production/runlog/benchmark_v3/fresh_SEALED/label_lines/sc_7bde16010a96"
+   }
+  },
+  {
+   "scan_id": "sc_e104a6f42d31",
+   "part_id": "48565005",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming/2026-08-30_shaked_daily_scans/source_download/48565005_A.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "GOLD_LINES_AI_LEGACY",
+   "truth_sources_all": [
+    "GOLD_LINES_AI_LEGACY"
+   ],
+   "stage_hints": [],
+   "staged_or_incomplete": false,
+   "studio_label": null,
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_49e5e7a1c973",
+   "part_id": "48565022",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming/2026-08-30_shaked_daily_scans/source_download/48565022_A.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "GOLD_LINES_AI_LEGACY",
+   "truth_sources_all": [
+    "GOLD_LINES_AI_LEGACY"
+   ],
+   "stage_hints": [],
+   "staged_or_incomplete": false,
+   "studio_label": null,
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_92207963e00b",
+   "part_id": "48758000",
+   "split": "FRESH",
+   "source": "BENCHMARK_V3_queue",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260901_689cf422/48758000_a.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED_SEALED",
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED/368de015ba022678febfc09f.json",
+   "write_status": "WRITTEN",
+   "truth_location": {
+    "labels": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED",
+    "lines_dir": "docs/production/runlog/benchmark_v3/fresh_SEALED/label_lines/sc_92207963e00b"
+   }
+  },
+  {
+   "scan_id": "sc_ff1667a2a80a",
+   "part_id": "48811000",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming/2026-08-04_shaked_scan_quality_parts/parts/48811000_A/scans/48811000_A.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED",
+   "truth_sources_all": [
+    "AI_GOLD_ACCEPTED",
+    "CAD_RECIPE (nominal; not compiled yet)"
+   ],
+   "stage_hints": [],
+   "staged_or_incomplete": false,
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_v1/6069f1090f154ea8afffc236.json",
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_bff1526135fb",
+   "part_id": "48900035",
+   "split": "FRESH",
+   "source": "BENCHMARK_V3_queue",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260726_6b2ad218/48900035_D.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED_SEALED",
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED/0c52347983bb717964069124.json",
+   "write_status": "WRITTEN",
+   "truth_location": {
+    "labels": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED",
+    "lines_dir": "docs/production/runlog/benchmark_v3/fresh_SEALED/label_lines/sc_bff1526135fb"
+   }
+  },
+  {
+   "scan_id": "sc_b0fb59a69e99",
+   "part_id": "48910000",
+   "split": "FRESH",
+   "source": "BENCHMARK_V3_queue",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260901_e7acf485/48910000_A.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED_SEALED",
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED/0b4be0e82648d5c1dd7c4bac.json",
+   "write_status": "WRITTEN",
+   "truth_location": {
+    "labels": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED",
+    "lines_dir": "docs/production/runlog/benchmark_v3/fresh_SEALED/label_lines/sc_b0fb59a69e99"
+   }
+  },
+  {
+   "scan_id": "sc_d4b9d13966bb",
+   "part_id": "48926001",
+   "split": "FRESH",
+   "source": "BENCHMARK_V3_queue",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260112_19bb1cfb/48926001_1.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED_SEALED",
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED/c05dc6f68fda05c317d595c9.json",
+   "write_status": "WRITTEN",
+   "truth_location": {
+    "labels": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED",
+    "lines_dir": "docs/production/runlog/benchmark_v3/fresh_SEALED/label_lines/sc_d4b9d13966bb"
+   }
+  },
+  {
+   "scan_id": "sc_be840127c462",
+   "part_id": "48932000",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming/2026-08-30_shaked_daily_scans/source_download/48932000_B.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "GOLD_LINES_AI_LEGACY",
+   "truth_sources_all": [
+    "GOLD_LINES_AI_LEGACY"
+   ],
+   "stage_hints": [],
+   "staged_or_incomplete": false,
+   "studio_label": null,
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_1dd687fd8ff8",
+   "part_id": "48933000",
+   "split": "FRESH",
+   "source": "BENCHMARK_V3_queue",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260906_a8ae2a5a/48933000_B.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED_SEALED",
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED/2115f51adf3516ac9cc893f9.json",
+   "write_status": "WRITTEN",
+   "truth_location": {
+    "labels": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED",
+    "lines_dir": "docs/production/runlog/benchmark_v3/fresh_SEALED/label_lines/sc_1dd687fd8ff8"
+   }
+  },
+  {
+   "scan_id": "sc_deba7f81ceec",
+   "part_id": "48934000",
+   "split": "FRESH",
+   "source": "BENCHMARK_V3_queue",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260901_00e974d0/48934000_B.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED_SEALED",
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED/ececb288832b6b96317f4aa4.json",
+   "write_status": "WRITTEN",
+   "truth_location": {
+    "labels": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED",
+    "lines_dir": "docs/production/runlog/benchmark_v3/fresh_SEALED/label_lines/sc_deba7f81ceec"
+   }
+  },
+  {
+   "scan_id": "sc_eb1eab182228",
+   "part_id": "48938000",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming/2026-08-30_shaked_daily_scans/source_download/48938000_C.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "GOLD_LINES_AI_LEGACY",
+   "truth_sources_all": [
+    "GOLD_LINES_AI_LEGACY"
+   ],
+   "stage_hints": [],
+   "staged_or_incomplete": false,
+   "studio_label": null,
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_2d3e4a623a31",
+   "part_id": "48963008",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/source-assets/02_CAD_QC_3D/48963008_B.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED",
+   "truth_sources_all": [
+    "AI_GOLD_ACCEPTED",
+    "CAD_RECIPE (nominal; not compiled yet)"
+   ],
+   "stage_hints": [],
+   "staged_or_incomplete": false,
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_v1/febe9a3931a3027bf3799bd2.json",
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_217cfc0f4c57",
+   "part_id": "48963009",
+   "split": "FRESH",
+   "source": "BENCHMARK_V3_queue",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260115_19bc0e2d/48963009_A.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED_SEALED",
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED/95a365f2be62db0276b3d193.json",
+   "write_status": "WRITTEN",
+   "truth_location": {
+    "labels": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED",
+    "lines_dir": "docs/production/runlog/benchmark_v3/fresh_SEALED/label_lines/sc_217cfc0f4c57"
+   }
+  },
+  {
+   "scan_id": "sc_6e5d5a2f60f5",
+   "part_id": "48991006",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/source-assets/02_CAD_QC_3D/48991006_A 4.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED",
+   "truth_sources_all": [
+    "AI_GOLD_ACCEPTED",
+    "CAD_RECIPE (nominal; not compiled yet)"
+   ],
+   "stage_hints": [],
+   "staged_or_incomplete": false,
+   "studio_label": "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/annotations/ai_bend_lines_v1/f1840bb889ab736f1c9efa55.json",
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_7a1773eca9fa",
+   "part_id": "49001000",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/source-assets/02_CAD_QC_3D/49001000_A-PRELIM.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "GOLD_LINES_HUMAN",
+   "truth_sources_all": [
+    "GOLD_LINES_HUMAN",
+    "CAD_RECIPE (nominal; not compiled yet)"
+   ],
+   "stage_hints": [
+    "PRELIM"
+   ],
+   "staged_or_incomplete": true,
+   "studio_label": null,
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_8379cebef9e3",
+   "part_id": "49001000",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/source-assets/02_CAD_QC_3D/49001000_A-PRELIM.obj",
+   "format": "obj",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED",
+   "truth_sources_all": [
+    "AI_GOLD_ACCEPTED",
+    "CAD_RECIPE (nominal; not compiled yet)"
+   ],
+   "stage_hints": [
+    "PRELIM"
+   ],
+   "staged_or_incomplete": true,
+   "studio_label": null,
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_3434b523db47",
+   "part_id": "49024000",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/source-assets/02_CAD_QC_3D/49024000_A.stl",
+   "format": "stl",
+   "role": "FORMAT_ALTERNATE",
+   "truth_source": "CAD_RECIPE",
+   "truth_sources_all": [
+    "CAD_RECIPE (nominal; not compiled yet)"
+   ],
+   "stage_hints": [],
+   "staged_or_incomplete": false,
+   "studio_label": null,
+   "role_note": "geometry twin of gold-labelled 49024000_A.ply (same vertices/faces/bbox; STL re-export)"
+  },
+  {
+   "scan_id": "sc_70b39f530f00",
+   "part_id": "49024000",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/source-assets/02_CAD_QC_3D/49024000_A.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "GOLD_LINES_HUMAN",
+   "truth_sources_all": [
+    "GOLD_LINES_HUMAN",
+    "CAD_RECIPE (nominal; not compiled yet)"
+   ],
+   "stage_hints": [],
+   "staged_or_incomplete": false,
+   "studio_label": null,
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_09aaf245becb",
+   "part_id": "49025000",
+   "split": "FRESH",
+   "source": "BENCHMARK_V3_queue",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260901_cc31260a/49025000_A.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED_SEALED",
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED/49760d7526736bbd3f0d6054.json",
+   "write_status": "WRITTEN",
+   "truth_location": {
+    "labels": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED",
+    "lines_dir": "docs/production/runlog/benchmark_v3/fresh_SEALED/label_lines/sc_09aaf245becb"
+   }
+  },
+  {
+   "scan_id": "sc_c748537194da",
+   "part_id": "49125000",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/source-assets/02_CAD_QC_3D/49125000_A00 (1).stl",
+   "format": "stl",
+   "role": "FORMAT_ALTERNATE",
+   "truth_source": "NONE",
+   "truth_sources_all": [
+    "NONE"
+   ],
+   "stage_hints": [],
+   "staged_or_incomplete": false,
+   "studio_label": null,
+   "role_note": "geometry twin of gold-labelled 49125000_A00.ply (STL re-export)"
+  },
+  {
+   "scan_id": "sc_efd0d987f60b",
+   "part_id": "49125000",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/source-assets/02_CAD_QC_3D/49125000_A00.stl",
+   "format": "stl",
+   "role": "FORMAT_ALTERNATE",
+   "truth_source": "NONE",
+   "truth_sources_all": [
+    "NONE"
+   ],
+   "stage_hints": [],
+   "staged_or_incomplete": false,
+   "studio_label": null,
+   "role_note": "geometry twin of gold-labelled 49125000_A00.ply (STL re-export)"
+  },
+  {
+   "scan_id": "sc_fee685eee4db",
+   "part_id": "49125000",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/source-assets/02_CAD_QC_3D/49125000_A00.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "GOLD_LINES_HUMAN",
+   "truth_sources_all": [
+    "GOLD_LINES_HUMAN"
+   ],
+   "stage_hints": [],
+   "staged_or_incomplete": false,
+   "studio_label": null,
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_b92f211e6ec0",
+   "part_id": "49162000",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming/2026-08-30_shaked_daily_scans/source_download/49162000_A.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "GOLD_LINES_AI_LEGACY",
+   "truth_sources_all": [
+    "GOLD_LINES_AI_LEGACY"
+   ],
+   "stage_hints": [],
+   "staged_or_incomplete": false,
+   "studio_label": null,
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_469febe1cd7d",
+   "part_id": "49163000",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming/2026-08-30_shaked_daily_scans/source_download/49163000_A.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "GOLD_LINES_AI_LEGACY",
+   "truth_sources_all": [
+    "GOLD_LINES_AI_LEGACY"
+   ],
+   "stage_hints": [],
+   "staged_or_incomplete": false,
+   "studio_label": null,
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_3f6a4a32ffdc",
+   "part_id": "49186000",
+   "split": "FRESH",
+   "source": "BENCHMARK_V3_queue",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260901_5101c567/49186000_A.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED_SEALED",
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED/b7b046838e999eb465cc5932.json",
+   "write_status": "WRITTEN",
+   "truth_location": {
+    "labels": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED",
+    "lines_dir": "docs/production/runlog/benchmark_v3/fresh_SEALED/label_lines/sc_3f6a4a32ffdc"
+   }
+  },
+  {
+   "scan_id": "sc_bfabcec897fd",
+   "part_id": "49187000",
+   "split": "FRESH",
+   "source": "BENCHMARK_V3_queue",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260906_68757881/49187000_B.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED_SEALED",
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED/2b01c052161435fb3f8ff96d.json",
+   "write_status": "WRITTEN",
+   "truth_location": {
+    "labels": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED",
+    "lines_dir": "docs/production/runlog/benchmark_v3/fresh_SEALED/label_lines/sc_bfabcec897fd"
+   }
+  },
+  {
+   "scan_id": "sc_711eb2a389a4",
+   "part_id": "49188000",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming/2026-08-30_shaked_daily_scans/source_download/49188000_A.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "GOLD_LINES_AI_LEGACY",
+   "truth_sources_all": [
+    "GOLD_LINES_AI_LEGACY"
+   ],
+   "stage_hints": [],
+   "staged_or_incomplete": false,
+   "studio_label": null,
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_cfe91a0336d4",
+   "part_id": "49191008",
+   "split": "FRESH",
+   "source": "BENCHMARK_V3_queue",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260726_ae17e7c1/49191008_05.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED_SEALED",
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED/0fc8233716f9d7f46320e10a.json",
+   "write_status": "WRITTEN",
+   "truth_location": {
+    "labels": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED",
+    "lines_dir": "docs/production/runlog/benchmark_v3/fresh_SEALED/label_lines/sc_cfe91a0336d4"
+   }
+  },
+  {
+   "scan_id": "sc_5dadc4b00c47",
+   "part_id": "49191019",
+   "split": "FRESH",
+   "source": "BENCHMARK_V3_queue",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260726_333eebde/49191019_01.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED_SEALED",
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED/d2f17906d65c4471821adce7.json",
+   "write_status": "WRITTEN",
+   "truth_location": {
+    "labels": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED",
+    "lines_dir": "docs/production/runlog/benchmark_v3/fresh_SEALED/label_lines/sc_5dadc4b00c47"
+   }
+  },
+  {
+   "scan_id": "sc_28a25c37a928",
+   "part_id": "49191023",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming/2026-07-16-shaked-count-backed-ply/49191023_03.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "GOLD_LINES_AI_LEGACY",
+   "truth_sources_all": [
+    "GOLD_LINES_AI_LEGACY"
+   ],
+   "stage_hints": [],
+   "staged_or_incomplete": false,
+   "studio_label": null,
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_7c6712aacca8",
+   "part_id": "49191026",
+   "split": "FRESH",
+   "source": "BENCHMARK_V3_queue",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260726_a032a44d/49191026_00.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED_SEALED",
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED/9ec96df0e164e467e243f0a5.json",
+   "write_status": "WRITTEN",
+   "truth_location": {
+    "labels": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED",
+    "lines_dir": "docs/production/runlog/benchmark_v3/fresh_SEALED/label_lines/sc_7c6712aacca8"
+   }
+  },
+  {
+   "scan_id": "sc_e218b16ed070",
+   "part_id": "49191030",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming/2026-07-16-shaked-count-backed-ply/49191030_01.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "GOLD_LINES_AI_LEGACY",
+   "truth_sources_all": [
+    "GOLD_LINES_AI_LEGACY"
+   ],
+   "stage_hints": [],
+   "staged_or_incomplete": false,
+   "studio_label": null,
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_891a8e4a2ee1",
+   "part_id": "49191032",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming/2026-07-16-shaked-count-backed-ply/49191032_00.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "GOLD_LINES_AI_LEGACY",
+   "truth_sources_all": [
+    "GOLD_LINES_AI_LEGACY"
+   ],
+   "stage_hints": [],
+   "staged_or_incomplete": false,
+   "studio_label": null,
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_9b38b1167834",
+   "part_id": "49191037",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming/2026-07-16-shaked-count-backed-ply/49191037_01.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "GOLD_LINES_AI_LEGACY",
+   "truth_sources_all": [
+    "GOLD_LINES_AI_LEGACY"
+   ],
+   "stage_hints": [],
+   "staged_or_incomplete": false,
+   "studio_label": null,
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_d741e1d515bf",
+   "part_id": "49191038",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming/2026-07-16-shaked-count-backed-ply/49191038_02.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "GOLD_LINES_AI_LEGACY",
+   "truth_sources_all": [
+    "GOLD_LINES_AI_LEGACY"
+   ],
+   "stage_hints": [],
+   "staged_or_incomplete": false,
+   "studio_label": null,
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_24c57f2660b3",
+   "part_id": "49191054",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming/2026-07-16-shaked-count-backed-ply/49191054_02.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "GOLD_LINES_AI_LEGACY",
+   "truth_sources_all": [
+    "GOLD_LINES_AI_LEGACY"
+   ],
+   "stage_hints": [],
+   "staged_or_incomplete": false,
+   "studio_label": null,
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_e0285cea8c56",
+   "part_id": "49191061",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming/2026-07-16-shaked-count-backed-ply/49191061_00.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "GOLD_LINES_AI_LEGACY",
+   "truth_sources_all": [
+    "GOLD_LINES_AI_LEGACY"
+   ],
+   "stage_hints": [],
+   "staged_or_incomplete": false,
+   "studio_label": null,
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_203b95d7a753",
+   "part_id": "49201000",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming/2026-08-30_shaked_daily_scans/source_download/49201000_C.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "GOLD_LINES_AI_LEGACY",
+   "truth_sources_all": [
+    "GOLD_LINES_AI_LEGACY",
+    "CAD_RECIPE (nominal; not compiled yet)"
+   ],
+   "stage_hints": [],
+   "staged_or_incomplete": false,
+   "studio_label": null,
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_e080ae094f35",
+   "part_id": "49204020",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/source-assets/02_CAD_QC_3D/49204020_04.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED",
+   "truth_sources_all": [
+    "AI_GOLD_ACCEPTED",
+    "CAD_RECIPE (nominal; not compiled yet)"
+   ],
+   "stage_hints": [],
+   "staged_or_incomplete": false,
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_v1/99622fd56079834417a0605c.json",
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_6fa053514df8",
+   "part_id": "49207000",
+   "split": "FRESH",
+   "source": "BENCHMARK_V3_queue",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260901_e8bfd4f6/49207000_B.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED_SEALED",
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED/45ffd670adb1e0747a8d9f5b.json",
+   "write_status": "WRITTEN",
+   "truth_location": {
+    "labels": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED",
+    "lines_dir": "docs/production/runlog/benchmark_v3/fresh_SEALED/label_lines/sc_6fa053514df8"
+   }
+  },
+  {
+   "scan_id": "sc_1d601c46ff9c",
+   "part_id": "49227000",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming/2026-08-30_shaked_daily_scans/source_download/49227000_A.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "GOLD_LINES_AI_LEGACY",
+   "truth_sources_all": [
+    "GOLD_LINES_AI_LEGACY"
+   ],
+   "stage_hints": [],
+   "staged_or_incomplete": false,
+   "studio_label": null,
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_57f3d5a23f60",
+   "part_id": "49289000",
+   "split": "FRESH",
+   "source": "BENCHMARK_V3_queue",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260726_c0abc480/49289000_D.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED_SEALED",
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED/e443a5d81fcea250bdf2b213.json",
+   "write_status": "WRITTEN",
+   "truth_location": {
+    "labels": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED",
+    "lines_dir": "docs/production/runlog/benchmark_v3/fresh_SEALED/label_lines/sc_57f3d5a23f60"
+   }
+  },
+  {
+   "scan_id": "sc_0f7ac8e49e99",
+   "part_id": "49291000",
+   "split": "FRESH",
+   "source": "BENCHMARK_V3_queue",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260901_d1a19969/49291000_A.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED_SEALED",
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED/47fb8558e91dbc8ad738ef8d.json",
+   "write_status": "WRITTEN",
+   "truth_location": {
+    "labels": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED",
+    "lines_dir": "docs/production/runlog/benchmark_v3/fresh_SEALED/label_lines/sc_0f7ac8e49e99"
+   }
+  },
+  {
+   "scan_id": "sc_2fc703f32b3b",
+   "part_id": "49292000",
+   "split": "FRESH",
+   "source": "BENCHMARK_V3_queue",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260906_1eb0c660/49292000_A.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED_SEALED",
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED/6e0a2354a5f94f43076db3b5.json",
+   "write_status": "WRITTEN",
+   "truth_location": {
+    "labels": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED",
+    "lines_dir": "docs/production/runlog/benchmark_v3/fresh_SEALED/label_lines/sc_2fc703f32b3b"
+   }
+  },
+  {
+   "scan_id": "sc_e8c946b837aa",
+   "part_id": "49293001",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming/2026-08-30_shaked_daily_scans/source_download/49293001_B.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "GOLD_LINES_AI_LEGACY",
+   "truth_sources_all": [
+    "GOLD_LINES_AI_LEGACY"
+   ],
+   "stage_hints": [],
+   "staged_or_incomplete": false,
+   "studio_label": null,
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_03b571de167d",
+   "part_id": "49355000",
+   "split": "FRESH",
+   "source": "BENCHMARK_V3_queue",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260901_9c897c9e/49355000_A.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED_SEALED",
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED/2b759de294bee748bc645d5e.json",
+   "write_status": "WRITTEN",
+   "truth_location": {
+    "labels": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED",
+    "lines_dir": "docs/production/runlog/benchmark_v3/fresh_SEALED/label_lines/sc_03b571de167d"
+   }
+  },
+  {
+   "scan_id": "sc_f86e40f38a37",
+   "part_id": "49438000",
+   "split": "FRESH",
+   "source": "BENCHMARK_V3_queue",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260906_44a9dc6e/49438000_A.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED_SEALED",
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED/96ec79f461a6c42f6e57e53b.json",
+   "write_status": "WRITTEN",
+   "truth_location": {
+    "labels": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED",
+    "lines_dir": "docs/production/runlog/benchmark_v3/fresh_SEALED/label_lines/sc_f86e40f38a37"
+   }
+  },
+  {
+   "scan_id": "sc_c7aa4f510d75",
+   "part_id": "49461000",
+   "split": "FRESH",
+   "source": "BENCHMARK_V3_queue",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260906_76ced759/49461000_A.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED_SEALED",
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED/32546e8ce1dedcee79c1c403.json",
+   "write_status": "WRITTEN",
+   "truth_location": {
+    "labels": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED",
+    "lines_dir": "docs/production/runlog/benchmark_v3/fresh_SEALED/label_lines/sc_c7aa4f510d75"
+   }
+  },
+  {
+   "scan_id": "sc_9b47565ad2ac",
+   "part_id": "49553000",
+   "split": "FRESH",
+   "source": "BENCHMARK_V3_queue",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260906_0dcc938d/49553000_A.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED_SEALED",
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED/d7e890326c6213599cb621ad.json",
+   "write_status": "WRITTEN",
+   "truth_location": {
+    "labels": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED",
+    "lines_dir": "docs/production/runlog/benchmark_v3/fresh_SEALED/label_lines/sc_9b47565ad2ac"
+   }
+  },
+  {
+   "scan_id": "sc_4f72b44afd5a",
+   "part_id": "49565000",
+   "split": "FRESH",
+   "source": "BENCHMARK_V3_queue",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260906_489f3982/49565000_A.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED_SEALED",
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED/81496aadc024b62ef75c1b02.json",
+   "write_status": "WRITTEN",
+   "truth_location": {
+    "labels": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED",
+    "lines_dir": "docs/production/runlog/benchmark_v3/fresh_SEALED/label_lines/sc_4f72b44afd5a"
+   }
+  },
+  {
+   "scan_id": "sc_528766342080",
+   "part_id": "49566000",
+   "split": "FRESH",
+   "source": "BENCHMARK_V3_queue",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260906_8e3cd1d6/49566000_A.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED_SEALED",
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED/0bc193972d3a0eaa8f8c98b1.json",
+   "write_status": "WRITTEN",
+   "truth_location": {
+    "labels": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED",
+    "lines_dir": "docs/production/runlog/benchmark_v3/fresh_SEALED/label_lines/sc_528766342080"
+   }
+  },
+  {
+   "scan_id": "sc_ead69b8181a8",
+   "part_id": "49783000",
+   "split": "FRESH",
+   "source": "BENCHMARK_V3_queue",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260726_08dd61b5/49783000_00.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED_SEALED",
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED/50a62540a79e7d0d5f32fa94.json",
+   "write_status": "WRITTEN",
+   "truth_location": {
+    "labels": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED",
+    "lines_dir": "docs/production/runlog/benchmark_v3/fresh_SEALED/label_lines/sc_ead69b8181a8"
+   }
+  },
+  {
+   "scan_id": "sc_d02d75eaff89",
+   "part_id": "50278001",
+   "split": "FRESH",
+   "source": "BENCHMARK_V3_queue",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260909_fcb6eaf3/50278001_A.1 (V).ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED_SEALED",
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED/f83b98a47c37bac68896e075.json",
+   "write_status": "WRITTEN",
+   "truth_location": {
+    "labels": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED",
+    "lines_dir": "docs/production/runlog/benchmark_v3/fresh_SEALED/label_lines/sc_d02d75eaff89"
+   }
+  },
+  {
+   "scan_id": "sc_d338ed2dced8",
+   "part_id": "50278001",
+   "split": "FRESH",
+   "source": "BENCHMARK_V3_queue",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260909_0e85265a/50278001_A.1 (X).ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED_SEALED",
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED/07accc2a2cb2009d2b52dc67.json",
+   "write_status": "WRITTEN",
+   "truth_location": {
+    "labels": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED",
+    "lines_dir": "docs/production/runlog/benchmark_v3/fresh_SEALED/label_lines/sc_d338ed2dced8"
+   }
+  },
+  {
+   "scan_id": "sc_d151c2d71804",
+   "part_id": "50482000",
+   "split": "FRESH",
+   "source": "BENCHMARK_V3_queue",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260726_06818c11/50482000_A.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED_SEALED",
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED/562ad6b29719d1b39502a0ff.json",
+   "write_status": "WRITTEN",
+   "truth_location": {
+    "labels": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED",
+    "lines_dir": "docs/production/runlog/benchmark_v3/fresh_SEALED/label_lines/sc_d151c2d71804"
+   }
+  },
+  {
+   "scan_id": "sc_9c84cc623d9b",
+   "part_id": "50535000",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/Downloads/50535000_04.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED",
+   "truth_sources_all": [
+    "AI_GOLD_ACCEPTED"
+   ],
+   "stage_hints": [],
+   "staged_or_incomplete": false,
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_v1/4528c30cfa5d165d1914cd69.json",
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_ce3de3af51b6",
+   "part_id": "50537000",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/Downloads/50537000_04.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED",
+   "truth_sources_all": [
+    "AI_GOLD_ACCEPTED"
+   ],
+   "stage_hints": [],
+   "staged_or_incomplete": false,
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_v1/60b422452bd1e306e19c9168.json",
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_85a7f8cca6bc",
+   "part_id": "50539000",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/Downloads/50539000_05.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED",
+   "truth_sources_all": [
+    "AI_GOLD_ACCEPTED"
+   ],
+   "stage_hints": [],
+   "staged_or_incomplete": false,
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_v1/fb56b098f504e727263bea4b.json",
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_2c807204c472",
+   "part_id": "50545000",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming/2026-07-29_shaked_defective_good_pairs/50545000_05/scans/50545000_05_V.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "GOLD_LINES_AI_LEGACY",
+   "truth_sources_all": [
+    "GOLD_LINES_AI_LEGACY"
+   ],
+   "stage_hints": [
+    "GOOD_V"
+   ],
+   "staged_or_incomplete": false,
+   "studio_label": null,
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_d27acfe5468d",
+   "part_id": "50545000",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming/2026-07-29_shaked_defective_good_pairs/50545000_05/scans/50545000_05_X.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "GOLD_LINES_AI_LEGACY",
+   "truth_sources_all": [
+    "GOLD_LINES_AI_LEGACY"
+   ],
+   "stage_hints": [
+    "DEFECTIVE_X"
+   ],
+   "staged_or_incomplete": false,
+   "studio_label": null,
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_baa71ce6bc5d",
+   "part_id": "50546000",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming/2026-07-29_shaked_defective_good_pairs/50546000_05/scans/50546000_05_X.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "GOLD_LINES_AI_LEGACY",
+   "truth_sources_all": [
+    "GOLD_LINES_AI_LEGACY"
+   ],
+   "stage_hints": [
+    "DEFECTIVE_X"
+   ],
+   "staged_or_incomplete": false,
+   "studio_label": null,
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_f4bc782eff8b",
+   "part_id": "50546000",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming/2026-07-29_shaked_defective_good_pairs/50546000_05/scans/50546000_05_V.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "GOLD_LINES_AI_LEGACY",
+   "truth_sources_all": [
+    "GOLD_LINES_AI_LEGACY"
+   ],
+   "stage_hints": [
+    "GOOD_V"
+   ],
+   "staged_or_incomplete": false,
+   "studio_label": null,
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_9567d0d3f33d",
+   "part_id": "50552000",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/Downloads/50552000_04.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED",
+   "truth_sources_all": [
+    "AI_GOLD_ACCEPTED"
+   ],
+   "stage_hints": [],
+   "staged_or_incomplete": false,
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_v1/b51858fca8b50620e192965b.json",
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_581c7de10fc6",
+   "part_id": "50553000",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/Downloads/50553000_04.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED",
+   "truth_sources_all": [
+    "AI_GOLD_ACCEPTED"
+   ],
+   "stage_hints": [],
+   "staged_or_incomplete": false,
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_v1/93b79fa0a29863cbf173a7ce.json",
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_c1a1d6de4681",
+   "part_id": "50556000",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming/2026-07-29_shaked_defective_good_pairs/50556000_04/scans/50556000_04_V.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "GOLD_LINES_AI_LEGACY",
+   "truth_sources_all": [
+    "GOLD_LINES_AI_LEGACY"
+   ],
+   "stage_hints": [
+    "GOOD_V"
+   ],
+   "staged_or_incomplete": false,
+   "studio_label": null,
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_d891ea8c5891",
+   "part_id": "50556000",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming/2026-07-29_shaked_defective_good_pairs/50556000_04/scans/50556000_04_X.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "GOLD_LINES_AI_LEGACY",
+   "truth_sources_all": [
+    "GOLD_LINES_AI_LEGACY"
+   ],
+   "stage_hints": [
+    "DEFECTIVE_X"
+   ],
+   "staged_or_incomplete": false,
+   "studio_label": null,
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_8bb74bda6756",
+   "part_id": "50566000",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/Downloads/50566000_04 1.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED",
+   "truth_sources_all": [
+    "AI_GOLD_ACCEPTED"
+   ],
+   "stage_hints": [],
+   "staged_or_incomplete": false,
+   "studio_label": "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/annotations/ai_bend_lines_v1/52b3fb6fd45c2e2668c6ed50.json",
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_80472dfa8819",
+   "part_id": "50567000",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/Downloads/50567000_05.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED",
+   "truth_sources_all": [
+    "AI_GOLD_ACCEPTED"
+   ],
+   "stage_hints": [],
+   "staged_or_incomplete": false,
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_v1/ade6d40a879bd8f065b14cf8.json",
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_2476a49b0278",
+   "part_id": "50597000",
+   "split": "FRESH",
+   "source": "BENCHMARK_V3_queue",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260809_6342e397/50597000_A (X).ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED_SEALED",
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED/c2230807f446c845f236e7e6.json",
+   "write_status": "WRITTEN",
+   "truth_location": {
+    "labels": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED",
+    "lines_dir": "docs/production/runlog/benchmark_v3/fresh_SEALED/label_lines/sc_2476a49b0278"
+   }
+  },
+  {
+   "scan_id": "sc_3baf989b1612",
+   "part_id": "50597000",
+   "split": "FRESH",
+   "source": "BENCHMARK_V3_queue",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260809_2590afd8/50597000_A (V) 2.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED_SEALED",
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED/a40567f93ed063efc37d4e3e.json",
+   "write_status": "WRITTEN",
+   "truth_location": {
+    "labels": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED",
+    "lines_dir": "docs/production/runlog/benchmark_v3/fresh_SEALED/label_lines/sc_3baf989b1612"
+   }
+  },
+  {
+   "scan_id": "sc_752e2bd54aad",
+   "part_id": "50757000",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming/2026-08-04_shaked_scan_quality_parts/parts/50757000_02/scans/50757000_02_X.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED",
+   "truth_sources_all": [
+    "AI_GOLD_ACCEPTED",
+    "CAD_RECIPE (nominal; not compiled yet)"
+   ],
+   "stage_hints": [
+    "DEFECTIVE_X"
+   ],
+   "staged_or_incomplete": false,
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_v1/4e984ba78f44ea3f8edae474.json",
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_777c64c88967",
+   "part_id": "50757000",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/FullProject/data/bend_corpus/incoming/2026-08-04_shaked_scan_quality_parts/parts/50757000_02/scans/50757000_02_V.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED",
+   "truth_sources_all": [
+    "AI_GOLD_ACCEPTED",
+    "CAD_RECIPE (nominal; not compiled yet)"
+   ],
+   "stage_hints": [
+    "GOOD_V"
+   ],
+   "staged_or_incomplete": false,
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_v1/de3742c4ce99808e021c2cdb.json",
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_0e4bf3087d81",
+   "part_id": "UNKNOWN:sc_0e4bf3087d81",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/FullProject/uploads/bend_13c47983/scan.ply",
+   "format": "ply",
+   "role": "EXCLUDED_SYNTHETIC_FIXTURE",
+   "truth_source": "NONE",
+   "truth_sources_all": [
+    "NONE"
+   ],
+   "stage_hints": [],
+   "staged_or_incomplete": false,
+   "studio_label": null,
+   "role_note": "synthetic test fixture (5000-point Open3D cloud, ~50x40x50 mm ideal L), not a Sherman scan"
+  },
+  {
+   "scan_id": "sc_241aa95bfdfc",
+   "part_id": "UNKNOWN:sc_241aa95bfdfc",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": null,
+   "format": null,
+   "role": "EXCLUDED_REDACTED_OPAQUE_COPY",
+   "truth_source": "NONE",
+   "truth_sources_all": [
+    "NONE"
+   ],
+   "stage_hints": [],
+   "staged_or_incomplete": false,
+   "studio_label": null,
+   "role_note": "only copy is evaluator-opaque; path redacted"
+  },
+  {
+   "scan_id": "sc_2e584e9d1ffe",
+   "part_id": "UNKNOWN:sc_2e584e9d1ffe",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/FullProject/uploads/4c28ab8e/scan.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED",
+   "truth_sources_all": [
+    "AI_GOLD_ACCEPTED"
+   ],
+   "stage_hints": [],
+   "staged_or_incomplete": false,
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_v1/0ceb0e34e9e03b205a2bf17e.json",
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_793a86afb5db",
+   "part_id": "UNKNOWN:sc_793a86afb5db",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/FullProject/uploads/bend_92cc7d2d/scan.ply",
+   "format": "ply",
+   "role": "EXCLUDED_SYNTHETIC_FIXTURE",
+   "truth_source": "NONE",
+   "truth_sources_all": [
+    "NONE"
+   ],
+   "stage_hints": [],
+   "staged_or_incomplete": false,
+   "studio_label": null,
+   "role_note": "synthetic test fixture (3500-point Open3D cloud), not a Sherman scan"
+  },
+  {
+   "scan_id": "sc_7a253806b10b",
+   "part_id": "UNKNOWN:sc_7a253806b10b",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/FullProject/uploads/8d713421/scan.stl",
+   "format": "stl",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED",
+   "truth_sources_all": [
+    "AI_GOLD_ACCEPTED"
+   ],
+   "stage_hints": [],
+   "staged_or_incomplete": false,
+   "studio_label": null,
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_9b930fe58a1b",
+   "part_id": "UNKNOWN:sc_9b930fe58a1b",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/FullProject/uploads/98072c85/scan.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED",
+   "truth_sources_all": [
+    "AI_GOLD_ACCEPTED"
+   ],
+   "stage_hints": [],
+   "staged_or_incomplete": false,
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_v1/d7c45836673fe7a997185af1.json",
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_9c890e76934f",
+   "part_id": "UNKNOWN:sc_9c890e76934f",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/source-assets/02_CAD_QC_3D/part 2.stl",
+   "format": "stl",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED",
+   "truth_sources_all": [
+    "AI_GOLD_ACCEPTED"
+   ],
+   "stage_hints": [],
+   "staged_or_incomplete": false,
+   "studio_label": null,
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_a5e534e6097c",
+   "part_id": "UNKNOWN:sc_a5e534e6097c",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/FullProject/uploads/bend_10cdda62/scan.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED",
+   "truth_sources_all": [
+    "AI_GOLD_ACCEPTED"
+   ],
+   "stage_hints": [],
+   "staged_or_incomplete": false,
+   "studio_label": "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/annotations/ai_bend_lines_v1/3b3f853405102c379a2672cf.json",
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_abe194f04ade",
+   "part_id": "UNKNOWN:sc_abe194f04ade",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/source-assets/02_CAD_QC_3D/part 1.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED",
+   "truth_sources_all": [
+    "AI_GOLD_ACCEPTED"
+   ],
+   "stage_hints": [],
+   "staged_or_incomplete": false,
+   "studio_label": "data/bend_corpus/annotations/ai_bend_lines_v1/89521be3f0aa92b53ff65fe0.json",
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_f098dbceaa6d",
+   "part_id": "UNKNOWN:sc_f098dbceaa6d",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/FullProject/uploads/7800229b/scan.stl",
+   "format": "stl",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED",
+   "truth_sources_all": [
+    "AI_GOLD_ACCEPTED"
+   ],
+   "stage_hints": [],
+   "staged_or_incomplete": false,
+   "studio_label": null,
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_f362d8de507c",
+   "part_id": "UNKNOWN:sc_f362d8de507c",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/FullProject/uploads/c2a47c72/scan.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "AI_GOLD_ACCEPTED",
+   "truth_sources_all": [
+    "AI_GOLD_ACCEPTED"
+   ],
+   "stage_hints": [],
+   "staged_or_incomplete": false,
+   "studio_label": "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/annotations/ai_bend_lines_v1/f3b6c986ccb0556ebb674843.json",
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_fb35a9f4c6bf",
+   "part_id": "UNKNOWN:sc_fb35a9f4c6bf",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/FullProject/uploads/bend_8b7ab576/scan.ply",
+   "format": "ply",
+   "role": "EXCLUDED_SYNTHETIC_FIXTURE",
+   "truth_source": "NONE",
+   "truth_sources_all": [
+    "NONE"
+   ],
+   "stage_hints": [],
+   "staged_or_incomplete": false,
+   "studio_label": null,
+   "role_note": "synthetic test fixture (5000-point Open3D cloud, ~50x40x50 mm ideal L), not a Sherman scan"
+  },
+  {
+   "scan_id": "sc_36e5d6998b9b",
+   "part_id": "ysherman",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/source-assets/wetransfer_ysherman-asc_2026-04-20_0802/ysherman.ply",
+   "format": "ply",
+   "role": "benchmark_scan",
+   "truth_source": "GOLD_LINES_HUMAN",
+   "truth_sources_all": [
+    "GOLD_LINES_HUMAN"
+   ],
+   "stage_hints": [],
+   "staged_or_incomplete": false,
+   "studio_label": null,
+   "role_note": null
+  },
+  {
+   "scan_id": "sc_80debe59ce20",
+   "part_id": "ysherman",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/source-assets/wetransfer_ysherman-asc_2026-04-20_0802/ysherman.stl",
+   "format": "stl",
+   "role": "FORMAT_ALTERNATE",
+   "truth_source": "NONE",
+   "truth_sources_all": [
+    "NONE"
+   ],
+   "stage_hints": [],
+   "staged_or_incomplete": false,
+   "studio_label": null,
+   "role_note": "alternate format of gold-labelled Gold37 ysherman.ply (same face count)"
+  },
+  {
+   "scan_id": "sc_e83b9feb7090",
+   "part_id": "ysherman",
+   "split": "CONSUMED",
+   "source": "BENCHMARK_V2",
+   "path": "~/ShermanQC/source-assets/wetransfer_ysherman-asc_2026-04-20_0802/ysherman.asc",
+   "format": "asc",
+   "role": "FORMAT_ALTERNATE",
+   "truth_source": "NONE",
+   "truth_sources_all": [
+    "NONE"
+   ],
+   "stage_hints": [],
+   "staged_or_incomplete": false,
+   "studio_label": null,
+   "role_note": "alternate format (.asc) of gold-labelled Gold37 ysherman.ply"
+  }
+ ]
+}

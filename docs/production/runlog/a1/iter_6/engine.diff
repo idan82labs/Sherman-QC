@@ -1,0 +1,605 @@
+diff -ru --exclude=__pycache__ snapshot/domains/production/engine/inspect/articulated.py domains/production/engine/inspect/articulated.py
+--- snapshot/domains/production/engine/inspect/articulated.py	2026-10-18 17:30:19
++++ domains/production/engine/inspect/articulated.py	2026-10-19 01:55:32
+@@ -67,6 +67,21 @@
+ A child that shows neither a formed flange nor a flat continuation near its
+ hinge is UNKNOWN (OCCLUDED or LOW_DENSITY); everything below it in the tree is
+ UNKNOWN (BEND_STATE_UNKNOWN).
++
++5. **Wrong-way fold (mirrored hinge).** A bend formed the wrong way turns its
++   child toward ``-v``, about an axis on the other side of the sheet: the CAD
++   axis reflected across the parent's mid-plane, with the parent's other skin as
++   the fold's inner one (:class:`MirroredBend`, :func:`mirrored_hinge_frame`).
++   In that mirrored frame the fold is the CAD fold's mirror image, so the same
++   two-skin search reads it (:func:`_reversed_reading`, angles past the flat
++   limits up to the wrap margin below 180, material no fitted panel owns). It
++   replaces the CAD-direction reading only when it shows a sheet (a second skin
++   parallel to its line, 0.4 to 1.6 thicknesses away: :func:`_sheet_skins`) and
++   its support is at least ``reversed_support_ratio`` times the CAD reading's,
++   and its child then grows with the mirrored fold kinematics. The child lies on
++   the other side of its parent's plane, so the decode reads a negative sweep
++   (formed the wrong way) and its angle FAILs (:mod:`.metrology`). The engine
++   runs this search on its chosen pose only (``reversed_search``).
+ """
+ from __future__ import annotations
+ 
+@@ -92,7 +107,8 @@
+ from domains.production.engine.inspect.part import BendView, PartView
+ 
+ __all__ = ["PanelFit", "BendFit", "ArticulatedFit", "fit_articulated", "fold_transform", "hinge_frame", "HingeFrame",
+-           "inside_grown", "in_footprint", "rho_window", "pose_on_plane"]
++           "inside_grown", "in_footprint", "rho_window", "pose_on_plane", "MirroredBend", "mirrored_bend",
++           "mirrored_hinge_frame"]
+ 
+ 
+ @dataclass
+@@ -142,6 +158,9 @@
+     frame: "HingeFrame | None" = None
+     one_skin: bool = False
+     detail: dict = field(default_factory=dict)
++    #: the child was found formed the wrong way, about the mirrored hinge (``theta_deg`` is then negative: the
++    #: angle in the CAD hinge frame ``frame``, which stays the CAD one for the decode and the metrology)
++    reversed: bool = False
+ 
+ 
+ @dataclass
+@@ -220,6 +239,68 @@
+                       fold=(np.asarray(A, dtype=np.float64), bend, np.asarray(it0, dtype=np.float64)))
+ 
+ 
++@dataclass(eq=False)
++class MirroredBend:
++    """A CAD bend folded the wrong way: its fold kinematics mirrored across the parent's mid-plane.
++
++    The flat blank is the CAD's (:func:`fold_transform` at 0 is unchanged); from
++    flat the child turns toward ``-v`` about ``axis_point`` (the CAD axis
++    reflected across the parent's mid-plane, final-pose frame), consuming the
++    same neutral strip. Skin 0 still continues across the bend, so the fold's
++    outer skin is the CAD's inner one: ``oml_skin`` is the CAD's other skin.
++    Everything else (panels, nominals, loci) is the CAD bend's (``base``).
++    """
++
++    base: BendView
++    axis_point: np.ndarray
++
++    @property
++    def parent(self) -> int:
++        return self.base.parent
++
++    @property
++    def child(self) -> int:
++        return self.base.child
++
++    @property
++    def oml_skin(self) -> int:
++        return 1 - int(self.base.oml_skin)
++
++    @property
++    def sweep(self) -> float:
++        return float(self.base.sweep)
++
++
++def mirrored_bend(part: PartView, bend: BendView) -> MirroredBend:
++    """``bend`` folded the wrong way: its axis reflected across the parent's mid-plane (CAD final pose)."""
++    pv = part.panels[bend.parent]
++    n = unit(np.asarray(pv.n0, dtype=np.float64))
++    mid = np.asarray(pv.p0, dtype=np.float64) - 0.5 * float(part.t) * n
++    ap = np.asarray(bend.axis_point, dtype=np.float64)
++    return MirroredBend(bend, ap - 2.0 * float((ap - mid) @ n) * n)
++
++
++def mirrored_hinge_frame(part: PartView, bend: BendView, parent: PanelFit, frame: HingeFrame
++                         ) -> tuple[HingeFrame, MirroredBend]:
++    """The hinge frame of ``bend`` folded the wrong way, and its :class:`MirroredBend`.
++
++    Its axis is the mirrored axis carried by the parent's pose, ``a' = -a``,
++    ``u' = u`` and ``v' = -v``: in it the wrong-way fold has the CAD fold's
++    cross-section exactly (the reflection keeps ``(u, v)`` coordinates and turns
++    ``z`` over), so the CAD fold's line offsets and band apply unchanged, and the
++    child's inner line follows the mirrored kinematics (its inner tangent line is
++    the CAD's outer one).
++    """
++    mb = mirrored_bend(part, bend)
++    A = np.asarray(parent.A, dtype=np.float64)
++    o = apply(A, mb.axis_point[None])[0]
++    ot0, _ = bend.locus("outer_tangent_child")
++    fm = HingeFrame(o=o, a=-frame.a, u=frame.u.copy(), v=-frame.v, z0=-frame.z1, z1=-frame.z0,
++                    rho_iml=frame.rho_iml, delta=frame.delta, band=frame.band,
++                    fold=(A, mb, np.asarray(ot0, dtype=np.float64)))
++    return fm, mb
++
++
+ def rho_window(frame: HingeFrame, theta: float, slack: float, cfg: InspectConfig) -> tuple[float, float]:
+     """(centre, half-width) of the child's inner-skin line offset searched at angle ``theta`` (rad).
+ 
+@@ -731,11 +812,132 @@
+     return idx, z[idx], uc[idx], vc[idx]
+ 
+ 
++def _line_support(zc: np.ndarray, uc: np.ndarray, vc: np.ndarray, frame: HingeFrame, theta: float, rho_i: float,
++                  cfg: InspectConfig) -> tuple[np.ndarray, int, bool, float]:
++    """``(line mask, points, one skin, axial coverage)`` of the two-skin line at ``theta`` / ``rho_i`` in a band.
++
++    The line's points lie on either skin past ``s = 0.3`` mm; the axial coverage is
++    the share of 2 mm bins of the bend's span ``z0 .. z1`` that hold one.
++    """
++    c, s = math.cos(theta), math.sin(theta)
++    sv = uc * c + vc * s
++    rho = -uc * s + vc * c
++    on_i = (sv > 0.3) & (np.abs(rho - rho_i) < cfg.hough_window_mm)
++    on_o = (sv > 0.3) & (np.abs(rho - (rho_i + frame.delta)) < cfg.hough_window_mm)
++    line = on_i | on_o
++    one_skin = bool(min(on_i.sum(), on_o.sum()) < max(5, 0.1 * max(on_i.sum(), on_o.sum())))
++    zl = zc[line]
++    if len(zl):
++        bins = np.floor((zl - frame.z0) / 2.0).astype(np.int64)
++        nb = max(1, int(math.ceil((frame.z1 - frame.z0) / 2.0)))
++        cov = len(np.unique(bins[(bins >= 0) & (bins < nb)])) / nb
++    else:
++        cov = 0.0
++    return line, int(line.sum()), one_skin, float(cov)
++
++
++def _sheet_skins(uc: np.ndarray, vc: np.ndarray, theta: float, rho_v: float, t: float, s_max: float,
++                 cfg: InspectConfig) -> tuple[float, float]:
++    """``(visible, partner)``: support of the line's visible skin at offset ``rho_v`` (angle ``theta``) and of the
++    strongest parallel level 0.4 t to 1.6 t from it, on either side.
++
++    A sheet shows two skins about one thickness apart; a thin lip's skins often
++    read closer than its nominal thickness (edge-blurred points), so the partner
++    is looked for over a band of separations rather than at exactly ``t``. Counts
++    are smoothed over ``hough_window_mm`` like the line search's, past 1 mm along
++    the line and within ``s_max``.
++    """
++    c, s = math.cos(theta), math.sin(theta)
++    sv = uc * c + vc * s
++    rho = (-uc * s + vc * c)[(sv > 1.0) & (sv < s_max)]
++    if len(rho) == 0:
++        return 0.0, 0.0
++    hb = cfg.hough_bin_mm
++    lo = rho_v - 1.7 * t - 2 * cfg.hough_window_mm
++    nb = int(math.ceil((3.4 * t + 4 * cfg.hough_window_mm) / hb)) + 1
++    idx = np.floor((rho - lo) / hb).astype(np.int64)
++    ok = (idx >= 0) & (idx < nb)
++    hist = np.bincount(idx[ok], minlength=nb).astype(np.float64)
++    w = max(1, int(round(cfg.hough_window_mm / hb)))
++    sm = np.convolve(hist, np.ones(2 * w + 1), mode="same")
++    centres = lo + (np.arange(nb) + 0.5) * hb
++    d = np.abs(centres - rho_v)
++    vis = float(sm[d <= cfg.hough_window_mm].max(initial=0.0))
++    band = (d >= 0.4 * t) & (d <= 1.6 * t)
++    return vis, float(sm[band].max(initial=0.0))
++
++
++def _reversed_reading(full_reg, vox: VoxelCloud, vox_reg, vox_nrm, owner, part: PartView, bend: BendView,
++                      parent: PanelFit, frame: HingeFrame, sweep_deg: float, cad_score: float, reach: float,
++                      cfg: InspectConfig):
++    """The child of ``bend`` found formed the wrong way, about the mirrored hinge, else None.
++
++    In :func:`mirrored_hinge_frame` the two-skin line search runs over the angles a
++    wrong-way fold reads as formed (past the flat limits and the CAD search's reach,
++    ``-theta_min_deg``) up to ``180 - reversed_wrap_margin_deg`` (a reading nearer 180
++    keeps its positive sign: :func:`~domains.production.engine.inspect.geom.signed_sweep_deg`),
++    on material no fitted panel owns. The reading stands only when its support is
++    at least ``reversed_support_ratio`` times ``cad_score`` (the CAD-direction
++    reading's; 0 when that one finds no child), it shows a sheet (a parallel level
++    0.4 to 1.6 thicknesses from its visible skin holding at least
++    ``reversed_two_skin_share`` of that skin's support: :func:`_sheet_skins`), its
++    line meets the child-line minimums and the child grows from it. Returns
++    ``(child, theta (rad, mirrored frame), rho_iml, score, line points, one skin,
++    axial coverage, detail)``.
++    """
++    fm, mb = mirrored_hinge_frame(part, bend, parent, frame)
++    lo = max(-cfg.theta_min_deg, min(cfg.flat_sweep_max_deg, cfg.flat_fraction_max * sweep_deg)) + 1.0
++    hi = min(sweep_deg + cfg.theta_overbend_deg, 180.0 - cfg.reversed_wrap_margin_deg - 1.0)
++    if hi <= lo:
++        return None
++    widx, wz, wu, wv = _band_points(full_reg, fm, 2.0, radius=reach)
++    free = owner[vox.inverse[widx]] < 0
++    widx, wz, wu, wv = widx[free], wz[free], wu[free], wv[free]
++    inband = np.hypot(wu, wv) < fm.band
++    if int(inband.sum()) < cfg.min_child_points:
++        return None
++    zc, uc, vc = wz[inband], wu[inband], wv[inband]
++    coarse = np.radians(np.arange(lo, hi + 1e-9, cfg.theta_coarse_step_deg))
++    sc, _, _, _ = _hough(zc, uc, vc, fm, coarse, cfg, fm.band)
++    if float(sc.max()) <= 0.0:
++        return None
++    k = int(np.argmax(sc))
++    c_deg = math.degrees(coarse[k])
++    fine = np.radians(np.arange(max(lo, c_deg - 1.5), min(hi, c_deg + 1.5) + 0.01, 0.1))
++    sc2, rh2, ni2, no2 = _hough(wz, wu, wv, fm, fine, cfg, reach)
++    k2 = int(np.argmax(sc2))
++    theta, rho_i, score = float(fine[k2]), float(rh2[k2]), float(sc2[k2])
++    n_i, n_o = float(ni2[k2]), float(no2[k2])
++    if score < cfg.reversed_support_ratio * max(cad_score, 1.0):
++        return None
++    t = float(parent.t if parent.t is not None else part.t)
++    vis, partner = _sheet_skins(wu, wv, theta, rho_i if n_i >= n_o else rho_i + fm.delta, t, reach, cfg)
++    if partner < max(5.0, cfg.reversed_two_skin_share * vis):
++        return None
++    line, n_line, one_skin, cov = _line_support(wz[inband], wu[inband], wv[inband], fm, theta, rho_i, cfg)
++    if n_line < cfg.min_child_points or cov < cfg.min_child_axial_coverage:
++        return None
++    seeds_full = widx[inband][line]
++    child = _grow_child(full_reg, vox, vox_reg, vox_nrm, owner, part, mb, parent, fm, theta, rho_i, seeds_full,
++                        False, cfg)
++    if child.state == "UNKNOWN" or child.n0 is None:
++        return None
++    detail = {"reversed": 1.0, "reversed_theta_deg": math.degrees(theta), "reversed_score": score,
++              "n_iml": n_i, "n_oml": n_o}
++    return child, theta, rho_i, score, n_line, one_skin, cov, detail
++
++
+ def fit_articulated(full_reg: np.ndarray, vox: VoxelCloud, vox_reg: np.ndarray, vox_nrm: np.ndarray,
+                     part: PartView, datum_n0: np.ndarray, datum_d0: float, datum_t: float,
+-                    datum_skins: tuple[int, ...], cfg: InspectConfig, budget_left) -> ArticulatedFit:
++                    datum_skins: tuple[int, ...], cfg: InspectConfig, budget_left,
++                    reversed_search: bool = False) -> ArticulatedFit:
+     """Walk the flange tree from the registered datum (module docstring).
+ 
++    ``reversed_search`` adds the wrong-way (mirrored hinge) search (module docstring,
++    step 5). The engine runs it on the chosen pose only: on every candidate pose it
++    would let a datum turned over read each of its bends as formed the wrong way and
++    explain the scan as well as the true pose.
++
+     ``full_reg`` / ``vox_reg`` / ``vox_nrm`` are the full-resolution points,
+     voxel points and voxel normals already in the registered frame; ``vox``
+     carries the neighbour graph and the point -> voxel map.
+@@ -842,22 +1044,32 @@
+         bf.score = score
+         bf.detail = detail
+         # the line points: both skins at theta
+-        c, s = math.cos(theta), math.sin(theta)
+-        sv = uc * c + vc * s
+-        rho = -uc * s + vc * c
+-        on_i = (sv > 0.3) & (np.abs(rho - rho_i) < cfg.hough_window_mm)
+-        on_o = (sv > 0.3) & (np.abs(rho - (rho_i + frame.delta)) < cfg.hough_window_mm)
+-        line = on_i | on_o
+-        bf.child_line_points = int(line.sum())
+-        bf.one_skin = bool(min(on_i.sum(), on_o.sum()) < max(5, 0.1 * max(on_i.sum(), on_o.sum())))
+-        zl = zc[line]
+-        if len(zl):
+-            bins = np.floor((zl - frame.z0) / 2.0).astype(np.int64)
+-            nb = max(1, int(math.ceil((frame.z1 - frame.z0) / 2.0)))
+-            cov = len(np.unique(bins[(bins >= 0) & (bins < nb)])) / nb
+-        else:
+-            cov = 0.0
++        line, n_line, one_skin, cov = _line_support(zc, uc, vc, frame, theta, rho_i, cfg)
++        bf.child_line_points = n_line
++        bf.one_skin = one_skin
+         bf.axial_coverage = float(cov)
++        cad_ok = jog is not None or (n_line >= cfg.min_child_points and cov >= cfg.min_child_axial_coverage)
++        # a fold formed the wrong way: its child lies on the other side of the parent's plane, about the mirrored
++        # hinge, outside the CAD-direction search. Its reading replaces this one only when clearly stronger
++        if reversed_search and jog is None and not short and not parent.model_plane and parent.n0 is not None:
++            rev = _reversed_reading(full_reg, vox, vox_reg, vox_nrm, owner, part, bend, parent, frame, sweep_deg,
++                                    score if cad_ok else 0.0, reach, cfg)
++            if rev is not None:
++                child, th_r, rho_r, sc_r, n_r, one_r, cov_r, det_r = rev
++                detail.update({"cad_theta_deg": bf.theta_deg, "cad_score": score, "cad_line_points": float(n_line),
++                               **det_r})
++                bf.theta_deg = -math.degrees(th_r)
++                bf.rho_iml = rho_r
++                bf.score = sc_r
++                bf.child_line_points = n_r
++                bf.one_skin = one_r
++                bf.axial_coverage = float(cov_r)
++                bf.found, bf.flat, bf.reversed = True, False, True
++                panels[bend.child] = child
++                if child.voxels.size:
++                    free = owner[child.voxels] < 0
++                    owner[child.voxels[free]] = bend.child
++                continue
+         if jog is None and (bf.child_line_points < cfg.min_child_points or cov < cfg.min_child_axial_coverage):
+             bf.reason = "OCCLUDED" if bf.child_line_points < cfg.min_child_points else "LOW_DENSITY"
+             panels[bend.child] = PanelFit(bend.child, "UNKNOWN", None, reason=bf.reason)
+@@ -1111,7 +1323,7 @@
+     return rigid(np.eye(3), n0 * (float(d0) - float(ref_pt @ n0))) @ A
+ 
+ 
+-def fold_transform(bend: BendView, theta: float) -> np.ndarray:
++def fold_transform(bend: BendView | MirroredBend, theta: float) -> np.ndarray:
+     """Child at its final pose -> child folded to ``theta`` (rad), in the parent's final-pose frame.
+ 
+     The arc consumes ``theta * R_n`` of the bend's neutral strip (``BA`` long), centred
+@@ -1119,13 +1331,19 @@
+     strip and the other half stays flat on the child (the E2 fold model). At
+     ``theta = 0`` this is E1's Method A (rotate back by the sweep, translate by the
+     neutral strip length); at the nominal sweep it is the identity.
++
++    A :class:`MirroredBend` is folded from the same flat blank the other way: about
++    its mirrored axis, toward ``-v`` (at its nominal sweep, the CAD fold's mirror
++    image across the parent's mid-plane, with the child's skins kept).
+     """
+-    ba = float(bend.model.neutral_length_mm)
+-    used = ba * theta / bend.sweep if bend.sweep > 1e-9 else 0.0
+-    m = -bend.p_out  # in the parent's plane, from the parent toward the child
+-    to_flat = rigid(np.eye(3), m * ba) @ rotation_about_line(bend.axis_point, bend.axis_dir, -bend.sweep)
+-    axis_t = bend.axis_point + m * (0.5 * (ba - used))
+-    fold = rotation_about_line(axis_t, bend.axis_dir, theta) @ rigid(np.eye(3), -m * used)
++    mirrored = isinstance(bend, MirroredBend)
++    b = bend.base if mirrored else bend
++    ba = float(b.model.neutral_length_mm)
++    used = ba * theta / b.sweep if b.sweep > 1e-9 else 0.0
++    m = -b.p_out  # in the parent's plane, from the parent toward the child
++    to_flat = rigid(np.eye(3), m * ba) @ rotation_about_line(b.axis_point, b.axis_dir, -b.sweep)
++    axis_t = (bend.axis_point if mirrored else b.axis_point) + m * (0.5 * (ba - used))
++    fold = rotation_about_line(axis_t, b.axis_dir, -theta if mirrored else theta) @ rigid(np.eye(3), -m * used)
+     return fold @ to_flat
+ 
+ 
+diff -ru --exclude=__pycache__ snapshot/domains/production/engine/inspect/config.py domains/production/engine/inspect/config.py
+--- snapshot/domains/production/engine/inspect/config.py	2026-10-18 20:54:50
++++ domains/production/engine/inspect/config.py	2026-10-19 01:36:22
+@@ -32,16 +32,16 @@
+ __all__ = ["ENGINE_VERSION", "ALGORITHM_VERSIONS", "InspectConfig", "ConfigError", "load_config"]
+ 
+ #: Version of the per-scan engine (``result.engine.engine_version``).
+-ENGINE_VERSION = "e3-1.7.0"
++ENGINE_VERSION = "e3-1.8.0"
+ 
+ #: Algorithm identifiers recorded in ``result.engine.algorithm_versions``.
+ ALGORITHM_VERSIONS: dict[str, str] = {
+     "ingest": "ply_stl_explicit_unit_v1",
+     "registration": "datum_plane_outline_fft_wall_edge_hole_polygon_flange_ends_hole_pairs_weak_dirs_walk_distinct_v4",
+-    "articulated_fit": "hinge_hough_region_grow_skin_levels_arc_fold_displaced_fold_window_short_child_window_support_tabs_one_skin_pose_on_plane_joggle_step_one_skin_reread_astray_wide_v7",
++    "articulated_fit": "hinge_hough_region_grow_skin_levels_arc_fold_displaced_fold_window_short_child_window_support_tabs_one_skin_pose_on_plane_joggle_step_one_skin_reread_astray_wide_reversed_mirrored_hinge_v8",
+     "thickness": "datum_tile_two_skin_separation_v1",
+     "state_decode": "signed_dihedral_fraction_order_prior_symmetric_near_twins_hole_evidence_v4",
+-    "metrology": "station_oml_section_crease_aware_unfolded_island_station_profile_short_side_consistency_footprint_edge_riser_model_reseat_signed_angle_v7",
++    "metrology": "station_oml_section_crease_aware_unfolded_island_station_profile_short_side_consistency_footprint_edge_riser_model_reseat_signed_angle_reversed_position_mirrored_v8",
+     "uncertainty": "station_mad_residual_pose_erosion_bias_thickness_station_spread_riser_length_v4",
+     "heatmap": "stage_cloud_nearest_signed_v1",
+ }
+@@ -233,6 +233,13 @@
+     #: hinge frame sits a few millimetres off, its far skin just outside the window; ``articulated._hough``).
+     one_skin_reread_min_deg: float = 20.0
+     one_skin_reread_min_share: float = 0.3
++    #: A fold formed the wrong way is searched about the mirrored hinge (the CAD axis reflected across the parent's
++    #: mid-plane, ``articulated._reversed_reading``) on material no fitted panel owns. Its reading replaces the
++    #: CAD-direction one only when its support is at least ``reversed_support_ratio`` times the CAD reading's and
++    #: it shows a sheet: a level parallel to its visible skin, 0.4 to 1.6 thicknesses away (a thin lip's skins
++    #: often read closer than its thickness), holding at least ``reversed_two_skin_share`` of that skin's support.
++    reversed_support_ratio: float = 1.5
++    reversed_two_skin_share: float = 0.2
+     min_child_points: int = 25
+     min_child_axial_coverage: float = 0.12
+     grow_plane_tol_mm: float = 0.35
+@@ -491,6 +498,7 @@
+     "flat_continuity_max_deg": (0.0, 45.0, False, False), "flat_continuity_mm": _POS, "flat_continuity_step_mm": _POS,
+     "short_child_margin_mm": _POS, "one_skin_fraction": _FRAC, "one_skin_tie_fraction": _FRAC,
+     "one_skin_reread_min_deg": (0.0, 90.0, False, False), "one_skin_reread_min_share": (0.0, 1.0, True, False),
++    "reversed_support_ratio": (1.0, None, False, False), "reversed_two_skin_share": (0.0, 1.0, True, False),
+     "min_child_points": (1, None, False, False), "min_child_axial_coverage": _FRAC,
+     "grow_plane_tol_mm": _POS, "grow_normal_tol_deg": (0.0, 90.0, True, True), "grow_iterations": (1, None, False, False),
+     "child_orient_max_deg": (0.0, 25.0, False, False), "child_orient_min_depth_mm": _POS,
+diff -ru --exclude=__pycache__ snapshot/domains/production/engine/inspect/engine.py domains/production/engine/inspect/engine.py
+--- snapshot/domains/production/engine/inspect/engine.py	2026-10-18 20:54:50
++++ domains/production/engine/inspect/engine.py	2026-10-19 01:55:32
+@@ -44,6 +44,11 @@
+ chosen decode's own stage matches the motion to a competing twin and the two
+ disagree on a bend's identity or state.
+ 
++Folds formed the wrong way (the mirrored hinge search, :func:`~domains.production.engine.inspect.articulated.fit_articulated`)
++are looked for on the chosen pose only, after the pose decisions above: on every
++candidate pose that search would let a datum turned over read each of its bends
++as formed the wrong way and explain the scan as well as the true pose.
++
+ Unplanned creases are found before the metrology: a crease along a bend ends
+ the FREE_EDGE flange it splits at its OML virtual sharp (UNKNOWN when that
+ sharp cannot be resolved).
+@@ -98,6 +103,7 @@
+     measure_bend_geometry,
+     measure_flange,
+     position_measurement,
++    reversed_position_measurement,
+     sharp_unit_along,
+     u_budget,
+ )
+@@ -318,6 +324,17 @@
+         refined = _refine_free_directions(best, pts, vox, part, model, cfg, budget, note, spacing)
+         if refined is not None:
+             best = refined
++    # folds formed the wrong way are looked for on the chosen pose only (``fit_articulated``): on every candidate
++    # pose the mirrored hinge search would let a datum turned over read its bends as formed the wrong way
++    if not ambiguous and budget.left() > 0:
++        rev = _Hyp(fit=best.fit, mirrored=best.mirrored)
++        _articulate(rev, pts, vox, part, model, cfg, budget, reversed_search=True)
++        if rev.art is not None and any(b.reversed for b in rev.art.bends) \
++                and not any(b.reason == "TIMEOUT" for b in rev.art.bends):
++            note("formed the wrong way: " + " ".join(part.bends[j].label for j, b in enumerate(rev.art.bends)
++                                                      if b.reversed)
++                 + f" (explained {best.explained:.3f} -> {rev.explained:.3f})")
++            best = rev
+     T = best.fit.T
+     reg_pts = apply(T, pts)
+     ctx.reg_pts = reg_pts
+@@ -661,7 +678,8 @@
+     return float(np.linalg.norm(a[:3, 3] - b[:3, 3])) < dist
+ 
+ 
+-def _articulate(h: _Hyp, pts, vox, part: PartView, model: DatumModel, cfg: InspectConfig, budget: _Budget) -> None:
++def _articulate(h: _Hyp, pts, vox, part: PartView, model: DatumModel, cfg: InspectConfig, budget: _Budget,
++                reversed_search: bool = False) -> None:
+     T = h.fit.T
+     full_reg = apply(T, pts)
+     vox_reg = apply(T, vox.points)
+@@ -672,7 +690,8 @@
+         ((0,) if 0 in h.fit.skin_heights else (1,))
+     # every single-skin offset uses the sheet's thickness measured on the datum when both skins were seen
+     t_sheet = float(h.fit.thickness_mm) if h.fit.thickness_mm is not None else part.t
+-    art = fit_articulated(full_reg, vox, vox_reg, vox_nrm, part, n0, d0, t_sheet, skins, cfg, budget.left)
++    art = fit_articulated(full_reg, vox, vox_reg, vox_nrm, part, n0, d0, t_sheet, skins, cfg, budget.left,
++                          reversed_search=reversed_search)
+     evidence = []
+     for j in range(part.n):
+         bf = art.bends[j]
+@@ -1138,15 +1157,35 @@
+             o.measured_included_deg = ang.value
+             o.formed_fraction = (180.0 - float(ang.value)) / math.degrees(bend.sweep)
+             if bm.reversed:
+-                # formed the wrong way: the angle (180 + |sweep|) FAILs; the OML sharp sits on the CAD's inner skin,
+-                # so the position and the lengths that start or end there are not this bend's characteristics
++                # formed the wrong way: the angle (180 + |sweep|) FAILs; the CAD's OML skin is this fold's inner one,
++                # so the lengths that start or end at its sharp are not this bend's characteristics. Its bend line
++                # is measured by mirror symmetry (the fold's own outer sharp reflected across the parent's
++                # mid-plane against the nominal) and published at that outer sharp
+                 o.notes = o.notes + ("BEND_FORMED_WRONG_WAY",)
+                 o.measured_included_deg = None
+-                o.forced_unknown[f"{bend.uid}/BEND_LINE_POSITION"] = "UNSUPPORTED_FEATURE"
+                 for side in ("A", "B"):
+                     o.forced_unknown[f"{bend.uid}/FLANGE_LENGTH/{side}"] = "UNSUPPORTED_FEATURE"
+                 if o.backgauge_cid and not o.backgauge_na:
+                     o.forced_unknown[o.backgauge_cid] = "UNSUPPORTED_FEATURE"
++                cid_p = f"{bend.uid}/BEND_LINE_POSITION"
++                trusted, sigma_here = (pos_trust or {}).get(j, (True, None))
++                m_pos = None
++                if not (degenerate or not trusted):
++                    out_a = transforms[bend.side_panel["A"]][:3, :3] @ bend.side_out["A"]
++                    m_pos = reversed_position_measurement(bm, lines[bend.uid], out_a,
++                                                          pose_sigma if sigma_here is None else sigma_here, cfg,
++                                                          pose_bias, thick=thick, datum_normal=datum_normal)
++                if m_pos is None or bm.rev_line_point is None:
++                    o.forced_unknown[cid_p] = "REGISTRATION_UNTRUSTED" if (degenerate or not trusted) \
++                        else "UNSUPPORTED_FEATURE"
++                else:
++                    o.measurements[cid_p] = m_pos
++                    ok_r = bm.valid & np.isfinite(bm.rev_sharp).all(axis=1)
++                    rel = bm.rev_sharp[ok_r] - bm.rev_line_point
++                    shift_r = np.median(rel - np.outer(rel @ bm.line_dir, bm.line_dir), axis=0)
++                    lo, hi = bm.visible
++                    o.measured_line = (bm.rev_line_point + bm.line_dir * lo + shift_r,
++                                       bm.rev_line_point + bm.line_dir * hi + shift_r)
+                 o.diagnostics["visible_length_mm"] = float(bm.visible[1] - bm.visible[0])
+                 o.diagnostics["stations"] = float(len(bm.z))
+                 out.append(o)
+diff -ru --exclude=__pycache__ snapshot/domains/production/engine/inspect/metrology.py domains/production/engine/inspect/metrology.py
+--- snapshot/domains/production/engine/inspect/metrology.py	2026-10-18 20:54:50
++++ domains/production/engine/inspect/metrology.py	2026-10-19 01:52:15
+@@ -11,8 +11,10 @@
+   signed by the side the child lies on (:func:`~domains.production.engine.inspect.geom.signed_sweep_deg`,
+   about the hinge axis): a child formed the wrong way, on the other side of its
+   parent's plane, reads ``180 + angle`` (above 180, never its nominal), and its OML
+-  sharp, which sits on the wrong skin, carries no flange length or position
+-  (``BendMeasure.reversed``);
++  sharp, which sits on the wrong skin, carries no flange length
++  (``BendMeasure.reversed``). Its bend line is the fold's own outer sharp (where
++  the CAD's inner skins meet), and its position is measured by mirror symmetry
++  (:func:`reversed_position_measurement`);
+ - the **OML virtual sharp**: the two OML planes intersected, evaluated at the
+   station's axial position. When only the inner skin of a flange is visible,
+   its OML is that skin moved by ``t``: the sheet thickness measured on the
+@@ -88,7 +90,7 @@
+ 
+ __all__ = ["Measurement", "BendMeasure", "Thickness", "measure_bend_geometry", "measure_flange", "measure_backgauge",
+            "SideProfile",
+-           "PointIndex", "unfold_island", "bare_edge_untrusted"]
++           "PointIndex", "unfold_island", "bare_edge_untrusted", "reversed_position_measurement"]
+ 
+ 
+ @dataclass(frozen=True)
+@@ -182,6 +184,13 @@
+     #: formed the wrong way). ``sweep_deg`` stays the magnitude; the station angles are ``180 - signed sweep``
+     #: (above 180), so the angle can never read its nominal; the OML sharp sits on the wrong skin
+     reversed: bool = False
++    #: a fold formed the wrong way: its own outer virtual sharp (where the CAD's inner skins meet) per station
++    #: (NaN where unresolved) and its region-wide line point (axial origin of ``line_point``, direction
++    #: ``line_dir``), and the parent's mid-plane ``(n, d)`` its bend-line position is mirrored across
++    #: (:func:`reversed_position_measurement`)
++    rev_sharp: np.ndarray | None = None
++    rev_line_point: np.ndarray | None = None
++    rev_mirror: tuple[np.ndarray, float] | None = None
+ 
+ 
+ class PointIndex:
+@@ -367,6 +376,7 @@
+     zs, w = _station_layout(lo, hi, cfg)
+     n = len(zs)
+     sharp = np.full((n, 3), np.nan)
++    rev_sharp = np.full((n, 3), np.nan) if reversed_fold else None
+     ang = np.full(n, np.nan)
+     valid = np.zeros(n, dtype=bool)
+     one_skin = False
+@@ -393,6 +403,10 @@
+             # a child on the other side of its parent's plane: the included angle on the CAD's inner side is
+             # 180 - (negative sweep), above 180, never the nominal
+             ang[i] = 180.0 - signed_sweep_deg(fp.n, fc.n, a, cfg.reversed_wrap_margin_deg)
++            # the fold's own outer virtual sharp: where the CAD's inner skins (the OML planes moved by t) meet
++            q_r = _station_sharp(Plane(fp.n, float(fp.d) - t), Plane(fc.n, float(fc.d) - t), lp, a, zi)
++            if q_r is not None:
++                rev_sharp[i] = q_r
+         else:
+             c = max(-1.0, min(1.0, float(fp.n @ fc.n)))
+             ang[i] = 180.0 - math.degrees(math.acos(c))
+@@ -438,6 +452,12 @@
+     out.line_point, out.line_dir = lp, a
+     out.sweep_deg = abs(sweep)
+     out.reversed = reversed_fold
++    if reversed_fold:
++        out.rev_sharp = rev_sharp
++        rl = _intersect(Plane(pp.n, float(pp.d) - t), Plane(pc.n, float(pc.d) - t))
++        if rl is not None:
++            out.rev_line_point = rl[0] - float((rl[0] - lp) @ a) * a
++        out.rev_mirror = (np.asarray(pp.n, dtype=np.float64).copy(), float(pp.d) - 0.5 * t)
+     out.one_skin = one_skin
+     nv = max(int(valid.sum()), 1)
+     out.inner_parent, out.inner_child = n_inner_p / nv, n_inner_c / nv
+@@ -534,6 +554,18 @@
+     return max(limit, floor)
+ 
+ 
++def _station_sharp(p1: Plane, p2: Plane, lp: np.ndarray, a: np.ndarray, zi: float) -> np.ndarray | None:
++    """Where the line of planes ``p1`` and ``p2`` crosses axial position ``zi`` (along ``a`` from ``lp``), else None."""
++    li = _intersect(p1, p2)
++    if li is None:
++        return None
++    p0, d0 = li
++    da = float(d0 @ a)
++    if abs(da) < 0.5:
++        return None
++    return p0 + ((zi - float((p0 - lp) @ a)) / da) * d0
++
++
+ def _intersect(a: Plane, b: Plane):
+     d = np.cross(a.n, b.n)
+     s = float(np.linalg.norm(d))
+@@ -726,6 +758,38 @@
+                     support=bm.support_parent + bm.support_child, coverage=bm.coverage, fit_rms=bm.fit_rms,
+                     components=comps)
+     m.notes = (f"normal_component_mm={float(np.median(off @ unit(np.cross(dn, oa)))):.4f}",)
++    return m
++
++
++def reversed_position_measurement(bm: BendMeasure, nominal_line: tuple[np.ndarray, np.ndarray], out_a: np.ndarray,
++                                  pose_sigma_mm: float, cfg: InspectConfig,
++                                  pose_bias: Callable[[np.ndarray, np.ndarray], float] | None = None,
++                                  thick: Thickness | None = None, datum_normal: np.ndarray | None = None
++                                  ) -> Measurement | None:
++    """Bend-line position of a fold formed the wrong way, by mirror symmetry; None when unresolved.
++
++    Reflected across the parent's mid-plane, the wrong-way fold is a fold of the
++    same bend line turned the CAD way, and its own outer sharps (``rev_sharp``)
++    become that fold's OML sharps. Those are compared with the nominal like any
++    bend's (:func:`position_measurement`). The reflection keeps every offset
++    within the parent's plane and removes only the side of the sheet the fold
++    turned to, so a bend line placed off nominal reads off nominal either way.
++    """
++    if not bm.reversed or bm.rev_sharp is None or bm.rev_mirror is None:
++        return None
++    ok = bm.valid & np.isfinite(bm.rev_sharp).all(axis=1)
++    if int(ok.sum()) < max(3, int(math.ceil(cfg.min_station_fraction * len(bm.z)))):
++        return None
++    n, d = bm.rev_mirror
++    rs = np.where(ok[:, None], bm.rev_sharp, 0.0)
++    refl = rs - 2.0 * (rs @ n - d)[:, None] * n[None, :]
++    w_c = None if bm.w_child is None else bm.w_child - 2.0 * float(bm.w_child @ n) * n
++    from dataclasses import replace
++
++    m = position_measurement(replace(bm, sharp=refl, valid=ok, w_child=w_c), nominal_line, out_a, pose_sigma_mm, cfg,
++                             pose_bias, thick=thick, datum_normal=datum_normal)
++    m.method = m.method.replace("STATION_OML_SHARP", "STATION_REVERSED_FOLD_SHARP_MIRRORED", 1)
++    m.notes = m.notes + ("BEND_FORMED_WRONG_WAY: own outer sharp mirrored across the parent mid-plane",)
+     return m
+ 
+ 

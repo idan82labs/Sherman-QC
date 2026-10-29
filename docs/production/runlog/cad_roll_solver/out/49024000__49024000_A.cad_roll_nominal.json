@@ -1,0 +1,230 @@
+{
+ "schema": "cad_roll_nominal_v0",
+ "rule_version": "ROLL-RULE-0 (2026-10-25): E1 graph bend keeps E1 class unless E1 ROLLED(a); paired feature with Ri > 10 t is a ROLL; Ri <= 10 t tangent to a roll is a junction BEND; thresholds reused from E1-UNSUPPORTED-RULE-2 (2026-10-17; rule 1 thresholds, review fixes)",
+ "source": {
+  "file": "49024000_A.stp",
+  "sha256": "3cdfcba8fbea3735e3c9b3610b69ccab2bc8bf681919ef2c86839693ef54479f",
+  "name": "49024000__49024000_A"
+ },
+ "frame": "cad_model_mm (STEP frame, no transform)",
+ "units": {
+  "length": "mm",
+  "angle": "deg"
+ },
+ "e1": {
+  "flange_graph_error": null,
+  "part_model_error": null,
+  "thickness_mm": 3.0,
+  "panels": 4,
+  "graph_bends": 3,
+  "features": []
+ },
+ "thickness": {
+  "t_mm": 3.0,
+  "source": "E1_FLANGE_GRAPH"
+ },
+ "summary": {
+  "rolls": 0,
+  "junction_bends": 0,
+  "e1_bends": 3,
+  "solver_bends": 3,
+  "cones": 0,
+  "all_checks_pass": true,
+  "roll_faces_overlap_e1_bend_faces": []
+ },
+ "rolls": [],
+ "junction_bends": [],
+ "e1_bends": [
+  {
+   "graph_bend_id": "G1",
+   "class": null,
+   "parent": "P1",
+   "child": "P0",
+   "inner_radius_mm": 3.0,
+   "thickness_mm": 3.0,
+   "sweep_deg": 80.0,
+   "length_mm": 28.258768,
+   "oml_virtual_sharp": {
+    "start_mm": [
+     -113.253383,
+     -2.231864,
+     -27.796465
+    ],
+    "end_mm": [
+     -84.994615,
+     -2.231864,
+     -27.796465
+    ]
+   },
+   "faces": {
+    "inner": [
+     40
+    ],
+    "outer": [
+     31
+    ]
+   },
+   "solver_cross_check": {
+    "paired": true,
+    "ri_diff_mm": 0.0,
+    "t_diff_mm": 0.0,
+    "sweep_diff_deg": 0.0
+   }
+  },
+  {
+   "graph_bend_id": "G2",
+   "class": null,
+   "parent": "P2",
+   "child": "P1",
+   "inner_radius_mm": 3.0,
+   "thickness_mm": 3.0,
+   "sweep_deg": 40.0,
+   "length_mm": 21.796487,
+   "oml_virtual_sharp": {
+    "start_mm": [
+     -106.791102,
+     -16.800757,
+     -25.227576
+    ],
+    "end_mm": [
+     -84.994615,
+     -16.800757,
+     -25.227576
+    ]
+   },
+   "faces": {
+    "inner": [
+     42
+    ],
+    "outer": [
+     5
+    ]
+   },
+   "solver_cross_check": {
+    "paired": true,
+    "ri_diff_mm": 0.0,
+    "t_diff_mm": 0.0,
+    "sweep_diff_deg": 0.0
+   }
+  },
+  {
+   "graph_bend_id": "G3",
+   "class": null,
+   "parent": "P3",
+   "child": "P2",
+   "inner_radius_mm": 3.0,
+   "thickness_mm": 3.0,
+   "sweep_deg": 40.0,
+   "length_mm": 19.49214,
+   "oml_virtual_sharp": {
+    "start_mm": [
+     -97.931256,
+     -32.81703,
+     -37.938677
+    ],
+    "end_mm": [
+     -78.439117,
+     -32.81703,
+     -37.938677
+    ]
+   },
+   "faces": {
+    "inner": [
+     66
+    ],
+    "outer": [
+     68
+    ]
+   },
+   "solver_cross_check": {
+    "paired": true,
+    "ri_diff_mm": 0.0,
+    "t_diff_mm": 0.0,
+    "sweep_diff_deg": 0.0
+   }
+  }
+ ],
+ "solver_bends": [
+  {
+   "id": "G1",
+   "source": "E1",
+   "class": null
+  },
+  {
+   "id": "G2",
+   "source": "E1",
+   "class": null
+  },
+  {
+   "id": "G3",
+   "source": "E1",
+   "class": null
+  }
+ ],
+ "graph": {
+  "nodes": [
+   {
+    "id": "P0",
+    "type": "PANEL",
+    "source": "E1"
+   },
+   {
+    "id": "P1",
+    "type": "PANEL",
+    "source": "E1"
+   },
+   {
+    "id": "P2",
+    "type": "PANEL",
+    "source": "E1"
+   },
+   {
+    "id": "P3",
+    "type": "PANEL",
+    "source": "E1"
+   }
+  ],
+  "edges": [
+   {
+    "id": "G1",
+    "type": "BEND",
+    "source": "E1",
+    "ends": [
+     "P1",
+     "P0"
+    ],
+    "e1_class": null
+   },
+   {
+    "id": "G2",
+    "type": "BEND",
+    "source": "E1",
+    "ends": [
+     "P2",
+     "P1"
+    ],
+    "e1_class": null
+   },
+   {
+    "id": "G3",
+    "type": "BEND",
+    "source": "E1",
+    "ends": [
+     "P3",
+     "P2"
+    ],
+    "e1_class": null
+   }
+  ],
+  "components": 1,
+  "coherent": true
+ },
+ "unclassified_paired_features": [],
+ "unpaired_large_curved_skins": [],
+ "large_radius_curved_faces": [],
+ "curved_faces": {
+  "cylinder": 23,
+  "cone": 0
+ },
+ "runtime_s": 0.4
+}

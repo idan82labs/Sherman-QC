@@ -1,0 +1,30 @@
+{
+ "images_seen": 13,
+ "lines": [
+  {
+   "label": "B1",
+   "verdict": "OK",
+   "coverage_pct": 97,
+   "offset_mm": 0.1,
+   "reason": "Long side flange 2->4, 89.6 deg down-turn. Sections at 25/50/75% put the line on the outer arc apex (well inside 1 mm). The end sections at t=0.03 and 0.97 still show the fold, and 1.5 mm past each end there is only flat plate, so the 38.1 mm line covers the whole fold."
+  },
+  {
+   "label": "B2",
+   "verdict": "OK",
+   "coverage_pct": 95,
+   "offset_mm": 0.1,
+   "reason": "Corner tab with hole 2->10, 89.9 deg. The line sits on the outer arc in all three sections. The fold is present at t=0.03 and 0.97 and absent 1.5 mm past the far end, so the 8.6 mm line spans the tab width."
+  },
+  {
+   "label": "B3",
+   "verdict": "OK",
+   "coverage_pct": 95,
+   "offset_mm": 0.1,
+   "reason": "Side tab with two holes 2->9, 89.2 deg. The line is on the outer apex in all three sections. The fold is present at both near-end sections, and the sections 1.5 mm past each end show only the plate edge, so the 14.6 mm line spans the tab."
+  }
+ ],
+ "missing_bends": [
+  "End panel 5/6 shallow bend: a 10.6-10.9 deg formed bend between the main plate (top skin 2 / bottom skin 1) and the end panel (top skin 6 / bottom skin 5). Plane fits give 10.64 deg for 2-6 and 10.94 deg for 1-5. Old notes excluded it only because of the 15 deg rule. Under the 2026-10-18 owner rule (>= 10 deg counts) it is a bend. It is a real formed fold, not an artifact or an incidental roll: both skins kink together at the same station, the slope goes from 0 to about -10 deg over ~3 mm (radius about 16 mm, as expected for a shallow air bend), the end panel past it is a clean flat plane, the angle is constant across the full ~19.6 mm width, and the fold axis is parallel to B1 (0.37 deg). The legacy human count of 4 matches it. Suggested outer-apex (top skin 2/6, convex side) line in source_ply_raw: start [-174.316, -99.115, 157.425], end [-155.263, -94.448, 156.899] (~19.6 mm long, the plane 2/6 intersection, measured top-skin apex ~0.08 mm below it). It could be built with pairs [2],[6], skin outer."
+ ],
+ "real_bend_count": 4
+}

@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="he" dir="rtl"><head><meta charset="utf-8"><title>Icons</title>
+<link rel="stylesheet" href="tokens.css"><script src="icons.js"></script>
+<style>
+body{padding:40px 56px;display:flex;flex-direction:column;gap:24px}
+.hd{display:flex;align-items:center;gap:24px;border-bottom:1px solid var(--line);padding-bottom:20px}
+.hd img{height:36px}.hd h1{font-size:var(--t-xl);font-weight:700}.hd p{color:var(--tx-3);font-size:var(--t-sm)}
+.sp{flex:1}
+.grid{display:grid;grid-template-columns:repeat(12,1fr);border:1px solid var(--line);border-radius:var(--r-2);background:var(--surface)}
+.cell{height:150px;border-inline-start:1px solid var(--line);border-bottom:1px solid var(--line);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;position:relative}
+.cell:nth-child(12n+1){border-inline-start:0}
+.cell .big{position:relative;width:48px;height:48px;color:var(--tx)}
+.cell .big::before{content:'';position:absolute;inset:-4px;background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);background-size:4px 4px;opacity:.55}
+.cell .big svg{position:relative}
+.cell .sm{display:flex;gap:10px;color:var(--tx-2)}
+.cell .sm .d{background:#111821;color:#E9EEF3;padding:3px;border-radius:2px}
+.cell span.n{font-size:11px;color:var(--tx-3);direction:ltr}
+.cell span.h{font-size:12px;color:var(--tx-2)}
+.cell .v2{position:absolute;top:8px;inset-inline-end:8px;font-size:10px;color:var(--accent);border:1px solid var(--accent);padding:0 4px;border-radius:2px}
+.foot{display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:24px}
+.box{border:1px solid var(--line);border-radius:var(--r-2);background:var(--surface);padding:16px 20px}
+.box h3{font-size:var(--t-sm);font-weight:600;margin-bottom:10px}
+.sw{display:flex;gap:6px;flex-wrap:wrap}
+.sw div{width:84px;font-size:11px;color:var(--tx-3)}
+.sw i{display:block;height:36px;border-radius:2px;border:1px solid var(--line);margin-bottom:4px}
+.rules li{font-size:var(--t-sm);color:var(--tx-2);margin:4px 0}
+</style></head><body class="theme-light bp">
+<div class="hd"><img src="sherman-logo-colour.png" alt="Sherman"><div><h1>ערכת אייקונים ושפה חזותית · Sherman QC</h1><p>אייקונים בשפת שרטוט טכני: בלונים, משבצת כותרת, סימני ייחוס ומידה. SVG ידני, בלי ספרייה מוכנה. ‎“חדש” = צויר מחדש בסבב 2.</p></div><span class="sp"></span><span class="badge">v2 · טיוטה לאישור</span></div>
+<div class="grid" id="g"></div>
+<div class="foot">
+  <div class="box"><h3>צבעים (מהלוגו)</h3><div class="sw" id="sw"></div></div>
+  <div class="box"><h3>חוקי ציור</h3><ul class="rules" style="padding-inline-start:18px">
+    <li>רשת של 24 יחידות, שוליים של 2 יחידות</li><li>קו 1.5 (2.2 בתוך תגי סטטוס), קצוות ישרים, חיבורי מיטר</li><li>זוויות של 45° ו-90° בלבד, שפת פח: כנפיים, קווי כיפוף, סימוני ייחוס</li><li>צבע אחד, currentColor, בלי מילוי ובלי גרדיאנט</li><li>מוטיבים: בלון שרטוט, משבצת כותרת, קו מרכז, תג ייחוס, קווי הארכה</li></ul></div>
+  <div class="box"><h3>טיפוגרפיה · Heebo</h3><div style="font-size:34px;font-weight:700;line-height:1.1">לתקן <span class="num" style="color:var(--fix)">88.0°</span></div><div style="font-size:26px;font-weight:500" class="num">206.3 <span style="font-size:14px;color:var(--tx-3)">בטולרנס: ללא צבע</span></div><div style="font-size:16px;color:var(--tx-2)">גוף 16 · תוויות 12–14 · ספרות טבלאיות</div></div>
+</div>
+<script>
+const V2=new Set(['clock','cloud','dashboard','datum','drawing','filter','info','live','measure','parts','pdf','release','reset','search','station','tag','undo','user','zoomin','zoomout','flat','heatmap','next','notbent']);
+const he={cad:'שרטוט',scan:'סריקה',cloud:'ענן נקודות',finished:'חלק גמור',heatmap:'מפת סטיות',tag:'תוויות',filter:'רק חריגות',next:'החריגה הבאה',fit:'כל החלק',pdf:'הורדת PDF',bend:'כיפוף',angle:'זווית',flangeA:'כנף',tol:'טולרנס',press:'מהלך / מכבש',parts:'חלקים',station:'עמדה',quarantine:'הסגר',dashboard:'לוח בקרה',settings:'הגדרות',user:'משתמש',lang:'שפה',ok:'תקין',fix:'לתקן',check:'לבדוק',notbent:'טרם כופף',add:'הוספה',undo:'ביטול',zoomin:'הגדלה',zoomout:'הקטנה',reset:'תצוגת בית',info:'מידע',clock:'זמן',live:'חיבור חי',drawing:'שרטוט PDF',flat:'חלק פרוס',release:'שחרור',search:'חיפוש',datum:'ייחוס (Datum)',measure:'מידה',chevron:'המשך',close:'סגירה'}
+document.getElementById('g').innerHTML=Object.keys(SQI).map(k=>`<div class="cell"><div class="big">${icon(k,48,1.5)}</div><div class="sm">${icon(k,20)}<span class="d">${icon(k,20)}</span></div><span class="h">${he[k]||k}</span><span class="n">${k}</span>${V2.has(k)?'<span class="v2">חדש</span>':''}</div>`).join('')
+document.getElementById('sw').innerHTML=[['#01416F','navy (logo)'],['#00AEEF','cyan (logo)'],['#0B67AE','accent light'],['#2E9BDA','accent dark'],['#17834F','OK'],['#E9A21F','CHECK'],['#C42F35','FIX'],['#0B1016','station bg'],['#F2F4F7','office bg'],['#7B889A','text 3']].map(([c,n])=>`<div><i style="background:${c}"></i>${n}<br><span class="num">${c}</span></div>`).join('')
+</script>
+</body></html>

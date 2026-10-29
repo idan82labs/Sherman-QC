@@ -1,0 +1,378 @@
+{
+  "schema": "sherman.gold11_audit.truth_variant.v1",
+  "created_at": "2026-10-17T19:22:49Z",
+  "variant": "gold11_relabel_v1",
+  "rule": "per Gold11 scan: the AI relabel (data/bend_corpus/annotations/ai_bend_lines_gold11_relabel_v1) if BOTH independent relabel verifiers passed it (pass=true, images_seen>0), else the human gold",
+  "status": "PROPOSED - not for gate decisions until the owner signs off",
+  "counts": {
+    "ai_relabel": 10,
+    "human_gold": 1,
+    "gold_lines": 89,
+    "human_gold_lines_replaced": 65
+  },
+  "per_scan": {
+    "sc_08686dc1d5d4": {
+      "gold11_id": "CGE4B0549E41",
+      "relabel_pass": true,
+      "source": "AI_RELABEL",
+      "verifiers": [
+        {
+          "verifier": 1,
+          "pass": true,
+          "images_seen": 16,
+          "problems_head": "No blocking problems. I checked the 8-line AI relabel of sc_08686dc1d5d4 (label /Users/idantal/ShermanQC/FullProject/data/bend_corpus/annotations/ai_bend_lines_gold11_relabel_v1/72bd51c4885d493d805f1108.json) against the renders and against the prep point cloud.\n\nWhat holds:\n(1) All 8 lines sit on r"
+        },
+        {
+          "verifier": 2,
+          "pass": true,
+          "images_seen": 20,
+          "problems_head": "Verifier 2 verdict for sc_08686dc1d5d4: pass. Nothing was redone. I ran no prep, lines or write-label step and wrote nothing, so I did not take the geometry lock. The human gold file 72bd51c4885d493d805f1108.json still has its 3 Aug timestamp. lines_runs.log shows run1, run2 and write-label each ran"
+        }
+      ],
+      "human_lines": 4,
+      "relabel_lines": 8,
+      "relabel_label": "data/bend_corpus/annotations/ai_bend_lines_gold11_relabel_v1/72bd51c4885d493d805f1108.json",
+      "relabel_label_sha256": "baf1550d5c7f8023553f22c5e6d6d2686774b0251f42c0f2a1933dc384645efe",
+      "human_gold": {
+        "kind": "gold11_catalog",
+        "path": "data/bend_corpus/annotations/bend_line_gold_catalog_v1.json",
+        "scan_sha256": "08686dc1d5d4c89725393907082e8cc4e4c0f5a21427697760ff44d29c7939fc"
+      },
+      "human_gold_file_sha256": "4ad243c1f8d7332749c854f32729607f156cd2e0f47454acd4b0ff61f1793b36"
+    },
+    "sc_cec08dfca9ab": {
+      "gold11_id": "CG08506AE97D",
+      "relabel_pass": true,
+      "source": "AI_RELABEL",
+      "verifiers": [
+        {
+          "verifier": 1,
+          "pass": true,
+          "images_seen": 19,
+          "problems_head": "Verdict: PASS for sc_cec08dfca9ab (Gold11 CG08506AE97D, 10839000_01_scan_2.ply). All 10 relabel lines sit on real formed folds at the outer-skin apex and cover at least 80% of their folds. I found no missed formed bend.\n\nWhat I looked at (19 images):\n- Prep renders: patches_contact_sheet, patches_is"
+        },
+        {
+          "verifier": 2,
+          "pass": true,
+          "images_seen": 25,
+          "problems_head": "Verdict: PASS. No blocking problems. I opened all 17 relabel renders (contact sheet, iso, iso_under, top, front, right, close-ups B1-B10), all 6 prep renders, and 3 plots of my own made from points_ds.npz and saved in /private/tmp/claude-501/-Users-idantal/db065cf7-f766-4885-b217-ed8d7edd7ade/scratc"
+        }
+      ],
+      "human_lines": 6,
+      "relabel_lines": 10,
+      "relabel_label": "data/bend_corpus/annotations/ai_bend_lines_gold11_relabel_v1/17293ebcf404be5a87e25b1f.json",
+      "relabel_label_sha256": "2805d8f3bf58c5e15576c9df3942e695e1d71fc5b35bae0bb6b88afed1b087b7",
+      "human_gold": {
+        "kind": "gold11_catalog",
+        "path": "data/bend_corpus/annotations/bend_line_gold_catalog_v1.json",
+        "scan_sha256": "cec08dfca9ab309ff3eef42cd3dc72eb33168e1d43029f3a0658f2923e4e171b"
+      },
+      "human_gold_file_sha256": "4ad243c1f8d7332749c854f32729607f156cd2e0f47454acd4b0ff61f1793b36"
+    },
+    "sc_71cf0b216f43": {
+      "gold11_id": "CG84C8FA12D2",
+      "relabel_pass": true,
+      "source": "AI_RELABEL",
+      "verifiers": [
+        {
+          "verifier": 1,
+          "pass": true,
+          "images_seen": 25,
+          "problems_head": "Verdict: PASS. All 12 lines sit on real formed folds, each covers 98-100% of its length, and no formed bend is missing (8 wall folds + 4 joggle bends = 12, which matches STEP cad_v10_count 12).\n\nWhat I looked at:\n- Every render in relabel/sc_71cf0b216f43/render/: iso, iso_under, front, right, top, t"
+        },
+        {
+          "verifier": 2,
+          "pass": true,
+          "images_seen": 19,
+          "problems_head": "Verdict: PASS. This was a read-only verification. I ran no prep, `lines`, engine or `write-label` commands, so no workflow was redone. I opened 19 images: the prep patches contact sheet; the verify contact sheet, verify_iso, verify_top and verify_iso_under; all 12 closeups (B1\u2013B12); and analysis/sec"
+        }
+      ],
+      "human_lines": 8,
+      "relabel_lines": 12,
+      "relabel_label": "data/bend_corpus/annotations/ai_bend_lines_gold11_relabel_v1/c615c4cd283605201afac7e8.json",
+      "relabel_label_sha256": "2176bb5dbcba1ea73a29b68cc2d7c396fe520afaf1ce1b519402f8b7e2e3c3f3",
+      "human_gold": {
+        "kind": "gold11_catalog",
+        "path": "data/bend_corpus/annotations/bend_line_gold_catalog_v1.json",
+        "scan_sha256": "71cf0b216f43284e401c891091cd56c10321aa3eebccde204f8d206683999215"
+      },
+      "human_gold_file_sha256": "4ad243c1f8d7332749c854f32729607f156cd2e0f47454acd4b0ff61f1793b36"
+    },
+    "sc_d1732de18023": {
+      "gold11_id": "CG4BDD1371B6",
+      "relabel_pass": true,
+      "source": "AI_RELABEL",
+      "verifiers": [
+        {
+          "verifier": 1,
+          "pass": true,
+          "images_seen": 16,
+          "problems_head": "No blocking problems. I opened all 10 relabel renders (contact sheet, iso, iso_under, front, right, top, closeup_B1 to closeup_B4) and all 6 prep patch renders. In every close-up section the dot sits on the outer-skin arc apex, inside the virtual sharp (x), and the face-on line runs the whole fold. "
+        },
+        {
+          "verifier": 2,
+          "pass": true,
+          "images_seen": 16,
+          "problems_head": "No blocking problems. Verified from 10 relabel renders (contact sheet, iso, iso_under, top, front, right, closeups B1-B4) and 6 prep patch renders (contact sheet not opened separately; iso, iso_under, top, front, right opened). Part = flat tray plate (patches 1/2) with two ~17 mm up-walls (M02 patch"
+        }
+      ],
+      "human_lines": 4,
+      "relabel_lines": 4,
+      "relabel_label": "data/bend_corpus/annotations/ai_bend_lines_gold11_relabel_v1/05df0a708054946a1d77f7ee.json",
+      "relabel_label_sha256": "7a5c355a4ec6b67bdae6d671b84e8f7c209c771d13d6e5429b6783bb2ef33706",
+      "human_gold": {
+        "kind": "gold11_catalog",
+        "path": "data/bend_corpus/annotations/bend_line_gold_catalog_v1.json",
+        "scan_sha256": "d1732de180230bdbf0caa6eaf454a33071c206060aea276dce67a9abcf13b038"
+      },
+      "human_gold_file_sha256": "4ad243c1f8d7332749c854f32729607f156cd2e0f47454acd4b0ff61f1793b36"
+    },
+    "sc_2714fb7e0c0b": {
+      "gold11_id": "CGF41F49066A",
+      "relabel_pass": true,
+      "source": "AI_RELABEL",
+      "verifiers": [
+        {
+          "verifier": 1,
+          "pass": true,
+          "images_seen": 15,
+          "problems_head": "No blocking problems. I did not redo anything: no prep, lines or label write was run. I only read the existing outputs: the prep contact sheet, the verify contact sheet, all 12 close-ups (B1-B12) and auditor1's a1_unexplained.png.\n\nEvery line lands on a real formed fold. In each section view the lab"
+        },
+        {
+          "verifier": 2,
+          "pass": true,
+          "images_seen": 13,
+          "problems_head": "No blocking problems. I looked at the relabel verify contact sheet, the iso_under view, the closeups for B1-B12 (all except B6/B8 were checked against the overview, and B6/B8 got their own closeups), and the prep patch renders (contact sheet, iso, top). Nothing was rerun: this was a read-only check "
+        }
+      ],
+      "human_lines": 10,
+      "relabel_lines": 12,
+      "relabel_label": "data/bend_corpus/annotations/ai_bend_lines_gold11_relabel_v1/c57b956b11cab8f4a8d3dc17.json",
+      "relabel_label_sha256": "c9739d8a57374b103333bbde92976a8ca879c0e6ee2f46faef8449060de60988",
+      "human_gold": {
+        "kind": "gold11_catalog",
+        "path": "data/bend_corpus/annotations/bend_line_gold_catalog_v1.json",
+        "scan_sha256": "2714fb7e0c0b681196da62bf368e60c0635b97000f34df3241ca1b70ee56faba"
+      },
+      "human_gold_file_sha256": "4ad243c1f8d7332749c854f32729607f156cd2e0f47454acd4b0ff61f1793b36"
+    },
+    "sc_4f8188b4d1a8": {
+      "gold11_id": "CG1E0BBA2933",
+      "relabel_pass": true,
+      "source": "AI_RELABEL",
+      "verifiers": [
+        {
+          "verifier": 1,
+          "pass": true,
+          "images_seen": 27,
+          "problems_head": "No blocking problems. I looked at all 18 relabel renders (5 views, the contact sheet and 12 closeups) and the prep renders (contact sheet, iso, iso_under). Every line sits on a real formed fold at the outer-skin apex. In each closeup section the dot is on the outer-skin arc midline, just inside the "
+        },
+        {
+          "verifier": 2,
+          "pass": true,
+          "images_seen": 20,
+          "problems_head": "Pass. I found no blocking problems. I opened all 18 relabel renders, plus the prep patch contact sheet and prep patches_iso. I saw the other prep views only through the contact sheet.\n\nAll 12 relabel lines sit on real formed folds. In every section view, the label dot is on the outer-skin arc midlin"
+        }
+      ],
+      "human_lines": 10,
+      "relabel_lines": 12,
+      "relabel_label": "data/bend_corpus/annotations/ai_bend_lines_gold11_relabel_v1/b7155cc16c9bf0290d331831.json",
+      "relabel_label_sha256": "be13473b32d9cad4224526b36b1f8c2893b124fc5ccfb9cad90d69c5261db3d1",
+      "human_gold": {
+        "kind": "gold11_catalog",
+        "path": "data/bend_corpus/annotations/bend_line_gold_catalog_v1.json",
+        "scan_sha256": "4f8188b4d1a844305134801c3bb5364270250416d2f4dc43f0b05d37cc7962b9"
+      },
+      "human_gold_file_sha256": "4ad243c1f8d7332749c854f32729607f156cd2e0f47454acd4b0ff61f1793b36"
+    },
+    "sc_07062eee17aa": {
+      "gold11_id": "CG65CD575B1C",
+      "relabel_pass": false,
+      "source": "HUMAN_GOLD",
+      "verifiers": [
+        {
+          "verifier": 1,
+          "pass": false,
+          "images_seen": 18,
+          "problems_head": "FAIL, but only on one line's locus. The bend count and the line extents are right. Nothing was rerun: no prep, lines or write-label. All checks read existing outputs only.\n\n1) B2 (-Y flange) is not on the outer-skin apex. It sits about 0.9 mm out in free air, toward the virtual sharp. This is the sa"
+        },
+        {
+          "verifier": 2,
+          "pass": false,
+          "images_seen": 11,
+          "problems_head": "FAIL: one line, B2 (the -Y flange fold), is not on the outer apex. Nothing needs to be redone except refitting B2. I re-ran no prep, lines or write-label steps; I only read the existing outputs and ran a light read-only measurement from the scratchpad.\n\nWhat holds up:\n- The part has 6 formed bends: "
+        }
+      ],
+      "human_lines": 6,
+      "relabel_lines": 6,
+      "relabel_label": "data/bend_corpus/annotations/ai_bend_lines_gold11_relabel_v1/a962166c3019434c10628722.json",
+      "relabel_label_sha256": "d7f7f057e20be4db716ad7c61dcf8e69ba6c284e3c3fcdcd15cfad29c46f236b",
+      "human_gold": {
+        "kind": "gold11_catalog",
+        "path": "data/bend_corpus/annotations/bend_line_gold_catalog_v1.json",
+        "scan_sha256": "07062eee17aa4e41721b93cdb69ddb4b752e6713a16c5aab0a10df9c86d07880"
+      },
+      "human_gold_file_sha256": "4ad243c1f8d7332749c854f32729607f156cd2e0f47454acd4b0ff61f1793b36"
+    },
+    "sc_f2475286312b": {
+      "gold11_id": "CGEBA9A869AC",
+      "relabel_pass": true,
+      "source": "AI_RELABEL",
+      "verifiers": [
+        {
+          "verifier": 1,
+          "pass": true,
+          "images_seen": 16,
+          "problems_head": "The relabel passes: no blocking problems. I re-ran nothing, since the prep and lines were already done. I reviewed the existing renders, lines.json, apex_verification and the auditors' fold files.\n\nWhat I checked:\n- **All 10 lines sit on the outer-skin apex.** Each section close-up for B1 to B10 sho"
+        },
+        {
+          "verifier": 2,
+          "pass": true,
+          "images_seen": 22,
+          "problems_head": "Pass. I found nothing that blocks the label; only minor notes below.\n\nWhat I checked:\n- I opened all 16 relabel renders (contact sheet, iso, front, right, top, iso_under, close-ups B1 to B10) and all 6 prep patch renders.\n- In every close-up section the label dot sits on the outer-skin arc apex just"
+        }
+      ],
+      "human_lines": 8,
+      "relabel_lines": 10,
+      "relabel_label": "data/bend_corpus/annotations/ai_bend_lines_gold11_relabel_v1/a6a0b1c3f8052cb3a45412e8.json",
+      "relabel_label_sha256": "eb79eada1e291ccabac81d20b9e7bf0af5a1526938e42b54c9f179a7761d75a3",
+      "human_gold": {
+        "kind": "gold11_catalog",
+        "path": "data/bend_corpus/annotations/bend_line_gold_catalog_v1.json",
+        "scan_sha256": "f2475286312b7e11be773166afae5d7eaacd826f8b59cee84289d05b4a222b63"
+      },
+      "human_gold_file_sha256": "4ad243c1f8d7332749c854f32729607f156cd2e0f47454acd4b0ff61f1793b36"
+    },
+    "sc_152f1b1aacb2": {
+      "gold11_id": "CG64C412CC73",
+      "relabel_pass": true,
+      "source": "AI_RELABEL",
+      "verifiers": [
+        {
+          "verifier": 1,
+          "pass": true,
+          "images_seen": 19,
+          "problems_head": "Independent verification of the sc_152f1b1aacb2 AI relabel (label data/bend_corpus/annotations/ai_bend_lines_gold11_relabel_v1/8370b5e44945adfba2f2fb34.json, sha256 e9c0821a\u2026). I found no blocking problems. I only read files and ran a scratch script. I wrote nothing to the repo and re-ran no tools: "
+        },
+        {
+          "verifier": 2,
+          "pass": true,
+          "images_seen": 18,
+          "problems_head": "No blocking problems. I opened all 13 relabel renders and the 6 prep renders (18 distinct images), and each check below is backed by them. The base and walls show nothing beyond the 7 formed folds. The only other features are flat ears through the wall windows, which are coplanar with the base in th"
+        }
+      ],
+      "human_lines": 7,
+      "relabel_lines": 7,
+      "relabel_label": "data/bend_corpus/annotations/ai_bend_lines_gold11_relabel_v1/8370b5e44945adfba2f2fb34.json",
+      "relabel_label_sha256": "e9c0821a70780dd071038c3118eb64168037d1259ebc6da0f2b14f7d5dc08774",
+      "human_gold": {
+        "kind": "gold11_catalog",
+        "path": "data/bend_corpus/annotations/bend_line_gold_catalog_v1.json",
+        "scan_sha256": "152f1b1aacb20920a601f7a8197d4c89a111688325bcf557a6a731641f306614"
+      },
+      "human_gold_file_sha256": "4ad243c1f8d7332749c854f32729607f156cd2e0f47454acd4b0ff61f1793b36"
+    },
+    "sc_7a1773eca9fa": {
+      "gold11_id": "CG191DEC7F81",
+      "relabel_pass": true,
+      "source": "AI_RELABEL",
+      "verifiers": [
+        {
+          "verifier": 1,
+          "pass": true,
+          "images_seen": 13,
+          "problems_head": "No blocking problems. I opened all 13 renders: 6 prep renders (contact sheet, front, iso, iso_under, right, top) and 7 relabel renders (contact sheet, the 5 per-bend close-ups, and the individual iso, iso_under, right, front and top views). I also read patches.json, points_ds.npz, pairs.json, lines."
+        },
+        {
+          "verifier": 2,
+          "pass": true,
+          "images_seen": 15,
+          "problems_head": "No blocking problems. I opened all 11 relabel renders (5 closeups, the contact sheet and 5 verify views) and 4 prep renders (patches contact sheet, front, right, iso_under). I did not open patches_top or patches_iso on their own, but both views are on the contact sheet I did open. No geometry or loc"
+        }
+      ],
+      "human_lines": 5,
+      "relabel_lines": 5,
+      "relabel_label": "data/bend_corpus/annotations/ai_bend_lines_gold11_relabel_v1/3aa393ad34b7ace90d84985c.json",
+      "relabel_label_sha256": "7f0545d5651cd5cb21567b54c7e8f7bb3f50f037d5532b2236134d3aef99c0ba",
+      "human_gold": {
+        "kind": "gold11_catalog",
+        "path": "data/bend_corpus/annotations/bend_line_gold_catalog_v1.json",
+        "scan_sha256": "7a1773eca9fab616afef498a9f9831e67eacb17fcc0d170607490a9e9db37020"
+      },
+      "human_gold_file_sha256": "4ad243c1f8d7332749c854f32729607f156cd2e0f47454acd4b0ff61f1793b36"
+    },
+    "sc_70b39f530f00": {
+      "gold11_id": "CG4FAF273093",
+      "relabel_pass": true,
+      "source": "AI_RELABEL",
+      "verifiers": [
+        {
+          "verifier": 1,
+          "pass": true,
+          "images_seen": 8,
+          "problems_head": "No blocking problems. I looked at 8 images: the prep patches contact sheet and the prep patches iso_under view, plus six relabel renders (the verify contact sheet, verify_right, and closeups of B1, B2 and B3).\n\nThe part has exactly 3 formed bends: a flat arm, then a joggle (39.1 deg, then 39.2 deg t"
+        },
+        {
+          "verifier": 2,
+          "pass": true,
+          "images_seen": 5,
+          "problems_head": "None blocking. I opened the prep patches contact sheet, the relabel verify contact sheet (iso, front, right, top and iso_under in one image) and closeups B1, B2 and B3. I did not open the individual verify_*.png and patches_*.png views separately because the contact sheets contain the same views. Th"
+        }
+      ],
+      "human_lines": 3,
+      "relabel_lines": 3,
+      "relabel_label": "data/bend_corpus/annotations/ai_bend_lines_gold11_relabel_v1/8778c5e57263f92092cf88b4.json",
+      "relabel_label_sha256": "cdf860e1d284ca1821d28eaf982e2aca2f7684366a0e98c12a771a010ac5b627",
+      "human_gold": {
+        "kind": "gold11_catalog",
+        "path": "data/bend_corpus/annotations/bend_line_gold_catalog_v1.json",
+        "scan_sha256": "70b39f530f00a72dd99acf00b4a065f45bfe4f50185e3579c3ba26143f7d2ade"
+      },
+      "human_gold_file_sha256": "4ad243c1f8d7332749c854f32729607f156cd2e0f47454acd4b0ff61f1793b36"
+    }
+  },
+  "gold_override_map": "docs/production/runlog/broad_baseline/gold11_audit/truth/gold11_relabel_v1_gold_override.json",
+  "case_lists": {
+    "case_list_gold11__human": {
+      "path": "docs/production/runlog/broad_baseline/gold11_audit/truth/case_list_gold11__human.json",
+      "case_list_sha256": "fb58bfd2d41220778a3b497d9db712d5e8c64540703cf7e3e926c2d30aecbe51",
+      "cases": 11,
+      "gold_lines_total": 71
+    },
+    "case_list_gold11__relabel_v1": {
+      "path": "docs/production/runlog/broad_baseline/gold11_audit/truth/case_list_gold11__relabel_v1.json",
+      "case_list_sha256": "1e7b53dd4c5d8ae67cd442d724d2e7eccbbb98fd70c2fcc8cfa021dc31d03f70",
+      "cases": 11,
+      "gold_lines_total": 89
+    },
+    "case_list_gold11__all11_ai_relabel": {
+      "path": "docs/production/runlog/broad_baseline/gold11_audit/truth/case_list_gold11__all11_ai_relabel.json",
+      "case_list_sha256": "53576502e62347ee7ca107462b8586d6da1de56f581509838c3ec6736d18ee45",
+      "cases": 11,
+      "gold_lines_total": 89
+    },
+    "case_list_gold11__human_snapped_apex": {
+      "path": "docs/production/runlog/broad_baseline/gold11_audit/truth/case_list_gold11__human_snapped_apex.json",
+      "case_list_sha256": "c1e72769fef0cf096c48167c4a1b61a3db9909e4dca836384a6965572308d758",
+      "cases": 11,
+      "gold_lines_total": 71
+    },
+    "case_list_gold11__human_snapped_apex_conv": {
+      "path": "docs/production/runlog/broad_baseline/gold11_audit/truth/case_list_gold11__human_snapped_apex_conv.json",
+      "case_list_sha256": "df48cf6145fcf6870389a80afb80f8ed5ce47e64d332f376a8999084e6895348",
+      "cases": 11,
+      "gold_lines_total": 71
+    },
+    "case_list_broad_v3__gold11_relabel_v1": {
+      "path": "docs/production/runlog/broad_baseline/gold11_audit/truth/case_list_broad_v3__gold11_relabel_v1.json",
+      "case_list_sha256": "fccdacae719338fbe5bd168255f69e371530a8ffe98c67410731a888cf3f3363",
+      "cases": 60,
+      "gold_lines_total": 323
+    }
+  },
+  "human_gold_untouched": {
+    "catalog": "data/bend_corpus/annotations/bend_line_gold_catalog_v1.json",
+    "catalog_sha256": "4ad243c1f8d7332749c854f32729607f156cd2e0f47454acd4b0ff61f1793b36",
+    "expected_sha256": "4ad243c1f8d7332749c854f32729607f156cd2e0f47454acd4b0ff61f1793b36"
+  }
+}

@@ -1,0 +1,83 @@
+{
+ "status": "done",
+ "summary": "E4b freeze fixed per review F1\u2013F9. The ledger was replaced before A1 (it held no RUN or WAIVER entry). New anchor: `cf01e709079c0fcc348758c5196884bff7d20f7836b88c7616883c0dcec67e67` (entry `frz_d57683acfd83`). `verify` passes with and without `--include-sealed`. 102 tests passed. This reply names no sealed identifier.\n\n**Resumed work.** The stopped agent had already updated common, gold, cases, broad, physical and legacy (constants, per-file relabel split, A1-part helper, recipe-count flags, 4d rule, gate/order functions, 12 GiB reuse rule); I kept all of it. I finished `prefreeze.py` (rewritten), ledger, g3_material and recipes, the tests and the data.\n\n**Per finding:**\n- **F1 (builder work dir).** Everything in the builder work dir (`e4b_work`) moved into `e4b_work/builder_SEALED/`, which is now its only entry. That includes `gold_cases_ALL.json`, `compile_report_full.json`, `prev_pass1/`, every compiled part and legacy output, logs and dry runs, plus `prev_pass2/` (a snapshot of the reviewed freeze). The A1-facing commands refuse a work dir that holds `builder_SEALED/`. Without `--include-sealed` they also refuse a `*SEALED*` dir or one holding `devcheck_SEALED/`. The README tells A1 to use a fresh work dir.\n- **F2 (compile-frozen).** `compile-frozen` reads only `cases_A1.json` and `recipes/`. `--include-sealed` adds the DEV-CHECK recipes, compiled into `W/devcheck_SEALED/`. `run-physical` and `score-physical` refuse a sealed case document before opening it. New tests cover this. Real check in a fresh dir: 18/18 A1 recompiles match the freeze and nothing sealed was touched.\n- **F3 (gold_transforms leak).** The full transform list keeps its bytes and its 19:14:37Z time as `gold_transforms_devcheck_SEALED.json` (sha-only in the ledger). `gold_transforms.json` is now its A1 part: 10 rows, 3 counted as sealed, plus the full list's sha256 and time and only the A1 relabel files. `inventory.json` stays as the documented inference-by-omission. The README now says what the seal covers and corrects the earlier false claim.\n- **F4 (4d gate), decision taken.** Rule E4B-4D-GATE-2: the frozen DEV recipes are gated on both denominators (24/26 = 0.923 and 19/20 = 0.95, PASS). Strict V10 (20/26 = 0.769) and native are reported, not gated. The decision and the rejected alternative are recorded in the ledger. G2 is no longer FAIL by construction: dry runs show compile_rate PASS on A1 and on DEV-CHECK.\n- **F5 (truth-table order).** `run-physical` refuses E3 on truth-relevant cases (G3 or BROAD staged, provisional-complete) until a frozen truth table covering their template rows is recorded via the new `record-truth-table`. On A1 that is 13 cases, 123 of the 203 rows. The other cases still run; refused cases are listed with exit 2. The scorer rejects a table frozen or recorded after the first E3 record of such a case.\n- **F6 (17139000_01.ply wording).** Corrected to \"hashed and its PLY header read by the inventory, geometry never used\". Not re-inventoried.\n- **F7 (BROAD ceilings).** One rule now flags every gold case against its recipe. pc_d45186653eed: 9 gold lines vs 7 recipe bends, GOLD_CONVENTION_CONFLICT. pc_38091ac91d9d: 2 vs 1, RECIPE_EXCLUDED_FEATURE. The best family-macro F1 any recipe-guided engine can reach on the A1 BROAD gold is 0.967. 28870000 is capped at 0.667 (below the 0.80 aim) and 11979003 at 0.875. Gold11 is not capped (ceiling 1.0).\n- **F8 (legacy arm).** The cap is now 12 GiB. The one DEV-CHECK run the old 4 GiB cap had killed was re-run under the lock and completed (OK, 10.6 GiB peak, 61 s). The other 30 records were reused and are identical. The unary-model condition is recorded per run: applied in 0 reports.\n- **F9 (blind files, relabel, wording).** The reviewer-blind files moved into the builder area; images, manifests and templates are byte-identical. A1 scoring now opens only A1 relabel files. \"No E3 run\" wording fixed.\n\n**Re-running `cases` changed nothing reviewed.** Draw (seed, strata, families), every list and case record, human and BROAD gold lines, all 25 recipes, compile rows and reference lanes are identical. New: the flags and ceilings. The audit workflow revised one A1 relabel file since the review; it is frozen as it stands now.\n\n**Leak check (count-only).** Apart from `inventory.json` and the verbatim plan copies, no A1-facing run-log file (LEDGER.json and READMEs included) names a sealed identifier. The freeze code still names the plan's lists and the 11 pinned Gold11 records, all defined before the draw (documented).\n\n**Report corrections.** \"No sealed case ref or scan sha in any A1-facing file\" was false (`gold_transforms.json` and `inventory.json` did). \"17139000_01.ply never read\" was wrong. \"No engine run before the superseded draws\" means no E3 run; the legacy arm had already run.",
+ "checks": [
+  {
+   "cmd": "env PYTHONDONTWRITEBYTECODE=1 PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=.:backend OMP_NUM_THREADS=1 .venv/bin/python -m pytest -c /dev/null --noconftest -p no:cacheprovider tests/test_prod_engine_freeze_{broad,cases,g3,gold,ledger,legacy,physical,prefreeze,recipes,shim}.py tests/test_prod_engine_eval_freeze.py tests/test_prod_engine_eval_runner.py tests/test_prod_engine_eval_line_metric.py (under the shared lock)",
+   "passed": true,
+   "note": "102 passed in 84 s: 70 freeze tests (15 new, incl. new test_prod_engine_freeze_prefreeze.py) + 32 E4a ledger/runner/line-metric tests"
+  },
+  {
+   "cmd": "prefreeze ledger --replace-before-a1; prefreeze verify; prefreeze verify --include-sealed",
+   "passed": true,
+   "note": "single FREEZE entry frz_d57683acfd83; chain, anchor, code fingerprints, files and sealed items all ok, no drift"
+  },
+  {
+   "cmd": "prefreeze cases --work e4b_work (under lock) + count-only comparison with builder_SEALED/prev_pass2",
+   "passed": true,
+   "note": "draw/lists/case records/gold lines/25 recipes/compile rows/reference lanes identical; only F6/F9 wording, new flags/ceilings, one revised A1 relabel file"
+  },
+  {
+   "cmd": "prefreeze legacy --work e4b_work --reuse-from builder_SEALED/prev_pass2/legacy_control ... (under lock)",
+   "passed": true,
+   "note": "30 reused (legacy_case.json identical apart from the new unary field), 1 DEV-CHECK re-run at 12 GiB: OK, 10.6 GiB peak; unary model applied in 0 reports"
+  },
+  {
+   "cmd": "prefreeze compile-frozen --work <fresh A1 dir> ; prefreeze score-physical --cases cases_A1.json --ledger-anchor <anchor> (no E3)",
+   "passed": true,
+   "note": "18/18 A1 recompiles match the freeze, no sealed material touched; compile_rate PASS, ledger_check ok + anchor checked, truth table MISSING -> final/qualifying false (as designed)"
+  },
+  {
+   "cmd": "prefreeze compile-frozen --include-sealed + score-physical --include-sealed --cases devcheck_SEALED.json (builder area, under lock)",
+   "passed": true,
+   "note": "25/25 recompiles match; DEV-CHECK products only under devcheck_SEALED/; DEV-CHECK compile_rate PASS"
+  },
+  {
+   "cmd": "count-only leak check over freeze/, legacy_control/, g3_truth_material/ (non-SEALED), freeze code and tests",
+   "passed": true,
+   "note": "0 sealed identifiers in any A1-facing run-log file except the documented inventory.json and the verbatim plan copies; 0 public dirs/relabel files of sealed cases; no _reviewer_blind in the reviewer tree"
+  }
+ ],
+ "files": [
+  "/Users/idantal/ShermanQC/FullProject/domains/production/engine/eval/freeze/prefreeze.py",
+  "/Users/idantal/ShermanQC/FullProject/domains/production/engine/eval/freeze/physical.py",
+  "/Users/idantal/ShermanQC/FullProject/domains/production/engine/eval/freeze/ledger.py",
+  "/Users/idantal/ShermanQC/FullProject/domains/production/engine/eval/freeze/gold.py",
+  "/Users/idantal/ShermanQC/FullProject/domains/production/engine/eval/freeze/cases.py",
+  "/Users/idantal/ShermanQC/FullProject/domains/production/engine/eval/freeze/broad.py",
+  "/Users/idantal/ShermanQC/FullProject/domains/production/engine/eval/freeze/legacy.py",
+  "/Users/idantal/ShermanQC/FullProject/domains/production/engine/eval/freeze/common.py",
+  "/Users/idantal/ShermanQC/FullProject/domains/production/engine/eval/freeze/g3_material.py",
+  "/Users/idantal/ShermanQC/FullProject/domains/production/engine/eval/freeze/recipes.py",
+  "/Users/idantal/ShermanQC/FullProject/tests/test_prod_engine_freeze_prefreeze.py",
+  "/Users/idantal/ShermanQC/FullProject/tests/test_prod_engine_freeze_physical.py",
+  "/Users/idantal/ShermanQC/FullProject/tests/test_prod_engine_freeze_gold.py",
+  "/Users/idantal/ShermanQC/FullProject/tests/test_prod_engine_freeze_cases.py",
+  "/Users/idantal/ShermanQC/FullProject/tests/test_prod_engine_freeze_broad.py",
+  "/Users/idantal/ShermanQC/FullProject/tests/test_prod_engine_freeze_legacy.py",
+  "/Users/idantal/ShermanQC/FullProject/tests/test_prod_engine_freeze_ledger.py",
+  "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/freeze/README.md",
+  "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/freeze/LEDGER.json",
+  "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/freeze/ANCHOR.txt",
+  "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/freeze/gold_transforms.json",
+  "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/freeze/cases_A1.json",
+  "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/freeze/compile_report.json",
+  "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/freeze/gold_broad_A1.json",
+  "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/freeze/gold_g2a_A1.json",
+  "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/freeze/gold_g2a_relabel_A1.json",
+  "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/legacy_control/README.md",
+  "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/legacy_control/SUMMARY.json",
+  "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/g3_truth_material/REVIEWER_INSTRUCTIONS.md",
+  "/private/tmp/claude-501/-Users-idantal/db065cf7-f766-4885-b217-ed8d7edd7ade/scratchpad/e4b_work/builder_SEALED",
+  "/private/tmp/claude-501/-Users-idantal/db065cf7-f766-4885-b217-ed8d7edd7ade/scratchpad/e4b_a1_check_work/scorecard_dryrun_noE3_A1.json",
+  "/private/tmp/claude-501/-Users-idantal/db065cf7-f766-4885-b217-ed8d7edd7ade/scratchpad/e4b_fix/leak_check.py",
+  "/private/tmp/claude-501/-Users-idantal/db065cf7-f766-4885-b217-ed8d7edd7ade/scratchpad/e4b_fix/compare_cases.py"
+ ],
+ "open_issues": [
+  "F4 needs the owner's or orchestrator's confirmation before the anchor is published: the gate rule E4B-4D-GATE-2 (frozen DEV recipes gated, strict V10 reported only) is recorded in the ledger as decided before A1. Rejecting it means gating strict V10 again, which makes G2 FAIL by construction, and a ledger replacement before A1 starts.",
+  "F5: the G3 truth table is still unfilled; it needs two fresh reviewers plus a tie-break (A1: 203 rows; DEV-CHECK: 75 rows, at the final run or by R1). Until it is frozen and recorded with `prefreeze record-truth-table`, run-physical refuses the 13 truth-relevant A1 cases. A1 can iterate on the other 14 A1 cases meanwhile.",
+  "R1 must record the new anchor cf01e709079c0fcc348758c5196884bff7d20f7836b88c7616883c0dcec67e67 outside the freeze dir (docs/CURRENT_STATUS.md); the old anchors are superseded. Any A1 instructions that point at e4b_work must point at a fresh work dir instead.",
+  "Carried over: the scanner model card is PARTIAL (needs measurement or an owner SCANNER_MODEL_PARTIAL waiver), and the Gold11 relabel is not signed off. One A1 relabel file was revised by the audit workflow after the review; the freeze holds it as of now, and scoring reports any later change.",
+  "Accepted, not fixable without breaking the draw seed or the Gold11 definition: inventory.json, the verbatim plan text and the freeze code's pinned Gold11 records name the whole population, so DEV-CHECK membership is inferable by omission. The seal is procedural; this is documented in the README and the ledger."
+ ]
+}

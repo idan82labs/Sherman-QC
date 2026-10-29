@@ -1,0 +1,56 @@
+{
+  "labeler": "claude-vision-ai-v1",
+  "no_bends_present": false,
+  "notes": "GOLD v1 (gold fixer round 1, 2026-10-18) for sc_eaa89c6d1f1f (40500000_0_SCAN1 1.ply, part 40500000, tagged PARTIAL_SCAN_1 but every bend is formed (cad_crosscheck); CAD bend lines 9; CONSUMED in BENCHMARK_V3). Started from benchmark_v2/label_lines/sc_eaa89c6d1f1f/pairs.json and prep benchmark_v2/label_prep/sc_eaa89c6d1f1f. Part: open rectangular tray, t ~1.0-1.2 mm. Base 1/2 (~194 x 123 mm) with four ~43 mm walls folded up 90 deg: long walls 3/4 and 5/6, short walls 7/8 and 9/10. Each short-wall fold is interrupted by two ~29 mm ear windows, where the wall is notched and flat ears (with holes) continue the base plane outward; the ears are coplanar with the base and are not bends. The long-wall fold B2 crosses a ~13 mm semicircular base relief. The wall tops carry five inward 90 deg flanges/tabs: 11 (~48 mm, on short wall 9/10), recessed tabs 12 (long wall 3/4) and 14 (long wall 5/6), and corner tabs 13 and 15 (short wall 7/8, butting against the long walls). 9 formed bends = CAD 9; three auditors and the fixer's raw-point sections agree. The four vertical box corners are butt seams (wall end against wall face, no arc) and are not bends. Also not bends: hole and window walls, ears, thickness and perimeter edges, thin strip 16 (wall-end thickness face at the x-/y- corner), and the unscanned diamond in the base bottom skin (a scan gap, not an emboss). All lines are outer-skin apex (--locus apex). GOLD FIX: B3 and B4 (base to short walls) sat in air ~1.3 mm outside the outer arc, because in envelope mode the flat ear/base points inside the windows, which pass through the OML sharp, set the apex floor (apex offset -0.33/-0.38 mm). apex_mode station_median puts both on the outer-arc apex (offset 0.94/0.97 mm; raw-point fold stations within -0.05..+0.07 mm of the line). B8's start and B9's end are extended to the visible fold ends (coverage ~87% -> ~97%). B1, B2 and B5-B7 are unchanged (3/3 auditors OK).",
+  "bends": [
+    {
+      "patches": [2, 3],
+      "confidence": "auto",
+      "note": "Base 2 (bottom outer skin) up into long wall 3 (outside face), ~90 deg, outer skins. Runs the full shared edge between the corner butt seams (visible fold ~-1.5..181.5 in line t; line 0..180.5). Unchanged; on the outer apex (raw stations -0.10..+0.13 mm)."
+    },
+    {
+      "patches": [2, 6],
+      "confidence": "auto",
+      "note": "Base 2 up into long wall 6 (outside face), ~90 deg, outer skins. ONE line across the ~13 mm semicircular base relief at t ~88-101 (same two plates on both sides, collinear). Unchanged; on the outer apex (raw stations mostly -0.16..+0.09 mm)."
+    },
+    {
+      "patches": [2, 7],
+      "confidence": "certain",
+      "apex_mode": "station_median",
+      "note": "Base 2 up into short wall 7 (outside face), ~90 deg, outer skins. ONE line across both ~29 mm ear windows (t ~9-38 and ~64-93), where wall 7 is notched and flat ears continue the base plane; the same two plates fold on either side, collinear. GOLD FIX: apex_mode station_median. In envelope mode the window ear/base points through the OML sharp set the apex floor (offset -0.33 mm), so the line floated ~1.3 mm in air outside the arc. Per-station medians give 0.94 mm, and in the raw fold-bearing stations (t 0-8, 39-63, 94-126) the arc apex is -0.02..+0.07 mm from the line. Patch-pair coverage 0.52 comes from the windows (no wall-7 patch there), not a short line, so certain by vision. Auto extent 0..125.5 of a visible fold ~-0.5..126.2."
+    },
+    {
+      "patches": [2, 10],
+      "confidence": "certain",
+      "apex_mode": "station_median",
+      "note": "Base 2 up into short wall 10 (outside face), ~90 deg, outer skins. ONE line across both ~29 mm ear windows (t ~9-38 and ~64-93), same two plates, collinear. GOLD FIX: apex_mode station_median. Envelope mode put the apex on the window ear/base points (offset -0.38 mm, line ~1.35 mm in air outside the arc). Station medians give 0.97 mm, and the raw fold-bearing stations are within -0.05..+0.05 mm of the line. Patch-pair coverage 0.53 comes from the windows, so certain by vision. Auto extent 0..125.4 of a visible fold ~-0.7..126.2."
+    },
+    {
+      "patches": [10, 11],
+      "confidence": "auto",
+      "note": "Short wall 10 (outside face) into the ~48 mm inward top flange 11 (top skin), ~88.5 deg, outer skins, between the flange end reliefs. Unchanged; on the outer apex."
+    },
+    {
+      "patches": [3, 12],
+      "confidence": "auto",
+      "note": "Long wall 3 (outside face) into the recessed ~21 mm inward top tab 12 (top skin), ~90 deg. Unchanged; on the outer apex."
+    },
+    {
+      "patches": [6, 14],
+      "confidence": "auto",
+      "note": "Long wall 6 (outside face) into the recessed ~21 mm inward top tab 14 (top skin), ~90 deg. Unchanged; on the outer apex."
+    },
+    {
+      "patches": [7, 13],
+      "confidence": "auto",
+      "extent_t": [-59.02, -45.8835],
+      "note": "Short wall 7 (outside face) into inward corner tab 13 (top skin), ~90 deg. The tab butts against long wall 3 at the corner (a seam, not a fold). Extent: the start moves 1.2 mm out from the auto start (t -57.82), because the outer arc is still scanned there and the auto line stopped ~1.3-1.5 mm short of the corner (coverage ~87%). The end stays at the tab end."
+    },
+    {
+      "patches": [7, 15],
+      "confidence": "auto",
+      "extent_t": [47.0217, 60.22],
+      "note": "Short wall 7 (outside face) into inward corner tab 15 (top skin), ~91 deg. The tab butts against long wall 6 at the corner (a seam). Extent: the end moves 0.75 mm out from the auto end (t 59.48) to just before the long-wall-6 face (the arc is scanned to ~13.3 mm from the tab end). The start stays at the tab end."
+    }
+  ]
+}

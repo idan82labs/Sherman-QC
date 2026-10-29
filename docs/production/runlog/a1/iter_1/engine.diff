@@ -1,0 +1,973 @@
+diff -ru -x __pycache__ before/engine/inspect/articulated.py /Users/idantal/ShermanQC/FullProject/domains/production/engine/inspect/articulated.py
+--- before/engine/inspect/articulated.py	2026-10-17 10:48:34
++++ /Users/idantal/ShermanQC/FullProject/domains/production/engine/inspect/articulated.py	2026-10-18 03:11:18
+@@ -17,7 +17,13 @@
+    skins, one thickness apart) tangent to the bend's inner/outer cylinders;
+    the score of ``theta`` is the best two-skin line count. Support starts past
+    the bend's own arc tangent zone (every intermediate line touches the arc
+-   there). The best angle is refined on a 0.1 deg grid.
++   there). The best angle is refined on a 0.1 deg grid. The inner-skin line is
++   searched within ``hinge_rho_slack_mm`` of its nominal offset; when that
++   leaves a bend of at least ``displaced_min_sweep_deg`` flat or partial, the
++   formed-like angles are searched again with ``hinge_rho_slack_wide_mm`` over
++   the fine reach, and a clearly better supported line (a formed flange whose
++   bend line sits millimetres off nominal) replaces the narrow one, so the
++   defect is measured instead of read as a half-formed bend.
+ 3. **Region growing.** Seeds are the points on the winning line. The child's
+    material slab (mid-plane +- t/2 + tolerance, voxel normals within a cone)
+    is grown over the voxel neighbour graph from the seeds, the plane is refitted
+@@ -207,6 +213,35 @@
+     return scores, rhos, n_i, n_o
+ 
+ 
++def _displaced_formed(zc, uc, vc, frame: HingeFrame, sweep_deg: float, cfg: InspectConfig, reach: float
++                      ) -> tuple[float, float, float, float, float] | None:
++    """``(theta, rho_iml, score, n_iml, n_oml)`` of the best formed-like two-skin line whose inner skin
++    lies beyond the narrow slack (up to ``hinge_rho_slack_wide_mm`` from nominal), else None.
++
++    Angles from half the nominal sweep to the overbend limit; support counted
++    over the fine reach, like the narrow fine search it is compared with. A
++    line inside the narrow window was already weighed by the narrow search.
++    """
++    from dataclasses import replace
++
++    wide = replace(cfg, hinge_rho_slack_mm=cfg.hinge_rho_slack_wide_mm)
++    lo = max(0.5 * sweep_deg, cfg.flat_sweep_max_deg + 1.0)
++    hi = sweep_deg + cfg.theta_overbend_deg
++    coarse = np.radians(np.arange(lo, hi + 1e-9, cfg.theta_coarse_step_deg))
++    if len(coarse) == 0:
++        return None
++    sc, _, _, _ = _hough(zc, uc, vc, frame, coarse, wide, reach)
++    if float(sc.max()) <= 0.0:
++        return None
++    k = int(np.argmax(sc))
++    fine = np.radians(np.arange(math.degrees(coarse[k]) - 1.5, math.degrees(coarse[k]) + 1.51, 0.1))
++    sc2, rh2, ni2, no2 = _hough(zc, uc, vc, frame, fine, wide, reach)
++    k2 = int(np.argmax(sc2))
++    if abs(float(rh2[k2]) - frame.rho_iml) <= cfg.hinge_rho_slack_mm:
++        return None
++    return float(fine[k2]), float(rh2[k2]), float(sc2[k2]), float(ni2[k2]), float(no2[k2])
++
++
+ def _band_points(pts: np.ndarray, frame: HingeFrame, margin: float, radius: float | None = None):
+     z, uc, vc = frame.coords(pts)
+     r = np.hypot(uc, vc)
+@@ -268,10 +303,21 @@
+         sc2, rh2, ni2, no2 = _hough(wz, wu, wv, frame, fine, cfg, reach)
+         k2 = int(np.argmax(sc2))
+         theta, rho_i = float(fine[k2]), float(rh2[k2])
++        score = float(sc2[k2])
++        detail = {"n_iml": float(ni2[k2]), "n_oml": float(no2[k2]), "coarse_profile_max": float(sc.max())}
++        # a formed flange whose bend line sits beyond the slack (a backgauge error, a flange cut long)
++        # leaves the narrow search on clutter at a flat or partial angle: a formed-like line found with
++        # the wide slack over the full reach replaces it when its support is clearly stronger
++        if sweep_deg >= cfg.displaced_min_sweep_deg and math.degrees(theta) < cfg.formed_fraction_min * sweep_deg:
++            alt = _displaced_formed(wz, wu, wv, frame, sweep_deg, cfg, reach)
++            if alt is not None and alt[2] >= cfg.displaced_support_ratio * max(score, 1.0):
++                detail.update({"narrow_theta_deg": math.degrees(theta), "narrow_score": score,
++                               "displaced_mm": float(alt[1] - frame.rho_iml), "n_iml": alt[3], "n_oml": alt[4]})
++                theta, rho_i, score = alt[0], alt[1], alt[2]
+         bf.theta_deg = math.degrees(theta)
+         bf.rho_iml = rho_i
+-        bf.score = float(sc2[k2])
+-        bf.detail = {"n_iml": float(ni2[k2]), "n_oml": float(no2[k2]), "coarse_profile_max": float(sc.max())}
++        bf.score = score
++        bf.detail = detail
+         # the line points: both skins at theta
+         c, s = math.cos(theta), math.sin(theta)
+         sv = uc * c + vc * s
+diff -ru -x __pycache__ before/engine/inspect/config.py /Users/idantal/ShermanQC/FullProject/domains/production/engine/inspect/config.py
+--- before/engine/inspect/config.py	2026-10-17 12:36:52
++++ /Users/idantal/ShermanQC/FullProject/domains/production/engine/inspect/config.py	2026-10-18 03:10:53
+@@ -161,6 +161,15 @@
+     #: The fine angle search may look this many band radii along the child (sharper peak).
+     hough_fine_reach: float = 2.5
+     hinge_rho_slack_mm: float = 3.0
++    #: A formed child whose bend line sits beyond ``hinge_rho_slack_mm`` (a backgauge error, a flange
++    #: cut long) leaves the narrow search on clutter (the parent's own continuation, the bend arc) at a
++    #: flat or partial angle. For bends of at least ``displaced_min_sweep_deg`` the formed-like angles
++    #: (half the sweep and up) are then searched again with this IML slack (mm) over the fine reach;
++    #: the displaced line wins when its two-skin support is at least ``displaced_support_ratio`` times
++    #: the narrow winner's (a distance-to-nominal gate must not drop a defective flange, plan §3.2).
++    hinge_rho_slack_wide_mm: float = 10.0
++    displaced_support_ratio: float = 1.5
++    displaced_min_sweep_deg: float = 45.0
+     min_child_points: int = 25
+     min_child_axial_coverage: float = 0.12
+     grow_plane_tol_mm: float = 0.35
+@@ -348,7 +357,9 @@
+     "degenerate_min_information": _POS, "degenerate_max_sigma_mm": _POS,
+     "theta_min_deg": (-45.0, 0.0, False, False), "theta_coarse_step_deg": (0.0, 10.0, True, False),
+     "hough_bin_mm": _POS, "hough_window_mm": _POS, "hough_fine_reach": (1.0, None, False, False),
+-    "hinge_rho_slack_mm": _POS, "min_child_points": (1, None, False, False), "min_child_axial_coverage": _FRAC,
++    "hinge_rho_slack_mm": _POS, "hinge_rho_slack_wide_mm": _POS, "displaced_support_ratio": (1.0, None, False, False),
++    "displaced_min_sweep_deg": (0.0, 180.0, False, False),
++    "min_child_points": (1, None, False, False), "min_child_axial_coverage": _FRAC,
+     "grow_plane_tol_mm": _POS, "grow_normal_tol_deg": (0.0, 90.0, True, True), "grow_iterations": (1, None, False, False),
+     "flat_fraction_max": (0.0, 1.0, False, True), "formed_fraction_min": (0.0, 1.0, True, False),
+     "stations_min": (1, None, False, False), "stations_max": (1, None, False, False), "station_target_mm": _POS,
+@@ -391,7 +402,7 @@
+     if not out:
+         pairs = (("voxel_min_mm", "voxel_max_mm"), ("stations_min", "stations_max"),
+                  ("explained_tight_min_mm", "explained_tight_max_mm"), ("erosion_min_spacing", "erosion_max_spacing"),
+-                 ("local_fit_min_depth_mm", "local_fit_depth_mm"))
++                 ("local_fit_min_depth_mm", "local_fit_depth_mm"), ("hinge_rho_slack_mm", "hinge_rho_slack_wide_mm"))
+         for a, b in pairs:
+             if getattr(cfg, a) > getattr(cfg, b):
+                 out.append(f"{a} must be <= {b}")
+diff -ru -x __pycache__ before/engine/inspect/engine.py /Users/idantal/ShermanQC/FullProject/domains/production/engine/inspect/engine.py
+--- before/engine/inspect/engine.py	2026-10-17 13:07:22
++++ /Users/idantal/ShermanQC/FullProject/domains/production/engine/inspect/engine.py	2026-10-18 02:43:19
+@@ -355,8 +355,15 @@
+     for c in found:
+         point = None if c.sharp is None else c.sharp[0]
+         ctx.crease_sharps.setdefault(c.panel, []).append((point, c.direction, c.sharp_u, c.model.crease_id))
+-    outcomes = _outcomes(part, best, states, decodes, geoms, lines, transforms, stage_id, exact, in_plane_degenerate,
+-                         ambiguous, idx, cfg, budget, thick, ctx)
++    # a datum whose edges and holes leave an in-plane direction free still fixes every bend-line
++    # position measured across that direction: such positions are measured, the others withheld
++    pos_trust = _position_trust(part, best.fit, model, states, geoms, lines, transforms, in_plane_degenerate, cfg)
++    reg_degenerate = in_plane_degenerate and not any(ok for ok, _ in pos_trust.values())
++    if in_plane_degenerate:
++        note("in-plane pose degenerate: positions " + (" ".join(
++            f"{part.bends[j].label}={'ok' if ok else 'withheld'}" for j, (ok, _) in sorted(pos_trust.items())) or "none"))
++    outcomes = _outcomes(part, best, states, decodes, geoms, lines, transforms, stage_id, exact, reg_degenerate,
++                         ambiguous, idx, cfg, budget, thick, ctx, pos_trust)
+     ctx.general = _general_measurements(part, recipe, states, geoms, best.art, cfg, budget)
+     # -- heatmap, labels --------------------------------------------------------------------------------
+     step("heatmap", 85)
+@@ -374,7 +381,7 @@
+     elif heat_reason is None:
+         heat_reason = "TIMEOUT"
+     labels = _segment_labels(part, best.art, vox, reg_pts, geoms, found, ambiguous)
+-    registration = _registration_block(best, len(proper), margin, ambiguous, in_plane_degenerate, cfg,
++    registration = _registration_block(best, len(proper), margin, ambiguous, reg_degenerate, cfg,
+                                        float(opts.unit_factor))
+     coverage = CoverageV1(surface_coverage_ratio=None if surface_cov is None else float(min(1.0, surface_cov)),
+                           datum_coverage_ratio=float(min(1.0, max(0.0, best.fit.datum_coverage))),
+@@ -382,8 +389,12 @@
+     detail = _stage_detail(part, states, stage_id, exact, ambiguous)
+     if part.compiled.k_factor is not None and part.compiled.k_factor.source == "SHOP_DEFAULT":
+         warnings.append("K_FACTOR_DEFAULTED: backgauge U includes sigma_K * |dN/dK|")
+-    if in_plane_degenerate:
++    if reg_degenerate:
+         warnings.append("IN_PLANE_POSE_DEGENERATE: bend-line position and heatmap withheld")
++    elif in_plane_degenerate:
++        withheld = sum(1 for ok, _ in pos_trust.values() if not ok)
++        warnings.append("IN_PLANE_POSE_PARTIAL: the datum's cut edges and holes leave an in-plane direction "
++                        f"undetermined; heatmap and {withheld} bend-line position(s) depending on it withheld")
+     return ctx.finish("VALID", (), registration, coverage, outcomes, stage_id, detail, creases, deviations, labels,
+                       heat_reason, log)
+ 
+@@ -776,9 +787,46 @@
+     return f"decoded against {stage_id}{'' if exact else ' (display only: some bends undetermined)'}; {seq}"
+ 
+ 
++def _position_trust(part: PartView, fit: InPlaneFit, model: DatumModel, states: list[str],
++                    geoms: dict[int, BendMeasure], lines, transforms, pose_degenerate: bool, cfg: InspectConfig
++                    ) -> dict[int, tuple[bool, float | None]]:
++    """Per measurable formed bend under a degenerate in-plane pose: (position trusted, frame sigma in mm).
++
++    The bend-line position is measured along side A's outward direction at the
++    nominal line. It is trusted when that direction does not depend on an
++    undetermined pose direction (:meth:`InPlaneFit.position_determined`) and the
++    determined directions' sigma there is at most ``degenerate_max_sigma_mm``.
++    A well-determined pose returns ``{}`` (every position uses the pose's
++    scalar sigma, as before).
++    """
++    out: dict[int, tuple[bool, float | None]] = {}
++    if not pose_degenerate:
++        return out
++    for j, bend in enumerate(part.bends):
++        bm = geoms.get(j)
++        line = lines.get(bend.uid)
++        if states[j] not in _FORMED_LIKE or bm is None or not bm.ok or line is None:
++            continue
++        q0, q1 = np.asarray(line[0], dtype=np.float64), np.asarray(line[1], dtype=np.float64)
++        dn = unit(q1 - q0)
++        out_a = transforms[bend.side_panel["A"]][:3, :3] @ bend.side_out["A"]
++        oa = out_a - float(out_a @ dn) * dn
++        if float(np.linalg.norm(oa)) < 1e-9:
++            out[j] = (False, None)
++            continue
++        oa = unit(oa)
++        mid = 0.5 * (q0 + q1)
++        if not fit.position_determined(model, mid, oa):
++            out[j] = (False, None)
++            continue
++        sig = fit.position_sigma_mm(model, mid, oa)
++        out[j] = (bool(sig <= cfg.degenerate_max_sigma_mm), sig)
++    return out
++
++
+ def _outcomes(part: PartView, best: _Hyp, states, decodes, geoms, lines, transforms, stage_id, exact, degenerate,
+-              ambiguous, idx: PointIndex, cfg: InspectConfig, budget: _Budget, thick: Thickness, ctx: _Ctx
+-              ) -> list[BendOutcome]:
++              ambiguous, idx: PointIndex, cfg: InspectConfig, budget: _Budget, thick: Thickness, ctx: _Ctx,
++              pos_trust: dict[int, tuple[bool, float | None]] | None = None) -> list[BendOutcome]:
+     out: list[BendOutcome] = []
+     art = best.art
+     n = part.n
+@@ -842,13 +890,15 @@
+                 shift = np.median(rel - np.outer(rel @ bm.line_dir, bm.line_dir), axis=0)
+             # bend-line position against the decoded stage model's nominal OML sharp
+             cid_p = f"{bend.uid}/BEND_LINE_POSITION"
+-            if degenerate:
++            trusted, sigma_here = (pos_trust or {}).get(j, (True, None))
++            if degenerate or not trusted:
+                 o.forced_unknown[cid_p] = "REGISTRATION_UNTRUSTED"
+             else:
+                 side_a_panel = bend.side_panel["A"]
+                 out_a = transforms[side_a_panel][:3, :3] @ bend.side_out["A"]
+-                o.measurements[cid_p] = position_measurement(bm, lines[bend.uid], out_a, pose_sigma, cfg, pose_bias,
+-                                                             thick=thick, datum_normal=datum_normal)
++                o.measurements[cid_p] = position_measurement(bm, lines[bend.uid], out_a,
++                                                             pose_sigma if sigma_here is None else sigma_here, cfg,
++                                                             pose_bias, thick=thick, datum_normal=datum_normal)
+                 lo, hi = bm.visible
+                 o.measured_line = (bm.line_point + bm.line_dir * lo + shift, bm.line_point + bm.line_dir * hi + shift)
+             for side in ("A", "B"):
+diff -ru -x __pycache__ before/engine/inspect/metrology.py /Users/idantal/ShermanQC/FullProject/domains/production/engine/inspect/metrology.py
+--- before/engine/inspect/metrology.py	2026-10-17 13:31:19
++++ /Users/idantal/ShermanQC/FullProject/domains/production/engine/inspect/metrology.py	2026-10-18 03:00:05
+@@ -67,6 +67,7 @@
+ from domains.production.engine.inspect.part import BendView, PartView
+ 
+ __all__ = ["Measurement", "BendMeasure", "Thickness", "measure_bend_geometry", "measure_flange", "measure_backgauge",
++           "SideProfile",
+            "PointIndex", "unfold_island", "bare_edge_untrusted"]
+ 
+ 
+@@ -559,7 +560,8 @@
+ 
+ 
+ def _far_free(pts: np.ndarray, region_mask: np.ndarray, plane: Plane, t: float, origin: np.ndarray, w: np.ndarray,
+-              a: np.ndarray, width: float, s_min: float, spacing: float, voxel: float, cfg: InspectConfig) -> _FarEdge:
++              a: np.ndarray, width: float, s_min: float, spacing: float, voxel: float, cfg: InspectConfig,
++              flatten: tuple[np.ndarray, np.ndarray] | None = None) -> _FarEdge:
+     """Farthest material of the side panel at one station (skins + cut wall), as a high order statistic.
+ 
+     ``pts`` are the registered points (the developed island for a backgauge);
+@@ -573,6 +575,10 @@
+     grown region lie more than ``max(truncation_gap_mm, 1.5 voxels)`` beyond the
+     run's end outside the material slab: the panel continues where its plane
+     does not (a bow, or a kink nothing unfolded), so the run's end is not its edge.
++
++    ``flatten`` ``(z, offset)``: the CAD far boundary's offset from its value at
++    the station centre across the station (a slanted or stepped far edge); each
++    point's ``s`` is reduced by it first, so the far edge is taken at the centre.
+     """
+     rel = pts - origin
+     z = rel @ a
+@@ -583,6 +589,8 @@
+     d = plane.distance(pts[sel])
+     mat = (d < cfg.far_edge_material_slack_mm) & (d > -t - cfg.far_edge_material_slack_mm)
+     s = rel[sel] @ w
++    if flatten is not None:
++        s = s - np.interp(z[sel], flatten[0], flatten[1])
+     reg_any = region_mask[sel] & (s > s_min)
+     reg = mat & reg_any
+     if reg.sum() < 3:
+@@ -615,14 +623,21 @@
+ 
+ 
+ def _free_edge_stations(pts: np.ndarray, mask: np.ndarray, bm: BendMeasure, plane: Plane, t: float, w: np.ndarray,
+-                        d_t: float, spacing: float, voxel: float, cfg: InspectConfig
++                        d_t: float, spacing: float, voxel: float, cfg: InspectConfig, used: list[int] | None = None,
++                        flatten_of: Callable[[int], tuple[np.ndarray, np.ndarray] | None] | None = None
+                         ) -> tuple[list[float], list[bool], int, int]:
+-    """Per valid station of ``bm``: far-edge values and walls; also (support, truncated stations)."""
++    """Per valid station of ``bm``: far-edge values and walls; also (support, truncated stations).
++
++    ``used`` (when given) receives the station index of every returned value;
++    ``flatten_of(i)`` the CAD far-edge offsets across station ``i`` (:func:`_far_free`).
++    """
+     vals: list[float] = []
+     walls: list[bool] = []
+     support = truncated = 0
+     for i in np.nonzero(bm.valid)[0]:
+-        fe = _far_free(pts, mask, plane, t, bm.sharp[i], w, bm.line_dir, bm.width, d_t, spacing, voxel, cfg)
++        fl = flatten_of(int(i)) if flatten_of is not None else None
++        fe = _far_free(pts, mask, plane, t, bm.sharp[i], w, bm.line_dir, bm.width, d_t, spacing, voxel, cfg,
++                       flatten=fl)
+         support += fe.support
+         if fe.truncated:
+             truncated += 1
+@@ -630,9 +645,120 @@
+         if fe.value is not None:
+             vals.append(fe.value)
+             walls.append(fe.walled)
++            if used is not None:
++                used.append(int(i))
+     return vals, walls, support, truncated
+ 
+ 
++# --------------------------------------------------------------------------- nominal station profile
++#: A CAD far boundary varying by more than this (mm) across a station's width is flattened before the
++#: station's far edge is taken, and a profile varying by more than this along the stations is compared
++#: station by station; a straight far boundary parallel to the bend keeps the plain station statistic.
++_PROFILE_MIN_SPREAD_MM = 0.05
++#: The compiled nominal must lie within the CAD profile's range along the corridor (plus this, mm).
++_PROFILE_RANGE_SLACK_MM = 0.05
++#: Resolution (mm) of the profile samples across a station's width.
++_PROFILE_STEP_MM = 0.1
++
++
++def _uw_crossings(starts: np.ndarray, ends: np.ndarray, u: float) -> tuple[np.ndarray, np.ndarray]:
++    """``w`` where the station line ``u`` crosses each segment (E1's half-open rule) and the segment indices."""
++    u0, u1 = starts[:, 0], ends[:, 0]
++    lo, hi = np.minimum(u0, u1), np.maximum(u0, u1)
++    idx = np.nonzero((lo <= u) & (u < hi))[0]
++    if len(idx) == 0:
++        return np.zeros(0), idx
++    a, b = starts[idx], ends[idx]
++    frac = (u - a[:, 0]) / (b[:, 0] - a[:, 0])
++    return a[:, 1] + frac * (b[:, 1] - a[:, 1]), idx
++
++
++class SideProfile:
++    """The nominal flange length of one side as a function of the axial station position (final-pose CAD).
++
++    E1 compiles one number per side over the whole corridor: the dominant level
++    of a stepped far edge, the median of a taper, the median crossing of a
++    non-parallel adjacent bend. A scan measures the *visible* stations, each
++    over a station width, so on a stepped, notched or tapered far boundary its
++    station values differ from that number on a perfect part. ``at(u)`` gives
++    the nominal at axial position ``u`` (along the bend from the start of its
++    OML sharp), with E1's definitions: FREE_EDGE, the farthest crossing of the
++    side panel's boundary loops by the station line ``sharp(u) + s w``;
++    ADJACENT_BEND, that line's crossing with the adjacent bend's OML sharp.
++    None where no material crosses. It is used only when the compiled nominal
++    lies within its range along the corridor (:meth:`covers`).
++    """
++
++    def __init__(self, kind: str, origin: np.ndarray, a_dir: np.ndarray, length: float, z0: float,
++                 starts: np.ndarray | None = None, ends: np.ndarray | None = None,
++                 adjacent: tuple[np.ndarray, np.ndarray, np.ndarray] | None = None) -> None:
++        self.kind = kind
++        self.origin = origin
++        self.a_dir = a_dir
++        self.length = length
++        self.z0 = z0
++        self.starts, self.ends = starts, ends
++        self.adjacent = adjacent
++
++    @classmethod
++    def build(cls, part: PartView, j: int, side: str, boundary_kind: str | None,
++              adjacent_uid: str | None) -> "SideProfile | None":
++        bend = part.bends[j]
++        a_dir = unit(bend.axis_dir)
++        w_dir = unit(bend.side_out[side] - float(bend.side_out[side] @ a_dir) * a_dir)
++        q0, _ = bend.locus("oml_virtual_sharp")
++        origin = q0 + float((bend.axis_point + bend.z0 * a_dir - q0) @ a_dir) * a_dir
++        length = float(bend.z1 - bend.z0)
++        if length <= 1e-6:
++            return None
++        if boundary_kind == "ADJACENT_BEND":
++            jb = part.bend_index.get(adjacent_uid or "")
++            if jb is None:
++                return None
++            oq0, oq1 = part.bends[jb].locus("oml_virtual_sharp")
++            od = oq1 - oq0
++            if abs(float(od @ a_dir)) < 0.1 * float(np.linalg.norm(od)):
++                return None  # the far bend runs along the station direction (E1: no nominal either)
++            return cls("ADJACENT_BEND", origin, a_dir, length, float(bend.z0), adjacent=(oq0, od, w_dir))
++        panel = part.panels[bend.side_panel[side]].model
++        loops = [np.asarray(panel.outer_boundary_mm, dtype=np.float64)]
++        loops += [np.asarray(h, dtype=np.float64) for h in panel.holes_mm]
++        st, en = [], []
++        for lp in loops:
++            p = lp - origin
++            uw = np.stack([p @ a_dir, p @ w_dir], axis=1)
++            st.append(uw)
++            en.append(np.roll(uw, -1, axis=0))
++        return cls("FREE_EDGE", origin, a_dir, length, float(bend.z0), starts=np.concatenate(st),
++                   ends=np.concatenate(en))
++
++    def at(self, u: float) -> float | None:
++        if self.kind == "ADJACENT_BEND":
++            oq0, od, w_dir = self.adjacent
++            tau = (u - float((oq0 - self.origin) @ self.a_dir)) / float(od @ self.a_dir)
++            return float((oq0 + tau * od - self.origin) @ w_dir)
++        w, _ = _uw_crossings(self.starts, self.ends, u)
++        return float(w.max()) if len(w) else None
++
++    def covers(self, nominal: float) -> bool:
++        """The compiled nominal lies within this profile's range along the corridor."""
++        vals = [v for v in (self.at(float(u)) for u in np.linspace(0.0, self.length, 201)) if v is not None]
++        return bool(vals) and min(vals) - _PROFILE_RANGE_SLACK_MM <= nominal <= max(vals) + _PROFILE_RANGE_SLACK_MM
++
++    def station_u(self, bm: BendMeasure, frame: HingeFrame, i: int) -> float:
++        """Axial position of station ``i`` (its sharp carried into the bend's hinge frame)."""
++        return float((bm.sharp[i] - frame.o) @ frame.a) - self.z0
++
++    def across(self, u: float, half: float) -> tuple[np.ndarray, np.ndarray] | None:
++        """Profile samples ``(z, value)`` across a station of half width ``half`` at ``u`` (None: no material)."""
++        zs = np.arange(-half, half + 1e-9, _PROFILE_STEP_MM)
++        vals = [self.at(u + float(z)) for z in zs]
++        ok = np.array([v is not None for v in vals])
++        if not ok.any():
++            return None
++        return zs[ok], np.array([v for v in vals if v is not None], dtype=np.float64)
++
++
+ def _edge_unknown(vals: list[float], truncated: int, n_stations: int, method: str, cfg: InspectConfig
+                   ) -> Measurement | None:
+     """The UNKNOWN a FREE_EDGE far edge gets when too few of its stations can be trusted, else None.
+@@ -706,8 +832,17 @@
+     d_t = ro * math.tan(math.radians(min(bm.sweep_deg or 90.0, 170.0)) / 2.0)
+     vals: list[float] = []
+     walls: list[bool] = []
++    used: list[int] = []  # station index of every value (the nominal station profile follows them)
++    flattened: set[int] = set()  # stations whose far edge was taken across a slanted / stepped CAD boundary
+     support = 0
+     t_far = 0.0
++    frame = art.bends[j].frame
++    nom_side = part.nominals.get(f"{bend.uid}/FLANGE_LENGTH/{side}")
++    profile = None
++    if frame is not None and nom_side is not None and nom_side.nominal is not None:
++        profile = SideProfile.build(part, j, side, boundary_kind, adjacent_uid)
++        if profile is not None and not profile.covers(float(nom_side.nominal)):
++            profile = None
+     if boundary_kind == "ADJACENT_BEND":
+         jb = part.bend_index.get(adjacent_uid or "")
+         other = geoms.get(jb) if jb is not None else None
+@@ -718,6 +853,7 @@
+             ls = _station_crossing(origin, bm.line_dir, w, other.line_point, other.line_dir)
+             if ls is not None:
+                 vals.append(ls)
++                used.append(int(i))
+         method = "OML_SHARP_TO_OML_SHARP"
+         u_edge = 0.0
+         # the far sharp moves along this side when the far bend's other plane moves
+@@ -739,8 +875,21 @@
+         else:
+             mask = _panel_region(idx, art, panel_idx)
+             method = "OML_SHARP_TO_FREE_EDGE"
++            flatten_of = None
++            if profile is not None:
++                half = 0.5 * float(bm.width)
++
++                def flatten_of(i: int) -> tuple[np.ndarray, np.ndarray] | None:
++                    u = profile.station_u(bm, frame, i)
++                    acr, centre = profile.across(u, half), profile.at(u)
++                    if acr is None or centre is None or float(np.ptp(acr[1])) <= _PROFILE_MIN_SPREAD_MM:
++                        return None
++                    flattened.add(i)
++                    return acr[0], acr[1] - centre
++
+             vals, walls, support, truncated = _free_edge_stations(idx.pts, mask, bm, plane, t, w, d_t, spacing,
+-                                                                  idx.vox.voxel, cfg)
++                                                                  idx.vox.voxel, cfg, used=used,
++                                                                  flatten_of=flatten_of)
+             bad = _edge_unknown(vals, truncated, len(bm.z), method, cfg)
+             if bad is not None:
+                 return bad
+@@ -748,7 +897,22 @@
+     if len(vals) < max(3, int(math.ceil(cfg.min_station_fraction * len(bm.z)))):
+         return Measurement.unknown("EDGE_NOT_SEEN", method, f"{len(vals)} of {len(bm.z)} stations")
+     arr = np.asarray(vals)
+-    value, sig, how = robust_location(arr)
++    # a stepped, notched or tapered far boundary: each station against the nominal at that station
++    prof = None
++    if profile is not None and method != "OML_SHARP_TO_UNPLANNED_CREASE_SHARP" and len(used) == len(arr):
++        exp = [profile.at(profile.station_u(bm, frame, i)) for i in used]
++        if all(e is not None for e in exp):
++            exp_arr = np.asarray(exp, dtype=np.float64)
++            if flattened or float(np.ptp(exp_arr)) > _PROFILE_MIN_SPREAD_MM:
++                prof = exp_arr
++    if prof is not None:
++        nom_v = float(nom_side.nominal)
++        dev, sig, how = robust_location(arr - prof)
++        value = nom_v + dev
++        arr = nom_v + (arr - prof)
++        how = how + "_VS_STATION_NOMINAL"
++    else:
++        value, sig, how = robust_location(arr)
+     comps = {"station": _se_median(sig, len(arr)), "edge_mm": u_edge,
+              "sharp_mm": sharp_unit_along(bm, panel_idx == bend.parent, cfg), "far_sharp_mm": u_far,
+              "erosion_mm": _erosion_term(walls, erosion_mm)}
+diff -ru -x __pycache__ before/engine/inspect/registration.py /Users/idantal/ShermanQC/FullProject/domains/production/engine/inspect/registration.py
+--- before/engine/inspect/registration.py	2026-10-17 12:30:47
++++ /Users/idantal/ShermanQC/FullProject/domains/production/engine/inspect/registration.py	2026-10-18 03:04:52
+@@ -215,7 +215,120 @@
+     holes: list[np.ndarray]
+     area: float
+     bbox: tuple[float, float, float, float]
++    #: Per hole: 2D points of compiled stage material (S_0 and S_N, inside the datum slab) that lie
++    #: in the hole polygon. A tab cut out of a window lies flat in it at S_0 and leaves its bend zone
++    #: there at S_N: the hole is not open in every stage, so that area neither forbids scan
++    #: material nor anchors the in-plane pose (stage-independent registration, amendment 9).
++    hole_blocked: list = field(default_factory=list)
+ 
++    def round_hole(self, k: int) -> bool:
++        """A circular hole (radial bins about its centre); any other shape is used through its straight runs."""
++        return _round_hole(self.holes[k])
++
++    def blocked_points(self, k: int) -> np.ndarray:
++        blocked = getattr(self, "hole_blocked", None) or []
++        return blocked[k] if k < len(blocked) else np.zeros((0, 2))
++
++    def open_cells(self, k: int, cells: np.ndarray, clearance: float = 1.5) -> np.ndarray:
++        """Mask of ``cells`` (2D) farther than ``clearance`` from stage material inside hole ``k``."""
++        blocked = self.blocked_points(k)
++        if len(blocked) == 0 or len(cells) == 0:
++            return np.ones(len(cells), dtype=bool)
++        d, _ = cKDTree(blocked).query(cells, k=1, distance_upper_bound=clearance, workers=1)
++        return ~np.isfinite(d)
++
++    def hole_segments(self, min_length: float, reach: float) -> list[tuple[np.ndarray, np.ndarray, np.ndarray, float]]:
++        """``(a, b, normal into the hole, band limit)`` of the straight, open runs of every non-round hole.
++
++        A slot, a rectangular window or a cut-out has no centre to bin radially;
++        its straight boundary runs are cut edges like the outline's free edges
++        (the material lies behind them, the normal points into the hole). A run
++        is used where the hole in front of it is open in every compiled stage:
++        stage material (a tab flat in its window at S_0) closer than ``reach``
++        plus a margin ends the usable part of the run, and the band that may
++        hold the edge's own material stops short of the hole's opposite side and
++        of any stage material (the returned limit, mm). Runs shorter than
++        ``min_length`` are dropped.
++        """
++        key = (round(float(min_length), 6), round(float(reach), 6))
++        cache = self.__dict__.setdefault("_hole_segs", {})
++        if key in cache:
++            return cache[key]
++        out: list[tuple[np.ndarray, np.ndarray, np.ndarray, float]] = []
++        for k, hp in enumerate(self.holes):
++            if len(hp) < 3 or self.round_hole(k):
++                continue
++            ccw = _signed_area(hp) > 0
++            blocked = self.blocked_points(k)
++            for a, b in _straight_runs(hp):
++                d = b - a
++                length = float(np.linalg.norm(d))
++                if length < min_length:
++                    continue
++                e = d / length
++                n_in = np.array([-e[1], e[0]]) if ccw else np.array([e[1], -e[0]])
++                clear = _clearance(hp, a, b, n_in)
++                lim_c = 0.45 * clear
++                if lim_c < 1.0:
++                    continue  # a narrow slot: its opposite side is inside any useful band
++                ss = np.arange(0.0, length + 1e-9, 1.0)
++                lim = np.full(len(ss), lim_c)
++                if len(blocked):
++                    rel = blocked - a
++                    al, of = rel @ e, rel @ n_in
++                    near = (of > -0.5) & (of < reach + 2.0) & (al > -1.5) & (al < length + 1.5)
++                    if near.any():
++                        order = np.argsort(al[near])
++                        alv = al[near][order]
++                        ofv = np.maximum(of[near][order], 0.0) - 0.6  # the band stops 0.6 mm short of it
++                        lo_i = np.searchsorted(alv, ss - 1.25, side="left")
++                        hi_i = np.searchsorted(alv, ss + 1.25, side="right")
++                        for si in range(len(ss)):
++                            if hi_i[si] > lo_i[si]:
++                                lim[si] = min(lim[si], float(ofv[lo_i[si]:hi_i[si]].min()))
++                ok = lim >= 1.0
++                i = 0
++                while i < len(ss):
++                    if not ok[i]:
++                        i += 1
++                        continue
++                    j = i
++                    while j + 1 < len(ss) and ok[j + 1]:
++                        j += 1
++                    s0, s1 = float(ss[i]), float(ss[j])
++                    if s1 - s0 >= min_length:
++                        out.append((a + e * s0, a + e * s1, n_in, float(lim[i:j + 1].min())))
++                    i = j + 1
++        cache[key] = out
++        return out
++
++    def hole_fill_cells(self, k: int, cell: float, inset: float, ring: float) -> tuple[np.ndarray, np.ndarray]:
++        """(open core cells, surrounding material ring cells) of non-round hole ``k`` (cached 2D cell centres).
++
++        Core: inside the hole, at least ``inset`` from its boundary and clear of
++        stage material. Ring: datum material within ``inset .. inset + ring`` of
++        the hole boundary (it shows whether this part of the datum was seen).
++        """
++        key = (k, round(float(cell), 6), round(float(inset), 6), round(float(ring), 6))
++        cache = self.__dict__.setdefault("_hole_fill", {})
++        if key in cache:
++            return cache[key]
++        hp = self.holes[k]
++        closed = np.vstack([hp, hp[:1]])
++        lo, hi = hp.min(axis=0) - (inset + ring + cell), hp.max(axis=0) + (inset + ring + cell)
++        gx = np.arange(lo[0], hi[0], cell) + 0.5 * cell
++        gy = np.arange(lo[1], hi[1], cell) + 0.5 * cell
++        xx, yy = np.meshgrid(gx, gy)
++        cells = np.stack([xx.ravel(), yy.ravel()], axis=1)
++        inside = MplPath(hp).contains_points(cells)
++        dist = _distance_to_polyline(cells, closed)
++        core = cells[inside & (dist >= inset)]
++        core = core[self.open_cells(k, core)]
++        cand = cells[~inside & (dist >= inset) & (dist <= inset + ring)]
++        mat, _ = self.material_lookup(cand)
++        cache[key] = (core, cand[mat])
++        return cache[key]
++
+     @classmethod
+     def from_part(cls, part: PartView) -> "DatumModel":
+         panel = part.panels[part.datum].model
+@@ -253,7 +366,8 @@
+             hp = np.asarray(h, dtype=np.float64)
+             holes.append(np.stack([(hp - p0) @ f1, (hp - p0) @ f2], axis=1))
+         lo, hi = poly.min(axis=0), poly.max(axis=0)
+-        return cls(p0, n0, f1, f2, part.t, poly, free, holes, area, (float(lo[0]), float(lo[1]), float(hi[0]), float(hi[1])))
++        return cls(p0, n0, f1, f2, part.t, poly, free, holes, area, (float(lo[0]), float(lo[1]), float(hi[0]), float(hi[1])),
++                   hole_blocked=_stage_material_in_holes(part, p0, n0, f1, f2, holes))
+ 
+     def material_lookup(self, uv: np.ndarray, pixel: float = 0.25) -> tuple[np.ndarray, np.ndarray]:
+         """(inside the outline and outside every hole, distance to that boundary in mm) per 2D point."""
+@@ -351,13 +465,14 @@
+         inside = MplPath(self.polygon).contains_points(cells)
+         hole_any = np.zeros(len(cells), dtype=bool)
+         forb = np.zeros(len(cells), dtype=bool)
+-        for hp in self.holes:
++        for k, hp in enumerate(self.holes):
+             hin = MplPath(hp).contains_points(cells)
+             hole_any |= hin
+             if hin.any():
+                 dist = _distance_to_polyline(cells[hin], np.vstack([hp, hp[:1]]))
+                 core = np.zeros(len(cells), dtype=bool)
+-                core[np.nonzero(hin)[0][dist > max(0.75, pixel)]] = True
++                idx = np.nonzero(hin)[0][dist > max(0.75, pixel)]
++                core[idx[self.open_cells(k, cells[idx])]] = True  # only where the hole is open at every stage
+                 forb |= core
+         for a, b, nout in self.free_segments():
+             d = b - a
+@@ -375,11 +490,12 @@
+         kernel = kin / n_in - weight * kf / n_f
+         if hole_weight > 0 and self.holes:
+             core = np.zeros(len(cells), dtype=bool)
+-            for hp in self.holes:
++            for k, hp in enumerate(self.holes):
+                 hin = MplPath(hp).contains_points(cells)
+                 if hin.any():
+                     dist = _distance_to_polyline(cells[hin], np.vstack([hp, hp[:1]]))
+-                    core[np.nonzero(hin)[0][dist > max(0.5, pixel)]] = True
++                    idx = np.nonzero(hin)[0][dist > max(0.5, pixel)]
++                    core[idx[self.open_cells(k, cells[idx])]] = True
+             kh = core.reshape(h, w).astype(np.float64)
+             if kh.sum() > 0:
+                 kernel = kernel - hole_weight * kh / kh.sum()
+@@ -413,6 +529,120 @@
+     return best
+ 
+ 
++def _round_hole(hp: np.ndarray) -> bool:
++    """Circular: binned radially about its centre.
++
++    At least 8 vertices whose radii scatter by less than 8 % of their mean
++    radius ``r``, enclosing an area within 12 % of ``pi r^2``. A rectangle's
++    corners are equidistant from its centre, and a rounded window's arcs crowd
++    its vertex list, but neither encloses the area of a circle.
++    """
++    if len(hp) < 8:
++        return False
++    c = hp.mean(axis=0)
++    rads = np.linalg.norm(hp - c, axis=1)
++    r = max(float(np.mean(rads)), 1e-6)
++    if float(np.std(rads)) >= 0.08 * r:
++        return False
++    return bool(abs(abs(_signed_area(hp)) / (math.pi * r * r) - 1.0) < 0.12)
++
++
++def _straight_runs(poly: np.ndarray, ang_tol_deg: float = 2.0, dev_tol: float = 0.05) -> list[tuple[np.ndarray, np.ndarray]]:
++    """Maximal straight runs ``(a, b)`` of a closed polygon (consecutive edges along one chord).
++
++    An edge joins the current run while its direction stays within
++    ``ang_tol_deg`` of the run's chord and every vertex of the run stays within
++    ``dev_tol`` of it, so arcs (fillets, slot ends) break into short pieces.
++    The walk starts at a corner, so no straight edge is split at the polygon's
++    first vertex; a finely tessellated curve gives only short pieces, and a
++    polygon without any corner none at all.
++    """
++    pts = np.asarray(poly, dtype=np.float64)
++    keep = [0]
++    for i in range(1, len(pts)):
++        if np.linalg.norm(pts[i] - pts[keep[-1]]) > 1e-9:
++            keep.append(i)
++    pts = pts[keep]
++    if len(pts) > 1 and np.linalg.norm(pts[0] - pts[-1]) < 1e-9:
++        pts = pts[:-1]
++    k = len(pts)
++    if k < 3:
++        return []
++    d = np.roll(pts, -1, axis=0) - pts
++    d = d / np.linalg.norm(d, axis=1)[:, None]
++    cos_tol = math.cos(math.radians(ang_tol_deg))
++    turn = np.einsum("ij,ij->i", np.roll(d, 1, axis=0), d)  # turn at vertex i (edge i-1 -> edge i)
++    corners = np.nonzero(turn < cos_tol)[0]
++    if len(corners) == 0:
++        return []
++    start = int(corners[0])
++    runs: list[tuple[np.ndarray, np.ndarray]] = []
++    i = 0
++    while i < k:
++        i0 = (start + i) % k
++        j = i + 1  # the run covers vertices start+i .. start+j
++        while j < k:
++            a, b = pts[i0], pts[(start + j + 1) % k]
++            chord = b - a
++            cl = float(np.linalg.norm(chord))
++            if cl < 1e-9:
++                break
++            ce = chord / cl
++            if float(d[(start + j) % k] @ ce) < cos_tol:
++                break
++            inner = pts[[(start + m) % k for m in range(i, j + 2)]] - a
++            dev = np.abs(inner @ np.array([-ce[1], ce[0]]))
++            if float(dev.max()) > dev_tol:
++                break
++            j += 1
++        runs.append((pts[i0].copy(), pts[(start + j) % k].copy()))
++        i = j
++    return runs
++
++
++def _clearance(hp: np.ndarray, a: np.ndarray, b: np.ndarray, n_in: np.ndarray) -> float:
++    """Distance from the run's midpoint along ``n_in`` across the hole to its boundary (the opposite side)."""
++    o = 0.5 * (a + b) + n_in * 1e-3
++    closed = np.vstack([hp, hp[:1]])
++    best = np.inf
++    for p, q in zip(closed[:-1], closed[1:]):
++        e = q - p
++        m = np.array([[n_in[0], -e[0]], [n_in[1], -e[1]]])
++        det = float(np.linalg.det(m))
++        if abs(det) < 1e-12:
++            continue
++        s, u = np.linalg.solve(m, p - o)
++        if s > 1e-3 and -1e-9 <= u <= 1.0 + 1e-9:
++            best = min(best, float(s))
++    return float(best) if math.isfinite(best) else 0.0
++
++
++def _stage_material_in_holes(part: PartView, p0: np.ndarray, n0: np.ndarray, f1: np.ndarray, f2: np.ndarray,
++                             holes: list[np.ndarray]) -> list[np.ndarray]:
++    """Per datum hole: 2D compiled stage material (S_0, S_N; datum slab) inside it, 0.3 mm clear of its boundary."""
++    if not holes:
++        return []
++    chunks = []
++    for sid in ("S0", f"S{part.n}"):
++        if sid not in part.stages:
++            continue
++        pts = part.cloud(sid).points
++        h = (pts - p0) @ n0
++        q = pts[(h > -part.t - 0.5) & (h < 0.5)] - p0
++        chunks.append(np.stack([q @ f1, q @ f2], axis=1))
++    uv = np.vstack(chunks) if chunks else np.zeros((0, 2))
++    out = []
++    for hp in holes:
++        lo, hi = hp.min(axis=0), hp.max(axis=0)
++        cand = uv[(uv[:, 0] > lo[0]) & (uv[:, 0] < hi[0]) & (uv[:, 1] > lo[1]) & (uv[:, 1] < hi[1])]
++        if len(cand):
++            cand = cand[MplPath(hp).contains_points(cand)]
++        if len(cand):
++            cand = cand[_distance_to_polyline(cand, np.vstack([hp, hp[:1]])) > 0.3]
++        out.append(np.asarray(cand, dtype=np.float64).reshape(-1, 2))
++    return out
++
++
+ # --------------------------------------------------------------------------- hypotheses
+ @dataclass
+ class PoseHypothesis:
+@@ -741,7 +971,46 @@
+     thickness_sigma_mm: float | None = None
+     thickness_tiles: int = 0
+     detail: dict = field(default_factory=dict)
++    #: 3x3 sandwich covariance (mm^2) of (rotation * L, tx, ty). Blind along undetermined directions
++    #: (no row constrains them, so the sandwich has nothing there): see ``undetermined``.
++    pose_cov: np.ndarray = field(default_factory=lambda: np.zeros((3, 3)))
++    #: Unit (rotation * L, tx, ty) directions with fewer than ``degenerate_min_information``
++    #: effective observations (rows): the solve never moves the pose along them.
++    undetermined: np.ndarray = field(default_factory=lambda: np.zeros((0, 3)))
+ 
++    def _sensitivity(self, model: "DatumModel", point: np.ndarray, direction: np.ndarray) -> np.ndarray:
++        """Shift (mm) at ``point`` along ``direction`` per unit (rotation * L, tx, ty) pose change."""
++        x = model.to2d(np.asarray(point, dtype=np.float64)[None, :])[0]
++        m = np.array([float(direction @ model.f1), float(direction @ model.f2)])
++        xr = x - model.polygon.mean(axis=0)
++        return np.array([float(m @ np.array([-xr[1], xr[0]])) / self.length_scale, m[0], m[1]])
++
++    def position_determined(self, model: "DatumModel", point: np.ndarray, direction: np.ndarray,
++                            tol: float = 0.05) -> bool:
++        """True when a position at ``point`` measured along ``direction`` does not depend on an undetermined
++        pose direction (at most ``tol`` mm per mm of pose error along each of them).
++
++        A datum whose cut edges and holes leave one in-plane direction free (a
++        panel bounded by bends on two opposite sides) still fixes every position
++        measured across it: along the datum normal, or along the determined axis.
++        """
++        if self.undetermined.size == 0:
++            return True
++        q = self._sensitivity(model, point, direction)
++        return bool(np.all(np.abs(self.undetermined @ q) <= tol))
++
++    def position_sigma_mm(self, model: "DatumModel", point: np.ndarray, direction: np.ndarray) -> float:
++        """Standard uncertainty (mm) of the datum frame at ``point`` along ``direction``, within the determined
++        pose directions (``pose_cov`` projected; the undetermined directions are left to
++        :meth:`position_determined`)."""
++        q = self._sensitivity(model, point, direction)
++        for v in self.undetermined:
++            q = q - float(q @ v) * v
++        cov = np.asarray(self.pose_cov, dtype=np.float64)
++        if not np.all(np.isfinite(cov)):
++            return 1.0
++        return float(math.sqrt(max(0.0, float(q @ cov @ q))))
++
+     def position_bias_mm(self, model: "DatumModel", point: np.ndarray, direction: np.ndarray) -> float:
+         """Worst-case in-plane registration bias (mm) at ``point`` along ``direction`` (CAD frame).
+ 
+@@ -846,7 +1115,10 @@
+     L = max(10.0, 0.5 * math.sqrt(model.area))
+     cen2 = model.polygon.mean(axis=0)
+     info = np.zeros((3, 3))
+-    segs = model.free_segments(min_length=2 * cfg.edge_end_trim_mm + cfg.edge_bin_mm)
++    min_seg = 2 * cfg.edge_end_trim_mm + cfg.edge_bin_mm
++    segs = list(model.free_segments(min_length=min_seg))
++    if hasattr(model, "hole_segments"):  # the straight, open runs of slots and windows are cut edges too
++        segs += model.hole_segments(min_seg, 2.0 * cfg.edge_band_mm)
+     F = np.stack([model.f1, model.f2, model.n0], axis=1)
+     c3 = model.p0 + model.f1 * cen2[0] + model.f2 * cen2[1]
+     # cut-wall points lie between the skins (heights are invariant under the in-plane updates)
+@@ -911,8 +1183,11 @@
+         centred = walled_centred
+     else:
+         centred = list(edge_arr) + [r - float(np.mean(g)) for g in con["hole_groups"] for r in g]
+-    evals = np.linalg.eigvalsh(info)
++    evals, evecs = np.linalg.eigh(info)
+     degenerate = bool(evals.min() < cfg.degenerate_min_information)
++    # the solve never updates these directions (see the loop above): the pose along them is the
++    # fine search's, with no measured uncertainty
++    undetermined = evecs[:, evals < cfg.degenerate_min_information].T.copy()
+     if centred:
+         c = np.asarray(centred)
+         sigma_obs = max(0.02, 1.4826 * float(np.median(np.abs(c - np.median(c)))))
+@@ -941,7 +1216,9 @@
+     tidx, th = _datum_points(pc, model, cfg.thickness_search_fraction * model.t + 0.3, 1.5)
+     thick = tile_thickness(th[tidx], model.to2d(pc[tidx]), model.t, cfg) if len(tidx) else None
+     edge_in = sum(1 for r in edge_res if abs(r) < 0.3) / max(con["expected_bins"], 1)
+-    hole_bins_total = sum(_hole_bins(_hole_radius(hp), spacing, cfg) for hp in model.holes if _hole_radius(hp) >= 1.0)
++    # round holes are scored by their radial bins; slots and windows by their straight runs (edges)
++    hole_bins_total = sum(_hole_bins(_hole_radius(hp), spacing, cfg) for hp in model.holes
++                          if _hole_radius(hp) >= 1.0 and _round_hole(hp))
+     hole_hits = sum(1 for g in con["hole_groups"] for r in g if abs(r - float(np.mean(g))) < 0.45 and abs(r) < 1.5)
+     hole_in = (hole_hits / hole_bins_total) if hole_bins_total else None
+     _, ok_f, kin_f, kf_f = model.kernel_cached(cfg.fine_pixel_mm, cfg.free_edge_band_mm, cfg.violation_weight)
+@@ -957,6 +1234,7 @@
+         hole_rms=float(np.sqrt(np.mean(np.square(hole_res)))) if hole_res else float("nan"),
+         degenerate=degenerate, translation_cov=cov_full[1:, 1:],
+         rotation_sigma_rad=float(math.sqrt(max(cov_full[0, 0], 0.0))) / L,
++        pose_cov=np.asarray(cov_full, dtype=np.float64), undetermined=undetermined,
+         skin_heights=heights, datum_points=int(len(didx)), datum_coverage=cov_cells,
+         hole_mismatch=con["hole_mismatch"], score=float(score), two_skins=two_skins,
+         bias_gain=bias_gain, erosion_mm=float(erosion),
+@@ -1055,6 +1333,13 @@
+     wall is seen is observed at the wall's median (weight 1); otherwise at the
+     skin's extreme, which a scanner erodes inward at a depth discontinuity, with
+     weight ``edge_unwalled_weight``. ``walled`` / ``weights`` are row aligned.
++
++    ``segs`` are ``(a, b, outward normal)`` cut edges, optionally with a fourth
++    item: how far (mm) past the edge the band may reach (a non-round hole's
++    straight run, :meth:`DatumModel.hole_segments`, stops short of the hole's
++    opposite side). Round holes are binned radially about their centre;
++    ``hole_mismatch`` counts holes filled with material (round ones by their
++    inner disc, the others by their open core, :func:`_nonround_hole_filled`).
+     """
+     rows: list[list[float]] = []
+     rhs: list[float] = []
+@@ -1068,7 +1353,9 @@
+     hole_walled: list[list[bool]] = []
+     tree = cKDTree(uv) if len(uv) else None
+     inner_pts = interior if interior is not None else np.zeros(len(uv), dtype=bool)
+-    for a, b, nout in segs:
++    for seg in segs:
++        a, b, nout = seg[0], seg[1], seg[2]
++        reach = float(seg[3]) if len(seg) > 3 and seg[3] is not None else math.inf
+         d = b - a
+         length = float(np.linalg.norm(d))
+         e = d / length
+@@ -1085,7 +1372,7 @@
+         along = rel @ e
+         off = rel @ nout
+         band = cfg.edge_band_mm * (2.0 if wide else 1.0)
+-        keep = (along >= lo) & (along <= hi) & (off > -band) & (off < band)
++        keep = (along >= lo) & (along <= hi) & (off > -band) & (off < min(band, reach))
+         if keep.sum() < 3:
+             continue
+         along, off, wall_pt = along[keep], off[keep], inner_pts[sel][keep]
+@@ -1112,11 +1399,17 @@
+             edge_res.append(obs)
+             edge_walled.append(walled)
+             edge_bins += 1
+-    for hp in model.holes:
++    for k_hole, hp in enumerate(model.holes):
+         c = hp.mean(axis=0)
+         rads = np.linalg.norm(hp - c, axis=1)
+         r_h = float(np.mean(rads))
+-        circular = float(np.std(rads)) < 0.08 * max(r_h, 1e-6)
++        if not _round_hole(hp):
++            # a slot or a window has no centre to bin about: its straight runs come in ``segs``
++            # (DatumModel.hole_segments) and its fill is judged on its open core
++            if tree is not None and hasattr(model, "hole_fill_cells") and \
++                    _nonround_hole_filled(uv, model, k_hole, spacing):
++                hole_mismatch += 1
++            continue
+         if tree is None or r_h < 1.0:
+             continue
+         sel = np.asarray(tree.query_ball_point(c, r=r_h + cfg.hole_annulus_mm), dtype=np.int64)
+@@ -1149,12 +1442,7 @@
+             rb = (float(np.median(rv[m][wall])) if walled else rk) - gap
+             u = relv[m][order[k]] / max(rk, 1e-9)
+             x_b = c + u * rb
+-            if circular:
+-                res, nvec = rb - r_h, u
+-            else:
+-                near = _nearest_on_polyline(x_b, np.vstack([hp, hp[:1]]))
+-                nvec = unit(x_b - c)
+-                res = float((x_b - near) @ nvec)
++            res, nvec = rb - r_h, u
+             xr = x_b - cen2
+             rows.append([float(nvec @ np.array([-xr[1], xr[0]])) / L, float(nvec[0]), float(nvec[1])])
+             rhs.append(-res)
+@@ -1178,6 +1466,37 @@
+ def _hole_bins(r_h: float, spacing: float, cfg: InspectConfig) -> int:
+     """Angular bins around a hole: about 1.5 scan spacings of arc each (8 .. hole_angular_bins)."""
+     return int(max(8, min(cfg.hole_angular_bins, int(2 * math.pi * r_h / (1.5 * max(spacing, 0.1))))))
++
++
++def _nonround_hole_filled(uv: np.ndarray, model: DatumModel, k: int, spacing: float) -> bool:
++    """Scan material fills the open core of non-round hole ``k`` (a wrong part, or a cut that is not there).
++
++    Judged on cells of two scan spacings (at least 1 mm). The core is the hole's
++    interior at least one cell inside its boundary and clear of stage material;
++    the ring is the datum material within 4 mm around the hole. A cell is
++    covered when a datum-slab point lies within half a cell of its centre. The
++    hole is filled when the scan covers at least 30 % of the core cells and at
++    least half the ring's coverage. A ring covered below 30 % (that part of the
++    datum was not seen) or a core of fewer than 4 cells (a narrow slot) is not
++    judged: a cut wall's flare or a slot's own walls never read as material.
++    """
++    cell = max(1.0, 2.0 * float(spacing))
++    core, ring = model.hole_fill_cells(k, cell, cell, 4.0)
++    if len(core) < 4 or len(ring) < 4 or len(uv) == 0:
++        return False
++    hp = model.holes[k]
++    lo, hi = hp.min(axis=0) - (cell + 6.0), hp.max(axis=0) + (cell + 6.0)
++    near = uv[(uv[:, 0] > lo[0]) & (uv[:, 0] < hi[0]) & (uv[:, 1] > lo[1]) & (uv[:, 1] < hi[1])]
++    if len(near) == 0:
++        return False
++    tree = cKDTree(near)
++    d_ring, _ = tree.query(ring, k=1, distance_upper_bound=0.5 * cell, workers=1)
++    ring_cov = float(np.mean(np.isfinite(d_ring)))
++    if ring_cov < 0.3:
++        return False
++    d_core, _ = tree.query(core, k=1, distance_upper_bound=0.5 * cell, workers=1)
++    core_cov = float(np.mean(np.isfinite(d_core)))
++    return core_cov >= max(0.3, 0.5 * ring_cov)
+ 
+ 
+ def _material_side(pc: np.ndarray, h: np.ndarray, model: DatumModel, cfg: InspectConfig) -> int | None:

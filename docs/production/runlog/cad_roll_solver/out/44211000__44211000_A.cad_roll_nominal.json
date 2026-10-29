@@ -1,0 +1,118 @@
+{
+ "schema": "cad_roll_nominal_v0",
+ "rule_version": "ROLL-RULE-0 (2026-10-25): E1 graph bend keeps E1 class unless E1 ROLLED(a); paired feature with Ri > 10 t is a ROLL; Ri <= 10 t tangent to a roll is a junction BEND; thresholds reused from E1-UNSUPPORTED-RULE-2 (2026-10-17; rule 1 thresholds, review fixes)",
+ "source": {
+  "file": "44211000_A.stp",
+  "sha256": "2139ca09b53079ed2ca7db7e07927d6cf8bc316f969cbec1e0ee6af2aabca9c0",
+  "name": "44211000__44211000_A"
+ },
+ "frame": "cad_model_mm (STEP frame, no transform)",
+ "units": {
+  "length": "mm",
+  "angle": "deg"
+ },
+ "e1": {
+  "flange_graph_error": null,
+  "part_model_error": null,
+  "thickness_mm": 1.6,
+  "panels": 2,
+  "graph_bends": 1,
+  "features": []
+ },
+ "thickness": {
+  "t_mm": 1.6,
+  "source": "E1_FLANGE_GRAPH"
+ },
+ "summary": {
+  "rolls": 0,
+  "junction_bends": 0,
+  "e1_bends": 1,
+  "solver_bends": 1,
+  "cones": 0,
+  "all_checks_pass": true,
+  "roll_faces_overlap_e1_bend_faces": []
+ },
+ "rolls": [],
+ "junction_bends": [],
+ "e1_bends": [
+  {
+   "graph_bend_id": "G1",
+   "class": null,
+   "parent": "P0",
+   "child": "P1",
+   "inner_radius_mm": 1.4,
+   "thickness_mm": 1.6,
+   "sweep_deg": 55.0,
+   "length_mm": 9.0,
+   "oml_virtual_sharp": {
+    "start_mm": [
+     -9.0,
+     28.588,
+     0.0
+    ],
+    "end_mm": [
+     0.0,
+     28.588,
+     0.0
+    ]
+   },
+   "faces": {
+    "inner": [
+     5
+    ],
+    "outer": [
+     1
+    ]
+   },
+   "solver_cross_check": {
+    "paired": true,
+    "ri_diff_mm": 0.0,
+    "t_diff_mm": 0.0,
+    "sweep_diff_deg": 0.0
+   }
+  }
+ ],
+ "solver_bends": [
+  {
+   "id": "G1",
+   "source": "E1",
+   "class": null
+  }
+ ],
+ "graph": {
+  "nodes": [
+   {
+    "id": "P0",
+    "type": "PANEL",
+    "source": "E1"
+   },
+   {
+    "id": "P1",
+    "type": "PANEL",
+    "source": "E1"
+   }
+  ],
+  "edges": [
+   {
+    "id": "G1",
+    "type": "BEND",
+    "source": "E1",
+    "ends": [
+     "P0",
+     "P1"
+    ],
+    "e1_class": null
+   }
+  ],
+  "components": 1,
+  "coherent": true
+ },
+ "unclassified_paired_features": [],
+ "unpaired_large_curved_skins": [],
+ "large_radius_curved_faces": [],
+ "curved_faces": {
+  "cylinder": 5,
+  "cone": 0
+ },
+ "runtime_s": 0.1
+}

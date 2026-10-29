@@ -14,6 +14,10 @@ def analyze_bend_job(*, cad_path: str, scan_path: str, part_id: str, tolerance_a
         tolerance_angle=tolerance_angle,
         tolerance_radius=tolerance_radius,
         runtime_config=runtime_config,
+        spec_bend_angles_hint=None,
+        spec_schedule_type=None,
+        expected_bend_override=None,
+        use_part_truth_hints=False,
     )
     contract = map_bend_report_to_contract(part_id, report.to_dict())
     return report, details, contract

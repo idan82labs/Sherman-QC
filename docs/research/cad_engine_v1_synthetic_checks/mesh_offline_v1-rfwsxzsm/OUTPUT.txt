@@ -1,0 +1,1652 @@
+FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF...............FFFFFF
+=================================== FAILURES ===================================
+_ test_single_exact_byte_import_same_shape_and_only_extractor_branch_changes[r0] _
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10cf2afd0>
+branch = 'r0'
+
+    @pytest.mark.parametrize("branch", ["r0", "v1"])
+    def test_single_exact_byte_import_same_shape_and_only_extractor_branch_changes(monkeypatch, branch):
+        events, calls = install_boundaries(monkeypatch)
+        blob = ply_bytes(generic_raw_points())
+>       result = run(scan_blob=blob, branch=branch)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_cad_guided_mesh_offline_v1.py:193: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_cad_guided_mesh_offline_v1.py:174: in run
+    "cad_bytes": CAD_BYTES, "allow_ocp": True, **policies(branch)}
+                                                 ^^^^^^^^^^^^^^^^
+tests/test_cad_guided_mesh_offline_v1.py:54: in policies
+    instance_policy=local.SupportPolicy(4., 5., 20., 3.),
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<string>:7: in __init__
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = SupportPolicy(max_axial_gap_mm=4.0, max_angular_gap_deg=5.0, min_arc_sweep_deg=20.0, min_local_points=3.0)
+
+    def __post_init__(self):
+        for name, lower, upper in (
+            ("max_axial_gap_mm", 1e-8, 1e6),
+            ("max_angular_gap_deg", 1e-8, 90.),
+            ("min_arc_sweep_deg", 1e-8, 160.),
+        ):
+            value = getattr(self, name)
+            if (isinstance(value, (bool, np.bool_)) or not isinstance(value, (int, float))
+                    or not math.isfinite(value) or not lower <= value <= upper):
+                raise ValueError(f"invalid {name}")
+        if type(self.min_local_points) is not int or not 3 <= self.min_local_points <= 512:
+>           raise ValueError("min_local_points must be an integer in 3..512")
+E           ValueError: min_local_points must be an integer in 3..512
+
+backend/cad_guided_instances.py:38: ValueError
+_ test_single_exact_byte_import_same_shape_and_only_extractor_branch_changes[v1] _
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10a83f510>
+branch = 'v1'
+
+    @pytest.mark.parametrize("branch", ["r0", "v1"])
+    def test_single_exact_byte_import_same_shape_and_only_extractor_branch_changes(monkeypatch, branch):
+        events, calls = install_boundaries(monkeypatch)
+        blob = ply_bytes(generic_raw_points())
+>       result = run(scan_blob=blob, branch=branch)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_cad_guided_mesh_offline_v1.py:193: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_cad_guided_mesh_offline_v1.py:174: in run
+    "cad_bytes": CAD_BYTES, "allow_ocp": True, **policies(branch)}
+                                                 ^^^^^^^^^^^^^^^^
+tests/test_cad_guided_mesh_offline_v1.py:54: in policies
+    instance_policy=local.SupportPolicy(4., 5., 20., 3.),
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<string>:7: in __init__
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = SupportPolicy(max_axial_gap_mm=4.0, max_angular_gap_deg=5.0, min_arc_sweep_deg=20.0, min_local_points=3.0)
+
+    def __post_init__(self):
+        for name, lower, upper in (
+            ("max_axial_gap_mm", 1e-8, 1e6),
+            ("max_angular_gap_deg", 1e-8, 90.),
+            ("min_arc_sweep_deg", 1e-8, 160.),
+        ):
+            value = getattr(self, name)
+            if (isinstance(value, (bool, np.bool_)) or not isinstance(value, (int, float))
+                    or not math.isfinite(value) or not lower <= value <= upper):
+                raise ValueError(f"invalid {name}")
+        if type(self.min_local_points) is not int or not 3 <= self.min_local_points <= 512:
+>           raise ValueError("min_local_points must be an integer in 3..512")
+E           ValueError: min_local_points must be an integer in 3..512
+
+backend/cad_guided_instances.py:38: ValueError
+_ test_registration_receives_bounded_sample_measurement_receives_every_raw_row _
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10cf5a810>
+
+    def test_registration_receives_bounded_sample_measurement_receives_every_raw_row(monkeypatch):
+        _, calls = install_boundaries(monkeypatch)
+        raw = generic_raw_points()
+        blob = ply_bytes(raw)
+        expected = mesh_input.prepare_mesh_scan_v1(scan_bytes=blob, max_engine_rows=36)
+>       result = run(scan_blob=blob)
+                 ^^^^^^^^^^^^^^^^^^^
+
+tests/test_cad_guided_mesh_offline_v1.py:214: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_cad_guided_mesh_offline_v1.py:174: in run
+    "cad_bytes": CAD_BYTES, "allow_ocp": True, **policies(branch)}
+                                                 ^^^^^^^^^^^^^^^^
+tests/test_cad_guided_mesh_offline_v1.py:54: in policies
+    instance_policy=local.SupportPolicy(4., 5., 20., 3.),
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<string>:7: in __init__
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = SupportPolicy(max_axial_gap_mm=4.0, max_angular_gap_deg=5.0, min_arc_sweep_deg=20.0, min_local_points=3.0)
+
+    def __post_init__(self):
+        for name, lower, upper in (
+            ("max_axial_gap_mm", 1e-8, 1e6),
+            ("max_angular_gap_deg", 1e-8, 90.),
+            ("min_arc_sweep_deg", 1e-8, 160.),
+        ):
+            value = getattr(self, name)
+            if (isinstance(value, (bool, np.bool_)) or not isinstance(value, (int, float))
+                    or not math.isfinite(value) or not lower <= value <= upper):
+                raise ValueError(f"invalid {name}")
+        if type(self.min_local_points) is not int or not 3 <= self.min_local_points <= 512:
+>           raise ValueError("min_local_points must be an integer in 3..512")
+E           ValueError: min_local_points must be an integer in 3..512
+
+backend/cad_guided_instances.py:38: ValueError
+_ test_inverse_transform_applies_to_all_four_endpoint_fields_without_mutating_measurements _
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10ac2d310>
+
+    def test_inverse_transform_applies_to_all_four_endpoint_fields_without_mutating_measurements(monkeypatch):
+        install_boundaries(monkeypatch)
+>       result = run()
+                 ^^^^^
+
+tests/test_cad_guided_mesh_offline_v1.py:230: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_cad_guided_mesh_offline_v1.py:174: in run
+    "cad_bytes": CAD_BYTES, "allow_ocp": True, **policies(branch)}
+                                                 ^^^^^^^^^^^^^^^^
+tests/test_cad_guided_mesh_offline_v1.py:54: in policies
+    instance_policy=local.SupportPolicy(4., 5., 20., 3.),
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<string>:7: in __init__
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = SupportPolicy(max_axial_gap_mm=4.0, max_angular_gap_deg=5.0, min_arc_sweep_deg=20.0, min_local_points=3.0)
+
+    def __post_init__(self):
+        for name, lower, upper in (
+            ("max_axial_gap_mm", 1e-8, 1e6),
+            ("max_angular_gap_deg", 1e-8, 90.),
+            ("min_arc_sweep_deg", 1e-8, 160.),
+        ):
+            value = getattr(self, name)
+            if (isinstance(value, (bool, np.bool_)) or not isinstance(value, (int, float))
+                    or not math.isfinite(value) or not lower <= value <= upper):
+                raise ValueError(f"invalid {name}")
+        if type(self.min_local_points) is not int or not 3 <= self.min_local_points <= 512:
+>           raise ValueError("min_local_points must be an integer in 3..512")
+E           ValueError: min_local_points must be an integer in 3..512
+
+backend/cad_guided_instances.py:38: ValueError
+_ test_successful_output_is_strict_json_with_explicit_raw_support_and_digests __
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10aa85290>
+
+    def test_successful_output_is_strict_json_with_explicit_raw_support_and_digests(monkeypatch):
+        _, calls = install_boundaries(monkeypatch)
+>       result = run()
+                 ^^^^^
+
+tests/test_cad_guided_mesh_offline_v1.py:249: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_cad_guided_mesh_offline_v1.py:174: in run
+    "cad_bytes": CAD_BYTES, "allow_ocp": True, **policies(branch)}
+                                                 ^^^^^^^^^^^^^^^^
+tests/test_cad_guided_mesh_offline_v1.py:54: in policies
+    instance_policy=local.SupportPolicy(4., 5., 20., 3.),
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<string>:7: in __init__
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = SupportPolicy(max_axial_gap_mm=4.0, max_angular_gap_deg=5.0, min_arc_sweep_deg=20.0, min_local_points=3.0)
+
+    def __post_init__(self):
+        for name, lower, upper in (
+            ("max_axial_gap_mm", 1e-8, 1e6),
+            ("max_angular_gap_deg", 1e-8, 90.),
+            ("min_arc_sweep_deg", 1e-8, 160.),
+        ):
+            value = getattr(self, name)
+            if (isinstance(value, (bool, np.bool_)) or not isinstance(value, (int, float))
+                    or not math.isfinite(value) or not lower <= value <= upper):
+                raise ValueError(f"invalid {name}")
+        if type(self.min_local_points) is not int or not 3 <= self.min_local_points <= 512:
+>           raise ValueError("min_local_points must be an integer in 3..512")
+E           ValueError: min_local_points must be an integer in 3..512
+
+backend/cad_guided_instances.py:38: ValueError
+_ test_real_parser_and_full_raw_fitter_measure_deviation_under_mocked_pose[r0] _
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10d25b690>
+branch = 'r0'
+
+    @pytest.mark.parametrize("branch", ["r0", "v1"])
+    def test_real_parser_and_full_raw_fitter_measure_deviation_under_mocked_pose(monkeypatch, branch):
+        raw, cad_points, declared = analytic_fixture()
+        events, calls = install_boundaries(monkeypatch, features=(declared,), real_measurement=True)
+>       result = run(scan_blob=ply_bytes(raw), branch=branch)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_cad_guided_mesh_offline_v1.py:267: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_cad_guided_mesh_offline_v1.py:174: in run
+    "cad_bytes": CAD_BYTES, "allow_ocp": True, **policies(branch)}
+                                                 ^^^^^^^^^^^^^^^^
+tests/test_cad_guided_mesh_offline_v1.py:54: in policies
+    instance_policy=local.SupportPolicy(4., 5., 20., 3.),
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<string>:7: in __init__
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = SupportPolicy(max_axial_gap_mm=4.0, max_angular_gap_deg=5.0, min_arc_sweep_deg=20.0, min_local_points=3.0)
+
+    def __post_init__(self):
+        for name, lower, upper in (
+            ("max_axial_gap_mm", 1e-8, 1e6),
+            ("max_angular_gap_deg", 1e-8, 90.),
+            ("min_arc_sweep_deg", 1e-8, 160.),
+        ):
+            value = getattr(self, name)
+            if (isinstance(value, (bool, np.bool_)) or not isinstance(value, (int, float))
+                    or not math.isfinite(value) or not lower <= value <= upper):
+                raise ValueError(f"invalid {name}")
+        if type(self.min_local_points) is not int or not 3 <= self.min_local_points <= 512:
+>           raise ValueError("min_local_points must be an integer in 3..512")
+E           ValueError: min_local_points must be an integer in 3..512
+
+backend/cad_guided_instances.py:38: ValueError
+_ test_real_parser_and_full_raw_fitter_measure_deviation_under_mocked_pose[v1] _
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10aa4dcd0>
+branch = 'v1'
+
+    @pytest.mark.parametrize("branch", ["r0", "v1"])
+    def test_real_parser_and_full_raw_fitter_measure_deviation_under_mocked_pose(monkeypatch, branch):
+        raw, cad_points, declared = analytic_fixture()
+        events, calls = install_boundaries(monkeypatch, features=(declared,), real_measurement=True)
+>       result = run(scan_blob=ply_bytes(raw), branch=branch)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_cad_guided_mesh_offline_v1.py:267: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_cad_guided_mesh_offline_v1.py:174: in run
+    "cad_bytes": CAD_BYTES, "allow_ocp": True, **policies(branch)}
+                                                 ^^^^^^^^^^^^^^^^
+tests/test_cad_guided_mesh_offline_v1.py:54: in policies
+    instance_policy=local.SupportPolicy(4., 5., 20., 3.),
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<string>:7: in __init__
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = SupportPolicy(max_axial_gap_mm=4.0, max_angular_gap_deg=5.0, min_arc_sweep_deg=20.0, min_local_points=3.0)
+
+    def __post_init__(self):
+        for name, lower, upper in (
+            ("max_axial_gap_mm", 1e-8, 1e6),
+            ("max_angular_gap_deg", 1e-8, 90.),
+            ("min_arc_sweep_deg", 1e-8, 160.),
+        ):
+            value = getattr(self, name)
+            if (isinstance(value, (bool, np.bool_)) or not isinstance(value, (int, float))
+                    or not math.isfinite(value) or not lower <= value <= upper):
+                raise ValueError(f"invalid {name}")
+        if type(self.min_local_points) is not int or not 3 <= self.min_local_points <= 512:
+>           raise ValueError("min_local_points must be an integer in 3..512")
+E           ValueError: min_local_points must be an integer in 3..512
+
+backend/cad_guided_instances.py:38: ValueError
+_ test_stage_exception_retains_phase_and_never_publishes_predictions[prepare-INPUT_PREPARATION] _
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10aa3c890>
+stage = 'prepare', phase = 'INPUT_PREPARATION'
+
+    @pytest.mark.parametrize("stage,phase", [
+        ("prepare", "INPUT_PREPARATION"), ("read", "NATIVE_IMPORT"),
+        ("extract", "NATIVE_FEATURES"), ("sample", "CAD_SURFACE_SAMPLING"),
+        ("register", "WHOLE_PART_REGISTRATION"), ("measure", "FULL_RAW_LOCAL_MEASUREMENT"),
+    ])
+    def test_stage_exception_retains_phase_and_never_publishes_predictions(monkeypatch, stage, phase):
+        events, _ = install_boundaries(monkeypatch)
+    
+        def fail(*_args, **_kwargs):
+            raise RuntimeError("invented internal failure; not a defect or trusted report text")
+    
+        target, name = {
+            "prepare": (mesh_input, "prepare_mesh_scan_v1"),
+            "read": (workflow, "_read_step_owned_snapshot"),
+            "extract": (native_v1, "extract_ocp_guided_features_v1"),
+            "sample": (sampler, "sample_native_cad_surface_v1"),
+            "register": (registration, "register_whole_part_v1"),
+            "measure": (local, "inspect_full_raw_windows_v1"),
+        }[stage]
+        monkeypatch.setattr(target, name, fail)
+>       result = run()
+                 ^^^^^
+
+tests/test_cad_guided_mesh_offline_v1.py:311: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_cad_guided_mesh_offline_v1.py:174: in run
+    "cad_bytes": CAD_BYTES, "allow_ocp": True, **policies(branch)}
+                                                 ^^^^^^^^^^^^^^^^
+tests/test_cad_guided_mesh_offline_v1.py:54: in policies
+    instance_policy=local.SupportPolicy(4., 5., 20., 3.),
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<string>:7: in __init__
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = SupportPolicy(max_axial_gap_mm=4.0, max_angular_gap_deg=5.0, min_arc_sweep_deg=20.0, min_local_points=3.0)
+
+    def __post_init__(self):
+        for name, lower, upper in (
+            ("max_axial_gap_mm", 1e-8, 1e6),
+            ("max_angular_gap_deg", 1e-8, 90.),
+            ("min_arc_sweep_deg", 1e-8, 160.),
+        ):
+            value = getattr(self, name)
+            if (isinstance(value, (bool, np.bool_)) or not isinstance(value, (int, float))
+                    or not math.isfinite(value) or not lower <= value <= upper):
+                raise ValueError(f"invalid {name}")
+        if type(self.min_local_points) is not int or not 3 <= self.min_local_points <= 512:
+>           raise ValueError("min_local_points must be an integer in 3..512")
+E           ValueError: min_local_points must be an integer in 3..512
+
+backend/cad_guided_instances.py:38: ValueError
+_ test_stage_exception_retains_phase_and_never_publishes_predictions[read-NATIVE_IMPORT] _
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10a9749d0>
+stage = 'read', phase = 'NATIVE_IMPORT'
+
+    @pytest.mark.parametrize("stage,phase", [
+        ("prepare", "INPUT_PREPARATION"), ("read", "NATIVE_IMPORT"),
+        ("extract", "NATIVE_FEATURES"), ("sample", "CAD_SURFACE_SAMPLING"),
+        ("register", "WHOLE_PART_REGISTRATION"), ("measure", "FULL_RAW_LOCAL_MEASUREMENT"),
+    ])
+    def test_stage_exception_retains_phase_and_never_publishes_predictions(monkeypatch, stage, phase):
+        events, _ = install_boundaries(monkeypatch)
+    
+        def fail(*_args, **_kwargs):
+            raise RuntimeError("invented internal failure; not a defect or trusted report text")
+    
+        target, name = {
+            "prepare": (mesh_input, "prepare_mesh_scan_v1"),
+            "read": (workflow, "_read_step_owned_snapshot"),
+            "extract": (native_v1, "extract_ocp_guided_features_v1"),
+            "sample": (sampler, "sample_native_cad_surface_v1"),
+            "register": (registration, "register_whole_part_v1"),
+            "measure": (local, "inspect_full_raw_windows_v1"),
+        }[stage]
+        monkeypatch.setattr(target, name, fail)
+>       result = run()
+                 ^^^^^
+
+tests/test_cad_guided_mesh_offline_v1.py:311: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_cad_guided_mesh_offline_v1.py:174: in run
+    "cad_bytes": CAD_BYTES, "allow_ocp": True, **policies(branch)}
+                                                 ^^^^^^^^^^^^^^^^
+tests/test_cad_guided_mesh_offline_v1.py:54: in policies
+    instance_policy=local.SupportPolicy(4., 5., 20., 3.),
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<string>:7: in __init__
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = SupportPolicy(max_axial_gap_mm=4.0, max_angular_gap_deg=5.0, min_arc_sweep_deg=20.0, min_local_points=3.0)
+
+    def __post_init__(self):
+        for name, lower, upper in (
+            ("max_axial_gap_mm", 1e-8, 1e6),
+            ("max_angular_gap_deg", 1e-8, 90.),
+            ("min_arc_sweep_deg", 1e-8, 160.),
+        ):
+            value = getattr(self, name)
+            if (isinstance(value, (bool, np.bool_)) or not isinstance(value, (int, float))
+                    or not math.isfinite(value) or not lower <= value <= upper):
+                raise ValueError(f"invalid {name}")
+        if type(self.min_local_points) is not int or not 3 <= self.min_local_points <= 512:
+>           raise ValueError("min_local_points must be an integer in 3..512")
+E           ValueError: min_local_points must be an integer in 3..512
+
+backend/cad_guided_instances.py:38: ValueError
+_ test_stage_exception_retains_phase_and_never_publishes_predictions[extract-NATIVE_FEATURES] _
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10cf28310>
+stage = 'extract', phase = 'NATIVE_FEATURES'
+
+    @pytest.mark.parametrize("stage,phase", [
+        ("prepare", "INPUT_PREPARATION"), ("read", "NATIVE_IMPORT"),
+        ("extract", "NATIVE_FEATURES"), ("sample", "CAD_SURFACE_SAMPLING"),
+        ("register", "WHOLE_PART_REGISTRATION"), ("measure", "FULL_RAW_LOCAL_MEASUREMENT"),
+    ])
+    def test_stage_exception_retains_phase_and_never_publishes_predictions(monkeypatch, stage, phase):
+        events, _ = install_boundaries(monkeypatch)
+    
+        def fail(*_args, **_kwargs):
+            raise RuntimeError("invented internal failure; not a defect or trusted report text")
+    
+        target, name = {
+            "prepare": (mesh_input, "prepare_mesh_scan_v1"),
+            "read": (workflow, "_read_step_owned_snapshot"),
+            "extract": (native_v1, "extract_ocp_guided_features_v1"),
+            "sample": (sampler, "sample_native_cad_surface_v1"),
+            "register": (registration, "register_whole_part_v1"),
+            "measure": (local, "inspect_full_raw_windows_v1"),
+        }[stage]
+        monkeypatch.setattr(target, name, fail)
+>       result = run()
+                 ^^^^^
+
+tests/test_cad_guided_mesh_offline_v1.py:311: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_cad_guided_mesh_offline_v1.py:174: in run
+    "cad_bytes": CAD_BYTES, "allow_ocp": True, **policies(branch)}
+                                                 ^^^^^^^^^^^^^^^^
+tests/test_cad_guided_mesh_offline_v1.py:54: in policies
+    instance_policy=local.SupportPolicy(4., 5., 20., 3.),
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<string>:7: in __init__
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = SupportPolicy(max_axial_gap_mm=4.0, max_angular_gap_deg=5.0, min_arc_sweep_deg=20.0, min_local_points=3.0)
+
+    def __post_init__(self):
+        for name, lower, upper in (
+            ("max_axial_gap_mm", 1e-8, 1e6),
+            ("max_angular_gap_deg", 1e-8, 90.),
+            ("min_arc_sweep_deg", 1e-8, 160.),
+        ):
+            value = getattr(self, name)
+            if (isinstance(value, (bool, np.bool_)) or not isinstance(value, (int, float))
+                    or not math.isfinite(value) or not lower <= value <= upper):
+                raise ValueError(f"invalid {name}")
+        if type(self.min_local_points) is not int or not 3 <= self.min_local_points <= 512:
+>           raise ValueError("min_local_points must be an integer in 3..512")
+E           ValueError: min_local_points must be an integer in 3..512
+
+backend/cad_guided_instances.py:38: ValueError
+_ test_stage_exception_retains_phase_and_never_publishes_predictions[sample-CAD_SURFACE_SAMPLING] _
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10cf290d0>
+stage = 'sample', phase = 'CAD_SURFACE_SAMPLING'
+
+    @pytest.mark.parametrize("stage,phase", [
+        ("prepare", "INPUT_PREPARATION"), ("read", "NATIVE_IMPORT"),
+        ("extract", "NATIVE_FEATURES"), ("sample", "CAD_SURFACE_SAMPLING"),
+        ("register", "WHOLE_PART_REGISTRATION"), ("measure", "FULL_RAW_LOCAL_MEASUREMENT"),
+    ])
+    def test_stage_exception_retains_phase_and_never_publishes_predictions(monkeypatch, stage, phase):
+        events, _ = install_boundaries(monkeypatch)
+    
+        def fail(*_args, **_kwargs):
+            raise RuntimeError("invented internal failure; not a defect or trusted report text")
+    
+        target, name = {
+            "prepare": (mesh_input, "prepare_mesh_scan_v1"),
+            "read": (workflow, "_read_step_owned_snapshot"),
+            "extract": (native_v1, "extract_ocp_guided_features_v1"),
+            "sample": (sampler, "sample_native_cad_surface_v1"),
+            "register": (registration, "register_whole_part_v1"),
+            "measure": (local, "inspect_full_raw_windows_v1"),
+        }[stage]
+        monkeypatch.setattr(target, name, fail)
+>       result = run()
+                 ^^^^^
+
+tests/test_cad_guided_mesh_offline_v1.py:311: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_cad_guided_mesh_offline_v1.py:174: in run
+    "cad_bytes": CAD_BYTES, "allow_ocp": True, **policies(branch)}
+                                                 ^^^^^^^^^^^^^^^^
+tests/test_cad_guided_mesh_offline_v1.py:54: in policies
+    instance_policy=local.SupportPolicy(4., 5., 20., 3.),
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<string>:7: in __init__
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = SupportPolicy(max_axial_gap_mm=4.0, max_angular_gap_deg=5.0, min_arc_sweep_deg=20.0, min_local_points=3.0)
+
+    def __post_init__(self):
+        for name, lower, upper in (
+            ("max_axial_gap_mm", 1e-8, 1e6),
+            ("max_angular_gap_deg", 1e-8, 90.),
+            ("min_arc_sweep_deg", 1e-8, 160.),
+        ):
+            value = getattr(self, name)
+            if (isinstance(value, (bool, np.bool_)) or not isinstance(value, (int, float))
+                    or not math.isfinite(value) or not lower <= value <= upper):
+                raise ValueError(f"invalid {name}")
+        if type(self.min_local_points) is not int or not 3 <= self.min_local_points <= 512:
+>           raise ValueError("min_local_points must be an integer in 3..512")
+E           ValueError: min_local_points must be an integer in 3..512
+
+backend/cad_guided_instances.py:38: ValueError
+_ test_stage_exception_retains_phase_and_never_publishes_predictions[register-WHOLE_PART_REGISTRATION] _
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10da04890>
+stage = 'register', phase = 'WHOLE_PART_REGISTRATION'
+
+    @pytest.mark.parametrize("stage,phase", [
+        ("prepare", "INPUT_PREPARATION"), ("read", "NATIVE_IMPORT"),
+        ("extract", "NATIVE_FEATURES"), ("sample", "CAD_SURFACE_SAMPLING"),
+        ("register", "WHOLE_PART_REGISTRATION"), ("measure", "FULL_RAW_LOCAL_MEASUREMENT"),
+    ])
+    def test_stage_exception_retains_phase_and_never_publishes_predictions(monkeypatch, stage, phase):
+        events, _ = install_boundaries(monkeypatch)
+    
+        def fail(*_args, **_kwargs):
+            raise RuntimeError("invented internal failure; not a defect or trusted report text")
+    
+        target, name = {
+            "prepare": (mesh_input, "prepare_mesh_scan_v1"),
+            "read": (workflow, "_read_step_owned_snapshot"),
+            "extract": (native_v1, "extract_ocp_guided_features_v1"),
+            "sample": (sampler, "sample_native_cad_surface_v1"),
+            "register": (registration, "register_whole_part_v1"),
+            "measure": (local, "inspect_full_raw_windows_v1"),
+        }[stage]
+        monkeypatch.setattr(target, name, fail)
+>       result = run()
+                 ^^^^^
+
+tests/test_cad_guided_mesh_offline_v1.py:311: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_cad_guided_mesh_offline_v1.py:174: in run
+    "cad_bytes": CAD_BYTES, "allow_ocp": True, **policies(branch)}
+                                                 ^^^^^^^^^^^^^^^^
+tests/test_cad_guided_mesh_offline_v1.py:54: in policies
+    instance_policy=local.SupportPolicy(4., 5., 20., 3.),
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<string>:7: in __init__
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = SupportPolicy(max_axial_gap_mm=4.0, max_angular_gap_deg=5.0, min_arc_sweep_deg=20.0, min_local_points=3.0)
+
+    def __post_init__(self):
+        for name, lower, upper in (
+            ("max_axial_gap_mm", 1e-8, 1e6),
+            ("max_angular_gap_deg", 1e-8, 90.),
+            ("min_arc_sweep_deg", 1e-8, 160.),
+        ):
+            value = getattr(self, name)
+            if (isinstance(value, (bool, np.bool_)) or not isinstance(value, (int, float))
+                    or not math.isfinite(value) or not lower <= value <= upper):
+                raise ValueError(f"invalid {name}")
+        if type(self.min_local_points) is not int or not 3 <= self.min_local_points <= 512:
+>           raise ValueError("min_local_points must be an integer in 3..512")
+E           ValueError: min_local_points must be an integer in 3..512
+
+backend/cad_guided_instances.py:38: ValueError
+_ test_stage_exception_retains_phase_and_never_publishes_predictions[measure-FULL_RAW_LOCAL_MEASUREMENT] _
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10aa865d0>
+stage = 'measure', phase = 'FULL_RAW_LOCAL_MEASUREMENT'
+
+    @pytest.mark.parametrize("stage,phase", [
+        ("prepare", "INPUT_PREPARATION"), ("read", "NATIVE_IMPORT"),
+        ("extract", "NATIVE_FEATURES"), ("sample", "CAD_SURFACE_SAMPLING"),
+        ("register", "WHOLE_PART_REGISTRATION"), ("measure", "FULL_RAW_LOCAL_MEASUREMENT"),
+    ])
+    def test_stage_exception_retains_phase_and_never_publishes_predictions(monkeypatch, stage, phase):
+        events, _ = install_boundaries(monkeypatch)
+    
+        def fail(*_args, **_kwargs):
+            raise RuntimeError("invented internal failure; not a defect or trusted report text")
+    
+        target, name = {
+            "prepare": (mesh_input, "prepare_mesh_scan_v1"),
+            "read": (workflow, "_read_step_owned_snapshot"),
+            "extract": (native_v1, "extract_ocp_guided_features_v1"),
+            "sample": (sampler, "sample_native_cad_surface_v1"),
+            "register": (registration, "register_whole_part_v1"),
+            "measure": (local, "inspect_full_raw_windows_v1"),
+        }[stage]
+        monkeypatch.setattr(target, name, fail)
+>       result = run()
+                 ^^^^^
+
+tests/test_cad_guided_mesh_offline_v1.py:311: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_cad_guided_mesh_offline_v1.py:174: in run
+    "cad_bytes": CAD_BYTES, "allow_ocp": True, **policies(branch)}
+                                                 ^^^^^^^^^^^^^^^^
+tests/test_cad_guided_mesh_offline_v1.py:54: in policies
+    instance_policy=local.SupportPolicy(4., 5., 20., 3.),
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<string>:7: in __init__
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = SupportPolicy(max_axial_gap_mm=4.0, max_angular_gap_deg=5.0, min_arc_sweep_deg=20.0, min_local_points=3.0)
+
+    def __post_init__(self):
+        for name, lower, upper in (
+            ("max_axial_gap_mm", 1e-8, 1e6),
+            ("max_angular_gap_deg", 1e-8, 90.),
+            ("min_arc_sweep_deg", 1e-8, 160.),
+        ):
+            value = getattr(self, name)
+            if (isinstance(value, (bool, np.bool_)) or not isinstance(value, (int, float))
+                    or not math.isfinite(value) or not lower <= value <= upper):
+                raise ValueError(f"invalid {name}")
+        if type(self.min_local_points) is not int or not 3 <= self.min_local_points <= 512:
+>           raise ValueError("min_local_points must be an integer in 3..512")
+E           ValueError: min_local_points must be an integer in 3..512
+
+backend/cad_guided_instances.py:38: ValueError
+______________ test_invalid_mesh_bytes_stop_before_native_import _______________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10d9c7090>
+
+    def test_invalid_mesh_bytes_stop_before_native_import(monkeypatch):
+        events, _ = install_boundaries(monkeypatch)
+>       result = run(scan_blob=b"not a PLY\n")
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_cad_guided_mesh_offline_v1.py:325: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_cad_guided_mesh_offline_v1.py:174: in run
+    "cad_bytes": CAD_BYTES, "allow_ocp": True, **policies(branch)}
+                                                 ^^^^^^^^^^^^^^^^
+tests/test_cad_guided_mesh_offline_v1.py:54: in policies
+    instance_policy=local.SupportPolicy(4., 5., 20., 3.),
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<string>:7: in __init__
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = SupportPolicy(max_axial_gap_mm=4.0, max_angular_gap_deg=5.0, min_arc_sweep_deg=20.0, min_local_points=3.0)
+
+    def __post_init__(self):
+        for name, lower, upper in (
+            ("max_axial_gap_mm", 1e-8, 1e6),
+            ("max_angular_gap_deg", 1e-8, 90.),
+            ("min_arc_sweep_deg", 1e-8, 160.),
+        ):
+            value = getattr(self, name)
+            if (isinstance(value, (bool, np.bool_)) or not isinstance(value, (int, float))
+                    or not math.isfinite(value) or not lower <= value <= upper):
+                raise ValueError(f"invalid {name}")
+        if type(self.min_local_points) is not int or not 3 <= self.min_local_points <= 512:
+>           raise ValueError("min_local_points must be an integer in 3..512")
+E           ValueError: min_local_points must be an integer in 3..512
+
+backend/cad_guided_instances.py:38: ValueError
+_______ test_malformed_preparation_receipt_cannot_escape_or_enter_native _______
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10dac3750>
+
+    def test_malformed_preparation_receipt_cannot_escape_or_enter_native(monkeypatch):
+        events, _ = install_boundaries(monkeypatch)
+        monkeypatch.setattr(mesh_input, "prepare_mesh_scan_v1", lambda **_kwargs: {"status": "AVAILABLE"})
+>       result = run()
+                 ^^^^^
+
+tests/test_cad_guided_mesh_offline_v1.py:336: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_cad_guided_mesh_offline_v1.py:174: in run
+    "cad_bytes": CAD_BYTES, "allow_ocp": True, **policies(branch)}
+                                                 ^^^^^^^^^^^^^^^^
+tests/test_cad_guided_mesh_offline_v1.py:54: in policies
+    instance_policy=local.SupportPolicy(4., 5., 20., 3.),
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<string>:7: in __init__
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = SupportPolicy(max_axial_gap_mm=4.0, max_angular_gap_deg=5.0, min_arc_sweep_deg=20.0, min_local_points=3.0)
+
+    def __post_init__(self):
+        for name, lower, upper in (
+            ("max_axial_gap_mm", 1e-8, 1e6),
+            ("max_angular_gap_deg", 1e-8, 90.),
+            ("min_arc_sweep_deg", 1e-8, 160.),
+        ):
+            value = getattr(self, name)
+            if (isinstance(value, (bool, np.bool_)) or not isinstance(value, (int, float))
+                    or not math.isfinite(value) or not lower <= value <= upper):
+                raise ValueError(f"invalid {name}")
+        if type(self.min_local_points) is not int or not 3 <= self.min_local_points <= 512:
+>           raise ValueError("min_local_points must be an integer in 3..512")
+E           ValueError: min_local_points must be an integer in 3..512
+
+backend/cad_guided_instances.py:38: ValueError
+____ test_empty_native_feature_set_still_records_sampling_and_registration _____
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10cf492d0>
+
+    def test_empty_native_feature_set_still_records_sampling_and_registration(monkeypatch):
+        events, _ = install_boundaries(monkeypatch, features=())
+>       result = run()
+                 ^^^^^
+
+tests/test_cad_guided_mesh_offline_v1.py:346: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_cad_guided_mesh_offline_v1.py:174: in run
+    "cad_bytes": CAD_BYTES, "allow_ocp": True, **policies(branch)}
+                                                 ^^^^^^^^^^^^^^^^
+tests/test_cad_guided_mesh_offline_v1.py:54: in policies
+    instance_policy=local.SupportPolicy(4., 5., 20., 3.),
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<string>:7: in __init__
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = SupportPolicy(max_axial_gap_mm=4.0, max_angular_gap_deg=5.0, min_arc_sweep_deg=20.0, min_local_points=3.0)
+
+    def __post_init__(self):
+        for name, lower, upper in (
+            ("max_axial_gap_mm", 1e-8, 1e6),
+            ("max_angular_gap_deg", 1e-8, 90.),
+            ("min_arc_sweep_deg", 1e-8, 160.),
+        ):
+            value = getattr(self, name)
+            if (isinstance(value, (bool, np.bool_)) or not isinstance(value, (int, float))
+                    or not math.isfinite(value) or not lower <= value <= upper):
+                raise ValueError(f"invalid {name}")
+        if type(self.min_local_points) is not int or not 3 <= self.min_local_points <= 512:
+>           raise ValueError("min_local_points must be an integer in 3..512")
+E           ValueError: min_local_points must be an integer in 3..512
+
+backend/cad_guided_instances.py:38: ValueError
+____________ test_unavailable_cad_sample_does_not_call_registration ____________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10d2693d0>
+
+    def test_unavailable_cad_sample_does_not_call_registration(monkeypatch):
+        events, _ = install_boundaries(monkeypatch)
+        monkeypatch.setattr(sampler, "sample_native_cad_surface_v1", lambda *_args, **_kwargs:
+                            {"status": "UNAVAILABLE", "reasons": ["INVENTED_SAMPLING_REFUSAL"]})
+>       result = run()
+                 ^^^^^
+
+tests/test_cad_guided_mesh_offline_v1.py:358: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_cad_guided_mesh_offline_v1.py:174: in run
+    "cad_bytes": CAD_BYTES, "allow_ocp": True, **policies(branch)}
+                                                 ^^^^^^^^^^^^^^^^
+tests/test_cad_guided_mesh_offline_v1.py:54: in policies
+    instance_policy=local.SupportPolicy(4., 5., 20., 3.),
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<string>:7: in __init__
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = SupportPolicy(max_axial_gap_mm=4.0, max_angular_gap_deg=5.0, min_arc_sweep_deg=20.0, min_local_points=3.0)
+
+    def __post_init__(self):
+        for name, lower, upper in (
+            ("max_axial_gap_mm", 1e-8, 1e6),
+            ("max_angular_gap_deg", 1e-8, 90.),
+            ("min_arc_sweep_deg", 1e-8, 160.),
+        ):
+            value = getattr(self, name)
+            if (isinstance(value, (bool, np.bool_)) or not isinstance(value, (int, float))
+                    or not math.isfinite(value) or not lower <= value <= upper):
+                raise ValueError(f"invalid {name}")
+        if type(self.min_local_points) is not int or not 3 <= self.min_local_points <= 512:
+>           raise ValueError("min_local_points must be an integer in 3..512")
+E           ValueError: min_local_points must be an integer in 3..512
+
+backend/cad_guided_instances.py:38: ValueError
+_____ test_unavailable_registration_does_not_measure_or_emit_nominal_lines _____
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10a9fa3d0>
+
+    def test_unavailable_registration_does_not_measure_or_emit_nominal_lines(monkeypatch):
+        events, _ = install_boundaries(monkeypatch)
+        monkeypatch.setattr(registration, "register_whole_part_v1", lambda *_args, **_kwargs:
+                            {"status": "UNAVAILABLE", "reasons": ["INVENTED_AMBIGUITY"]})
+>       result = run()
+                 ^^^^^
+
+tests/test_cad_guided_mesh_offline_v1.py:370: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_cad_guided_mesh_offline_v1.py:174: in run
+    "cad_bytes": CAD_BYTES, "allow_ocp": True, **policies(branch)}
+                                                 ^^^^^^^^^^^^^^^^
+tests/test_cad_guided_mesh_offline_v1.py:54: in policies
+    instance_policy=local.SupportPolicy(4., 5., 20., 3.),
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<string>:7: in __init__
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = SupportPolicy(max_axial_gap_mm=4.0, max_angular_gap_deg=5.0, min_arc_sweep_deg=20.0, min_local_points=3.0)
+
+    def __post_init__(self):
+        for name, lower, upper in (
+            ("max_axial_gap_mm", 1e-8, 1e6),
+            ("max_angular_gap_deg", 1e-8, 90.),
+            ("min_arc_sweep_deg", 1e-8, 160.),
+        ):
+            value = getattr(self, name)
+            if (isinstance(value, (bool, np.bool_)) or not isinstance(value, (int, float))
+                    or not math.isfinite(value) or not lower <= value <= upper):
+                raise ValueError(f"invalid {name}")
+        if type(self.min_local_points) is not int or not 3 <= self.min_local_points <= 512:
+>           raise ValueError("min_local_points must be an integer in 3..512")
+E           ValueError: min_local_points must be an integer in 3..512
+
+backend/cad_guided_instances.py:38: ValueError
+__ test_measurement_refusals_finish_without_substituting_native_feature_count __
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10aa3cd50>
+
+    def test_measurement_refusals_finish_without_substituting_native_feature_count(monkeypatch):
+        install_boundaries(monkeypatch)
+        monkeypatch.setattr(local, "inspect_full_raw_windows_v1", lambda *_args, **_kwargs:
+                            {"status": "UNAVAILABLE", "features": [], "finite_support_instances": [],
+                             "expected_window_count": 7, "measured_conditional_window_count": 0,
+                             "observed_bend_count": None})
+>       result = run()
+                 ^^^^^
+
+tests/test_cad_guided_mesh_offline_v1.py:383: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_cad_guided_mesh_offline_v1.py:174: in run
+    "cad_bytes": CAD_BYTES, "allow_ocp": True, **policies(branch)}
+                                                 ^^^^^^^^^^^^^^^^
+tests/test_cad_guided_mesh_offline_v1.py:54: in policies
+    instance_policy=local.SupportPolicy(4., 5., 20., 3.),
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<string>:7: in __init__
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = SupportPolicy(max_axial_gap_mm=4.0, max_angular_gap_deg=5.0, min_arc_sweep_deg=20.0, min_local_points=3.0)
+
+    def __post_init__(self):
+        for name, lower, upper in (
+            ("max_axial_gap_mm", 1e-8, 1e6),
+            ("max_angular_gap_deg", 1e-8, 90.),
+            ("min_arc_sweep_deg", 1e-8, 160.),
+        ):
+            value = getattr(self, name)
+            if (isinstance(value, (bool, np.bool_)) or not isinstance(value, (int, float))
+                    or not math.isfinite(value) or not lower <= value <= upper):
+                raise ValueError(f"invalid {name}")
+        if type(self.min_local_points) is not int or not 3 <= self.min_local_points <= 512:
+>           raise ValueError("min_local_points must be an integer in 3..512")
+E           ValueError: min_local_points must be an integer in 3..512
+
+backend/cad_guided_instances.py:38: ValueError
+__________ test_bad_second_instance_cannot_publish_successful_prefix ___________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10aa74510>
+
+    def test_bad_second_instance_cannot_publish_successful_prefix(monkeypatch):
+        install_boundaries(monkeypatch)
+        first = {field: [1., 2., 3.] for field in
+                 ("line_start", "line_end", "axis_support_line_start", "axis_support_line_end")}
+        monkeypatch.setattr(local, "inspect_full_raw_windows_v1", lambda *_args, **_kwargs:
+                            {"features": [], "finite_support_instances": [first, {"line_start": [4., 5., 6.]}]})
+>       result = run()
+                 ^^^^^
+
+tests/test_cad_guided_mesh_offline_v1.py:398: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_cad_guided_mesh_offline_v1.py:174: in run
+    "cad_bytes": CAD_BYTES, "allow_ocp": True, **policies(branch)}
+                                                 ^^^^^^^^^^^^^^^^
+tests/test_cad_guided_mesh_offline_v1.py:54: in policies
+    instance_policy=local.SupportPolicy(4., 5., 20., 3.),
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<string>:7: in __init__
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = SupportPolicy(max_axial_gap_mm=4.0, max_angular_gap_deg=5.0, min_arc_sweep_deg=20.0, min_local_points=3.0)
+
+    def __post_init__(self):
+        for name, lower, upper in (
+            ("max_axial_gap_mm", 1e-8, 1e6),
+            ("max_angular_gap_deg", 1e-8, 90.),
+            ("min_arc_sweep_deg", 1e-8, 160.),
+        ):
+            value = getattr(self, name)
+            if (isinstance(value, (bool, np.bool_)) or not isinstance(value, (int, float))
+                    or not math.isfinite(value) or not lower <= value <= upper):
+                raise ValueError(f"invalid {name}")
+        if type(self.min_local_points) is not int or not 3 <= self.min_local_points <= 512:
+>           raise ValueError("min_local_points must be an integer in 3..512")
+E           ValueError: min_local_points must be an integer in 3..512
+
+backend/cad_guided_instances.py:38: ValueError
+________ test_native_opt_in_is_strict_boolean_before_any_reader[False] _________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10a9846d0>
+opt_in = False
+
+    @pytest.mark.parametrize("opt_in", [False, None, 1, "true"])
+    def test_native_opt_in_is_strict_boolean_before_any_reader(monkeypatch, opt_in):
+        events, _ = install_boundaries(monkeypatch)
+>       result = run(allow_ocp=opt_in)
+                 ^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_cad_guided_mesh_offline_v1.py:409: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_cad_guided_mesh_offline_v1.py:174: in run
+    "cad_bytes": CAD_BYTES, "allow_ocp": True, **policies(branch)}
+                                                 ^^^^^^^^^^^^^^^^
+tests/test_cad_guided_mesh_offline_v1.py:54: in policies
+    instance_policy=local.SupportPolicy(4., 5., 20., 3.),
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<string>:7: in __init__
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = SupportPolicy(max_axial_gap_mm=4.0, max_angular_gap_deg=5.0, min_arc_sweep_deg=20.0, min_local_points=3.0)
+
+    def __post_init__(self):
+        for name, lower, upper in (
+            ("max_axial_gap_mm", 1e-8, 1e6),
+            ("max_angular_gap_deg", 1e-8, 90.),
+            ("min_arc_sweep_deg", 1e-8, 160.),
+        ):
+            value = getattr(self, name)
+            if (isinstance(value, (bool, np.bool_)) or not isinstance(value, (int, float))
+                    or not math.isfinite(value) or not lower <= value <= upper):
+                raise ValueError(f"invalid {name}")
+        if type(self.min_local_points) is not int or not 3 <= self.min_local_points <= 512:
+>           raise ValueError("min_local_points must be an integer in 3..512")
+E           ValueError: min_local_points must be an integer in 3..512
+
+backend/cad_guided_instances.py:38: ValueError
+_________ test_native_opt_in_is_strict_boolean_before_any_reader[None] _________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10a9be790>
+opt_in = None
+
+    @pytest.mark.parametrize("opt_in", [False, None, 1, "true"])
+    def test_native_opt_in_is_strict_boolean_before_any_reader(monkeypatch, opt_in):
+        events, _ = install_boundaries(monkeypatch)
+>       result = run(allow_ocp=opt_in)
+                 ^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_cad_guided_mesh_offline_v1.py:409: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_cad_guided_mesh_offline_v1.py:174: in run
+    "cad_bytes": CAD_BYTES, "allow_ocp": True, **policies(branch)}
+                                                 ^^^^^^^^^^^^^^^^
+tests/test_cad_guided_mesh_offline_v1.py:54: in policies
+    instance_policy=local.SupportPolicy(4., 5., 20., 3.),
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<string>:7: in __init__
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = SupportPolicy(max_axial_gap_mm=4.0, max_angular_gap_deg=5.0, min_arc_sweep_deg=20.0, min_local_points=3.0)
+
+    def __post_init__(self):
+        for name, lower, upper in (
+            ("max_axial_gap_mm", 1e-8, 1e6),
+            ("max_angular_gap_deg", 1e-8, 90.),
+            ("min_arc_sweep_deg", 1e-8, 160.),
+        ):
+            value = getattr(self, name)
+            if (isinstance(value, (bool, np.bool_)) or not isinstance(value, (int, float))
+                    or not math.isfinite(value) or not lower <= value <= upper):
+                raise ValueError(f"invalid {name}")
+        if type(self.min_local_points) is not int or not 3 <= self.min_local_points <= 512:
+>           raise ValueError("min_local_points must be an integer in 3..512")
+E           ValueError: min_local_points must be an integer in 3..512
+
+backend/cad_guided_instances.py:38: ValueError
+__________ test_native_opt_in_is_strict_boolean_before_any_reader[1] ___________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10d267490>
+opt_in = 1
+
+    @pytest.mark.parametrize("opt_in", [False, None, 1, "true"])
+    def test_native_opt_in_is_strict_boolean_before_any_reader(monkeypatch, opt_in):
+        events, _ = install_boundaries(monkeypatch)
+>       result = run(allow_ocp=opt_in)
+                 ^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_cad_guided_mesh_offline_v1.py:409: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_cad_guided_mesh_offline_v1.py:174: in run
+    "cad_bytes": CAD_BYTES, "allow_ocp": True, **policies(branch)}
+                                                 ^^^^^^^^^^^^^^^^
+tests/test_cad_guided_mesh_offline_v1.py:54: in policies
+    instance_policy=local.SupportPolicy(4., 5., 20., 3.),
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<string>:7: in __init__
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = SupportPolicy(max_axial_gap_mm=4.0, max_angular_gap_deg=5.0, min_arc_sweep_deg=20.0, min_local_points=3.0)
+
+    def __post_init__(self):
+        for name, lower, upper in (
+            ("max_axial_gap_mm", 1e-8, 1e6),
+            ("max_angular_gap_deg", 1e-8, 90.),
+            ("min_arc_sweep_deg", 1e-8, 160.),
+        ):
+            value = getattr(self, name)
+            if (isinstance(value, (bool, np.bool_)) or not isinstance(value, (int, float))
+                    or not math.isfinite(value) or not lower <= value <= upper):
+                raise ValueError(f"invalid {name}")
+        if type(self.min_local_points) is not int or not 3 <= self.min_local_points <= 512:
+>           raise ValueError("min_local_points must be an integer in 3..512")
+E           ValueError: min_local_points must be an integer in 3..512
+
+backend/cad_guided_instances.py:38: ValueError
+_________ test_native_opt_in_is_strict_boolean_before_any_reader[true] _________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10aa3eb10>
+opt_in = 'true'
+
+    @pytest.mark.parametrize("opt_in", [False, None, 1, "true"])
+    def test_native_opt_in_is_strict_boolean_before_any_reader(monkeypatch, opt_in):
+        events, _ = install_boundaries(monkeypatch)
+>       result = run(allow_ocp=opt_in)
+                 ^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_cad_guided_mesh_offline_v1.py:409: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_cad_guided_mesh_offline_v1.py:174: in run
+    "cad_bytes": CAD_BYTES, "allow_ocp": True, **policies(branch)}
+                                                 ^^^^^^^^^^^^^^^^
+tests/test_cad_guided_mesh_offline_v1.py:54: in policies
+    instance_policy=local.SupportPolicy(4., 5., 20., 3.),
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<string>:7: in __init__
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = SupportPolicy(max_axial_gap_mm=4.0, max_angular_gap_deg=5.0, min_arc_sweep_deg=20.0, min_local_points=3.0)
+
+    def __post_init__(self):
+        for name, lower, upper in (
+            ("max_axial_gap_mm", 1e-8, 1e6),
+            ("max_angular_gap_deg", 1e-8, 90.),
+            ("min_arc_sweep_deg", 1e-8, 160.),
+        ):
+            value = getattr(self, name)
+            if (isinstance(value, (bool, np.bool_)) or not isinstance(value, (int, float))
+                    or not math.isfinite(value) or not lower <= value <= upper):
+                raise ValueError(f"invalid {name}")
+        if type(self.min_local_points) is not int or not 3 <= self.min_local_points <= 512:
+>           raise ValueError("min_local_points must be an integer in 3..512")
+E           ValueError: min_local_points must be an integer in 3..512
+
+backend/cad_guided_instances.py:38: ValueError
+_____ test_cad_requires_nonempty_owned_bytes_not_path_or_mutable_buffer[] ______
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10a9e0410>, cad = b''
+
+    @pytest.mark.parametrize("cad", [b"", bytearray(b"not exact immutable bytes"), "path.step", None])
+    def test_cad_requires_nonempty_owned_bytes_not_path_or_mutable_buffer(monkeypatch, cad):
+        events, _ = install_boundaries(monkeypatch)
+>       result = run(cad_bytes=cad)
+                 ^^^^^^^^^^^^^^^^^^
+
+tests/test_cad_guided_mesh_offline_v1.py:418: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_cad_guided_mesh_offline_v1.py:174: in run
+    "cad_bytes": CAD_BYTES, "allow_ocp": True, **policies(branch)}
+                                                 ^^^^^^^^^^^^^^^^
+tests/test_cad_guided_mesh_offline_v1.py:54: in policies
+    instance_policy=local.SupportPolicy(4., 5., 20., 3.),
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<string>:7: in __init__
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = SupportPolicy(max_axial_gap_mm=4.0, max_angular_gap_deg=5.0, min_arc_sweep_deg=20.0, min_local_points=3.0)
+
+    def __post_init__(self):
+        for name, lower, upper in (
+            ("max_axial_gap_mm", 1e-8, 1e6),
+            ("max_angular_gap_deg", 1e-8, 90.),
+            ("min_arc_sweep_deg", 1e-8, 160.),
+        ):
+            value = getattr(self, name)
+            if (isinstance(value, (bool, np.bool_)) or not isinstance(value, (int, float))
+                    or not math.isfinite(value) or not lower <= value <= upper):
+                raise ValueError(f"invalid {name}")
+        if type(self.min_local_points) is not int or not 3 <= self.min_local_points <= 512:
+>           raise ValueError("min_local_points must be an integer in 3..512")
+E           ValueError: min_local_points must be an integer in 3..512
+
+backend/cad_guided_instances.py:38: ValueError
+___ test_cad_requires_nonempty_owned_bytes_not_path_or_mutable_buffer[cad1] ____
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10da0b5d0>
+cad = bytearray(b'not exact immutable bytes')
+
+    @pytest.mark.parametrize("cad", [b"", bytearray(b"not exact immutable bytes"), "path.step", None])
+    def test_cad_requires_nonempty_owned_bytes_not_path_or_mutable_buffer(monkeypatch, cad):
+        events, _ = install_boundaries(monkeypatch)
+>       result = run(cad_bytes=cad)
+                 ^^^^^^^^^^^^^^^^^^
+
+tests/test_cad_guided_mesh_offline_v1.py:418: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_cad_guided_mesh_offline_v1.py:174: in run
+    "cad_bytes": CAD_BYTES, "allow_ocp": True, **policies(branch)}
+                                                 ^^^^^^^^^^^^^^^^
+tests/test_cad_guided_mesh_offline_v1.py:54: in policies
+    instance_policy=local.SupportPolicy(4., 5., 20., 3.),
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<string>:7: in __init__
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = SupportPolicy(max_axial_gap_mm=4.0, max_angular_gap_deg=5.0, min_arc_sweep_deg=20.0, min_local_points=3.0)
+
+    def __post_init__(self):
+        for name, lower, upper in (
+            ("max_axial_gap_mm", 1e-8, 1e6),
+            ("max_angular_gap_deg", 1e-8, 90.),
+            ("min_arc_sweep_deg", 1e-8, 160.),
+        ):
+            value = getattr(self, name)
+            if (isinstance(value, (bool, np.bool_)) or not isinstance(value, (int, float))
+                    or not math.isfinite(value) or not lower <= value <= upper):
+                raise ValueError(f"invalid {name}")
+        if type(self.min_local_points) is not int or not 3 <= self.min_local_points <= 512:
+>           raise ValueError("min_local_points must be an integer in 3..512")
+E           ValueError: min_local_points must be an integer in 3..512
+
+backend/cad_guided_instances.py:38: ValueError
+_ test_cad_requires_nonempty_owned_bytes_not_path_or_mutable_buffer[path.step] _
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10aa6a590>
+cad = 'path.step'
+
+    @pytest.mark.parametrize("cad", [b"", bytearray(b"not exact immutable bytes"), "path.step", None])
+    def test_cad_requires_nonempty_owned_bytes_not_path_or_mutable_buffer(monkeypatch, cad):
+        events, _ = install_boundaries(monkeypatch)
+>       result = run(cad_bytes=cad)
+                 ^^^^^^^^^^^^^^^^^^
+
+tests/test_cad_guided_mesh_offline_v1.py:418: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_cad_guided_mesh_offline_v1.py:174: in run
+    "cad_bytes": CAD_BYTES, "allow_ocp": True, **policies(branch)}
+                                                 ^^^^^^^^^^^^^^^^
+tests/test_cad_guided_mesh_offline_v1.py:54: in policies
+    instance_policy=local.SupportPolicy(4., 5., 20., 3.),
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<string>:7: in __init__
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = SupportPolicy(max_axial_gap_mm=4.0, max_angular_gap_deg=5.0, min_arc_sweep_deg=20.0, min_local_points=3.0)
+
+    def __post_init__(self):
+        for name, lower, upper in (
+            ("max_axial_gap_mm", 1e-8, 1e6),
+            ("max_angular_gap_deg", 1e-8, 90.),
+            ("min_arc_sweep_deg", 1e-8, 160.),
+        ):
+            value = getattr(self, name)
+            if (isinstance(value, (bool, np.bool_)) or not isinstance(value, (int, float))
+                    or not math.isfinite(value) or not lower <= value <= upper):
+                raise ValueError(f"invalid {name}")
+        if type(self.min_local_points) is not int or not 3 <= self.min_local_points <= 512:
+>           raise ValueError("min_local_points must be an integer in 3..512")
+E           ValueError: min_local_points must be an integer in 3..512
+
+backend/cad_guided_instances.py:38: ValueError
+___ test_cad_requires_nonempty_owned_bytes_not_path_or_mutable_buffer[None] ____
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10d9fac90>
+cad = None
+
+    @pytest.mark.parametrize("cad", [b"", bytearray(b"not exact immutable bytes"), "path.step", None])
+    def test_cad_requires_nonempty_owned_bytes_not_path_or_mutable_buffer(monkeypatch, cad):
+        events, _ = install_boundaries(monkeypatch)
+>       result = run(cad_bytes=cad)
+                 ^^^^^^^^^^^^^^^^^^
+
+tests/test_cad_guided_mesh_offline_v1.py:418: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_cad_guided_mesh_offline_v1.py:174: in run
+    "cad_bytes": CAD_BYTES, "allow_ocp": True, **policies(branch)}
+                                                 ^^^^^^^^^^^^^^^^
+tests/test_cad_guided_mesh_offline_v1.py:54: in policies
+    instance_policy=local.SupportPolicy(4., 5., 20., 3.),
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<string>:7: in __init__
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = SupportPolicy(max_axial_gap_mm=4.0, max_angular_gap_deg=5.0, min_arc_sweep_deg=20.0, min_local_points=3.0)
+
+    def __post_init__(self):
+        for name, lower, upper in (
+            ("max_axial_gap_mm", 1e-8, 1e6),
+            ("max_angular_gap_deg", 1e-8, 90.),
+            ("min_arc_sweep_deg", 1e-8, 160.),
+        ):
+            value = getattr(self, name)
+            if (isinstance(value, (bool, np.bool_)) or not isinstance(value, (int, float))
+                    or not math.isfinite(value) or not lower <= value <= upper):
+                raise ValueError(f"invalid {name}")
+        if type(self.min_local_points) is not int or not 3 <= self.min_local_points <= 512:
+>           raise ValueError("min_local_points must be an integer in 3..512")
+E           ValueError: min_local_points must be an integer in 3..512
+
+backend/cad_guided_instances.py:38: ValueError
+____ test_workflow_rejects_untyped_policies_before_native[workflow_policy] _____
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10d269190>
+name = 'workflow_policy'
+
+    @pytest.mark.parametrize("name", ["workflow_policy", "registration_policy", "measurement_policy", "instance_policy"])
+    def test_workflow_rejects_untyped_policies_before_native(monkeypatch, name):
+        events, _ = install_boundaries(monkeypatch)
+>       result = run(**{name: {"looks_valid": True}})
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_cad_guided_mesh_offline_v1.py:426: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_cad_guided_mesh_offline_v1.py:174: in run
+    "cad_bytes": CAD_BYTES, "allow_ocp": True, **policies(branch)}
+                                                 ^^^^^^^^^^^^^^^^
+tests/test_cad_guided_mesh_offline_v1.py:54: in policies
+    instance_policy=local.SupportPolicy(4., 5., 20., 3.),
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<string>:7: in __init__
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = SupportPolicy(max_axial_gap_mm=4.0, max_angular_gap_deg=5.0, min_arc_sweep_deg=20.0, min_local_points=3.0)
+
+    def __post_init__(self):
+        for name, lower, upper in (
+            ("max_axial_gap_mm", 1e-8, 1e6),
+            ("max_angular_gap_deg", 1e-8, 90.),
+            ("min_arc_sweep_deg", 1e-8, 160.),
+        ):
+            value = getattr(self, name)
+            if (isinstance(value, (bool, np.bool_)) or not isinstance(value, (int, float))
+                    or not math.isfinite(value) or not lower <= value <= upper):
+                raise ValueError(f"invalid {name}")
+        if type(self.min_local_points) is not int or not 3 <= self.min_local_points <= 512:
+>           raise ValueError("min_local_points must be an integer in 3..512")
+E           ValueError: min_local_points must be an integer in 3..512
+
+backend/cad_guided_instances.py:38: ValueError
+__ test_workflow_rejects_untyped_policies_before_native[registration_policy] ___
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10d260790>
+name = 'registration_policy'
+
+    @pytest.mark.parametrize("name", ["workflow_policy", "registration_policy", "measurement_policy", "instance_policy"])
+    def test_workflow_rejects_untyped_policies_before_native(monkeypatch, name):
+        events, _ = install_boundaries(monkeypatch)
+>       result = run(**{name: {"looks_valid": True}})
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_cad_guided_mesh_offline_v1.py:426: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_cad_guided_mesh_offline_v1.py:174: in run
+    "cad_bytes": CAD_BYTES, "allow_ocp": True, **policies(branch)}
+                                                 ^^^^^^^^^^^^^^^^
+tests/test_cad_guided_mesh_offline_v1.py:54: in policies
+    instance_policy=local.SupportPolicy(4., 5., 20., 3.),
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<string>:7: in __init__
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = SupportPolicy(max_axial_gap_mm=4.0, max_angular_gap_deg=5.0, min_arc_sweep_deg=20.0, min_local_points=3.0)
+
+    def __post_init__(self):
+        for name, lower, upper in (
+            ("max_axial_gap_mm", 1e-8, 1e6),
+            ("max_angular_gap_deg", 1e-8, 90.),
+            ("min_arc_sweep_deg", 1e-8, 160.),
+        ):
+            value = getattr(self, name)
+            if (isinstance(value, (bool, np.bool_)) or not isinstance(value, (int, float))
+                    or not math.isfinite(value) or not lower <= value <= upper):
+                raise ValueError(f"invalid {name}")
+        if type(self.min_local_points) is not int or not 3 <= self.min_local_points <= 512:
+>           raise ValueError("min_local_points must be an integer in 3..512")
+E           ValueError: min_local_points must be an integer in 3..512
+
+backend/cad_guided_instances.py:38: ValueError
+___ test_workflow_rejects_untyped_policies_before_native[measurement_policy] ___
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10d25ba10>
+name = 'measurement_policy'
+
+    @pytest.mark.parametrize("name", ["workflow_policy", "registration_policy", "measurement_policy", "instance_policy"])
+    def test_workflow_rejects_untyped_policies_before_native(monkeypatch, name):
+        events, _ = install_boundaries(monkeypatch)
+>       result = run(**{name: {"looks_valid": True}})
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_cad_guided_mesh_offline_v1.py:426: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_cad_guided_mesh_offline_v1.py:174: in run
+    "cad_bytes": CAD_BYTES, "allow_ocp": True, **policies(branch)}
+                                                 ^^^^^^^^^^^^^^^^
+tests/test_cad_guided_mesh_offline_v1.py:54: in policies
+    instance_policy=local.SupportPolicy(4., 5., 20., 3.),
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<string>:7: in __init__
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = SupportPolicy(max_axial_gap_mm=4.0, max_angular_gap_deg=5.0, min_arc_sweep_deg=20.0, min_local_points=3.0)
+
+    def __post_init__(self):
+        for name, lower, upper in (
+            ("max_axial_gap_mm", 1e-8, 1e6),
+            ("max_angular_gap_deg", 1e-8, 90.),
+            ("min_arc_sweep_deg", 1e-8, 160.),
+        ):
+            value = getattr(self, name)
+            if (isinstance(value, (bool, np.bool_)) or not isinstance(value, (int, float))
+                    or not math.isfinite(value) or not lower <= value <= upper):
+                raise ValueError(f"invalid {name}")
+        if type(self.min_local_points) is not int or not 3 <= self.min_local_points <= 512:
+>           raise ValueError("min_local_points must be an integer in 3..512")
+E           ValueError: min_local_points must be an integer in 3..512
+
+backend/cad_guided_instances.py:38: ValueError
+____ test_workflow_rejects_untyped_policies_before_native[instance_policy] _____
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10da39b50>
+name = 'instance_policy'
+
+    @pytest.mark.parametrize("name", ["workflow_policy", "registration_policy", "measurement_policy", "instance_policy"])
+    def test_workflow_rejects_untyped_policies_before_native(monkeypatch, name):
+        events, _ = install_boundaries(monkeypatch)
+>       result = run(**{name: {"looks_valid": True}})
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_cad_guided_mesh_offline_v1.py:426: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_cad_guided_mesh_offline_v1.py:174: in run
+    "cad_bytes": CAD_BYTES, "allow_ocp": True, **policies(branch)}
+                                                 ^^^^^^^^^^^^^^^^
+tests/test_cad_guided_mesh_offline_v1.py:54: in policies
+    instance_policy=local.SupportPolicy(4., 5., 20., 3.),
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<string>:7: in __init__
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = SupportPolicy(max_axial_gap_mm=4.0, max_angular_gap_deg=5.0, min_arc_sweep_deg=20.0, min_local_points=3.0)
+
+    def __post_init__(self):
+        for name, lower, upper in (
+            ("max_axial_gap_mm", 1e-8, 1e6),
+            ("max_angular_gap_deg", 1e-8, 90.),
+            ("min_arc_sweep_deg", 1e-8, 160.),
+        ):
+            value = getattr(self, name)
+            if (isinstance(value, (bool, np.bool_)) or not isinstance(value, (int, float))
+                    or not math.isfinite(value) or not lower <= value <= upper):
+                raise ValueError(f"invalid {name}")
+        if type(self.min_local_points) is not int or not 3 <= self.min_local_points <= 512:
+>           raise ValueError("min_local_points must be an integer in 3..512")
+E           ValueError: min_local_points must be an integer in 3..512
+
+backend/cad_guided_instances.py:38: ValueError
+_____________ test_truth_or_identity_keyword_is_not_accepted[gold] _____________
+
+forbidden = 'gold'
+
+    @pytest.mark.parametrize("forbidden", ["gold", "reference_lines", "case_id", "part_id", "known_pose", "expected_bend_count"])
+    def test_truth_or_identity_keyword_is_not_accepted(forbidden):
+        with pytest.raises(TypeError):
+>           run(**{forbidden: "not an inference input"})
+
+tests/test_cad_guided_mesh_offline_v1.py:456: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_cad_guided_mesh_offline_v1.py:174: in run
+    "cad_bytes": CAD_BYTES, "allow_ocp": True, **policies(branch)}
+                                                 ^^^^^^^^^^^^^^^^
+tests/test_cad_guided_mesh_offline_v1.py:54: in policies
+    instance_policy=local.SupportPolicy(4., 5., 20., 3.),
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<string>:7: in __init__
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = SupportPolicy(max_axial_gap_mm=4.0, max_angular_gap_deg=5.0, min_arc_sweep_deg=20.0, min_local_points=3.0)
+
+    def __post_init__(self):
+        for name, lower, upper in (
+            ("max_axial_gap_mm", 1e-8, 1e6),
+            ("max_angular_gap_deg", 1e-8, 90.),
+            ("min_arc_sweep_deg", 1e-8, 160.),
+        ):
+            value = getattr(self, name)
+            if (isinstance(value, (bool, np.bool_)) or not isinstance(value, (int, float))
+                    or not math.isfinite(value) or not lower <= value <= upper):
+                raise ValueError(f"invalid {name}")
+        if type(self.min_local_points) is not int or not 3 <= self.min_local_points <= 512:
+>           raise ValueError("min_local_points must be an integer in 3..512")
+E           ValueError: min_local_points must be an integer in 3..512
+
+backend/cad_guided_instances.py:38: ValueError
+_______ test_truth_or_identity_keyword_is_not_accepted[reference_lines] ________
+
+forbidden = 'reference_lines'
+
+    @pytest.mark.parametrize("forbidden", ["gold", "reference_lines", "case_id", "part_id", "known_pose", "expected_bend_count"])
+    def test_truth_or_identity_keyword_is_not_accepted(forbidden):
+        with pytest.raises(TypeError):
+>           run(**{forbidden: "not an inference input"})
+
+tests/test_cad_guided_mesh_offline_v1.py:456: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_cad_guided_mesh_offline_v1.py:174: in run
+    "cad_bytes": CAD_BYTES, "allow_ocp": True, **policies(branch)}
+                                                 ^^^^^^^^^^^^^^^^
+tests/test_cad_guided_mesh_offline_v1.py:54: in policies
+    instance_policy=local.SupportPolicy(4., 5., 20., 3.),
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<string>:7: in __init__
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = SupportPolicy(max_axial_gap_mm=4.0, max_angular_gap_deg=5.0, min_arc_sweep_deg=20.0, min_local_points=3.0)
+
+    def __post_init__(self):
+        for name, lower, upper in (
+            ("max_axial_gap_mm", 1e-8, 1e6),
+            ("max_angular_gap_deg", 1e-8, 90.),
+            ("min_arc_sweep_deg", 1e-8, 160.),
+        ):
+            value = getattr(self, name)
+            if (isinstance(value, (bool, np.bool_)) or not isinstance(value, (int, float))
+                    or not math.isfinite(value) or not lower <= value <= upper):
+                raise ValueError(f"invalid {name}")
+        if type(self.min_local_points) is not int or not 3 <= self.min_local_points <= 512:
+>           raise ValueError("min_local_points must be an integer in 3..512")
+E           ValueError: min_local_points must be an integer in 3..512
+
+backend/cad_guided_instances.py:38: ValueError
+___________ test_truth_or_identity_keyword_is_not_accepted[case_id] ____________
+
+forbidden = 'case_id'
+
+    @pytest.mark.parametrize("forbidden", ["gold", "reference_lines", "case_id", "part_id", "known_pose", "expected_bend_count"])
+    def test_truth_or_identity_keyword_is_not_accepted(forbidden):
+        with pytest.raises(TypeError):
+>           run(**{forbidden: "not an inference input"})
+
+tests/test_cad_guided_mesh_offline_v1.py:456: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_cad_guided_mesh_offline_v1.py:174: in run
+    "cad_bytes": CAD_BYTES, "allow_ocp": True, **policies(branch)}
+                                                 ^^^^^^^^^^^^^^^^
+tests/test_cad_guided_mesh_offline_v1.py:54: in policies
+    instance_policy=local.SupportPolicy(4., 5., 20., 3.),
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<string>:7: in __init__
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = SupportPolicy(max_axial_gap_mm=4.0, max_angular_gap_deg=5.0, min_arc_sweep_deg=20.0, min_local_points=3.0)
+
+    def __post_init__(self):
+        for name, lower, upper in (
+            ("max_axial_gap_mm", 1e-8, 1e6),
+            ("max_angular_gap_deg", 1e-8, 90.),
+            ("min_arc_sweep_deg", 1e-8, 160.),
+        ):
+            value = getattr(self, name)
+            if (isinstance(value, (bool, np.bool_)) or not isinstance(value, (int, float))
+                    or not math.isfinite(value) or not lower <= value <= upper):
+                raise ValueError(f"invalid {name}")
+        if type(self.min_local_points) is not int or not 3 <= self.min_local_points <= 512:
+>           raise ValueError("min_local_points must be an integer in 3..512")
+E           ValueError: min_local_points must be an integer in 3..512
+
+backend/cad_guided_instances.py:38: ValueError
+___________ test_truth_or_identity_keyword_is_not_accepted[part_id] ____________
+
+forbidden = 'part_id'
+
+    @pytest.mark.parametrize("forbidden", ["gold", "reference_lines", "case_id", "part_id", "known_pose", "expected_bend_count"])
+    def test_truth_or_identity_keyword_is_not_accepted(forbidden):
+        with pytest.raises(TypeError):
+>           run(**{forbidden: "not an inference input"})
+
+tests/test_cad_guided_mesh_offline_v1.py:456: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_cad_guided_mesh_offline_v1.py:174: in run
+    "cad_bytes": CAD_BYTES, "allow_ocp": True, **policies(branch)}
+                                                 ^^^^^^^^^^^^^^^^
+tests/test_cad_guided_mesh_offline_v1.py:54: in policies
+    instance_policy=local.SupportPolicy(4., 5., 20., 3.),
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<string>:7: in __init__
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = SupportPolicy(max_axial_gap_mm=4.0, max_angular_gap_deg=5.0, min_arc_sweep_deg=20.0, min_local_points=3.0)
+
+    def __post_init__(self):
+        for name, lower, upper in (
+            ("max_axial_gap_mm", 1e-8, 1e6),
+            ("max_angular_gap_deg", 1e-8, 90.),
+            ("min_arc_sweep_deg", 1e-8, 160.),
+        ):
+            value = getattr(self, name)
+            if (isinstance(value, (bool, np.bool_)) or not isinstance(value, (int, float))
+                    or not math.isfinite(value) or not lower <= value <= upper):
+                raise ValueError(f"invalid {name}")
+        if type(self.min_local_points) is not int or not 3 <= self.min_local_points <= 512:
+>           raise ValueError("min_local_points must be an integer in 3..512")
+E           ValueError: min_local_points must be an integer in 3..512
+
+backend/cad_guided_instances.py:38: ValueError
+__________ test_truth_or_identity_keyword_is_not_accepted[known_pose] __________
+
+forbidden = 'known_pose'
+
+    @pytest.mark.parametrize("forbidden", ["gold", "reference_lines", "case_id", "part_id", "known_pose", "expected_bend_count"])
+    def test_truth_or_identity_keyword_is_not_accepted(forbidden):
+        with pytest.raises(TypeError):
+>           run(**{forbidden: "not an inference input"})
+
+tests/test_cad_guided_mesh_offline_v1.py:456: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_cad_guided_mesh_offline_v1.py:174: in run
+    "cad_bytes": CAD_BYTES, "allow_ocp": True, **policies(branch)}
+                                                 ^^^^^^^^^^^^^^^^
+tests/test_cad_guided_mesh_offline_v1.py:54: in policies
+    instance_policy=local.SupportPolicy(4., 5., 20., 3.),
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<string>:7: in __init__
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = SupportPolicy(max_axial_gap_mm=4.0, max_angular_gap_deg=5.0, min_arc_sweep_deg=20.0, min_local_points=3.0)
+
+    def __post_init__(self):
+        for name, lower, upper in (
+            ("max_axial_gap_mm", 1e-8, 1e6),
+            ("max_angular_gap_deg", 1e-8, 90.),
+            ("min_arc_sweep_deg", 1e-8, 160.),
+        ):
+            value = getattr(self, name)
+            if (isinstance(value, (bool, np.bool_)) or not isinstance(value, (int, float))
+                    or not math.isfinite(value) or not lower <= value <= upper):
+                raise ValueError(f"invalid {name}")
+        if type(self.min_local_points) is not int or not 3 <= self.min_local_points <= 512:
+>           raise ValueError("min_local_points must be an integer in 3..512")
+E           ValueError: min_local_points must be an integer in 3..512
+
+backend/cad_guided_instances.py:38: ValueError
+_____ test_truth_or_identity_keyword_is_not_accepted[expected_bend_count] ______
+
+forbidden = 'expected_bend_count'
+
+    @pytest.mark.parametrize("forbidden", ["gold", "reference_lines", "case_id", "part_id", "known_pose", "expected_bend_count"])
+    def test_truth_or_identity_keyword_is_not_accepted(forbidden):
+        with pytest.raises(TypeError):
+>           run(**{forbidden: "not an inference input"})
+
+tests/test_cad_guided_mesh_offline_v1.py:456: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_cad_guided_mesh_offline_v1.py:174: in run
+    "cad_bytes": CAD_BYTES, "allow_ocp": True, **policies(branch)}
+                                                 ^^^^^^^^^^^^^^^^
+tests/test_cad_guided_mesh_offline_v1.py:54: in policies
+    instance_policy=local.SupportPolicy(4., 5., 20., 3.),
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<string>:7: in __init__
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = SupportPolicy(max_axial_gap_mm=4.0, max_angular_gap_deg=5.0, min_arc_sweep_deg=20.0, min_local_points=3.0)
+
+    def __post_init__(self):
+        for name, lower, upper in (
+            ("max_axial_gap_mm", 1e-8, 1e6),
+            ("max_angular_gap_deg", 1e-8, 90.),
+            ("min_arc_sweep_deg", 1e-8, 160.),
+        ):
+            value = getattr(self, name)
+            if (isinstance(value, (bool, np.bool_)) or not isinstance(value, (int, float))
+                    or not math.isfinite(value) or not lower <= value <= upper):
+                raise ValueError(f"invalid {name}")
+        if type(self.min_local_points) is not int or not 3 <= self.min_local_points <= 512:
+>           raise ValueError("min_local_points must be an integer in 3..512")
+E           ValueError: min_local_points must be an integer in 3..512
+
+backend/cad_guided_instances.py:38: ValueError
+=========================== short test summary info ============================
+FAILED ../../../../dev::test_single_exact_byte_import_same_shape_and_only_extractor_branch_changes[r0]
+FAILED ../../../../dev::test_single_exact_byte_import_same_shape_and_only_extractor_branch_changes[v1]
+FAILED ../../../../dev::test_registration_receives_bounded_sample_measurement_receives_every_raw_row
+FAILED ../../../../dev::test_inverse_transform_applies_to_all_four_endpoint_fields_without_mutating_measurements
+FAILED ../../../../dev::test_successful_output_is_strict_json_with_explicit_raw_support_and_digests
+FAILED ../../../../dev::test_real_parser_and_full_raw_fitter_measure_deviation_under_mocked_pose[r0]
+FAILED ../../../../dev::test_real_parser_and_full_raw_fitter_measure_deviation_under_mocked_pose[v1]
+FAILED ../../../../dev::test_stage_exception_retains_phase_and_never_publishes_predictions[prepare-INPUT_PREPARATION]
+FAILED ../../../../dev::test_stage_exception_retains_phase_and_never_publishes_predictions[read-NATIVE_IMPORT]
+FAILED ../../../../dev::test_stage_exception_retains_phase_and_never_publishes_predictions[extract-NATIVE_FEATURES]
+FAILED ../../../../dev::test_stage_exception_retains_phase_and_never_publishes_predictions[sample-CAD_SURFACE_SAMPLING]
+FAILED ../../../../dev::test_stage_exception_retains_phase_and_never_publishes_predictions[register-WHOLE_PART_REGISTRATION]
+FAILED ../../../../dev::test_stage_exception_retains_phase_and_never_publishes_predictions[measure-FULL_RAW_LOCAL_MEASUREMENT]
+FAILED ../../../../dev::test_invalid_mesh_bytes_stop_before_native_import - V...
+FAILED ../../../../dev::test_malformed_preparation_receipt_cannot_escape_or_enter_native
+FAILED ../../../../dev::test_empty_native_feature_set_still_records_sampling_and_registration
+FAILED ../../../../dev::test_unavailable_cad_sample_does_not_call_registration
+FAILED ../../../../dev::test_unavailable_registration_does_not_measure_or_emit_nominal_lines
+FAILED ../../../../dev::test_measurement_refusals_finish_without_substituting_native_feature_count
+FAILED ../../../../dev::test_bad_second_instance_cannot_publish_successful_prefix
+FAILED ../../../../dev::test_native_opt_in_is_strict_boolean_before_any_reader[False]
+FAILED ../../../../dev::test_native_opt_in_is_strict_boolean_before_any_reader[None]
+FAILED ../../../../dev::test_native_opt_in_is_strict_boolean_before_any_reader[1]
+FAILED ../../../../dev::test_native_opt_in_is_strict_boolean_before_any_reader[true]
+FAILED ../../../../dev::test_cad_requires_nonempty_owned_bytes_not_path_or_mutable_buffer[]
+FAILED ../../../../dev::test_cad_requires_nonempty_owned_bytes_not_path_or_mutable_buffer[cad1]
+FAILED ../../../../dev::test_cad_requires_nonempty_owned_bytes_not_path_or_mutable_buffer[path.step]
+FAILED ../../../../dev::test_cad_requires_nonempty_owned_bytes_not_path_or_mutable_buffer[None]
+FAILED ../../../../dev::test_workflow_rejects_untyped_policies_before_native[workflow_policy]
+FAILED ../../../../dev::test_workflow_rejects_untyped_policies_before_native[registration_policy]
+FAILED ../../../../dev::test_workflow_rejects_untyped_policies_before_native[measurement_policy]
+FAILED ../../../../dev::test_workflow_rejects_untyped_policies_before_native[instance_policy]
+FAILED ../../../../dev::test_truth_or_identity_keyword_is_not_accepted[gold]
+FAILED ../../../../dev::test_truth_or_identity_keyword_is_not_accepted[reference_lines]
+FAILED ../../../../dev::test_truth_or_identity_keyword_is_not_accepted[case_id]
+FAILED ../../../../dev::test_truth_or_identity_keyword_is_not_accepted[part_id]
+FAILED ../../../../dev::test_truth_or_identity_keyword_is_not_accepted[known_pose]
+FAILED ../../../../dev::test_truth_or_identity_keyword_is_not_accepted[expected_bend_count]
+38 failed, 15 passed in 0.59s
+{"worker_cpu_seconds": 0.6497339999999999, "worker_peak_rss_bytes": 88440832}

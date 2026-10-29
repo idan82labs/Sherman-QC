@@ -1,0 +1,195 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Station</title>
+<link rel="stylesheet" href="tokens.css">
+<style>
+body{display:grid;grid-template-rows:76px 1fr 56px}
+header{display:grid;grid-template-columns:auto 1fr auto auto auto;background:var(--surface);border-bottom:1px solid var(--line)}
+header>*{display:flex;align-items:center;gap:var(--s-4);padding:0 var(--s-6);border-inline-start:1px solid var(--line)}
+header>:first-child{border:0}
+.logo img{height:34px;display:block}
+.pn{font-size:var(--t-xl);font-weight:700;line-height:1}
+.meta{font-size:var(--t-sm);color:var(--tx-3);margin-top:4px}.meta b{color:var(--tx-2);font-weight:500}
+.prog .big{font-size:var(--t-xl);font-weight:700;line-height:1}
+.segs{display:flex;gap:3px;direction:ltr}.segs i{width:12px;height:12px;background:var(--accent);border-radius:1px}
+.verdict{background:var(--fix-solid);color:#fff;gap:var(--s-5);min-width:460px;border:0}
+.verdict .w{font-size:var(--t-2xl);font-weight:800;line-height:1}
+.verdict .c{font-size:var(--t-md);line-height:1.35;font-weight:500}.verdict .c b{font-size:var(--t-lg);font-weight:800}
+.verdict .ic{opacity:.95}
+.clock .t{font-size:var(--t-lg);font-weight:600;line-height:1.1}
+main{display:grid;grid-template-columns:1fr 860px;min-height:0}
+.view{position:relative;overflow:hidden;background:var(--bg)}
+.grid{position:absolute;inset:0;background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);background-size:40px 40px;opacity:.35;-webkit-mask-image:radial-gradient(circle at 50% 50%,#000 30%,transparent 80%)}
+#part,#over{position:absolute;inset:0}
+.vhead{position:absolute;top:var(--s-4);inset-inline-start:var(--s-5);display:flex;gap:var(--s-3);align-items:center;font-size:var(--t-sm);color:var(--tx-3)}
+.vhead b{color:var(--tx-2);font-weight:500}
+.tools{position:absolute;bottom:var(--s-4);inset-inline:var(--s-4);display:flex;gap:var(--s-3)}
+.hint{position:absolute;inset-inline-end:var(--s-6);top:50%;transform:translateY(-50%);width:300px;color:var(--tx-3);font-size:var(--t-sm);display:flex;flex-direction:column;align-items:flex-start;gap:var(--s-2);border-inline-start:1px solid var(--line-2);padding-inline-start:var(--s-4)}
+.hint b{color:var(--tx-2);font-weight:500;font-size:var(--t-md)}
+/* list */
+.list{background:var(--surface);border-inline-start:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
+table{width:100%;border-collapse:collapse}
+th{font-size:var(--t-xs);font-weight:500;color:var(--tx-3);text-align:start;padding:0 var(--s-4);height:44px;border-bottom:1px solid var(--line-2)}
+th.n,td.n{text-align:end}
+th .u{font-weight:400;opacity:.8}
+td{height:68px;padding:0 var(--s-4);border-bottom:1px solid var(--line);white-space:nowrap}
+tr.sel td{background:var(--surface-3)}
+tr.sel td:first-child{box-shadow:inset calc(var(--dirsign) * -3px) 0 0 var(--accent)}
+.seq{font-size:var(--t-sm);color:var(--tx-3);width:40px}
+.bid{font-size:var(--t-lg);font-weight:700;width:96px}
+.bid .badge{margin-inline-start:6px;height:20px;font-size:11px}
+.val{font-size:var(--t-xl);font-weight:700;letter-spacing:-.01em;position:relative}
+.val .u{font-size:var(--t-sm);font-weight:500;opacity:.7}
+.val.nm{font-size:var(--t-sm);font-weight:500}
+td.hov{background:var(--fix-bg);box-shadow:inset 0 0 0 1px var(--fix)}
+.legend{margin-top:auto;display:flex;gap:var(--s-5);align-items:center;padding:0 var(--s-4);height:44px;border-top:1px solid var(--line);font-size:var(--t-xs);color:var(--tx-3)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:1px;margin-inline-end:6px;vertical-align:-1px}
+/* tooltip */
+.tip{position:fixed;z-index:5;width:300px;background:var(--surface-2);border:1px solid var(--line-2);border-radius:var(--r-2);box-shadow:var(--shadow);padding:var(--s-3) var(--s-4);font-size:var(--t-sm)}
+.tip h4{font-size:var(--t-xs);font-weight:500;color:var(--tx-3);margin-bottom:var(--s-2)}
+.tip .r{display:flex;justify-content:space-between;height:26px;align-items:center;color:var(--tx-2)}
+.tip .r b{color:var(--tx);font-weight:600}.tip .r b.v-fix{color:var(--fix)}
+.tip .gauge{position:relative;height:6px;background:var(--surface-3);margin:var(--s-3) 0 var(--s-1);direction:ltr}
+.tip .gauge .band{position:absolute;top:0;bottom:0;background:var(--line-2)}
+.tip .gauge .nom{position:absolute;top:-3px;width:1px;height:12px;background:var(--tx-3)}
+.tip .gauge .act{position:absolute;top:-4px;width:3px;height:14px;background:var(--fix)}
+.tip .gl{display:flex;justify-content:space-between;font-size:11px;color:var(--tx-3);direction:ltr}
+.tip::after{content:'';position:absolute;bottom:-6px;width:10px;height:10px;background:var(--surface-2);border-right:1px solid var(--line-2);border-bottom:1px solid var(--line-2);transform:rotate(45deg);inset-inline-start:var(--arrow,40px)}
+/* bend card */
+.card{position:absolute;z-index:4;width:548px;background:var(--surface);border:1px solid var(--line-2);border-radius:var(--r-2);box-shadow:var(--shadow)}
+.card .h{display:flex;align-items:center;gap:var(--s-3);padding:var(--s-3) var(--s-4);border-bottom:1px solid var(--line)}
+.card .h .id{font-size:var(--t-xl);font-weight:800}
+.card .h .x{margin-inline-start:auto;color:var(--tx-3)}
+.card th{height:34px;background:var(--surface-2)}
+.card td{height:52px;font-size:var(--t-md);padding:0 12px}.card th{padding:0 12px}
+.card td.ch{color:var(--tx-2);font-size:var(--t-sm)}
+.card td .big{font-size:var(--t-lg);font-weight:700}
+.card td.ex{color:var(--tx-2)}
+.card tr.bad td{background:var(--fix-bg)}
+.card .vd{display:inline-flex;align-items:center;gap:4px;font-size:var(--t-xs);font-weight:600}
+.card .act{display:flex;gap:var(--s-3);align-items:flex-start;padding:var(--s-3) var(--s-4);font-size:var(--t-md);font-weight:500;color:var(--tx)}
+.card .act .ic{color:var(--fix);margin-top:2px}
+footer{display:flex;align-items:center;background:var(--surface);border-top:1px solid var(--line)}
+footer>*{display:flex;align-items:center;gap:var(--s-3);height:100%;padding:0 var(--s-5);border-inline-start:1px solid var(--line)}
+footer>:first-child{border:0;flex:1;color:var(--tx-2)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 3px var(--ok-bg)}
+.scanchip{font-size:var(--t-sm);border:1px solid var(--line-2);border-radius:var(--r-1);padding:4px 10px;color:var(--tx-2)}
+.scanchip.cur{border-color:var(--accent);color:var(--tx)}
+</style></head>
+<body class="theme-dark">
+<header>
+  <div class="logo"><img src="sherman-logo-white.png" alt="Sherman"></div>
+  <div><div><div class="pn num">10839000</div><div class="meta" id="meta"></div></div></div>
+  <div class="prog"><div><div class="lbl" data-t="done"></div><div class="big num">12 / 12</div></div><div class="segs" id="segs"></div></div>
+  <div class="verdict" id="verdict"></div>
+  <div class="clock"><div><div class="t num">14:08:12</div><div class="lbl" id="stn"></div></div><span class="badge" id="langsw"></span></div>
+</header>
+<main>
+  <section class="view" id="view">
+    <div class="grid"></div><div id="part"></div><svg id="over"></svg>
+    <div class="vhead" id="vhead"></div>
+    <div class="hint" id="hint"></div>
+    <div class="tools" id="tools"></div>
+  </section>
+  <section class="list" id="list"></section>
+</main>
+<footer id="foot"></footer>
+<script src="icons.js"></script><script src="shared.js"></script>
+<script>
+const q=new URLSearchParams(location.search), L=q.get('lang')||'he', ST=q.get('state')||'default'
+document.documentElement.lang=L; document.documentElement.dir=L==='he'?'rtl':'ltr'
+document.documentElement.style.setProperty('--dirsign', L==='he'?1:-1)
+const T={he:{done:'כיפופים בוצעו',FIX:'לתקן',CHECK:'לבדוק',OK:'תקין',nm:'לא נמדד',toFix:'לתיקון',toCheck:'לבדיקה',oot:'נמצאה חריגה מטולרנס',
+  meta:'Joggle bracket · מתכון <b>v1</b> · עבודה <b class="num">7eec6c</b> · סידורי —',stn:'עמדה <span class="num">cell-1</span> · מחובר',other:'English',
+  vhead:'<b>סריקה מלאה</b> · <span class="num">10839000_01_FULL_SCAN 1.ply</span>',
+  hintT:'בחרו כיפוף',hint:'לחיצה על כיפוף ברשימה או על הדגם פותחת את כל המדידות שלו, מחוברות לקו הכיפוף שנמדד.',
+  cad:'שרטוט',fin:'חלק גמור',scan:'סריקה',heat:'מפת סטיות',lblP:'תוויות: חריגות',lblA:'הכול',next:'החריגה הבאה',fit:'כל החלק',
+  bend:'כיפוף',res:'תוצאה',fa:'כנף A',fb:'כנף B',ang:'זווית',line:'קו כיפוף',mm:'מ״מ',move:'מהלך 1',
+  legend:['בתוך הטולרנס','לבדוק','מחוץ לטולרנס'],legHint:'ריחוף על ערך מציג צפוי וטולרנס',
+  waiting:'ממתין לסריקה הבאה',recent:'סריקות אחרונות',assist:'סיוע למפעיל – אינו קבלה או דחייה אוטומטית',pdf:'הורדת PDF',
+  exp:'צפוי',act:'בפועל',dev:'סטייה',tol:'טולרנס',ver:'תוצאה',range:'טווח',far:'כיפוף יתר',inT:'בטולרנס',outT:'מחוץ',rev:'לבדוק',
+  of:(a,b)=>`כיפוף ${a} מתוך ${b}`,close:'סגירה',char:'מאפיין',
+  action:'מחוץ לטולרנס. לתקן, או להפריש את החלק ולעדכן את ראש המשמרת.'},
+ en:{done:'Bends done',FIX:'FIX',CHECK:'CHECK',OK:'OK',nm:'Not measured',toFix:'to fix',toCheck:'to check',oot:'Out of tolerance found',
+  meta:'Joggle bracket · Recipe <b>v1</b> · Job <b class="num">7eec6c</b> · Serial —',stn:'Station <span class="num">cell-1</span> · Online',other:'עברית',
+  vhead:'<b>Full scan</b> · <span class="num">10839000_01_FULL_SCAN 1.ply</span>',
+  hintT:'Select a bend',hint:'Tap a bend in the list or on the model to open all its measurements, attached to the measured bend line.',
+  cad:'CAD',fin:'Finished part',scan:'Scan',heat:'Heatmap',lblP:'Labels: problems',lblA:'All',next:'Next problem',fit:'Fit part',
+  bend:'Bend',res:'Result',fa:'Flange A',fb:'Flange B',ang:'Angle',line:'Bend line',mm:'mm',move:'Move 1',
+  legend:['In tolerance','Check','Out of tolerance'],legHint:'Hover a value for nominal and tolerance',
+  waiting:'Waiting for the next scan',recent:'Recent scans',assist:'Operator assist – not an automatic accept/reject',pdf:'Download PDF',
+  exp:'Expected',act:'Actual',dev:'Deviation',tol:'Tolerance',ver:'Verdict',range:'Range',far:'bent too far',inT:'In tol.',outT:'Out',rev:'Check',
+  of:(a,b)=>`Bend ${a} of ${b}`,close:'Close',char:'Characteristic',
+  action:'Out of tolerance. Correct it, or set the part aside and tell the shift lead.'}}[L]
+document.querySelectorAll('[data-t]').forEach(e=>e.innerHTML=T[e.dataset.t])
+const $=id=>document.getElementById(id)
+const {bends,byId}=SQ, SEL=ST==='click'?'B11':null
+const icoV={FIX:'fix',CHECK:'check',OK:'ok'}
+$('meta').innerHTML=T.meta; $('stn').innerHTML=T.stn; $('langsw').textContent=T.other; $('vhead').innerHTML=T.vhead
+$('segs').innerHTML=bends.map(()=>'<i></i>').join('')
+$('verdict').innerHTML=`${icon('fix',34,2.5)}<div class="w">${T.FIX}</div><div class="c"><b class="num">4</b> ${T.toFix} · <b class="num">8</b> ${T.toCheck}<br>${T.oot}</div>`
+$('tools').innerHTML=`<div class="seg"><span class="on">${icon('cad')}${T.cad}</span><span>${icon('finished')}${T.fin}</span><span class="on">${icon('scan')}${T.scan}</span><span>${icon('heatmap')}${T.heat}</span></div>
+<div class="seg"><span class="on">${icon('tag')}${T.lblP}</span><span>${T.lblA}</span></div><span style="flex:1"></span>
+<div class="seg"><span>${icon('next')}${T.next}</span><span>${icon('fit')}${T.fit}</span></div>`
+if(!SEL) $('hint').innerHTML=`${icon('info',22)}<b>${T.hintT}</b>${T.hint}`
+// list with ACTUAL values
+const vcls={ok:'v-ok',check:'v-chk',fix:'v-fix',nm:'v-nm'}
+const val=(c,k,id)=>c[3]==='nm'?`<td class="n"><span class="val nm v-nm">${T.nm}</span></td>`:
+  `<td class="n ${ST==='hover'&&id==='B11'&&k==='g'?'hov':''}" ${id==='B11'&&k==='g'?'id="hovcell"':''}><span class="val ${vcls[c[3]]}"><span class="num">${c[1]}${k==='g'?'°':''}</span></span></td>`
+$('list').innerHTML=`<table><thead><tr><th>#</th><th>${T.bend}</th><th>${T.res}</th><th class="n">${T.fa} <span class="u">· ${T.mm}</span></th><th class="n">${T.fb} <span class="u">· ${T.mm}</span></th><th class="n">${T.ang} <span class="u">· °</span></th></tr></thead><tbody>
+${bends.map(b=>`<tr class="${b.id===SEL?'sel':''}"><td class="seq num">${b.seq}</td><td class="bid"><span class="num">${b.id}</span>${b.move?`<span class="badge">${T.move}</span>`:''}</td><td><span class="chip ${b.v}">${icon(icoV[b.v],16,2.2)}${T[b.v]}</span></td>${val(b.a,'a',b.id)}${val(b.b,'b',b.id)}${val(b.g,'g',b.id)}</tr>`).join('')}</tbody></table>
+<div class="legend"><span><i style="background:var(--ok)"></i>${T.legend[0]}</span><span><i style="background:var(--chk)"></i>${T.legend[1]}</span><span><i style="background:var(--fix)"></i>${T.legend[2]}</span><span style="margin-inline-start:auto">${icon('info',14)}</span><span style="margin-inline-start:-14px">${T.legHint}</span></div>`
+$('foot').innerHTML=`<div><span class="dot"></span>${T.waiting}</div><div><span class="lbl">${T.recent}</span><span class="scanchip cur num">7eec6c 14:08</span><span class="scanchip num">4f667b 14:10</span><span class="scanchip num">d01173 14:11</span></div><div><span class="lbl">${T.assist}</span></div><div><span class="btn">${icon('pdf',18)}${T.pdf}</span></div>`
+// tooltip (hover state)
+if(ST==='hover'){
+  const cell=$('hovcell').getBoundingClientRect(), tip=document.createElement('div'); tip.className='tip'
+  const b=byId('B11')
+  tip.innerHTML=`<h4>B11 · ${T.ang}</h4><div class="r"><span>${T.exp}</span><b class="num">90.0°</b></div><div class="r"><span>${T.tol}</span><b class="num">±1.0°</b></div><div class="r"><span>${T.act}</span><b class="num v-fix">88.0°</b></div><div class="r"><span>${T.dev}</span><b class="num v-fix">−2.0° · ${T.far}</b></div>
+  <div class="gauge"><span class="band" style="left:33.3%;width:33.3%"></span><span class="nom" style="left:50%"></span><span class="act" style="left:0%"></span></div><div class="gl"><span>88.0</span><span>89.0</span><span>90.0</span><span>91.0</span><span>92.0</span></div>`
+  document.body.appendChild(tip)
+  const th=tip.getBoundingClientRect().height
+  const left=L==='he'?cell.left+8:cell.right-300-8
+  tip.style.left=left+'px'; tip.style.top=(cell.top-th-10)+'px'
+  tip.style.setProperty('--arrow', (L==='he'? (cell.right-left-40):(cell.right-left-40))+'px')
+  tip.style.setProperty('--arrow','40px')
+}
+// model
+const view=$('view').getBoundingClientRect(), out={}
+const col={FIX:'#FF5C61',CHECK:'#F2B544',OK:'#3CC283'}
+const dir=L==='he'?-1:1   // toward the card (screen x)
+$('part').innerHTML=SQ.render({w:view.width,h:view.height,scale:1.72,yaw:-30,pitch:26,ox:-dir*250,oy:-6,out,
+  face:l=>`hsl(212 14% ${14+l*22}%)`,edge:'#5E6E82',edgeW:.8,faceOverlay:'url(#dots)',
+  extraDefs:'<pattern id="dots" width="4" height="4" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r=".6" fill="#C9D4E0" opacity=".26"/></pattern>',
+  bendColor:b=>col[b.v],bendW:2,selected:SEL,nominal:SEL?'rgba(233,238,243,.65)':null,selColor:'#FF5C61',glow:'#E5484D',glowW:16,glowBlur:5,selW:3.5,
+  tick:'#738195',markerBox:[44,22],markerFor:b=>b.v==='FIX'&&b.id!==SEL,
+  marker:(b,x,y)=>`<g transform="translate(${x-22},${y-11})"><rect width="44" height="22" rx="3" fill="#111821" stroke="#FF5C61" stroke-width="1"/><text x="22" y="15.5" text-anchor="middle" font-family="Heebo" font-size="13" font-weight="700" fill="#FF8A8D">${b.id}</text></g>`})
+if(SEL){
+  const a=out.scr[SEL].actual, P=(t)=>[a.p0[0]+(a.p1[0]-a.p0[0])*t,a.p0[1]+(a.p1[1]-a.p0[1])*t]
+  const end=(a.p0[0]-a.p1[0])*dir>0?0:1, A=P(end===0?0.1:0.9)
+  const VW=view.width, VH=view.height, cardW=548, cardH=372
+  const bb=document.querySelector('#part svg').getBBox(), outer=dir<0?bb.x-18:bb.x+bb.width+18
+  const edgeX=dir<0?Math.min(A[0]-104,outer):Math.max(A[0]+104,outer), J=[edgeX-dir*22,A[1]-40], Bx=[A[0]+dir*40,A[1]-40]
+  const E1=[edgeX,J[1]-16],E2=[edgeX,J[1]+16]
+  const over=$('over'); over.setAttribute('width',VW); over.setAttribute('height',VH)
+  const ln=(p,q,w,c)=>`<line x1="${p[0]}" y1="${p[1]}" x2="${q[0]}" y2="${q[1]}" stroke="${c}" stroke-width="${w}" stroke-linecap="butt"/>`
+  let s=''
+  for(const [w,c] of [[4,'#0B1016'],[1.25,'#E9EEF3']]) s+=ln(A,Bx,w,c)+ln(Bx,J,w,c)+ln(J,E1,w,c)+ln(J,E2,w,c)
+  s+=`<circle cx="${A[0]}" cy="${A[1]}" r="9" fill="none" stroke="#FF5C61" stroke-width="1.25"/><circle cx="${A[0]}" cy="${A[1]}" r="3.5" fill="#fff"/>`
+  s+=`<rect x="${J[0]-2.5}" y="${J[1]-2.5}" width="5" height="5" fill="#E9EEF3"/>`
+  over.innerHTML=s
+  var FORK={edgeX,J,cardW,cardH,VW,VH}
+  // card
+  const b=byId(SEL), card=document.createElement('div'); card.className='card'
+  const row=(n,c,k,tol,extra)=>{const u=k==='g'?'°':'', cls=vcls[c[3]], bad=c[3]==='fix'
+    const vd=c[3]==='fix'?`<span class="vd v-fix">${icon('fix',14,2.4)}${T.outT}</span>`:c[3]==='check'?`<span class="vd v-chk">${icon('check',14,2)}${T.rev}</span>`:`<span class="vd v-ok">${icon('ok',14,2.4)}${T.inT}</span>`
+    return `<tr class="${bad?'bad':''}"><td class="ch">${n}</td><td class="n ex"><span class="num">${c[0]}${u}</span></td><td class="n"><span class="big ${cls}"><span class="num">${c[1]}${u}</span></span></td><td class="n ${cls}"><span class="num">${c[2]}${u}</span></td><td class="n ex"><span class="num">±${tol}${u}</span></td><td>${vd}${extra?`<div class="lbl v-fix">${extra}</div>`:''}</td></tr>`}
+  card.innerHTML=`<div class="h"><span class="id num">${b.id}</span><span class="chip FIX">${icon('fix',16,2.2)}${T.FIX}</span><span class="lbl" style="font-size:var(--t-sm)">${T.of('<span class="num">10</span>','<span class="num">12</span>')}</span><span class="x">${icon('close',20)}</span></div>
+  <table><thead><tr><th>${T.char}</th><th class="n">${T.exp}</th><th class="n">${T.act}</th><th class="n">${T.dev}</th><th class="n">${T.tol}</th><th>${T.ver}</th></tr></thead><tbody>
+  ${row(T.fa+' · '+T.mm,b.a,'a','0.5')}${row(T.fb+' · '+T.mm,b.b,'b','0.5')}${row(T.ang,b.g,'g','1.0',T.far)}${row(T.line+' · '+T.mm,['0.00','−0.45','−0.45','check'],'l','0.5')}</tbody></table>
+  <div class="act">${icon('check',20,2)}<span>${T.action}</span></div>`
+  $('view').appendChild(card)
+  const h=card.getBoundingClientRect().height
+  card.style.left=(dir<0?edgeX-cardW:edgeX)+'px'
+  card.style.top=Math.max(56,Math.min(VH-84-h,J[1]-h/2))+'px'
+}
+</script>
+</body></html>

@@ -1,0 +1,215 @@
+{
+ "schema": "sherman.broad_baseline.eval_lines.v1",
+ "lane": "zs_lane_v3:zs",
+ "status": "OK",
+ "frame": "scan_raw",
+ "frame_definition": "coordinates of the scan file exactly as stored (source_ply_raw == scan_raw)",
+ "units": "scan file units (mm for every Sherman scan inspected so far; not re-estimated)",
+ "scan": {
+  "path": "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260316_19cf5714/42288005_01_SCAN_1.ply",
+  "sha256": "ef0abac61ae7440f32beebf321f110c92536f384dd2d818ec92a771e3f3e392d"
+ },
+ "source": {
+  "kind": "zs_lane_v3:zs",
+  "path": null,
+  "sha256": null
+ },
+ "conversion": {
+  "rule": "zs_lane_v3 variant zs",
+  "variant": "zs",
+  "threshold": 0.5,
+  "model": "docs/production/runlog/zeroshot_2026-10-25/v3/models/zs_lane_v3_zs_gbm.pkl",
+  "model_sha256": "ade6cde44ede85dbf8195d0f6c093a2eea50eb4a481a21ec99fa9f17cd49ffeb",
+  "z3_model": "docs/production/runlog/zeroshot_2026-10-25/v3/models/zs_lane_v3_z3_gbm.pkl",
+  "z3_model_sha256": "62e99d13ccf0945d4b6932b85f19879e757e09ca7f493041c3ce53503e74e28c",
+  "post": {
+   "dedupe_join": true,
+   "join": true,
+   "join_low": 0.0,
+   "sweep_min": 0.25
+  },
+  "fix": {
+   "ext": true,
+   "ext_dedupe": true,
+   "ext_min_in": 0.6,
+   "ext_ratio": 1.3,
+   "z3r": true,
+   "z3r_sweep_min": 0.25,
+   "z3r_tau": 0.9
+  },
+  "z3_params": {
+   "fallback_frac_only": true
+  },
+  "z2_fallback": true,
+  "code_fingerprint": "ab31d061c6231f5f7581f4cf03d451e77dbc5667e0193e66f3acac955e30a03d",
+  "pins_ok": true,
+  "pin_mismatch": [],
+  "errors": {},
+  "stages": {
+   "budget": {
+    "applied": false,
+    "faces": 1070671,
+    "max_faces": 3000000
+   },
+   "z2": {
+    "wall": 3.011,
+    "t_mm": 1.342,
+    "n_lines": 5
+   },
+   "z3": {
+    "wall": 3.433,
+    "t_mm": 1.3399991393089294,
+    "n_candidates": 5,
+    "area_total": 131316.5501717388,
+    "n_families": 4,
+    "family_fallback": false
+   },
+   "pool": {
+    "wall": 0.006,
+    "n": 5
+   },
+   "snap_all": {
+    "wall": 0.098,
+    "n": 5
+   },
+   "evidence": {
+    "wall": 0.202
+   },
+   "select_post": {
+    "wall": 0.006,
+    "n": 5,
+    "ops": {
+     "keep": 5,
+     "split": 0,
+     "join": 0
+    },
+    "fixes": {
+     "EXT": 0,
+     "Z3R": 0
+    }
+   }
+  },
+  "guard_basis": "SPLIT_FROZEN_DEV_GOLD_OF_RECORD"
+ },
+ "line_count": 5,
+ "owned_bend_regions": [
+  {
+   "bend_id": "ZS001",
+   "line_start": [
+    -155.21985758255624,
+    -139.28407909237396,
+    102.51657123663686
+   ],
+   "line_end": [
+    -196.40155667543578,
+    -169.2430809801566,
+    92.00292219159574
+   ],
+   "score": 0.9966368651450443,
+   "incl": 165.39264530658593,
+   "src": [
+    "z2",
+    "z3"
+   ],
+   "op": "keep",
+   "parts": [
+    0
+   ]
+  },
+  {
+   "bend_id": "ZS002",
+   "line_start": [
+    -150.84889999847323,
+    -148.05384503508387,
+    94.6491721654561
+   ],
+   "line_end": [
+    -187.08950295664516,
+    -174.78648614742548,
+    85.26842988394858
+   ],
+   "score": 0.9755236629619228,
+   "incl": 165.1110384463394,
+   "src": [
+    "z2",
+    "z3"
+   ],
+   "op": "keep",
+   "parts": [
+    1
+   ]
+  },
+  {
+   "bend_id": "ZS003",
+   "line_start": [
+    -101.14330439754649,
+    -149.07795663539673,
+    97.43267143368887
+   ],
+   "line_end": [
+    -114.08834337312375,
+    -133.65754763271408,
+    103.4033264443166
+   ],
+   "score": 0.9952720446090271,
+   "incl": 89.0024776221872,
+   "src": [
+    "z2",
+    "z3"
+   ],
+   "op": "keep",
+   "parts": [
+    2
+   ]
+  },
+  {
+   "bend_id": "ZS004",
+   "line_start": [
+    -270.0875445264047,
+    11.517512984391576,
+    160.71385203855868
+   ],
+   "line_end": [
+    -339.424981001433,
+    -39.71752371620326,
+    143.06947145022085
+   ],
+   "score": 0.9919475919294853,
+   "incl": 90.25595219918694,
+   "src": [
+    "z2",
+    "z3"
+   ],
+   "op": "keep",
+   "parts": [
+    3
+   ]
+  },
+  {
+   "bend_id": "ZS005",
+   "line_start": [
+    -235.01234885789717,
+    10.573113782614454,
+    159.85869951555748
+   ],
+   "line_end": [
+    -247.9730311866212,
+    25.946876484339157,
+    165.91439209320635
+   ],
+   "score": 0.978342676366357,
+   "incl": 90.30912475555661,
+   "src": [
+    "z2",
+    "z3"
+   ],
+   "op": "keep",
+   "parts": [
+    4
+   ]
+  }
+ ],
+ "dropped": [],
+ "failure": null,
+ "created_at": "2026-10-25T15:41:04Z"
+}

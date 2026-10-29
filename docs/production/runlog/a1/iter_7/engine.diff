@@ -1,0 +1,228 @@
+diff -ru -x __pycache__ a/domains/production/engine/inspect/config.py b/domains/production/engine/inspect/config.py
+--- a/domains/production/engine/inspect/config.py	2026-10-19 01:36:22
++++ b/domains/production/engine/inspect/config.py	2026-10-19 04:40:08
+@@ -32,7 +32,7 @@
+ __all__ = ["ENGINE_VERSION", "ALGORITHM_VERSIONS", "InspectConfig", "ConfigError", "load_config"]
+ 
+ #: Version of the per-scan engine (``result.engine.engine_version``).
+-ENGINE_VERSION = "e3-1.8.0"
++ENGINE_VERSION = "e3-1.9.0"
+ 
+ #: Algorithm identifiers recorded in ``result.engine.algorithm_versions``.
+ ALGORITHM_VERSIONS: dict[str, str] = {
+@@ -41,7 +41,7 @@
+     "articulated_fit": "hinge_hough_region_grow_skin_levels_arc_fold_displaced_fold_window_short_child_window_support_tabs_one_skin_pose_on_plane_joggle_step_one_skin_reread_astray_wide_reversed_mirrored_hinge_v8",
+     "thickness": "datum_tile_two_skin_separation_v1",
+     "state_decode": "signed_dihedral_fraction_order_prior_symmetric_near_twins_hole_evidence_v4",
+-    "metrology": "station_oml_section_crease_aware_unfolded_island_station_profile_short_side_consistency_footprint_edge_riser_model_reseat_signed_angle_reversed_position_mirrored_v8",
++    "metrology": "station_oml_section_crease_aware_unfolded_island_station_profile_short_side_consistency_footprint_edge_riser_model_reseat_signed_angle_reversed_position_mirrored_flat_start_v9",
+     "uncertainty": "station_mad_residual_pose_erosion_bias_thickness_station_spread_riser_length_v4",
+     "heatmap": "stage_cloud_nearest_signed_v1",
+ }
+@@ -298,6 +298,20 @@
+     local_reseat_max_tilt_deg: float = 6.0
+     local_reseat_min_share: float = 0.25
+     local_fit_min_depth_mm: float = 4.0
++    #: Each side's station window starts on that side's own flat material (``metrology._flat_start``): a real inner
++    #: radius larger than the CAD's, or a springback transition, keeps bending beyond the CAD tangent line (+0.5 mm),
++    #: and that tail, bending toward the bend's centre, tilts the station planes toward an underbent reading. From
++    #: the CAD start the window moves out by ``flat_start_step_mm`` until a ``flat_start_test_mm`` strip lies within
++    #: ``flat_start_dev_mm`` of the line of up to ``flat_start_ref_mm`` of straight skin starting
++    #: ``flat_start_gap_mm`` beyond it (axial chunks of ``flat_start_chunk_mm`` pooled); with no such strip within
++    #: ``flat_start_max_shift_mm`` (0 turns the search off) the CAD start stays.
++    flat_start_step_mm: float = 0.25
++    flat_start_test_mm: float = 0.5
++    flat_start_gap_mm: float = 1.0
++    flat_start_ref_mm: float = 3.0
++    flat_start_dev_mm: float = 0.02
++    flat_start_max_shift_mm: float = 4.0
++    flat_start_chunk_mm: float = 25.0
+     min_station_points: int = 12
+     #: A station's skin level may sit this far (mm, at most 0.4 t) from the panel plane.
+     station_skin_reach_mm: float = 0.6
+@@ -513,6 +527,9 @@
+     "min_visible_length_mm": _POS, "local_fit_depth_mm": _POS, "local_fit_min_depth_mm": _POS,
+     "station_region_max_deg": (0.0, 180.0, True, False),
+     "min_station_points": (3, None, False, False), "station_skin_reach_mm": _POS,
++    "flat_start_step_mm": _POS, "flat_start_test_mm": _POS, "flat_start_gap_mm": (0.0, None, False, False),
++    "flat_start_ref_mm": _POS, "flat_start_dev_mm": _POS,
++    "flat_start_max_shift_mm": (0.0, None, False, False), "flat_start_chunk_mm": _POS,
+     "far_edge_rank": (1, None, False, False), "wall_skin_margin_fraction": (0.0, 0.5, False, True),
+     "free_edge_footprint_margin_mm": _POS,
+     "wall_zone_mm": _POS, "wall_min_points": (1, None, False, False), "min_station_fraction": (0.0, 1.0, True, False),
+diff -ru -x __pycache__ a/domains/production/engine/inspect/metrology.py b/domains/production/engine/inspect/metrology.py
+--- a/domains/production/engine/inspect/metrology.py	2026-10-19 01:52:15
++++ b/domains/production/engine/inspect/metrology.py	2026-10-19 05:36:06
+@@ -4,8 +4,11 @@
+ UNEXPECTED_FORMED) the visible axial length is cut into 5-11 contiguous
+ **stations**. In each station the parent's and the child's OML planes are
+ fitted locally (robust Tukey IRLS on full-resolution points, the bend region
+-excluded, never past an adjacent bend's tangent line: a short riser is fitted
+-on its own flat material, not on the arc and flange beyond it) and give:
++excluded up to each side's own flat material -- past the CAD tangent line, or
++past the formed arc's tail when the real radius or its springback transition
++runs on beyond it (:func:`_flat_start`) -- and never past an adjacent bend's
++tangent line: a short riser is fitted on its own flat material, not on the arc
++and flange beyond it) and give:
+ 
+ - the **included angle** ``180 - angle(n_parent_out, n_child_out)``. The angle is
+   signed by the side the child lies on (:func:`~domains.production.engine.inspect.geom.signed_sweep_deg`,
+@@ -191,6 +194,9 @@
+     rev_sharp: np.ndarray | None = None
+     rev_line_point: np.ndarray | None = None
+     rev_mirror: tuple[np.ndarray, float] | None = None
++    #: how far (mm) each side's station window was moved out past the CAD tangent line + 0.5 mm, onto the side's
++    #: own flat material (:func:`_flat_start`; parent, child)
++    flat_shift: tuple[float, float] = (0.0, 0.0)
+ 
+ 
+ class PointIndex:
+@@ -271,6 +277,107 @@
+     return None, False, 0, 0.0
+ 
+ 
++def _robust_line(x: np.ndarray, y: np.ndarray) -> tuple[float, float, np.ndarray] | None:
++    """``(a, b, kept)`` of ``y = a + b x`` by least squares, three rounds rejecting residuals beyond 3 MAD-sigmas."""
++    keep = np.ones(len(x), dtype=bool)
++    sol = None
++    for _ in range(3):
++        if int(keep.sum()) < 10:
++            return None
++        A = np.c_[np.ones(int(keep.sum())), x[keep]]
++        sol = np.linalg.lstsq(A, y[keep], rcond=None)[0]
++        r = y - (sol[0] + sol[1] * x)
++        mad = 1.4826 * float(np.median(np.abs(r[keep] - np.median(r[keep]))))
++        keep = np.abs(r) < max(3.0 * mad, 0.01)
++    return float(sol[0]), float(sol[1]), keep
++
++
++def _sagitta(x: np.ndarray, y: np.ndarray) -> float:
++    """Signed sagitta (mm) of the parabola fitted to ``(x, y)`` over its span: ``c L^2 / 8``."""
++    u = x - 0.5 * (float(x.min()) + float(x.max()))
++    c = float(np.polyfit(u, y, 2)[0])
++    return c * float(np.ptp(x)) ** 2 / 8.0
++
++
++def _flat_start(s: np.ndarray, d: np.ndarray, z: np.ndarray, start0: float, depth: float, t: float,
++                zlo: float, zhi: float, cfg: InspectConfig) -> float:
++    """Where a side's flat material starts (at least ``start0``): past the formed arc's own tangent line.
++
++    The station windows start 0.5 mm past the tangent line of the CAD radius. A real
++    bend whose inner radius exceeds the CAD's (an air-bent 2.6 mm radius drawn as
++    0.8 mm), or whose springback transition runs on past its arc, keeps bending
++    beyond that line, and that tail, bending toward the bend's centre, tilts the
++    station planes toward an underbent reading and moves their OML sharp. ``s`` is
++    the distance from the bend's OML sharp line along the side, ``d`` the signed
++    distance to the side's OML plane (outward positive) and ``z`` the axial position,
++    for the side's slab points. Both skins' arcs end on the same line, so the side's
++    denser skin (the OML one near 0 or the inner one near ``-t``) is tested, from
++    ``start0`` outward in steps of ``flat_start_step_mm``. In each axial chunk
++    (``flat_start_chunk_mm``) a line is fitted on up to ``flat_start_ref_mm`` of skin
++    that starts ``flat_start_gap_mm`` beyond a ``flat_start_test_mm`` test strip (the
++    gap keeps a slowly departing tail out of that line), chunks pooled:
++
++    - a reference that is not straight (its parabola's sagitta beyond
++      ``flat_start_dev_mm``: still on the tail, or a side curved throughout) or a strip
++      that lost its skin (a deep tail leaves the skin band; a hole) cannot judge the
++      strip, and the window moves on;
++    - a strip whose median residual lies more than ``flat_start_dev_mm`` toward the
++      centre (below the line) is on the tail, and the window moves on;
++    - otherwise the strip is flat and the window starts there.
++
++    A side with no such flat strip within ``flat_start_max_shift_mm`` (and the window
++    keeping half its reference length) keeps the CAD start: a short tab curved
++    throughout has no flat material to move to. A panel's bow (a radius of hundreds
++    of millimetres) bends a few-millimetre reference by microns, and a tilted panel is
++    a line too, so neither moves the window.
++    """
++    g, gap, step = cfg.flat_start_test_mm, cfg.flat_start_gap_mm, cfg.flat_start_step_mm
++    ref_min = 0.5 * cfg.flat_start_ref_mm
++    limit = min(start0 + cfg.flat_start_max_shift_mm, depth - g - gap - ref_min)
++    if cfg.flat_start_max_shift_mm <= 0.0 or limit < start0 + step:
++        return start0
++    band = 0.45 * t
++    sel = (s >= start0) & (s <= depth) & (z >= zlo) & (z <= zhi)
++    ss, dd, zz = s[sel], d[sel], z[sel]
++    need = cfg.min_station_points * cfg.stations_min
++    skins = [(m, lv) for m, lv in ((np.abs(dd) < band, 0.0), (np.abs(dd + t) < band, -t)) if int(m.sum()) >= need]
++    if not skins:
++        return start0
++    keep, level = max(skins, key=lambda k: int(k[0].sum()))
++    ss, dd, zz = ss[keep], dd[keep] - level, zz[keep]
++    n_chunks = max(1, int(round((zhi - zlo) / cfg.flat_start_chunk_mm)))
++    chunk = np.clip(((zz - zlo) / max(zhi - zlo, 1e-9) * n_chunks).astype(np.int64), 0, n_chunks - 1)
++    groups = [np.nonzero(chunk == k)[0] for k in range(n_chunks)]
++    s0 = start0
++    while s0 <= limit + 1e-9:
++        r0 = s0 + g + gap
++        ref_len = min(cfg.flat_start_ref_mm, depth - r0)
++        res, sags = [], []
++        expected = 0.0
++        for gi in groups:
++            sg, dg = ss[gi], dd[gi]
++            ref = (sg >= r0) & (sg < r0 + ref_len)
++            if int(ref.sum()) < 20 or float(np.ptp(sg[ref])) < 0.6 * ref_len:
++                continue
++            line = _robust_line(sg[ref], dg[ref])
++            if line is None:
++                continue
++            kept = line[2] if int(line[2].sum()) >= 10 else np.ones(int(ref.sum()), dtype=bool)
++            sags.append(_sagitta(sg[ref][kept], dg[ref][kept]))
++            tst = (sg >= s0) & (sg < s0 + g)
++            r = dg[tst] - (line[0] + line[1] * sg[tst])
++            res.append(r[(r > -band) & (r < 0.15)])
++            expected += float(ref.sum()) * g / ref_len
++        if expected < 20.0:
++            break  # no reference to judge against
++        r = np.concatenate(res)
++        judged = abs(float(np.median(sags))) <= cfg.flat_start_dev_mm and len(r) >= 0.5 * expected
++        if judged and float(np.median(r)) >= -cfg.flat_start_dev_mm:
++            return float(s0)
++        s0 += step
++    return start0
++
++
+ def _in_plane_dir(plane: Plane, a: np.ndarray, toward: np.ndarray) -> np.ndarray:
+     w = np.cross(a, plane.n)
+     w = unit(w - float(w @ plane.n) * plane.n)
+@@ -358,8 +465,15 @@
+     dp = pp.distance(pts)
+     dc = pc.distance(pts)
+     slab = 0.5 * t + 0.6
+-    near_p = (np.abs(dp + 0.5 * t) < slab) & (s_p > d_t + 0.5) & (s_p < depth_p) & inz
+-    near_c = (np.abs(dc + 0.5 * t) < slab) & (s_c > d_t + 0.5) & (s_c < depth_c) & inz
++    # each side's window starts on its own flat material: past the formed arc's tangent line, which a real radius
++    # larger than the CAD's moves beyond the CAD one
++    start_p = start_c = d_t + 0.5
++    if not model_p:
++        start_p = _flat_start(s_p, dp, z, start_p, depth_p, t, zlo_nom, zhi_nom, cfg)
++    if not model_c:
++        start_c = _flat_start(s_c, dc, z, start_c, depth_c, t, zlo_nom, zhi_nom, cfg)
++    near_p = (np.abs(dp + 0.5 * t) < slab) & (s_p > start_p) & (s_p < depth_p) & inz
++    near_c = (np.abs(dc + 0.5 * t) < slab) & (s_c > start_c) & (s_c < depth_c) & inz
+     ip, ic = np.nonzero(near_p)[0], np.nonzero(near_c)[0]
+     if (model_p and model_c) or (not model_p and len(ip) < need) or (not model_c and len(ic) < need):
+         out.reason = "OCCLUDED"
+@@ -466,8 +580,9 @@
+     out.fit_rms = float(np.median(rms)) if rms else 0.0
+     out.rms_parent = float(np.median(rms_p)) if rms_p else out.fit_rms
+     out.rms_child = float(np.median(rms_c)) if rms_c else out.fit_rms
+-    out.depth_parent = float(max(depth_p - (d_t + 0.5), cfg.local_fit_min_depth_mm))
+-    out.depth_child = float(max(depth_c - (d_t + 0.5), cfg.local_fit_min_depth_mm))
++    out.depth_parent = float(max(depth_p - start_p, cfg.local_fit_min_depth_mm))
++    out.depth_child = float(max(depth_c - start_c, cfg.local_fit_min_depth_mm))
++    out.flat_shift = (float(start_p - (d_t + 0.5)), float(start_c - (d_t + 0.5)))
+     out.sin_sweep = float(max(math.sin(math.radians(min(abs(sweep), 179.0))), 0.05))
+     out.visible = (float(lo), float(hi))
+     out.w = {bend.parent: w_p, bend.child: w_c}
+@@ -711,6 +826,10 @@
+                                                  _rms(bm.rms_child, cfg) / max(bm.depth_child, 1.0))),
+              "spread": station_spread(used)}
+     method = "STATION_OML_PLANES_"
++    # diagnostic only (not a U term): how far each side's window moved onto its own flat material
++    for key, shift in (("flat_shift_parent_mm", bm.flat_shift[0]), ("flat_shift_child_mm", bm.flat_shift[1])):
++        if shift > 0.0:
++            comps[key] = float(shift)
+     if bm.model_u_deg > 0.0:
+         # a joggle riser placed by its far flange's step: the angle is the one that step implies
+         comps["riser_model_deg"] = float(bm.model_u_deg)

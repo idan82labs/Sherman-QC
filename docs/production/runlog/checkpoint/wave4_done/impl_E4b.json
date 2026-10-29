@@ -1,0 +1,112 @@
+{
+ "status": "done",
+ "summary": "The pre-A1 freeze is complete and anchored, so the A1 accuracy loop can start. A1 is where the new engine results come from; no new-engine numbers exist yet. The Jev-assisted vs non-Jev comparison (research/jev/broad_ab_v1.py) belongs to another workflow and was not touched here.\n\nLEDGER.json holds one FREEZE entry, frz_7bddbdd0ff52, with anchor f27f1b983e64cbf24545d68e16880620730ac06c0e7618737ee90bd70286c9ac (in ANCHOR.txt). It also needs recording in docs/CURRENT_STATUS.md, which R1 owns. The ledger verifies with and without the sealed material: chain intact, anchor matches, no mismatch, no file drift. All 25 frozen recipes recompile to their frozen compiled-part hashes.\n\n1. Gold (amendment 6a): all 11 Gold11 cases recovered, 71 lines, residual 0.0 mm, listed before any scoring. Nine reuse the first pass's recovery after re-hashing. The two 38172000 X/V label sets are now authorized as CONSUMED scans and are bound to the raw scan by sha256. The two human non-Gold11 jobs (04, 09) are BROAD gold. The Gold11 audit relabel has 11 files covering all cases but is pending the owner's sign-off. G2(a) is reported against both; the human set stays the gate of record.\n\n2. Compile rate (amendment 4d): 26 authorized STEPs (20 source tree + 6 CONSUMED-part CAD outside it). The frozen DEV recipes compile 24/26 (0.923). Strict V10, which E1 calls the amendment-4d figure, compiles 20/26 (0.769), below the 0.80 floor; on the plan's original 20 it is 16/20 (0.80). The first pass's rule (both gated) is kept, so the compile-rate gate reads FAIL. All 20 source-tree compiled parts are byte-identical to the first pass.\n\n3. A1 case lists: G2 15, G3 11, known-good 6, repeatability 3 (15651004 x3), Gold11 9 cases / 59 lines, BROAD 26 cases / 14 families / 144 lines. 36 of the 60 broad cases qualify for BROAD; the other 24 are listed with reasons. 17139000_01.ply is reserved by BENCHMARK_V2 (FRESH_SCAN_OF_CONSUMED_PART) and was never read.\n\n4. Baselines for A1 to beat on its BROAD gold (old lanes only, no new engine): old best lane family-macro line-F1 0.543 (micro 0.508), shipped runtime 0.279. The owner's aim is 0.80. The legacy arm scores 0.088 on the A1 Gold11 cases.\n\n5. DEV-CHECK (rule V4): 7 of 22 families sealed, including 2 Gold11 families and 2 staged families; 10839000 is never held out. Two earlier draws were superseded before any engine ran, both recorded in the sealed file: V2 because the BROAD families were added, and V3 because it held no Gold11 family, which would have left G2(a) unevaluable on DEV-CHECK. The ledger records DEV-CHECK by sha256 only, and a leak check found no sealed identifier in any A1-facing file or in the ledger.\n\n6. Legacy control arm: 31 runs. 29 were reused after a check of identical inputs, code fingerprint and conditions; 2 were run fresh for the X/V scans. A re-run of one case gave identical bend matches and transform, so the worker is deterministic. The broad baseline's runtime outputs were not reused: they ran with a different config, and 12 of the 16 overlapping reports differ. They serve only as a labelled BROAD reference lane.\n\n7. G3 truth material: 38 cases (A1 27 cases / 203 rows, sealed 11 / 75), built with no engine output; 29 reused from the first pass.\n\n8. The ledger records: the plan \u00a75 and \u00a710 thresholds verbatim plus the E4a threshold documents, DEV and QUAL seed hashes, 18 A1 recipes, the A1 lists and gold, the scanner card hash, code fingerprints (eval 8e61f17b\u2026) and the owner directions.",
+ "checks": [
+  {
+   "cmd": "env PYTHONDONTWRITEBYTECODE=1 PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=.:backend OMP_NUM_THREADS=1 .venv/bin/python -m pytest -c /dev/null --noconftest -p no:cacheprovider tests/test_prod_engine_freeze_{broad,cases,gold,ledger,legacy,physical,recipes,shim,g3}.py tests/test_prod_engine_eval_freeze.py tests/test_prod_engine_eval_runner.py (under shared lock)",
+   "passed": true,
+   "note": "81 passed in 80.9 s"
+  },
+  {
+   "cmd": "prefreeze inventory",
+   "passed": true,
+   "note": "source inventory sha unchanged (532d2a9d...); 16 external CONSUMED files hashed, all match the manifest; combined inventory sha b49d2662..."
+  },
+  {
+   "cmd": "prefreeze gold --work W",
+   "passed": true,
+   "note": "11/11 Gold11 recovered (71 lines, residual 0.0 mm), 2 human non-Gold11, 11 priors reused after hash checks; relabel snapshot COMPLETE_PENDING_OWNER_SIGNOFF"
+  },
+  {
+   "cmd": "prefreeze recipes --work W (under shared lock)",
+   "passed": true,
+   "note": "26 STEPs compiled serially; DEV 24/26, strict V10 20/26, native 18/26; source-tree compiled parts byte-identical to pass 1"
+  },
+  {
+   "cmd": "amendment 4d compile-rate floor >= 0.80 (strict V10 over all 26 authorized STEPs)",
+   "passed": false,
+   "note": "0.769 (20/26); 0.80 on the plan \u00a79 source-tree denominator; DEV policy 0.923 passes"
+  },
+  {
+   "cmd": "prefreeze cases --work W --prev-devcheck W/prev_pass1/freeze/devcheck_SEALED.json + leak check of every A1-facing JSON and the ledger",
+   "passed": true,
+   "note": "rule V4 draw, 7/22 families sealed; no sealed case ref, scan sha, DEV SKU or broad id in any A1-facing file or in the ledger"
+  },
+  {
+   "cmd": "prefreeze legacy --work W --reuse-from ... --prev-freeze ... --prev-compile ... (under shared lock)",
+   "passed": true,
+   "note": "31 runs: 29 reused, 2 new (X/V, both OK); A1 23 runs 15 OK / 8 WORKER_ERROR, P95 41.6 s"
+  },
+  {
+   "cmd": "legacy_determinism_probe.py W pc_03395097cd96 (under shared lock)",
+   "passed": true,
+   "note": "re-run under identical conditions: matches_equal and transform_equal true"
+  },
+  {
+   "cmd": "prefreeze g3-material --work W --reuse-from ... --prev-compile ... (under shared lock)",
+   "passed": true,
+   "note": "38 cases (A1 27 / sealed 11), 29 reused, 9 rendered; 203 + 75 truth-table rows"
+  },
+  {
+   "cmd": "prefreeze score-physical (dry run, no E3) on cases_A1.json and devcheck_SEALED.json",
+   "passed": true,
+   "note": "scorer runs end to end; G2(a) evaluable on DEV-CHECK; reference lanes scored (best_f1 0.543, runtime 0.279 family-macro on A1 BROAD)"
+  },
+  {
+   "cmd": "prefreeze ledger; prefreeze verify; prefreeze verify --include-sealed",
+   "passed": true,
+   "note": "entry frz_7bddbdd0ff52, anchor f27f1b98...; chain ok, anchor matches, no mismatches, no drift"
+  },
+  {
+   "cmd": "prefreeze compile-frozen --work W (under shared lock)",
+   "passed": true,
+   "note": "25 frozen recipes recompiled, 0 compiled_part_sha256 mismatches"
+  }
+ ],
+ "files": [
+  "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/freeze/README.md",
+  "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/freeze/LEDGER.json",
+  "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/freeze/ANCHOR.txt",
+  "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/freeze/cases_A1.json",
+  "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/freeze/devcheck_SEALED.json",
+  "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/freeze/gold_transforms.json",
+  "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/freeze/compile_report.json",
+  "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/freeze/inventory.json",
+  "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/freeze/gold_g2a_A1.json",
+  "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/freeze/gold_g2a_relabel_A1.json",
+  "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/freeze/gold_broad_A1.json",
+  "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/freeze/broad_A1.json",
+  "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/freeze/broad_reference_lanes_A1.json",
+  "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/freeze/owner_directions.json",
+  "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/freeze/thresholds_plan_verbatim.md",
+  "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/legacy_control/README.md",
+  "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/legacy_control/SUMMARY.json",
+  "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/g3_truth_material/MANIFEST.json",
+  "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/g3_truth_material/truth_table_TEMPLATE.json",
+  "/Users/idantal/ShermanQC/FullProject/domains/production/engine/eval/freeze/common.py",
+  "/Users/idantal/ShermanQC/FullProject/domains/production/engine/eval/freeze/inventory.py",
+  "/Users/idantal/ShermanQC/FullProject/domains/production/engine/eval/freeze/gold.py",
+  "/Users/idantal/ShermanQC/FullProject/domains/production/engine/eval/freeze/broad.py",
+  "/Users/idantal/ShermanQC/FullProject/domains/production/engine/eval/freeze/cases.py",
+  "/Users/idantal/ShermanQC/FullProject/domains/production/engine/eval/freeze/recipes.py",
+  "/Users/idantal/ShermanQC/FullProject/domains/production/engine/eval/freeze/legacy.py",
+  "/Users/idantal/ShermanQC/FullProject/domains/production/engine/eval/freeze/physical.py",
+  "/Users/idantal/ShermanQC/FullProject/domains/production/engine/eval/freeze/ledger.py",
+  "/Users/idantal/ShermanQC/FullProject/domains/production/engine/eval/freeze/prefreeze.py",
+  "/Users/idantal/ShermanQC/FullProject/domains/production/engine/eval/freeze/g3_material.py",
+  "/Users/idantal/ShermanQC/FullProject/tests/test_prod_engine_freeze_broad.py",
+  "/Users/idantal/ShermanQC/FullProject/tests/test_prod_engine_freeze_cases.py",
+  "/Users/idantal/ShermanQC/FullProject/tests/test_prod_engine_freeze_gold.py",
+  "/Users/idantal/ShermanQC/FullProject/tests/test_prod_engine_freeze_ledger.py",
+  "/Users/idantal/ShermanQC/FullProject/tests/test_prod_engine_freeze_legacy.py",
+  "/Users/idantal/ShermanQC/FullProject/tests/test_prod_engine_freeze_physical.py"
+ ],
+ "open_issues": [
+  "Compile-rate gate (amendment 4d) reads FAIL on the widened denominator. Strict V10 compiles 20/26 (0.769): three MARK_AMBIGUOUS, one UNMARKED_BEND, 47479000 rolled shell (no V10 recipe), and 37126000_D.stp, where neither extractor finds a candidate bend. The DEV policy passes at 24/26 (0.923), and strict V10 is 16/20 (0.80) on the plan \u00a79 source-tree set. Fixing it needs E1/V10 changes by A1 or an owner decision on the denominator.",
+  "The G3 visual truth table is not filled yet. Two fresh reviewers plus a tie-break must complete truth_table_TEMPLATE.json (203 A1 rows, 75 sealed), save it as truth_table_FROZEN.json and record it in the ledger before any engine output is compared with it (amendment 7). Until then score-physical reports final=false and G3 NOT_EVALUABLE.",
+  "The scanner model card is PARTIAL: grazing and specular dropout are assumed, not measured. G1 qualification needs them measured or an owner SCANNER_MODEL_PARTIAL waiver.",
+  "The ledger anchor f27f1b983e64cbf24545d68e16880620730ac06c0e7618737ee90bd70286c9ac must also be recorded outside the freeze directory, in docs/CURRENT_STATUS.md (owned by R1, not this chunk).",
+  "The Gold11 relabel (ai_bend_lines_gold11_relabel_v1) is pending owner sign-off. The human Gold11 stays the G2(a) gate of record; the scorer re-reads the relabel at scoring time and reports whether it changed since the freeze.",
+  "The eval and contracts code is now frozen (eval fingerprint 8e61f17b..., contracts 5f7e6a8c...). Any later edit to domains/production/engine/eval/** or contracts/production/** makes scorecards non-qualifying unless the owner waives that fingerprint."
+ ]
+}

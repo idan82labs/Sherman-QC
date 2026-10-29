@@ -1,0 +1,351 @@
+#!/usr/bin/env python3
+"""Conservative finite native-cylinder features; no sampled spline promotion.
+
+Native acceptance currently requires a rectangular trim proven by four linear
+axis-aligned pcurves. Other domains remain diagnostics, never guessed material.
+"""
+from __future__ import annotations
+
+import math
+from pathlib import Path
+from typing import Any
+import numpy as np
+from scripts import extract_step_topology_bend_axes_v2 as v2
+
+TAU = 2.0 * math.pi
+DOMAIN_EPS = 1e-8
+CARRIER_POSITION_TOL_MM = 1e-7
+CARRIER_DIRECTION_TOL = 1e-9
+MAX_NATIVE_FACES = 10000
+MAX_NATIVE_EDGES = 50000
+
+
+def _basis(a):
+    seed = np.eye(3)[int(np.argmin(np.abs(a)))]
+    e1 = np.cross(a, seed); e1 /= np.linalg.norm(e1)
+    return e1, np.cross(a, e1)
+
+
+def _intervals(start, sweep):
+    if sweep >= TAU-DOMAIN_EPS:
+        return [(0., TAU)]
+    start %= TAU
+    end = start+sweep
+    return [(start, end)] if end <= TAU else [(0., end-TAU), (start, TAU)]
+
+
+def _union(intervals):
+    out = []
+    for lo, hi in sorted(intervals):
+        if out and lo <= out[-1][1]+DOMAIN_EPS:
+            out[-1][1] = max(out[-1][1], hi)
+        else:
+            out.append([lo, hi])
+    return out
+
+
+def _measure(intervals):
+    return sum(b-a for a, b in _union(intervals))
+
+
+def _intersection(left, right):
+    return _union([(max(a,c), min(b,d)) for a,b in left for c,d in right
+                   if min(b,d)-max(a,c) > DOMAIN_EPS])
+
+
+def _angular_touch(left, right):
+    return any(max(a,c)<=min(b,d)+DOMAIN_EPS for a,b in left for c,d in right) or (
+        any(abs(a)<DOMAIN_EPS for a,b in left) and any(abs(b-TAU)<DOMAIN_EPS for a,b in right)) or (
+        any(abs(a)<DOMAIN_EPS for a,b in right) and any(abs(b-TAU)<DOMAIN_EPS for a,b in left))
+
+
+def _same_carrier(a, b, same_radius=False):
+    da=v2._normalized_direction(np.asarray(a['line_end'])-np.asarray(a['line_start']))
+    db=v2._normalized_direction(np.asarray(b['line_end'])-np.asarray(b['line_start']))
+    delta=np.asarray(b['line_start'])-np.asarray(a['line_start'])
+    offset=float(np.linalg.norm(delta-da*np.dot(delta,da)))
+    return (a['solid_id'] == b['solid_id'] and np.linalg.norm(np.cross(da,db))<=CARRIER_DIRECTION_TOL
+            and offset<=CARRIER_POSITION_TOL_MM
+            and (not same_radius or abs(a['radius_mm']-b['radius_mm']) <= 1e-6))
+
+
+def _valid_row(row):
+    try:
+        vectors=np.asarray([row['line_start'],row['line_end']],dtype=float)
+        axial=np.asarray(row['axial_interval'],dtype=float)
+        angles=np.asarray(row['angular_intervals'],dtype=float)
+        return bool(vectors.shape==(2,3) and np.isfinite(vectors).all()
+            and np.linalg.norm(vectors[1]-vectors[0])>DOMAIN_EPS
+            and axial.shape==(2,) and np.isfinite(axial).all() and axial[1]>axial[0]
+            and angles.ndim==2 and angles.shape[1]==2 and len(angles)>0
+            and np.isfinite(angles).all() and np.all(angles[:,0]>=0)
+            and np.all(angles[:,1]<=TAU+DOMAIN_EPS) and np.all(angles[:,1]>angles[:,0])
+            and math.isfinite(float(row['radius_mm'])) and float(row['radius_mm'])>0
+            and isinstance(row['face_index'],int) and row['face_index']>0)
+    except (KeyError,ValueError,TypeError):
+        return False
+
+
+def _native_axis_geometry(location,native_direction,v0,v1):
+    native=np.asarray(native_direction,dtype=float).copy()
+    canonical=v2._normalized_direction(native.copy())
+    return canonical,v2._cylinder_axis_endpoints(np.asarray(location,dtype=float),native,v0,v1)
+
+
+def build_features(rows: list[dict[str, Any]]) -> dict[str, Any]:
+    """Pure-row deterministic grouping; certified angular intervals are radians.
+
+    Axial domains use world projection on the canonical axis. Each input row is
+    one rectangular material patch. No caller input is mutated.
+    """
+    invalid=[r for r in rows if not _valid_row(r)]
+    valid=[r for r in rows if _valid_row(r)]
+    duplicates={r['face_index'] for r in valid if sum(s['face_index']==r['face_index'] for s in valid)>1}
+    ordered = sorted(valid, key=lambda r: (str(r.get('solid_id')), r['face_index']))
+    rejected = []; good = []
+    for row in invalid:
+        rejected.append({'face_indices':[row.get('face_index')],'rejection_reason':'invalid_nonfinite_or_malformed_row'})
+    for row in ordered:
+        if row['face_index'] in duplicates:
+            rejected.append({'face_indices':[row['face_index']],'rejection_reason':'duplicate_native_face_identity'})
+        elif not row.get('domain_certified') or row.get('solid_id') is None:
+            rejected.append({'face_indices':[row['face_index']], 'rejection_reason':
+                             'uncertified_trim_domain_or_solid_owner'})
+        else:
+            good.append(row)
+    components = []
+    for row in good:
+        eligible = []
+        for component in components:
+            # Complete-link carrier agreement prevents tolerance-chain drift.
+            if not all(_same_carrier(row,r,True) for r in component):
+                continue
+            connected = any(set(row['edge_ids']) & set(r['edge_ids']) and
+                _angular_touch(row['angular_intervals'],r['angular_intervals']) and
+                min(row['axial_interval'][1],r['axial_interval'][1]) >=
+                max(row['axial_interval'][0],r['axial_interval'][0])-DOMAIN_EPS
+                for r in component)
+            if connected:
+                eligible.append(component)
+        if len(eligible) > 1:
+            rejected.append({'face_indices':[row['face_index']],
+                             'rejection_reason':'ambiguous_split_component_bridge'})
+        elif eligible:
+            eligible[0].append(row)
+        else:
+            components.append([row])
+    carriers = []
+    for component in components:
+        angles = _union([i for r in component for i in r['angular_intervals']])
+        ids = sorted(r['face_index'] for r in component)
+        if _measure(angles) >= TAU-DOMAIN_EPS:
+            rejected.append({'face_indices':ids,'rejection_reason':'full_cylinder_domain'})
+            continue
+        # Require identical axial support for joined angular fragments. More
+        # complex unions need a polygon-domain successor, not a bounding box.
+        axial = component[0]['axial_interval']
+        if any(not np.allclose(r['axial_interval'],axial,rtol=0,atol=DOMAIN_EPS)
+               for r in component):
+            rejected.append({'face_indices':ids,'rejection_reason':'nonrectangular_split_domain'})
+            continue
+        carriers.append({'rows':component,'angles':angles,'axial':axial,'ids':ids})
+    pairs = []
+    for i,left in enumerate(carriers):
+        for j in range(i+1,len(carriers)):
+            right = carriers[j]; a=left['rows'][0]; b=right['rows'][0]
+            separation=abs(a['radius_mm']-b['radius_mm'])
+            if not _same_carrier(a,b) or not v2.MIN_RADIUS_SEPARATION_MM <= separation <= v2.MAX_RADIUS_SEPARATION_MM:
+                continue
+            common=_intersection(left['angles'],right['angles'])
+            if (abs(_measure(common)-_measure(left['angles'])) > DOMAIN_EPS or
+                abs(_measure(common)-_measure(right['angles'])) > DOMAIN_EPS):
+                continue
+            lo=max(left['axial'][0],right['axial'][0]); hi=min(left['axial'][1],right['axial'][1])
+            if not v2._eligible_native_cylinder(math.degrees(_measure(common)),hi-lo):
+                continue
+            pairs.append((i,j,common,lo,hi))
+    degree={i:sum(i in p[:2] for p in pairs) for i in range(len(carriers))}
+    axes=[]
+    for i,j,common,lo,hi in pairs:
+        if degree[i]!=1 or degree[j]!=1:
+            continue
+        l,r=carriers[i],carriers[j]; row=l['rows'][0]
+        # A radius pair is not sufficient: both skins require native tangent
+        # plate rails at both angular boundaries over the full paired span.
+        boundaries=[common[-1][0],common[0][1]] if len(common)==2 and common[0][0]==0. else [common[0][0],common[-1][1]]
+        def has_rails(carrier):
+            rails=[rail for patch in carrier['rows'] for rail in patch.get('tangent_rails',[])]
+            return all(any(abs(math.atan2(math.sin(rail['angle_rad']-theta),
+                math.cos(rail['angle_rad']-theta)))<=DOMAIN_EPS and
+                rail['axial_interval'][0]<=lo+DOMAIN_EPS and
+                rail['axial_interval'][1]>=hi-DOMAIN_EPS for rail in rails) for theta in boundaries)
+        if not has_rails(l) or not has_rails(r):
+            rejected.append({'face_indices':sorted(l['ids']+r['ids']),
+                'rejection_reason':'ambiguous_pair_missing_two_full_tangent_flange_rails'})
+            continue
+        a=v2._normalized_direction(np.asarray(row['line_end'])-np.asarray(row['line_start']))
+        origin=np.asarray(row['line_start']); c=origin-a*np.dot(origin,a)
+        e1,e2=_basis(a)
+        # Circular midpoint handles domains crossing the periodic seam.
+        start=common[-1][0] if len(common)==2 and common[0][0]==0. else common[0][0]
+        theta=start+_measure(common)/2
+        radius=(row['radius_mm']+r['rows'][0]['radius_mm'])/2
+        center=c+radius*(math.cos(theta)*e1+math.sin(theta)*e2)
+        ids=sorted(l['ids']+r['ids']); identity='S'+str(row['solid_id'])+'_F'+'_'.join(map(str,ids))
+        axes.append({'bend_id':'STEP_BEND_'+identity,'group_id':'STEP_CYL_'+identity,
+            'feature_id':identity,'operation_group_id':None,'face_indices':ids,
+            'radii_mm':sorted([row['radius_mm'],r['rows'][0]['radius_mm']]),
+            'radius_separation_mm':abs(row['radius_mm']-r['rows'][0]['radius_mm']),
+            'surface_count':len(ids),'line_start':(c+a*lo).tolist(),'line_end':(c+a*hi).tolist(),
+            'canonical_line_start':(center+a*lo).tolist(),'canonical_line_end':(center+a*hi).tolist(),
+            'canonical_line_rule':'GEOMETRIC_MID_THICKNESS_HALF_ANGULAR_TURN',
+            'axial_span_mm':hi-lo,'angular_sweeps_deg':[round(math.degrees(_measure(common)),6)],
+            'domain_receipt':{'kind':'CERTIFIED_RECTANGULAR_NATIVE_PCURVE_DOMAIN',
+                'angular_intervals_rad':common,'axial_interval_mm':[lo,hi],
+                'solid_id':row['solid_id'],'tangent_flange_rails_proven':True,'material_thickness_proven':False,
+                'forming_operation_identity_proven':False}})
+        allrows=l['rows']+r['rows']
+        reference=allrows[0]
+        metrics=[v2._line_metrics(reference,patch) for patch in allrows]
+        axes[-1]['carrier_receipt']={'maximum_axis_offset_mm':max(m['axis_offset_mm'] for m in metrics),
+            'maximum_axis_angle_deg':max(m['axis_angle_deg'] for m in metrics),
+            'position_tolerance_mm':CARRIER_POSITION_TOL_MM,'direction_cross_tolerance':CARRIER_DIRECTION_TOL,
+            'raw_native_face_indices':ids}
+    for i,carrier in enumerate(carriers):
+        if degree[i]!=1:
+            rejected.append({'face_indices':carrier['ids'],'rejection_reason':
+                'ambiguous_radius_pair' if degree[i]>1 else 'missing_compatible_finite_pair'})
+    return {'bend_axes':axes,'rejected_groups':rejected,'partial_cylindrical_faces':ordered}
+
+
+def _rectangular_domain(face, surface):
+    from OCP.BRepAdaptor import BRepAdaptor_Curve2d
+    from OCP.GeomAbs import GeomAbs_Line
+    from OCP.TopAbs import TopAbs_EDGE, TopAbs_WIRE
+    from OCP.TopExp import TopExp_Explorer
+    from OCP.TopoDS import TopoDS
+    wires=TopExp_Explorer(face,TopAbs_WIRE); count=0
+    while wires.More(): count+=1; wires.Next()
+    if count!=1: return False
+    explorer=TopExp_Explorer(face,TopAbs_EDGE); segments=[]
+    while explorer.More():
+        curve=BRepAdaptor_Curve2d(TopoDS.Edge_s(explorer.Current()),face)
+        if curve.GetType()!=GeomAbs_Line: return False
+        p=curve.Value(curve.FirstParameter()); q=curve.Value(curve.LastParameter())
+        segments.append(((p.X(),p.Y()),(q.X(),q.Y())))
+        explorer.Next()
+    bounds=(surface.FirstUParameter(),surface.LastUParameter(),surface.FirstVParameter(),surface.LastVParameter())
+    u0,u1,v0,v1=bounds
+    if len(segments)!=4 or not all(math.isfinite(x) for x in bounds): return False
+    corners={(round(u,8),round(v,8)) for u in (u0,u1) for v in (v0,v1)}
+    edges=set()
+    for p,q in segments:
+        p=tuple(round(x,8) for x in p); q=tuple(round(x,8) for x in q)
+        if p not in corners or q not in corners or p==q or (p[0]!=q[0] and p[1]!=q[1]): return False
+        edges.add(tuple(sorted((p,q))))
+    return len(edges)==4
+
+
+def extract_step_bend_axes(path: Path) -> dict[str, Any]:
+    from OCP.BRepAdaptor import BRepAdaptor_Surface,BRepAdaptor_Curve
+    from OCP.GeomAbs import GeomAbs_Cylinder,GeomAbs_Plane,GeomAbs_Line
+    from OCP.IFSelect import IFSelect_RetDone
+    from OCP.STEPControl import STEPControl_Reader
+    from OCP.TopAbs import TopAbs_FACE,TopAbs_EDGE,TopAbs_SOLID
+    from OCP.TopExp import TopExp,TopExp_Explorer
+    from OCP.TopTools import TopTools_IndexedMapOfShape
+    from OCP.TopoDS import TopoDS
+    reader=STEPControl_Reader()
+    if reader.ReadFile(str(path))!=IFSelect_RetDone or reader.TransferRoots()<=0:
+        raise ValueError('STEP read/transfer failure')
+    shape=reader.OneShape(); fmap=TopTools_IndexedMapOfShape(); emap=TopTools_IndexedMapOfShape()
+    # Admission before building global inventories: bounded traversals and exactly
+    # one valid solid. Multiple owners are not silently pooled into features.
+    solids=TopExp_Explorer(shape,TopAbs_SOLID); solid_count=0; solid=None
+    while solids.More():
+        solid_count+=1; solid=solids.Current()
+        if solid_count>1: break
+        solids.Next()
+    from OCP.BRepCheck import BRepCheck_Analyzer
+    admission=None
+    if solid_count!=1: admission='SINGLE_SOLID_REQUIRED'
+    elif not BRepCheck_Analyzer(solid).IsValid(): admission='INVALID_NATIVE_SOLID'
+    for kind,limit in ((TopAbs_FACE,MAX_NATIVE_FACES),(TopAbs_EDGE,MAX_NATIVE_EDGES)):
+        if admission: break
+        bounded=TopExp_Explorer(shape,kind); count=0
+        while bounded.More():
+            count+=1
+            if count>limit: admission='NATIVE_TOPOLOGY_BUDGET_EXCEEDED'; break
+            bounded.Next()
+    if admission:
+        return {'schema_version':3,'kind':'sherman_qc_step_topology_bend_axes','step_path':str(path.resolve()),
+            'bend_axes':[],'partial_cylindrical_faces':[],'rejected_groups':[],
+            'surface_diagnostics':[{'status':admission}],
+            'contract':{'units':'mm_assumed_not_verified','admission_status':admission}}
+    TopExp.MapShapes_s(shape,TopAbs_FACE,fmap); TopExp.MapShapes_s(shape,TopAbs_EDGE,emap)
+    owners={}; solids=TopExp_Explorer(shape,TopAbs_SOLID); sid=0
+    while solids.More():
+        sid+=1; faces=TopExp_Explorer(solids.Current(),TopAbs_FACE)
+        while faces.More():
+            owners.setdefault(fmap.FindIndex(faces.Current()),set()).add(sid); faces.Next()
+        solids.Next()
+    edge_faces={}
+    for index in range(1,fmap.Extent()+1):
+        edges=TopExp_Explorer(fmap.FindKey(index),TopAbs_EDGE)
+        while edges.More():
+            edge_faces.setdefault(emap.FindIndex(edges.Current()),set()).add(index); edges.Next()
+    rows=[]; diagnostics=[]
+    for index in range(1,fmap.Extent()+1):
+        face=TopoDS.Face_s(fmap.FindKey(index)); surface=BRepAdaptor_Surface(face)
+        if surface.GetType()!=GeomAbs_Cylinder:
+            diagnostics.append({'face_index':index,'surface_type':str(surface.GetType()),
+                'status':'UNSUPPORTED_ANALYTIC_CYLINDER_CERTIFICATION'}); continue
+        cyl=surface.Cylinder(); axis=cyl.Axis()
+        xyz=lambda p: np.array([p.X(),p.Y(),p.Z()],dtype=float)
+        location=xyz(axis.Location()); native=xyz(axis.Direction())
+        a,ends=_native_axis_geometry(location,native,surface.FirstVParameter(),surface.LastVParameter())
+        e1,e2=_basis(a); pos=cyl.Position(); x=xyz(pos.XDirection()); y=xyz(pos.YDirection())
+        u0=surface.FirstUParameter(); u1=surface.LastUParameter()
+        radial=math.cos(u0)*x+math.sin(u0)*y
+        theta=math.atan2(np.dot(radial,e2),np.dot(radial,e1))
+        orientation=1 if np.dot(np.cross(x,y),a)>0 else -1
+        sweep=abs(u1-u0); start=theta if orientation>0 else theta-sweep
+        edge_ids=[]; edges=TopExp_Explorer(face,TopAbs_EDGE)
+        while edges.More(): edge_ids.append(emap.FindIndex(edges.Current())); edges.Next()
+        ownership=owners.get(index,set())
+        rails=[]
+        for edge_id in sorted(set(edge_ids)):
+            edge=TopoDS.Edge_s(emap.FindKey(edge_id)); curve=BRepAdaptor_Curve(edge)
+            if curve.GetType()!=GeomAbs_Line: continue
+            p=xyz(curve.Value(curve.FirstParameter())); q=xyz(curve.Value(curve.LastParameter()))
+            if np.linalg.norm(q-p)<=DOMAIN_EPS or np.linalg.norm(np.cross(q-p,a))>DOMAIN_EPS: continue
+            radial_point=p-location-a*np.dot(p-location,a)
+            if np.linalg.norm(radial_point)<=DOMAIN_EPS: continue
+            radial_point/=np.linalg.norm(radial_point)
+            for neighbor in sorted(edge_faces.get(edge_id,set())-{index}):
+                if owners.get(neighbor)!=ownership or len(ownership)!=1: continue
+                ns=BRepAdaptor_Surface(TopoDS.Face_s(fmap.FindKey(neighbor)))
+                if ns.GetType()!=GeomAbs_Plane: continue
+                normal=xyz(ns.Plane().Axis().Direction())
+                if abs(abs(float(np.dot(normal,radial_point)))-1.)>DOMAIN_EPS: continue
+                rails.append({'angle_rad':math.atan2(np.dot(radial_point,e2),np.dot(radial_point,e1))%TAU,
+                    'axial_interval':sorted([float(np.dot(p,a)),float(np.dot(q,a))]),
+                    'edge_id':edge_id,'plane_face_index':neighbor})
+        rows.append({'face_index':index,'solid_id':next(iter(ownership)) if len(ownership)==1 else None,
+            'radius_mm':float(cyl.Radius()),'line_start':ends[0].tolist(),'line_end':ends[1].tolist(),
+            'axial_span_mm':float(np.linalg.norm(ends[1]-ends[0])),
+            'angular_sweep_deg':math.degrees(sweep),'angular_intervals':_intervals(start,sweep),
+            'axial_interval':sorted(float(np.dot(p,a)) for p in ends),'edge_ids':sorted(set(edge_ids)),
+            'domain_certified':_rectangular_domain(face,surface),'native_type':'CYLINDER',
+            'tangent_rails':rails})
+    result=build_features(rows)
+    return {'schema_version':3,'kind':'sherman_qc_step_topology_bend_axes','step_path':str(path.resolve()),
+        **result,'surface_diagnostics':diagnostics,'contract':{'units':'mm_assumed_not_verified',
+        'marker_semantics':'GEOMETRIC_MID_THICKNESS_NOT_NEUTRAL_AXIS',
+        'minimum_angular_sweep_deg':v2.MIN_ANGULAR_SWEEP_DEG,'minimum_axial_span_mm':v2.MIN_AXIAL_SPAN_MM,
+        'thresholds_are_legacy_eligibility_not_manufacturing_tolerances':True,
+        'spline_cylinder_certification':'UNSUPPORTED_NO_SAMPLED_PROMOTION',
+        'maximum_native_faces':MAX_NATIVE_FACES,'maximum_native_edges':MAX_NATIVE_EDGES,
+        'carrier_position_tolerance_mm':CARRIER_POSITION_TOL_MM,
+        'carrier_direction_cross_tolerance':CARRIER_DIRECTION_TOL,
+        'forming_feature_semantics':'GEOMETRIC_PAIR_NOT_MANUFACTURING_OPERATION_PROOF'}}

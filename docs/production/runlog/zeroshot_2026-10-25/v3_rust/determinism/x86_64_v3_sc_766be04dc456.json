@@ -1,0 +1,50 @@
+{
+ "scan": "sc_766be04dc456",
+ "config": "config_v3_rs.json (rev 2)",
+ "threads": 1,
+ "mode": "lane with dump (splits)",
+ "reference": "pinned arm64 portable binary",
+ "pinned_v3": {
+  "build": "pinned x86-64-v3 binary (b1252219...)",
+  "dump_identical_to_arm64": false,
+  "differing_keys": [
+   "candidates",
+   "X",
+   "evidence",
+   "prob",
+   "prob_z3"
+  ],
+  "n_candidates": 7
+ },
+ "v3": {
+  "build": "x86-64-v3 rebuilt from the pinned sources",
+  "dump_identical_to_arm64": false,
+  "differing_keys": [
+   "candidates",
+   "X",
+   "evidence",
+   "prob",
+   "prob_z3"
+  ],
+  "n_candidates": 7
+ },
+ "v3nofma": {
+  "build": "x86-64-v3 with -C target-feature=-fma, rebuilt from the pinned sources",
+  "dump_identical_to_arm64": false,
+  "differing_keys": [
+   "candidates",
+   "X",
+   "evidence",
+   "prob",
+   "prob_z3"
+  ],
+  "n_candidates": 7
+ },
+ "det_v3log": {
+  "build": "x86-64-v3 build of the zs_rust_det research copy (probe dispatch layer in fmath/accel + env-gated eprintln in lanecore::pool; same arithmetic)",
+  "dump_identical_to_arm64": true,
+  "differing_keys": [],
+  "n_candidates": 9
+ },
+ "arm64_n_candidates": 9
+}

@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "architecture_token": "ANTIPODAL_MIDSURFACE_HINGE_CURRENT_V1",
+  "authorization_token": "AUTHORIZE_ANTIPODAL_MIDSURFACE_HINGE_CURRENT_V1_C006_FROZEN_SOURCE_ONLY_ONE_SHOT_PREFLIGHT",
+  "decision": "AMHC_V1_SOURCE_FREE_REGRESSION_STOP",
+  "architecture_funded": false,
+  "c006_execution_authorized_after_regression": false,
+  "c006_source_opened": false,
+  "c006_claim_created": false,
+  "c006_claim_consumed": false,
+  "rerun_or_rescue_authorized": false,
+  "frozen_check_count": 7,
+  "passed_check_count": 5,
+  "failed_checks": [
+    {
+      "check": "double_skin_90deg_bend",
+      "expected": "exactly one retained interior component with length at least 40",
+      "observed_retained_components": 0,
+      "active_core_edge_fraction": 0.14174230214606837,
+      "active_core_edge_fraction_wall": 0.05,
+      "largest_component_edges": 4943,
+      "largest_component_diameter": 100.66394868795584,
+      "largest_component_line_support_fraction": 0.0,
+      "line_support_fraction_wall": 0.75
+    },
+    {
+      "check": "bent_sheet_open_crop",
+      "expected": "crop rejected and one bend retained",
+      "observed_retained_components": 0,
+      "active_core_edge_fraction": 0.162796007567356,
+      "active_core_edge_fraction_wall": 0.05
+    }
+  ],
+  "visual_review": {
+    "reviewed_image_count": 1,
+    "all_images_opened_native_resolution": "YES",
+    "native_pixels": [4096, 4096],
+    "image_relative": "output/research/amhc-v1-source-free-regression-stop/double-skin-90deg-cylindrical-bend-failure.png",
+    "image_sha256": "7045cd3c68a3a9c77465aada126567e2472483a6ccf39afbbf5c540015f3815a",
+    "broad_cylindrical_surface_activation": "DOMINANT",
+    "area_like_fill": "DOMINANT",
+    "isolated_speckles": "MINOR",
+    "line_supported_retained_bend": "ABSENT",
+    "observation": "The side projection follows the entire radius-12 cylindrical arc, while the top and end projections reveal a dense two-dimensional red strip spanning the sheet width. The main activation is coherent and real, but its morphology is surface-like rather than line-like. This is not a scalar-only failure, boundary artifact, or renderer defect."
+  },
+  "evidence": {
+    "source_free_regressions_relative": "docs/research/AMHC_V1_SOURCE_FREE_REGRESSIONS_V1_20260809.json",
+    "source_free_regressions_sha256": "37426f827b791338b0449da1dd6e61227084e1434ebd67c0398842342291d378",
+    "professor_response_relative": "docs/research/PROFESSOR_F1_POST_SDRA_NEXT_ARCHITECTURE_GPT56_PRO_RESPONSE_20260809.txt",
+    "professor_response_sha256": "10ff57497f68b7b938395b7b59bf047631e705af95287969940d085a41a12440",
+    "configuration_sha256": "11a2efb0501bd2f66b393b4cbc23b71e416d995942579d2b5024e6f20b0d668c",
+    "implementation_sha256": {
+      "research/f1_amhc_v1/config.py": "12a09d45c45ab163af05ecac24dc0b8fc505b4cad7cce2cb661224a602e6ee50",
+      "research/f1_amhc_v1/core.py": "9e1248c31d479fc271c49b4a938f956e8015a145f27e5cc364d4d403d0e8cac3",
+      "scripts/run_f1_amhc_v1_source_free_regressions.py": "6fe3e43eab4d18f4c2f253235ff163aa77e2d5227f44dab0d382f3da7a155415",
+      "scripts/render_f1_amhc_v1_source_free_bend_failure.py": "c0b08f386e7938b9db784927521477bf883716905357023783c5e0a657e01f5a"
+    }
+  },
+  "scientific_interpretation": "The reciprocal-skin and closed-fan mechanisms correctly pass the flat, single-skin, hole-rim, terminal-wall, permutation, and rigid-transform checks. The positive cylindrical-bend fixture nevertheless activates a two-dimensional curved surface. The frozen <=5% selectivity and >=75% line-support requirements then reject the intended signal. Therefore the architecture's positive fixture contradicts its own fund gates, and the mandatory source-free prerequisite fails before C006 may be opened."
+}

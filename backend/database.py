@@ -306,7 +306,8 @@ class SQLiteDatabaseManager:
         part_id: Optional[str] = None,
         limit: int = 50,
         offset: int = 0,
-        include_result: bool = False
+        include_result: bool = False,
+        excluded_job_prefix: Optional[str] = None,
     ) -> List[JobRecord]:
         """List jobs with optional filters
 
@@ -316,6 +317,7 @@ class SQLiteDatabaseManager:
             limit: Maximum number of results (capped at 1000)
             offset: Number of records to skip
             include_result: If False, excludes large result_json field for performance
+            excluded_job_prefix: Exclude a literal case-insensitive ID prefix before pagination
         """
         # Cap limit to prevent excessive queries
         limit = min(limit, 1000)
@@ -339,6 +341,10 @@ class SQLiteDatabaseManager:
         if part_id:
             query += " AND part_id = ?"
             params.append(part_id)
+
+        if excluded_job_prefix:
+            query += " AND LOWER(SUBSTR(job_id, 1, ?)) <> LOWER(?)"
+            params.extend([len(excluded_job_prefix), excluded_job_prefix])
 
         query += " ORDER BY created_at DESC LIMIT ? OFFSET ?"
         params.extend([limit, offset])
@@ -381,7 +387,8 @@ class SQLiteDatabaseManager:
     def count_jobs(
         self,
         status: Optional[str] = None,
-        part_id: Optional[str] = None
+        part_id: Optional[str] = None,
+        excluded_job_prefix: Optional[str] = None,
     ) -> int:
         """Count jobs with optional filters"""
         query = "SELECT COUNT(*) FROM jobs WHERE 1=1"
@@ -394,6 +401,10 @@ class SQLiteDatabaseManager:
         if part_id:
             query += " AND part_id = ?"
             params.append(part_id)
+
+        if excluded_job_prefix:
+            query += " AND LOWER(SUBSTR(job_id, 1, ?)) <> LOWER(?)"
+            params.extend([len(excluded_job_prefix), excluded_job_prefix])
 
         with self.get_connection() as conn:
             return conn.execute(query, params).fetchone()[0]
@@ -649,7 +660,8 @@ class PostgreSQLDatabaseManager:
         status: Optional[str] = None,
         part_id: Optional[str] = None,
         limit: int = 50,
-        offset: int = 0
+        offset: int = 0,
+        excluded_job_prefix: Optional[str] = None,
     ) -> List[JobRecord]:
         """List jobs with optional filters"""
         from psycopg2.extras import RealDictCursor
@@ -665,6 +677,10 @@ class PostgreSQLDatabaseManager:
             query += " AND part_id = %s"
             params.append(part_id)
 
+        if excluded_job_prefix:
+            query += " AND LOWER(SUBSTR(job_id, 1, %s)) <> LOWER(%s)"
+            params.extend([len(excluded_job_prefix), excluded_job_prefix])
+
         query += " ORDER BY created_at DESC LIMIT %s OFFSET %s"
         params.extend([limit, offset])
 
@@ -673,6 +689,29 @@ class PostgreSQLDatabaseManager:
                 cur.execute(query, params)
                 rows = cur.fetchall()
                 return [self._row_to_job(dict(row)) for row in rows]
+
+    def count_jobs(
+        self,
+        status: Optional[str] = None,
+        part_id: Optional[str] = None,
+        excluded_job_prefix: Optional[str] = None,
+    ) -> int:
+        """Count the same filtered namespace exposed by list_jobs."""
+        query = "SELECT COUNT(*) FROM jobs WHERE 1=1"
+        params = []
+        if status:
+            query += " AND status = %s"
+            params.append(status)
+        if part_id:
+            query += " AND part_id = %s"
+            params.append(part_id)
+        if excluded_job_prefix:
+            query += " AND LOWER(SUBSTR(job_id, 1, %s)) <> LOWER(%s)"
+            params.extend([len(excluded_job_prefix), excluded_job_prefix])
+        with self.get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(query, params)
+                return cur.fetchone()[0]
 
     def delete_job(self, job_id: str) -> bool:
         """Delete a job"""

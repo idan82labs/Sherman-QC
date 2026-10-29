@@ -1,0 +1,2982 @@
+{
+  "schema": "sherman.gold11_audit.rescore_summary.v1",
+  "created_at": "2026-10-17T19:25:23Z",
+  "not_redone": "no engine, prep, lines or labeling step was re-run; existing predictions only",
+  "matcher": {
+    "source": "scripts/evaluate_f1_against_manual_gold.match_lines (via score.score_case)",
+    "axis_angle_deg": 5.0,
+    "transverse_offset_mm": 4.0,
+    "gold_span_overlap": 0.6,
+    "prediction_span_overlap": 0.6,
+    "assignment": "one_to_one_minimum_cost Hungarian",
+    "frame": "scan_raw"
+  },
+  "predictions": {
+    "best_f1": "docs/production/runlog/broad_baseline/runs/best_f1/<scan>/predictions_best_f1.json",
+    "runtime": "docs/production/runlog/broad_baseline/runs/runtime/<scan>/predictions_runtime.json"
+  },
+  "frame_records": "docs/production/runlog/broad_baseline/broad_frame_records.json",
+  "score_runs": {
+    "human:best_f1": {
+      "command": "-B research/broad_baseline/score.py broad --case-list docs/production/runlog/broad_baseline/gold11_audit/truth/case_list_gold11__human.json --runs-root docs/production/runlog/broad_baseline/runs --lane best_f1 --frame-records docs/production/runlog/broad_baseline/broad_frame_records.json --out-dir docs/production/runlog/broad_baseline/gold11_audit/rescore/human",
+      "rc": 0
+    },
+    "human:runtime": {
+      "command": "-B research/broad_baseline/score.py broad --case-list docs/production/runlog/broad_baseline/gold11_audit/truth/case_list_gold11__human.json --runs-root docs/production/runlog/broad_baseline/runs --lane runtime --frame-records docs/production/runlog/broad_baseline/broad_frame_records.json --out-dir docs/production/runlog/broad_baseline/gold11_audit/rescore/human",
+      "rc": 0
+    },
+    "relabel_v1:best_f1": {
+      "command": "-B research/broad_baseline/score.py broad --case-list docs/production/runlog/broad_baseline/gold11_audit/truth/case_list_gold11__relabel_v1.json --runs-root docs/production/runlog/broad_baseline/runs --lane best_f1 --frame-records docs/production/runlog/broad_baseline/broad_frame_records.json --out-dir docs/production/runlog/broad_baseline/gold11_audit/rescore/relabel_v1",
+      "rc": 0
+    },
+    "relabel_v1:runtime": {
+      "command": "-B research/broad_baseline/score.py broad --case-list docs/production/runlog/broad_baseline/gold11_audit/truth/case_list_gold11__relabel_v1.json --runs-root docs/production/runlog/broad_baseline/runs --lane runtime --frame-records docs/production/runlog/broad_baseline/broad_frame_records.json --out-dir docs/production/runlog/broad_baseline/gold11_audit/rescore/relabel_v1",
+      "rc": 0
+    },
+    "all11_ai_relabel:best_f1": {
+      "command": "-B research/broad_baseline/score.py broad --case-list docs/production/runlog/broad_baseline/gold11_audit/truth/case_list_gold11__all11_ai_relabel.json --runs-root docs/production/runlog/broad_baseline/runs --lane best_f1 --frame-records docs/production/runlog/broad_baseline/broad_frame_records.json --out-dir docs/production/runlog/broad_baseline/gold11_audit/rescore/all11_ai_relabel",
+      "rc": 0
+    },
+    "all11_ai_relabel:runtime": {
+      "command": "-B research/broad_baseline/score.py broad --case-list docs/production/runlog/broad_baseline/gold11_audit/truth/case_list_gold11__all11_ai_relabel.json --runs-root docs/production/runlog/broad_baseline/runs --lane runtime --frame-records docs/production/runlog/broad_baseline/broad_frame_records.json --out-dir docs/production/runlog/broad_baseline/gold11_audit/rescore/all11_ai_relabel",
+      "rc": 0
+    },
+    "human_snapped_apex:best_f1": {
+      "command": "-B research/broad_baseline/score.py broad --case-list docs/production/runlog/broad_baseline/gold11_audit/truth/case_list_gold11__human_snapped_apex.json --runs-root docs/production/runlog/broad_baseline/runs --lane best_f1 --frame-records docs/production/runlog/broad_baseline/broad_frame_records.json --out-dir docs/production/runlog/broad_baseline/gold11_audit/rescore/human_snapped_apex",
+      "rc": 0
+    },
+    "human_snapped_apex:runtime": {
+      "command": "-B research/broad_baseline/score.py broad --case-list docs/production/runlog/broad_baseline/gold11_audit/truth/case_list_gold11__human_snapped_apex.json --runs-root docs/production/runlog/broad_baseline/runs --lane runtime --frame-records docs/production/runlog/broad_baseline/broad_frame_records.json --out-dir docs/production/runlog/broad_baseline/gold11_audit/rescore/human_snapped_apex",
+      "rc": 0
+    },
+    "human_snapped_apex_conv:best_f1": {
+      "command": "-B research/broad_baseline/score.py broad --case-list docs/production/runlog/broad_baseline/gold11_audit/truth/case_list_gold11__human_snapped_apex_conv.json --runs-root docs/production/runlog/broad_baseline/runs --lane best_f1 --frame-records docs/production/runlog/broad_baseline/broad_frame_records.json --out-dir docs/production/runlog/broad_baseline/gold11_audit/rescore/human_snapped_apex_conv",
+      "rc": 0
+    },
+    "human_snapped_apex_conv:runtime": {
+      "command": "-B research/broad_baseline/score.py broad --case-list docs/production/runlog/broad_baseline/gold11_audit/truth/case_list_gold11__human_snapped_apex_conv.json --runs-root docs/production/runlog/broad_baseline/runs --lane runtime --frame-records docs/production/runlog/broad_baseline/broad_frame_records.json --out-dir docs/production/runlog/broad_baseline/gold11_audit/rescore/human_snapped_apex_conv",
+      "rc": 0
+    },
+    "broad57_gold11_relabel_v1:best_f1": {
+      "command": "-B research/broad_baseline/score.py broad --case-list docs/production/runlog/broad_baseline/gold11_audit/truth/case_list_broad_v3__gold11_relabel_v1.json --runs-root docs/production/runlog/broad_baseline/runs --lane best_f1 --frame-records docs/production/runlog/broad_baseline/broad_frame_records.json --out-dir docs/production/runlog/broad_baseline/gold11_audit/rescore/broad57_gold11_relabel_v1",
+      "rc": 0
+    },
+    "broad57_gold11_relabel_v1:runtime": {
+      "command": "-B research/broad_baseline/score.py broad --case-list docs/production/runlog/broad_baseline/gold11_audit/truth/case_list_broad_v3__gold11_relabel_v1.json --runs-root docs/production/runlog/broad_baseline/runs --lane runtime --frame-records docs/production/runlog/broad_baseline/broad_frame_records.json --out-dir docs/production/runlog/broad_baseline/gold11_audit/rescore/broad57_gold11_relabel_v1",
+      "rc": 0
+    }
+  },
+  "gold11": {
+    "human": {
+      "case_list": {
+        "path": "docs/production/runlog/broad_baseline/gold11_audit/truth/case_list_gold11__human.json",
+        "file_sha256": "5b99c9063be653f748fd73ff3100ffd4424df28db7d5f6a988eafeb80301bcc3",
+        "case_list_sha256": "fb58bfd2d41220778a3b497d9db712d5e8c64540703cf7e3e926c2d30aecbe51",
+        "cases": 11
+      },
+      "lanes": {
+        "best_f1": {
+          "gold11": {
+            "scans": 11,
+            "gold_lines": 71,
+            "predicted_lines": 60,
+            "true_positive": 30,
+            "false_positive": 30,
+            "false_negative": 41,
+            "micro_precision": 0.5,
+            "micro_recall": 0.422535,
+            "micro_f1": 0.4580152672,
+            "macro_f1": 0.4517,
+            "exact_scans": 0,
+            "scans_with_zero_tp": 1,
+            "angle_mae_deg_matched": 0.6911,
+            "position_error_median_mm_matched": 1.0406
+          },
+          "per_scan": {
+            "sc_08686dc1d5d4": {
+              "gold_count": 4,
+              "prediction_count": 2,
+              "true_positive": 2,
+              "false_positive": 0,
+              "false_negative": 2,
+              "precision": 1.0,
+              "recall": 0.5,
+              "f1": 0.6666666666666666
+            },
+            "sc_cec08dfca9ab": {
+              "gold_count": 6,
+              "prediction_count": 4,
+              "true_positive": 0,
+              "false_positive": 4,
+              "false_negative": 6,
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0
+            },
+            "sc_71cf0b216f43": {
+              "gold_count": 8,
+              "prediction_count": 11,
+              "true_positive": 2,
+              "false_positive": 9,
+              "false_negative": 6,
+              "precision": 0.18181818181818182,
+              "recall": 0.25,
+              "f1": 0.2105263157894737
+            },
+            "sc_d1732de18023": {
+              "gold_count": 4,
+              "prediction_count": 3,
+              "true_positive": 2,
+              "false_positive": 1,
+              "false_negative": 2,
+              "precision": 0.6666666666666666,
+              "recall": 0.5,
+              "f1": 0.5714285714285715
+            },
+            "sc_2714fb7e0c0b": {
+              "gold_count": 10,
+              "prediction_count": 9,
+              "true_positive": 7,
+              "false_positive": 2,
+              "false_negative": 3,
+              "precision": 0.7777777777777778,
+              "recall": 0.7,
+              "f1": 0.7368421052631577
+            },
+            "sc_4f8188b4d1a8": {
+              "gold_count": 10,
+              "prediction_count": 11,
+              "true_positive": 8,
+              "false_positive": 3,
+              "false_negative": 2,
+              "precision": 0.7272727272727273,
+              "recall": 0.8,
+              "f1": 0.761904761904762
+            },
+            "sc_07062eee17aa": {
+              "gold_count": 6,
+              "prediction_count": 2,
+              "true_positive": 2,
+              "false_positive": 0,
+              "false_negative": 4,
+              "precision": 1.0,
+              "recall": 0.3333333333333333,
+              "f1": 0.5
+            },
+            "sc_f2475286312b": {
+              "gold_count": 8,
+              "prediction_count": 6,
+              "true_positive": 1,
+              "false_positive": 5,
+              "false_negative": 7,
+              "precision": 0.16666666666666666,
+              "recall": 0.125,
+              "f1": 0.14285714285714288
+            },
+            "sc_152f1b1aacb2": {
+              "gold_count": 7,
+              "prediction_count": 6,
+              "true_positive": 3,
+              "false_positive": 3,
+              "false_negative": 4,
+              "precision": 0.5,
+              "recall": 0.42857142857142855,
+              "f1": 0.4615384615384615
+            },
+            "sc_7a1773eca9fa": {
+              "gold_count": 5,
+              "prediction_count": 3,
+              "true_positive": 1,
+              "false_positive": 2,
+              "false_negative": 4,
+              "precision": 0.3333333333333333,
+              "recall": 0.2,
+              "f1": 0.25
+            },
+            "sc_70b39f530f00": {
+              "gold_count": 3,
+              "prediction_count": 3,
+              "true_positive": 2,
+              "false_positive": 1,
+              "false_negative": 1,
+              "precision": 0.6666666666666666,
+              "recall": 0.6666666666666666,
+              "f1": 0.6666666666666666
+            }
+          }
+        },
+        "runtime": {
+          "gold11": {
+            "scans": 11,
+            "gold_lines": 71,
+            "predicted_lines": 10,
+            "true_positive": 3,
+            "false_positive": 7,
+            "false_negative": 68,
+            "micro_precision": 0.3,
+            "micro_recall": 0.042254,
+            "micro_f1": 0.0740740741,
+            "macro_f1": 0.097,
+            "exact_scans": 0,
+            "scans_with_zero_tp": 8,
+            "angle_mae_deg_matched": 0.7232,
+            "position_error_median_mm_matched": 1.5027
+          },
+          "per_scan": {
+            "sc_08686dc1d5d4": {
+              "gold_count": 4,
+              "prediction_count": 0,
+              "true_positive": 0,
+              "false_positive": 0,
+              "false_negative": 4,
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0
+            },
+            "sc_cec08dfca9ab": {
+              "gold_count": 6,
+              "prediction_count": 0,
+              "true_positive": 0,
+              "false_positive": 0,
+              "false_negative": 6,
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0
+            },
+            "sc_71cf0b216f43": {
+              "gold_count": 8,
+              "prediction_count": 5,
+              "true_positive": 0,
+              "false_positive": 5,
+              "false_negative": 8,
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0
+            },
+            "sc_d1732de18023": {
+              "gold_count": 4,
+              "prediction_count": 1,
+              "true_positive": 1,
+              "false_positive": 0,
+              "false_negative": 3,
+              "precision": 1.0,
+              "recall": 0.25,
+              "f1": 0.4
+            },
+            "sc_2714fb7e0c0b": {
+              "gold_count": 10,
+              "prediction_count": 0,
+              "true_positive": 0,
+              "false_positive": 0,
+              "false_negative": 10,
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0
+            },
+            "sc_4f8188b4d1a8": {
+              "gold_count": 10,
+              "prediction_count": 0,
+              "true_positive": 0,
+              "false_positive": 0,
+              "false_negative": 10,
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0
+            },
+            "sc_07062eee17aa": {
+              "gold_count": 6,
+              "prediction_count": 0,
+              "true_positive": 0,
+              "false_positive": 0,
+              "false_negative": 6,
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0
+            },
+            "sc_f2475286312b": {
+              "gold_count": 8,
+              "prediction_count": 0,
+              "true_positive": 0,
+              "false_positive": 0,
+              "false_negative": 8,
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0
+            },
+            "sc_152f1b1aacb2": {
+              "gold_count": 7,
+              "prediction_count": 0,
+              "true_positive": 0,
+              "false_positive": 0,
+              "false_negative": 7,
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0
+            },
+            "sc_7a1773eca9fa": {
+              "gold_count": 5,
+              "prediction_count": 1,
+              "true_positive": 1,
+              "false_positive": 0,
+              "false_negative": 4,
+              "precision": 1.0,
+              "recall": 0.2,
+              "f1": 0.33333333333333337
+            },
+            "sc_70b39f530f00": {
+              "gold_count": 3,
+              "prediction_count": 3,
+              "true_positive": 1,
+              "false_positive": 2,
+              "false_negative": 2,
+              "precision": 0.3333333333333333,
+              "recall": 0.3333333333333333,
+              "f1": 0.3333333333333333
+            }
+          }
+        }
+      },
+      "bootstrap_f1_ci95": {
+        "scans": 11,
+        "best_f1": [
+          0.282,
+          0.621
+        ],
+        "runtime": [
+          0.0,
+          0.171
+        ],
+        "best_minus_runtime": [
+          0.186,
+          0.561
+        ]
+      },
+      "perfect_apex_engine_ceiling": {
+        "true_positive": 31,
+        "false_positive": 58,
+        "false_negative": 40,
+        "precision": 0.3483,
+        "recall": 0.4366,
+        "f1": 0.3875,
+        "per_scan": {
+          "sc_08686dc1d5d4": [
+            2,
+            6,
+            2
+          ],
+          "sc_cec08dfca9ab": [
+            0,
+            10,
+            6
+          ],
+          "sc_71cf0b216f43": [
+            2,
+            10,
+            6
+          ],
+          "sc_d1732de18023": [
+            2,
+            2,
+            2
+          ],
+          "sc_2714fb7e0c0b": [
+            8,
+            4,
+            2
+          ],
+          "sc_4f8188b4d1a8": [
+            8,
+            4,
+            2
+          ],
+          "sc_07062eee17aa": [
+            2,
+            4,
+            4
+          ],
+          "sc_f2475286312b": [
+            0,
+            10,
+            8
+          ],
+          "sc_152f1b1aacb2": [
+            2,
+            5,
+            5
+          ],
+          "sc_7a1773eca9fa": [
+            2,
+            3,
+            3
+          ],
+          "sc_70b39f530f00": [
+            3,
+            0,
+            0
+          ]
+        }
+      }
+    },
+    "relabel_v1": {
+      "case_list": {
+        "path": "docs/production/runlog/broad_baseline/gold11_audit/truth/case_list_gold11__relabel_v1.json",
+        "file_sha256": "b1dd6e8a24fde0a0ecf816aa2788dcd1992ffbde3e3b1558ff31c460ca250698",
+        "case_list_sha256": "1e7b53dd4c5d8ae67cd442d724d2e7eccbbb98fd70c2fcc8cfa021dc31d03f70",
+        "cases": 11
+      },
+      "lanes": {
+        "best_f1": {
+          "gold11": {
+            "scans": 11,
+            "gold_lines": 89,
+            "predicted_lines": 60,
+            "true_positive": 38,
+            "false_positive": 22,
+            "false_negative": 51,
+            "micro_precision": 0.633333,
+            "micro_recall": 0.426966,
+            "micro_f1": 0.5100671141,
+            "macro_f1": 0.487,
+            "exact_scans": 0,
+            "scans_with_zero_tp": 0,
+            "angle_mae_deg_matched": 0.4202,
+            "position_error_median_mm_matched": 1.1649
+          },
+          "per_scan": {
+            "sc_08686dc1d5d4": {
+              "gold_count": 8,
+              "prediction_count": 2,
+              "true_positive": 2,
+              "false_positive": 0,
+              "false_negative": 6,
+              "precision": 1.0,
+              "recall": 0.25,
+              "f1": 0.4
+            },
+            "sc_cec08dfca9ab": {
+              "gold_count": 10,
+              "prediction_count": 4,
+              "true_positive": 3,
+              "false_positive": 1,
+              "false_negative": 7,
+              "precision": 0.75,
+              "recall": 0.3,
+              "f1": 0.4285714285714285
+            },
+            "sc_71cf0b216f43": {
+              "gold_count": 12,
+              "prediction_count": 11,
+              "true_positive": 8,
+              "false_positive": 3,
+              "false_negative": 4,
+              "precision": 0.7272727272727273,
+              "recall": 0.6666666666666666,
+              "f1": 0.6956521739130435
+            },
+            "sc_d1732de18023": {
+              "gold_count": 4,
+              "prediction_count": 3,
+              "true_positive": 3,
+              "false_positive": 0,
+              "false_negative": 1,
+              "precision": 1.0,
+              "recall": 0.75,
+              "f1": 0.8571428571428571
+            },
+            "sc_2714fb7e0c0b": {
+              "gold_count": 12,
+              "prediction_count": 9,
+              "true_positive": 5,
+              "false_positive": 4,
+              "false_negative": 7,
+              "precision": 0.5555555555555556,
+              "recall": 0.4166666666666667,
+              "f1": 0.4761904761904762
+            },
+            "sc_4f8188b4d1a8": {
+              "gold_count": 12,
+              "prediction_count": 11,
+              "true_positive": 7,
+              "false_positive": 4,
+              "false_negative": 5,
+              "precision": 0.6363636363636364,
+              "recall": 0.5833333333333334,
+              "f1": 0.6086956521739131
+            },
+            "sc_07062eee17aa": {
+              "gold_count": 6,
+              "prediction_count": 2,
+              "true_positive": 2,
+              "false_positive": 0,
+              "false_negative": 4,
+              "precision": 1.0,
+              "recall": 0.3333333333333333,
+              "f1": 0.5
+            },
+            "sc_f2475286312b": {
+              "gold_count": 10,
+              "prediction_count": 6,
+              "true_positive": 4,
+              "false_positive": 2,
+              "false_negative": 6,
+              "precision": 0.6666666666666666,
+              "recall": 0.4,
+              "f1": 0.5
+            },
+            "sc_152f1b1aacb2": {
+              "gold_count": 7,
+              "prediction_count": 6,
+              "true_positive": 2,
+              "false_positive": 4,
+              "false_negative": 5,
+              "precision": 0.3333333333333333,
+              "recall": 0.2857142857142857,
+              "f1": 0.30769230769230765
+            },
+            "sc_7a1773eca9fa": {
+              "gold_count": 5,
+              "prediction_count": 3,
+              "true_positive": 1,
+              "false_positive": 2,
+              "false_negative": 4,
+              "precision": 0.3333333333333333,
+              "recall": 0.2,
+              "f1": 0.25
+            },
+            "sc_70b39f530f00": {
+              "gold_count": 3,
+              "prediction_count": 3,
+              "true_positive": 1,
+              "false_positive": 2,
+              "false_negative": 2,
+              "precision": 0.3333333333333333,
+              "recall": 0.3333333333333333,
+              "f1": 0.3333333333333333
+            }
+          }
+        },
+        "runtime": {
+          "gold11": {
+            "scans": 11,
+            "gold_lines": 89,
+            "predicted_lines": 10,
+            "true_positive": 7,
+            "false_positive": 3,
+            "false_negative": 82,
+            "micro_precision": 0.7,
+            "micro_recall": 0.078652,
+            "micro_f1": 0.1414141414,
+            "macro_f1": 0.1398,
+            "exact_scans": 0,
+            "scans_with_zero_tp": 7,
+            "angle_mae_deg_matched": 0.4417,
+            "position_error_median_mm_matched": 0.9082
+          },
+          "per_scan": {
+            "sc_08686dc1d5d4": {
+              "gold_count": 8,
+              "prediction_count": 0,
+              "true_positive": 0,
+              "false_positive": 0,
+              "false_negative": 8,
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0
+            },
+            "sc_cec08dfca9ab": {
+              "gold_count": 10,
+              "prediction_count": 0,
+              "true_positive": 0,
+              "false_positive": 0,
+              "false_negative": 10,
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0
+            },
+            "sc_71cf0b216f43": {
+              "gold_count": 12,
+              "prediction_count": 5,
+              "true_positive": 4,
+              "false_positive": 1,
+              "false_negative": 8,
+              "precision": 0.8,
+              "recall": 0.3333333333333333,
+              "f1": 0.47058823529411764
+            },
+            "sc_d1732de18023": {
+              "gold_count": 4,
+              "prediction_count": 1,
+              "true_positive": 1,
+              "false_positive": 0,
+              "false_negative": 3,
+              "precision": 1.0,
+              "recall": 0.25,
+              "f1": 0.4
+            },
+            "sc_2714fb7e0c0b": {
+              "gold_count": 12,
+              "prediction_count": 0,
+              "true_positive": 0,
+              "false_positive": 0,
+              "false_negative": 12,
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0
+            },
+            "sc_4f8188b4d1a8": {
+              "gold_count": 12,
+              "prediction_count": 0,
+              "true_positive": 0,
+              "false_positive": 0,
+              "false_negative": 12,
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0
+            },
+            "sc_07062eee17aa": {
+              "gold_count": 6,
+              "prediction_count": 0,
+              "true_positive": 0,
+              "false_positive": 0,
+              "false_negative": 6,
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0
+            },
+            "sc_f2475286312b": {
+              "gold_count": 10,
+              "prediction_count": 0,
+              "true_positive": 0,
+              "false_positive": 0,
+              "false_negative": 10,
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0
+            },
+            "sc_152f1b1aacb2": {
+              "gold_count": 7,
+              "prediction_count": 0,
+              "true_positive": 0,
+              "false_positive": 0,
+              "false_negative": 7,
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0
+            },
+            "sc_7a1773eca9fa": {
+              "gold_count": 5,
+              "prediction_count": 1,
+              "true_positive": 1,
+              "false_positive": 0,
+              "false_negative": 4,
+              "precision": 1.0,
+              "recall": 0.2,
+              "f1": 0.33333333333333337
+            },
+            "sc_70b39f530f00": {
+              "gold_count": 3,
+              "prediction_count": 3,
+              "true_positive": 1,
+              "false_positive": 2,
+              "false_negative": 2,
+              "precision": 0.3333333333333333,
+              "recall": 0.3333333333333333,
+              "f1": 0.3333333333333333
+            }
+          }
+        }
+      },
+      "bootstrap_f1_ci95": {
+        "scans": 11,
+        "best_f1": [
+          0.416,
+          0.594
+        ],
+        "runtime": [
+          0.021,
+          0.281
+        ],
+        "best_minus_runtime": [
+          0.253,
+          0.475
+        ]
+      },
+      "perfect_apex_engine_ceiling": {
+        "true_positive": 85,
+        "false_positive": 4,
+        "false_negative": 4,
+        "precision": 0.9551,
+        "recall": 0.9551,
+        "f1": 0.9551,
+        "per_scan": {
+          "sc_08686dc1d5d4": [
+            8,
+            0,
+            0
+          ],
+          "sc_cec08dfca9ab": [
+            10,
+            0,
+            0
+          ],
+          "sc_71cf0b216f43": [
+            12,
+            0,
+            0
+          ],
+          "sc_d1732de18023": [
+            4,
+            0,
+            0
+          ],
+          "sc_2714fb7e0c0b": [
+            12,
+            0,
+            0
+          ],
+          "sc_4f8188b4d1a8": [
+            12,
+            0,
+            0
+          ],
+          "sc_07062eee17aa": [
+            2,
+            4,
+            4
+          ],
+          "sc_f2475286312b": [
+            10,
+            0,
+            0
+          ],
+          "sc_152f1b1aacb2": [
+            7,
+            0,
+            0
+          ],
+          "sc_7a1773eca9fa": [
+            5,
+            0,
+            0
+          ],
+          "sc_70b39f530f00": [
+            3,
+            0,
+            0
+          ]
+        }
+      },
+      "delta_vs_human_f1_ci95": {
+        "best_f1": [
+          -0.13,
+          0.249
+        ],
+        "runtime": [
+          -0.026,
+          0.205
+        ]
+      }
+    },
+    "all11_ai_relabel": {
+      "case_list": {
+        "path": "docs/production/runlog/broad_baseline/gold11_audit/truth/case_list_gold11__all11_ai_relabel.json",
+        "file_sha256": "77d1bedeec450d3e190c18a3aab08edf825d212a99ada19976907514a5d4f4d2",
+        "case_list_sha256": "53576502e62347ee7ca107462b8586d6da1de56f581509838c3ec6736d18ee45",
+        "cases": 11
+      },
+      "lanes": {
+        "best_f1": {
+          "gold11": {
+            "scans": 11,
+            "gold_lines": 89,
+            "predicted_lines": 60,
+            "true_positive": 38,
+            "false_positive": 22,
+            "false_negative": 51,
+            "micro_precision": 0.633333,
+            "micro_recall": 0.426966,
+            "micro_f1": 0.5100671141,
+            "macro_f1": 0.487,
+            "exact_scans": 0,
+            "scans_with_zero_tp": 0,
+            "angle_mae_deg_matched": 0.4158,
+            "position_error_median_mm_matched": 1.1649
+          },
+          "per_scan": {
+            "sc_08686dc1d5d4": {
+              "gold_count": 8,
+              "prediction_count": 2,
+              "true_positive": 2,
+              "false_positive": 0,
+              "false_negative": 6,
+              "precision": 1.0,
+              "recall": 0.25,
+              "f1": 0.4
+            },
+            "sc_cec08dfca9ab": {
+              "gold_count": 10,
+              "prediction_count": 4,
+              "true_positive": 3,
+              "false_positive": 1,
+              "false_negative": 7,
+              "precision": 0.75,
+              "recall": 0.3,
+              "f1": 0.4285714285714285
+            },
+            "sc_71cf0b216f43": {
+              "gold_count": 12,
+              "prediction_count": 11,
+              "true_positive": 8,
+              "false_positive": 3,
+              "false_negative": 4,
+              "precision": 0.7272727272727273,
+              "recall": 0.6666666666666666,
+              "f1": 0.6956521739130435
+            },
+            "sc_d1732de18023": {
+              "gold_count": 4,
+              "prediction_count": 3,
+              "true_positive": 3,
+              "false_positive": 0,
+              "false_negative": 1,
+              "precision": 1.0,
+              "recall": 0.75,
+              "f1": 0.8571428571428571
+            },
+            "sc_2714fb7e0c0b": {
+              "gold_count": 12,
+              "prediction_count": 9,
+              "true_positive": 5,
+              "false_positive": 4,
+              "false_negative": 7,
+              "precision": 0.5555555555555556,
+              "recall": 0.4166666666666667,
+              "f1": 0.4761904761904762
+            },
+            "sc_4f8188b4d1a8": {
+              "gold_count": 12,
+              "prediction_count": 11,
+              "true_positive": 7,
+              "false_positive": 4,
+              "false_negative": 5,
+              "precision": 0.6363636363636364,
+              "recall": 0.5833333333333334,
+              "f1": 0.6086956521739131
+            },
+            "sc_07062eee17aa": {
+              "gold_count": 6,
+              "prediction_count": 2,
+              "true_positive": 2,
+              "false_positive": 0,
+              "false_negative": 4,
+              "precision": 1.0,
+              "recall": 0.3333333333333333,
+              "f1": 0.5
+            },
+            "sc_f2475286312b": {
+              "gold_count": 10,
+              "prediction_count": 6,
+              "true_positive": 4,
+              "false_positive": 2,
+              "false_negative": 6,
+              "precision": 0.6666666666666666,
+              "recall": 0.4,
+              "f1": 0.5
+            },
+            "sc_152f1b1aacb2": {
+              "gold_count": 7,
+              "prediction_count": 6,
+              "true_positive": 2,
+              "false_positive": 4,
+              "false_negative": 5,
+              "precision": 0.3333333333333333,
+              "recall": 0.2857142857142857,
+              "f1": 0.30769230769230765
+            },
+            "sc_7a1773eca9fa": {
+              "gold_count": 5,
+              "prediction_count": 3,
+              "true_positive": 1,
+              "false_positive": 2,
+              "false_negative": 4,
+              "precision": 0.3333333333333333,
+              "recall": 0.2,
+              "f1": 0.25
+            },
+            "sc_70b39f530f00": {
+              "gold_count": 3,
+              "prediction_count": 3,
+              "true_positive": 1,
+              "false_positive": 2,
+              "false_negative": 2,
+              "precision": 0.3333333333333333,
+              "recall": 0.3333333333333333,
+              "f1": 0.3333333333333333
+            }
+          }
+        },
+        "runtime": {
+          "gold11": {
+            "scans": 11,
+            "gold_lines": 89,
+            "predicted_lines": 10,
+            "true_positive": 7,
+            "false_positive": 3,
+            "false_negative": 82,
+            "micro_precision": 0.7,
+            "micro_recall": 0.078652,
+            "micro_f1": 0.1414141414,
+            "macro_f1": 0.1398,
+            "exact_scans": 0,
+            "scans_with_zero_tp": 7,
+            "angle_mae_deg_matched": 0.4417,
+            "position_error_median_mm_matched": 0.9082
+          },
+          "per_scan": {
+            "sc_08686dc1d5d4": {
+              "gold_count": 8,
+              "prediction_count": 0,
+              "true_positive": 0,
+              "false_positive": 0,
+              "false_negative": 8,
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0
+            },
+            "sc_cec08dfca9ab": {
+              "gold_count": 10,
+              "prediction_count": 0,
+              "true_positive": 0,
+              "false_positive": 0,
+              "false_negative": 10,
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0
+            },
+            "sc_71cf0b216f43": {
+              "gold_count": 12,
+              "prediction_count": 5,
+              "true_positive": 4,
+              "false_positive": 1,
+              "false_negative": 8,
+              "precision": 0.8,
+              "recall": 0.3333333333333333,
+              "f1": 0.47058823529411764
+            },
+            "sc_d1732de18023": {
+              "gold_count": 4,
+              "prediction_count": 1,
+              "true_positive": 1,
+              "false_positive": 0,
+              "false_negative": 3,
+              "precision": 1.0,
+              "recall": 0.25,
+              "f1": 0.4
+            },
+            "sc_2714fb7e0c0b": {
+              "gold_count": 12,
+              "prediction_count": 0,
+              "true_positive": 0,
+              "false_positive": 0,
+              "false_negative": 12,
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0
+            },
+            "sc_4f8188b4d1a8": {
+              "gold_count": 12,
+              "prediction_count": 0,
+              "true_positive": 0,
+              "false_positive": 0,
+              "false_negative": 12,
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0
+            },
+            "sc_07062eee17aa": {
+              "gold_count": 6,
+              "prediction_count": 0,
+              "true_positive": 0,
+              "false_positive": 0,
+              "false_negative": 6,
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0
+            },
+            "sc_f2475286312b": {
+              "gold_count": 10,
+              "prediction_count": 0,
+              "true_positive": 0,
+              "false_positive": 0,
+              "false_negative": 10,
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0
+            },
+            "sc_152f1b1aacb2": {
+              "gold_count": 7,
+              "prediction_count": 0,
+              "true_positive": 0,
+              "false_positive": 0,
+              "false_negative": 7,
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0
+            },
+            "sc_7a1773eca9fa": {
+              "gold_count": 5,
+              "prediction_count": 1,
+              "true_positive": 1,
+              "false_positive": 0,
+              "false_negative": 4,
+              "precision": 1.0,
+              "recall": 0.2,
+              "f1": 0.33333333333333337
+            },
+            "sc_70b39f530f00": {
+              "gold_count": 3,
+              "prediction_count": 3,
+              "true_positive": 1,
+              "false_positive": 2,
+              "false_negative": 2,
+              "precision": 0.3333333333333333,
+              "recall": 0.3333333333333333,
+              "f1": 0.3333333333333333
+            }
+          }
+        }
+      },
+      "bootstrap_f1_ci95": {
+        "scans": 11,
+        "best_f1": [
+          0.416,
+          0.594
+        ],
+        "runtime": [
+          0.021,
+          0.281
+        ],
+        "best_minus_runtime": [
+          0.253,
+          0.475
+        ]
+      },
+      "perfect_apex_engine_ceiling": {
+        "true_positive": 89,
+        "false_positive": 0,
+        "false_negative": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "per_scan": {
+          "sc_08686dc1d5d4": [
+            8,
+            0,
+            0
+          ],
+          "sc_cec08dfca9ab": [
+            10,
+            0,
+            0
+          ],
+          "sc_71cf0b216f43": [
+            12,
+            0,
+            0
+          ],
+          "sc_d1732de18023": [
+            4,
+            0,
+            0
+          ],
+          "sc_2714fb7e0c0b": [
+            12,
+            0,
+            0
+          ],
+          "sc_4f8188b4d1a8": [
+            12,
+            0,
+            0
+          ],
+          "sc_07062eee17aa": [
+            6,
+            0,
+            0
+          ],
+          "sc_f2475286312b": [
+            10,
+            0,
+            0
+          ],
+          "sc_152f1b1aacb2": [
+            7,
+            0,
+            0
+          ],
+          "sc_7a1773eca9fa": [
+            5,
+            0,
+            0
+          ],
+          "sc_70b39f530f00": [
+            3,
+            0,
+            0
+          ]
+        }
+      },
+      "delta_vs_human_f1_ci95": {
+        "best_f1": [
+          -0.13,
+          0.249
+        ],
+        "runtime": [
+          -0.026,
+          0.205
+        ]
+      }
+    },
+    "human_snapped_apex": {
+      "case_list": {
+        "path": "docs/production/runlog/broad_baseline/gold11_audit/truth/case_list_gold11__human_snapped_apex.json",
+        "file_sha256": "fe9641fe71342e6c0a7a42e2671522516a1a78014c7e9f5355c7f4f191b04582",
+        "case_list_sha256": "c1e72769fef0cf096c48167c4a1b61a3db9909e4dca836384a6965572308d758",
+        "cases": 11
+      },
+      "lanes": {
+        "best_f1": {
+          "gold11": {
+            "scans": 11,
+            "gold_lines": 71,
+            "predicted_lines": 60,
+            "true_positive": 41,
+            "false_positive": 19,
+            "false_negative": 30,
+            "micro_precision": 0.683333,
+            "micro_recall": 0.577465,
+            "micro_f1": 0.6259541985,
+            "macro_f1": 0.606,
+            "exact_scans": 0,
+            "scans_with_zero_tp": 0,
+            "angle_mae_deg_matched": 0.5267,
+            "position_error_median_mm_matched": 1.1204
+          },
+          "per_scan": {
+            "sc_08686dc1d5d4": {
+              "gold_count": 4,
+              "prediction_count": 2,
+              "true_positive": 2,
+              "false_positive": 0,
+              "false_negative": 2,
+              "precision": 1.0,
+              "recall": 0.5,
+              "f1": 0.6666666666666666
+            },
+            "sc_cec08dfca9ab": {
+              "gold_count": 6,
+              "prediction_count": 4,
+              "true_positive": 3,
+              "false_positive": 1,
+              "false_negative": 3,
+              "precision": 0.75,
+              "recall": 0.5,
+              "f1": 0.6
+            },
+            "sc_71cf0b216f43": {
+              "gold_count": 8,
+              "prediction_count": 11,
+              "true_positive": 7,
+              "false_positive": 4,
+              "false_negative": 1,
+              "precision": 0.6363636363636364,
+              "recall": 0.875,
+              "f1": 0.7368421052631579
+            },
+            "sc_d1732de18023": {
+              "gold_count": 4,
+              "prediction_count": 3,
+              "true_positive": 3,
+              "false_positive": 0,
+              "false_negative": 1,
+              "precision": 1.0,
+              "recall": 0.75,
+              "f1": 0.8571428571428571
+            },
+            "sc_2714fb7e0c0b": {
+              "gold_count": 10,
+              "prediction_count": 9,
+              "true_positive": 7,
+              "false_positive": 2,
+              "false_negative": 3,
+              "precision": 0.7777777777777778,
+              "recall": 0.7,
+              "f1": 0.7368421052631577
+            },
+            "sc_4f8188b4d1a8": {
+              "gold_count": 10,
+              "prediction_count": 11,
+              "true_positive": 8,
+              "false_positive": 3,
+              "false_negative": 2,
+              "precision": 0.7272727272727273,
+              "recall": 0.8,
+              "f1": 0.761904761904762
+            },
+            "sc_07062eee17aa": {
+              "gold_count": 6,
+              "prediction_count": 2,
+              "true_positive": 2,
+              "false_positive": 0,
+              "false_negative": 4,
+              "precision": 1.0,
+              "recall": 0.3333333333333333,
+              "f1": 0.5
+            },
+            "sc_f2475286312b": {
+              "gold_count": 8,
+              "prediction_count": 6,
+              "true_positive": 3,
+              "false_positive": 3,
+              "false_negative": 5,
+              "precision": 0.5,
+              "recall": 0.375,
+              "f1": 0.42857142857142855
+            },
+            "sc_152f1b1aacb2": {
+              "gold_count": 7,
+              "prediction_count": 6,
+              "true_positive": 3,
+              "false_positive": 3,
+              "false_negative": 4,
+              "precision": 0.5,
+              "recall": 0.42857142857142855,
+              "f1": 0.4615384615384615
+            },
+            "sc_7a1773eca9fa": {
+              "gold_count": 5,
+              "prediction_count": 3,
+              "true_positive": 1,
+              "false_positive": 2,
+              "false_negative": 4,
+              "precision": 0.3333333333333333,
+              "recall": 0.2,
+              "f1": 0.25
+            },
+            "sc_70b39f530f00": {
+              "gold_count": 3,
+              "prediction_count": 3,
+              "true_positive": 2,
+              "false_positive": 1,
+              "false_negative": 1,
+              "precision": 0.6666666666666666,
+              "recall": 0.6666666666666666,
+              "f1": 0.6666666666666666
+            }
+          }
+        },
+        "runtime": {
+          "gold11": {
+            "scans": 11,
+            "gold_lines": 71,
+            "predicted_lines": 10,
+            "true_positive": 6,
+            "false_positive": 4,
+            "false_negative": 65,
+            "micro_precision": 0.6,
+            "micro_recall": 0.084507,
+            "micro_f1": 0.1481481481,
+            "macro_f1": 0.1389,
+            "exact_scans": 0,
+            "scans_with_zero_tp": 7,
+            "angle_mae_deg_matched": 0.4641,
+            "position_error_median_mm_matched": 0.9962
+          },
+          "per_scan": {
+            "sc_08686dc1d5d4": {
+              "gold_count": 4,
+              "prediction_count": 0,
+              "true_positive": 0,
+              "false_positive": 0,
+              "false_negative": 4,
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0
+            },
+            "sc_cec08dfca9ab": {
+              "gold_count": 6,
+              "prediction_count": 0,
+              "true_positive": 0,
+              "false_positive": 0,
+              "false_negative": 6,
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0
+            },
+            "sc_71cf0b216f43": {
+              "gold_count": 8,
+              "prediction_count": 5,
+              "true_positive": 3,
+              "false_positive": 2,
+              "false_negative": 5,
+              "precision": 0.6,
+              "recall": 0.375,
+              "f1": 0.4615384615384615
+            },
+            "sc_d1732de18023": {
+              "gold_count": 4,
+              "prediction_count": 1,
+              "true_positive": 1,
+              "false_positive": 0,
+              "false_negative": 3,
+              "precision": 1.0,
+              "recall": 0.25,
+              "f1": 0.4
+            },
+            "sc_2714fb7e0c0b": {
+              "gold_count": 10,
+              "prediction_count": 0,
+              "true_positive": 0,
+              "false_positive": 0,
+              "false_negative": 10,
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0
+            },
+            "sc_4f8188b4d1a8": {
+              "gold_count": 10,
+              "prediction_count": 0,
+              "true_positive": 0,
+              "false_positive": 0,
+              "false_negative": 10,
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0
+            },
+            "sc_07062eee17aa": {
+              "gold_count": 6,
+              "prediction_count": 0,
+              "true_positive": 0,
+              "false_positive": 0,
+              "false_negative": 6,
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0
+            },
+            "sc_f2475286312b": {
+              "gold_count": 8,
+              "prediction_count": 0,
+              "true_positive": 0,
+              "false_positive": 0,
+              "false_negative": 8,
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0
+            },
+            "sc_152f1b1aacb2": {
+              "gold_count": 7,
+              "prediction_count": 0,
+              "true_positive": 0,
+              "false_positive": 0,
+              "false_negative": 7,
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0
+            },
+            "sc_7a1773eca9fa": {
+              "gold_count": 5,
+              "prediction_count": 1,
+              "true_positive": 1,
+              "false_positive": 0,
+              "false_negative": 4,
+              "precision": 1.0,
+              "recall": 0.2,
+              "f1": 0.33333333333333337
+            },
+            "sc_70b39f530f00": {
+              "gold_count": 3,
+              "prediction_count": 3,
+              "true_positive": 1,
+              "false_positive": 2,
+              "false_negative": 2,
+              "precision": 0.3333333333333333,
+              "recall": 0.3333333333333333,
+              "f1": 0.3333333333333333
+            }
+          }
+        }
+      },
+      "bootstrap_f1_ci95": {
+        "scans": 11,
+        "best_f1": [
+          0.515,
+          0.711
+        ],
+        "runtime": [
+          0.026,
+          0.282
+        ],
+        "best_minus_runtime": [
+          0.327,
+          0.619
+        ]
+      },
+      "perfect_apex_engine_ceiling": {
+        "true_positive": 50,
+        "false_positive": 39,
+        "false_negative": 21,
+        "precision": 0.5618,
+        "recall": 0.7042,
+        "f1": 0.625,
+        "per_scan": {
+          "sc_08686dc1d5d4": [
+            2,
+            6,
+            2
+          ],
+          "sc_cec08dfca9ab": [
+            6,
+            4,
+            0
+          ],
+          "sc_71cf0b216f43": [
+            7,
+            5,
+            1
+          ],
+          "sc_d1732de18023": [
+            4,
+            0,
+            0
+          ],
+          "sc_2714fb7e0c0b": [
+            8,
+            4,
+            2
+          ],
+          "sc_4f8188b4d1a8": [
+            8,
+            4,
+            2
+          ],
+          "sc_07062eee17aa": [
+            2,
+            4,
+            4
+          ],
+          "sc_f2475286312b": [
+            3,
+            7,
+            5
+          ],
+          "sc_152f1b1aacb2": [
+            2,
+            5,
+            5
+          ],
+          "sc_7a1773eca9fa": [
+            5,
+            0,
+            0
+          ],
+          "sc_70b39f530f00": [
+            3,
+            0,
+            0
+          ]
+        }
+      },
+      "delta_vs_human_f1_ci95": {
+        "best_f1": [
+          0.033,
+          0.324
+        ],
+        "runtime": [
+          0.0,
+          0.205
+        ]
+      }
+    },
+    "human_snapped_apex_conv": {
+      "case_list": {
+        "path": "docs/production/runlog/broad_baseline/gold11_audit/truth/case_list_gold11__human_snapped_apex_conv.json",
+        "file_sha256": "dbc7dfd8825c7512327870ff6309146810334a769b7c15d5f698d2fa44235f0b",
+        "case_list_sha256": "df48cf6145fcf6870389a80afb80f8ed5ce47e64d332f376a8999084e6895348",
+        "cases": 11
+      },
+      "lanes": {
+        "best_f1": {
+          "gold11": {
+            "scans": 11,
+            "gold_lines": 71,
+            "predicted_lines": 60,
+            "true_positive": 33,
+            "false_positive": 27,
+            "false_negative": 38,
+            "micro_precision": 0.55,
+            "micro_recall": 0.464789,
+            "micro_f1": 0.5038167939,
+            "macro_f1": 0.4838,
+            "exact_scans": 0,
+            "scans_with_zero_tp": 1,
+            "angle_mae_deg_matched": 0.5774,
+            "position_error_median_mm_matched": 1.1204
+          },
+          "per_scan": {
+            "sc_08686dc1d5d4": {
+              "gold_count": 4,
+              "prediction_count": 2,
+              "true_positive": 2,
+              "false_positive": 0,
+              "false_negative": 2,
+              "precision": 1.0,
+              "recall": 0.5,
+              "f1": 0.6666666666666666
+            },
+            "sc_cec08dfca9ab": {
+              "gold_count": 6,
+              "prediction_count": 4,
+              "true_positive": 0,
+              "false_positive": 4,
+              "false_negative": 6,
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0
+            },
+            "sc_71cf0b216f43": {
+              "gold_count": 8,
+              "prediction_count": 11,
+              "true_positive": 4,
+              "false_positive": 7,
+              "false_negative": 4,
+              "precision": 0.36363636363636365,
+              "recall": 0.5,
+              "f1": 0.4210526315789474
+            },
+            "sc_d1732de18023": {
+              "gold_count": 4,
+              "prediction_count": 3,
+              "true_positive": 2,
+              "false_positive": 1,
+              "false_negative": 2,
+              "precision": 0.6666666666666666,
+              "recall": 0.5,
+              "f1": 0.5714285714285715
+            },
+            "sc_2714fb7e0c0b": {
+              "gold_count": 10,
+              "prediction_count": 9,
+              "true_positive": 7,
+              "false_positive": 2,
+              "false_negative": 3,
+              "precision": 0.7777777777777778,
+              "recall": 0.7,
+              "f1": 0.7368421052631577
+            },
+            "sc_4f8188b4d1a8": {
+              "gold_count": 10,
+              "prediction_count": 11,
+              "true_positive": 8,
+              "false_positive": 3,
+              "false_negative": 2,
+              "precision": 0.7272727272727273,
+              "recall": 0.8,
+              "f1": 0.761904761904762
+            },
+            "sc_07062eee17aa": {
+              "gold_count": 6,
+              "prediction_count": 2,
+              "true_positive": 2,
+              "false_positive": 0,
+              "false_negative": 4,
+              "precision": 1.0,
+              "recall": 0.3333333333333333,
+              "f1": 0.5
+            },
+            "sc_f2475286312b": {
+              "gold_count": 8,
+              "prediction_count": 6,
+              "true_positive": 2,
+              "false_positive": 4,
+              "false_negative": 6,
+              "precision": 0.3333333333333333,
+              "recall": 0.25,
+              "f1": 0.28571428571428575
+            },
+            "sc_152f1b1aacb2": {
+              "gold_count": 7,
+              "prediction_count": 6,
+              "true_positive": 3,
+              "false_positive": 3,
+              "false_negative": 4,
+              "precision": 0.5,
+              "recall": 0.42857142857142855,
+              "f1": 0.4615384615384615
+            },
+            "sc_7a1773eca9fa": {
+              "gold_count": 5,
+              "prediction_count": 3,
+              "true_positive": 1,
+              "false_positive": 2,
+              "false_negative": 4,
+              "precision": 0.3333333333333333,
+              "recall": 0.2,
+              "f1": 0.25
+            },
+            "sc_70b39f530f00": {
+              "gold_count": 3,
+              "prediction_count": 3,
+              "true_positive": 2,
+              "false_positive": 1,
+              "false_negative": 1,
+              "precision": 0.6666666666666666,
+              "recall": 0.6666666666666666,
+              "f1": 0.6666666666666666
+            }
+          }
+        },
+        "runtime": {
+          "gold11": {
+            "scans": 11,
+            "gold_lines": 71,
+            "predicted_lines": 10,
+            "true_positive": 3,
+            "false_positive": 7,
+            "false_negative": 68,
+            "micro_precision": 0.3,
+            "micro_recall": 0.042254,
+            "micro_f1": 0.0740740741,
+            "macro_f1": 0.097,
+            "exact_scans": 0,
+            "scans_with_zero_tp": 8,
+            "angle_mae_deg_matched": 0.8196,
+            "position_error_median_mm_matched": 1.0837
+          },
+          "per_scan": {
+            "sc_08686dc1d5d4": {
+              "gold_count": 4,
+              "prediction_count": 0,
+              "true_positive": 0,
+              "false_positive": 0,
+              "false_negative": 4,
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0
+            },
+            "sc_cec08dfca9ab": {
+              "gold_count": 6,
+              "prediction_count": 0,
+              "true_positive": 0,
+              "false_positive": 0,
+              "false_negative": 6,
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0
+            },
+            "sc_71cf0b216f43": {
+              "gold_count": 8,
+              "prediction_count": 5,
+              "true_positive": 0,
+              "false_positive": 5,
+              "false_negative": 8,
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0
+            },
+            "sc_d1732de18023": {
+              "gold_count": 4,
+              "prediction_count": 1,
+              "true_positive": 1,
+              "false_positive": 0,
+              "false_negative": 3,
+              "precision": 1.0,
+              "recall": 0.25,
+              "f1": 0.4
+            },
+            "sc_2714fb7e0c0b": {
+              "gold_count": 10,
+              "prediction_count": 0,
+              "true_positive": 0,
+              "false_positive": 0,
+              "false_negative": 10,
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0
+            },
+            "sc_4f8188b4d1a8": {
+              "gold_count": 10,
+              "prediction_count": 0,
+              "true_positive": 0,
+              "false_positive": 0,
+              "false_negative": 10,
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0
+            },
+            "sc_07062eee17aa": {
+              "gold_count": 6,
+              "prediction_count": 0,
+              "true_positive": 0,
+              "false_positive": 0,
+              "false_negative": 6,
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0
+            },
+            "sc_f2475286312b": {
+              "gold_count": 8,
+              "prediction_count": 0,
+              "true_positive": 0,
+              "false_positive": 0,
+              "false_negative": 8,
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0
+            },
+            "sc_152f1b1aacb2": {
+              "gold_count": 7,
+              "prediction_count": 0,
+              "true_positive": 0,
+              "false_positive": 0,
+              "false_negative": 7,
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0
+            },
+            "sc_7a1773eca9fa": {
+              "gold_count": 5,
+              "prediction_count": 1,
+              "true_positive": 1,
+              "false_positive": 0,
+              "false_negative": 4,
+              "precision": 1.0,
+              "recall": 0.2,
+              "f1": 0.33333333333333337
+            },
+            "sc_70b39f530f00": {
+              "gold_count": 3,
+              "prediction_count": 3,
+              "true_positive": 1,
+              "false_positive": 2,
+              "false_negative": 2,
+              "precision": 0.3333333333333333,
+              "recall": 0.3333333333333333,
+              "f1": 0.3333333333333333
+            }
+          }
+        }
+      },
+      "bootstrap_f1_ci95": {
+        "scans": 11,
+        "best_f1": [
+          0.351,
+          0.634
+        ],
+        "runtime": [
+          0.0,
+          0.171
+        ],
+        "best_minus_runtime": [
+          0.244,
+          0.579
+        ]
+      },
+      "perfect_apex_engine_ceiling": {
+        "true_positive": 39,
+        "false_positive": 50,
+        "false_negative": 32,
+        "precision": 0.4382,
+        "recall": 0.5493,
+        "f1": 0.4875,
+        "per_scan": {
+          "sc_08686dc1d5d4": [
+            2,
+            6,
+            2
+          ],
+          "sc_cec08dfca9ab": [
+            0,
+            10,
+            6
+          ],
+          "sc_71cf0b216f43": [
+            4,
+            8,
+            4
+          ],
+          "sc_d1732de18023": [
+            2,
+            2,
+            2
+          ],
+          "sc_2714fb7e0c0b": [
+            8,
+            4,
+            2
+          ],
+          "sc_4f8188b4d1a8": [
+            8,
+            4,
+            2
+          ],
+          "sc_07062eee17aa": [
+            2,
+            4,
+            4
+          ],
+          "sc_f2475286312b": [
+            3,
+            7,
+            5
+          ],
+          "sc_152f1b1aacb2": [
+            2,
+            5,
+            5
+          ],
+          "sc_7a1773eca9fa": [
+            5,
+            0,
+            0
+          ],
+          "sc_70b39f530f00": [
+            3,
+            0,
+            0
+          ]
+        }
+      },
+      "delta_vs_human_f1_ci95": {
+        "best_f1": [
+          0.0,
+          0.105
+        ],
+        "runtime": [
+          0.0,
+          0.0
+        ]
+      }
+    }
+  },
+  "broad57": {
+    "case_list": {
+      "path": "docs/production/runlog/broad_baseline/gold11_audit/truth/case_list_broad_v3__gold11_relabel_v1.json",
+      "file_sha256": "9095eac7fc3fbb0514f2db2df98d783c69b9b26a0e8add0f810394c7c2a2f27f",
+      "case_list_sha256": "fccdacae719338fbe5bd168255f69e371530a8ffe98c67410731a888cf3f3363",
+      "cases": 60
+    },
+    "lanes": {
+      "best_f1": {
+        "ALL": {
+          "scans": 57,
+          "gold_lines": 325,
+          "predicted_lines": 212,
+          "true_positive": 123,
+          "false_positive": 89,
+          "false_negative": 202,
+          "micro_precision": 0.580189,
+          "micro_recall": 0.378462,
+          "micro_f1": 0.4581005587,
+          "macro_f1": 0.4313,
+          "exact_scans": 6,
+          "scans_with_zero_tp": 13,
+          "angle_mae_deg_matched": 0.4846,
+          "position_error_median_mm_matched": 1.1008
+        },
+        "GOLD11": {
+          "scans": 11,
+          "gold_lines": 89,
+          "predicted_lines": 60,
+          "true_positive": 38,
+          "false_positive": 22,
+          "false_negative": 51,
+          "micro_precision": 0.633333,
+          "micro_recall": 0.426966,
+          "micro_f1": 0.5100671141,
+          "macro_f1": 0.487,
+          "exact_scans": 0,
+          "scans_with_zero_tp": 0,
+          "angle_mae_deg_matched": 0.4202,
+          "position_error_median_mm_matched": 1.1649
+        },
+        "NON_GOLD11": {
+          "scans": 46,
+          "gold_lines": 236,
+          "predicted_lines": 152,
+          "true_positive": 85,
+          "false_positive": 67,
+          "false_negative": 151,
+          "micro_precision": 0.559211,
+          "micro_recall": 0.360169,
+          "micro_f1": 0.4381443299,
+          "macro_f1": 0.418,
+          "exact_scans": 6,
+          "scans_with_zero_tp": 13,
+          "angle_mae_deg_matched": 0.5133,
+          "position_error_median_mm_matched": 1.0841
+        },
+        "CAD_AVAILABLE": {
+          "scans": 36,
+          "gold_lines": 228,
+          "predicted_lines": 176,
+          "true_positive": 99,
+          "false_positive": 77,
+          "false_negative": 129,
+          "micro_precision": 0.5625,
+          "micro_recall": 0.434211,
+          "micro_f1": 0.4900990099,
+          "macro_f1": 0.4943,
+          "exact_scans": 4,
+          "scans_with_zero_tp": 5,
+          "angle_mae_deg_matched": 0.5312,
+          "position_error_median_mm_matched": 1.1491
+        },
+        "NO_CAD": {
+          "scans": 21,
+          "gold_lines": 97,
+          "predicted_lines": 36,
+          "true_positive": 24,
+          "false_positive": 12,
+          "false_negative": 73,
+          "micro_precision": 0.666667,
+          "micro_recall": 0.247423,
+          "micro_f1": 0.3609022556,
+          "macro_f1": 0.3233,
+          "exact_scans": 2,
+          "scans_with_zero_tp": 8,
+          "angle_mae_deg_matched": 0.2923,
+          "position_error_median_mm_matched": 1.0154
+        },
+        "FULL_SCANS": {
+          "scans": 44,
+          "gold_lines": 238,
+          "predicted_lines": 157,
+          "true_positive": 96,
+          "false_positive": 61,
+          "false_negative": 142,
+          "micro_precision": 0.611465,
+          "micro_recall": 0.403361,
+          "micro_f1": 0.4860759494,
+          "macro_f1": 0.4539,
+          "exact_scans": 6,
+          "scans_with_zero_tp": 11,
+          "angle_mae_deg_matched": 0.4505,
+          "position_error_median_mm_matched": 1.1095
+        },
+        "STAGED_SCANS": {
+          "scans": 13,
+          "gold_lines": 87,
+          "predicted_lines": 55,
+          "true_positive": 27,
+          "false_positive": 28,
+          "false_negative": 60,
+          "micro_precision": 0.490909,
+          "micro_recall": 0.310345,
+          "micro_f1": 0.3802816901,
+          "macro_f1": 0.355,
+          "exact_scans": 0,
+          "scans_with_zero_tp": 2,
+          "angle_mae_deg_matched": 0.6058,
+          "position_error_median_mm_matched": 1.0721
+        },
+        "AI_GOLD": {
+          "scans": 42,
+          "gold_lines": 216,
+          "predicted_lines": 143,
+          "true_positive": 80,
+          "false_positive": 63,
+          "false_negative": 136,
+          "micro_precision": 0.559441,
+          "micro_recall": 0.37037,
+          "micro_f1": 0.4456824513,
+          "macro_f1": 0.4196,
+          "exact_scans": 5,
+          "scans_with_zero_tp": 12,
+          "angle_mae_deg_matched": 0.5172,
+          "position_error_median_mm_matched": 1.0655
+        },
+        "ALL_EXCL_LIDAR_DEMO": {
+          "scans": 57,
+          "gold_lines": 325,
+          "predicted_lines": 212,
+          "true_positive": 123,
+          "false_positive": 89,
+          "false_negative": 202,
+          "micro_precision": 0.580189,
+          "micro_recall": 0.378462,
+          "micro_f1": 0.4581005587,
+          "macro_f1": 0.4313,
+          "exact_scans": 6,
+          "scans_with_zero_tp": 13,
+          "angle_mae_deg_matched": 0.4846,
+          "position_error_median_mm_matched": 1.1008
+        },
+        "NON_GOLD11_CAD_AVAILABLE_EXCL_LIDAR_DEMO": {
+          "scans": 25,
+          "gold_lines": 139,
+          "predicted_lines": 116,
+          "true_positive": 61,
+          "false_positive": 55,
+          "false_negative": 78,
+          "micro_precision": 0.525862,
+          "micro_recall": 0.438849,
+          "micro_f1": 0.4784313725,
+          "macro_f1": 0.4975,
+          "exact_scans": 4,
+          "scans_with_zero_tp": 5,
+          "angle_mae_deg_matched": 0.6003,
+          "position_error_median_mm_matched": 1.1245
+        }
+      },
+      "runtime": {
+        "ALL": {
+          "scans": 57,
+          "gold_lines": 325,
+          "predicted_lines": 64,
+          "true_positive": 25,
+          "false_positive": 39,
+          "false_negative": 300,
+          "micro_precision": 0.390625,
+          "micro_recall": 0.076923,
+          "micro_f1": 0.1285347044,
+          "macro_f1": 0.1088,
+          "exact_scans": 2,
+          "scans_with_zero_tp": 44,
+          "angle_mae_deg_matched": 0.38,
+          "position_error_median_mm_matched": 0.7617
+        },
+        "GOLD11": {
+          "scans": 11,
+          "gold_lines": 89,
+          "predicted_lines": 10,
+          "true_positive": 7,
+          "false_positive": 3,
+          "false_negative": 82,
+          "micro_precision": 0.7,
+          "micro_recall": 0.078652,
+          "micro_f1": 0.1414141414,
+          "macro_f1": 0.1398,
+          "exact_scans": 0,
+          "scans_with_zero_tp": 7,
+          "angle_mae_deg_matched": 0.4417,
+          "position_error_median_mm_matched": 0.9082
+        },
+        "NON_GOLD11": {
+          "scans": 46,
+          "gold_lines": 236,
+          "predicted_lines": 54,
+          "true_positive": 18,
+          "false_positive": 36,
+          "false_negative": 218,
+          "micro_precision": 0.333333,
+          "micro_recall": 0.076271,
+          "micro_f1": 0.124137931,
+          "macro_f1": 0.1014,
+          "exact_scans": 2,
+          "scans_with_zero_tp": 37,
+          "angle_mae_deg_matched": 0.356,
+          "position_error_median_mm_matched": 0.5525
+        },
+        "CAD_AVAILABLE": {
+          "scans": 36,
+          "gold_lines": 228,
+          "predicted_lines": 64,
+          "true_positive": 25,
+          "false_positive": 39,
+          "false_negative": 203,
+          "micro_precision": 0.390625,
+          "micro_recall": 0.109649,
+          "micro_f1": 0.1712328767,
+          "macro_f1": 0.1723,
+          "exact_scans": 2,
+          "scans_with_zero_tp": 23,
+          "angle_mae_deg_matched": 0.38,
+          "position_error_median_mm_matched": 0.7617
+        },
+        "NO_CAD": {
+          "scans": 21,
+          "gold_lines": 97,
+          "predicted_lines": 0,
+          "true_positive": 0,
+          "false_positive": 0,
+          "false_negative": 97,
+          "micro_precision": 0.0,
+          "micro_recall": 0.0,
+          "micro_f1": 0.0,
+          "macro_f1": 0.0,
+          "exact_scans": 0,
+          "scans_with_zero_tp": 21,
+          "angle_mae_deg_matched": null,
+          "position_error_median_mm_matched": null
+        },
+        "FULL_SCANS": {
+          "scans": 44,
+          "gold_lines": 238,
+          "predicted_lines": 51,
+          "true_positive": 20,
+          "false_positive": 31,
+          "false_negative": 218,
+          "micro_precision": 0.392157,
+          "micro_recall": 0.084034,
+          "micro_f1": 0.1384083045,
+          "macro_f1": 0.1203,
+          "exact_scans": 2,
+          "scans_with_zero_tp": 34,
+          "angle_mae_deg_matched": 0.4448,
+          "position_error_median_mm_matched": 0.7715
+        },
+        "STAGED_SCANS": {
+          "scans": 13,
+          "gold_lines": 87,
+          "predicted_lines": 13,
+          "true_positive": 5,
+          "false_positive": 8,
+          "false_negative": 82,
+          "micro_precision": 0.384615,
+          "micro_recall": 0.057471,
+          "micro_f1": 0.1,
+          "macro_f1": 0.0699,
+          "exact_scans": 0,
+          "scans_with_zero_tp": 10,
+          "angle_mae_deg_matched": 0.1208,
+          "position_error_median_mm_matched": 0.3244
+        },
+        "AI_GOLD": {
+          "scans": 42,
+          "gold_lines": 216,
+          "predicted_lines": 54,
+          "true_positive": 18,
+          "false_positive": 36,
+          "false_negative": 198,
+          "micro_precision": 0.333333,
+          "micro_recall": 0.083333,
+          "micro_f1": 0.1333333333,
+          "macro_f1": 0.111,
+          "exact_scans": 2,
+          "scans_with_zero_tp": 33,
+          "angle_mae_deg_matched": 0.356,
+          "position_error_median_mm_matched": 0.5525
+        },
+        "ALL_EXCL_LIDAR_DEMO": {
+          "scans": 57,
+          "gold_lines": 325,
+          "predicted_lines": 64,
+          "true_positive": 25,
+          "false_positive": 39,
+          "false_negative": 300,
+          "micro_precision": 0.390625,
+          "micro_recall": 0.076923,
+          "micro_f1": 0.1285347044,
+          "macro_f1": 0.1088,
+          "exact_scans": 2,
+          "scans_with_zero_tp": 44,
+          "angle_mae_deg_matched": 0.38,
+          "position_error_median_mm_matched": 0.7617
+        },
+        "NON_GOLD11_CAD_AVAILABLE_EXCL_LIDAR_DEMO": {
+          "scans": 25,
+          "gold_lines": 139,
+          "predicted_lines": 54,
+          "true_positive": 18,
+          "false_positive": 36,
+          "false_negative": 121,
+          "micro_precision": 0.333333,
+          "micro_recall": 0.129496,
+          "micro_f1": 0.1865284974,
+          "macro_f1": 0.1866,
+          "exact_scans": 2,
+          "scans_with_zero_tp": 16,
+          "angle_mae_deg_matched": 0.356,
+          "position_error_median_mm_matched": 0.5525
+        }
+      }
+    },
+    "published_v3": {
+      "best_f1": {
+        "ALL": {
+          "scans": 57,
+          "gold_lines": 305,
+          "predicted_lines": 212,
+          "true_positive": 115,
+          "false_positive": 97,
+          "false_negative": 190,
+          "micro_precision": 0.542453,
+          "micro_recall": 0.377049,
+          "micro_f1": 0.4448742747,
+          "macro_f1": 0.4259,
+          "exact_scans": 6,
+          "scans_with_zero_tp": 14,
+          "angle_mae_deg_matched": 0.5597,
+          "position_error_median_mm_matched": 1.0841
+        },
+        "GOLD11": {
+          "scans": 11,
+          "gold_lines": 71,
+          "predicted_lines": 60,
+          "true_positive": 30,
+          "false_positive": 30,
+          "false_negative": 41,
+          "micro_precision": 0.5,
+          "micro_recall": 0.422535,
+          "micro_f1": 0.4580152672,
+          "macro_f1": 0.4517,
+          "exact_scans": 0,
+          "scans_with_zero_tp": 1,
+          "angle_mae_deg_matched": 0.6911,
+          "position_error_median_mm_matched": 1.0406
+        },
+        "NON_GOLD11": {
+          "scans": 46,
+          "gold_lines": 234,
+          "predicted_lines": 152,
+          "true_positive": 85,
+          "false_positive": 67,
+          "false_negative": 149,
+          "micro_precision": 0.559211,
+          "micro_recall": 0.363248,
+          "micro_f1": 0.4404145078,
+          "macro_f1": 0.4198,
+          "exact_scans": 6,
+          "scans_with_zero_tp": 13,
+          "angle_mae_deg_matched": 0.5133,
+          "position_error_median_mm_matched": 1.0841
+        },
+        "CAD_AVAILABLE": {
+          "scans": 36,
+          "gold_lines": 208,
+          "predicted_lines": 176,
+          "true_positive": 91,
+          "false_positive": 85,
+          "false_negative": 117,
+          "micro_precision": 0.517045,
+          "micro_recall": 0.4375,
+          "micro_f1": 0.4739583333,
+          "macro_f1": 0.4858,
+          "exact_scans": 4,
+          "scans_with_zero_tp": 6,
+          "angle_mae_deg_matched": 0.6302,
+          "position_error_median_mm_matched": 1.1181
+        },
+        "NO_CAD": {
+          "scans": 21,
+          "gold_lines": 97,
+          "predicted_lines": 36,
+          "true_positive": 24,
+          "false_positive": 12,
+          "false_negative": 73,
+          "micro_precision": 0.666667,
+          "micro_recall": 0.247423,
+          "micro_f1": 0.3609022556,
+          "macro_f1": 0.3233,
+          "exact_scans": 2,
+          "scans_with_zero_tp": 8,
+          "angle_mae_deg_matched": 0.2923,
+          "position_error_median_mm_matched": 1.0154
+        },
+        "FULL_SCANS": {
+          "scans": 44,
+          "gold_lines": 228,
+          "predicted_lines": 157,
+          "true_positive": 93,
+          "false_positive": 64,
+          "false_negative": 135,
+          "micro_precision": 0.592357,
+          "micro_recall": 0.407895,
+          "micro_f1": 0.4831168831,
+          "macro_f1": 0.4552,
+          "exact_scans": 6,
+          "scans_with_zero_tp": 11,
+          "angle_mae_deg_matched": 0.5198,
+          "position_error_median_mm_matched": 1.059
+        },
+        "STAGED_SCANS": {
+          "scans": 13,
+          "gold_lines": 77,
+          "predicted_lines": 55,
+          "true_positive": 22,
+          "false_positive": 33,
+          "false_negative": 55,
+          "micro_precision": 0.4,
+          "micro_recall": 0.285714,
+          "micro_f1": 0.3333333333,
+          "macro_f1": 0.3269,
+          "exact_scans": 0,
+          "scans_with_zero_tp": 3,
+          "angle_mae_deg_matched": 0.7283,
+          "position_error_median_mm_matched": 1.2203
+        },
+        "AI_GOLD": {
+          "scans": 42,
+          "gold_lines": 214,
+          "predicted_lines": 143,
+          "true_positive": 80,
+          "false_positive": 63,
+          "false_negative": 134,
+          "micro_precision": 0.559441,
+          "micro_recall": 0.373832,
+          "micro_f1": 0.4481792717,
+          "macro_f1": 0.4216,
+          "exact_scans": 5,
+          "scans_with_zero_tp": 12,
+          "angle_mae_deg_matched": 0.5172,
+          "position_error_median_mm_matched": 1.0655
+        },
+        "ALL_EXCL_LIDAR_DEMO": {
+          "scans": 57,
+          "gold_lines": 305,
+          "predicted_lines": 212,
+          "true_positive": 115,
+          "false_positive": 97,
+          "false_negative": 190,
+          "micro_precision": 0.542453,
+          "micro_recall": 0.377049,
+          "micro_f1": 0.4448742747,
+          "macro_f1": 0.4259,
+          "exact_scans": 6,
+          "scans_with_zero_tp": 14,
+          "angle_mae_deg_matched": 0.5597,
+          "position_error_median_mm_matched": 1.0841
+        },
+        "NON_GOLD11_CAD_AVAILABLE_EXCL_LIDAR_DEMO": {
+          "scans": 25,
+          "gold_lines": 137,
+          "predicted_lines": 116,
+          "true_positive": 61,
+          "false_positive": 55,
+          "false_negative": 76,
+          "micro_precision": 0.525862,
+          "micro_recall": 0.445255,
+          "micro_f1": 0.4822134387,
+          "macro_f1": 0.5008,
+          "exact_scans": 4,
+          "scans_with_zero_tp": 5,
+          "angle_mae_deg_matched": 0.6003,
+          "position_error_median_mm_matched": 1.1245
+        }
+      },
+      "runtime": {
+        "ALL": {
+          "scans": 57,
+          "gold_lines": 305,
+          "predicted_lines": 64,
+          "true_positive": 21,
+          "false_positive": 43,
+          "false_negative": 284,
+          "micro_precision": 0.328125,
+          "micro_recall": 0.068852,
+          "micro_f1": 0.1138211382,
+          "macro_f1": 0.1014,
+          "exact_scans": 2,
+          "scans_with_zero_tp": 45,
+          "angle_mae_deg_matched": 0.4085,
+          "position_error_median_mm_matched": 0.5761
+        },
+        "GOLD11": {
+          "scans": 11,
+          "gold_lines": 71,
+          "predicted_lines": 10,
+          "true_positive": 3,
+          "false_positive": 7,
+          "false_negative": 68,
+          "micro_precision": 0.3,
+          "micro_recall": 0.042254,
+          "micro_f1": 0.0740740741,
+          "macro_f1": 0.097,
+          "exact_scans": 0,
+          "scans_with_zero_tp": 8,
+          "angle_mae_deg_matched": 0.7232,
+          "position_error_median_mm_matched": 1.5027
+        },
+        "NON_GOLD11": {
+          "scans": 46,
+          "gold_lines": 234,
+          "predicted_lines": 54,
+          "true_positive": 18,
+          "false_positive": 36,
+          "false_negative": 216,
+          "micro_precision": 0.333333,
+          "micro_recall": 0.076923,
+          "micro_f1": 0.125,
+          "macro_f1": 0.1025,
+          "exact_scans": 2,
+          "scans_with_zero_tp": 37,
+          "angle_mae_deg_matched": 0.356,
+          "position_error_median_mm_matched": 0.5525
+        },
+        "CAD_AVAILABLE": {
+          "scans": 36,
+          "gold_lines": 208,
+          "predicted_lines": 64,
+          "true_positive": 21,
+          "false_positive": 43,
+          "false_negative": 187,
+          "micro_precision": 0.328125,
+          "micro_recall": 0.100962,
+          "micro_f1": 0.1544117647,
+          "macro_f1": 0.1606,
+          "exact_scans": 2,
+          "scans_with_zero_tp": 24,
+          "angle_mae_deg_matched": 0.4085,
+          "position_error_median_mm_matched": 0.5761
+        },
+        "NO_CAD": {
+          "scans": 21,
+          "gold_lines": 97,
+          "predicted_lines": 0,
+          "true_positive": 0,
+          "false_positive": 0,
+          "false_negative": 97,
+          "micro_precision": 0.0,
+          "micro_recall": 0.0,
+          "micro_f1": 0.0,
+          "macro_f1": 0.0,
+          "exact_scans": 0,
+          "scans_with_zero_tp": 21,
+          "angle_mae_deg_matched": null,
+          "position_error_median_mm_matched": null
+        },
+        "FULL_SCANS": {
+          "scans": 44,
+          "gold_lines": 228,
+          "predicted_lines": 51,
+          "true_positive": 16,
+          "false_positive": 35,
+          "false_negative": 212,
+          "micro_precision": 0.313725,
+          "micro_recall": 0.070175,
+          "micro_f1": 0.1146953405,
+          "macro_f1": 0.1107,
+          "exact_scans": 2,
+          "scans_with_zero_tp": 35,
+          "angle_mae_deg_matched": 0.506,
+          "position_error_median_mm_matched": 0.6787
+        },
+        "STAGED_SCANS": {
+          "scans": 13,
+          "gold_lines": 77,
+          "predicted_lines": 13,
+          "true_positive": 5,
+          "false_positive": 8,
+          "false_negative": 72,
+          "micro_precision": 0.384615,
+          "micro_recall": 0.064935,
+          "micro_f1": 0.1111111111,
+          "macro_f1": 0.0699,
+          "exact_scans": 0,
+          "scans_with_zero_tp": 10,
+          "angle_mae_deg_matched": 0.0963,
+          "position_error_median_mm_matched": 0.3244
+        },
+        "AI_GOLD": {
+          "scans": 42,
+          "gold_lines": 214,
+          "predicted_lines": 54,
+          "true_positive": 18,
+          "false_positive": 36,
+          "false_negative": 196,
+          "micro_precision": 0.333333,
+          "micro_recall": 0.084112,
+          "micro_f1": 0.1343283582,
+          "macro_f1": 0.1122,
+          "exact_scans": 2,
+          "scans_with_zero_tp": 33,
+          "angle_mae_deg_matched": 0.356,
+          "position_error_median_mm_matched": 0.5525
+        },
+        "ALL_EXCL_LIDAR_DEMO": {
+          "scans": 57,
+          "gold_lines": 305,
+          "predicted_lines": 64,
+          "true_positive": 21,
+          "false_positive": 43,
+          "false_negative": 284,
+          "micro_precision": 0.328125,
+          "micro_recall": 0.068852,
+          "micro_f1": 0.1138211382,
+          "macro_f1": 0.1014,
+          "exact_scans": 2,
+          "scans_with_zero_tp": 45,
+          "angle_mae_deg_matched": 0.4085,
+          "position_error_median_mm_matched": 0.5761
+        },
+        "NON_GOLD11_CAD_AVAILABLE_EXCL_LIDAR_DEMO": {
+          "scans": 25,
+          "gold_lines": 137,
+          "predicted_lines": 54,
+          "true_positive": 18,
+          "false_positive": 36,
+          "false_negative": 119,
+          "micro_precision": 0.333333,
+          "micro_recall": 0.131387,
+          "micro_f1": 0.1884816754,
+          "macro_f1": 0.1886,
+          "exact_scans": 2,
+          "scans_with_zero_tp": 16,
+          "angle_mae_deg_matched": 0.356,
+          "position_error_median_mm_matched": 0.5525
+        }
+      }
+    },
+    "bootstrap_f1_ci95": {
+      "ALL": {
+        "scans": 57,
+        "best_f1": [
+          0.399,
+          0.514
+        ],
+        "runtime": [
+          0.063,
+          0.199
+        ],
+        "best_minus_runtime": [
+          0.264,
+          0.392
+        ]
+      },
+      "CAD_AVAILABLE": {
+        "scans": 36,
+        "best_f1": [
+          0.423,
+          0.553
+        ],
+        "runtime": [
+          0.09,
+          0.256
+        ],
+        "best_minus_runtime": [
+          0.237,
+          0.394
+        ]
+      },
+      "NON_GOLD11": {
+        "scans": 46,
+        "best_f1": [
+          0.367,
+          0.507
+        ],
+        "runtime": [
+          0.053,
+          0.205
+        ],
+        "best_minus_runtime": [
+          0.234,
+          0.391
+        ]
+      }
+    },
+    "delta_vs_published_f1_ci95_ALL": {
+      "best_f1": [
+        -0.034,
+        0.07
+      ],
+      "runtime": [
+        -0.009,
+        0.059
+      ]
+    },
+    "cohort_note": "cohorts are the scorer's tier-based ones; in this variant HUMAN_GOLD_ALL still counts the 11 GOLD11-tier scans although 10 of them now carry AI relabels, and AI_GOLD excludes them",
+    "substitution_only": {
+      "best_f1": {
+        "ALL": {
+          "scans": 57,
+          "gold_lines": 323,
+          "predicted_lines": 212,
+          "true_positive": 123,
+          "false_positive": 89,
+          "false_negative": 200,
+          "micro_precision": 0.580189,
+          "micro_recall": 0.380805,
+          "micro_f1": 0.4598130841,
+          "macro_f1": 0.4327,
+          "exact_scans": 6,
+          "scans_with_zero_tp": 13,
+          "angle_mae_deg_matched": 0.4846,
+          "position_error_median_mm_matched": 1.1008
+        },
+        "ALL_EXCL_LIDAR_DEMO": {
+          "scans": 57,
+          "gold_lines": 323,
+          "predicted_lines": 212,
+          "true_positive": 123,
+          "false_positive": 89,
+          "false_negative": 200,
+          "micro_precision": 0.580189,
+          "micro_recall": 0.380805,
+          "micro_f1": 0.4598130841,
+          "macro_f1": 0.4327,
+          "exact_scans": 6,
+          "scans_with_zero_tp": 13,
+          "angle_mae_deg_matched": 0.4846,
+          "position_error_median_mm_matched": 1.1008
+        },
+        "GOLD11": {
+          "scans": 11,
+          "gold_lines": 89,
+          "predicted_lines": 60,
+          "true_positive": 38,
+          "false_positive": 22,
+          "false_negative": 51,
+          "micro_precision": 0.633333,
+          "micro_recall": 0.426966,
+          "micro_f1": 0.5100671141,
+          "macro_f1": 0.487,
+          "exact_scans": 0,
+          "scans_with_zero_tp": 0,
+          "angle_mae_deg_matched": 0.4202,
+          "position_error_median_mm_matched": 1.1649
+        },
+        "NON_GOLD11": {
+          "scans": 46,
+          "gold_lines": 234,
+          "predicted_lines": 152,
+          "true_positive": 85,
+          "false_positive": 67,
+          "false_negative": 149,
+          "micro_precision": 0.559211,
+          "micro_recall": 0.363248,
+          "micro_f1": 0.4404145078,
+          "macro_f1": 0.4198,
+          "exact_scans": 6,
+          "scans_with_zero_tp": 13,
+          "angle_mae_deg_matched": 0.5133,
+          "position_error_median_mm_matched": 1.0841
+        },
+        "AI_GOLD": {
+          "scans": 42,
+          "gold_lines": 214,
+          "predicted_lines": 143,
+          "true_positive": 80,
+          "false_positive": 63,
+          "false_negative": 134,
+          "micro_precision": 0.559441,
+          "micro_recall": 0.373832,
+          "micro_f1": 0.4481792717,
+          "macro_f1": 0.4216,
+          "exact_scans": 5,
+          "scans_with_zero_tp": 12,
+          "angle_mae_deg_matched": 0.5172,
+          "position_error_median_mm_matched": 1.0655
+        },
+        "FULL_SCANS": {
+          "scans": 44,
+          "gold_lines": 236,
+          "predicted_lines": 157,
+          "true_positive": 96,
+          "false_positive": 61,
+          "false_negative": 140,
+          "micro_precision": 0.611465,
+          "micro_recall": 0.40678,
+          "micro_f1": 0.4885496183,
+          "macro_f1": 0.4557,
+          "exact_scans": 6,
+          "scans_with_zero_tp": 11,
+          "angle_mae_deg_matched": 0.4505,
+          "position_error_median_mm_matched": 1.1095
+        },
+        "STAGED_SCANS": {
+          "scans": 13,
+          "gold_lines": 87,
+          "predicted_lines": 55,
+          "true_positive": 27,
+          "false_positive": 28,
+          "false_negative": 60,
+          "micro_precision": 0.490909,
+          "micro_recall": 0.310345,
+          "micro_f1": 0.3802816901,
+          "macro_f1": 0.355,
+          "exact_scans": 0,
+          "scans_with_zero_tp": 2,
+          "angle_mae_deg_matched": 0.6058,
+          "position_error_median_mm_matched": 1.0721
+        },
+        "CAD_AVAILABLE": {
+          "scans": 36,
+          "gold_lines": 226,
+          "predicted_lines": 176,
+          "true_positive": 99,
+          "false_positive": 77,
+          "false_negative": 127,
+          "micro_precision": 0.5625,
+          "micro_recall": 0.438053,
+          "micro_f1": 0.4925373134,
+          "macro_f1": 0.4966,
+          "exact_scans": 4,
+          "scans_with_zero_tp": 5,
+          "angle_mae_deg_matched": 0.5312,
+          "position_error_median_mm_matched": 1.1491
+        },
+        "NO_CAD": {
+          "scans": 21,
+          "gold_lines": 97,
+          "predicted_lines": 36,
+          "true_positive": 24,
+          "false_positive": 12,
+          "false_negative": 73,
+          "micro_precision": 0.666667,
+          "micro_recall": 0.247423,
+          "micro_f1": 0.3609022556,
+          "macro_f1": 0.3233,
+          "exact_scans": 2,
+          "scans_with_zero_tp": 8,
+          "angle_mae_deg_matched": 0.2923,
+          "position_error_median_mm_matched": 1.0154
+        },
+        "NON_GOLD11_CAD_AVAILABLE_EXCL_LIDAR_DEMO": {
+          "scans": 25,
+          "gold_lines": 137,
+          "predicted_lines": 116,
+          "true_positive": 61,
+          "false_positive": 55,
+          "false_negative": 76,
+          "micro_precision": 0.525862,
+          "micro_recall": 0.445255,
+          "micro_f1": 0.4822134387,
+          "macro_f1": 0.5008,
+          "exact_scans": 4,
+          "scans_with_zero_tp": 5,
+          "angle_mae_deg_matched": 0.6003,
+          "position_error_median_mm_matched": 1.1245
+        }
+      },
+      "runtime": {
+        "ALL": {
+          "scans": 57,
+          "gold_lines": 323,
+          "predicted_lines": 64,
+          "true_positive": 25,
+          "false_positive": 39,
+          "false_negative": 298,
+          "micro_precision": 0.390625,
+          "micro_recall": 0.077399,
+          "micro_f1": 0.1291989664,
+          "macro_f1": 0.1097,
+          "exact_scans": 2,
+          "scans_with_zero_tp": 44,
+          "angle_mae_deg_matched": 0.38,
+          "position_error_median_mm_matched": 0.7617
+        },
+        "ALL_EXCL_LIDAR_DEMO": {
+          "scans": 57,
+          "gold_lines": 323,
+          "predicted_lines": 64,
+          "true_positive": 25,
+          "false_positive": 39,
+          "false_negative": 298,
+          "micro_precision": 0.390625,
+          "micro_recall": 0.077399,
+          "micro_f1": 0.1291989664,
+          "macro_f1": 0.1097,
+          "exact_scans": 2,
+          "scans_with_zero_tp": 44,
+          "angle_mae_deg_matched": 0.38,
+          "position_error_median_mm_matched": 0.7617
+        },
+        "GOLD11": {
+          "scans": 11,
+          "gold_lines": 89,
+          "predicted_lines": 10,
+          "true_positive": 7,
+          "false_positive": 3,
+          "false_negative": 82,
+          "micro_precision": 0.7,
+          "micro_recall": 0.078652,
+          "micro_f1": 0.1414141414,
+          "macro_f1": 0.1398,
+          "exact_scans": 0,
+          "scans_with_zero_tp": 7,
+          "angle_mae_deg_matched": 0.4417,
+          "position_error_median_mm_matched": 0.9082
+        },
+        "NON_GOLD11": {
+          "scans": 46,
+          "gold_lines": 234,
+          "predicted_lines": 54,
+          "true_positive": 18,
+          "false_positive": 36,
+          "false_negative": 216,
+          "micro_precision": 0.333333,
+          "micro_recall": 0.076923,
+          "micro_f1": 0.125,
+          "macro_f1": 0.1025,
+          "exact_scans": 2,
+          "scans_with_zero_tp": 37,
+          "angle_mae_deg_matched": 0.356,
+          "position_error_median_mm_matched": 0.5525
+        },
+        "AI_GOLD": {
+          "scans": 42,
+          "gold_lines": 214,
+          "predicted_lines": 54,
+          "true_positive": 18,
+          "false_positive": 36,
+          "false_negative": 196,
+          "micro_precision": 0.333333,
+          "micro_recall": 0.084112,
+          "micro_f1": 0.1343283582,
+          "macro_f1": 0.1122,
+          "exact_scans": 2,
+          "scans_with_zero_tp": 33,
+          "angle_mae_deg_matched": 0.356,
+          "position_error_median_mm_matched": 0.5525
+        },
+        "FULL_SCANS": {
+          "scans": 44,
+          "gold_lines": 236,
+          "predicted_lines": 51,
+          "true_positive": 20,
+          "false_positive": 31,
+          "false_negative": 216,
+          "micro_precision": 0.392157,
+          "micro_recall": 0.084746,
+          "micro_f1": 0.1393728223,
+          "macro_f1": 0.1214,
+          "exact_scans": 2,
+          "scans_with_zero_tp": 34,
+          "angle_mae_deg_matched": 0.4448,
+          "position_error_median_mm_matched": 0.7715
+        },
+        "STAGED_SCANS": {
+          "scans": 13,
+          "gold_lines": 87,
+          "predicted_lines": 13,
+          "true_positive": 5,
+          "false_positive": 8,
+          "false_negative": 82,
+          "micro_precision": 0.384615,
+          "micro_recall": 0.057471,
+          "micro_f1": 0.1,
+          "macro_f1": 0.0699,
+          "exact_scans": 0,
+          "scans_with_zero_tp": 10,
+          "angle_mae_deg_matched": 0.1208,
+          "position_error_median_mm_matched": 0.3244
+        },
+        "CAD_AVAILABLE": {
+          "scans": 36,
+          "gold_lines": 226,
+          "predicted_lines": 64,
+          "true_positive": 25,
+          "false_positive": 39,
+          "false_negative": 201,
+          "micro_precision": 0.390625,
+          "micro_recall": 0.110619,
+          "micro_f1": 0.1724137931,
+          "macro_f1": 0.1736,
+          "exact_scans": 2,
+          "scans_with_zero_tp": 23,
+          "angle_mae_deg_matched": 0.38,
+          "position_error_median_mm_matched": 0.7617
+        },
+        "NO_CAD": {
+          "scans": 21,
+          "gold_lines": 97,
+          "predicted_lines": 0,
+          "true_positive": 0,
+          "false_positive": 0,
+          "false_negative": 97,
+          "micro_precision": 0.0,
+          "micro_recall": 0.0,
+          "micro_f1": 0.0,
+          "macro_f1": 0.0,
+          "exact_scans": 0,
+          "scans_with_zero_tp": 21,
+          "angle_mae_deg_matched": null,
+          "position_error_median_mm_matched": null
+        },
+        "NON_GOLD11_CAD_AVAILABLE_EXCL_LIDAR_DEMO": {
+          "scans": 25,
+          "gold_lines": 137,
+          "predicted_lines": 54,
+          "true_positive": 18,
+          "false_positive": 36,
+          "false_negative": 119,
+          "micro_precision": 0.333333,
+          "micro_recall": 0.131387,
+          "micro_f1": 0.1884816754,
+          "macro_f1": 0.1886,
+          "exact_scans": 2,
+          "scans_with_zero_tp": 16,
+          "angle_mae_deg_matched": 0.356,
+          "position_error_median_mm_matched": 0.5525
+        }
+      }
+    },
+    "substitution_only_bootstrap_f1_ci95": {
+      "ALL": {
+        "scans": 57,
+        "best_f1": [
+          0.4,
+          0.516
+        ],
+        "runtime": [
+          0.064,
+          0.2
+        ],
+        "best_minus_runtime": [
+          0.265,
+          0.393
+        ]
+      },
+      "CAD_AVAILABLE": {
+        "scans": 36,
+        "best_f1": [
+          0.424,
+          0.556
+        ],
+        "runtime": [
+          0.09,
+          0.258
+        ],
+        "best_minus_runtime": [
+          0.238,
+          0.396
+        ]
+      }
+    },
+    "substitution_only_delta_vs_published_f1_ci95_ALL": {
+      "best_f1": [
+        -0.032,
+        0.071
+      ],
+      "runtime": [
+        -0.008,
+        0.06
+      ]
+    },
+    "non_gold11_rows_changed_since_v3": {
+      "best_f1": [
+        "sc_2233372b8df7"
+      ],
+      "runtime": [
+        "sc_2233372b8df7"
+      ]
+    },
+    "note": "'lanes' = score.py run on case_list_broad_v3__gold11_relabel_v1 with the label files as they are on disk now; 'substitution_only' = the same Gold11 rows combined with the published v3 rows for every other scan, i.e. the effect of the Gold11 substitution alone. The two differ only by sc_2233372b8df7 (AI gold revision 2 added two 15 deg joggle bends after v3 was frozen: +2 FN in each lane)."
+  },
+  "checks": {
+    "human_gold11_reproduces_published_best_f1": true,
+    "substitution_only_non_gold11_equals_published_best_f1": true,
+    "only_sc_2233372b8df7_changed_outside_gold11_best_f1": true,
+    "broad57_gold11_equals_gold11_relabel_v1_best_f1": true,
+    "excluded_before_scoring_best_f1": {
+      "human": [],
+      "relabel_v1": [],
+      "all11_ai_relabel": [],
+      "human_snapped_apex": [],
+      "human_snapped_apex_conv": [],
+      "broad57_gold11_relabel_v1": []
+    },
+    "human_gold11_reproduces_published_runtime": true,
+    "substitution_only_non_gold11_equals_published_runtime": true,
+    "only_sc_2233372b8df7_changed_outside_gold11_runtime": true,
+    "broad57_gold11_equals_gold11_relabel_v1_runtime": true,
+    "excluded_before_scoring_runtime": {
+      "human": [],
+      "relabel_v1": [],
+      "all11_ai_relabel": [],
+      "human_snapped_apex": [],
+      "human_snapped_apex_conv": [],
+      "broad57_gold11_relabel_v1": []
+    }
+  }
+}

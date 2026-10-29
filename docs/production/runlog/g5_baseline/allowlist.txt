@@ -1,0 +1,11 @@
+# G5 manifest allowlist (plan §10 amendment 11): globs of backend/**, domains/bend/** or scripts/**
+# paths a chunk is explicitly licensed to add/modify/remove. One glob per line; '#' comments.
+# Matching is segment-aware: '*', '?' and '[...]' never cross '/'; '**' spans any number of
+# directories (including none); a trailing '/' allows the whole subtree ("backend/foo/").
+#   scripts/*.py         -> scripts/x.py only (NOT scripts/sub/x.py)
+#   scripts/**/*.py      -> any .py at any depth under scripts/
+# scripts/production/** is excluded from the manifest and needs no entry.
+# This file is loaded by default by scripts/production/g5_check.py (--no-default-allowlist to skip);
+# more globs can be added with --allow GLOB or --allowlist-file FILE.
+# C11 (integration, 2026-10-17): the local production-line check runner (plan §4 C11 owned file).
+scripts/run_production_line_checks.sh

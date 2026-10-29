@@ -1,0 +1,12 @@
+{
+ "purpose": "zs_lane_v4 dev protocol hashed BEFORE any v4 variant is scored (owner goal 2026-10-29: v4 should beat v1)",
+ "protocol": {"path": "docs/production/runlog/zs_v4/PROTOCOL.md", "sha256": "2f8206d502c1007219bf3b1d364daa4515c8d075af8013c5079db5e48515d5b1"},
+ "pool": {"path": "docs/production/runlog/zs_v4/POOL.json", "sha256": "b64c7872bd008423beacb940a6f681f8bb96a4363817dfb8bdf1e17bbece62ea", "scans": 217, "line_scans": 207, "controls": 10, "families5": 152, "gold_lines": 1148},
+ "main_metric": "leave-family-out (10 grouped folds by part_id[:5], sha256-ordered) cross-validated micro and family-macro F1 over the whole pool; all fitting and option selection nested (5 inner folds); selection-aware Bonferroni CI over the M variants in results/DESIGN_LOG.jsonl",
+ "arms": "A0 v1 pinned (stored), A1 v1 retrained (same folds), A2 v3 pinned (stored, reference), A3 v3 retrained (reference), V4",
+ "gates": "G1 LOFO micro and macro > A0 and > A1; G2 paired CIs reported; G3 no family worse than A0 by > 1 line/scan unless justified; G4 0 false lines on the 10 controls; G5 FE1 families separately; G6 hem recall; G7 P95 <= 1.5x v3; G8 determinism",
+ "matcher": "frozen 5 deg / 4 mm / 0.6 / 0.6 (score.py 2bacc1b7, score_broad.py 210d9885, bb_common.py aca4f685, evaluate_f1 1e942055, zs_lane_v1/scoring.py 778d7e83); family bootstrap n 10000 seed 20261018",
+ "state_at_hashing": "only the pinned stored outputs were scored on the pool (results/PINNED_POOL.json) and the cache reproduction was checked on 1 scan; no v4 variant scored yet",
+ "status": "all v4 numbers are internal CV estimates on consumed data; never held-out; production stays zs_lane_v1",
+ "refers_to": [47, 48]
+}

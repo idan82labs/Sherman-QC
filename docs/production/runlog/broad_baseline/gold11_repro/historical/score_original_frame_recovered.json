@@ -1,0 +1,673 @@
+{
+  "schema": "sherman.broad_baseline.score_report.v1",
+  "title": "Gold11 historical UNION reproduction (retained bytes)",
+  "created_at": "2026-10-17T09:21:37Z",
+  "prediction_source": "original",
+  "frame_mode": "recovered",
+  "frame_records": "docs/production/runlog/broad_baseline/gold11_frame_recovery.json",
+  "catalog": {
+    "path": "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/annotations/bend_line_gold_catalog_v1.json",
+    "sha256": "4ad243c1f8d7332749c854f32729607f156cd2e0f47454acd4b0ff61f1793b36",
+    "expected": "4ad243c1f8d7332749c854f32729607f156cd2e0f47454acd4b0ff61f1793b36"
+  },
+  "variants": {
+    "scan_only_a0": {
+      "lane_status_counts": {
+        "OK": 11
+      },
+      "complete_labels": {
+        "case_count": 11,
+        "true_positive": 19,
+        "false_positive": 14,
+        "false_negative": 52,
+        "gold_bend_count": 71,
+        "prediction_count": 33,
+        "precision": 0.5757575757575758,
+        "recall": 0.2676056338028169,
+        "f1": 0.36538461538461536,
+        "precision_6": 0.575758,
+        "recall_6": 0.267606,
+        "f1_6": 0.365385,
+        "exact_part_count": 0,
+        "exact_part_rate": 0.0,
+        "lane_failures": [],
+        "family_recall": {
+          "10839000": 0.1111111111111111,
+          "37361005": 0.25,
+          "38172000": 0.3235294117647059,
+          "40500000": 0.42857142857142855,
+          "49001000": 0.2,
+          "49024000": 0.3333333333333333
+        },
+        "minimum_family_recall": 0.1111111111111111
+      },
+      "partial_labels_recall_only": {
+        "case_count": 0,
+        "true_positive": 0,
+        "gold_bend_count": 0,
+        "false_negative": 0,
+        "recall": 0.0,
+        "unscored_unmatched_predictions": 0,
+        "note": "label_complete=false: recall/position only, no precision/F1"
+      },
+      "recall_all_scored_cases": {
+        "true_positive": 19,
+        "gold_bend_count": 71,
+        "recall": 0.2676056338028169,
+        "note": "complete + partial label cases, recall only"
+      },
+      "zero_bend_controls": {
+        "case_count": 0,
+        "false_positive_lines": 0,
+        "cases_with_false_positive": [],
+        "note": "zero-bend controls: every predicted line is a false positive; not in line-F1"
+      },
+      "position_of_matches": {
+        "matched_pairs": 19,
+        "axis_angle_deg": {
+          "median": 0.4531,
+          "p90": 1.5239,
+          "max": 1.8743
+        },
+        "transverse_offset_mm": {
+          "median": 1.1607,
+          "p90": 2.9666,
+          "max": 3.5087
+        },
+        "gold_span_overlap": {
+          "median": 0.9936,
+          "p90": 1.0,
+          "max": 1.0
+        },
+        "prediction_span_overlap": {
+          "median": 0.9944,
+          "p90": 1.0,
+          "max": 1.0
+        }
+      },
+      "excluded_before_scoring": [],
+      "historical_expected": {
+        "lines": 33,
+        "tp": 19,
+        "fp": 14,
+        "fn": 52,
+        "f1": 0.36538461538461536
+      },
+      "matches_historical": true
+    },
+    "cad_only_gated": {
+      "lane_status_counts": {
+        "OK": 11
+      },
+      "complete_labels": {
+        "case_count": 11,
+        "true_positive": 20,
+        "false_positive": 24,
+        "false_negative": 51,
+        "gold_bend_count": 71,
+        "prediction_count": 44,
+        "precision": 0.45454545454545453,
+        "recall": 0.28169014084507044,
+        "f1": 0.34782608695652173,
+        "precision_6": 0.454545,
+        "recall_6": 0.28169,
+        "f1_6": 0.347826,
+        "exact_part_count": 0,
+        "exact_part_rate": 0.0,
+        "lane_failures": [],
+        "family_recall": {
+          "10839000": 0.2222222222222222,
+          "37361005": 0.5,
+          "38172000": 0.38235294117647056,
+          "40500000": 0.0,
+          "49001000": 0.0,
+          "49024000": 0.3333333333333333
+        },
+        "minimum_family_recall": 0.0
+      },
+      "partial_labels_recall_only": {
+        "case_count": 0,
+        "true_positive": 0,
+        "gold_bend_count": 0,
+        "false_negative": 0,
+        "recall": 0.0,
+        "unscored_unmatched_predictions": 0,
+        "note": "label_complete=false: recall/position only, no precision/F1"
+      },
+      "recall_all_scored_cases": {
+        "true_positive": 20,
+        "gold_bend_count": 71,
+        "recall": 0.28169014084507044,
+        "note": "complete + partial label cases, recall only"
+      },
+      "zero_bend_controls": {
+        "case_count": 0,
+        "false_positive_lines": 0,
+        "cases_with_false_positive": [],
+        "note": "zero-bend controls: every predicted line is a false positive; not in line-F1"
+      },
+      "position_of_matches": {
+        "matched_pairs": 20,
+        "axis_angle_deg": {
+          "median": 0.264,
+          "p90": 1.2414,
+          "max": 3.9377
+        },
+        "transverse_offset_mm": {
+          "median": 0.7253,
+          "p90": 2.6508,
+          "max": 3.9087
+        },
+        "gold_span_overlap": {
+          "median": 1.0,
+          "p90": 1.0,
+          "max": 1.0
+        },
+        "prediction_span_overlap": {
+          "median": 0.9168,
+          "p90": 0.9815,
+          "max": 0.9858
+        }
+      },
+      "excluded_before_scoring": [],
+      "historical_expected": {
+        "lines": 44,
+        "tp": 20,
+        "fp": 24,
+        "fn": 51,
+        "f1": 0.34782608695652173
+      },
+      "matches_historical": true
+    },
+    "intersection": {
+      "lane_status_counts": {
+        "NO_PREDICTIONS": 2,
+        "OK": 9
+      },
+      "complete_labels": {
+        "case_count": 11,
+        "true_positive": 10,
+        "false_positive": 7,
+        "false_negative": 61,
+        "gold_bend_count": 71,
+        "prediction_count": 17,
+        "precision": 0.5882352941176471,
+        "recall": 0.14084507042253522,
+        "f1": 0.22727272727272727,
+        "precision_6": 0.588235,
+        "recall_6": 0.140845,
+        "f1_6": 0.227273,
+        "exact_part_count": 0,
+        "exact_part_rate": 0.0,
+        "lane_failures": [],
+        "family_recall": {
+          "10839000": 0.1111111111111111,
+          "37361005": 0.25,
+          "38172000": 0.17647058823529413,
+          "40500000": 0.0,
+          "49001000": 0.0,
+          "49024000": 0.3333333333333333
+        },
+        "minimum_family_recall": 0.0
+      },
+      "partial_labels_recall_only": {
+        "case_count": 0,
+        "true_positive": 0,
+        "gold_bend_count": 0,
+        "false_negative": 0,
+        "recall": 0.0,
+        "unscored_unmatched_predictions": 0,
+        "note": "label_complete=false: recall/position only, no precision/F1"
+      },
+      "recall_all_scored_cases": {
+        "true_positive": 10,
+        "gold_bend_count": 71,
+        "recall": 0.14084507042253522,
+        "note": "complete + partial label cases, recall only"
+      },
+      "zero_bend_controls": {
+        "case_count": 0,
+        "false_positive_lines": 0,
+        "cases_with_false_positive": [],
+        "note": "zero-bend controls: every predicted line is a false positive; not in line-F1"
+      },
+      "position_of_matches": {
+        "matched_pairs": 10,
+        "axis_angle_deg": {
+          "median": 0.4182,
+          "p90": 1.3156,
+          "max": 1.8743
+        },
+        "transverse_offset_mm": {
+          "median": 0.9277,
+          "p90": 1.8631,
+          "max": 2.8706
+        },
+        "gold_span_overlap": {
+          "median": 0.9857,
+          "p90": 1.0,
+          "max": 1.0
+        },
+        "prediction_span_overlap": {
+          "median": 0.9947,
+          "p90": 1.0,
+          "max": 1.0
+        }
+      },
+      "excluded_before_scoring": [],
+      "historical_expected": {
+        "lines": 17,
+        "tp": 10,
+        "fp": 7,
+        "fn": 61,
+        "f1": 0.22727272727272727
+      },
+      "matches_historical": true
+    },
+    "union": {
+      "lane_status_counts": {
+        "OK": 11
+      },
+      "complete_labels": {
+        "case_count": 11,
+        "true_positive": 30,
+        "false_positive": 30,
+        "false_negative": 41,
+        "gold_bend_count": 71,
+        "prediction_count": 60,
+        "precision": 0.5,
+        "recall": 0.4225352112676056,
+        "f1": 0.4580152671755725,
+        "precision_6": 0.5,
+        "recall_6": 0.422535,
+        "f1_6": 0.458015,
+        "exact_part_count": 0,
+        "exact_part_rate": 0.0,
+        "lane_failures": [],
+        "family_recall": {
+          "10839000": 0.2222222222222222,
+          "37361005": 0.5,
+          "38172000": 0.5294117647058824,
+          "40500000": 0.42857142857142855,
+          "49001000": 0.2,
+          "49024000": 0.6666666666666666
+        },
+        "minimum_family_recall": 0.2
+      },
+      "partial_labels_recall_only": {
+        "case_count": 0,
+        "true_positive": 0,
+        "gold_bend_count": 0,
+        "false_negative": 0,
+        "recall": 0.0,
+        "unscored_unmatched_predictions": 0,
+        "note": "label_complete=false: recall/position only, no precision/F1"
+      },
+      "recall_all_scored_cases": {
+        "true_positive": 30,
+        "gold_bend_count": 71,
+        "recall": 0.4225352112676056,
+        "note": "complete + partial label cases, recall only"
+      },
+      "zero_bend_controls": {
+        "case_count": 0,
+        "false_positive_lines": 0,
+        "cases_with_false_positive": [],
+        "note": "zero-bend controls: every predicted line is a false positive; not in line-F1"
+      },
+      "position_of_matches": {
+        "matched_pairs": 30,
+        "axis_angle_deg": {
+          "median": 0.419,
+          "p90": 1.4686,
+          "max": 3.9377
+        },
+        "transverse_offset_mm": {
+          "median": 0.9799,
+          "p90": 2.8706,
+          "max": 3.9087
+        },
+        "gold_span_overlap": {
+          "median": 1.0,
+          "p90": 1.0,
+          "max": 1.0
+        },
+        "prediction_span_overlap": {
+          "median": 0.9799,
+          "p90": 1.0,
+          "max": 1.0
+        }
+      },
+      "excluded_before_scoring": [],
+      "historical_expected": {
+        "lines": 60,
+        "tp": 30,
+        "fp": 30,
+        "fn": 41,
+        "f1": 0.4580152671755725
+      },
+      "matches_historical": true
+    }
+  },
+  "cases": [
+    {
+      "case_id": "CG08506AE97D",
+      "a0": "/Users/idantal/ShermanQC/FullProject/output/research/f1-gold27-20260803/structured_union_exact_v1/cases/C003/prediction_owned_regions.json",
+      "cad": "/Users/idantal/ShermanQC/FullProject/output/research/f1-cad-guided-gold13-e2e-20260822/predictions_scan_frame_gated/CG08506AE97D/semantic_result.json",
+      "scan_only_a0": {
+        "prediction_count": 1,
+        "true_positive": 0,
+        "false_positive": 1,
+        "false_negative": 6
+      },
+      "cad_only_gated": {
+        "prediction_count": 4,
+        "true_positive": 0,
+        "false_positive": 4,
+        "false_negative": 6
+      },
+      "intersection": {
+        "prediction_count": 1,
+        "true_positive": 0,
+        "false_positive": 1,
+        "false_negative": 6
+      },
+      "union": {
+        "prediction_count": 4,
+        "true_positive": 0,
+        "false_positive": 4,
+        "false_negative": 6
+      }
+    },
+    {
+      "case_id": "CG191DEC7F81",
+      "a0": "/Users/idantal/ShermanQC/FullProject/output/research/f1-gold27-20260803/structured_union_exact_v1/cases/C021/prediction_owned_regions.json",
+      "cad": "/Users/idantal/ShermanQC/FullProject/output/research/f1-cad-guided-gold13-e2e-20260822/predictions_scan_frame_gated/CG191DEC7F81/semantic_result.json",
+      "scan_only_a0": {
+        "prediction_count": 3,
+        "true_positive": 1,
+        "false_positive": 2,
+        "false_negative": 4
+      },
+      "cad_only_gated": {
+        "prediction_count": 1,
+        "true_positive": 0,
+        "false_positive": 1,
+        "false_negative": 5
+      },
+      "intersection": {
+        "prediction_count": 1,
+        "true_positive": 0,
+        "false_positive": 1,
+        "false_negative": 5
+      },
+      "union": {
+        "prediction_count": 3,
+        "true_positive": 1,
+        "false_positive": 2,
+        "false_negative": 4
+      }
+    },
+    {
+      "case_id": "CG1E0BBA2933",
+      "a0": "/Users/idantal/ShermanQC/FullProject/output/research/f1-gold27-20260803/structured_union_exact_v1/cases/C011/prediction_owned_regions.json",
+      "cad": "/Users/idantal/ShermanQC/FullProject/output/research/f1-cad-guided-gold13-e2e-20260822/predictions_scan_frame_gated/CG1E0BBA2933/semantic_result.json",
+      "scan_only_a0": {
+        "prediction_count": 5,
+        "true_positive": 5,
+        "false_positive": 0,
+        "false_negative": 5
+      },
+      "cad_only_gated": {
+        "prediction_count": 9,
+        "true_positive": 6,
+        "false_positive": 3,
+        "false_negative": 4
+      },
+      "intersection": {
+        "prediction_count": 3,
+        "true_positive": 3,
+        "false_positive": 0,
+        "false_negative": 7
+      },
+      "union": {
+        "prediction_count": 11,
+        "true_positive": 8,
+        "false_positive": 3,
+        "false_negative": 2
+      }
+    },
+    {
+      "case_id": "CG4BDD1371B6",
+      "a0": "/Users/idantal/ShermanQC/FullProject/output/research/f1-gold27-20260803/structured_union_exact_v1/cases/C008/prediction_owned_regions.json",
+      "cad": "/Users/idantal/ShermanQC/FullProject/output/research/f1-cad-guided-gold13-e2e-20260822/predictions_scan_frame_gated/CG4BDD1371B6/semantic_result.json",
+      "scan_only_a0": {
+        "prediction_count": 2,
+        "true_positive": 1,
+        "false_positive": 1,
+        "false_negative": 3
+      },
+      "cad_only_gated": {
+        "prediction_count": 3,
+        "true_positive": 2,
+        "false_positive": 1,
+        "false_negative": 2
+      },
+      "intersection": {
+        "prediction_count": 2,
+        "true_positive": 1,
+        "false_positive": 1,
+        "false_negative": 3
+      },
+      "union": {
+        "prediction_count": 3,
+        "true_positive": 2,
+        "false_positive": 1,
+        "false_negative": 2
+      }
+    },
+    {
+      "case_id": "CG4FAF273093",
+      "a0": "/Users/idantal/ShermanQC/FullProject/output/research/f1-gold27-20260803/structured_union_exact_v1/cases/C022/prediction_owned_regions.json",
+      "cad": "/Users/idantal/ShermanQC/FullProject/output/research/f1-cad-guided-gold13-e2e-20260822/predictions_scan_frame_gated/CG4FAF273093/semantic_result.json",
+      "scan_only_a0": {
+        "prediction_count": 1,
+        "true_positive": 1,
+        "false_positive": 0,
+        "false_negative": 2
+      },
+      "cad_only_gated": {
+        "prediction_count": 3,
+        "true_positive": 1,
+        "false_positive": 2,
+        "false_negative": 2
+      },
+      "intersection": {
+        "prediction_count": 1,
+        "true_positive": 1,
+        "false_positive": 0,
+        "false_negative": 2
+      },
+      "union": {
+        "prediction_count": 3,
+        "true_positive": 2,
+        "false_positive": 1,
+        "false_negative": 1
+      }
+    },
+    {
+      "case_id": "CG64C412CC73",
+      "a0": "/Users/idantal/ShermanQC/FullProject/output/research/f1-gold27-20260803/structured_union_exact_v1/cases/C015/prediction_owned_regions.json",
+      "cad": "/Users/idantal/ShermanQC/FullProject/output/research/f1-cad-guided-gold13-e2e-20260822/predictions_scan_frame_gated/CG64C412CC73/semantic_result.json",
+      "scan_only_a0": {
+        "prediction_count": 5,
+        "true_positive": 3,
+        "false_positive": 2,
+        "false_negative": 4
+      },
+      "cad_only_gated": {
+        "prediction_count": 1,
+        "true_positive": 0,
+        "false_positive": 1,
+        "false_negative": 7
+      },
+      "intersection": {
+        "prediction_count": 0,
+        "true_positive": 0,
+        "false_positive": 0,
+        "false_negative": 7
+      },
+      "union": {
+        "prediction_count": 6,
+        "true_positive": 3,
+        "false_positive": 3,
+        "false_negative": 4
+      }
+    },
+    {
+      "case_id": "CG65CD575B1C",
+      "a0": "/Users/idantal/ShermanQC/FullProject/output/research/f1-gold27-20260803/structured_union_exact_v1/cases/C009/prediction_owned_regions.json",
+      "cad": "/Users/idantal/ShermanQC/FullProject/output/research/f1-cad-guided-gold13-e2e-20260822/predictions_scan_frame_gated/CG65CD575B1C/semantic_result.json",
+      "scan_only_a0": {
+        "prediction_count": 1,
+        "true_positive": 1,
+        "false_positive": 0,
+        "false_negative": 5
+      },
+      "cad_only_gated": {
+        "prediction_count": 2,
+        "true_positive": 2,
+        "false_positive": 0,
+        "false_negative": 4
+      },
+      "intersection": {
+        "prediction_count": 1,
+        "true_positive": 1,
+        "false_positive": 0,
+        "false_negative": 5
+      },
+      "union": {
+        "prediction_count": 2,
+        "true_positive": 2,
+        "false_positive": 0,
+        "false_negative": 4
+      }
+    },
+    {
+      "case_id": "CG84C8FA12D2",
+      "a0": "/Users/idantal/ShermanQC/FullProject/output/research/f1-gold27-20260803/structured_union_exact_v1/cases/C001/prediction_owned_regions.json",
+      "cad": "/Users/idantal/ShermanQC/FullProject/output/research/f1-cad-guided-gold13-e2e-20260822/predictions_scan_frame_gated/CG84C8FA12D2/semantic_result.json",
+      "scan_only_a0": {
+        "prediction_count": 5,
+        "true_positive": 1,
+        "false_positive": 4,
+        "false_negative": 7
+      },
+      "cad_only_gated": {
+        "prediction_count": 11,
+        "true_positive": 2,
+        "false_positive": 9,
+        "false_negative": 6
+      },
+      "intersection": {
+        "prediction_count": 5,
+        "true_positive": 1,
+        "false_positive": 4,
+        "false_negative": 7
+      },
+      "union": {
+        "prediction_count": 11,
+        "true_positive": 2,
+        "false_positive": 9,
+        "false_negative": 6
+      }
+    },
+    {
+      "case_id": "CGE4B0549E41",
+      "a0": "/Users/idantal/ShermanQC/FullProject/output/research/f1-gold27-20260803/structured_union_exact_v1/cases/C002/prediction_owned_regions.json",
+      "cad": "/Users/idantal/ShermanQC/FullProject/output/research/f1-cad-guided-gold13-e2e-20260822/predictions_scan_frame_gated/CGE4B0549E41/semantic_result.json",
+      "scan_only_a0": {
+        "prediction_count": 1,
+        "true_positive": 1,
+        "false_positive": 0,
+        "false_negative": 3
+      },
+      "cad_only_gated": {
+        "prediction_count": 2,
+        "true_positive": 2,
+        "false_positive": 0,
+        "false_negative": 2
+      },
+      "intersection": {
+        "prediction_count": 1,
+        "true_positive": 1,
+        "false_positive": 0,
+        "false_negative": 3
+      },
+      "union": {
+        "prediction_count": 2,
+        "true_positive": 2,
+        "false_positive": 0,
+        "false_negative": 2
+      }
+    },
+    {
+      "case_id": "CGEBA9A869AC",
+      "a0": "/Users/idantal/ShermanQC/FullProject/output/research/f1-gold27-20260803/structured_union_exact_v1/cases/C010/prediction_owned_regions.json",
+      "cad": "/Users/idantal/ShermanQC/FullProject/output/research/f1-cad-guided-gold13-e2e-20260822/predictions_scan_frame_gated/CGEBA9A869AC/semantic_result.json",
+      "scan_only_a0": {
+        "prediction_count": 5,
+        "true_positive": 1,
+        "false_positive": 4,
+        "false_negative": 7
+      },
+      "cad_only_gated": {
+        "prediction_count": 1,
+        "true_positive": 0,
+        "false_positive": 1,
+        "false_negative": 8
+      },
+      "intersection": {
+        "prediction_count": 0,
+        "true_positive": 0,
+        "false_positive": 0,
+        "false_negative": 8
+      },
+      "union": {
+        "prediction_count": 6,
+        "true_positive": 1,
+        "false_positive": 5,
+        "false_negative": 7
+      }
+    },
+    {
+      "case_id": "CGF41F49066A",
+      "a0": "/Users/idantal/ShermanQC/FullProject/output/research/f1-gold27-20260803/structured_union_exact_v1/cases/C012/prediction_owned_regions.json",
+      "cad": "/Users/idantal/ShermanQC/FullProject/output/research/f1-cad-guided-gold13-e2e-20260822/predictions_scan_frame_gated/CGF41F49066A/semantic_result.json",
+      "scan_only_a0": {
+        "prediction_count": 4,
+        "true_positive": 4,
+        "false_positive": 0,
+        "false_negative": 6
+      },
+      "cad_only_gated": {
+        "prediction_count": 7,
+        "true_positive": 5,
+        "false_positive": 2,
+        "false_negative": 5
+      },
+      "intersection": {
+        "prediction_count": 2,
+        "true_positive": 2,
+        "false_positive": 0,
+        "false_negative": 8
+      },
+      "union": {
+        "prediction_count": 9,
+        "true_positive": 7,
+        "false_positive": 2,
+        "false_negative": 3
+      }
+    }
+  ]
+}

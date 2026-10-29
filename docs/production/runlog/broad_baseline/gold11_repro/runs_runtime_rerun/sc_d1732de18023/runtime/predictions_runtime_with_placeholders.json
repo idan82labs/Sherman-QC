@@ -1,0 +1,155 @@
+{
+  "schema": "sherman.broad_baseline.eval_lines.v1",
+  "lane": "runtime_with_placeholders",
+  "status": "OK",
+  "frame": "scan_raw",
+  "frame_definition": "coordinates of the scan file exactly as stored (source_ply_raw == scan_raw)",
+  "units": "scan file units (mm for every Sherman scan inspected so far; not re-estimated)",
+  "scan": {
+    "path": "/Users/idantal/ShermanQC/source-assets/02_CAD_QC_3D/37361005_01.ply",
+    "sha256": "d1732de180230bdbf0caa6eaf454a33071c206060aea276dce67a9abcf13b038"
+  },
+  "source": {
+    "kind": "bend_analysis_worker_report",
+    "path": "/private/tmp/claude-501/-Users-idantal/db065cf7-f766-4885-b217-ed8d7edd7ade/scratchpad/gold11_repro_work_rerun/sc_d1732de18023/runtime/runtime/bend_inspection_report.json",
+    "sha256": "f85b76b8b90a9277429a1cbf51fcf0fe926b4163fc8e64763357f6eedafba6fd"
+  },
+  "conversion": {
+    "rule": "detected_line_* of matches; inv(raw_scan_to_reference_transform) to scan_raw",
+    "frame_in": "reference_mesh_raw (shared worker alignment)",
+    "frame_out": "scan_raw",
+    "transform": {
+      "available": true,
+      "raw_scan_to_reference_transform": [
+        [
+          0.6683589219816557,
+          -0.5611836004128695,
+          -0.4882308040621556,
+          196.63704914905415
+        ],
+        [
+          0.4080894693755756,
+          -0.27212843314082574,
+          0.8714408189091695,
+          -187.83253549368396
+        ],
+        [
+          -0.6218997800227046,
+          -0.7816770960594766,
+          0.04713365150020311,
+          -275.4418681522753
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "geometry_frame": "reference_mesh_raw",
+      "fitness": 0.9629683228814923,
+      "rmse_mm": 0.9858864037854538,
+      "scale": 1.0000000000000036,
+      "rotation_deg": 106.1598391277864,
+      "translation_mm": 387.0599607544663,
+      "orthogonality_error": 2.393416678467081e-15
+    },
+    "include_placeholders": true,
+    "gate_applied": false,
+    "raw_scan_support_audit": [
+      {
+        "bend_id": "CAD_B1",
+        "raw_scan_support_pass": true,
+        "support_fraction": 0.8308457711442786,
+        "supported_span_mm": 264.7708889509989,
+        "median_distance_mm": 0.4738690824328232,
+        "source_span_mm": 319.0010710252999
+      },
+      {
+        "bend_id": "CAD_B2",
+        "raw_scan_support_pass": true,
+        "support_fraction": 0.8308457711442786,
+        "supported_span_mm": 264.15174389439005,
+        "median_distance_mm": 0.32337011599592314,
+        "source_span_mm": 318.2551131257712
+      },
+      {
+        "bend_id": "CAD_B3",
+        "raw_scan_support_pass": true,
+        "support_fraction": 0.9104477611940298,
+        "supported_span_mm": 208.70849974123476,
+        "median_distance_mm": 0.40216689075593476,
+        "source_span_mm": 229.34999971564258
+      }
+    ]
+  },
+  "line_count": 3,
+  "owned_bend_regions": [
+    {
+      "bend_id": "CAD_B1",
+      "line_start": [
+        -195.72547225026182,
+        26.471678777374905,
+        316.4012882960942
+      ],
+      "line_end": [
+        -394.16151927261285,
+        -222.85126286323694,
+        331.3307668236173
+      ],
+      "origin": "active_runtime_worker",
+      "status": "WARNING",
+      "assignment_source": "CAD_LOCAL_NEIGHBORHOOD",
+      "detected_line_geometry_source": "CAD_REFERENCE_PLACEHOLDER",
+      "measurement_method": "surface_classification",
+      "observability_state": "FORMED",
+      "measured_angle": 91.13,
+      "target_angle": 90.04786166020587
+    },
+    {
+      "bend_id": "CAD_B2",
+      "line_start": [
+        -57.308668438627905,
+        -88.97370776963142,
+        216.40393965444082
+      ],
+      "line_end": [
+        -255.22265640798904,
+        -337.75628673145616,
+        231.35716010571517
+      ],
+      "origin": "active_runtime_worker",
+      "status": "WARNING",
+      "assignment_source": "GLOBAL_DETECTION",
+      "detected_line_geometry_source": "SCAN_FIT",
+      "measurement_method": "detected_bend_match",
+      "observability_state": "FORMED",
+      "measured_angle": 90.67699591378022,
+      "target_angle": 90.50994197863244
+    },
+    {
+      "bend_id": "CAD_B3",
+      "line_start": [
+        -392.1367279227221,
+        -204.66510726950162,
+        336.0676734990024
+      ],
+      "line_end": [
+        -238.84394884749506,
+        -333.3756736231992,
+        224.1018913963024
+      ],
+      "origin": "active_runtime_worker",
+      "status": "FAIL",
+      "assignment_source": "CAD_LOCAL_NEIGHBORHOOD",
+      "detected_line_geometry_source": "CAD_REFERENCE_PLACEHOLDER",
+      "measurement_method": "surface_classification",
+      "observability_state": "FORMED",
+      "measured_angle": 94.23,
+      "target_angle": 90.0218482458816
+    }
+  ],
+  "dropped": [],
+  "failure": null,
+  "created_at": "2026-10-17T10:11:42Z"
+}

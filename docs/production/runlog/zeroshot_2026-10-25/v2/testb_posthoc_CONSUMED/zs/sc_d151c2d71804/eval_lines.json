@@ -1,0 +1,105 @@
+{
+ "schema": "sherman.broad_baseline.eval_lines.v1",
+ "lane": "zs_lane_v2:zs",
+ "status": "OK",
+ "frame": "scan_raw",
+ "frame_definition": "coordinates of the scan file exactly as stored (source_ply_raw == scan_raw)",
+ "units": "scan file units (mm for every Sherman scan inspected so far; not re-estimated)",
+ "scan": {
+  "path": "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260726_06818c11/50482000_A.ply",
+  "sha256": "d151c2d71804ac53a0570c10d83d45463622a09c719c7e39108eab9cb9c1bc17"
+ },
+ "source": {
+  "kind": "zs_lane_v2:zs",
+  "path": null,
+  "sha256": null
+ },
+ "conversion": {
+  "rule": "zs_lane_v2 variant zs",
+  "variant": "zs",
+  "threshold": 0.5,
+  "model": "docs/production/runlog/zeroshot_2026-10-25/v2/models/zs_lane_v2_zs_gbm.pkl",
+  "model_sha256": "91b3646653936394807b8ce665c95906fea7f61d83425e96bb7b1e0b02d8f6f6",
+  "post": {
+   "dedupe_join": true,
+   "join": true,
+   "join_low": 0.0,
+   "sweep_min": 0.25
+  },
+  "z3_params": {
+   "fallback_frac_only": true
+  },
+  "z2_fallback": true,
+  "code_fingerprint": "39c0efb92c3c3962605168fb2cda977edff5840a2da1cd4518659e7544209097",
+  "pins_ok": true,
+  "pin_mismatch": [],
+  "errors": {},
+  "stages": {
+   "z3": {
+    "wall": 0.877,
+    "t_mm": 1.3457923531532288,
+    "n_candidates": 1,
+    "area_total": 8524.770775601923,
+    "n_families": 1,
+    "family_fallback": false
+   },
+   "z2": {
+    "wall": 1.571,
+    "t_mm": 1.347,
+    "n_lines": 1
+   },
+   "pool": {
+    "wall": 0.002,
+    "n": 1
+   },
+   "snap_all": {
+    "wall": 0.012,
+    "n": 1
+   },
+   "evidence": {
+    "wall": 0.033
+   },
+   "select_post": {
+    "wall": 0.003,
+    "n": 1,
+    "ops": {
+     "keep": 1,
+     "split": 0,
+     "join": 0
+    }
+   }
+  },
+  "posthoc_consumed_testb": true,
+  "guard_basis": "POSTHOC_CONSUMED_TESTB (zs_lane_v1 one-time run consumed TEST-B; not a held-out result)"
+ },
+ "line_count": 1,
+ "owned_bend_regions": [
+  {
+   "bend_id": "ZS001",
+   "line_start": [
+    -87.03767458537257,
+    -71.93439476047148,
+    184.46914050816363
+   ],
+   "line_end": [
+    -163.7487311708004,
+    -62.270723390027605,
+    243.45732725397872
+   ],
+   "score": 0.9985694877090047,
+   "incl": 89.91644834824696,
+   "src": [
+    "z2",
+    "z3"
+   ],
+   "op": "keep",
+   "parts": [
+    0
+   ]
+  }
+ ],
+ "dropped": [],
+ "failure": null,
+ "created_at": "2026-10-25T08:50:32Z",
+ "ledger_note": "POSTHOC_CONSUMED: TEST-B was consumed by zs_lane_v1; this is not a held-out result"
+}

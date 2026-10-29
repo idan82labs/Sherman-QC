@@ -1,0 +1,47 @@
+{
+  "flags": {
+    "aggregate_misleading": true,
+    "angular_partition_boundary_artifact": false,
+    "boundary_condition_accident": false,
+    "clipping_present": false,
+    "counter_image_disagreement": true,
+    "duplicate_spatial_witness": false,
+    "misregistration": false,
+    "review_unresolved": true,
+    "voxel_or_grid_phase_artifact": false
+  },
+  "reviewer": "CODEX_MANUAL_ORIGINAL_RESOLUTION_VISUAL_AUDIT",
+  "summary": "All three generated images were opened at original resolution. The global six-view image is unclipped and clearly shows the complete bent sheet-metal part, but contains no ribbon overlay despite broad visible folds and transitions. The ARC_SPAN_LOW control shows a compact, spatially coherent near-miss at the right-hand end with a smooth pole-aligned preimage and Gauss-band distances approaching the 12-degree boundary; its insufficient-span rejection is plausible but the image does not expose the exact span statistic. The ANGULAR_DISCONNECTION control visibly shows a curved source fragment whose projective-angle samples occupy separated groups, supporting that rejection. Two later-stage controls (longitudinal occupancy and ruling coherence) are NOT_PRESENT because no component reached them; no permuted overlay or causal-control image exists because zero ribbons survived. Therefore the scalar zero-ribbon result is deterministic and internally consistent but visually indicates an overselective or underexpressive frozen representation, not an absence of bend-like geometry. The architecture STOP is supportable for this frozen PGRR specification, while visual_audit_ok must remain false because the complete required visual ladder was not constructible and the aggregate zero hides coherent near-misses.",
+  "subjects": [
+    {
+      "agreement": "Partial disagreement: the absence of overlays matches the zero count, but the visible part contains broad folds and bend-like transitions, so the image does not visually support a claim that the scan lacks relevant structure.",
+      "causal_reading": "No full or cut chain was produced; causal support is not visually evaluable.",
+      "image_sha256": "ba90b9c96b52555fb0312006eca3b6eccd0ee234b9423b1d56b41b6566e899a4",
+      "reconciliation": "The complete source is visible and unclipped, but the empty overlay should be read as frozen-representation attrition rather than visual absence of bend-like geometry.",
+      "scalar_claim": "deduplicated_ribbon_count=0 with producer, permuted-producer, and validator consensus",
+      "threshold_boundary": "No candidate-level thresholds are drawn on the global view, so the complete attrition mechanism cannot be visually localized.",
+      "visible_geometry": "Six unclipped orthographic views show the complete sheet-metal part, including a large sloped panel, long folded edge, end features, and broad transitions; no colored ribbon is present.",
+      "visual_subject_id": "GLOBAL_CANONICAL_OVERLAY"
+    },
+    {
+      "agreement": "The short spatial extent makes an insufficient-span rejection plausible, but the fragment is visibly coherent and therefore demonstrates that the zero aggregate hides structured near-misses.",
+      "causal_reading": "No frozen target or support chain was opened because this component failed before handoff.",
+      "image_sha256": "97adb2144a22ff2ecdf722105f01d7aefdb0cd3c56f6059c9be6a5820d919519",
+      "reconciliation": "The labeled rejection is plausible, yet the coherent fragment is an important counter-image showing near-miss structure suppressed by the aggregate zero.",
+      "scalar_claim": "representative negative control failed ARC_SPAN_LOW",
+      "threshold_boundary": "Projective Gauss-band distances lie roughly between 7 and 12 degrees and approach the displayed 12-degree band limit; the exact arc-span threshold itself is not plotted, leaving that boundary visually unresolved.",
+      "visible_geometry": "A compact red fragment sits on the right-hand end feature; the pole-aligned preimage is smooth and curved rather than scattered, and its projective-angle samples form a narrow cluster.",
+      "visual_subject_id": "CONTROL_ARC_SPAN_LOW"
+    },
+    {
+      "agreement": "Agreement: the angle-domain scatter contains visibly separated groups and gaps, supporting the angular-disconnection failure even though the source fragment itself looks smooth.",
+      "causal_reading": "No frozen target or support chain was opened because this component failed before handoff.",
+      "image_sha256": "759303156dbcb7920f169f899a0b52fa3248ca16cc1d3730937ebedd1218ec1e",
+      "reconciliation": "The image supports angular disconnection: the spatial fragment is smooth but its projective-angle support is visibly separated rather than continuous.",
+      "scalar_claim": "representative negative control failed ANGULAR_DISCONNECTION",
+      "threshold_boundary": "Gauss-band distances remain under the 12-degree limit, so the visible failure is angular connectivity rather than band exclusion; the gaps span a substantial portion of the 0-180 degree domain and do not look like clipping.",
+      "visible_geometry": "A small red curved fragment appears along the upper-right transition; its pole-aligned preimage is smooth, while projective-angle samples form multiple separated groups across roughly 10-140 degrees.",
+      "visual_subject_id": "CONTROL_ANGULAR_DISCONNECTION"
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "schema": "sherman.broad_baseline.eval_lines.v1",
+  "lane": "runtime_gated",
+  "status": "LANE_FAILED",
+  "frame": "scan_raw",
+  "frame_definition": "coordinates of the scan file exactly as stored (source_ply_raw == scan_raw)",
+  "units": "scan file units (mm for every Sherman scan inspected so far; not re-estimated)",
+  "scan": {
+    "path": "/Users/idantal/ShermanQC/source-assets/02_CAD_QC_3D/38172000_01_SCAN_1.ply",
+    "sha256": "07062eee17aa4e41721b93cdb69ddb4b752e6713a16c5aab0a10df9c86d07880"
+  },
+  "source": {
+    "kind": "lane_failure",
+    "path": null,
+    "sha256": null
+  },
+  "conversion": {},
+  "line_count": 0,
+  "owned_bend_regions": [],
+  "dropped": [],
+  "failure": {
+    "reason": "RUNTIME_WORKER_FAILED",
+    "returncode": 1,
+    "timed_out": false,
+    "worker_error": "Invalid raw scan to reference transform",
+    "stderr_tail": "  File \"/Users/idantal/ShermanQC/FullProject/domains/bend/services/heatmap_evidence_service.py\", line 172, in build_bend_heatmap_evidence\n    alignment = validate_alignment({\n                ^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/idantal/ShermanQC/FullProject/domains/bend/services/inspection_frame.py\", line 20, in validate_alignment\n    raise ValueError('Invalid raw scan to reference transform')\nValueError: Invalid raw scan to reference transform\n\n       14.07 real        13.86 user         0.18 sys\n           460767232  maximum resident set size\n                   0  average shared memory size\n                   0  average unshared data size\n                   0  average unshared stack size\n               61390  page reclaims\n                   0  page faults\n                   0  swaps\n                   0  block input operations\n                   0  block output operations\n                   0  messages sent\n                   0  messages received\n                   0  signals received\n                   0  voluntary context switches\n                3527  involuntary context switches\n        190217329677  instructions retired\n         57576093513  cycles elapsed\n           352683040  peak memory footprint"
+  },
+  "created_at": "2026-10-17T10:13:08Z"
+}

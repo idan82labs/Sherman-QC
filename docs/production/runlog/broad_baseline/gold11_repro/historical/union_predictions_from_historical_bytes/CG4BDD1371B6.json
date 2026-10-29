@@ -1,0 +1,82 @@
+{
+  "schema": "sherman.broad_baseline.eval_lines.v1",
+  "lane": "best_f1_union",
+  "status": "OK",
+  "frame": "scan_raw",
+  "frame_definition": "coordinates of the scan file exactly as stored (source_ply_raw == scan_raw)",
+  "units": "scan file units (mm for every Sherman scan inspected so far; not re-estimated)",
+  "scan": {
+    "path": null,
+    "sha256": "d1732de180230bdbf0caa6eaf454a33071c206060aea276dce67a9abcf13b038"
+  },
+  "source": {
+    "kind": "fusion",
+    "path": null,
+    "sha256": null
+  },
+  "conversion": {
+    "rule": "diagnose_f1_cad_scan_fusion_gold11 union",
+    "duplicate_rule": {
+      "axis_angle_deg_max": 5.0,
+      "transverse_offset_mm_max": 4.0,
+      "shorter_span_overlap_min": 0.6
+    },
+    "a0_lines": 2,
+    "cad_lines": 3,
+    "a0_status": "OK",
+    "cad_status": "OK"
+  },
+  "line_count": 3,
+  "owned_bend_regions": [
+    {
+      "bend_id": "F1C_003135e3eef42ec4",
+      "line_start": [
+        -184.49245179004993,
+        -3.9591233919266386,
+        303.4038339105621
+      ],
+      "line_end": [
+        -88.97285818454385,
+        -82.48778276367531,
+        230.0957536031793
+      ],
+      "fusion_source": "scan_only_a0"
+    },
+    {
+      "bend_id": "F1C_b1e9113784537e55",
+      "line_start": [
+        -242.06505132617278,
+        -320.6837748854392,
+        232.05944924113396
+      ],
+      "line_end": [
+        -88.99130123066527,
+        -127.61384674912762,
+        219.30998336975418
+      ],
+      "fusion_source": "scan_only_a0"
+    },
+    {
+      "bend_id": "CADF_CAD_B1",
+      "line_start": [
+        -221.43306582206841,
+        -5.10773016837193,
+        319.3362702913809
+      ],
+      "line_end": [
+        -384.9247820198502,
+        -210.77141115538828,
+        331.7530360491503
+      ],
+      "origin": "cad_guided_gated_retained",
+      "cad_target_id": "CAD_B1",
+      "assignment_source": "GLOBAL_DETECTION",
+      "measurement_method": "detected_bend_match",
+      "observability_state": "FORMED",
+      "fusion_source": "cad_guided_gated_rescue"
+    }
+  ],
+  "dropped": [],
+  "failure": null,
+  "created_at": "2026-10-17T09:21:26Z"
+}

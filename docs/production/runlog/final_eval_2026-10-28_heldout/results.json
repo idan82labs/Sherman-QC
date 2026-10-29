@@ -1,0 +1,7038 @@
+{
+ "schema": "sherman.final_eval.fe1_results.v1",
+ "run": "final_eval_2026-10-28_heldout FE1",
+ "ledger": {
+  "run_entry_seq": 44,
+  "freeze_seq": 36,
+  "gold_seq": 42,
+  "sensitivity_seq": 43,
+  "prereg_sha256": "c50f58e0784b2fecdee90fc47c072b71b26e36e798a5bef058fbd7c19ed2d3ce"
+ },
+ "matcher": "frozen score_case 5 deg / 4 mm / 0.6 / 0.6, apex",
+ "bootstrap": {
+  "n": 10000,
+  "seed": 20261018,
+  "unit": "family (part_id[:5])"
+ },
+ "gold_root_manifest_sha256": "70876b56b12e0a56217d79f2d70d19e11990b86905d76c8ba5e87331c9e196b9",
+ "arms": {
+  "zs_lane_v3": {
+   "primary": {
+    "scans": 25,
+    "families": 17,
+    "gold": 186,
+    "pred": 148,
+    "tp": 130,
+    "fp": 18,
+    "fn": 56,
+    "P": 0.8784,
+    "R": 0.6989,
+    "micro_f1": 0.7784,
+    "micro_ci95": [
+     0.5827,
+     0.9423
+    ],
+    "family_macro_f1": 0.8604,
+    "macro_ci95": [
+     0.7571,
+     0.9425
+    ],
+    "failed_or_missing_scans": 0,
+    "controls": {
+     "scans": 2,
+     "fp_lines": 0
+    },
+    "fn_causes": {
+     "MISSED": 26,
+     "SPAN_LT_60PCT": 30
+    },
+    "fp_causes": {
+     "SPAN_LT_60PCT": 6,
+     "SPURIOUS": 11,
+     "TAKEN_BY_OTHER": 1
+    },
+    "worst_families": [
+     [
+      0.255,
+      "31367"
+     ],
+     [
+      0.667,
+      "16231"
+     ],
+     [
+      0.667,
+      "38173"
+     ],
+     [
+      0.727,
+      "46957"
+     ],
+     [
+      0.733,
+      "26687"
+     ]
+    ]
+   },
+   "micro_incl_control_fp": {
+    "tp": 130,
+    "fp": 18,
+    "fn": 56,
+    "P": 0.8784,
+    "R": 0.6989,
+    "micro_f1": 0.7784,
+    "strict_micro_f1_excluded_as_fn": 0.7784,
+    "excluded_before_scoring": 0
+   },
+   "by_subset": {
+    "HOLDOUT10": {
+     "scans": 9,
+     "families": 9,
+     "gold": 26,
+     "pred": 30,
+     "tp": 26,
+     "fp": 4,
+     "fn": 0,
+     "P": 0.8667,
+     "R": 1.0,
+     "micro_f1": 0.9286,
+     "micro_ci95": [
+      0.8451,
+      1.0
+     ],
+     "family_macro_f1": 0.9574,
+     "macro_ci95": [
+      0.8967,
+      1.0
+     ],
+     "failed_or_missing_scans": 0,
+     "controls": {
+      "scans": 0,
+      "fp_lines": 0
+     },
+     "fn_causes": {},
+     "fp_causes": {
+      "SPURIOUS": 3,
+      "TAKEN_BY_OTHER": 1
+     },
+     "worst_families": [
+      [
+       0.727,
+       "46957"
+      ],
+      [
+       0.889,
+       "47949"
+      ],
+      [
+       1.0,
+       "28272"
+      ],
+      [
+       1.0,
+       "46181"
+      ],
+      [
+       1.0,
+       "47553"
+      ]
+     ]
+    },
+    "N001_N016": {
+     "scans": 12,
+     "families": 6,
+     "gold": 91,
+     "pred": 51,
+     "tp": 45,
+     "fp": 6,
+     "fn": 46,
+     "P": 0.8824,
+     "R": 0.4945,
+     "micro_f1": 0.6338,
+     "micro_ci95": [
+      0.3958,
+      0.8889
+     ],
+     "family_macro_f1": 0.724,
+     "macro_ci95": [
+      0.5165,
+      0.8889
+     ],
+     "failed_or_missing_scans": 0,
+     "controls": {
+      "scans": 2,
+      "fp_lines": 0
+     },
+     "fn_causes": {
+      "MISSED": 16,
+      "SPAN_LT_60PCT": 30
+     },
+     "fp_causes": {
+      "SPAN_LT_60PCT": 6
+     },
+     "worst_families": [
+      [
+       0.255,
+       "31367"
+      ],
+      [
+       0.667,
+       "38173"
+      ],
+      [
+       0.733,
+       "26687"
+      ],
+      [
+       0.8,
+       "31409"
+      ],
+      [
+       0.889,
+       "42637"
+      ]
+     ]
+    },
+    "EHO4": {
+     "scans": 4,
+     "families": 2,
+     "gold": 69,
+     "pred": 67,
+     "tp": 59,
+     "fp": 8,
+     "fn": 10,
+     "P": 0.8806,
+     "R": 0.8551,
+     "micro_f1": 0.8676,
+     "micro_ci95": [
+      0.6667,
+      1.0
+     ],
+     "family_macro_f1": 0.8333,
+     "macro_ci95": [
+      0.6667,
+      1.0
+     ],
+     "failed_or_missing_scans": 0,
+     "controls": {
+      "scans": 0,
+      "fp_lines": 0
+     },
+     "fn_causes": {
+      "MISSED": 10
+     },
+     "fp_causes": {
+      "SPURIOUS": 8
+     },
+     "worst_families": [
+      [
+       0.667,
+       "16231"
+      ],
+      [
+       1.0,
+       "38168"
+      ]
+     ]
+    }
+   },
+   "zero_bend": {
+    "scans": 2,
+    "per_scan_fp": {
+     "gb_61b6da": 0,
+     "gb_cdecd9": 0
+    },
+    "fp_total": 0
+   },
+   "rolled_or_flat_fp": {
+    "scans": {
+     "gb_61b6da": {
+      "class": "rolled",
+      "fp": 0
+     },
+     "gb_cdecd9": {
+      "class": "rolled",
+      "fp": 0
+     }
+    },
+    "total": 0
+   },
+   "unseen_families_S3": {
+    "scans": 21,
+    "families": 15,
+    "gold": 160,
+    "pred": 132,
+    "tp": 115,
+    "fp": 17,
+    "fn": 45,
+    "P": 0.8712,
+    "R": 0.7188,
+    "micro_f1": 0.7877,
+    "micro_ci95": [
+     0.5658,
+     0.9702
+    ],
+    "family_macro_f1": 0.8818,
+    "macro_ci95": [
+     0.7717,
+     0.967
+    ],
+    "failed_or_missing_scans": 0,
+    "controls": {
+     "scans": 2,
+     "fp_lines": 0
+    },
+    "fn_causes": {
+     "MISSED": 16,
+     "SPAN_LT_60PCT": 29
+    },
+    "fp_causes": {
+     "SPAN_LT_60PCT": 5,
+     "SPURIOUS": 11,
+     "TAKEN_BY_OTHER": 1
+    },
+    "worst_families": [
+     [
+      0.255,
+      "31367"
+     ],
+     [
+      0.667,
+      "16231"
+     ],
+     [
+      0.727,
+      "46957"
+     ],
+     [
+      0.8,
+      "31409"
+     ],
+     [
+      0.889,
+      "42637"
+     ]
+    ]
+   },
+   "seen_families_only": {
+    "scans": 4,
+    "families": 2,
+    "gold": 26,
+    "pred": 16,
+    "tp": 15,
+    "fp": 1,
+    "fn": 11,
+    "P": 0.9375,
+    "R": 0.5769,
+    "micro_f1": 0.7143,
+    "micro_ci95": [
+     0.6667,
+     0.7333
+    ],
+    "family_macro_f1": 0.7,
+    "macro_ci95": [
+     0.6667,
+     0.7333
+    ],
+    "failed_or_missing_scans": 0,
+    "controls": {
+     "scans": 0,
+     "fp_lines": 0
+    },
+    "fn_causes": {
+     "MISSED": 10,
+     "SPAN_LT_60PCT": 1
+    },
+    "fp_causes": {
+     "SPAN_LT_60PCT": 1
+    },
+    "worst_families": [
+     [
+      0.667,
+      "38173"
+     ],
+     [
+      0.733,
+      "26687"
+     ]
+    ]
+   },
+   "angles": {
+    "n_matched_with_angles": 130,
+    "n_excl_hem_and_joggle": 128,
+    "rule": "engine included angle - gold included angle; hem gold lines (tangent-band construction, gold angle is not the hem angle) and the joggle scan are flagged and left out of the summary",
+    "median_abs": 0.09,
+    "p90_abs": 0.4,
+    "max_abs": 43.28,
+    "mean_signed": 0.29,
+    "within_1deg": 126,
+    "within_2deg": 126,
+    "within_5deg": 127,
+    "flagged": [
+     {
+      "gid": "gb_437879",
+      "gold_id": "B1",
+      "diff": -2.16,
+      "why": "joggle"
+     },
+     {
+      "gid": "gb_437879",
+      "gold_id": "B2",
+      "diff": -1.95,
+      "why": "joggle"
+     }
+    ]
+   },
+   "runtime": {
+    "wall_s": {
+     "p50": 7.6,
+     "p95": 32.8,
+     "max": 48.433,
+     "total": 248.9,
+     "n": 27
+    },
+    "peak_rss_gib": {
+     "p50": 1.5,
+     "max": 2.751
+    },
+    "ok": 27,
+    "failures": []
+   },
+   "vx_pairs_context_only": [
+    {
+     "V": "gb_b21bad",
+     "X": "gb_04738b",
+     "engine_lines_V": 7,
+     "engine_lines_X": 8,
+     "gold_V": 6,
+     "gold_X": 6
+    },
+    {
+     "V": "gb_138090",
+     "X": "gb_1f3fe0",
+     "engine_lines_V": 2,
+     "engine_lines_X": 2,
+     "gold_V": 4,
+     "gold_X": 4
+    },
+    {
+     "V": "gb_1baa22",
+     "X": "gb_d11e33",
+     "engine_lines_V": 2,
+     "engine_lines_X": 2,
+     "gold_V": 3,
+     "gold_X": 3
+    },
+    {
+     "V": "gb_231669",
+     "X": "gb_ac2239",
+     "engine_lines_V": 13,
+     "engine_lines_X": 13,
+     "gold_V": 14,
+     "gold_X": 14
+    },
+    {
+     "V": "gb_44ddfb",
+     "X": "gb_a0538b",
+     "engine_lines_V": 4,
+     "engine_lines_X": 4,
+     "gold_V": 4,
+     "gold_X": 4
+    },
+    {
+     "V": "gb_cdecd9",
+     "X": "gb_61b6da",
+     "engine_lines_V": 0,
+     "engine_lines_X": 0,
+     "gold_V": 0,
+     "gold_X": 0
+    },
+    {
+     "V": "gb_68cd06",
+     "X": "gb_959f4a",
+     "engine_lines_V": 4,
+     "engine_lines_X": 4,
+     "gold_V": 20,
+     "gold_X": 19
+    },
+    {
+     "V": "gb_d1093e",
+     "X": "gb_a2dd83",
+     "engine_lines_V": 20,
+     "engine_lines_X": 21,
+     "gold_V": 20,
+     "gold_X": 21
+    },
+    {
+     "V": "gb_b97c8e",
+     "X": "gb_b3ae40",
+     "engine_lines_V": 5,
+     "engine_lines_X": 7,
+     "gold_V": 9,
+     "gold_X": 9
+    }
+   ],
+   "per_scan": [
+    {
+     "gid": "gb_04738b",
+     "subset": "N001_N016",
+     "family": "42637",
+     "part_class": "bent",
+     "disposition": "SCORED_COMPLETE_LABEL",
+     "status": "OK",
+     "gold": 6,
+     "pred": 8,
+     "wall_s": 8.476,
+     "peak_rss_gib": 1.745,
+     "rss_limit_gib": 16,
+     "t_mm": 1.4719884586334229,
+     "failure_reason": null,
+     "tp": 6,
+     "fp": 2,
+     "fn": 0,
+     "f1": 0.8571,
+     "matches": [
+      {
+       "gold_id": "B1",
+       "pred_id": "P003",
+       "engine_line_id": "ZS03",
+       "offset_mm": 0.021,
+       "axis_angle_deg": 0.088,
+       "gold_incl_deg": 89.91,
+       "engine_incl_deg": 89.86,
+       "incl_diff_deg": -0.05,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B2",
+       "pred_id": "P002",
+       "engine_line_id": "ZS02",
+       "offset_mm": 0.012,
+       "axis_angle_deg": 0.053,
+       "gold_incl_deg": 88.95,
+       "engine_incl_deg": 89.05,
+       "incl_diff_deg": 0.1,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B3",
+       "pred_id": "P006",
+       "engine_line_id": "ZS06",
+       "offset_mm": 0.015,
+       "axis_angle_deg": 0.116,
+       "gold_incl_deg": 86.71,
+       "engine_incl_deg": 87.1,
+       "incl_diff_deg": 0.39,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B4",
+       "pred_id": "P001",
+       "engine_line_id": "ZS01",
+       "offset_mm": 0.014,
+       "axis_angle_deg": 0.016,
+       "gold_incl_deg": 88.25,
+       "engine_incl_deg": 88.38,
+       "incl_diff_deg": 0.13,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B5",
+       "pred_id": "P007",
+       "engine_line_id": "ZS07",
+       "offset_mm": 0.012,
+       "axis_angle_deg": 0.155,
+       "gold_incl_deg": 87.72,
+       "engine_incl_deg": 87.78,
+       "incl_diff_deg": 0.06,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B6",
+       "pred_id": "P004",
+       "engine_line_id": "ZS04",
+       "offset_mm": 0.019,
+       "axis_angle_deg": 0.008,
+       "gold_incl_deg": 90.0,
+       "engine_incl_deg": 90.08,
+       "incl_diff_deg": 0.08,
+       "hem_gold_construction": false,
+       "joggle": false
+      }
+     ],
+     "fp_ids": [
+      "P005",
+      "P008"
+     ],
+     "fn_ids": [],
+     "fn_causes": {},
+     "fp_causes": {
+      "SPAN_LT_60PCT": 2
+     }
+    },
+    {
+     "gid": "gb_138090",
+     "subset": "N001_N016",
+     "family": "38173",
+     "part_class": "bent",
+     "disposition": "SCORED_COMPLETE_LABEL",
+     "status": "OK",
+     "gold": 4,
+     "pred": 2,
+     "wall_s": 8.457,
+     "peak_rss_gib": 1.652,
+     "rss_limit_gib": 16,
+     "t_mm": 2.4764155340194702,
+     "failure_reason": null,
+     "tp": 2,
+     "fp": 0,
+     "fn": 2,
+     "f1": 0.6667,
+     "matches": [
+      {
+       "gold_id": "B1",
+       "pred_id": "P001",
+       "engine_line_id": "ZS01",
+       "offset_mm": 0.037,
+       "axis_angle_deg": 0.023,
+       "gold_incl_deg": 89.58,
+       "engine_incl_deg": 89.01,
+       "incl_diff_deg": -0.57,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B2",
+       "pred_id": "P002",
+       "engine_line_id": "ZS02",
+       "offset_mm": 0.051,
+       "axis_angle_deg": 0.004,
+       "gold_incl_deg": 89.65,
+       "engine_incl_deg": 89.8,
+       "incl_diff_deg": 0.15,
+       "hem_gold_construction": false,
+       "joggle": false
+      }
+     ],
+     "fp_ids": [],
+     "fn_ids": [
+      "B3",
+      "B4"
+     ],
+     "fn_causes": {
+      "MISSED": 2
+     },
+     "fp_causes": {}
+    },
+    {
+     "gid": "gb_1baa22",
+     "subset": "N001_N016",
+     "family": "31409",
+     "part_class": "bent",
+     "disposition": "SCORED_COMPLETE_LABEL",
+     "status": "OK",
+     "gold": 3,
+     "pred": 2,
+     "wall_s": 2.33,
+     "peak_rss_gib": 0.526,
+     "rss_limit_gib": 16,
+     "t_mm": 1.5138136339187622,
+     "failure_reason": null,
+     "tp": 2,
+     "fp": 0,
+     "fn": 1,
+     "f1": 0.8,
+     "matches": [
+      {
+       "gold_id": "B1",
+       "pred_id": "P001",
+       "engine_line_id": "ZS01",
+       "offset_mm": 0.026,
+       "axis_angle_deg": 0.071,
+       "gold_incl_deg": 89.59,
+       "engine_incl_deg": 89.67,
+       "incl_diff_deg": 0.08,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B2",
+       "pred_id": "P002",
+       "engine_line_id": "ZS02",
+       "offset_mm": 0.008,
+       "axis_angle_deg": 0.162,
+       "gold_incl_deg": 89.1,
+       "engine_incl_deg": 89.15,
+       "incl_diff_deg": 0.05,
+       "hem_gold_construction": false,
+       "joggle": false
+      }
+     ],
+     "fp_ids": [],
+     "fn_ids": [
+      "B3"
+     ],
+     "fn_causes": {
+      "MISSED": 1
+     },
+     "fp_causes": {}
+    },
+    {
+     "gid": "gb_1f3fe0",
+     "subset": "N001_N016",
+     "family": "38173",
+     "part_class": "bent",
+     "disposition": "SCORED_COMPLETE_LABEL",
+     "status": "OK",
+     "gold": 4,
+     "pred": 2,
+     "wall_s": 9.53,
+     "peak_rss_gib": 1.655,
+     "rss_limit_gib": 16,
+     "t_mm": 2.45947970867157,
+     "failure_reason": null,
+     "tp": 2,
+     "fp": 0,
+     "fn": 2,
+     "f1": 0.6667,
+     "matches": [
+      {
+       "gold_id": "B1",
+       "pred_id": "P001",
+       "engine_line_id": "ZS01",
+       "offset_mm": 0.027,
+       "axis_angle_deg": 0.018,
+       "gold_incl_deg": 90.25,
+       "engine_incl_deg": 90.25,
+       "incl_diff_deg": -0.0,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B2",
+       "pred_id": "P002",
+       "engine_line_id": "ZS02",
+       "offset_mm": 0.012,
+       "axis_angle_deg": 0.041,
+       "gold_incl_deg": 89.95,
+       "engine_incl_deg": 90.1,
+       "incl_diff_deg": 0.15,
+       "hem_gold_construction": false,
+       "joggle": false
+      }
+     ],
+     "fp_ids": [],
+     "fn_ids": [
+      "B3",
+      "B4"
+     ],
+     "fn_causes": {
+      "MISSED": 2
+     },
+     "fp_causes": {}
+    },
+    {
+     "gid": "gb_231669",
+     "subset": "EHO4",
+     "family": "16231",
+     "part_class": "bent",
+     "disposition": "SCORED_COMPLETE_LABEL",
+     "status": "OK",
+     "gold": 14,
+     "pred": 13,
+     "wall_s": 9.321,
+     "peak_rss_gib": 1.521,
+     "rss_limit_gib": 16,
+     "t_mm": 1.972751636505127,
+     "failure_reason": null,
+     "tp": 9,
+     "fp": 4,
+     "fn": 5,
+     "f1": 0.6667,
+     "matches": [
+      {
+       "gold_id": "B1",
+       "pred_id": "P004",
+       "engine_line_id": "ZS04",
+       "offset_mm": 0.027,
+       "axis_angle_deg": 0.054,
+       "gold_incl_deg": 89.96,
+       "engine_incl_deg": 90.02,
+       "incl_diff_deg": 0.06,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B2",
+       "pred_id": "P002",
+       "engine_line_id": "ZS02",
+       "offset_mm": 0.007,
+       "axis_angle_deg": 0.014,
+       "gold_incl_deg": 91.59,
+       "engine_incl_deg": 91.71,
+       "incl_diff_deg": 0.12,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B3",
+       "pred_id": "P001",
+       "engine_line_id": "ZS01",
+       "offset_mm": 0.133,
+       "axis_angle_deg": 0.075,
+       "gold_incl_deg": 90.04,
+       "engine_incl_deg": 90.07,
+       "incl_diff_deg": 0.03,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B4",
+       "pred_id": "P003",
+       "engine_line_id": "ZS03",
+       "offset_mm": 0.032,
+       "axis_angle_deg": 0.092,
+       "gold_incl_deg": 91.62,
+       "engine_incl_deg": 91.52,
+       "incl_diff_deg": -0.1,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B5",
+       "pred_id": "P008",
+       "engine_line_id": "ZS08",
+       "offset_mm": 0.008,
+       "axis_angle_deg": 0.199,
+       "gold_incl_deg": 89.67,
+       "engine_incl_deg": 89.63,
+       "incl_diff_deg": -0.04,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B6",
+       "pred_id": "P010",
+       "engine_line_id": "ZS10",
+       "offset_mm": 0.068,
+       "axis_angle_deg": 0.483,
+       "gold_incl_deg": 89.35,
+       "engine_incl_deg": 89.22,
+       "incl_diff_deg": -0.13,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B7",
+       "pred_id": "P006",
+       "engine_line_id": "ZS06",
+       "offset_mm": 0.008,
+       "axis_angle_deg": 0.043,
+       "gold_incl_deg": 91.15,
+       "engine_incl_deg": 91.15,
+       "incl_diff_deg": -0.0,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B8",
+       "pred_id": "P009",
+       "engine_line_id": "ZS09",
+       "offset_mm": 0.023,
+       "axis_angle_deg": 0.069,
+       "gold_incl_deg": 91.32,
+       "engine_incl_deg": 91.32,
+       "incl_diff_deg": -0.0,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B9",
+       "pred_id": "P005",
+       "engine_line_id": "ZS05",
+       "offset_mm": 0.007,
+       "axis_angle_deg": 0.276,
+       "gold_incl_deg": 91.05,
+       "engine_incl_deg": 91.13,
+       "incl_diff_deg": 0.08,
+       "hem_gold_construction": false,
+       "joggle": false
+      }
+     ],
+     "fp_ids": [
+      "P007",
+      "P011",
+      "P012",
+      "P013"
+     ],
+     "fn_ids": [
+      "B10",
+      "B11",
+      "B12",
+      "B13",
+      "B14"
+     ],
+     "fn_causes": {
+      "MISSED": 5
+     },
+     "fp_causes": {
+      "SPURIOUS": 4
+     }
+    },
+    {
+     "gid": "gb_42dd99",
+     "subset": "HOLDOUT10",
+     "family": "47949",
+     "part_class": "mixed",
+     "disposition": "SCORED_COMPLETE_LABEL",
+     "status": "OK",
+     "gold": 4,
+     "pred": 5,
+     "wall_s": 48.433,
+     "peak_rss_gib": 2.497,
+     "rss_limit_gib": 32,
+     "t_mm": 1.9329865765571594,
+     "failure_reason": null,
+     "tp": 4,
+     "fp": 1,
+     "fn": 0,
+     "f1": 0.8889,
+     "matches": [
+      {
+       "gold_id": "B1",
+       "pred_id": "P003",
+       "engine_line_id": "ZS03",
+       "offset_mm": 0.055,
+       "axis_angle_deg": 0.042,
+       "gold_incl_deg": 94.6,
+       "engine_incl_deg": 94.56,
+       "incl_diff_deg": -0.04,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B2",
+       "pred_id": "P001",
+       "engine_line_id": "ZS01",
+       "offset_mm": 0.049,
+       "axis_angle_deg": 0.017,
+       "gold_incl_deg": 89.6,
+       "engine_incl_deg": 89.59,
+       "incl_diff_deg": -0.01,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B3",
+       "pred_id": "P002",
+       "engine_line_id": "ZS02",
+       "offset_mm": 0.425,
+       "axis_angle_deg": 0.012,
+       "gold_incl_deg": 97.08,
+       "engine_incl_deg": 94.19,
+       "incl_diff_deg": -2.89,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B4",
+       "pred_id": "P004",
+       "engine_line_id": "ZS04",
+       "offset_mm": 0.074,
+       "axis_angle_deg": 0.02,
+       "gold_incl_deg": 89.83,
+       "engine_incl_deg": 89.59,
+       "incl_diff_deg": -0.24,
+       "hem_gold_construction": false,
+       "joggle": false
+      }
+     ],
+     "fp_ids": [
+      "P005"
+     ],
+     "fn_ids": [],
+     "fn_causes": {},
+     "fp_causes": {
+      "SPURIOUS": 1
+     }
+    },
+    {
+     "gid": "gb_437879",
+     "subset": "HOLDOUT10",
+     "family": "47846",
+     "part_class": "bent",
+     "disposition": "SCORED_COMPLETE_LABEL",
+     "status": "OK",
+     "gold": 2,
+     "pred": 2,
+     "wall_s": 1.407,
+     "peak_rss_gib": 0.265,
+     "rss_limit_gib": 16,
+     "t_mm": 0.4856432569026947,
+     "failure_reason": null,
+     "tp": 2,
+     "fp": 0,
+     "fn": 0,
+     "f1": 1.0,
+     "matches": [
+      {
+       "gold_id": "B1",
+       "pred_id": "P002",
+       "engine_line_id": "ZS02",
+       "offset_mm": 0.343,
+       "axis_angle_deg": 1.612,
+       "gold_incl_deg": 168.07,
+       "engine_incl_deg": 165.91,
+       "incl_diff_deg": -2.16,
+       "hem_gold_construction": false,
+       "joggle": true
+      },
+      {
+       "gold_id": "B2",
+       "pred_id": "P001",
+       "engine_line_id": "ZS01",
+       "offset_mm": 0.332,
+       "axis_angle_deg": 0.776,
+       "gold_incl_deg": 167.7,
+       "engine_incl_deg": 165.75,
+       "incl_diff_deg": -1.95,
+       "hem_gold_construction": false,
+       "joggle": true
+      }
+     ],
+     "fp_ids": [],
+     "fn_ids": [],
+     "fn_causes": {},
+     "fp_causes": {}
+    },
+    {
+     "gid": "gb_44ddfb",
+     "subset": "N001_N016",
+     "family": "50476",
+     "part_class": "bent",
+     "disposition": "SCORED_COMPLETE_LABEL",
+     "status": "OK",
+     "gold": 4,
+     "pred": 4,
+     "wall_s": 4.715,
+     "peak_rss_gib": 1.002,
+     "rss_limit_gib": 16,
+     "t_mm": 1.9953470420837403,
+     "failure_reason": null,
+     "tp": 4,
+     "fp": 0,
+     "fn": 0,
+     "f1": 1.0,
+     "matches": [
+      {
+       "gold_id": "B1",
+       "pred_id": "P003",
+       "engine_line_id": "ZS03",
+       "offset_mm": 0.008,
+       "axis_angle_deg": 0.053,
+       "gold_incl_deg": 89.83,
+       "engine_incl_deg": 89.82,
+       "incl_diff_deg": -0.01,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B2",
+       "pred_id": "P004",
+       "engine_line_id": "ZS04",
+       "offset_mm": 0.01,
+       "axis_angle_deg": 0.04,
+       "gold_incl_deg": 90.54,
+       "engine_incl_deg": 90.51,
+       "incl_diff_deg": -0.03,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B3",
+       "pred_id": "P002",
+       "engine_line_id": "ZS02",
+       "offset_mm": 0.01,
+       "axis_angle_deg": 0.068,
+       "gold_incl_deg": 89.95,
+       "engine_incl_deg": 89.97,
+       "incl_diff_deg": 0.02,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B4",
+       "pred_id": "P001",
+       "engine_line_id": "ZS01",
+       "offset_mm": 0.008,
+       "axis_angle_deg": 0.08,
+       "gold_incl_deg": 90.7,
+       "engine_incl_deg": 90.67,
+       "incl_diff_deg": -0.03,
+       "hem_gold_construction": false,
+       "joggle": false
+      }
+     ],
+     "fp_ids": [],
+     "fn_ids": [],
+     "fn_causes": {},
+     "fp_causes": {}
+    },
+    {
+     "gid": "gb_47b48f",
+     "subset": "HOLDOUT10",
+     "family": "49205",
+     "part_class": "bent",
+     "disposition": "SCORED_COMPLETE_LABEL",
+     "status": "OK",
+     "gold": 2,
+     "pred": 2,
+     "wall_s": 1.155,
+     "peak_rss_gib": 0.262,
+     "rss_limit_gib": 16,
+     "t_mm": 0.5240030479431153,
+     "failure_reason": null,
+     "tp": 2,
+     "fp": 0,
+     "fn": 0,
+     "f1": 1.0,
+     "matches": [
+      {
+       "gold_id": "B1",
+       "pred_id": "P002",
+       "engine_line_id": "ZS02",
+       "offset_mm": 0.052,
+       "axis_angle_deg": 0.089,
+       "gold_incl_deg": 91.17,
+       "engine_incl_deg": 90.74,
+       "incl_diff_deg": -0.43,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B2",
+       "pred_id": "P001",
+       "engine_line_id": "ZS01",
+       "offset_mm": 0.054,
+       "axis_angle_deg": 0.101,
+       "gold_incl_deg": 90.66,
+       "engine_incl_deg": 90.42,
+       "incl_diff_deg": -0.24,
+       "hem_gold_construction": false,
+       "joggle": false
+      }
+     ],
+     "fp_ids": [],
+     "fn_ids": [],
+     "fn_causes": {},
+     "fp_causes": {}
+    },
+    {
+     "gid": "gb_61b6da",
+     "subset": "N001_N016",
+     "family": "47215",
+     "part_class": "rolled",
+     "disposition": "ZERO_BEND_CONTROL",
+     "status": "OK",
+     "gold": 0,
+     "pred": 0,
+     "wall_s": 3.5,
+     "peak_rss_gib": 0.478,
+     "rss_limit_gib": 16,
+     "t_mm": 2.013346393108368,
+     "failure_reason": null,
+     "tp": 0,
+     "fp": 0,
+     "fn": 0,
+     "f1": null,
+     "matches": [],
+     "fp_ids": [],
+     "fn_ids": []
+    },
+    {
+     "gid": "gb_68cd06",
+     "subset": "N001_N016",
+     "family": "31367",
+     "part_class": "bent",
+     "disposition": "SCORED_COMPLETE_LABEL",
+     "status": "OK",
+     "gold": 20,
+     "pred": 4,
+     "wall_s": 8.719,
+     "peak_rss_gib": 2.052,
+     "rss_limit_gib": 16,
+     "t_mm": 0.9685532641410828,
+     "failure_reason": null,
+     "tp": 3,
+     "fp": 1,
+     "fn": 17,
+     "f1": 0.25,
+     "matches": [
+      {
+       "gold_id": "B1",
+       "pred_id": "P001",
+       "engine_line_id": "ZS01",
+       "offset_mm": 0.031,
+       "axis_angle_deg": 0.031,
+       "gold_incl_deg": 121.0,
+       "engine_incl_deg": 120.69,
+       "incl_diff_deg": -0.31,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B2",
+       "pred_id": "P003",
+       "engine_line_id": "ZS03",
+       "offset_mm": 0.021,
+       "axis_angle_deg": 0.016,
+       "gold_incl_deg": 121.01,
+       "engine_incl_deg": 120.62,
+       "incl_diff_deg": -0.39,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B3",
+       "pred_id": "P002",
+       "engine_line_id": "ZS02",
+       "offset_mm": 0.017,
+       "axis_angle_deg": 0.003,
+       "gold_incl_deg": 91.01,
+       "engine_incl_deg": 91.0,
+       "incl_diff_deg": -0.01,
+       "hem_gold_construction": false,
+       "joggle": false
+      }
+     ],
+     "fp_ids": [
+      "P004"
+     ],
+     "fn_ids": [
+      "B4",
+      "B5",
+      "B6",
+      "B7",
+      "B8",
+      "B9",
+      "B10",
+      "B11",
+      "B12",
+      "B13",
+      "B14",
+      "B15",
+      "B16",
+      "B17",
+      "B18",
+      "B19",
+      "B20"
+     ],
+     "fn_causes": {
+      "SPAN_LT_60PCT": 15,
+      "MISSED": 2
+     },
+     "fp_causes": {
+      "SPAN_LT_60PCT": 1
+     }
+    },
+    {
+     "gid": "gb_8ccb40",
+     "subset": "HOLDOUT10",
+     "family": "49160",
+     "part_class": "bent",
+     "disposition": "SCORED_COMPLETE_LABEL",
+     "status": "OK",
+     "gold": 2,
+     "pred": 2,
+     "wall_s": 7.555,
+     "peak_rss_gib": 1.815,
+     "rss_limit_gib": 16,
+     "t_mm": 2.989510793685913,
+     "failure_reason": null,
+     "tp": 2,
+     "fp": 0,
+     "fn": 0,
+     "f1": 1.0,
+     "matches": [
+      {
+       "gold_id": "B1",
+       "pred_id": "P001",
+       "engine_line_id": "ZS01",
+       "offset_mm": 0.02,
+       "axis_angle_deg": 0.024,
+       "gold_incl_deg": 90.06,
+       "engine_incl_deg": 90.07,
+       "incl_diff_deg": 0.01,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B2",
+       "pred_id": "P002",
+       "engine_line_id": "ZS02",
+       "offset_mm": 0.018,
+       "axis_angle_deg": 0.017,
+       "gold_incl_deg": 89.55,
+       "engine_incl_deg": 89.57,
+       "incl_diff_deg": 0.02,
+       "hem_gold_construction": false,
+       "joggle": false
+      }
+     ],
+     "fp_ids": [],
+     "fn_ids": [],
+     "fn_causes": {},
+     "fp_causes": {}
+    },
+    {
+     "gid": "gb_8df897",
+     "subset": "HOLDOUT10",
+     "family": "47848",
+     "part_class": "bent",
+     "disposition": "SCORED_COMPLETE_LABEL",
+     "status": "OK",
+     "gold": 4,
+     "pred": 4,
+     "wall_s": 6.57,
+     "peak_rss_gib": 1.508,
+     "rss_limit_gib": 16,
+     "t_mm": 1.4436676692962647,
+     "failure_reason": null,
+     "tp": 4,
+     "fp": 0,
+     "fn": 0,
+     "f1": 1.0,
+     "matches": [
+      {
+       "gold_id": "B1",
+       "pred_id": "P003",
+       "engine_line_id": "ZS03",
+       "offset_mm": 0.033,
+       "axis_angle_deg": 0.172,
+       "gold_incl_deg": 90.12,
+       "engine_incl_deg": 90.21,
+       "incl_diff_deg": 0.09,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B2",
+       "pred_id": "P002",
+       "engine_line_id": "ZS02",
+       "offset_mm": 0.022,
+       "axis_angle_deg": 0.146,
+       "gold_incl_deg": 89.91,
+       "engine_incl_deg": 89.94,
+       "incl_diff_deg": 0.03,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B3",
+       "pred_id": "P001",
+       "engine_line_id": "ZS01",
+       "offset_mm": 0.02,
+       "axis_angle_deg": 0.103,
+       "gold_incl_deg": 90.23,
+       "engine_incl_deg": 90.22,
+       "incl_diff_deg": -0.01,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B4",
+       "pred_id": "P004",
+       "engine_line_id": "ZS04",
+       "offset_mm": 0.008,
+       "axis_angle_deg": 0.208,
+       "gold_incl_deg": 89.35,
+       "engine_incl_deg": 89.33,
+       "incl_diff_deg": -0.02,
+       "hem_gold_construction": false,
+       "joggle": false
+      }
+     ],
+     "fp_ids": [],
+     "fn_ids": [],
+     "fn_causes": {},
+     "fp_causes": {}
+    },
+    {
+     "gid": "gb_959f4a",
+     "subset": "N001_N016",
+     "family": "31367",
+     "part_class": "bent",
+     "disposition": "SCORED_COMPLETE_LABEL",
+     "status": "OK",
+     "gold": 19,
+     "pred": 4,
+     "wall_s": 8.775,
+     "peak_rss_gib": 1.639,
+     "rss_limit_gib": 16,
+     "t_mm": 1.1439773035049439,
+     "failure_reason": null,
+     "tp": 3,
+     "fp": 1,
+     "fn": 16,
+     "f1": 0.2609,
+     "matches": [
+      {
+       "gold_id": "B1",
+       "pred_id": "P001",
+       "engine_line_id": "ZS01",
+       "offset_mm": 0.034,
+       "axis_angle_deg": 0.024,
+       "gold_incl_deg": 121.05,
+       "engine_incl_deg": 120.93,
+       "incl_diff_deg": -0.12,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B2",
+       "pred_id": "P002",
+       "engine_line_id": "ZS02",
+       "offset_mm": 0.021,
+       "axis_angle_deg": 0.004,
+       "gold_incl_deg": 121.19,
+       "engine_incl_deg": 120.94,
+       "incl_diff_deg": -0.25,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B3",
+       "pred_id": "P003",
+       "engine_line_id": "ZS03",
+       "offset_mm": 0.025,
+       "axis_angle_deg": 0.038,
+       "gold_incl_deg": 91.49,
+       "engine_incl_deg": 91.61,
+       "incl_diff_deg": 0.12,
+       "hem_gold_construction": false,
+       "joggle": false
+      }
+     ],
+     "fp_ids": [
+      "P004"
+     ],
+     "fn_ids": [
+      "B4",
+      "B5",
+      "B6",
+      "B7",
+      "B8",
+      "B9",
+      "B10",
+      "B11",
+      "B12",
+      "B13",
+      "B14",
+      "B15",
+      "B16",
+      "B17",
+      "B18",
+      "B19"
+     ],
+     "fn_causes": {
+      "SPAN_LT_60PCT": 14,
+      "MISSED": 2
+     },
+     "fp_causes": {
+      "SPAN_LT_60PCT": 1
+     }
+    },
+    {
+     "gid": "gb_a0538b",
+     "subset": "N001_N016",
+     "family": "50476",
+     "part_class": "bent",
+     "disposition": "SCORED_COMPLETE_LABEL",
+     "status": "OK",
+     "gold": 4,
+     "pred": 4,
+     "wall_s": 4.229,
+     "peak_rss_gib": 0.969,
+     "rss_limit_gib": 16,
+     "t_mm": 1.9813649845123291,
+     "failure_reason": null,
+     "tp": 4,
+     "fp": 0,
+     "fn": 0,
+     "f1": 1.0,
+     "matches": [
+      {
+       "gold_id": "B1",
+       "pred_id": "P002",
+       "engine_line_id": "ZS02",
+       "offset_mm": 0.007,
+       "axis_angle_deg": 0.085,
+       "gold_incl_deg": 89.84,
+       "engine_incl_deg": 89.87,
+       "incl_diff_deg": 0.03,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B2",
+       "pred_id": "P004",
+       "engine_line_id": "ZS04",
+       "offset_mm": 0.008,
+       "axis_angle_deg": 0.042,
+       "gold_incl_deg": 89.92,
+       "engine_incl_deg": 89.91,
+       "incl_diff_deg": -0.01,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B3",
+       "pred_id": "P003",
+       "engine_line_id": "ZS03",
+       "offset_mm": 0.016,
+       "axis_angle_deg": 0.049,
+       "gold_incl_deg": 89.98,
+       "engine_incl_deg": 90.01,
+       "incl_diff_deg": 0.03,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B4",
+       "pred_id": "P001",
+       "engine_line_id": "ZS01",
+       "offset_mm": 0.011,
+       "axis_angle_deg": 0.066,
+       "gold_incl_deg": 89.64,
+       "engine_incl_deg": 89.59,
+       "incl_diff_deg": -0.05,
+       "hem_gold_construction": false,
+       "joggle": false
+      }
+     ],
+     "fp_ids": [],
+     "fn_ids": [],
+     "fn_causes": {},
+     "fp_causes": {}
+    },
+    {
+     "gid": "gb_a2dd83",
+     "subset": "EHO4",
+     "family": "38168",
+     "part_class": "bent",
+     "disposition": "SCORED_COMPLETE_LABEL",
+     "status": "OK",
+     "gold": 21,
+     "pred": 21,
+     "wall_s": 13.177,
+     "peak_rss_gib": 1.966,
+     "rss_limit_gib": 16,
+     "t_mm": 1.4576393556594849,
+     "failure_reason": null,
+     "tp": 21,
+     "fp": 0,
+     "fn": 0,
+     "f1": 1.0,
+     "matches": [
+      {
+       "gold_id": "B1",
+       "pred_id": "P003",
+       "engine_line_id": "ZS03",
+       "offset_mm": 0.022,
+       "axis_angle_deg": 0.038,
+       "gold_incl_deg": 88.41,
+       "engine_incl_deg": 88.07,
+       "incl_diff_deg": -0.34,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B2",
+       "pred_id": "P007",
+       "engine_line_id": "ZS07",
+       "offset_mm": 0.016,
+       "axis_angle_deg": 0.042,
+       "gold_incl_deg": 88.8,
+       "engine_incl_deg": 88.59,
+       "incl_diff_deg": -0.21,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B3",
+       "pred_id": "P008",
+       "engine_line_id": "ZS08",
+       "offset_mm": 0.014,
+       "axis_angle_deg": 0.046,
+       "gold_incl_deg": 88.21,
+       "engine_incl_deg": 87.94,
+       "incl_diff_deg": -0.27,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B4",
+       "pred_id": "P005",
+       "engine_line_id": "ZS05",
+       "offset_mm": 0.012,
+       "axis_angle_deg": 0.067,
+       "gold_incl_deg": 88.99,
+       "engine_incl_deg": 88.95,
+       "incl_diff_deg": -0.04,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B5",
+       "pred_id": "P002",
+       "engine_line_id": "ZS02",
+       "offset_mm": 0.011,
+       "axis_angle_deg": 0.043,
+       "gold_incl_deg": 88.78,
+       "engine_incl_deg": 88.77,
+       "incl_diff_deg": -0.01,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B6",
+       "pred_id": "P009",
+       "engine_line_id": "ZS09",
+       "offset_mm": 0.013,
+       "axis_angle_deg": 0.022,
+       "gold_incl_deg": 88.56,
+       "engine_incl_deg": 88.36,
+       "incl_diff_deg": -0.2,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B7",
+       "pred_id": "P006",
+       "engine_line_id": "ZS06",
+       "offset_mm": 0.011,
+       "axis_angle_deg": 0.035,
+       "gold_incl_deg": 88.59,
+       "engine_incl_deg": 88.48,
+       "incl_diff_deg": -0.11,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B8",
+       "pred_id": "P001",
+       "engine_line_id": "ZS01",
+       "offset_mm": 0.039,
+       "axis_angle_deg": 0.022,
+       "gold_incl_deg": 87.97,
+       "engine_incl_deg": 87.76,
+       "incl_diff_deg": -0.21,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B9",
+       "pred_id": "P004",
+       "engine_line_id": "ZS04",
+       "offset_mm": 0.153,
+       "axis_angle_deg": 0.056,
+       "gold_incl_deg": 88.02,
+       "engine_incl_deg": 88.36,
+       "incl_diff_deg": 0.34,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B10",
+       "pred_id": "P012",
+       "engine_line_id": "ZS12",
+       "offset_mm": 0.024,
+       "axis_angle_deg": 0.389,
+       "gold_incl_deg": 89.68,
+       "engine_incl_deg": 89.76,
+       "incl_diff_deg": 0.08,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B11",
+       "pred_id": "P013",
+       "engine_line_id": "ZS13",
+       "offset_mm": 0.063,
+       "axis_angle_deg": 1.333,
+       "gold_incl_deg": 89.53,
+       "engine_incl_deg": 89.86,
+       "incl_diff_deg": 0.33,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B12",
+       "pred_id": "P010",
+       "engine_line_id": "ZS10",
+       "offset_mm": 0.972,
+       "axis_angle_deg": 0.427,
+       "gold_incl_deg": 89.62,
+       "engine_incl_deg": 89.59,
+       "incl_diff_deg": -0.03,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B13",
+       "pred_id": "P011",
+       "engine_line_id": "ZS11",
+       "offset_mm": 0.582,
+       "axis_angle_deg": 2.723,
+       "gold_incl_deg": 94.41,
+       "engine_incl_deg": 94.58,
+       "incl_diff_deg": 0.17,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B14",
+       "pred_id": "P014",
+       "engine_line_id": "ZS14",
+       "offset_mm": 0.004,
+       "axis_angle_deg": 0.087,
+       "gold_incl_deg": 89.65,
+       "engine_incl_deg": 89.8,
+       "incl_diff_deg": 0.15,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B15",
+       "pred_id": "P015",
+       "engine_line_id": "ZS15",
+       "offset_mm": 0.02,
+       "axis_angle_deg": 0.112,
+       "gold_incl_deg": 89.59,
+       "engine_incl_deg": 89.58,
+       "incl_diff_deg": -0.01,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B16",
+       "pred_id": "P017",
+       "engine_line_id": "ZS17",
+       "offset_mm": 0.03,
+       "axis_angle_deg": 0.853,
+       "gold_incl_deg": 88.76,
+       "engine_incl_deg": 88.82,
+       "incl_diff_deg": 0.06,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B17",
+       "pred_id": "P018",
+       "engine_line_id": "ZS18",
+       "offset_mm": 0.177,
+       "axis_angle_deg": 0.305,
+       "gold_incl_deg": 90.32,
+       "engine_incl_deg": 89.4,
+       "incl_diff_deg": -0.92,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B18",
+       "pred_id": "P021",
+       "engine_line_id": "ZS21",
+       "offset_mm": 0.01,
+       "axis_angle_deg": 0.074,
+       "gold_incl_deg": 89.34,
+       "engine_incl_deg": 89.52,
+       "incl_diff_deg": 0.18,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B19",
+       "pred_id": "P016",
+       "engine_line_id": "ZS16",
+       "offset_mm": 0.014,
+       "axis_angle_deg": 0.046,
+       "gold_incl_deg": 88.85,
+       "engine_incl_deg": 88.98,
+       "incl_diff_deg": 0.13,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B20",
+       "pred_id": "P019",
+       "engine_line_id": "ZS19",
+       "offset_mm": 0.013,
+       "axis_angle_deg": 0.032,
+       "gold_incl_deg": 88.98,
+       "engine_incl_deg": 89.06,
+       "incl_diff_deg": 0.08,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B21",
+       "pred_id": "P020",
+       "engine_line_id": "ZS20",
+       "offset_mm": 0.007,
+       "axis_angle_deg": 0.17,
+       "gold_incl_deg": 89.24,
+       "engine_incl_deg": 89.48,
+       "incl_diff_deg": 0.24,
+       "hem_gold_construction": false,
+       "joggle": false
+      }
+     ],
+     "fp_ids": [],
+     "fn_ids": [],
+     "fn_causes": {},
+     "fp_causes": {}
+    },
+    {
+     "gid": "gb_a64e51",
+     "subset": "HOLDOUT10",
+     "family": "46181",
+     "part_class": "bent",
+     "disposition": "SCORED_COMPLETE_LABEL",
+     "status": "OK",
+     "gold": 4,
+     "pred": 4,
+     "wall_s": 1.763,
+     "peak_rss_gib": 0.402,
+     "rss_limit_gib": 16,
+     "t_mm": 1.4533075284957886,
+     "failure_reason": null,
+     "tp": 4,
+     "fp": 0,
+     "fn": 0,
+     "f1": 1.0,
+     "matches": [
+      {
+       "gold_id": "B1",
+       "pred_id": "P004",
+       "engine_line_id": "ZS04",
+       "offset_mm": 0.054,
+       "axis_angle_deg": 0.272,
+       "gold_incl_deg": 91.38,
+       "engine_incl_deg": 90.91,
+       "incl_diff_deg": -0.47,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B2",
+       "pred_id": "P002",
+       "engine_line_id": "ZS02",
+       "offset_mm": 0.013,
+       "axis_angle_deg": 0.203,
+       "gold_incl_deg": 91.71,
+       "engine_incl_deg": 90.99,
+       "incl_diff_deg": -0.72,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B3",
+       "pred_id": "P003",
+       "engine_line_id": "ZS03",
+       "offset_mm": 0.071,
+       "axis_angle_deg": 0.264,
+       "gold_incl_deg": 91.4,
+       "engine_incl_deg": 90.68,
+       "incl_diff_deg": -0.72,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B4",
+       "pred_id": "P001",
+       "engine_line_id": "ZS01",
+       "offset_mm": 0.035,
+       "axis_angle_deg": 0.401,
+       "gold_incl_deg": 91.46,
+       "engine_incl_deg": 90.6,
+       "incl_diff_deg": -0.86,
+       "hem_gold_construction": false,
+       "joggle": false
+      }
+     ],
+     "fp_ids": [],
+     "fn_ids": [],
+     "fn_causes": {},
+     "fp_causes": {}
+    },
+    {
+     "gid": "gb_ac2239",
+     "subset": "EHO4",
+     "family": "16231",
+     "part_class": "bent",
+     "disposition": "SCORED_COMPLETE_LABEL",
+     "status": "OK",
+     "gold": 14,
+     "pred": 13,
+     "wall_s": 10.876,
+     "peak_rss_gib": 1.638,
+     "rss_limit_gib": 16,
+     "t_mm": 2.025859375,
+     "failure_reason": null,
+     "tp": 9,
+     "fp": 4,
+     "fn": 5,
+     "f1": 0.6667,
+     "matches": [
+      {
+       "gold_id": "B1",
+       "pred_id": "P004",
+       "engine_line_id": "ZS04",
+       "offset_mm": 0.025,
+       "axis_angle_deg": 0.058,
+       "gold_incl_deg": 90.19,
+       "engine_incl_deg": 90.26,
+       "incl_diff_deg": 0.07,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B2",
+       "pred_id": "P001",
+       "engine_line_id": "ZS01",
+       "offset_mm": 0.016,
+       "axis_angle_deg": 0.015,
+       "gold_incl_deg": 89.92,
+       "engine_incl_deg": 90.35,
+       "incl_diff_deg": 0.43,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B3",
+       "pred_id": "P003",
+       "engine_line_id": "ZS03",
+       "offset_mm": 0.062,
+       "axis_angle_deg": 0.013,
+       "gold_incl_deg": 89.82,
+       "engine_incl_deg": 90.21,
+       "incl_diff_deg": 0.39,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B4",
+       "pred_id": "P002",
+       "engine_line_id": "ZS02",
+       "offset_mm": 0.033,
+       "axis_angle_deg": 0.025,
+       "gold_incl_deg": 90.37,
+       "engine_incl_deg": 90.06,
+       "incl_diff_deg": -0.31,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B5",
+       "pred_id": "P006",
+       "engine_line_id": "ZS06",
+       "offset_mm": 0.029,
+       "axis_angle_deg": 0.07,
+       "gold_incl_deg": 89.78,
+       "engine_incl_deg": 89.67,
+       "incl_diff_deg": -0.11,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B6",
+       "pred_id": "P010",
+       "engine_line_id": "ZS10",
+       "offset_mm": 0.099,
+       "axis_angle_deg": 0.487,
+       "gold_incl_deg": 89.76,
+       "engine_incl_deg": 89.54,
+       "incl_diff_deg": -0.22,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B7",
+       "pred_id": "P007",
+       "engine_line_id": "ZS07",
+       "offset_mm": 0.019,
+       "axis_angle_deg": 0.102,
+       "gold_incl_deg": 90.73,
+       "engine_incl_deg": 90.68,
+       "incl_diff_deg": -0.05,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B8",
+       "pred_id": "P008",
+       "engine_line_id": "ZS08",
+       "offset_mm": 0.01,
+       "axis_angle_deg": 0.077,
+       "gold_incl_deg": 90.7,
+       "engine_incl_deg": 90.77,
+       "incl_diff_deg": 0.07,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B9",
+       "pred_id": "P005",
+       "engine_line_id": "ZS05",
+       "offset_mm": 0.012,
+       "axis_angle_deg": 0.074,
+       "gold_incl_deg": 90.36,
+       "engine_incl_deg": 90.48,
+       "incl_diff_deg": 0.12,
+       "hem_gold_construction": false,
+       "joggle": false
+      }
+     ],
+     "fp_ids": [
+      "P009",
+      "P011",
+      "P012",
+      "P013"
+     ],
+     "fn_ids": [
+      "B10",
+      "B11",
+      "B12",
+      "B13",
+      "B14"
+     ],
+     "fn_causes": {
+      "MISSED": 5
+     },
+     "fp_causes": {
+      "SPURIOUS": 4
+     }
+    },
+    {
+     "gid": "gb_b21bad",
+     "subset": "N001_N016",
+     "family": "42637",
+     "part_class": "bent",
+     "disposition": "SCORED_COMPLETE_LABEL",
+     "status": "OK",
+     "gold": 6,
+     "pred": 7,
+     "wall_s": 7.722,
+     "peak_rss_gib": 1.955,
+     "rss_limit_gib": 16,
+     "t_mm": 1.5104117584228516,
+     "failure_reason": null,
+     "tp": 6,
+     "fp": 1,
+     "fn": 0,
+     "f1": 0.9231,
+     "matches": [
+      {
+       "gold_id": "B1",
+       "pred_id": "P003",
+       "engine_line_id": "ZS03",
+       "offset_mm": 0.015,
+       "axis_angle_deg": 0.024,
+       "gold_incl_deg": 89.72,
+       "engine_incl_deg": 89.79,
+       "incl_diff_deg": 0.07,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B2",
+       "pred_id": "P002",
+       "engine_line_id": "ZS02",
+       "offset_mm": 0.009,
+       "axis_angle_deg": 0.022,
+       "gold_incl_deg": 89.07,
+       "engine_incl_deg": 89.0,
+       "incl_diff_deg": -0.07,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B3",
+       "pred_id": "P006",
+       "engine_line_id": "ZS06",
+       "offset_mm": 0.013,
+       "axis_angle_deg": 0.156,
+       "gold_incl_deg": 87.46,
+       "engine_incl_deg": 87.69,
+       "incl_diff_deg": 0.23,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B4",
+       "pred_id": "P001",
+       "engine_line_id": "ZS01",
+       "offset_mm": 0.008,
+       "axis_angle_deg": 0.024,
+       "gold_incl_deg": 89.18,
+       "engine_incl_deg": 89.15,
+       "incl_diff_deg": -0.03,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B5",
+       "pred_id": "P007",
+       "engine_line_id": "ZS07",
+       "offset_mm": 0.022,
+       "axis_angle_deg": 0.012,
+       "gold_incl_deg": 88.51,
+       "engine_incl_deg": 88.58,
+       "incl_diff_deg": 0.07,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B6",
+       "pred_id": "P005",
+       "engine_line_id": "ZS05",
+       "offset_mm": 0.01,
+       "axis_angle_deg": 0.015,
+       "gold_incl_deg": 89.41,
+       "engine_incl_deg": 89.52,
+       "incl_diff_deg": 0.11,
+       "hem_gold_construction": false,
+       "joggle": false
+      }
+     ],
+     "fp_ids": [
+      "P004"
+     ],
+     "fn_ids": [],
+     "fn_causes": {},
+     "fp_causes": {
+      "SPAN_LT_60PCT": 1
+     }
+    },
+    {
+     "gid": "gb_b3ae40",
+     "subset": "N001_N016",
+     "family": "26687",
+     "part_class": "bent",
+     "disposition": "SCORED_COMPLETE_LABEL",
+     "status": "OK",
+     "gold": 9,
+     "pred": 7,
+     "wall_s": 5.096,
+     "peak_rss_gib": 1.048,
+     "rss_limit_gib": 16,
+     "t_mm": 1.4971815538406372,
+     "failure_reason": null,
+     "tp": 6,
+     "fp": 1,
+     "fn": 3,
+     "f1": 0.75,
+     "matches": [
+      {
+       "gold_id": "B4",
+       "pred_id": "P006",
+       "engine_line_id": "ZS06",
+       "offset_mm": 0.011,
+       "axis_angle_deg": 0.257,
+       "gold_incl_deg": 90.43,
+       "engine_incl_deg": 90.38,
+       "incl_diff_deg": -0.05,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B5",
+       "pred_id": "P004",
+       "engine_line_id": "ZS04",
+       "offset_mm": 0.013,
+       "axis_angle_deg": 0.184,
+       "gold_incl_deg": 92.08,
+       "engine_incl_deg": 91.99,
+       "incl_diff_deg": -0.09,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B6",
+       "pred_id": "P003",
+       "engine_line_id": "ZS03",
+       "offset_mm": 0.03,
+       "axis_angle_deg": 0.703,
+       "gold_incl_deg": 89.61,
+       "engine_incl_deg": 89.94,
+       "incl_diff_deg": 0.33,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B7",
+       "pred_id": "P005",
+       "engine_line_id": "ZS05",
+       "offset_mm": 0.136,
+       "axis_angle_deg": 0.78,
+       "gold_incl_deg": 123.64,
+       "engine_incl_deg": 122.68,
+       "incl_diff_deg": -0.96,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B8",
+       "pred_id": "P001",
+       "engine_line_id": "ZS01",
+       "offset_mm": 0.085,
+       "axis_angle_deg": 1.049,
+       "gold_incl_deg": 123.66,
+       "engine_incl_deg": 122.86,
+       "incl_diff_deg": -0.8,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B9",
+       "pred_id": "P007",
+       "engine_line_id": "ZS07",
+       "offset_mm": 0.019,
+       "axis_angle_deg": 0.88,
+       "gold_incl_deg": 89.67,
+       "engine_incl_deg": 89.62,
+       "incl_diff_deg": -0.05,
+       "hem_gold_construction": false,
+       "joggle": false
+      }
+     ],
+     "fp_ids": [
+      "P002"
+     ],
+     "fn_ids": [
+      "B1",
+      "B2",
+      "B3"
+     ],
+     "fn_causes": {
+      "MISSED": 2,
+      "SPAN_LT_60PCT": 1
+     },
+     "fp_causes": {
+      "SPAN_LT_60PCT": 1
+     }
+    },
+    {
+     "gid": "gb_b97c8e",
+     "subset": "N001_N016",
+     "family": "26687",
+     "part_class": "bent",
+     "disposition": "SCORED_COMPLETE_LABEL",
+     "status": "OK",
+     "gold": 9,
+     "pred": 5,
+     "wall_s": 4.862,
+     "peak_rss_gib": 1.026,
+     "rss_limit_gib": 16,
+     "t_mm": 1.4881522250175476,
+     "failure_reason": null,
+     "tp": 5,
+     "fp": 0,
+     "fn": 4,
+     "f1": 0.7143,
+     "matches": [
+      {
+       "gold_id": "B3",
+       "pred_id": "P001",
+       "engine_line_id": "ZS01",
+       "offset_mm": 0.011,
+       "axis_angle_deg": 0.156,
+       "gold_incl_deg": 89.29,
+       "engine_incl_deg": 89.62,
+       "incl_diff_deg": 0.33,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B4",
+       "pred_id": "P004",
+       "engine_line_id": "ZS04",
+       "offset_mm": 0.016,
+       "axis_angle_deg": 0.276,
+       "gold_incl_deg": 90.35,
+       "engine_incl_deg": 90.3,
+       "incl_diff_deg": -0.05,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B5",
+       "pred_id": "P003",
+       "engine_line_id": "ZS03",
+       "offset_mm": 0.013,
+       "axis_angle_deg": 0.781,
+       "gold_incl_deg": 89.59,
+       "engine_incl_deg": 89.64,
+       "incl_diff_deg": 0.05,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B6",
+       "pred_id": "P002",
+       "engine_line_id": "ZS02",
+       "offset_mm": 0.017,
+       "axis_angle_deg": 0.261,
+       "gold_incl_deg": 90.96,
+       "engine_incl_deg": 91.05,
+       "incl_diff_deg": 0.09,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B9",
+       "pred_id": "P005",
+       "engine_line_id": "ZS05",
+       "offset_mm": 0.024,
+       "axis_angle_deg": 0.404,
+       "gold_incl_deg": 90.48,
+       "engine_incl_deg": 90.49,
+       "incl_diff_deg": 0.01,
+       "hem_gold_construction": false,
+       "joggle": false
+      }
+     ],
+     "fp_ids": [],
+     "fn_ids": [
+      "B1",
+      "B2",
+      "B7",
+      "B8"
+     ],
+     "fn_causes": {
+      "MISSED": 4
+     },
+     "fp_causes": {}
+    },
+    {
+     "gid": "gb_bbc3a8",
+     "subset": "HOLDOUT10",
+     "family": "46957",
+     "part_class": "bent",
+     "disposition": "SCORED_COMPLETE_LABEL",
+     "status": "OK",
+     "gold": 4,
+     "pred": 7,
+     "wall_s": 41.212,
+     "peak_rss_gib": 2.751,
+     "rss_limit_gib": 32,
+     "t_mm": 2.0933444690704346,
+     "failure_reason": null,
+     "tp": 4,
+     "fp": 3,
+     "fn": 0,
+     "f1": 0.7273,
+     "matches": [
+      {
+       "gold_id": "B1",
+       "pred_id": "P005",
+       "engine_line_id": "ZS05",
+       "offset_mm": 0.137,
+       "axis_angle_deg": 0.055,
+       "gold_incl_deg": 90.14,
+       "engine_incl_deg": 133.42,
+       "incl_diff_deg": 43.28,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B2",
+       "pred_id": "P002",
+       "engine_line_id": "ZS02",
+       "offset_mm": 0.034,
+       "axis_angle_deg": 0.036,
+       "gold_incl_deg": 90.06,
+       "engine_incl_deg": 90.08,
+       "incl_diff_deg": 0.02,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B3",
+       "pred_id": "P003",
+       "engine_line_id": "ZS03",
+       "offset_mm": 0.053,
+       "axis_angle_deg": 0.129,
+       "gold_incl_deg": 89.65,
+       "engine_incl_deg": 89.71,
+       "incl_diff_deg": 0.06,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B4",
+       "pred_id": "P004",
+       "engine_line_id": "ZS04",
+       "offset_mm": 0.15,
+       "axis_angle_deg": 0.241,
+       "gold_incl_deg": 89.55,
+       "engine_incl_deg": 89.92,
+       "incl_diff_deg": 0.37,
+       "hem_gold_construction": false,
+       "joggle": false
+      }
+     ],
+     "fp_ids": [
+      "P001",
+      "P006",
+      "P007"
+     ],
+     "fn_ids": [],
+     "fn_causes": {},
+     "fp_causes": {
+      "TAKEN_BY_OTHER": 1,
+      "SPURIOUS": 2
+     }
+    },
+    {
+     "gid": "gb_c6e707",
+     "subset": "HOLDOUT10",
+     "family": "47553",
+     "part_class": "bent",
+     "disposition": "SCORED_COMPLETE_LABEL",
+     "status": "OK",
+     "gold": 2,
+     "pred": 2,
+     "wall_s": 7.952,
+     "peak_rss_gib": 1.683,
+     "rss_limit_gib": 16,
+     "t_mm": 1.4456650805473328,
+     "failure_reason": null,
+     "tp": 2,
+     "fp": 0,
+     "fn": 0,
+     "f1": 1.0,
+     "matches": [
+      {
+       "gold_id": "B1",
+       "pred_id": "P002",
+       "engine_line_id": "ZS02",
+       "offset_mm": 0.037,
+       "axis_angle_deg": 0.069,
+       "gold_incl_deg": 90.04,
+       "engine_incl_deg": 90.26,
+       "incl_diff_deg": 0.22,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B2",
+       "pred_id": "P001",
+       "engine_line_id": "ZS01",
+       "offset_mm": 0.018,
+       "axis_angle_deg": 0.03,
+       "gold_incl_deg": 89.1,
+       "engine_incl_deg": 89.12,
+       "incl_diff_deg": 0.02,
+       "hem_gold_construction": false,
+       "joggle": false
+      }
+     ],
+     "fp_ids": [],
+     "fn_ids": [],
+     "fn_causes": {},
+     "fp_causes": {}
+    },
+    {
+     "gid": "gb_cdecd9",
+     "subset": "N001_N016",
+     "family": "47215",
+     "part_class": "rolled",
+     "disposition": "ZERO_BEND_CONTROL",
+     "status": "OK",
+     "gold": 0,
+     "pred": 0,
+     "wall_s": 3.576,
+     "peak_rss_gib": 0.605,
+     "rss_limit_gib": 16,
+     "t_mm": 2.5123288822174072,
+     "failure_reason": null,
+     "tp": 0,
+     "fp": 0,
+     "fn": 0,
+     "f1": null,
+     "matches": [],
+     "fp_ids": [],
+     "fn_ids": []
+    },
+    {
+     "gid": "gb_d1093e",
+     "subset": "EHO4",
+     "family": "38168",
+     "part_class": "bent",
+     "disposition": "SCORED_COMPLETE_LABEL",
+     "status": "OK",
+     "gold": 20,
+     "pred": 20,
+     "wall_s": 11.438,
+     "peak_rss_gib": 1.929,
+     "rss_limit_gib": 16,
+     "t_mm": 1.493953366279602,
+     "failure_reason": null,
+     "tp": 20,
+     "fp": 0,
+     "fn": 0,
+     "f1": 1.0,
+     "matches": [
+      {
+       "gold_id": "B1",
+       "pred_id": "P009",
+       "engine_line_id": "ZS09",
+       "offset_mm": 0.009,
+       "axis_angle_deg": 0.006,
+       "gold_incl_deg": 89.71,
+       "engine_incl_deg": 89.72,
+       "incl_diff_deg": 0.01,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B2",
+       "pred_id": "P007",
+       "engine_line_id": "ZS07",
+       "offset_mm": 0.021,
+       "axis_angle_deg": 0.045,
+       "gold_incl_deg": 89.49,
+       "engine_incl_deg": 89.47,
+       "incl_diff_deg": -0.02,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B3",
+       "pred_id": "P005",
+       "engine_line_id": "ZS05",
+       "offset_mm": 0.011,
+       "axis_angle_deg": 0.023,
+       "gold_incl_deg": 89.61,
+       "engine_incl_deg": 89.55,
+       "incl_diff_deg": -0.06,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B4",
+       "pred_id": "P008",
+       "engine_line_id": "ZS08",
+       "offset_mm": 0.016,
+       "axis_angle_deg": 0.026,
+       "gold_incl_deg": 89.54,
+       "engine_incl_deg": 89.43,
+       "incl_diff_deg": -0.11,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B5",
+       "pred_id": "P001",
+       "engine_line_id": "ZS01",
+       "offset_mm": 0.013,
+       "axis_angle_deg": 0.005,
+       "gold_incl_deg": 89.67,
+       "engine_incl_deg": 89.66,
+       "incl_diff_deg": -0.01,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B6",
+       "pred_id": "P003",
+       "engine_line_id": "ZS03",
+       "offset_mm": 0.007,
+       "axis_angle_deg": 0.026,
+       "gold_incl_deg": 89.87,
+       "engine_incl_deg": 89.83,
+       "incl_diff_deg": -0.04,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B7",
+       "pred_id": "P004",
+       "engine_line_id": "ZS04",
+       "offset_mm": 0.01,
+       "axis_angle_deg": 0.034,
+       "gold_incl_deg": 89.57,
+       "engine_incl_deg": 89.57,
+       "incl_diff_deg": 0.0,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B8",
+       "pred_id": "P006",
+       "engine_line_id": "ZS06",
+       "offset_mm": 0.012,
+       "axis_angle_deg": 0.022,
+       "gold_incl_deg": 89.62,
+       "engine_incl_deg": 89.7,
+       "incl_diff_deg": 0.08,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B9",
+       "pred_id": "P002",
+       "engine_line_id": "ZS02",
+       "offset_mm": 0.009,
+       "axis_angle_deg": 0.025,
+       "gold_incl_deg": 89.49,
+       "engine_incl_deg": 89.45,
+       "incl_diff_deg": -0.04,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B10",
+       "pred_id": "P010",
+       "engine_line_id": "ZS10",
+       "offset_mm": 0.02,
+       "axis_angle_deg": 0.032,
+       "gold_incl_deg": 88.86,
+       "engine_incl_deg": 88.86,
+       "incl_diff_deg": -0.0,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B11",
+       "pred_id": "P014",
+       "engine_line_id": "ZS14",
+       "offset_mm": 0.012,
+       "axis_angle_deg": 0.026,
+       "gold_incl_deg": 89.9,
+       "engine_incl_deg": 90.11,
+       "incl_diff_deg": 0.21,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B12",
+       "pred_id": "P011",
+       "engine_line_id": "ZS11",
+       "offset_mm": 0.014,
+       "axis_angle_deg": 0.087,
+       "gold_incl_deg": 90.01,
+       "engine_incl_deg": 90.08,
+       "incl_diff_deg": 0.07,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B13",
+       "pred_id": "P019",
+       "engine_line_id": "ZS19",
+       "offset_mm": 0.017,
+       "axis_angle_deg": 0.041,
+       "gold_incl_deg": 89.48,
+       "engine_incl_deg": 89.51,
+       "incl_diff_deg": 0.03,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B14",
+       "pred_id": "P020",
+       "engine_line_id": "ZS20",
+       "offset_mm": 0.016,
+       "axis_angle_deg": 0.078,
+       "gold_incl_deg": 89.86,
+       "engine_incl_deg": 89.98,
+       "incl_diff_deg": 0.12,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B15",
+       "pred_id": "P017",
+       "engine_line_id": "ZS17",
+       "offset_mm": 0.051,
+       "axis_angle_deg": 1.253,
+       "gold_incl_deg": 89.79,
+       "engine_incl_deg": 89.97,
+       "incl_diff_deg": 0.18,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B16",
+       "pred_id": "P016",
+       "engine_line_id": "ZS16",
+       "offset_mm": 0.027,
+       "axis_angle_deg": 0.931,
+       "gold_incl_deg": 89.71,
+       "engine_incl_deg": 89.81,
+       "incl_diff_deg": 0.1,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B17",
+       "pred_id": "P018",
+       "engine_line_id": "ZS18",
+       "offset_mm": 0.012,
+       "axis_angle_deg": 0.2,
+       "gold_incl_deg": 89.72,
+       "engine_incl_deg": 89.84,
+       "incl_diff_deg": 0.12,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B18",
+       "pred_id": "P015",
+       "engine_line_id": "ZS15",
+       "offset_mm": 0.035,
+       "axis_angle_deg": 1.257,
+       "gold_incl_deg": 89.92,
+       "engine_incl_deg": 89.96,
+       "incl_diff_deg": 0.04,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B19",
+       "pred_id": "P013",
+       "engine_line_id": "ZS13",
+       "offset_mm": 0.022,
+       "axis_angle_deg": 0.132,
+       "gold_incl_deg": 90.97,
+       "engine_incl_deg": 91.14,
+       "incl_diff_deg": 0.17,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B20",
+       "pred_id": "P012",
+       "engine_line_id": "ZS12",
+       "offset_mm": 0.151,
+       "axis_angle_deg": 2.948,
+       "gold_incl_deg": 89.65,
+       "engine_incl_deg": 89.79,
+       "incl_diff_deg": 0.14,
+       "hem_gold_construction": false,
+       "joggle": false
+      }
+     ],
+     "fp_ids": [],
+     "fn_ids": [],
+     "fn_causes": {},
+     "fp_causes": {}
+    },
+    {
+     "gid": "gb_d11e33",
+     "subset": "N001_N016",
+     "family": "31409",
+     "part_class": "bent",
+     "disposition": "SCORED_COMPLETE_LABEL",
+     "status": "OK",
+     "gold": 3,
+     "pred": 2,
+     "wall_s": 2.473,
+     "peak_rss_gib": 0.543,
+     "rss_limit_gib": 16,
+     "t_mm": 1.506549735069275,
+     "failure_reason": null,
+     "tp": 2,
+     "fp": 0,
+     "fn": 1,
+     "f1": 0.8,
+     "matches": [
+      {
+       "gold_id": "B1",
+       "pred_id": "P001",
+       "engine_line_id": "ZS01",
+       "offset_mm": 0.026,
+       "axis_angle_deg": 0.087,
+       "gold_incl_deg": 53.82,
+       "engine_incl_deg": 53.93,
+       "incl_diff_deg": 0.11,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B2",
+       "pred_id": "P002",
+       "engine_line_id": "ZS02",
+       "offset_mm": 0.018,
+       "axis_angle_deg": 0.475,
+       "gold_incl_deg": 75.29,
+       "engine_incl_deg": 75.38,
+       "incl_diff_deg": 0.09,
+       "hem_gold_construction": false,
+       "joggle": false
+      }
+     ],
+     "fp_ids": [],
+     "fn_ids": [
+      "B3"
+     ],
+     "fn_causes": {
+      "MISSED": 1
+     },
+     "fp_causes": {}
+    },
+    {
+     "gid": "gb_f63c89",
+     "subset": "HOLDOUT10",
+     "family": "28272",
+     "part_class": "bent",
+     "disposition": "SCORED_COMPLETE_LABEL",
+     "status": "OK",
+     "gold": 2,
+     "pred": 2,
+     "wall_s": 5.579,
+     "peak_rss_gib": 0.719,
+     "rss_limit_gib": 16,
+     "t_mm": 1.9534003925323487,
+     "failure_reason": null,
+     "tp": 2,
+     "fp": 0,
+     "fn": 0,
+     "f1": 1.0,
+     "matches": [
+      {
+       "gold_id": "B1",
+       "pred_id": "P001",
+       "engine_line_id": "ZS01",
+       "offset_mm": 0.006,
+       "axis_angle_deg": 0.015,
+       "gold_incl_deg": 90.39,
+       "engine_incl_deg": 90.4,
+       "incl_diff_deg": 0.01,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B2",
+       "pred_id": "P002",
+       "engine_line_id": "ZS02",
+       "offset_mm": 0.095,
+       "axis_angle_deg": 0.058,
+       "gold_incl_deg": 90.51,
+       "engine_incl_deg": 90.02,
+       "incl_diff_deg": -0.49,
+       "hem_gold_construction": false,
+       "joggle": false
+      }
+     ],
+     "fp_ids": [],
+     "fn_ids": [],
+     "fn_causes": {},
+     "fp_causes": {}
+    }
+   ]
+  },
+  "zs_lane_v1": {
+   "primary": {
+    "scans": 25,
+    "families": 17,
+    "gold": 186,
+    "pred": 157,
+    "tp": 140,
+    "fp": 17,
+    "fn": 46,
+    "P": 0.8917,
+    "R": 0.7527,
+    "micro_f1": 0.8163,
+    "micro_ci95": [
+     0.6968,
+     0.9449
+    ],
+    "family_macro_f1": 0.8848,
+    "macro_ci95": [
+     0.8096,
+     0.9526
+    ],
+    "failed_or_missing_scans": 0,
+    "controls": {
+     "scans": 2,
+     "fp_lines": 0
+    },
+    "fn_causes": {
+     "MISSED": 26,
+     "SPAN_LT_60PCT": 20
+    },
+    "fp_causes": {
+     "SPAN_LT_60PCT": 5,
+     "SPURIOUS": 12
+    },
+    "worst_families": [
+     [
+      0.571,
+      "31367"
+     ],
+     [
+      0.655,
+      "16231"
+     ],
+     [
+      0.667,
+      "38173"
+     ],
+     [
+      0.727,
+      "46957"
+     ],
+     [
+      0.733,
+      "26687"
+     ]
+    ]
+   },
+   "micro_incl_control_fp": {
+    "tp": 140,
+    "fp": 17,
+    "fn": 46,
+    "P": 0.8917,
+    "R": 0.7527,
+    "micro_f1": 0.8163,
+    "strict_micro_f1_excluded_as_fn": 0.8163,
+    "excluded_before_scoring": 0
+   },
+   "by_subset": {
+    "HOLDOUT10": {
+     "scans": 9,
+     "families": 9,
+     "gold": 26,
+     "pred": 29,
+     "tp": 26,
+     "fp": 3,
+     "fn": 0,
+     "P": 0.8966,
+     "R": 1.0,
+     "micro_f1": 0.9455,
+     "micro_ci95": [
+      0.8525,
+      1.0
+     ],
+     "family_macro_f1": 0.9697,
+     "macro_ci95": [
+      0.9091,
+      1.0
+     ],
+     "failed_or_missing_scans": 0,
+     "controls": {
+      "scans": 0,
+      "fp_lines": 0
+     },
+     "fn_causes": {},
+     "fp_causes": {
+      "SPURIOUS": 3
+     },
+     "worst_families": [
+      [
+       0.727,
+       "46957"
+      ],
+      [
+       1.0,
+       "28272"
+      ],
+      [
+       1.0,
+       "46181"
+      ],
+      [
+       1.0,
+       "47553"
+      ],
+      [
+       1.0,
+       "47846"
+      ]
+     ]
+    },
+    "N001_N016": {
+     "scans": 12,
+     "families": 6,
+     "gold": 91,
+     "pred": 60,
+     "tp": 55,
+     "fp": 5,
+     "fn": 36,
+     "P": 0.9167,
+     "R": 0.6044,
+     "micro_f1": 0.7285,
+     "micro_ci95": [
+      0.618,
+      0.8889
+     ],
+     "family_macro_f1": 0.7767,
+     "macro_ci95": [
+      0.6635,
+      0.8915
+     ],
+     "failed_or_missing_scans": 0,
+     "controls": {
+      "scans": 2,
+      "fp_lines": 0
+     },
+     "fn_causes": {
+      "MISSED": 16,
+      "SPAN_LT_60PCT": 20
+     },
+     "fp_causes": {
+      "SPAN_LT_60PCT": 5
+     },
+     "worst_families": [
+      [
+       0.571,
+       "31367"
+      ],
+      [
+       0.667,
+       "38173"
+      ],
+      [
+       0.733,
+       "26687"
+      ],
+      [
+       0.8,
+       "31409"
+      ],
+      [
+       0.889,
+       "42637"
+      ]
+     ]
+    },
+    "EHO4": {
+     "scans": 4,
+     "families": 2,
+     "gold": 69,
+     "pred": 68,
+     "tp": 59,
+     "fp": 9,
+     "fn": 10,
+     "P": 0.8676,
+     "R": 0.8551,
+     "micro_f1": 0.8613,
+     "micro_ci95": [
+      0.6545,
+      1.0
+     ],
+     "family_macro_f1": 0.8273,
+     "macro_ci95": [
+      0.6545,
+      1.0
+     ],
+     "failed_or_missing_scans": 0,
+     "controls": {
+      "scans": 0,
+      "fp_lines": 0
+     },
+     "fn_causes": {
+      "MISSED": 10
+     },
+     "fp_causes": {
+      "SPURIOUS": 9
+     },
+     "worst_families": [
+      [
+       0.655,
+       "16231"
+      ],
+      [
+       1.0,
+       "38168"
+      ]
+     ]
+    }
+   },
+   "zero_bend": {
+    "scans": 2,
+    "per_scan_fp": {
+     "gb_61b6da": 0,
+     "gb_cdecd9": 0
+    },
+    "fp_total": 0
+   },
+   "rolled_or_flat_fp": {
+    "scans": {
+     "gb_61b6da": {
+      "class": "rolled",
+      "fp": 0
+     },
+     "gb_cdecd9": {
+      "class": "rolled",
+      "fp": 0
+     }
+    },
+    "total": 0
+   },
+   "unseen_families_S3": {
+    "scans": 21,
+    "families": 15,
+    "gold": 160,
+    "pred": 141,
+    "tp": 125,
+    "fp": 16,
+    "fn": 35,
+    "P": 0.8865,
+    "R": 0.7812,
+    "micro_f1": 0.8306,
+    "micro_ci95": [
+     0.6963,
+     0.9749
+    ],
+    "family_macro_f1": 0.9095,
+    "macro_ci95": [
+     0.8331,
+     0.9744
+    ],
+    "failed_or_missing_scans": 0,
+    "controls": {
+     "scans": 2,
+     "fp_lines": 0
+    },
+    "fn_causes": {
+     "MISSED": 16,
+     "SPAN_LT_60PCT": 19
+    },
+    "fp_causes": {
+     "SPAN_LT_60PCT": 4,
+     "SPURIOUS": 12
+    },
+    "worst_families": [
+     [
+      0.571,
+      "31367"
+     ],
+     [
+      0.655,
+      "16231"
+     ],
+     [
+      0.727,
+      "46957"
+     ],
+     [
+      0.8,
+      "31409"
+     ],
+     [
+      0.889,
+      "42637"
+     ]
+    ]
+   },
+   "seen_families_only": {
+    "scans": 4,
+    "families": 2,
+    "gold": 26,
+    "pred": 16,
+    "tp": 15,
+    "fp": 1,
+    "fn": 11,
+    "P": 0.9375,
+    "R": 0.5769,
+    "micro_f1": 0.7143,
+    "micro_ci95": [
+     0.6667,
+     0.7333
+    ],
+    "family_macro_f1": 0.7,
+    "macro_ci95": [
+     0.6667,
+     0.7333
+    ],
+    "failed_or_missing_scans": 0,
+    "controls": {
+     "scans": 0,
+     "fp_lines": 0
+    },
+    "fn_causes": {
+     "MISSED": 10,
+     "SPAN_LT_60PCT": 1
+    },
+    "fp_causes": {
+     "SPAN_LT_60PCT": 1
+    },
+    "worst_families": [
+     [
+      0.667,
+      "38173"
+     ],
+     [
+      0.733,
+      "26687"
+     ]
+    ]
+   },
+   "angles": {
+    "n_matched_with_angles": 140,
+    "n_excl_hem_and_joggle": 138,
+    "rule": "engine included angle - gold included angle; hem gold lines (tangent-band construction, gold angle is not the hem angle) and the joggle scan are flagged and left out of the summary",
+    "median_abs": 0.09,
+    "p90_abs": 0.39,
+    "max_abs": 2.87,
+    "mean_signed": -0.04,
+    "within_1deg": 137,
+    "within_2deg": 137,
+    "within_5deg": 138,
+    "flagged": [
+     {
+      "gid": "gb_437879",
+      "gold_id": "B1",
+      "diff": -2.16,
+      "why": "joggle"
+     },
+     {
+      "gid": "gb_437879",
+      "gold_id": "B2",
+      "diff": -1.95,
+      "why": "joggle"
+     }
+    ]
+   },
+   "runtime": {
+    "wall_s": {
+     "p50": 10.8,
+     "p95": 29.8,
+     "max": 222.834,
+     "total": 491.5,
+     "n": 27
+    },
+    "peak_rss_gib": {
+     "p50": 1.6,
+     "max": 4.79
+    },
+    "ok": 27,
+    "failures": []
+   },
+   "vx_pairs_context_only": [
+    {
+     "V": "gb_b21bad",
+     "X": "gb_04738b",
+     "engine_lines_V": 7,
+     "engine_lines_X": 8,
+     "gold_V": 6,
+     "gold_X": 6
+    },
+    {
+     "V": "gb_138090",
+     "X": "gb_1f3fe0",
+     "engine_lines_V": 2,
+     "engine_lines_X": 2,
+     "gold_V": 4,
+     "gold_X": 4
+    },
+    {
+     "V": "gb_1baa22",
+     "X": "gb_d11e33",
+     "engine_lines_V": 2,
+     "engine_lines_X": 2,
+     "gold_V": 3,
+     "gold_X": 3
+    },
+    {
+     "V": "gb_231669",
+     "X": "gb_ac2239",
+     "engine_lines_V": 14,
+     "engine_lines_X": 13,
+     "gold_V": 14,
+     "gold_X": 14
+    },
+    {
+     "V": "gb_44ddfb",
+     "X": "gb_a0538b",
+     "engine_lines_V": 4,
+     "engine_lines_X": 4,
+     "gold_V": 4,
+     "gold_X": 4
+    },
+    {
+     "V": "gb_cdecd9",
+     "X": "gb_61b6da",
+     "engine_lines_V": 0,
+     "engine_lines_X": 0,
+     "gold_V": 0,
+     "gold_X": 0
+    },
+    {
+     "V": "gb_68cd06",
+     "X": "gb_959f4a",
+     "engine_lines_V": 13,
+     "engine_lines_X": 4,
+     "gold_V": 20,
+     "gold_X": 19
+    },
+    {
+     "V": "gb_d1093e",
+     "X": "gb_a2dd83",
+     "engine_lines_V": 20,
+     "engine_lines_X": 21,
+     "gold_V": 20,
+     "gold_X": 21
+    },
+    {
+     "V": "gb_b97c8e",
+     "X": "gb_b3ae40",
+     "engine_lines_V": 5,
+     "engine_lines_X": 7,
+     "gold_V": 9,
+     "gold_X": 9
+    }
+   ],
+   "per_scan": [
+    {
+     "gid": "gb_04738b",
+     "subset": "N001_N016",
+     "family": "42637",
+     "part_class": "bent",
+     "disposition": "SCORED_COMPLETE_LABEL",
+     "status": "OK",
+     "gold": 6,
+     "pred": 8,
+     "wall_s": 11.879,
+     "peak_rss_gib": 2.15,
+     "rss_limit_gib": 16,
+     "t_mm": 1.4719884586334229,
+     "failure_reason": null,
+     "tp": 6,
+     "fp": 2,
+     "fn": 0,
+     "f1": 0.8571,
+     "matches": [
+      {
+       "gold_id": "B1",
+       "pred_id": "P003",
+       "engine_line_id": "ZS03",
+       "offset_mm": 0.021,
+       "axis_angle_deg": 0.088,
+       "gold_incl_deg": 89.91,
+       "engine_incl_deg": 89.86,
+       "incl_diff_deg": -0.05,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B2",
+       "pred_id": "P002",
+       "engine_line_id": "ZS02",
+       "offset_mm": 0.012,
+       "axis_angle_deg": 0.053,
+       "gold_incl_deg": 88.95,
+       "engine_incl_deg": 89.05,
+       "incl_diff_deg": 0.1,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B3",
+       "pred_id": "P006",
+       "engine_line_id": "ZS06",
+       "offset_mm": 0.015,
+       "axis_angle_deg": 0.116,
+       "gold_incl_deg": 86.71,
+       "engine_incl_deg": 87.1,
+       "incl_diff_deg": 0.39,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B4",
+       "pred_id": "P001",
+       "engine_line_id": "ZS01",
+       "offset_mm": 0.014,
+       "axis_angle_deg": 0.016,
+       "gold_incl_deg": 88.25,
+       "engine_incl_deg": 88.38,
+       "incl_diff_deg": 0.13,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B5",
+       "pred_id": "P007",
+       "engine_line_id": "ZS07",
+       "offset_mm": 0.012,
+       "axis_angle_deg": 0.155,
+       "gold_incl_deg": 87.72,
+       "engine_incl_deg": 87.78,
+       "incl_diff_deg": 0.06,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B6",
+       "pred_id": "P004",
+       "engine_line_id": "ZS04",
+       "offset_mm": 0.019,
+       "axis_angle_deg": 0.008,
+       "gold_incl_deg": 90.0,
+       "engine_incl_deg": 90.08,
+       "incl_diff_deg": 0.08,
+       "hem_gold_construction": false,
+       "joggle": false
+      }
+     ],
+     "fp_ids": [
+      "P005",
+      "P008"
+     ],
+     "fn_ids": [],
+     "fn_causes": {},
+     "fp_causes": {
+      "SPAN_LT_60PCT": 2
+     }
+    },
+    {
+     "gid": "gb_138090",
+     "subset": "N001_N016",
+     "family": "38173",
+     "part_class": "bent",
+     "disposition": "SCORED_COMPLETE_LABEL",
+     "status": "OK",
+     "gold": 4,
+     "pred": 2,
+     "wall_s": 13.549,
+     "peak_rss_gib": 1.746,
+     "rss_limit_gib": 16,
+     "t_mm": 2.4764155340194702,
+     "failure_reason": null,
+     "tp": 2,
+     "fp": 0,
+     "fn": 2,
+     "f1": 0.6667,
+     "matches": [
+      {
+       "gold_id": "B1",
+       "pred_id": "P001",
+       "engine_line_id": "ZS01",
+       "offset_mm": 0.037,
+       "axis_angle_deg": 0.023,
+       "gold_incl_deg": 89.58,
+       "engine_incl_deg": 89.01,
+       "incl_diff_deg": -0.57,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B2",
+       "pred_id": "P002",
+       "engine_line_id": "ZS02",
+       "offset_mm": 0.051,
+       "axis_angle_deg": 0.004,
+       "gold_incl_deg": 89.65,
+       "engine_incl_deg": 89.8,
+       "incl_diff_deg": 0.15,
+       "hem_gold_construction": false,
+       "joggle": false
+      }
+     ],
+     "fp_ids": [],
+     "fn_ids": [
+      "B3",
+      "B4"
+     ],
+     "fn_causes": {
+      "MISSED": 2
+     },
+     "fp_causes": {}
+    },
+    {
+     "gid": "gb_1baa22",
+     "subset": "N001_N016",
+     "family": "31409",
+     "part_class": "bent",
+     "disposition": "SCORED_COMPLETE_LABEL",
+     "status": "OK",
+     "gold": 3,
+     "pred": 2,
+     "wall_s": 3.038,
+     "peak_rss_gib": 0.525,
+     "rss_limit_gib": 16,
+     "t_mm": 1.5138136339187622,
+     "failure_reason": null,
+     "tp": 2,
+     "fp": 0,
+     "fn": 1,
+     "f1": 0.8,
+     "matches": [
+      {
+       "gold_id": "B1",
+       "pred_id": "P001",
+       "engine_line_id": "ZS01",
+       "offset_mm": 0.026,
+       "axis_angle_deg": 0.071,
+       "gold_incl_deg": 89.59,
+       "engine_incl_deg": 89.67,
+       "incl_diff_deg": 0.08,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B2",
+       "pred_id": "P002",
+       "engine_line_id": "ZS02",
+       "offset_mm": 0.008,
+       "axis_angle_deg": 0.162,
+       "gold_incl_deg": 89.1,
+       "engine_incl_deg": 89.15,
+       "incl_diff_deg": 0.05,
+       "hem_gold_construction": false,
+       "joggle": false
+      }
+     ],
+     "fp_ids": [],
+     "fn_ids": [
+      "B3"
+     ],
+     "fn_causes": {
+      "MISSED": 1
+     },
+     "fp_causes": {}
+    },
+    {
+     "gid": "gb_1f3fe0",
+     "subset": "N001_N016",
+     "family": "38173",
+     "part_class": "bent",
+     "disposition": "SCORED_COMPLETE_LABEL",
+     "status": "OK",
+     "gold": 4,
+     "pred": 2,
+     "wall_s": 14.922,
+     "peak_rss_gib": 1.72,
+     "rss_limit_gib": 16,
+     "t_mm": 2.45947970867157,
+     "failure_reason": null,
+     "tp": 2,
+     "fp": 0,
+     "fn": 2,
+     "f1": 0.6667,
+     "matches": [
+      {
+       "gold_id": "B1",
+       "pred_id": "P001",
+       "engine_line_id": "ZS01",
+       "offset_mm": 0.027,
+       "axis_angle_deg": 0.018,
+       "gold_incl_deg": 90.25,
+       "engine_incl_deg": 90.25,
+       "incl_diff_deg": -0.0,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B2",
+       "pred_id": "P002",
+       "engine_line_id": "ZS02",
+       "offset_mm": 0.012,
+       "axis_angle_deg": 0.041,
+       "gold_incl_deg": 89.95,
+       "engine_incl_deg": 90.1,
+       "incl_diff_deg": 0.15,
+       "hem_gold_construction": false,
+       "joggle": false
+      }
+     ],
+     "fp_ids": [],
+     "fn_ids": [
+      "B3",
+      "B4"
+     ],
+     "fn_causes": {
+      "MISSED": 2
+     },
+     "fp_causes": {}
+    },
+    {
+     "gid": "gb_231669",
+     "subset": "EHO4",
+     "family": "16231",
+     "part_class": "bent",
+     "disposition": "SCORED_COMPLETE_LABEL",
+     "status": "OK",
+     "gold": 14,
+     "pred": 14,
+     "wall_s": 14.154,
+     "peak_rss_gib": 1.6,
+     "rss_limit_gib": 16,
+     "t_mm": 1.972751636505127,
+     "failure_reason": null,
+     "tp": 9,
+     "fp": 5,
+     "fn": 5,
+     "f1": 0.6429,
+     "matches": [
+      {
+       "gold_id": "B1",
+       "pred_id": "P004",
+       "engine_line_id": "ZS04",
+       "offset_mm": 0.027,
+       "axis_angle_deg": 0.054,
+       "gold_incl_deg": 89.96,
+       "engine_incl_deg": 90.02,
+       "incl_diff_deg": 0.06,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B2",
+       "pred_id": "P002",
+       "engine_line_id": "ZS02",
+       "offset_mm": 0.007,
+       "axis_angle_deg": 0.014,
+       "gold_incl_deg": 91.59,
+       "engine_incl_deg": 91.71,
+       "incl_diff_deg": 0.12,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B3",
+       "pred_id": "P001",
+       "engine_line_id": "ZS01",
+       "offset_mm": 0.133,
+       "axis_angle_deg": 0.075,
+       "gold_incl_deg": 90.04,
+       "engine_incl_deg": 90.07,
+       "incl_diff_deg": 0.03,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B4",
+       "pred_id": "P003",
+       "engine_line_id": "ZS03",
+       "offset_mm": 0.032,
+       "axis_angle_deg": 0.092,
+       "gold_incl_deg": 91.62,
+       "engine_incl_deg": 91.52,
+       "incl_diff_deg": -0.1,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B5",
+       "pred_id": "P008",
+       "engine_line_id": "ZS08",
+       "offset_mm": 0.008,
+       "axis_angle_deg": 0.199,
+       "gold_incl_deg": 89.67,
+       "engine_incl_deg": 89.63,
+       "incl_diff_deg": -0.04,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B6",
+       "pred_id": "P010",
+       "engine_line_id": "ZS10",
+       "offset_mm": 0.068,
+       "axis_angle_deg": 0.483,
+       "gold_incl_deg": 89.35,
+       "engine_incl_deg": 89.22,
+       "incl_diff_deg": -0.13,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B7",
+       "pred_id": "P006",
+       "engine_line_id": "ZS06",
+       "offset_mm": 0.008,
+       "axis_angle_deg": 0.043,
+       "gold_incl_deg": 91.15,
+       "engine_incl_deg": 91.15,
+       "incl_diff_deg": -0.0,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B8",
+       "pred_id": "P009",
+       "engine_line_id": "ZS09",
+       "offset_mm": 0.023,
+       "axis_angle_deg": 0.069,
+       "gold_incl_deg": 91.32,
+       "engine_incl_deg": 91.32,
+       "incl_diff_deg": -0.0,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B9",
+       "pred_id": "P005",
+       "engine_line_id": "ZS05",
+       "offset_mm": 0.007,
+       "axis_angle_deg": 0.276,
+       "gold_incl_deg": 91.05,
+       "engine_incl_deg": 91.13,
+       "incl_diff_deg": 0.08,
+       "hem_gold_construction": false,
+       "joggle": false
+      }
+     ],
+     "fp_ids": [
+      "P007",
+      "P011",
+      "P012",
+      "P013",
+      "P014"
+     ],
+     "fn_ids": [
+      "B10",
+      "B11",
+      "B12",
+      "B13",
+      "B14"
+     ],
+     "fn_causes": {
+      "MISSED": 5
+     },
+     "fp_causes": {
+      "SPURIOUS": 5
+     }
+    },
+    {
+     "gid": "gb_42dd99",
+     "subset": "HOLDOUT10",
+     "family": "47949",
+     "part_class": "mixed",
+     "disposition": "SCORED_COMPLETE_LABEL",
+     "status": "OK",
+     "gold": 4,
+     "pred": 4,
+     "wall_s": 222.834,
+     "peak_rss_gib": 4.79,
+     "rss_limit_gib": 32,
+     "t_mm": 1.9329865765571594,
+     "failure_reason": null,
+     "tp": 4,
+     "fp": 0,
+     "fn": 0,
+     "f1": 1.0,
+     "matches": [
+      {
+       "gold_id": "B1",
+       "pred_id": "P002",
+       "engine_line_id": "ZS02",
+       "offset_mm": 0.092,
+       "axis_angle_deg": 0.039,
+       "gold_incl_deg": 94.6,
+       "engine_incl_deg": 94.47,
+       "incl_diff_deg": -0.13,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B2",
+       "pred_id": "P001",
+       "engine_line_id": "ZS01",
+       "offset_mm": 0.04,
+       "axis_angle_deg": 0.018,
+       "gold_incl_deg": 89.6,
+       "engine_incl_deg": 89.6,
+       "incl_diff_deg": 0.0,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B3",
+       "pred_id": "P003",
+       "engine_line_id": "ZS03",
+       "offset_mm": 0.448,
+       "axis_angle_deg": 0.012,
+       "gold_incl_deg": 97.08,
+       "engine_incl_deg": 94.21,
+       "incl_diff_deg": -2.87,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B4",
+       "pred_id": "P004",
+       "engine_line_id": "ZS04",
+       "offset_mm": 0.047,
+       "axis_angle_deg": 0.015,
+       "gold_incl_deg": 89.83,
+       "engine_incl_deg": 89.59,
+       "incl_diff_deg": -0.24,
+       "hem_gold_construction": false,
+       "joggle": false
+      }
+     ],
+     "fp_ids": [],
+     "fn_ids": [],
+     "fn_causes": {},
+     "fp_causes": {}
+    },
+    {
+     "gid": "gb_437879",
+     "subset": "HOLDOUT10",
+     "family": "47846",
+     "part_class": "bent",
+     "disposition": "SCORED_COMPLETE_LABEL",
+     "status": "OK",
+     "gold": 2,
+     "pred": 2,
+     "wall_s": 1.34,
+     "peak_rss_gib": 0.265,
+     "rss_limit_gib": 16,
+     "t_mm": 0.4856432569026947,
+     "failure_reason": null,
+     "tp": 2,
+     "fp": 0,
+     "fn": 0,
+     "f1": 1.0,
+     "matches": [
+      {
+       "gold_id": "B1",
+       "pred_id": "P002",
+       "engine_line_id": "ZS02",
+       "offset_mm": 0.343,
+       "axis_angle_deg": 1.612,
+       "gold_incl_deg": 168.07,
+       "engine_incl_deg": 165.91,
+       "incl_diff_deg": -2.16,
+       "hem_gold_construction": false,
+       "joggle": true
+      },
+      {
+       "gold_id": "B2",
+       "pred_id": "P001",
+       "engine_line_id": "ZS01",
+       "offset_mm": 0.332,
+       "axis_angle_deg": 0.776,
+       "gold_incl_deg": 167.7,
+       "engine_incl_deg": 165.75,
+       "incl_diff_deg": -1.95,
+       "hem_gold_construction": false,
+       "joggle": true
+      }
+     ],
+     "fp_ids": [],
+     "fn_ids": [],
+     "fn_causes": {},
+     "fp_causes": {}
+    },
+    {
+     "gid": "gb_44ddfb",
+     "subset": "N001_N016",
+     "family": "50476",
+     "part_class": "bent",
+     "disposition": "SCORED_COMPLETE_LABEL",
+     "status": "OK",
+     "gold": 4,
+     "pred": 4,
+     "wall_s": 7.354,
+     "peak_rss_gib": 1.021,
+     "rss_limit_gib": 16,
+     "t_mm": 1.9953470420837403,
+     "failure_reason": null,
+     "tp": 4,
+     "fp": 0,
+     "fn": 0,
+     "f1": 1.0,
+     "matches": [
+      {
+       "gold_id": "B1",
+       "pred_id": "P003",
+       "engine_line_id": "ZS03",
+       "offset_mm": 0.008,
+       "axis_angle_deg": 0.053,
+       "gold_incl_deg": 89.83,
+       "engine_incl_deg": 89.82,
+       "incl_diff_deg": -0.01,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B2",
+       "pred_id": "P004",
+       "engine_line_id": "ZS04",
+       "offset_mm": 0.01,
+       "axis_angle_deg": 0.04,
+       "gold_incl_deg": 90.54,
+       "engine_incl_deg": 90.51,
+       "incl_diff_deg": -0.03,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B3",
+       "pred_id": "P002",
+       "engine_line_id": "ZS02",
+       "offset_mm": 0.01,
+       "axis_angle_deg": 0.068,
+       "gold_incl_deg": 89.95,
+       "engine_incl_deg": 89.97,
+       "incl_diff_deg": 0.02,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B4",
+       "pred_id": "P001",
+       "engine_line_id": "ZS01",
+       "offset_mm": 0.008,
+       "axis_angle_deg": 0.08,
+       "gold_incl_deg": 90.7,
+       "engine_incl_deg": 90.67,
+       "incl_diff_deg": -0.03,
+       "hem_gold_construction": false,
+       "joggle": false
+      }
+     ],
+     "fp_ids": [],
+     "fn_ids": [],
+     "fn_causes": {},
+     "fp_causes": {}
+    },
+    {
+     "gid": "gb_47b48f",
+     "subset": "HOLDOUT10",
+     "family": "49205",
+     "part_class": "bent",
+     "disposition": "SCORED_COMPLETE_LABEL",
+     "status": "OK",
+     "gold": 2,
+     "pred": 2,
+     "wall_s": 1.364,
+     "peak_rss_gib": 0.265,
+     "rss_limit_gib": 16,
+     "t_mm": 0.5240030479431153,
+     "failure_reason": null,
+     "tp": 2,
+     "fp": 0,
+     "fn": 0,
+     "f1": 1.0,
+     "matches": [
+      {
+       "gold_id": "B1",
+       "pred_id": "P002",
+       "engine_line_id": "ZS02",
+       "offset_mm": 0.052,
+       "axis_angle_deg": 0.089,
+       "gold_incl_deg": 91.17,
+       "engine_incl_deg": 90.74,
+       "incl_diff_deg": -0.43,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B2",
+       "pred_id": "P001",
+       "engine_line_id": "ZS01",
+       "offset_mm": 0.054,
+       "axis_angle_deg": 0.101,
+       "gold_incl_deg": 90.66,
+       "engine_incl_deg": 90.42,
+       "incl_diff_deg": -0.24,
+       "hem_gold_construction": false,
+       "joggle": false
+      }
+     ],
+     "fp_ids": [],
+     "fn_ids": [],
+     "fn_causes": {},
+     "fp_causes": {}
+    },
+    {
+     "gid": "gb_61b6da",
+     "subset": "N001_N016",
+     "family": "47215",
+     "part_class": "rolled",
+     "disposition": "ZERO_BEND_CONTROL",
+     "status": "OK",
+     "gold": 0,
+     "pred": 0,
+     "wall_s": 3.42,
+     "peak_rss_gib": 0.461,
+     "rss_limit_gib": 16,
+     "t_mm": 2.013346393108368,
+     "failure_reason": null,
+     "tp": 0,
+     "fp": 0,
+     "fn": 0,
+     "f1": null,
+     "matches": [],
+     "fp_ids": [],
+     "fn_ids": []
+    },
+    {
+     "gid": "gb_68cd06",
+     "subset": "N001_N016",
+     "family": "31367",
+     "part_class": "bent",
+     "disposition": "SCORED_COMPLETE_LABEL",
+     "status": "OK",
+     "gold": 20,
+     "pred": 13,
+     "wall_s": 12.938,
+     "peak_rss_gib": 2.129,
+     "rss_limit_gib": 16,
+     "t_mm": 0.9685532641410828,
+     "failure_reason": null,
+     "tp": 12,
+     "fp": 1,
+     "fn": 8,
+     "f1": 0.7273,
+     "matches": [
+      {
+       "gold_id": "B1",
+       "pred_id": "P001",
+       "engine_line_id": "ZS01",
+       "offset_mm": 0.031,
+       "axis_angle_deg": 0.031,
+       "gold_incl_deg": 121.0,
+       "engine_incl_deg": 120.69,
+       "incl_diff_deg": -0.31,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B2",
+       "pred_id": "P003",
+       "engine_line_id": "ZS03",
+       "offset_mm": 0.021,
+       "axis_angle_deg": 0.016,
+       "gold_incl_deg": 121.01,
+       "engine_incl_deg": 120.62,
+       "incl_diff_deg": -0.39,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B3",
+       "pred_id": "P002",
+       "engine_line_id": "ZS02",
+       "offset_mm": 0.017,
+       "axis_angle_deg": 0.003,
+       "gold_incl_deg": 91.01,
+       "engine_incl_deg": 91.0,
+       "incl_diff_deg": -0.01,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B5",
+       "pred_id": "P011",
+       "engine_line_id": "ZS11",
+       "offset_mm": 0.062,
+       "axis_angle_deg": 0.226,
+       "gold_incl_deg": 92.22,
+       "engine_incl_deg": 92.62,
+       "incl_diff_deg": 0.4,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B6",
+       "pred_id": "P012",
+       "engine_line_id": "ZS12",
+       "offset_mm": 0.017,
+       "axis_angle_deg": 0.157,
+       "gold_incl_deg": 93.5,
+       "engine_incl_deg": 93.44,
+       "incl_diff_deg": -0.06,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B8",
+       "pred_id": "P010",
+       "engine_line_id": "ZS10",
+       "offset_mm": 0.025,
+       "axis_angle_deg": 0.096,
+       "gold_incl_deg": 92.34,
+       "engine_incl_deg": 92.44,
+       "incl_diff_deg": 0.1,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B10",
+       "pred_id": "P007",
+       "engine_line_id": "ZS07",
+       "offset_mm": 0.069,
+       "axis_angle_deg": 0.146,
+       "gold_incl_deg": 91.72,
+       "engine_incl_deg": 91.88,
+       "incl_diff_deg": 0.16,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B12",
+       "pred_id": "P006",
+       "engine_line_id": "ZS06",
+       "offset_mm": 0.028,
+       "axis_angle_deg": 0.127,
+       "gold_incl_deg": 92.49,
+       "engine_incl_deg": 92.82,
+       "incl_diff_deg": 0.33,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B13",
+       "pred_id": "P008",
+       "engine_line_id": "ZS08",
+       "offset_mm": 0.017,
+       "axis_angle_deg": 0.248,
+       "gold_incl_deg": 93.88,
+       "engine_incl_deg": 93.8,
+       "incl_diff_deg": -0.08,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B14",
+       "pred_id": "P009",
+       "engine_line_id": "ZS09",
+       "offset_mm": 0.038,
+       "axis_angle_deg": 0.173,
+       "gold_incl_deg": 92.1,
+       "engine_incl_deg": 92.19,
+       "incl_diff_deg": 0.09,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B16",
+       "pred_id": "P005",
+       "engine_line_id": "ZS05",
+       "offset_mm": 0.014,
+       "axis_angle_deg": 0.128,
+       "gold_incl_deg": 92.64,
+       "engine_incl_deg": 92.53,
+       "incl_diff_deg": -0.11,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B17",
+       "pred_id": "P013",
+       "engine_line_id": "ZS13",
+       "offset_mm": 0.11,
+       "axis_angle_deg": 0.187,
+       "gold_incl_deg": 91.15,
+       "engine_incl_deg": 91.52,
+       "incl_diff_deg": 0.37,
+       "hem_gold_construction": false,
+       "joggle": false
+      }
+     ],
+     "fp_ids": [
+      "P004"
+     ],
+     "fn_ids": [
+      "B4",
+      "B7",
+      "B9",
+      "B11",
+      "B15",
+      "B18",
+      "B19",
+      "B20"
+     ],
+     "fn_causes": {
+      "SPAN_LT_60PCT": 6,
+      "MISSED": 2
+     },
+     "fp_causes": {
+      "SPAN_LT_60PCT": 1
+     }
+    },
+    {
+     "gid": "gb_8ccb40",
+     "subset": "HOLDOUT10",
+     "family": "49160",
+     "part_class": "bent",
+     "disposition": "SCORED_COMPLETE_LABEL",
+     "status": "OK",
+     "gold": 2,
+     "pred": 2,
+     "wall_s": 11.265,
+     "peak_rss_gib": 1.921,
+     "rss_limit_gib": 16,
+     "t_mm": 2.989510793685913,
+     "failure_reason": null,
+     "tp": 2,
+     "fp": 0,
+     "fn": 0,
+     "f1": 1.0,
+     "matches": [
+      {
+       "gold_id": "B1",
+       "pred_id": "P001",
+       "engine_line_id": "ZS01",
+       "offset_mm": 0.02,
+       "axis_angle_deg": 0.024,
+       "gold_incl_deg": 90.06,
+       "engine_incl_deg": 90.07,
+       "incl_diff_deg": 0.01,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B2",
+       "pred_id": "P002",
+       "engine_line_id": "ZS02",
+       "offset_mm": 0.018,
+       "axis_angle_deg": 0.017,
+       "gold_incl_deg": 89.55,
+       "engine_incl_deg": 89.57,
+       "incl_diff_deg": 0.02,
+       "hem_gold_construction": false,
+       "joggle": false
+      }
+     ],
+     "fp_ids": [],
+     "fn_ids": [],
+     "fn_causes": {},
+     "fp_causes": {}
+    },
+    {
+     "gid": "gb_8df897",
+     "subset": "HOLDOUT10",
+     "family": "47848",
+     "part_class": "bent",
+     "disposition": "SCORED_COMPLETE_LABEL",
+     "status": "OK",
+     "gold": 4,
+     "pred": 4,
+     "wall_s": 10.276,
+     "peak_rss_gib": 1.581,
+     "rss_limit_gib": 16,
+     "t_mm": 1.4436676692962647,
+     "failure_reason": null,
+     "tp": 4,
+     "fp": 0,
+     "fn": 0,
+     "f1": 1.0,
+     "matches": [
+      {
+       "gold_id": "B1",
+       "pred_id": "P003",
+       "engine_line_id": "ZS03",
+       "offset_mm": 0.033,
+       "axis_angle_deg": 0.172,
+       "gold_incl_deg": 90.12,
+       "engine_incl_deg": 90.21,
+       "incl_diff_deg": 0.09,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B2",
+       "pred_id": "P002",
+       "engine_line_id": "ZS02",
+       "offset_mm": 0.022,
+       "axis_angle_deg": 0.146,
+       "gold_incl_deg": 89.91,
+       "engine_incl_deg": 89.94,
+       "incl_diff_deg": 0.03,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B3",
+       "pred_id": "P001",
+       "engine_line_id": "ZS01",
+       "offset_mm": 0.02,
+       "axis_angle_deg": 0.103,
+       "gold_incl_deg": 90.23,
+       "engine_incl_deg": 90.22,
+       "incl_diff_deg": -0.01,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B4",
+       "pred_id": "P004",
+       "engine_line_id": "ZS04",
+       "offset_mm": 0.008,
+       "axis_angle_deg": 0.208,
+       "gold_incl_deg": 89.35,
+       "engine_incl_deg": 89.33,
+       "incl_diff_deg": -0.02,
+       "hem_gold_construction": false,
+       "joggle": false
+      }
+     ],
+     "fp_ids": [],
+     "fn_ids": [],
+     "fn_causes": {},
+     "fp_causes": {}
+    },
+    {
+     "gid": "gb_959f4a",
+     "subset": "N001_N016",
+     "family": "31367",
+     "part_class": "bent",
+     "disposition": "SCORED_COMPLETE_LABEL",
+     "status": "OK",
+     "gold": 19,
+     "pred": 4,
+     "wall_s": 13.84,
+     "peak_rss_gib": 1.696,
+     "rss_limit_gib": 16,
+     "t_mm": 1.1439773035049439,
+     "failure_reason": null,
+     "tp": 4,
+     "fp": 0,
+     "fn": 15,
+     "f1": 0.3478,
+     "matches": [
+      {
+       "gold_id": "B1",
+       "pred_id": "P001",
+       "engine_line_id": "ZS01",
+       "offset_mm": 0.034,
+       "axis_angle_deg": 0.024,
+       "gold_incl_deg": 121.05,
+       "engine_incl_deg": 120.93,
+       "incl_diff_deg": -0.12,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B2",
+       "pred_id": "P002",
+       "engine_line_id": "ZS02",
+       "offset_mm": 0.021,
+       "axis_angle_deg": 0.004,
+       "gold_incl_deg": 121.19,
+       "engine_incl_deg": 120.94,
+       "incl_diff_deg": -0.25,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B3",
+       "pred_id": "P003",
+       "engine_line_id": "ZS03",
+       "offset_mm": 0.025,
+       "axis_angle_deg": 0.038,
+       "gold_incl_deg": 91.49,
+       "engine_incl_deg": 91.61,
+       "incl_diff_deg": 0.12,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B11",
+       "pred_id": "P004",
+       "engine_line_id": "ZS04",
+       "offset_mm": 0.026,
+       "axis_angle_deg": 0.102,
+       "gold_incl_deg": 92.37,
+       "engine_incl_deg": 92.01,
+       "incl_diff_deg": -0.36,
+       "hem_gold_construction": false,
+       "joggle": false
+      }
+     ],
+     "fp_ids": [],
+     "fn_ids": [
+      "B4",
+      "B5",
+      "B6",
+      "B7",
+      "B8",
+      "B9",
+      "B10",
+      "B12",
+      "B13",
+      "B14",
+      "B15",
+      "B16",
+      "B17",
+      "B18",
+      "B19"
+     ],
+     "fn_causes": {
+      "SPAN_LT_60PCT": 13,
+      "MISSED": 2
+     },
+     "fp_causes": {}
+    },
+    {
+     "gid": "gb_a0538b",
+     "subset": "N001_N016",
+     "family": "50476",
+     "part_class": "bent",
+     "disposition": "SCORED_COMPLETE_LABEL",
+     "status": "OK",
+     "gold": 4,
+     "pred": 4,
+     "wall_s": 5.903,
+     "peak_rss_gib": 0.986,
+     "rss_limit_gib": 16,
+     "t_mm": 1.9813649845123291,
+     "failure_reason": null,
+     "tp": 4,
+     "fp": 0,
+     "fn": 0,
+     "f1": 1.0,
+     "matches": [
+      {
+       "gold_id": "B1",
+       "pred_id": "P002",
+       "engine_line_id": "ZS02",
+       "offset_mm": 0.007,
+       "axis_angle_deg": 0.085,
+       "gold_incl_deg": 89.84,
+       "engine_incl_deg": 89.87,
+       "incl_diff_deg": 0.03,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B2",
+       "pred_id": "P004",
+       "engine_line_id": "ZS04",
+       "offset_mm": 0.008,
+       "axis_angle_deg": 0.042,
+       "gold_incl_deg": 89.92,
+       "engine_incl_deg": 89.91,
+       "incl_diff_deg": -0.01,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B3",
+       "pred_id": "P003",
+       "engine_line_id": "ZS03",
+       "offset_mm": 0.016,
+       "axis_angle_deg": 0.049,
+       "gold_incl_deg": 89.98,
+       "engine_incl_deg": 90.01,
+       "incl_diff_deg": 0.03,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B4",
+       "pred_id": "P001",
+       "engine_line_id": "ZS01",
+       "offset_mm": 0.011,
+       "axis_angle_deg": 0.066,
+       "gold_incl_deg": 89.64,
+       "engine_incl_deg": 89.59,
+       "incl_diff_deg": -0.05,
+       "hem_gold_construction": false,
+       "joggle": false
+      }
+     ],
+     "fp_ids": [],
+     "fn_ids": [],
+     "fn_causes": {},
+     "fp_causes": {}
+    },
+    {
+     "gid": "gb_a2dd83",
+     "subset": "EHO4",
+     "family": "38168",
+     "part_class": "bent",
+     "disposition": "SCORED_COMPLETE_LABEL",
+     "status": "OK",
+     "gold": 21,
+     "pred": 21,
+     "wall_s": 18.058,
+     "peak_rss_gib": 2.392,
+     "rss_limit_gib": 16,
+     "t_mm": 1.4576393556594849,
+     "failure_reason": null,
+     "tp": 21,
+     "fp": 0,
+     "fn": 0,
+     "f1": 1.0,
+     "matches": [
+      {
+       "gold_id": "B1",
+       "pred_id": "P003",
+       "engine_line_id": "ZS03",
+       "offset_mm": 0.022,
+       "axis_angle_deg": 0.038,
+       "gold_incl_deg": 88.41,
+       "engine_incl_deg": 88.07,
+       "incl_diff_deg": -0.34,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B2",
+       "pred_id": "P007",
+       "engine_line_id": "ZS07",
+       "offset_mm": 0.016,
+       "axis_angle_deg": 0.042,
+       "gold_incl_deg": 88.8,
+       "engine_incl_deg": 88.59,
+       "incl_diff_deg": -0.21,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B3",
+       "pred_id": "P008",
+       "engine_line_id": "ZS08",
+       "offset_mm": 0.014,
+       "axis_angle_deg": 0.046,
+       "gold_incl_deg": 88.21,
+       "engine_incl_deg": 87.94,
+       "incl_diff_deg": -0.27,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B4",
+       "pred_id": "P005",
+       "engine_line_id": "ZS05",
+       "offset_mm": 0.012,
+       "axis_angle_deg": 0.067,
+       "gold_incl_deg": 88.99,
+       "engine_incl_deg": 88.95,
+       "incl_diff_deg": -0.04,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B5",
+       "pred_id": "P002",
+       "engine_line_id": "ZS02",
+       "offset_mm": 0.011,
+       "axis_angle_deg": 0.043,
+       "gold_incl_deg": 88.78,
+       "engine_incl_deg": 88.77,
+       "incl_diff_deg": -0.01,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B6",
+       "pred_id": "P009",
+       "engine_line_id": "ZS09",
+       "offset_mm": 0.013,
+       "axis_angle_deg": 0.022,
+       "gold_incl_deg": 88.56,
+       "engine_incl_deg": 88.36,
+       "incl_diff_deg": -0.2,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B7",
+       "pred_id": "P006",
+       "engine_line_id": "ZS06",
+       "offset_mm": 0.011,
+       "axis_angle_deg": 0.035,
+       "gold_incl_deg": 88.59,
+       "engine_incl_deg": 88.48,
+       "incl_diff_deg": -0.11,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B8",
+       "pred_id": "P001",
+       "engine_line_id": "ZS01",
+       "offset_mm": 0.039,
+       "axis_angle_deg": 0.022,
+       "gold_incl_deg": 87.97,
+       "engine_incl_deg": 87.76,
+       "incl_diff_deg": -0.21,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B9",
+       "pred_id": "P004",
+       "engine_line_id": "ZS04",
+       "offset_mm": 0.153,
+       "axis_angle_deg": 0.056,
+       "gold_incl_deg": 88.02,
+       "engine_incl_deg": 88.36,
+       "incl_diff_deg": 0.34,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B10",
+       "pred_id": "P012",
+       "engine_line_id": "ZS12",
+       "offset_mm": 0.024,
+       "axis_angle_deg": 0.389,
+       "gold_incl_deg": 89.68,
+       "engine_incl_deg": 89.76,
+       "incl_diff_deg": 0.08,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B11",
+       "pred_id": "P013",
+       "engine_line_id": "ZS13",
+       "offset_mm": 0.063,
+       "axis_angle_deg": 1.333,
+       "gold_incl_deg": 89.53,
+       "engine_incl_deg": 89.86,
+       "incl_diff_deg": 0.33,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B12",
+       "pred_id": "P010",
+       "engine_line_id": "ZS10",
+       "offset_mm": 0.972,
+       "axis_angle_deg": 0.427,
+       "gold_incl_deg": 89.62,
+       "engine_incl_deg": 89.59,
+       "incl_diff_deg": -0.03,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B13",
+       "pred_id": "P011",
+       "engine_line_id": "ZS11",
+       "offset_mm": 0.582,
+       "axis_angle_deg": 2.723,
+       "gold_incl_deg": 94.41,
+       "engine_incl_deg": 94.58,
+       "incl_diff_deg": 0.17,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B14",
+       "pred_id": "P014",
+       "engine_line_id": "ZS14",
+       "offset_mm": 0.004,
+       "axis_angle_deg": 0.087,
+       "gold_incl_deg": 89.65,
+       "engine_incl_deg": 89.8,
+       "incl_diff_deg": 0.15,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B15",
+       "pred_id": "P015",
+       "engine_line_id": "ZS15",
+       "offset_mm": 0.02,
+       "axis_angle_deg": 0.112,
+       "gold_incl_deg": 89.59,
+       "engine_incl_deg": 89.58,
+       "incl_diff_deg": -0.01,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B16",
+       "pred_id": "P017",
+       "engine_line_id": "ZS17",
+       "offset_mm": 0.03,
+       "axis_angle_deg": 0.853,
+       "gold_incl_deg": 88.76,
+       "engine_incl_deg": 88.82,
+       "incl_diff_deg": 0.06,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B17",
+       "pred_id": "P018",
+       "engine_line_id": "ZS18",
+       "offset_mm": 0.177,
+       "axis_angle_deg": 0.305,
+       "gold_incl_deg": 90.32,
+       "engine_incl_deg": 89.4,
+       "incl_diff_deg": -0.92,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B18",
+       "pred_id": "P021",
+       "engine_line_id": "ZS21",
+       "offset_mm": 0.01,
+       "axis_angle_deg": 0.074,
+       "gold_incl_deg": 89.34,
+       "engine_incl_deg": 89.52,
+       "incl_diff_deg": 0.18,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B19",
+       "pred_id": "P016",
+       "engine_line_id": "ZS16",
+       "offset_mm": 0.014,
+       "axis_angle_deg": 0.046,
+       "gold_incl_deg": 88.85,
+       "engine_incl_deg": 88.98,
+       "incl_diff_deg": 0.13,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B20",
+       "pred_id": "P019",
+       "engine_line_id": "ZS19",
+       "offset_mm": 0.013,
+       "axis_angle_deg": 0.032,
+       "gold_incl_deg": 88.98,
+       "engine_incl_deg": 89.06,
+       "incl_diff_deg": 0.08,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B21",
+       "pred_id": "P020",
+       "engine_line_id": "ZS20",
+       "offset_mm": 0.007,
+       "axis_angle_deg": 0.17,
+       "gold_incl_deg": 89.24,
+       "engine_incl_deg": 89.48,
+       "incl_diff_deg": 0.24,
+       "hem_gold_construction": false,
+       "joggle": false
+      }
+     ],
+     "fp_ids": [],
+     "fn_ids": [],
+     "fn_causes": {},
+     "fp_causes": {}
+    },
+    {
+     "gid": "gb_a64e51",
+     "subset": "HOLDOUT10",
+     "family": "46181",
+     "part_class": "bent",
+     "disposition": "SCORED_COMPLETE_LABEL",
+     "status": "OK",
+     "gold": 4,
+     "pred": 4,
+     "wall_s": 2.267,
+     "peak_rss_gib": 0.402,
+     "rss_limit_gib": 16,
+     "t_mm": 1.4533075284957886,
+     "failure_reason": null,
+     "tp": 4,
+     "fp": 0,
+     "fn": 0,
+     "f1": 1.0,
+     "matches": [
+      {
+       "gold_id": "B1",
+       "pred_id": "P004",
+       "engine_line_id": "ZS04",
+       "offset_mm": 0.054,
+       "axis_angle_deg": 0.272,
+       "gold_incl_deg": 91.38,
+       "engine_incl_deg": 90.91,
+       "incl_diff_deg": -0.47,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B2",
+       "pred_id": "P002",
+       "engine_line_id": "ZS02",
+       "offset_mm": 0.013,
+       "axis_angle_deg": 0.203,
+       "gold_incl_deg": 91.71,
+       "engine_incl_deg": 90.99,
+       "incl_diff_deg": -0.72,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B3",
+       "pred_id": "P003",
+       "engine_line_id": "ZS03",
+       "offset_mm": 0.071,
+       "axis_angle_deg": 0.264,
+       "gold_incl_deg": 91.4,
+       "engine_incl_deg": 90.68,
+       "incl_diff_deg": -0.72,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B4",
+       "pred_id": "P001",
+       "engine_line_id": "ZS01",
+       "offset_mm": 0.035,
+       "axis_angle_deg": 0.401,
+       "gold_incl_deg": 91.46,
+       "engine_incl_deg": 90.6,
+       "incl_diff_deg": -0.86,
+       "hem_gold_construction": false,
+       "joggle": false
+      }
+     ],
+     "fp_ids": [],
+     "fn_ids": [],
+     "fn_causes": {},
+     "fp_causes": {}
+    },
+    {
+     "gid": "gb_ac2239",
+     "subset": "EHO4",
+     "family": "16231",
+     "part_class": "bent",
+     "disposition": "SCORED_COMPLETE_LABEL",
+     "status": "OK",
+     "gold": 14,
+     "pred": 13,
+     "wall_s": 17.34,
+     "peak_rss_gib": 1.717,
+     "rss_limit_gib": 16,
+     "t_mm": 2.025859375,
+     "failure_reason": null,
+     "tp": 9,
+     "fp": 4,
+     "fn": 5,
+     "f1": 0.6667,
+     "matches": [
+      {
+       "gold_id": "B1",
+       "pred_id": "P004",
+       "engine_line_id": "ZS04",
+       "offset_mm": 0.025,
+       "axis_angle_deg": 0.058,
+       "gold_incl_deg": 90.19,
+       "engine_incl_deg": 90.26,
+       "incl_diff_deg": 0.07,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B2",
+       "pred_id": "P001",
+       "engine_line_id": "ZS01",
+       "offset_mm": 0.016,
+       "axis_angle_deg": 0.015,
+       "gold_incl_deg": 89.92,
+       "engine_incl_deg": 90.35,
+       "incl_diff_deg": 0.43,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B3",
+       "pred_id": "P003",
+       "engine_line_id": "ZS03",
+       "offset_mm": 0.062,
+       "axis_angle_deg": 0.013,
+       "gold_incl_deg": 89.82,
+       "engine_incl_deg": 90.21,
+       "incl_diff_deg": 0.39,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B4",
+       "pred_id": "P002",
+       "engine_line_id": "ZS02",
+       "offset_mm": 0.033,
+       "axis_angle_deg": 0.025,
+       "gold_incl_deg": 90.37,
+       "engine_incl_deg": 90.06,
+       "incl_diff_deg": -0.31,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B5",
+       "pred_id": "P006",
+       "engine_line_id": "ZS06",
+       "offset_mm": 0.029,
+       "axis_angle_deg": 0.07,
+       "gold_incl_deg": 89.78,
+       "engine_incl_deg": 89.67,
+       "incl_diff_deg": -0.11,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B6",
+       "pred_id": "P010",
+       "engine_line_id": "ZS10",
+       "offset_mm": 0.099,
+       "axis_angle_deg": 0.487,
+       "gold_incl_deg": 89.76,
+       "engine_incl_deg": 89.54,
+       "incl_diff_deg": -0.22,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B7",
+       "pred_id": "P007",
+       "engine_line_id": "ZS07",
+       "offset_mm": 0.019,
+       "axis_angle_deg": 0.102,
+       "gold_incl_deg": 90.73,
+       "engine_incl_deg": 90.68,
+       "incl_diff_deg": -0.05,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B8",
+       "pred_id": "P008",
+       "engine_line_id": "ZS08",
+       "offset_mm": 0.01,
+       "axis_angle_deg": 0.077,
+       "gold_incl_deg": 90.7,
+       "engine_incl_deg": 90.77,
+       "incl_diff_deg": 0.07,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B9",
+       "pred_id": "P005",
+       "engine_line_id": "ZS05",
+       "offset_mm": 0.012,
+       "axis_angle_deg": 0.074,
+       "gold_incl_deg": 90.36,
+       "engine_incl_deg": 90.48,
+       "incl_diff_deg": 0.12,
+       "hem_gold_construction": false,
+       "joggle": false
+      }
+     ],
+     "fp_ids": [
+      "P009",
+      "P011",
+      "P012",
+      "P013"
+     ],
+     "fn_ids": [
+      "B10",
+      "B11",
+      "B12",
+      "B13",
+      "B14"
+     ],
+     "fn_causes": {
+      "MISSED": 5
+     },
+     "fp_causes": {
+      "SPURIOUS": 4
+     }
+    },
+    {
+     "gid": "gb_b21bad",
+     "subset": "N001_N016",
+     "family": "42637",
+     "part_class": "bent",
+     "disposition": "SCORED_COMPLETE_LABEL",
+     "status": "OK",
+     "gold": 6,
+     "pred": 7,
+     "wall_s": 10.843,
+     "peak_rss_gib": 2.203,
+     "rss_limit_gib": 16,
+     "t_mm": 1.5104117584228516,
+     "failure_reason": null,
+     "tp": 6,
+     "fp": 1,
+     "fn": 0,
+     "f1": 0.9231,
+     "matches": [
+      {
+       "gold_id": "B1",
+       "pred_id": "P003",
+       "engine_line_id": "ZS03",
+       "offset_mm": 0.015,
+       "axis_angle_deg": 0.024,
+       "gold_incl_deg": 89.72,
+       "engine_incl_deg": 89.79,
+       "incl_diff_deg": 0.07,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B2",
+       "pred_id": "P002",
+       "engine_line_id": "ZS02",
+       "offset_mm": 0.009,
+       "axis_angle_deg": 0.022,
+       "gold_incl_deg": 89.07,
+       "engine_incl_deg": 89.0,
+       "incl_diff_deg": -0.07,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B3",
+       "pred_id": "P006",
+       "engine_line_id": "ZS06",
+       "offset_mm": 0.013,
+       "axis_angle_deg": 0.156,
+       "gold_incl_deg": 87.46,
+       "engine_incl_deg": 87.69,
+       "incl_diff_deg": 0.23,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B4",
+       "pred_id": "P001",
+       "engine_line_id": "ZS01",
+       "offset_mm": 0.008,
+       "axis_angle_deg": 0.024,
+       "gold_incl_deg": 89.18,
+       "engine_incl_deg": 89.15,
+       "incl_diff_deg": -0.03,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B5",
+       "pred_id": "P007",
+       "engine_line_id": "ZS07",
+       "offset_mm": 0.022,
+       "axis_angle_deg": 0.012,
+       "gold_incl_deg": 88.51,
+       "engine_incl_deg": 88.58,
+       "incl_diff_deg": 0.07,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B6",
+       "pred_id": "P005",
+       "engine_line_id": "ZS05",
+       "offset_mm": 0.01,
+       "axis_angle_deg": 0.015,
+       "gold_incl_deg": 89.41,
+       "engine_incl_deg": 89.52,
+       "incl_diff_deg": 0.11,
+       "hem_gold_construction": false,
+       "joggle": false
+      }
+     ],
+     "fp_ids": [
+      "P004"
+     ],
+     "fn_ids": [],
+     "fn_causes": {},
+     "fp_causes": {
+      "SPAN_LT_60PCT": 1
+     }
+    },
+    {
+     "gid": "gb_b3ae40",
+     "subset": "N001_N016",
+     "family": "26687",
+     "part_class": "bent",
+     "disposition": "SCORED_COMPLETE_LABEL",
+     "status": "OK",
+     "gold": 9,
+     "pred": 7,
+     "wall_s": 6.981,
+     "peak_rss_gib": 1.074,
+     "rss_limit_gib": 16,
+     "t_mm": 1.4971815538406372,
+     "failure_reason": null,
+     "tp": 6,
+     "fp": 1,
+     "fn": 3,
+     "f1": 0.75,
+     "matches": [
+      {
+       "gold_id": "B4",
+       "pred_id": "P006",
+       "engine_line_id": "ZS06",
+       "offset_mm": 0.011,
+       "axis_angle_deg": 0.257,
+       "gold_incl_deg": 90.43,
+       "engine_incl_deg": 90.38,
+       "incl_diff_deg": -0.05,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B5",
+       "pred_id": "P004",
+       "engine_line_id": "ZS04",
+       "offset_mm": 0.013,
+       "axis_angle_deg": 0.184,
+       "gold_incl_deg": 92.08,
+       "engine_incl_deg": 91.99,
+       "incl_diff_deg": -0.09,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B6",
+       "pred_id": "P003",
+       "engine_line_id": "ZS03",
+       "offset_mm": 0.03,
+       "axis_angle_deg": 0.703,
+       "gold_incl_deg": 89.61,
+       "engine_incl_deg": 89.94,
+       "incl_diff_deg": 0.33,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B7",
+       "pred_id": "P005",
+       "engine_line_id": "ZS05",
+       "offset_mm": 0.136,
+       "axis_angle_deg": 0.78,
+       "gold_incl_deg": 123.64,
+       "engine_incl_deg": 122.68,
+       "incl_diff_deg": -0.96,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B8",
+       "pred_id": "P001",
+       "engine_line_id": "ZS01",
+       "offset_mm": 0.085,
+       "axis_angle_deg": 1.049,
+       "gold_incl_deg": 123.66,
+       "engine_incl_deg": 122.86,
+       "incl_diff_deg": -0.8,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B9",
+       "pred_id": "P007",
+       "engine_line_id": "ZS07",
+       "offset_mm": 0.019,
+       "axis_angle_deg": 0.88,
+       "gold_incl_deg": 89.67,
+       "engine_incl_deg": 89.62,
+       "incl_diff_deg": -0.05,
+       "hem_gold_construction": false,
+       "joggle": false
+      }
+     ],
+     "fp_ids": [
+      "P002"
+     ],
+     "fn_ids": [
+      "B1",
+      "B2",
+      "B3"
+     ],
+     "fn_causes": {
+      "MISSED": 2,
+      "SPAN_LT_60PCT": 1
+     },
+     "fp_causes": {
+      "SPAN_LT_60PCT": 1
+     }
+    },
+    {
+     "gid": "gb_b97c8e",
+     "subset": "N001_N016",
+     "family": "26687",
+     "part_class": "bent",
+     "disposition": "SCORED_COMPLETE_LABEL",
+     "status": "OK",
+     "gold": 9,
+     "pred": 5,
+     "wall_s": 6.958,
+     "peak_rss_gib": 1.053,
+     "rss_limit_gib": 16,
+     "t_mm": 1.4881522250175476,
+     "failure_reason": null,
+     "tp": 5,
+     "fp": 0,
+     "fn": 4,
+     "f1": 0.7143,
+     "matches": [
+      {
+       "gold_id": "B3",
+       "pred_id": "P001",
+       "engine_line_id": "ZS01",
+       "offset_mm": 0.011,
+       "axis_angle_deg": 0.156,
+       "gold_incl_deg": 89.29,
+       "engine_incl_deg": 89.62,
+       "incl_diff_deg": 0.33,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B4",
+       "pred_id": "P004",
+       "engine_line_id": "ZS04",
+       "offset_mm": 0.016,
+       "axis_angle_deg": 0.276,
+       "gold_incl_deg": 90.35,
+       "engine_incl_deg": 90.3,
+       "incl_diff_deg": -0.05,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B5",
+       "pred_id": "P003",
+       "engine_line_id": "ZS03",
+       "offset_mm": 0.013,
+       "axis_angle_deg": 0.781,
+       "gold_incl_deg": 89.59,
+       "engine_incl_deg": 89.64,
+       "incl_diff_deg": 0.05,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B6",
+       "pred_id": "P002",
+       "engine_line_id": "ZS02",
+       "offset_mm": 0.017,
+       "axis_angle_deg": 0.261,
+       "gold_incl_deg": 90.96,
+       "engine_incl_deg": 91.05,
+       "incl_diff_deg": 0.09,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B9",
+       "pred_id": "P005",
+       "engine_line_id": "ZS05",
+       "offset_mm": 0.024,
+       "axis_angle_deg": 0.404,
+       "gold_incl_deg": 90.48,
+       "engine_incl_deg": 90.49,
+       "incl_diff_deg": 0.01,
+       "hem_gold_construction": false,
+       "joggle": false
+      }
+     ],
+     "fp_ids": [],
+     "fn_ids": [
+      "B1",
+      "B2",
+      "B7",
+      "B8"
+     ],
+     "fn_causes": {
+      "MISSED": 4
+     },
+     "fp_causes": {}
+    },
+    {
+     "gid": "gb_bbc3a8",
+     "subset": "HOLDOUT10",
+     "family": "46957",
+     "part_class": "bent",
+     "disposition": "SCORED_COMPLETE_LABEL",
+     "status": "OK",
+     "gold": 4,
+     "pred": 7,
+     "wall_s": 34.868,
+     "peak_rss_gib": 3.286,
+     "rss_limit_gib": 32,
+     "t_mm": 2.0933444690704346,
+     "failure_reason": null,
+     "tp": 4,
+     "fp": 3,
+     "fn": 0,
+     "f1": 0.7273,
+     "matches": [
+      {
+       "gold_id": "B1",
+       "pred_id": "P002",
+       "engine_line_id": "ZS02",
+       "offset_mm": 0.108,
+       "axis_angle_deg": 0.106,
+       "gold_incl_deg": 90.14,
+       "engine_incl_deg": 90.17,
+       "incl_diff_deg": 0.03,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B2",
+       "pred_id": "P001",
+       "engine_line_id": "ZS01",
+       "offset_mm": 0.035,
+       "axis_angle_deg": 0.018,
+       "gold_incl_deg": 90.06,
+       "engine_incl_deg": 90.06,
+       "incl_diff_deg": -0.0,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B3",
+       "pred_id": "P003",
+       "engine_line_id": "ZS03",
+       "offset_mm": 0.056,
+       "axis_angle_deg": 0.036,
+       "gold_incl_deg": 89.65,
+       "engine_incl_deg": 89.59,
+       "incl_diff_deg": -0.06,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B4",
+       "pred_id": "P004",
+       "engine_line_id": "ZS04",
+       "offset_mm": 0.143,
+       "axis_angle_deg": 0.077,
+       "gold_incl_deg": 89.55,
+       "engine_incl_deg": 89.89,
+       "incl_diff_deg": 0.34,
+       "hem_gold_construction": false,
+       "joggle": false
+      }
+     ],
+     "fp_ids": [
+      "P005",
+      "P006",
+      "P007"
+     ],
+     "fn_ids": [],
+     "fn_causes": {},
+     "fp_causes": {
+      "SPURIOUS": 3
+     }
+    },
+    {
+     "gid": "gb_c6e707",
+     "subset": "HOLDOUT10",
+     "family": "47553",
+     "part_class": "bent",
+     "disposition": "SCORED_COMPLETE_LABEL",
+     "status": "OK",
+     "gold": 2,
+     "pred": 2,
+     "wall_s": 13.094,
+     "peak_rss_gib": 1.755,
+     "rss_limit_gib": 16,
+     "t_mm": 1.4456650805473328,
+     "failure_reason": null,
+     "tp": 2,
+     "fp": 0,
+     "fn": 0,
+     "f1": 1.0,
+     "matches": [
+      {
+       "gold_id": "B1",
+       "pred_id": "P002",
+       "engine_line_id": "ZS02",
+       "offset_mm": 0.037,
+       "axis_angle_deg": 0.069,
+       "gold_incl_deg": 90.04,
+       "engine_incl_deg": 90.26,
+       "incl_diff_deg": 0.22,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B2",
+       "pred_id": "P001",
+       "engine_line_id": "ZS01",
+       "offset_mm": 0.018,
+       "axis_angle_deg": 0.03,
+       "gold_incl_deg": 89.1,
+       "engine_incl_deg": 89.12,
+       "incl_diff_deg": 0.02,
+       "hem_gold_construction": false,
+       "joggle": false
+      }
+     ],
+     "fp_ids": [],
+     "fn_ids": [],
+     "fn_causes": {},
+     "fp_causes": {}
+    },
+    {
+     "gid": "gb_cdecd9",
+     "subset": "N001_N016",
+     "family": "47215",
+     "part_class": "rolled",
+     "disposition": "ZERO_BEND_CONTROL",
+     "status": "OK",
+     "gold": 0,
+     "pred": 0,
+     "wall_s": 4.992,
+     "peak_rss_gib": 0.603,
+     "rss_limit_gib": 16,
+     "t_mm": 2.5123288822174072,
+     "failure_reason": null,
+     "tp": 0,
+     "fp": 0,
+     "fn": 0,
+     "f1": null,
+     "matches": [],
+     "fp_ids": [],
+     "fn_ids": []
+    },
+    {
+     "gid": "gb_d1093e",
+     "subset": "EHO4",
+     "family": "38168",
+     "part_class": "bent",
+     "disposition": "SCORED_COMPLETE_LABEL",
+     "status": "OK",
+     "gold": 20,
+     "pred": 20,
+     "wall_s": 15.629,
+     "peak_rss_gib": 2.137,
+     "rss_limit_gib": 16,
+     "t_mm": 1.493953366279602,
+     "failure_reason": null,
+     "tp": 20,
+     "fp": 0,
+     "fn": 0,
+     "f1": 1.0,
+     "matches": [
+      {
+       "gold_id": "B1",
+       "pred_id": "P009",
+       "engine_line_id": "ZS09",
+       "offset_mm": 0.009,
+       "axis_angle_deg": 0.006,
+       "gold_incl_deg": 89.71,
+       "engine_incl_deg": 89.72,
+       "incl_diff_deg": 0.01,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B2",
+       "pred_id": "P007",
+       "engine_line_id": "ZS07",
+       "offset_mm": 0.021,
+       "axis_angle_deg": 0.045,
+       "gold_incl_deg": 89.49,
+       "engine_incl_deg": 89.47,
+       "incl_diff_deg": -0.02,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B3",
+       "pred_id": "P005",
+       "engine_line_id": "ZS05",
+       "offset_mm": 0.011,
+       "axis_angle_deg": 0.023,
+       "gold_incl_deg": 89.61,
+       "engine_incl_deg": 89.55,
+       "incl_diff_deg": -0.06,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B4",
+       "pred_id": "P008",
+       "engine_line_id": "ZS08",
+       "offset_mm": 0.016,
+       "axis_angle_deg": 0.026,
+       "gold_incl_deg": 89.54,
+       "engine_incl_deg": 89.43,
+       "incl_diff_deg": -0.11,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B5",
+       "pred_id": "P001",
+       "engine_line_id": "ZS01",
+       "offset_mm": 0.013,
+       "axis_angle_deg": 0.005,
+       "gold_incl_deg": 89.67,
+       "engine_incl_deg": 89.66,
+       "incl_diff_deg": -0.01,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B6",
+       "pred_id": "P003",
+       "engine_line_id": "ZS03",
+       "offset_mm": 0.007,
+       "axis_angle_deg": 0.026,
+       "gold_incl_deg": 89.87,
+       "engine_incl_deg": 89.83,
+       "incl_diff_deg": -0.04,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B7",
+       "pred_id": "P004",
+       "engine_line_id": "ZS04",
+       "offset_mm": 0.01,
+       "axis_angle_deg": 0.034,
+       "gold_incl_deg": 89.57,
+       "engine_incl_deg": 89.57,
+       "incl_diff_deg": 0.0,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B8",
+       "pred_id": "P006",
+       "engine_line_id": "ZS06",
+       "offset_mm": 0.012,
+       "axis_angle_deg": 0.022,
+       "gold_incl_deg": 89.62,
+       "engine_incl_deg": 89.7,
+       "incl_diff_deg": 0.08,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B9",
+       "pred_id": "P002",
+       "engine_line_id": "ZS02",
+       "offset_mm": 0.009,
+       "axis_angle_deg": 0.025,
+       "gold_incl_deg": 89.49,
+       "engine_incl_deg": 89.45,
+       "incl_diff_deg": -0.04,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B10",
+       "pred_id": "P010",
+       "engine_line_id": "ZS10",
+       "offset_mm": 0.02,
+       "axis_angle_deg": 0.032,
+       "gold_incl_deg": 88.86,
+       "engine_incl_deg": 88.86,
+       "incl_diff_deg": -0.0,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B11",
+       "pred_id": "P014",
+       "engine_line_id": "ZS14",
+       "offset_mm": 0.012,
+       "axis_angle_deg": 0.026,
+       "gold_incl_deg": 89.9,
+       "engine_incl_deg": 90.11,
+       "incl_diff_deg": 0.21,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B12",
+       "pred_id": "P011",
+       "engine_line_id": "ZS11",
+       "offset_mm": 0.014,
+       "axis_angle_deg": 0.087,
+       "gold_incl_deg": 90.01,
+       "engine_incl_deg": 90.08,
+       "incl_diff_deg": 0.07,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B13",
+       "pred_id": "P019",
+       "engine_line_id": "ZS19",
+       "offset_mm": 0.017,
+       "axis_angle_deg": 0.041,
+       "gold_incl_deg": 89.48,
+       "engine_incl_deg": 89.51,
+       "incl_diff_deg": 0.03,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B14",
+       "pred_id": "P020",
+       "engine_line_id": "ZS20",
+       "offset_mm": 0.016,
+       "axis_angle_deg": 0.078,
+       "gold_incl_deg": 89.86,
+       "engine_incl_deg": 89.98,
+       "incl_diff_deg": 0.12,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B15",
+       "pred_id": "P017",
+       "engine_line_id": "ZS17",
+       "offset_mm": 0.051,
+       "axis_angle_deg": 1.253,
+       "gold_incl_deg": 89.79,
+       "engine_incl_deg": 89.97,
+       "incl_diff_deg": 0.18,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B16",
+       "pred_id": "P016",
+       "engine_line_id": "ZS16",
+       "offset_mm": 0.027,
+       "axis_angle_deg": 0.931,
+       "gold_incl_deg": 89.71,
+       "engine_incl_deg": 89.81,
+       "incl_diff_deg": 0.1,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B17",
+       "pred_id": "P018",
+       "engine_line_id": "ZS18",
+       "offset_mm": 0.012,
+       "axis_angle_deg": 0.2,
+       "gold_incl_deg": 89.72,
+       "engine_incl_deg": 89.84,
+       "incl_diff_deg": 0.12,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B18",
+       "pred_id": "P015",
+       "engine_line_id": "ZS15",
+       "offset_mm": 0.035,
+       "axis_angle_deg": 1.257,
+       "gold_incl_deg": 89.92,
+       "engine_incl_deg": 89.96,
+       "incl_diff_deg": 0.04,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B19",
+       "pred_id": "P013",
+       "engine_line_id": "ZS13",
+       "offset_mm": 0.022,
+       "axis_angle_deg": 0.132,
+       "gold_incl_deg": 90.97,
+       "engine_incl_deg": 91.14,
+       "incl_diff_deg": 0.17,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B20",
+       "pred_id": "P012",
+       "engine_line_id": "ZS12",
+       "offset_mm": 0.151,
+       "axis_angle_deg": 2.948,
+       "gold_incl_deg": 89.65,
+       "engine_incl_deg": 89.79,
+       "incl_diff_deg": 0.14,
+       "hem_gold_construction": false,
+       "joggle": false
+      }
+     ],
+     "fp_ids": [],
+     "fn_ids": [],
+     "fn_causes": {},
+     "fp_causes": {}
+    },
+    {
+     "gid": "gb_d11e33",
+     "subset": "N001_N016",
+     "family": "31409",
+     "part_class": "bent",
+     "disposition": "SCORED_COMPLETE_LABEL",
+     "status": "OK",
+     "gold": 3,
+     "pred": 2,
+     "wall_s": 3.29,
+     "peak_rss_gib": 0.542,
+     "rss_limit_gib": 16,
+     "t_mm": 1.506549735069275,
+     "failure_reason": null,
+     "tp": 2,
+     "fp": 0,
+     "fn": 1,
+     "f1": 0.8,
+     "matches": [
+      {
+       "gold_id": "B1",
+       "pred_id": "P001",
+       "engine_line_id": "ZS01",
+       "offset_mm": 0.026,
+       "axis_angle_deg": 0.087,
+       "gold_incl_deg": 53.82,
+       "engine_incl_deg": 53.93,
+       "incl_diff_deg": 0.11,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B2",
+       "pred_id": "P002",
+       "engine_line_id": "ZS02",
+       "offset_mm": 0.018,
+       "axis_angle_deg": 0.475,
+       "gold_incl_deg": 75.29,
+       "engine_incl_deg": 75.38,
+       "incl_diff_deg": 0.09,
+       "hem_gold_construction": false,
+       "joggle": false
+      }
+     ],
+     "fp_ids": [],
+     "fn_ids": [
+      "B3"
+     ],
+     "fn_causes": {
+      "MISSED": 1
+     },
+     "fp_causes": {}
+    },
+    {
+     "gid": "gb_f63c89",
+     "subset": "HOLDOUT10",
+     "family": "28272",
+     "part_class": "bent",
+     "disposition": "SCORED_COMPLETE_LABEL",
+     "status": "OK",
+     "gold": 2,
+     "pred": 2,
+     "wall_s": 9.121,
+     "peak_rss_gib": 0.716,
+     "rss_limit_gib": 16,
+     "t_mm": 1.9534003925323487,
+     "failure_reason": null,
+     "tp": 2,
+     "fp": 0,
+     "fn": 0,
+     "f1": 1.0,
+     "matches": [
+      {
+       "gold_id": "B1",
+       "pred_id": "P001",
+       "engine_line_id": "ZS01",
+       "offset_mm": 0.006,
+       "axis_angle_deg": 0.015,
+       "gold_incl_deg": 90.39,
+       "engine_incl_deg": 90.4,
+       "incl_diff_deg": 0.01,
+       "hem_gold_construction": false,
+       "joggle": false
+      },
+      {
+       "gold_id": "B2",
+       "pred_id": "P002",
+       "engine_line_id": "ZS02",
+       "offset_mm": 0.095,
+       "axis_angle_deg": 0.058,
+       "gold_incl_deg": 90.51,
+       "engine_incl_deg": 90.02,
+       "incl_diff_deg": -0.49,
+       "hem_gold_construction": false,
+       "joggle": false
+      }
+     ],
+     "fp_ids": [],
+     "fn_ids": [],
+     "fn_causes": {},
+     "fp_causes": {}
+    }
+   ]
+  }
+ },
+ "sensitivity": {
+  "S1_no_new_conventions": {
+   "dropped_gold_lines": [
+    "gb_1baa22:B3:1baa22_hem",
+    "gb_231669:B13:231669_hemA",
+    "gb_231669:B14:231669_hemB",
+    "gb_68cd06:B20:68cd06_hem9",
+    "gb_ac2239:B13:ac2239_hemYm",
+    "gb_ac2239:B14:ac2239_hemYp",
+    "gb_d11e33:B3:d11e33_hem"
+   ],
+   "n_dropped": 7,
+   "derived_gold_sha256": {
+    "gb_1baa22": "0a31c234c3b940858b5f3eb1ec26f5a9943fbe03a5a92bf5cbc8519d2b4eb43b",
+    "gb_231669": "55460ebca2974a01a1d163d7d413c4d1478cbb1c949e9519433480596a6bc1fe",
+    "gb_68cd06": "b40a90a4b1e9d3fdfecd0efe5f0022ba1e578afd09cdcdc22487e224d1161110",
+    "gb_ac2239": "bac735af5a2860a829bed79f7a068a4a56f1518212dd7e84d6be641e5ff4f32c",
+    "gb_d11e33": "4595e665d7907679810904b3ed7cee3f340bd1fd56a1beac2d8c031dec5117a0"
+   },
+   "arms": {
+    "zs_lane_v3": {
+     "all": {
+      "scans": 25,
+      "families": 17,
+      "gold": 179,
+      "pred": 148,
+      "tp": 130,
+      "fp": 18,
+      "fn": 49,
+      "P": 0.8784,
+      "R": 0.7263,
+      "micro_f1": 0.7951,
+      "micro_ci95": [
+       0.597,
+       0.9496
+      ],
+      "family_macro_f1": 0.8756,
+      "macro_ci95": [
+       0.7721,
+       0.9578
+      ],
+      "failed_or_missing_scans": 0,
+      "controls": {
+       "scans": 2,
+       "fp_lines": 0
+      },
+      "fn_causes": {
+       "MISSED": 19,
+       "SPAN_LT_60PCT": 30
+      },
+      "fp_causes": {
+       "SPAN_LT_60PCT": 6,
+       "SPURIOUS": 11,
+       "TAKEN_BY_OTHER": 1
+      },
+      "worst_families": [
+       [
+        0.261,
+        "31367"
+       ],
+       [
+        0.667,
+        "38173"
+       ],
+       [
+        0.72,
+        "16231"
+       ],
+       [
+        0.727,
+        "46957"
+       ],
+       [
+        0.733,
+        "26687"
+       ]
+      ]
+     },
+     "micro_incl_control_fp": {
+      "tp": 130,
+      "fp": 18,
+      "fn": 49,
+      "P": 0.8784,
+      "R": 0.7263,
+      "micro_f1": 0.7951,
+      "strict_micro_f1_excluded_as_fn": 0.7951,
+      "excluded_before_scoring": 0
+     },
+     "unseen_families": {
+      "scans": 21,
+      "families": 15,
+      "gold": 153,
+      "pred": 132,
+      "tp": 115,
+      "fp": 17,
+      "fn": 38,
+      "P": 0.8712,
+      "R": 0.7516,
+      "micro_f1": 0.807,
+      "micro_ci95": [
+       0.5826,
+       0.9798
+      ],
+      "family_macro_f1": 0.8991,
+      "macro_ci95": [
+       0.7897,
+       0.9778
+      ],
+      "failed_or_missing_scans": 0,
+      "controls": {
+       "scans": 2,
+       "fp_lines": 0
+      },
+      "fn_causes": {
+       "MISSED": 9,
+       "SPAN_LT_60PCT": 29
+      },
+      "fp_causes": {
+       "SPAN_LT_60PCT": 5,
+       "SPURIOUS": 11,
+       "TAKEN_BY_OTHER": 1
+      },
+      "worst_families": [
+       [
+        0.261,
+        "31367"
+       ],
+       [
+        0.72,
+        "16231"
+       ],
+       [
+        0.727,
+        "46957"
+       ],
+       [
+        0.889,
+        "42637"
+       ],
+       [
+        0.889,
+        "47949"
+       ]
+      ]
+     }
+    },
+    "zs_lane_v1": {
+     "all": {
+      "scans": 25,
+      "families": 17,
+      "gold": 179,
+      "pred": 157,
+      "tp": 140,
+      "fp": 17,
+      "fn": 39,
+      "P": 0.8917,
+      "R": 0.7821,
+      "micro_f1": 0.8333,
+      "micro_ci95": [
+       0.716,
+       0.9528
+      ],
+      "family_macro_f1": 0.9002,
+      "macro_ci95": [
+       0.8264,
+       0.9654
+      ],
+      "failed_or_missing_scans": 0,
+      "controls": {
+       "scans": 2,
+       "fp_lines": 0
+      },
+      "fn_causes": {
+       "MISSED": 19,
+       "SPAN_LT_60PCT": 20
+      },
+      "fp_causes": {
+       "SPAN_LT_60PCT": 5,
+       "SPURIOUS": 12
+      },
+      "worst_families": [
+       [
+        0.582,
+        "31367"
+       ],
+       [
+        0.667,
+        "38173"
+       ],
+       [
+        0.706,
+        "16231"
+       ],
+       [
+        0.727,
+        "46957"
+       ],
+       [
+        0.733,
+        "26687"
+       ]
+      ]
+     },
+     "micro_incl_control_fp": {
+      "tp": 140,
+      "fp": 17,
+      "fn": 39,
+      "P": 0.8917,
+      "R": 0.7821,
+      "micro_f1": 0.8333,
+      "strict_micro_f1_excluded_as_fn": 0.8333,
+      "excluded_before_scoring": 0
+     },
+     "unseen_families": {
+      "scans": 21,
+      "families": 15,
+      "gold": 153,
+      "pred": 141,
+      "tp": 125,
+      "fp": 16,
+      "fn": 28,
+      "P": 0.8865,
+      "R": 0.817,
+      "micro_f1": 0.8503,
+      "micro_ci95": [
+       0.72,
+       0.9845
+      ],
+      "family_macro_f1": 0.9269,
+      "macro_ci95": [
+       0.8538,
+       0.9852
+      ],
+      "failed_or_missing_scans": 0,
+      "controls": {
+       "scans": 2,
+       "fp_lines": 0
+      },
+      "fn_causes": {
+       "MISSED": 9,
+       "SPAN_LT_60PCT": 19
+      },
+      "fp_causes": {
+       "SPAN_LT_60PCT": 4,
+       "SPURIOUS": 12
+      },
+      "worst_families": [
+       [
+        0.582,
+        "31367"
+       ],
+       [
+        0.706,
+        "16231"
+       ],
+       [
+        0.727,
+        "46957"
+       ],
+       [
+        0.889,
+        "42637"
+       ],
+       [
+        1.0,
+        "28272"
+       ]
+      ]
+     }
+    }
+   },
+   "paired_v3_minus_v1": {
+    "d_micro": -0.0382,
+    "d_micro_ci95": [
+     -0.1285,
+     0.0054
+    ],
+    "d_macro": -0.0246,
+    "d_macro_ci95": [
+     -0.0697,
+     0.0017
+    ],
+    "families": 17,
+    "families_better": 1,
+    "families_worse": 2,
+    "changed": [
+     [
+      "31367",
+      0.582,
+      0.261
+     ],
+     [
+      "47949",
+      1.0,
+      0.889
+     ],
+     [
+      "16231",
+      0.706,
+      0.72
+     ]
+    ]
+   }
+  },
+  "S2_no_hems": {
+   "dropped_gold_lines": [
+    "gb_1baa22:B3:1baa22_hem",
+    "gb_231669:B13:231669_hemA",
+    "gb_231669:B14:231669_hemB",
+    "gb_68cd06:B19:68cd06_hem10",
+    "gb_68cd06:B20:68cd06_hem9",
+    "gb_959f4a:B18:959f4a_hemL",
+    "gb_959f4a:B19:959f4a_hemR",
+    "gb_ac2239:B13:ac2239_hemYm",
+    "gb_ac2239:B14:ac2239_hemYp",
+    "gb_d11e33:B3:d11e33_hem"
+   ],
+   "n_dropped": 10,
+   "derived_gold_sha256": {
+    "gb_1baa22": "cf8ce074773c16da2d4f0190fde1329fe772115ad05f741b1a2a93a1050a1865",
+    "gb_231669": "9d1ec045e149422704710aa03727157b30d8c2746e1e2b62ac96981e4bbc00a5",
+    "gb_68cd06": "023cf74f137ad89cc1d49e6d1c19f8c121c4656d012737cb30310998bfedc682",
+    "gb_959f4a": "ea8347eabbc9ae3be38ad98da75d828fa1662ae73faf31709f10a7eae0bac1f6",
+    "gb_ac2239": "490eed8b86c0cd00ed5191889195f3a67b5b2bfaea34f885266d602ea168cc0d",
+    "gb_d11e33": "c05803883171a831d8667d7f931e96df80567969fe0204e37493dbc615826501"
+   },
+   "arms": {
+    "zs_lane_v3": {
+     "all": {
+      "scans": 25,
+      "families": 17,
+      "gold": 176,
+      "pred": 148,
+      "tp": 130,
+      "fp": 18,
+      "fn": 46,
+      "P": 0.8784,
+      "R": 0.7386,
+      "micro_f1": 0.8025,
+      "micro_ci95": [
+       0.6134,
+       0.9496
+      ],
+      "family_macro_f1": 0.8767,
+      "macro_ci95": [
+       0.7756,
+       0.9578
+      ],
+      "failed_or_missing_scans": 0,
+      "controls": {
+       "scans": 2,
+       "fp_lines": 0
+      },
+      "fn_causes": {
+       "MISSED": 16,
+       "SPAN_LT_60PCT": 30
+      },
+      "fp_causes": {
+       "SPAN_LT_60PCT": 6,
+       "SPURIOUS": 11,
+       "TAKEN_BY_OTHER": 1
+      },
+      "worst_families": [
+       [
+        0.279,
+        "31367"
+       ],
+       [
+        0.667,
+        "38173"
+       ],
+       [
+        0.72,
+        "16231"
+       ],
+       [
+        0.727,
+        "46957"
+       ],
+       [
+        0.733,
+        "26687"
+       ]
+      ]
+     },
+     "micro_incl_control_fp": {
+      "tp": 130,
+      "fp": 18,
+      "fn": 46,
+      "P": 0.8784,
+      "R": 0.7386,
+      "micro_f1": 0.8025,
+      "strict_micro_f1_excluded_as_fn": 0.8025,
+      "excluded_before_scoring": 0
+     },
+     "unseen_families": {
+      "scans": 21,
+      "families": 15,
+      "gold": 150,
+      "pred": 132,
+      "tp": 115,
+      "fp": 17,
+      "fn": 35,
+      "P": 0.8712,
+      "R": 0.7667,
+      "micro_f1": 0.8156,
+      "micro_ci95": [
+       0.6016,
+       0.9798
+      ],
+      "family_macro_f1": 0.9003,
+      "macro_ci95": [
+       0.7929,
+       0.9778
+      ],
+      "failed_or_missing_scans": 0,
+      "controls": {
+       "scans": 2,
+       "fp_lines": 0
+      },
+      "fn_causes": {
+       "MISSED": 6,
+       "SPAN_LT_60PCT": 29
+      },
+      "fp_causes": {
+       "SPAN_LT_60PCT": 5,
+       "SPURIOUS": 11,
+       "TAKEN_BY_OTHER": 1
+      },
+      "worst_families": [
+       [
+        0.279,
+        "31367"
+       ],
+       [
+        0.72,
+        "16231"
+       ],
+       [
+        0.727,
+        "46957"
+       ],
+       [
+        0.889,
+        "42637"
+       ],
+       [
+        0.889,
+        "47949"
+       ]
+      ]
+     }
+    },
+    "zs_lane_v1": {
+     "all": {
+      "scans": 25,
+      "families": 17,
+      "gold": 176,
+      "pred": 157,
+      "tp": 140,
+      "fp": 17,
+      "fn": 36,
+      "P": 0.8917,
+      "R": 0.7955,
+      "micro_f1": 0.8408,
+      "micro_ci95": [
+       0.7326,
+       0.953
+      ],
+      "family_macro_f1": 0.9022,
+      "macro_ci95": [
+       0.8306,
+       0.9654
+      ],
+      "failed_or_missing_scans": 0,
+      "controls": {
+       "scans": 2,
+       "fp_lines": 0
+      },
+      "fn_causes": {
+       "MISSED": 16,
+       "SPAN_LT_60PCT": 20
+      },
+      "fp_causes": {
+       "SPAN_LT_60PCT": 5,
+       "SPURIOUS": 12
+      },
+      "worst_families": [
+       [
+        0.615,
+        "31367"
+       ],
+       [
+        0.667,
+        "38173"
+       ],
+       [
+        0.706,
+        "16231"
+       ],
+       [
+        0.727,
+        "46957"
+       ],
+       [
+        0.733,
+        "26687"
+       ]
+      ]
+     },
+     "micro_incl_control_fp": {
+      "tp": 140,
+      "fp": 17,
+      "fn": 36,
+      "P": 0.8917,
+      "R": 0.7955,
+      "micro_f1": 0.8408,
+      "strict_micro_f1_excluded_as_fn": 0.8408,
+      "excluded_before_scoring": 0
+     },
+     "unseen_families": {
+      "scans": 21,
+      "families": 15,
+      "gold": 150,
+      "pred": 141,
+      "tp": 125,
+      "fp": 16,
+      "fn": 25,
+      "P": 0.8865,
+      "R": 0.8333,
+      "micro_f1": 0.8591,
+      "micro_ci95": [
+       0.7387,
+       0.9845
+      ],
+      "family_macro_f1": 0.9292,
+      "macro_ci95": [
+       0.8597,
+       0.9852
+      ],
+      "failed_or_missing_scans": 0,
+      "controls": {
+       "scans": 2,
+       "fp_lines": 0
+      },
+      "fn_causes": {
+       "MISSED": 6,
+       "SPAN_LT_60PCT": 19
+      },
+      "fp_causes": {
+       "SPAN_LT_60PCT": 4,
+       "SPURIOUS": 12
+      },
+      "worst_families": [
+       [
+        0.615,
+        "31367"
+       ],
+       [
+        0.706,
+        "16231"
+       ],
+       [
+        0.727,
+        "46957"
+       ],
+       [
+        0.889,
+        "42637"
+       ],
+       [
+        1.0,
+        "28272"
+       ]
+      ]
+     }
+    }
+   },
+   "paired_v3_minus_v1": {
+    "d_micro": -0.0384,
+    "d_micro_ci95": [
+     -0.1306,
+     0.0054
+    ],
+    "d_macro": -0.0255,
+    "d_macro_ci95": [
+     -0.0724,
+     0.0017
+    ],
+    "families": 17,
+    "families_better": 1,
+    "families_worse": 2,
+    "changed": [
+     [
+      "31367",
+      0.615,
+      0.279
+     ],
+     [
+      "47949",
+      1.0,
+      0.889
+     ],
+     [
+      "16231",
+      0.706,
+      0.72
+     ]
+    ]
+   }
+  },
+  "S3_unseen_families_only": {
+   "excluded_group5": [
+    "26687",
+    "38173"
+   ],
+   "arms": {
+    "zs_lane_v3": {
+     "scans": 21,
+     "families": 15,
+     "gold": 160,
+     "pred": 132,
+     "tp": 115,
+     "fp": 17,
+     "fn": 45,
+     "P": 0.8712,
+     "R": 0.7188,
+     "micro_f1": 0.7877,
+     "micro_ci95": [
+      0.5658,
+      0.9702
+     ],
+     "family_macro_f1": 0.8818,
+     "macro_ci95": [
+      0.7717,
+      0.967
+     ],
+     "failed_or_missing_scans": 0,
+     "controls": {
+      "scans": 2,
+      "fp_lines": 0
+     },
+     "fn_causes": {
+      "MISSED": 16,
+      "SPAN_LT_60PCT": 29
+     },
+     "fp_causes": {
+      "SPAN_LT_60PCT": 5,
+      "SPURIOUS": 11,
+      "TAKEN_BY_OTHER": 1
+     },
+     "worst_families": [
+      [
+       0.255,
+       "31367"
+      ],
+      [
+       0.667,
+       "16231"
+      ],
+      [
+       0.727,
+       "46957"
+      ],
+      [
+       0.8,
+       "31409"
+      ],
+      [
+       0.889,
+       "42637"
+      ]
+     ]
+    },
+    "zs_lane_v1": {
+     "scans": 21,
+     "families": 15,
+     "gold": 160,
+     "pred": 141,
+     "tp": 125,
+     "fp": 16,
+     "fn": 35,
+     "P": 0.8865,
+     "R": 0.7812,
+     "micro_f1": 0.8306,
+     "micro_ci95": [
+      0.6963,
+      0.9749
+     ],
+     "family_macro_f1": 0.9095,
+     "macro_ci95": [
+      0.8331,
+      0.9744
+     ],
+     "failed_or_missing_scans": 0,
+     "controls": {
+      "scans": 2,
+      "fp_lines": 0
+     },
+     "fn_causes": {
+      "MISSED": 16,
+      "SPAN_LT_60PCT": 19
+     },
+     "fp_causes": {
+      "SPAN_LT_60PCT": 4,
+      "SPURIOUS": 12
+     },
+     "worst_families": [
+      [
+       0.571,
+       "31367"
+      ],
+      [
+       0.655,
+       "16231"
+      ],
+      [
+       0.727,
+       "46957"
+      ],
+      [
+       0.8,
+       "31409"
+      ],
+      [
+       0.889,
+       "42637"
+      ]
+     ]
+    }
+   },
+   "paired_v3_minus_v1": {
+    "d_micro": -0.0429,
+    "d_micro_ci95": [
+     -0.1468,
+     0.0059
+    ],
+    "d_macro": -0.0277,
+    "d_macro_ci95": [
+     -0.0764,
+     0.0016
+    ],
+    "families": 15,
+    "families_better": 1,
+    "families_worse": 2,
+    "changed": [
+     [
+      "31367",
+      0.571,
+      0.255
+     ],
+     [
+      "47949",
+      1.0,
+      0.889
+     ],
+     [
+      "16231",
+      0.655,
+      0.667
+     ]
+    ]
+   }
+  }
+ },
+ "paired_v3_minus_v1": {
+  "d_micro": -0.0379,
+  "d_micro_ci95": [
+   -0.1272,
+   0.005
+  ],
+  "d_macro": -0.0244,
+  "d_macro_ci95": [
+   -0.0689,
+   0.0014
+  ],
+  "families": 17,
+  "families_better": 1,
+  "families_worse": 2,
+  "changed": [
+   [
+    "31367",
+    0.571,
+    0.255
+   ],
+   [
+    "47949",
+    1.0,
+    0.889
+   ],
+   [
+    "16231",
+    0.655,
+    0.667
+   ]
+  ]
+ },
+ "paired_v3_minus_v1_unseen_S3": {
+  "d_micro": -0.0429,
+  "d_micro_ci95": [
+   -0.1468,
+   0.0059
+  ],
+  "d_macro": -0.0277,
+  "d_macro_ci95": [
+   -0.0764,
+   0.0016
+  ],
+  "families": 15,
+  "families_better": 1,
+  "families_worse": 2,
+  "changed": [
+   [
+    "31367",
+    0.571,
+    0.255
+   ],
+   [
+    "47949",
+    1.0,
+    0.889
+   ],
+   [
+    "16231",
+    0.655,
+    0.667
+   ]
+  ]
+ },
+ "pooled_v1_heldout": {
+  "sources": {
+   "TEST-B": {
+    "path": "docs/production/runlog/zeroshot_2026-10-25/testb/RESULTS_per_case.json",
+    "key": "zs|testb",
+    "sha256": "9cd96fc71df88d6b29a135bf97446885797a17cec0d1d1a74902df90b707d4bf",
+    "n": 61
+   },
+   "N1": {
+    "path": "docs/production/runlog/zeroshot_2026-10-25/newscans_N1/RESULTS_per_case.json",
+    "key": "zs_lane_v1:zs (primary)",
+    "sha256": "76fde73305083f916e2380a28dd69bd80993578b77109ec0b00f4239aa54f258",
+    "n": 4
+   },
+   "FE1": {
+    "n": 27
+   }
+  },
+  "family_unit": "part_id[:5] for all three (TEST-B/N1 records carry full part_id; truncated here)",
+  "pooled": {
+   "scans": 87,
+   "families": 66,
+   "gold": 529,
+   "pred": 485,
+   "tp": 427,
+   "fp": 58,
+   "fn": 102,
+   "P": 0.8804,
+   "R": 0.8072,
+   "micro_f1": 0.8422,
+   "micro_ci95": [
+    0.7683,
+    0.9102
+   ],
+   "family_macro_f1": 0.8644,
+   "macro_ci95": [
+    0.8074,
+    0.9147
+   ],
+   "failed_or_missing_scans": 0,
+   "controls": {
+    "scans": 5,
+    "fp_lines": 0
+   },
+   "fn_causes": {
+    "SPAN_LT_60PCT": 50,
+    "OFFSET_GT_4MM": 8,
+    "MISSED": 44
+   },
+   "fp_causes": {
+    "SPAN_LT_60PCT": 31,
+    "TAKEN_BY_OTHER": 2,
+    "SPURIOUS": 25
+   },
+   "worst_families": [
+    [
+     0.0,
+     "44001"
+    ],
+    [
+     0.0,
+     "49566"
+    ],
+    [
+     0.4,
+     "49553"
+    ],
+    [
+     0.429,
+     "50278"
+    ],
+    [
+     0.5,
+     "12851"
+    ]
+   ]
+  },
+  "micro_incl_control_fp": {
+   "tp": 427,
+   "fp": 58,
+   "fn": 102,
+   "P": 0.8804,
+   "R": 0.8072,
+   "micro_f1": 0.8422,
+   "strict_micro_f1_excluded_as_fn": 0.8422,
+   "excluded_before_scoring": 0
+  },
+  "pooled_recorded_family_ids": {
+   "scans": 87,
+   "families": 68,
+   "gold": 529,
+   "pred": 485,
+   "tp": 427,
+   "fp": 58,
+   "fn": 102,
+   "P": 0.8804,
+   "R": 0.8072,
+   "micro_f1": 0.8422,
+   "micro_ci95": [
+    0.7713,
+    0.9072
+   ],
+   "family_macro_f1": 0.8624,
+   "macro_ci95": [
+    0.8051,
+    0.9125
+   ],
+   "failed_or_missing_scans": 0,
+   "controls": {
+    "scans": 5,
+    "fp_lines": 0
+   },
+   "fn_causes": {
+    "SPAN_LT_60PCT": 50,
+    "OFFSET_GT_4MM": 8,
+    "MISSED": 44
+   },
+   "fp_causes": {
+    "SPAN_LT_60PCT": 31,
+    "TAKEN_BY_OTHER": 2,
+    "SPURIOUS": 25
+   },
+   "worst_families": [
+    [
+     0.0,
+     "44001000"
+    ],
+    [
+     0.0,
+     "49566000"
+    ],
+    [
+     0.4,
+     "49553000"
+    ],
+    [
+     0.41,
+     "26687021"
+    ],
+    [
+     0.429,
+     "50278001"
+    ]
+   ]
+  },
+  "components": {
+   "TEST-B": {
+    "scans": 61,
+    "families": 49,
+    "gold": 317,
+    "pred": 305,
+    "tp": 266,
+    "fp": 39,
+    "fn": 51,
+    "P": 0.8721,
+    "R": 0.8391,
+    "micro_f1": 0.8553,
+    "micro_ci95": [
+     0.7584,
+     0.928
+    ],
+    "family_macro_f1": 0.8519,
+    "macro_ci95": [
+     0.7785,
+     0.915
+    ],
+    "failed_or_missing_scans": 0,
+    "controls": {
+     "scans": 0,
+     "fp_lines": 0
+    },
+    "fn_causes": {
+     "SPAN_LT_60PCT": 28,
+     "OFFSET_GT_4MM": 7,
+     "MISSED": 16
+    },
+    "fp_causes": {
+     "SPAN_LT_60PCT": 24,
+     "TAKEN_BY_OTHER": 2,
+     "SPURIOUS": 13
+    },
+    "worst_families": [
+     [
+      0.0,
+      "44001"
+     ],
+     [
+      0.0,
+      "49566"
+     ],
+     [
+      0.4,
+      "49553"
+     ],
+     [
+      0.41,
+      "26687"
+     ],
+     [
+      0.429,
+      "50278"
+     ]
+    ]
+   },
+   "N1": {
+    "scans": 1,
+    "families": 1,
+    "gold": 26,
+    "pred": 23,
+    "tp": 21,
+    "fp": 2,
+    "fn": 5,
+    "P": 0.913,
+    "R": 0.8077,
+    "micro_f1": 0.8571,
+    "micro_ci95": [
+     0.8571,
+     0.8571
+    ],
+    "family_macro_f1": 0.8571,
+    "macro_ci95": [
+     0.8571,
+     0.8571
+    ],
+    "failed_or_missing_scans": 0,
+    "controls": {
+     "scans": 3,
+     "fp_lines": 0
+    },
+    "fn_causes": {
+     "SPAN_LT_60PCT": 2,
+     "OFFSET_GT_4MM": 1,
+     "MISSED": 2
+    },
+    "fp_causes": {
+     "SPAN_LT_60PCT": 2
+    },
+    "worst_families": [
+     [
+      0.857,
+      "47085"
+     ]
+    ]
+   },
+   "FE1": {
+    "scans": 25,
+    "families": 17,
+    "gold": 186,
+    "pred": 157,
+    "tp": 140,
+    "fp": 17,
+    "fn": 46,
+    "P": 0.8917,
+    "R": 0.7527,
+    "micro_f1": 0.8163,
+    "micro_ci95": [
+     0.6968,
+     0.9449
+    ],
+    "family_macro_f1": 0.8848,
+    "macro_ci95": [
+     0.8096,
+     0.9526
+    ],
+    "failed_or_missing_scans": 0,
+    "controls": {
+     "scans": 2,
+     "fp_lines": 0
+    },
+    "fn_causes": {
+     "MISSED": 26,
+     "SPAN_LT_60PCT": 20
+    },
+    "fp_causes": {
+     "SPAN_LT_60PCT": 5,
+     "SPURIOUS": 12
+    },
+    "worst_families": [
+     [
+      0.571,
+      "31367"
+     ],
+     [
+      0.655,
+      "16231"
+     ],
+     [
+      0.667,
+      "38173"
+     ],
+     [
+      0.727,
+      "46957"
+     ],
+     [
+      0.733,
+      "26687"
+     ]
+    ]
+   }
+  },
+  "caveats": [
+   "TEST-B/N1 v1 runs used the research lane CLI under the then pin (code fingerprint af87df2f; lane code, models and config unchanged by the 10-26/10-28 re-pins, which re-hashed E3 files only); FE1 used lane_cli.run_lane blind",
+   "families shared between TEST-B and FE1 at group5 level (26687) merge into one bootstrap unit"
+  ]
+ },
+ "markers_and_canary_from_adjudication": {
+  "canary": {
+   "gid": "gb_9528f8",
+   "scan_id": "sc_589688be58d2",
+   "marker_A_f1": 1.0,
+   "marker_B_f1": 1.0,
+   "adjudicated_f1": 1.0,
+   "pass": true,
+   "label_written": false
+  },
+  "ab_agreement": {
+   "matcher": "score_case, gold = marker A, prediction = marker B, before adjudication",
+   "micro_f1_all_28_incl_zero_bend_FP": 0.951,
+   "tp_fp_fn_all_28": [
+    165,
+    2,
+    15
+   ],
+   "micro_f1_line_scans_only": 0.9565,
+   "n_A": 180,
+   "n_B": 167,
+   "pairs_accepted_within_1p5mm_2deg": 165,
+   "matched_outside_1p5mm_2deg": 0,
+   "zero_bend_items_agreed": [
+    "gb_61b6da",
+    "gb_cdecd9"
+   ],
+   "zero_bend_items_disagreed": [
+    "gb_437879"
+   ],
+   "per_item_f1": {
+    "gb_04738b": 1.0,
+    "gb_138090": 0.6666666666666666,
+    "gb_1baa22": 1.0,
+    "gb_1f3fe0": 0.6666666666666666,
+    "gb_231669": 0.8571428571428571,
+    "gb_42dd99": 1.0,
+    "gb_437879": 0.0,
+    "gb_44ddfb": 1.0,
+    "gb_47b48f": 1.0,
+    "gb_61b6da": 1.0,
+    "gb_68cd06": 0.9714285714285714,
+    "gb_8ccb40": 1.0,
+    "gb_8df897": 1.0,
+    "gb_9528f8": 1.0,
+    "gb_959f4a": 1.0,
+    "gb_a0538b": 1.0,
+    "gb_a2dd83": 0.9500000000000001,
+    "gb_a64e51": 1.0,
+    "gb_ac2239": 0.8571428571428571,
+    "gb_b21bad": 1.0,
+    "gb_b3ae40": 1.0,
+    "gb_b97c8e": 1.0,
+    "gb_bbc3a8": 1.0,
+    "gb_c6e707": 1.0,
+    "gb_cdecd9": 1.0,
+    "gb_d1093e": 0.9523809523809523,
+    "gb_d11e33": 1.0,
+    "gb_f63c89": 1.0
+   },
+   "scored_27_only": {
+    "items": 27,
+    "macro_item_f1": 0.923,
+    "micro_f1_incl_zero_bend_FP": 0.9499,
+    "tp_fp_fn": [
+     161,
+     2,
+     15
+    ],
+    "micro_f1_line_scans_only": 0.9555,
+    "tp_fp_fn_line_scans": [
+     161,
+     0,
+     15
+    ]
+   },
+   "note": "hem lines are in neither marker's lines.json (the tool refused parallel planes), so they do not enter this agreement; both markers flagged the gb_1baa22/gb_d11e33/gb_231669/gb_ac2239 hems in their notes."
+  },
+  "source": "adjudication/ADJUDICATION_FE1.json",
+  "sha256": "bdf534a7359a44ded814620df27d2a49565bab0bffb606132fe85e09a1102ccf"
+ },
+ "per_case_sha256": "96672b2312c487ffb954f291f24e262f11a9dd908576b3bc5bb43b4be257db5e",
+ "run_outputs_sha256": {
+  "zs_lane_v3/gb_04738b": "88474630a530216497d873f43de1341f37e4c6fb9bcb444778da572f3c148c5e",
+  "zs_lane_v3/gb_138090": "0ec3e98f35f585b4bdf6c3ae9c82e2d62ee8243362e454f0a98b18e30b1f4006",
+  "zs_lane_v3/gb_1baa22": "28394920c2c0c80276e54005ce9dc72708d24f5001bdf464f570af2c33b494dd",
+  "zs_lane_v3/gb_1f3fe0": "59bd3880688f680fd2fbeec649841428ad4eae1de49725185976b8f1fc6c7934",
+  "zs_lane_v3/gb_231669": "cb9b175217761045ad6c1af5497671311972f79815a0f77d8afbb052f31f7cd6",
+  "zs_lane_v3/gb_42dd99": "b52de2ad8e10ed3816388c6b85fa7a0e02ff364e8846c885af2afb66fc39d275",
+  "zs_lane_v3/gb_437879": "aedfc0202fbd73658a98f42fd1ff4c8de4a08833a7d01db2b6235abcc8864603",
+  "zs_lane_v3/gb_44ddfb": "09a27c224b448f2470c58afb79daea027c3d47a3b77fa284087572700a104afd",
+  "zs_lane_v3/gb_47b48f": "fd775eee0434ab54f8c4d7b16ce55c2f283454ce5acb929789c8586dd84d1b24",
+  "zs_lane_v3/gb_61b6da": "dccb822d0a1395b69a150d128f8216e0874f562e5e35b0aef1e3d7f093a1ff48",
+  "zs_lane_v3/gb_68cd06": "a60394498049a7aff763fc3723af60141e4c324cad21acc1c000451da36352c2",
+  "zs_lane_v3/gb_8ccb40": "477016126cbd99e3c971676c2157a4b4b8a431eb2e386165779791f64e927747",
+  "zs_lane_v3/gb_8df897": "f6542ee9253afe3d1479d0d3bc340655da9ff3178d0597e1946241e6ced298e0",
+  "zs_lane_v3/gb_959f4a": "f40aa04796409ffac11d6d96f3e0b151b1efc46b780c399c86ecd8d5d9c57078",
+  "zs_lane_v3/gb_a0538b": "ede8b72e2f7b9003bdd07794789123059800f01bc792731923c704e9de9e298d",
+  "zs_lane_v3/gb_a2dd83": "4398c8bd5a267791d41c3dea924b5e29deb20bcbbba23dc2196accf46d1860dd",
+  "zs_lane_v3/gb_a64e51": "ea9cdbede6d452e4682140208334f49d7287820f9db6a101573a6d41664f0482",
+  "zs_lane_v3/gb_ac2239": "80741b47f576fc03ee90cb42b0316b19688920882d140ed8eecb4eeaf5cd58be",
+  "zs_lane_v3/gb_b21bad": "0794640d149afbb9fa89689c46e3eef43c26beefde24c1daee3dd39ecdb76f45",
+  "zs_lane_v3/gb_b3ae40": "3cf89439601c3b11bd21dccdd228473803a2f6f13a4653eafd98425eb06f1815",
+  "zs_lane_v3/gb_b97c8e": "1b3b60301b39b5b0d48a07c293e8456527dcf38ba8147e321d4986b306282055",
+  "zs_lane_v3/gb_bbc3a8": "b0f77c137ffab68f94a629f10cc64a02784872ba73c7235cfade1ed2cad722b6",
+  "zs_lane_v3/gb_c6e707": "fa03559622f6f0b4105eb024bcc7d27914a7810ca7bfdf3cb6a166bcf8aec442",
+  "zs_lane_v3/gb_cdecd9": "84fa5171c27d6c17a924ec6d8899421029c30c89f4f27c364b0c7226d5dc0ac1",
+  "zs_lane_v3/gb_d1093e": "3b1d767c1e26a92d32214ebd165fd231940c98ae4c7c1e679c42c3d4016baaef",
+  "zs_lane_v3/gb_d11e33": "25a4864b6678dabe9082884276cfbb3d505d2ddb427af8d644527daee005a2dc",
+  "zs_lane_v3/gb_f63c89": "bd4b0f5de31eb76f8f582efb7e1b0feec9ca2476da7ebacdc3f997ee2a4c5c80",
+  "zs_lane_v1/gb_04738b": "8d68828c265affd3fdb576e6fb929d8be919544c42e6e208859977ce9255ac3e",
+  "zs_lane_v1/gb_138090": "544068929e1919a302a73d3d60e533ed1f525eea126adbbf7f8f1f0ec30123df",
+  "zs_lane_v1/gb_1baa22": "d54227cbf0b1f0dd003f93333e3de6aa70fb98f067dea3a316269fa6b2bd703a",
+  "zs_lane_v1/gb_1f3fe0": "11d63262e2c1d8e6ca492517488326f4f82b70d3385a581434f879064997a51f",
+  "zs_lane_v1/gb_231669": "3e320f00e54fa0f4bdd249d255288c35003adc61aa2d8c870dac10a875fc89c1",
+  "zs_lane_v1/gb_42dd99": "fb0a48d64b4c7c6e2219fa4ac9530b73cd73fca1655540f4d3a68474bb0ba418",
+  "zs_lane_v1/gb_437879": "18c7fc3f95df698605a58a1e234fe695fa6f2434293b9668061b51dac30a5b3c",
+  "zs_lane_v1/gb_44ddfb": "f4a241cf44df7b605741a7a591b543f7d85270f2d14cdbe79bb291c430151733",
+  "zs_lane_v1/gb_47b48f": "32778d44a5c771251ed528929a84abf6639ff88c72207a4d7761676fb1b78095",
+  "zs_lane_v1/gb_61b6da": "5125e1ecb31c8509abedd799dc048efc9f16691c6ed14bbc08c466673c09d3a7",
+  "zs_lane_v1/gb_68cd06": "9c80ce719746bb05e0384bb6d3e674a10217a4f1294704e7e62b70336b4df544",
+  "zs_lane_v1/gb_8ccb40": "67867e2236367884a1305e14d8cfe0160fbd77c225dd25a506a31eb36c6f10a9",
+  "zs_lane_v1/gb_8df897": "dadaa28ad0350d25a83abca8a7335da5a2000b91786362972f1f8874f17f03ed",
+  "zs_lane_v1/gb_959f4a": "4a281b99c2ffa14395d1844fa7f95de7c721efdd5ef46271858c4a693af106a8",
+  "zs_lane_v1/gb_a0538b": "013d9d18ff413fa2078bac804ec54650c0d0517c0810ff0a6a2030e6774366df",
+  "zs_lane_v1/gb_a2dd83": "6299d4fbe1907745c4b91f59c086b8a6e001ddb1988f3c454520371ddca4e3d5",
+  "zs_lane_v1/gb_a64e51": "959099bf88823a740e26f2e08146e7b66cc463e6927e8572d4e9cd337a4bcd19",
+  "zs_lane_v1/gb_ac2239": "36999187253a11b0a5e6f32a701319fc09eb1c44e3607cacdbbda6a04e242c5c",
+  "zs_lane_v1/gb_b21bad": "8636ae1fc8a1da16f5b0dbd11ea6423be54fd0f143c62c134ad7ae74ec464d25",
+  "zs_lane_v1/gb_b3ae40": "c34d46009a2b010be911a5370ac9fdebc22294f72ea5b198292d23b27aa2ed96",
+  "zs_lane_v1/gb_b97c8e": "6ae58e5c79305e9e8fd1b8b18212e58768a945c58e79c43a2c874e4b50d3d6dc",
+  "zs_lane_v1/gb_bbc3a8": "fbe19dc14722a6341495dac65e556383a44b8794eb59af7a9cebefe9a654631f",
+  "zs_lane_v1/gb_c6e707": "57ce1d17bbef6d984865b865707a3b86f68962e6718f5b2e619b8dc0501fce32",
+  "zs_lane_v1/gb_cdecd9": "1f487222556a7380fa6248cd1ee5559874df87f6707c676f4d330ac47865454f",
+  "zs_lane_v1/gb_d1093e": "cb19f95769918f9a5b3f2447c6f3baec1a955f84eb67cf26fabda238ab9cc1b3",
+  "zs_lane_v1/gb_d11e33": "e4c935efe8e7be5d9aee6f022719665b6bb93684a12ff274f9fa59601e2bec39",
+  "zs_lane_v1/gb_f63c89": "9d7a8c0cbc0cf9788d556641b40e80581f1c494a1f0d51bf4e16edad260371b7"
+ }
+}

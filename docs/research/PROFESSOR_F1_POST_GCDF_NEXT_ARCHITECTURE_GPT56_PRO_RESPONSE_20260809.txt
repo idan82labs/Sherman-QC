@@ -1,0 +1,933 @@
+Ruling
+
+Authorize exactly one fresh source-only architecture:
+
+Architecture family: SPHERICAL_DIRECTION_RANK_ASYMPTOTICS_V1
+
+Primitive 1: ANCHOR_CENTERED_UNIT_DIRECTION_SECOND_MOMENT_V1
+
+Primitive 2: R_NEG2_R_ZERO_R_POS2_NONNEGATIVE_MODEL_COMPARISON_V1
+
+Primitive 3: CANDIDATE_CODIMENSION_GROWTH_AUDIT_V1
+
+One-shot attempt: SDRA_V1_C006_FROZEN_SOURCE_CAUSAL_PREFLIGHT_V1
+
+This is not a GCDF correction or replay. It may open the frozen C006 source under a fresh claim, but it must not read any GCDF artifact, path, vote, candidate, image, threshold, or result file.
+
+1. Research grounding
+Published results
+
+Pauly, Keiser, and Gross showed that covariance eigenvalues of local point neighborhoods can provide a surface-variation measure, and that evaluating such a measure at multiple neighborhood sizes can improve line-feature extraction under noise. Their method, however, proceeds through thresholding, graph construction, and active contours, and they explicitly describe parameter adjustment and user feedback as part of the workflow. 
+CGL ETHZ
+
+Pottmann, Wallner, Huang, and Yang established that integrated local-neighborhood descriptors can have useful robustness and multiscale behavior compared with direct differential estimates. Their analysis supports using scale behavior itself as geometric evidence, rather than treating one neighborhood radius as authoritative. 
+UT Austin Computer Science
+
+Mérigot, Ovsjanikov, and Guibas showed that covariance-based integral measures can recover curvature information and encode the directions and angles of sharp features on piecewise-smooth point-sampled surfaces, with robustness results for their particular Voronoi-covariance construction. 
+PubMed
+
+Local-neighborhood asymmetry has separately been used to detect generic point-cloud edges, including workpiece edges, but that line of work detects missing support at ordinary boundaries and requires dataset-dependent neighborhood and threshold choices. That is precisely why SDRA does not use centroid displacement or first-moment asymmetry as its operative signal. 
+arXiv
+
+What the literature does not establish
+
+No cited result establishes any of the following:
+
+that the exact anchor-centered unit-direction matrix below is a zero-shot bend detector;
+
+that its smallest eigenvalue decomposes sufficiently well on real scans into the frozen r
+−2
+, r
+0
+, and r
+2
+ terms;
+
+that the constants below generalize to Sherman data;
+
+that a source-only local observable can semantically distinguish a desired manufacturing bend from a geometrically equivalent sharp edge at a part end;
+
+that survival of this representation predicts F1.
+
+Those are new Sherman-specific hypotheses. This preflight tests them once; it does not promote them to published facts.
+
+2. Exact source-only observable
+
+For each canonical source point p
+i
+	​
+
+, and for each frozen cumulative neighborhood size
+
+K={24,48,96,192,384},
+
+take the exact k nearest source points and form only their anchor-centered unit displacement directions:
+
+u
+ij
+	​
+
+=
+∥p
+j
+	​
+
+−p
+i
+	​
+
+∥
+p
+j
+	​
+
+−p
+i
+	​
+
+	​
+
+.
+
+Define
+
+M
+i,k
+	​
+
+=
+k
+1
+	​
+
+j∈N
+k
+	​
+
+(i)
+∑
+	​
+
+u
+ij
+	​
+
+u
+ij
+T
+	​
+
+,
+
+with eigenvalues
+
+0≤μ
+0,i,k
+	​
+
+≤μ
+1,i,k
+	​
+
+≤μ
+2,i,k
+	​
+
+.
+
+The primitive scalar is
+
+q
+i,k
+	​
+
+=μ
+0,i,k
+	​
+
+.
+
+This matrix is anchored at p
+i
+	​
+
+; it is not covariance around the neighborhood centroid.
+
+Why this is causally distinct
+
+SDRA never constructs or estimates:
+
+local planes or plane fragments;
+
+normals or a Gauss map;
+
+opposite-side pairs, transitions, wedges, rungs, ribbons, rulings, or spines;
+
+graph paths, geodesics, endpoint chords, or path-length deficits;
+
+cubical complexes or persistence;
+
+connected feature components for scientific adjudication;
+
+target projections or handoff predicates.
+
+A planar interior, a planar scan boundary, and a planar hole rim all have displacement directions contained in one plane. Their ideal M
+i,k
+	​
+
+ therefore has rank at most two and q
+i,k
+	​
+
+=0, even when half of the angular support is missing. SDRA deliberately ignores the first moment that would fire on such missing support.
+
+For an ideal, equally sampled union of two half-planes meeting along a line, with acute tangent-plane angle δ, the limiting eigenvalues are
+
+{
+4
+1−∣cosδ∣
+	​
+
+,
+4
+1+∣cosδ∣
+	​
+
+,
+2
+1
+	​
+
+}.
+
+Thus a tangent-cone split contributes a nonzero, scale-independent smallest eigenvalue near the bend.
+
+The frozen Sherman hypothesis is that, using x∝r
+2
+,
+
+q(x)≈
+x
+a
+	​
+
++c+bx:
+
+a/x: fixed-amplitude positional noise or close parallel-layer contamination, whose angular effect decays with neighborhood radius;
+
+bx: ordinary smooth curvature, whose out-of-tangent displacement grows with radius;
+
+c: a scale-zero tangent-cone or sufficiently saturated finite-radius bend contribution.
+
+A rounded bend can therefore survive only when larger neighborhoods begin to span both flanges and the constant term materially improves the model. A broad smooth cylinder should remain principally in the bx model.
+
+3. Frozen construction and arithmetic
+Input and canonical IDs
+
+The lock shall bind the existing content-selected raw C006 source bytes and the existing bounded 200,000-point source canonicalizer. No filename, case identity, GCDF output, or target information may influence selection.
+
+After that canonicalizer:
+
+Require exactly 200,000 finite XYZ points.
+
+Let L be the largest XYZ coordinate span.
+
+Set the deterministic lattice step to L/2
+30
+.
+
+Translate by the coordinate-wise minimum and round each coordinate to nearest-even lattice integer.
+
+Require 200,000 unique quantized triples. Any collision is a source-contract STOP.
+
+Assign point IDs by lexicographic order of the quantized XYZ triples.
+
+Squared distances are computed from the integer triples. Neighbors are ranked by:
+
+(squared distance, point ID).
+
+Approximate-nearest-neighbor substitution is forbidden.
+
+For every k,
+
+r
+i,k
+2
+	​
+
+=
+k
+1
+	​
+
+j∈N
+k
+	​
+
+(i)
+∑
+	​
+
+∥p
+j
+	​
+
+−p
+i
+	​
+
+∥
+2
+,x
+i,k
+	​
+
+=r
+i,k
+2
+	​
+
+/r
+i,24
+2
+	​
+
+.
+
+Therefore x
+i,24
+	​
+
+=1.
+
+Direction outer products shall be accumulated in fixed neighbor order. Matrix entries are rounded nearest-even to a 2
+−48
+ fixed-point lattice. Eigenvalues, x, fitted coefficients, and decision metrics are rounded nearest-even to 2
+−32
+ before hashing or comparison.
+
+Competing models
+
+At every eligible point, fit with equal scale weights and nonnegative coefficients:
+
+H
+0
+	​
+
+:q
+k
+	​
+
+=
+x
+k
+	​
+
+a
+	​
+
++bx
+k
+	​
+
+,
+H
+1
+	​
+
+:q
+k
+	​
+
+=
+x
+k
+	​
+
+a
+	​
+
++c+bx
+k
+	​
+
+.
+
+The implementation shall enumerate every active coefficient subset rather than invoke an opaque optimizer. Among fits with identical quantized SSE, take the first in this frozen order:
+
+a
+
+c
+
+b
+
+a,c
+
+a,b
+
+c,b
+
+a,c,b
+
+For H
+0
+	​
+
+, retain the corresponding order restricted to a,b.
+
+Define:
+
+G=max(0,
+max(SSE
+0
+	​
+
+,2
+−48
+)
+SSE
+0
+	​
+
+−SSE
+1
+	​
+
+	​
+
+),
+E=
+max(∑
+k
+	​
+
+q
+k
+2
+	​
+
+,2
+−48
+)
+SSE
+1
+	​
+
+	​
+
+	​
+
+,
+x
+∗
+	​
+
+=
+x
+384
+	​
+
+	​
+
+,
+Φ=
+a/x
+∗
+	​
+
++c+bx
+∗
+	​
+
++2
+−24
+c
+	​
+
+.
+Frozen point-level gates
+
+A point is scale-eligible only when:
+
+every successive x-ratio is in [5/4,4];
+
+x
+384
+	​
+
+∈[6,40];
+
+min
+k
+	​
+
+μ
+1,i,k
+	​
+
+≥5/64.
+
+A scale-eligible point is an SDRA candidate only when all of these hold:
+
+Quantity	Frozen requirement
+Constant term c	1/64≤c≤17/64
+Model gain G	G≥1/2
+Normalized fit error E	E≤1/5
+Constant contribution Φ	Φ≥3/8
+
+The lower c wall corresponds, in the ideal equal-half-plane calculation, to
+
+δ=arccos(15/16)≈20.36
+∘
+.
+
+That correspondence is analytical; it is not a claim about a real bend angle estimate. The upper wall is slightly above the ideal two-plane maximum 1/4, providing a fixed quantization/noise margin while rejecting strongly volumetric neighborhoods.
+
+No value may be changed after source access. Histograms and images are audit outputs, not tuning inputs.
+
+4. Sparse-support audit without components or spines
+
+Let C be the complete candidate mask. For each candidate i:
+
+m
+48
+	​
+
+(i): number of other candidates among its first 48 source neighbors;
+
+m
+192
+	​
+
+(i): number among its first 192 source neighbors;
+
+supported candidate: m
+48
+	​
+
+(i)≥2;
+
+local candidate-growth dimension:
+
+d
+i
+	​
+
+=log
+2
+	​
+
+m
+48
+	​
+
+(i)+1
+m
+192
+	​
+
+(i)+1
+	​
+
+.
+
+A line-like support should tend toward d≈1; an area-filling field should tend toward d≈2. This is a Sherman-specific rejection heuristic, not a published dimension estimator.
+
+Full-source survival requires:
+
+scale-eligible points: at least 180,000 of 200,000;
+
+candidates: at least 1 and at most 30,000;
+
+supported candidates: at least one-half of all candidates;
+
+supported-candidate median d≤8/5;
+
+supported-candidate 90th percentile d≤19/10.
+
+No connected components, line fits, skeletons, or candidate merging are authorized.
+
+5. Roles and independence
+Ordinary producer
+
+Exact integer-distance k-nearest-neighbor search using a deterministic balanced kd-tree with exact branch-and-bound completion.
+
+Block size: 4,096 anchors.
+
+Fixed-point direction moments, eigenvalues, model fits, candidate mask, codimension audit, stage ledger, and visuals.
+
+No source coordinates serialized.
+
+Deterministic permutation role
+
+Before source canonical sorting, order raw point records by
+
+SHA256("SDRA_V1_PERM"∥source SHA∥raw IEEE-754 XYZ bytes).
+
+Ties use raw XYZ bytes. Exact duplicate records later trigger the source-contract wall.
+
+It then runs the ordinary producer unchanged. Its semantic hash and terminal token must exactly equal the ordinary role.
+
+Materially independent validator
+
+The validator must:
+
+be a separate executable or module tree;
+
+import no producer geometry, neighbor, eigensolver, model-fit, candidate, or renderer-state code;
+
+rebuild the source from raw bytes;
+
+use a Morton-cell exact search with cell-distance lower bounds rather than the producer kd-tree;
+
+use a separately implemented symmetric 3×3 eigensolver;
+
+independently enumerate the nonnegative model active sets;
+
+recompute every quantized per-point scalar, count, percentile, terminal condition, and semantic hash;
+
+independently verify the stage-state ledger and visual manifest.
+
+Only canonical encoding/hash helpers may be shared. All three role semantic hashes and all three terminal decisions must agree.
+
+6. Mandatory source-free regressions and tamper tests
+
+These must pass under the final code and configuration hashes before the source claim is minted.
+
+Geometry regressions
+
+Complete planar lattice: zero candidates.
+
+Planar straight boundary: zero candidates at the boundary.
+
+Planar circular hole: zero candidates at the rim.
+
+Planar density step: zero candidates despite deterministic two-to-one density variation.
+
+Deterministic normal-noise plane: no coherent candidate support; fitted contribution is noise-dominated.
+
+Close parallel double layer: no candidate after the Φ and fit-error gates.
+
+Smooth cylindrical patch: no candidate in the boundary-excluded interior; H
+0
+	​
+
+ remains adequate.
+
+Thirty-degree sharp fold: nonempty, sub-15-percent, codimension-compatible support.
+
+Ninety-degree fold with radius-three fillet and adjoining flanges: nonempty, codimension-compatible support.
+
+Ten-degree fold: below the frozen c wall.
+
+Volumetric isotropic cloud: rejected by the rank/support/model gates.
+
+End-cap confound: may create line-like candidates. The expected result must explicitly record KNOWN_GEOMETRIC_CONFUSER_PRESENT; the test must not falsely certify semantic end rejection.
+
+Signed-axis permutation, translation, and uniform-scale transforms: corresponding quantized semantic decisions unchanged.
+
+Input-order permutation: exact semantic hash unchanged.
+
+Equal-distance neighbor ring: exact point-ID tie order.
+
+Duplicate quantized point, NaN, infinity, or fewer than 385 usable points: exact source-contract STOP.
+
+Governance and tamper regressions
+
+Change any one frozen constant: lock verification must fail.
+
+Change one source byte: source binding must fail.
+
+Alter one quantized q, coefficient, flag, or candidate ID: validator mismatch.
+
+Replace exact KNN with approximate KNN: equal-distance fixture mismatch.
+
+Delete, replace, or recompress one authoritative PNG: visual-manifest mismatch.
+
+Label a downstream unexecuted stage NOT_PRESENT: visual-state validation failure.
+
+Label a completed zero-candidate stage NOT_EVALUABLE: visual-state validation failure.
+
+Import producer geometry code into the validator: independence test failure.
+
+Attempt to open target, gold, CAD, benchmark, GCDF-output, runtime/main, or production paths: immediate governance STOP.
+
+The access allowlist contains only the locked raw source, locked code/configuration, process libraries, and the fresh output root.
+
+7. Early and absolute walls
+
+The source claim is consumed atomically before the first role opens the raw source.
+
+Morton-stratified sentinel
+
+Before processing all anchors, evaluate exactly 8,192 points selected at evenly spaced ranks of the full Morton ordering.
+
+Stop immediately when:
+
+fewer than 6,554 sentinel points are scale-eligible; or
+
+more than 2,048 sentinel points are candidates.
+
+A zero sentinel count does not stop execution because a genuinely sparse structure could miss the sentinel.
+
+The sentinel source, scalar, and candidate overlays are rendered before a controlled sentinel STOP.
+
+Resource limits
+Resource	Hard wall
+CPU workers per role	1
+GPU	forbidden
+Peak RSS per process	12,884,901,888 bytes
+Ordinary producer wall time	150 s
+Permuted producer wall time	150 s
+Independent validator wall time	300 s
+Renderer wall time	90 s
+Entire orchestration wall time	720 s
+Semantic payload	100,663,296 bytes
+Visual package	805,306,368 bytes
+Candidate rows	30,000
+
+Neighbor blocks may exist in memory but may not be serialized. No source XYZ table, neighborhood table, or full source-point subset may appear in the evidence payload.
+
+A controlled resource wall must finalize all already-observed visuals and mark every downstream stage NOT_EVALUABLE. An uncontrolled process crash is an invalid execution, not scientific evidence.
+
+8. Authoritative visual package
+
+Exactly 77 authoritative PNGs shall be produced for every source-opened attempt. Placeholder panels are still required after an upstream STOP.
+
+Geometry images: 60
+
+Six fixed orthographic cameras:
+
++X, -X, +Y, -Y, +Z, -Z.
+
+Ten layers per camera:
+
+complete source;
+
+q
+24
+	​
+
+;
+
+q
+48
+	​
+
+;
+
+q
+96
+	​
+
+;
+
+q
+192
+	​
+
+;
+
+q
+384
+	​
+
+;
+
+fitted c;
+
+model gain G;
+
+complete point-level candidate mask;
+
+supported candidates colored by d
+i
+	​
+
+.
+
+Each full view is 4,096 by 4,096 pixels, lossless PNG, fixed two-percent framing margin, fixed color lookup table whose bytes are in the lock, and the same camera and frustum across all ten layers.
+
+Candidate context images: 12
+
+Select twelve deterministic, nonoverlapping context regions by:
+
+partitioning the source bounding box into 64
+3
+ Morton cells;
+
+sorting cells by candidate count descending, then Morton code;
+
+accepting cells whose index-space Chebyshev distance from an earlier accepted cell is at least two;
+
+expanding each selected cell by four times the median r
+384
+	​
+
+ of its candidates.
+
+Each 2,048 by 2,048 crop shows the complete local source in gray and candidates in an opaque overlay. Selection is solely for audit and has no effect on machine adjudication.
+
+Diagnostics: 5
+
+all five q histograms plus c,G,E,Φ;
+
+q(x), H
+0
+	​
+
+, and H
+1
+	​
+
+ for the top 64 candidates ordered by c, then point ID;
+
+the complete stage-state matrix;
+
+sentinel/full Morton coverage and processed-anchor map;
+
+role-hash agreement or, on disagreement, quantized role-difference census.
+
+Thumbnails, dashboard previews, or recompressed copies are nonauthoritative.
+
+Stage-state semantics
+
+Every PNG header and PNG metadata must contain:
+
+STAGE_ID;
+
+EXECUTION_STATE;
+
+ENTITY_STATE;
+
+UPSTREAM_STOP;
+
+semantic-result hash;
+
+stage-ledger hash.
+
+Allowed execution states:
+
+OBSERVED_COMPLETE
+
+OBSERVED_PARTIAL
+
+NOT_EVALUABLE
+
+Allowed entity states:
+
+PRESENT
+
+NOT_PRESENT
+
+NOT_APPLICABLE
+
+The only valid combinations are:
+
+Circumstance	Execution state	Entity state
+Stage completed and emitted one or more governed entities	OBSERVED_COMPLETE	PRESENT
+Stage completed and exact entity count is zero	OBSERVED_COMPLETE	NOT_PRESENT
+Stage stopped after producing a strict partial observation	OBSERVED_PARTIAL	PRESENT or NOT_APPLICABLE
+Stage never ran because of an upstream wall	NOT_EVALUABLE	NOT_APPLICABLE
+
+NOT_PRESENT is never an execution state and may never describe an unexecuted stage. A bare PASS: NOT_PRESENT or similar renderer-generated phrase is forbidden.
+
+The renderer receives this state from one authoritative stage_state.json; it may not infer state independently from missing arrays or filenames.
+
+The visual manifest binds all 77 image hashes, the renderer hash, color-table hash, semantic-result hash, stage-ledger hash, and the exact state tuple for every image.
+
+9. Mandatory manual native-resolution audit
+
+The final result is incomplete until one auditor opens all 77 authoritative images at native resolution and emits a hash-bound JSON record containing exactly these fields:
+
+reviewed_image_count
+reviewed_image_sha256s
+all_images_opened_native_resolution
+source_complete_and_unclipped
+stage_state_labels_consistent
+broad_smooth_panel_activation
+long_scan_boundary_activation
+hole_rim_activation
+end_geometry_activation
+isolated_speckle_activation
+sparse_interior_bendlike_bands
+cross_scale_profiles_visually_consistent
+veto
+veto_reason_tokens
+evidence_image_ids
+free_text_observations
+
+Enumerations:
+
+Boolean review fields: YES, NO, UNCERTAIN.
+
+Nuisance activation fields: NONE, MINOR, DOMINANT, UNCERTAIN.
+
+Sparse interior bands: PRESENT, ABSENT, UNCERTAIN.
+
+Cross-scale profiles: CONSISTENT, INCONSISTENT, UNCERTAIN.
+
+The manual veto is mandatory when:
+
+not all 77 image hashes were reviewed at native resolution;
+
+source completeness is not YES;
+
+stage labels are not YES;
+
+any nuisance field is DOMINANT or UNCERTAIN;
+
+sparse interior bend-like bands are not PRESENT;
+
+cross-scale profiles are not CONSISTENT.
+
+Every non-NONE nuisance finding must cite image IDs and contain an observation. The manual audit may kill a machine survivor, but it may never rescue a machine STOP or relax a constant.
+
+End geometry is deliberately retained as a visual veto because a true end edge and a desired bend can have the same local tangent cone. Claiming otherwise from this source-only primitive would exceed the literature and the observable.
+
+10. Terminal mapping and lifecycle
+
+Terminal precedence is fixed:
+
+Condition	Terminal token
+Final locked source-free regression failure	SDRA_V1_SOURCE_FREE_REGRESSION_STOP
+Claim, lock, access, code-hash, or configuration violation	INVALID_SDRA_V1_GOVERNANCE_STOP
+Cardinality, finite-coordinate, quantization, duplicate, or neighbor contract failure	SDRA_V1_SOURCE_CONTRACT_STOP
+Any resource wall	SDRA_V1_RESOURCE_STOP
+Ordinary, permutation, and validator semantic disagreement	INVALID_SDRA_V1_REPRODUCIBILITY_STOP
+Renderer, stage-state, image, or manifest defect	INVALID_SDRA_V1_VISUAL_PACKAGE_STOP
+Missing or malformed manual review	INVALID_SDRA_V1_MANUAL_AUDIT_STOP
+Sentinel eligibility below 80% or full eligibility below 90%	SDRA_V1_SAMPLING_REGIME_ARCHITECTURE_STOP
+Sentinel candidate fraction above 25% or full fraction above 15%	SDRA_V1_NONSELECTIVE_ARCHITECTURE_STOP
+Full candidate count equals zero	SDRA_V1_NO_SIGNAL_ARCHITECTURE_STOP
+Supported-candidate fraction below one-half	SDRA_V1_INCOHERENT_SUPPORT_ARCHITECTURE_STOP
+Median or 90th-percentile d exceeds its wall	SDRA_V1_AREA_LIKE_SUPPORT_ARCHITECTURE_STOP
+Valid manual nuisance veto	SDRA_V1_VISUAL_NUISANCE_ARCHITECTURE_STOP
+All machine, integrity, and manual conditions pass	SDRA_V1_SOURCE_REPRESENTATION_PREFLIGHT_SURVIVES
+
+A visual-package defect takes precedence over an otherwise scientific machine STOP, as it did for GCDF. A valid visual observation cannot reverse an earlier hard wall.
+
+This authorization permits exactly one consumed source claim. After that claim:
+
+no rerun;
+
+no renderer repair;
+
+no implementation correction;
+
+no threshold or neighborhood change;
+
+no replacement source;
+
+no second permutation;
+
+no selective image regeneration;
+
+no GCDF comparison or fusion;
+
+no target opening.
+
+Any terminal token closes SPHERICAL_DIRECTION_RANK_ASYMPTOTICS_V1 for this source and configuration. Survival means only that this source representation passed its first causal wall. It does not authorize target projection, bend counting, candidate handoff, F1 evaluation, runtime/main access, or production integration.
+
+AUTHORIZE_F1_POST_GCDF_SINGLE_ARCHITECTURE_PREFLIGHT_V1
+

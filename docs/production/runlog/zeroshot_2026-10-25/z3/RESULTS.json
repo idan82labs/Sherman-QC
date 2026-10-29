@@ -1,0 +1,336 @@
+{
+ "schema": "sherman.zeroshot.z3.results.v1",
+ "wp": "Z3 axis-family slicing",
+ "ledger": "consumed development (DEV only, SPLIT_FROZEN dev; no TEST-B)",
+ "code_fingerprint": "6cff04a9fb34f710",
+ "run": "it7",
+ "matcher": "research/broad_baseline/score.py score_case (5 deg / 4 mm / 0.6, Hungarian, apex, raw)",
+ "dev": {
+  "scans": 121,
+  "line_scans": 116,
+  "families": 91,
+  "gold_lines": 586,
+  "zero_bend_controls": 5
+ },
+ "candidates": {
+  "all": {
+   "recall": 0.968,
+   "ratio": 5.12
+  },
+  "birth_stream_gate_birth": {
+   "recall": 0.964,
+   "ratio": 1.83
+  }
+ },
+ "standalone_oof": {
+  "gbm": {
+   "model": "gbm",
+   "thresholds_by_fold": {
+    "0": 0.55,
+    "1": 0.45,
+    "2": 0.675,
+    "3": 0.525,
+    "4": 0.65
+   },
+   "scans": 116,
+   "families": 91,
+   "gold": 586,
+   "pred": 566,
+   "tp": 531,
+   "fp": 35,
+   "fn": 55,
+   "P": 0.9382,
+   "R": 0.9061,
+   "micro_f1": 0.9219,
+   "family_macro_f1": 0.9089,
+   "fn_causes": {
+    "MISSED": 32,
+    "OFFSET_GT_4MM": 11,
+    "SPAN_LT_60PCT": 11,
+    "TAKEN_BY_OTHER": 1
+   },
+   "fp_causes": {
+    "SPAN_LT_60PCT": 17,
+    "SPURIOUS": 15,
+    "TAKEN_BY_OTHER": 2,
+    "OFFSET_GT_4MM": 1
+   },
+   "controls": {
+    "scans": 5,
+    "fp_lines": 5
+   },
+   "micro_ci": [
+    0.896,
+    0.946
+   ],
+   "macro_ci": [
+    0.865,
+    0.946
+   ]
+  },
+  "lr": {
+   "model": "lr",
+   "thresholds_by_fold": {
+    "0": 0.35,
+    "1": 0.35,
+    "2": 0.325,
+    "3": 0.375,
+    "4": 0.375
+   },
+   "scans": 116,
+   "families": 91,
+   "gold": 586,
+   "pred": 610,
+   "tp": 547,
+   "fp": 63,
+   "fn": 39,
+   "P": 0.8967,
+   "R": 0.9334,
+   "micro_f1": 0.9147,
+   "family_macro_f1": 0.9119,
+   "fn_causes": {
+    "SPAN_LT_60PCT": 10,
+    "MISSED": 22,
+    "OFFSET_GT_4MM": 6,
+    "ANGLE_GT_5": 1
+   },
+   "fp_causes": {
+    "SPAN_LT_60PCT": 22,
+    "SPURIOUS": 25,
+    "TAKEN_BY_OTHER": 5,
+    "OFFSET_GT_4MM": 10,
+    "ANGLE_GT_5": 1
+   },
+   "controls": {
+    "scans": 5,
+    "fp_lines": 2
+   },
+   "micro_ci": [
+    0.87,
+    0.951
+   ],
+   "macro_ci": [
+    0.869,
+    0.948
+   ]
+  }
+ },
+ "unions": {
+  "plain_nms": {
+   "z3": {
+    "P": 0.9382,
+    "R": 0.9061,
+    "micro_f1": 0.9219,
+    "family_macro_f1": 0.9089,
+    "tp": 531,
+    "fp": 35,
+    "fn": 55,
+    "micro_ci": [
+     0.895,
+     0.945
+    ]
+   },
+   "a0": {
+    "P": 0.6,
+    "R": 0.2201,
+    "micro_f1": 0.3221,
+    "family_macro_f1": 0.2667,
+    "tp": 129,
+    "fp": 86,
+    "fn": 457,
+    "micro_ci": [
+     0.264,
+     0.379
+    ]
+   },
+   "z3+a0": {
+    "P": 0.8517,
+    "R": 0.9113,
+    "micro_f1": 0.8805,
+    "family_macro_f1": 0.8659,
+    "tp": 534,
+    "fp": 93,
+    "fn": 52,
+    "micro_ci": [
+     0.845,
+     0.91
+    ]
+   },
+   "a0+z3": {
+    "P": 0.8144,
+    "R": 0.8464,
+    "micro_f1": 0.8301,
+    "family_macro_f1": 0.8106,
+    "tp": 496,
+    "fp": 113,
+    "fn": 90,
+    "micro_ci": [
+     0.789,
+     0.867
+    ]
+   },
+   "z2": {
+    "P": 0.8801,
+    "R": 0.7389,
+    "micro_f1": 0.8033,
+    "family_macro_f1": 0.6886,
+    "tp": 433,
+    "fp": 59,
+    "fn": 153,
+    "micro_ci": [
+     0.72,
+     0.867
+    ]
+   },
+   "z3+z2": {
+    "P": 0.8703,
+    "R": 0.9386,
+    "micro_f1": 0.9031,
+    "family_macro_f1": 0.8853,
+    "tp": 550,
+    "fp": 82,
+    "fn": 36,
+    "micro_ci": [
+     0.868,
+     0.932
+    ]
+   },
+   "z2+z3": {
+    "P": 0.8714,
+    "R": 0.9369,
+    "micro_f1": 0.903,
+    "family_macro_f1": 0.8739,
+    "tp": 549,
+    "fp": 81,
+    "fn": 37,
+    "micro_ci": [
+     0.865,
+     0.933
+    ]
+   },
+   "z3+z2+a0": {
+    "P": 0.8012,
+    "R": 0.942,
+    "micro_f1": 0.8659,
+    "family_macro_f1": 0.8468,
+    "tp": 552,
+    "fp": 137,
+    "fn": 34,
+    "micro_ci": [
+     0.824,
+     0.9
+    ]
+   }
+  },
+  "pooled_selector_z3_z2_it05": {
+   "pool": "z3+z2",
+   "z2_tag": "it05",
+   "thresholds_by_fold": {
+    "0": 0.375,
+    "1": 0.4,
+    "2": 0.725,
+    "3": 0.55,
+    "4": 0.475
+   },
+   "scans": 116,
+   "families": 91,
+   "gold": 586,
+   "pred": 577,
+   "tp": 545,
+   "fp": 32,
+   "fn": 41,
+   "P": 0.9445,
+   "R": 0.93,
+   "micro_f1": 0.9372,
+   "family_macro_f1": 0.9249,
+   "fn_causes": {
+    "OFFSET_GT_4MM": 11,
+    "MISSED": 21,
+    "SPAN_LT_60PCT": 9
+   },
+   "fp_causes": {
+    "SPAN_LT_60PCT": 16,
+    "TAKEN_BY_OTHER": 1,
+    "SPURIOUS": 12,
+    "ANGLE_GT_5": 1,
+    "OFFSET_GT_4MM": 2
+   },
+   "controls": {
+    "scans": 5,
+    "fp_lines": 5
+   },
+   "micro_ci": [
+    0.91,
+    0.961
+   ],
+   "macro_ci": [
+    0.881,
+    0.96
+   ]
+  },
+  "pooled_selector_z3_a0": {
+   "pool": "z3+a0",
+   "z2_tag": "it04",
+   "thresholds_by_fold": {
+    "0": 0.6,
+    "1": 0.5,
+    "2": 0.725,
+    "3": 0.6,
+    "4": 0.7
+   },
+   "scans": 116,
+   "families": 91,
+   "gold": 586,
+   "pred": 563,
+   "tp": 532,
+   "fp": 31,
+   "fn": 54,
+   "P": 0.9449,
+   "R": 0.9078,
+   "micro_f1": 0.926,
+   "family_macro_f1": 0.9112,
+   "fn_causes": {
+    "MISSED": 31,
+    "OFFSET_GT_4MM": 11,
+    "SPAN_LT_60PCT": 12
+   },
+   "fp_causes": {
+    "SPAN_LT_60PCT": 17,
+    "TAKEN_BY_OTHER": 2,
+    "SPURIOUS": 11,
+    "OFFSET_GT_4MM": 1
+   },
+   "controls": {
+    "scans": 5,
+    "fp_lines": 5
+   },
+   "micro_ci": [
+    0.898,
+    0.951
+   ],
+   "macro_ci": [
+    0.866,
+    0.949
+   ]
+  }
+ },
+ "runtime_s_per_scan": {
+  "median": 1.65,
+  "mean": 2.7,
+  "p95": 10.09,
+  "max": 19.74,
+  "note": "single thread (OMP_NUM_THREADS=1), load+detect; peak RSS 3.32 GiB for the whole 121-scan batch process"
+ },
+ "per_fold_gbm_micro": [
+  0.918,
+  0.891,
+  0.953,
+  0.919,
+  0.946
+ ],
+ "outputs": {
+  "eval_lines": "z3/runs/it7/<sid>/eval_lines.json (OOF-selected)",
+  "candidates": "z3/runs/it7/<sid>/candidates_eval_lines.json (birth stream, score = OOF prob)",
+  "model_for_new_scans": "z3/model_z3_gbm.pkl (GBM fit on all DEV it7 candidates, threshold 0.55 = median fold threshold)"
+ }
+}

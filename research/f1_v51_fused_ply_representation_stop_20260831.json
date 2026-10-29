@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "kind": "sherman_qc_f1_v51_fused_ply_representation_stop_decision",
+  "status": "TERMINAL_NEGATIVE_DEVELOPMENT_EVIDENCE",
+  "decision": "FUSED_PLY_SOURCE_REPRESENTATION_STOP",
+  "decided_at": "2026-08-31T13:36:00+03:00",
+  "scope": "consumed_2026_08_30_development_cohort_only",
+  "reason": "A precommitted orientation-aware Hough birth mechanism successfully split part-wide normal-change components but could not distinguish real bends from other fused-mesh turn tracks at useful precision.",
+  "frozen_bindings": {
+    "ridge_field_precommit_sha256": "764f88c0360d7f35fd18f9614133d82e2bd6279c55bfc940d1d7fc92cfad81e5",
+    "orientation_hough_precommit_sha256": "ba726fd39b416cad079fa9e6ddd9630d7f445303a5632456f46bc922032dbc58",
+    "orientation_hough_runtime_sha256": "c4c227a235569fd5197ea910e1b18e61a77b0ba60db3a520b3be475170ba6b9a",
+    "orientation_hough_evaluator_sha256": "c4b0b6619f0117639d98ff5e8625230eb2fbf91525781279fc8804e16b78ddd5",
+    "evaluation_report_sha256": "d85b65a531a1f5aa4632059d48d78c6a031d70fc725ac222d2bf4cffbdd1297c"
+  },
+  "strict_consumed_case_group_result": {
+    "baseline_v51": {
+      "true_positive": 14,
+      "false_positive": 63,
+      "false_negative": 51,
+      "f1": 0.197183
+    },
+    "orientation_hough_successor": {
+      "true_positive": 17,
+      "false_positive": 245,
+      "false_negative": 48,
+      "f1": 0.103976
+    },
+    "turn_ridge_point_count": 173119,
+    "local_axis_point_count": 145941,
+    "qualified_track_count": 1315,
+    "emitted_addition_count": 185,
+    "incremental_true_positive": 3,
+    "incremental_false_positive": 182,
+    "baseline_true_positive_regression": 0,
+    "required_f1_strictly_greater_than": 0.483333,
+    "retention_gate_passed": false
+  },
+  "interpretation": {
+    "connectivity_wall_resolved": true,
+    "line_birth_recall_increased": true,
+    "line_birth_precision_acceptable": false,
+    "another_same_representation_threshold_or_selector_iteration_authorized": false,
+    "next_valid_research_move_requires_representation_change": true,
+    "examples_of_material_representation_change": [
+      "per-view raw depth or range evidence before fusion",
+      "scanner confidence and visibility provenance",
+      "independently segmented sheet-surface or flange topology",
+      "new prospectively labeled physical scans"
+    ]
+  },
+  "caveat": "This is a bounded engineering stop for the available fused-PLY development representation, not a universal impossibility theorem.",
+  "promotion_eligible": false,
+  "generalization_evidence": false
+}

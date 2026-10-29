@@ -1,4 +1,4 @@
-#!/opt/homebrew/bin/python3.11
+#!/usr/bin/env python3
 """
 Upsert a single part into the existing bend corpus without deleting evaluation outputs.
 """
@@ -11,9 +11,11 @@ import sys
 from pathlib import Path
 from typing import Any, Dict, List
 
-ROOT = Path("/Users/idant/82Labs/Sherman QC/Full Project")
+ROOT = Path(__file__).resolve().parents[1]
 SCRIPTS_DIR = ROOT / "scripts"
 BACKEND_DIR = ROOT / "backend"
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 if str(SCRIPTS_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPTS_DIR))
 if str(BACKEND_DIR) not in sys.path:

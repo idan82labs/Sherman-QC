@@ -1,0 +1,1018 @@
+{
+  "schema": "sherman_shopfloor_inspection_result_v1",
+  "created_at": "2026-10-17T07:15:42Z",
+  "context": {
+    "job_id": "line_967843f25a4428a7184f6ebc00ba8860",
+    "station_id": "cell-1",
+    "scan_file_name": "SYN-HAT-1_A_SN0042.ply",
+    "serial": "SN0042",
+    "scan_timestamp": null,
+    "received_at": "2026-10-17T07:15:00Z"
+  },
+  "sku": "SYN-HAT-1",
+  "part_name": "Synthetic hat section",
+  "recipe": {
+    "recipe_id": "SYN-HAT-1@v1",
+    "version": 1,
+    "recipe_sha256": "d1697668f9d086fd6ec9bc5cbb01d03227b5c5f09ad76df5d892be18f194fcfc",
+    "content_sha256": "0e6161efb6f642f68f53451f944735105c6f8bb65ab7b94c22fd656771eb09d2"
+  },
+  "scan": {
+    "sha256": "10bc4d0cd01f6a1f20d99065fc3574dfa994d4ea477bd0f00710bcbe350f8edc",
+    "format": "PLY_BINARY_LE",
+    "vertex_count": 812345,
+    "face_count": 1620011
+  },
+  "engine": {
+    "engine_name": "sherman_production_engine",
+    "engine_version": "e3-example",
+    "config_sha256": null,
+    "bundle_id": "bundle-example",
+    "compiled_part_sha256": "4c4a6f1d6e76f3715b3b348876231b9b06adc8b2a8d0ea125cb15f9e1e65bcff",
+    "algorithm_versions": {
+      "registration": "datum_v1",
+      "metrology": "section_v1"
+    },
+    "duration_s": 23.4,
+    "peak_rss_bytes": 1900000000
+  },
+  "authority": {
+    "mode": "OPERATOR_ASSIST",
+    "production_disposition": "NOT_AUTHORIZED",
+    "note": "Operator assist only; not an automatic accept/reject."
+  },
+  "inspection_validity": {
+    "state": "VALID",
+    "reasons": [],
+    "metrology_qualified": false,
+    "registration": {
+      "method": "DATUM_FPFH_RANSAC_TRIMMED_ICP_V1",
+      "frame": "cad_model_mm",
+      "raw_to_frame": [
+        [
+          0.0,
+          -1.0,
+          0.0,
+          412.25
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          -87.5
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          3.125
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "unit_factor": 1.0,
+      "datum_fitness": 0.94,
+      "rmse_mm": 0.06,
+      "pose_candidates_considered": 8,
+      "pose_margin": 2.7,
+      "pose_ambiguous": false,
+      "identity_ambiguous": false,
+      "in_plane_degenerate": false,
+      "abstained": false
+    },
+    "coverage": {
+      "surface_coverage_ratio": 0.86,
+      "datum_coverage_ratio": 0.97,
+      "scan_point_count": 812345
+    }
+  },
+  "stage_decision": {
+    "inspection_stage": "IN_PROCESS",
+    "declared_stage": 2,
+    "declared_stage_source": "SIDECAR",
+    "bends_total": 4,
+    "inferred_stage": 2,
+    "formed_bend_uids": [
+      "bu_12380e892df5584bcf79",
+      "bu_9ff0ed344a32452b027e"
+    ],
+    "not_yet_formed_bend_uids": [
+      "bu_6f6f1c8da12918ba6911",
+      "bu_ef72a43a0a975c0e454c"
+    ],
+    "unknown_bend_uids": [],
+    "status": "CONSISTENT",
+    "flags": [
+      "CONSISTENT"
+    ],
+    "decision": "PASS",
+    "part_complete": false,
+    "stage_model_id": "S2",
+    "detail": ""
+  },
+  "summary": {
+    "state": "STAGE_IN_TOLERANCE",
+    "bends_total": 4,
+    "bends_formed": 2,
+    "bends_not_yet_formed": 2,
+    "bends_unknown": 0,
+    "characteristics_required": 9,
+    "required_pass": 9,
+    "required_fail": 0,
+    "required_review": 0,
+    "required_unknown": 0,
+    "unplanned_creases": 0,
+    "worst": {
+      "characteristic_id": "bu_9ff0ed344a32452b027e/BACKGAUGE_LENGTH/S2",
+      "bend_uid": "bu_9ff0ed344a32452b027e",
+      "kind": "BACKGAUGE_LENGTH",
+      "deviation": 0.11,
+      "uncertainty": 0.12,
+      "decision": "PASS",
+      "exceedance_ratio": 0.766667
+    },
+    "reasons": [
+      "PART_NOT_COMPLETE"
+    ]
+  },
+  "bends": [
+    {
+      "bend_uid": "bu_12380e892df5584bcf79",
+      "label": "B1",
+      "sequence_index": 1,
+      "machine_move_index": null,
+      "state": "FORMED",
+      "state_reasons": [],
+      "state_evidence": {
+        "nominal_included_deg": 90.0,
+        "measured_included_deg": 90.2,
+        "formed_fraction": 0.997778,
+        "parent_support_points": null,
+        "child_support_points": null,
+        "coverage_ratio": 0.9,
+        "prior_formed_probability": null
+      },
+      "characteristics": [
+        {
+          "characteristic_id": "bu_12380e892df5584bcf79/FLANGE_LENGTH/A",
+          "kind": "FLANGE_LENGTH",
+          "bend_uid": "bu_12380e892df5584bcf79",
+          "side": "A",
+          "stage_index": null,
+          "measurement_id": null,
+          "unit": "mm",
+          "required": true,
+          "state": "MEASURED",
+          "decision": "PASS",
+          "reason": null,
+          "expected": 30.0,
+          "expected_source": "COMPILED_NOMINAL",
+          "actual": 30.06,
+          "deviation": 0.06,
+          "uncertainty": 0.09,
+          "tolerance": {
+            "plus": 0.5,
+            "minus": 0.5,
+            "origin": "RECIPE_DEFAULT",
+            "standard": "SHOP_STANDARD"
+          },
+          "boundary_kind": "ADJACENT_BEND",
+          "adjacent_bend_uid": "bu_9ff0ed344a32452b027e",
+          "stations": {
+            "count": 7,
+            "median": 30.06,
+            "min": 30.015,
+            "max": 30.105
+          },
+          "evidence": {
+            "method": "SECTION_METROLOGY_V1",
+            "support_points": 1800,
+            "coverage_ratio": 0.93,
+            "fit_rms_mm": 0.03,
+            "notes": []
+          }
+        },
+        {
+          "characteristic_id": "bu_12380e892df5584bcf79/FLANGE_LENGTH/B",
+          "kind": "FLANGE_LENGTH",
+          "bend_uid": "bu_12380e892df5584bcf79",
+          "side": "B",
+          "stage_index": null,
+          "measurement_id": null,
+          "unit": "mm",
+          "required": true,
+          "state": "MEASURED",
+          "decision": "PASS",
+          "reason": null,
+          "expected": 20.0,
+          "expected_source": "COMPILED_NOMINAL",
+          "actual": 19.9,
+          "deviation": -0.1,
+          "uncertainty": 0.1,
+          "tolerance": {
+            "plus": 0.5,
+            "minus": 0.5,
+            "origin": "RECIPE_DEFAULT",
+            "standard": "SHOP_STANDARD"
+          },
+          "boundary_kind": "FREE_EDGE",
+          "adjacent_bend_uid": null,
+          "stations": {
+            "count": 7,
+            "median": 19.9,
+            "min": 19.85,
+            "max": 19.95
+          },
+          "evidence": {
+            "method": "SECTION_METROLOGY_V1",
+            "support_points": 1800,
+            "coverage_ratio": 0.93,
+            "fit_rms_mm": 0.03,
+            "notes": []
+          }
+        },
+        {
+          "characteristic_id": "bu_12380e892df5584bcf79/INCLUDED_ANGLE",
+          "kind": "INCLUDED_ANGLE",
+          "bend_uid": "bu_12380e892df5584bcf79",
+          "side": null,
+          "stage_index": null,
+          "measurement_id": null,
+          "unit": "deg",
+          "required": true,
+          "state": "MEASURED",
+          "decision": "PASS",
+          "reason": null,
+          "expected": 90.0,
+          "expected_source": "COMPILED_NOMINAL",
+          "actual": 90.2,
+          "deviation": 0.2,
+          "uncertainty": 0.15,
+          "tolerance": {
+            "plus": 1.0,
+            "minus": 1.0,
+            "origin": "RECIPE_DEFAULT",
+            "standard": "SHOP_STANDARD"
+          },
+          "boundary_kind": null,
+          "adjacent_bend_uid": null,
+          "stations": {
+            "count": 7,
+            "median": 90.2,
+            "min": 90.125,
+            "max": 90.275
+          },
+          "evidence": {
+            "method": "SECTION_METROLOGY_V1",
+            "support_points": 1800,
+            "coverage_ratio": 0.93,
+            "fit_rms_mm": 0.03,
+            "notes": []
+          }
+        },
+        {
+          "characteristic_id": "bu_12380e892df5584bcf79/BEND_LINE_POSITION",
+          "kind": "BEND_LINE_POSITION",
+          "bend_uid": "bu_12380e892df5584bcf79",
+          "side": null,
+          "stage_index": null,
+          "measurement_id": null,
+          "unit": "mm",
+          "required": true,
+          "state": "MEASURED",
+          "decision": "PASS",
+          "reason": null,
+          "expected": 0.0,
+          "expected_source": "NOMINAL_LOCUS_REFERENCE",
+          "actual": 0.08,
+          "deviation": 0.08,
+          "uncertainty": 0.12,
+          "tolerance": {
+            "plus": 0.5,
+            "minus": 0.5,
+            "origin": "RECIPE_DEFAULT",
+            "standard": "SHOP_STANDARD"
+          },
+          "boundary_kind": null,
+          "adjacent_bend_uid": null,
+          "stations": {
+            "count": 7,
+            "median": 0.08,
+            "min": 0.02,
+            "max": 0.14
+          },
+          "evidence": {
+            "method": "SECTION_METROLOGY_V1",
+            "support_points": 1800,
+            "coverage_ratio": 0.93,
+            "fit_rms_mm": 0.03,
+            "notes": []
+          }
+        }
+      ],
+      "display": {
+        "nominal_polyline_mm": [
+          [
+            2.0,
+            0.0,
+            0.0
+          ],
+          [
+            2.0,
+            100.0,
+            0.0
+          ]
+        ],
+        "measured_polyline_mm": [
+          [
+            2.0,
+            0.0,
+            0.08
+          ],
+          [
+            2.0,
+            100.0,
+            0.08
+          ]
+        ],
+        "label_anchor_mm": [
+          2.0,
+          50.0,
+          6.0
+        ],
+        "side_a_anchor_mm": [
+          2.0,
+          50.0,
+          10.0
+        ],
+        "side_b_anchor_mm": [
+          -8.0,
+          50.0,
+          0.0
+        ]
+      },
+      "diagnostics": {
+        "inner_radius_mm": 2.04
+      },
+      "notes": []
+    },
+    {
+      "bend_uid": "bu_9ff0ed344a32452b027e",
+      "label": "B2",
+      "sequence_index": 2,
+      "machine_move_index": null,
+      "state": "FORMED",
+      "state_reasons": [],
+      "state_evidence": {
+        "nominal_included_deg": 90.0,
+        "measured_included_deg": 89.7,
+        "formed_fraction": 1.003333,
+        "parent_support_points": null,
+        "child_support_points": null,
+        "coverage_ratio": 0.9,
+        "prior_formed_probability": null
+      },
+      "characteristics": [
+        {
+          "characteristic_id": "bu_9ff0ed344a32452b027e/FLANGE_LENGTH/A",
+          "kind": "FLANGE_LENGTH",
+          "bend_uid": "bu_9ff0ed344a32452b027e",
+          "side": "A",
+          "stage_index": null,
+          "measurement_id": null,
+          "unit": "mm",
+          "required": true,
+          "state": "MEASURED",
+          "decision": "PASS",
+          "reason": null,
+          "expected": 40.0,
+          "expected_source": "COMPILED_NOMINAL",
+          "actual": 40.04,
+          "deviation": 0.04,
+          "uncertainty": 0.09,
+          "tolerance": {
+            "plus": 0.5,
+            "minus": 0.5,
+            "origin": "RECIPE_DEFAULT",
+            "standard": "SHOP_STANDARD"
+          },
+          "boundary_kind": "ADJACENT_BEND",
+          "adjacent_bend_uid": "bu_6f6f1c8da12918ba6911",
+          "stations": {
+            "count": 7,
+            "median": 40.04,
+            "min": 39.995,
+            "max": 40.085
+          },
+          "evidence": {
+            "method": "SECTION_METROLOGY_V1",
+            "support_points": 1800,
+            "coverage_ratio": 0.93,
+            "fit_rms_mm": 0.03,
+            "notes": []
+          }
+        },
+        {
+          "characteristic_id": "bu_9ff0ed344a32452b027e/FLANGE_LENGTH/B",
+          "kind": "FLANGE_LENGTH",
+          "bend_uid": "bu_9ff0ed344a32452b027e",
+          "side": "B",
+          "stage_index": null,
+          "measurement_id": null,
+          "unit": "mm",
+          "required": true,
+          "state": "MEASURED",
+          "decision": "PASS",
+          "reason": null,
+          "expected": 30.0,
+          "expected_source": "COMPILED_NOMINAL",
+          "actual": 30.03,
+          "deviation": 0.03,
+          "uncertainty": 0.09,
+          "tolerance": {
+            "plus": 0.5,
+            "minus": 0.5,
+            "origin": "RECIPE_DEFAULT",
+            "standard": "SHOP_STANDARD"
+          },
+          "boundary_kind": "ADJACENT_BEND",
+          "adjacent_bend_uid": "bu_12380e892df5584bcf79",
+          "stations": {
+            "count": 7,
+            "median": 30.03,
+            "min": 29.985,
+            "max": 30.075
+          },
+          "evidence": {
+            "method": "SECTION_METROLOGY_V1",
+            "support_points": 1800,
+            "coverage_ratio": 0.93,
+            "fit_rms_mm": 0.03,
+            "notes": []
+          }
+        },
+        {
+          "characteristic_id": "bu_9ff0ed344a32452b027e/INCLUDED_ANGLE",
+          "kind": "INCLUDED_ANGLE",
+          "bend_uid": "bu_9ff0ed344a32452b027e",
+          "side": null,
+          "stage_index": null,
+          "measurement_id": null,
+          "unit": "deg",
+          "required": true,
+          "state": "MEASURED",
+          "decision": "PASS",
+          "reason": null,
+          "expected": 90.0,
+          "expected_source": "COMPILED_NOMINAL",
+          "actual": 89.7,
+          "deviation": -0.3,
+          "uncertainty": 0.18,
+          "tolerance": {
+            "plus": 1.0,
+            "minus": 1.0,
+            "origin": "RECIPE_DEFAULT",
+            "standard": "SHOP_STANDARD"
+          },
+          "boundary_kind": null,
+          "adjacent_bend_uid": null,
+          "stations": {
+            "count": 7,
+            "median": 89.7,
+            "min": 89.61,
+            "max": 89.79
+          },
+          "evidence": {
+            "method": "SECTION_METROLOGY_V1",
+            "support_points": 1800,
+            "coverage_ratio": 0.93,
+            "fit_rms_mm": 0.03,
+            "notes": []
+          }
+        },
+        {
+          "characteristic_id": "bu_9ff0ed344a32452b027e/BEND_LINE_POSITION",
+          "kind": "BEND_LINE_POSITION",
+          "bend_uid": "bu_9ff0ed344a32452b027e",
+          "side": null,
+          "stage_index": null,
+          "measurement_id": null,
+          "unit": "mm",
+          "required": true,
+          "state": "MEASURED",
+          "decision": "PASS",
+          "reason": null,
+          "expected": 0.0,
+          "expected_source": "NOMINAL_LOCUS_REFERENCE",
+          "actual": -0.05,
+          "deviation": -0.05,
+          "uncertainty": 0.12,
+          "tolerance": {
+            "plus": 0.5,
+            "minus": 0.5,
+            "origin": "RECIPE_DEFAULT",
+            "standard": "SHOP_STANDARD"
+          },
+          "boundary_kind": null,
+          "adjacent_bend_uid": null,
+          "stations": {
+            "count": 7,
+            "median": -0.05,
+            "min": -0.11,
+            "max": 0.01
+          },
+          "evidence": {
+            "method": "SECTION_METROLOGY_V1",
+            "support_points": 1800,
+            "coverage_ratio": 0.93,
+            "fit_rms_mm": 0.03,
+            "notes": []
+          }
+        },
+        {
+          "characteristic_id": "bu_9ff0ed344a32452b027e/BACKGAUGE_LENGTH/S2",
+          "kind": "BACKGAUGE_LENGTH",
+          "bend_uid": "bu_9ff0ed344a32452b027e",
+          "side": "A",
+          "stage_index": 2,
+          "measurement_id": null,
+          "unit": "mm",
+          "required": true,
+          "state": "MEASURED",
+          "decision": "PASS",
+          "reason": null,
+          "expected": 92.356636,
+          "expected_source": "STAGE_MODEL_NOMINAL",
+          "actual": 92.466636,
+          "deviation": 0.11,
+          "uncertainty": 0.12,
+          "tolerance": {
+            "plus": 0.3,
+            "minus": 0.3,
+            "origin": "RECIPE_DEFAULT",
+            "standard": "SHOP_STANDARD"
+          },
+          "boundary_kind": "FREE_EDGE",
+          "adjacent_bend_uid": null,
+          "stations": {
+            "count": 7,
+            "median": 92.466636,
+            "min": 92.406636,
+            "max": 92.526636
+          },
+          "evidence": {
+            "method": "SECTION_METROLOGY_V1",
+            "support_points": 1800,
+            "coverage_ratio": 0.93,
+            "fit_rms_mm": 0.03,
+            "notes": []
+          }
+        }
+      ],
+      "display": {
+        "nominal_polyline_mm": [
+          [
+            0.0,
+            0.0,
+            30.0
+          ],
+          [
+            0.0,
+            100.0,
+            30.0
+          ]
+        ],
+        "measured_polyline_mm": [
+          [
+            -0.05,
+            0.0,
+            30.0
+          ],
+          [
+            -0.05,
+            100.0,
+            30.0
+          ]
+        ],
+        "label_anchor_mm": [
+          0.0,
+          50.0,
+          36.0
+        ],
+        "side_a_anchor_mm": [
+          10.0,
+          50.0,
+          30.0
+        ],
+        "side_b_anchor_mm": [
+          0.0,
+          50.0,
+          20.0
+        ]
+      },
+      "diagnostics": {
+        "inner_radius_mm": 2.04
+      },
+      "notes": []
+    },
+    {
+      "bend_uid": "bu_6f6f1c8da12918ba6911",
+      "label": "B3",
+      "sequence_index": 3,
+      "machine_move_index": 1,
+      "state": "NOT_YET_FORMED",
+      "state_reasons": [],
+      "state_evidence": {
+        "nominal_included_deg": 90.0,
+        "measured_included_deg": 179.6,
+        "formed_fraction": 0.004444,
+        "parent_support_points": null,
+        "child_support_points": null,
+        "coverage_ratio": 0.9,
+        "prior_formed_probability": null
+      },
+      "characteristics": [
+        {
+          "characteristic_id": "bu_6f6f1c8da12918ba6911/FLANGE_LENGTH/A",
+          "kind": "FLANGE_LENGTH",
+          "bend_uid": "bu_6f6f1c8da12918ba6911",
+          "side": "A",
+          "stage_index": null,
+          "measurement_id": null,
+          "unit": "mm",
+          "required": false,
+          "state": "NOT_APPLICABLE",
+          "decision": "NOT_APPLICABLE",
+          "reason": "BEND_NOT_YET_FORMED",
+          "expected": 30.0,
+          "expected_source": "COMPILED_NOMINAL",
+          "actual": null,
+          "deviation": null,
+          "uncertainty": null,
+          "tolerance": {
+            "plus": 0.5,
+            "minus": 0.5,
+            "origin": "RECIPE_DEFAULT",
+            "standard": "SHOP_STANDARD"
+          },
+          "boundary_kind": "ADJACENT_BEND",
+          "adjacent_bend_uid": "bu_ef72a43a0a975c0e454c",
+          "stations": null,
+          "evidence": null
+        },
+        {
+          "characteristic_id": "bu_6f6f1c8da12918ba6911/FLANGE_LENGTH/B",
+          "kind": "FLANGE_LENGTH",
+          "bend_uid": "bu_6f6f1c8da12918ba6911",
+          "side": "B",
+          "stage_index": null,
+          "measurement_id": null,
+          "unit": "mm",
+          "required": false,
+          "state": "NOT_APPLICABLE",
+          "decision": "NOT_APPLICABLE",
+          "reason": "BEND_NOT_YET_FORMED",
+          "expected": 40.0,
+          "expected_source": "COMPILED_NOMINAL",
+          "actual": null,
+          "deviation": null,
+          "uncertainty": null,
+          "tolerance": {
+            "plus": 0.5,
+            "minus": 0.5,
+            "origin": "RECIPE_DEFAULT",
+            "standard": "SHOP_STANDARD"
+          },
+          "boundary_kind": "ADJACENT_BEND",
+          "adjacent_bend_uid": "bu_9ff0ed344a32452b027e",
+          "stations": null,
+          "evidence": null
+        },
+        {
+          "characteristic_id": "bu_6f6f1c8da12918ba6911/INCLUDED_ANGLE",
+          "kind": "INCLUDED_ANGLE",
+          "bend_uid": "bu_6f6f1c8da12918ba6911",
+          "side": null,
+          "stage_index": null,
+          "measurement_id": null,
+          "unit": "deg",
+          "required": false,
+          "state": "NOT_APPLICABLE",
+          "decision": "NOT_APPLICABLE",
+          "reason": "BEND_NOT_YET_FORMED",
+          "expected": 90.0,
+          "expected_source": "COMPILED_NOMINAL",
+          "actual": null,
+          "deviation": null,
+          "uncertainty": null,
+          "tolerance": {
+            "plus": 1.0,
+            "minus": 1.0,
+            "origin": "RECIPE_DEFAULT",
+            "standard": "SHOP_STANDARD"
+          },
+          "boundary_kind": null,
+          "adjacent_bend_uid": null,
+          "stations": null,
+          "evidence": null
+        },
+        {
+          "characteristic_id": "bu_6f6f1c8da12918ba6911/BEND_LINE_POSITION",
+          "kind": "BEND_LINE_POSITION",
+          "bend_uid": "bu_6f6f1c8da12918ba6911",
+          "side": null,
+          "stage_index": null,
+          "measurement_id": null,
+          "unit": "mm",
+          "required": false,
+          "state": "NOT_APPLICABLE",
+          "decision": "NOT_APPLICABLE",
+          "reason": "BEND_NOT_YET_FORMED",
+          "expected": 0.0,
+          "expected_source": "NOMINAL_LOCUS_REFERENCE",
+          "actual": null,
+          "deviation": null,
+          "uncertainty": null,
+          "tolerance": {
+            "plus": 0.5,
+            "minus": 0.5,
+            "origin": "RECIPE_DEFAULT",
+            "standard": "SHOP_STANDARD"
+          },
+          "boundary_kind": null,
+          "adjacent_bend_uid": null,
+          "stations": null,
+          "evidence": null
+        }
+      ],
+      "display": {
+        "nominal_polyline_mm": [
+          [
+            38.089159,
+            0.0,
+            30.0
+          ],
+          [
+            38.089159,
+            100.0,
+            30.0
+          ]
+        ],
+        "measured_polyline_mm": null,
+        "label_anchor_mm": [
+          38.089159,
+          50.0,
+          36.0
+        ],
+        "side_a_anchor_mm": [
+          38.089159,
+          50.0,
+          20.0
+        ],
+        "side_b_anchor_mm": [
+          28.089159,
+          50.0,
+          30.0
+        ]
+      },
+      "diagnostics": {},
+      "notes": []
+    },
+    {
+      "bend_uid": "bu_ef72a43a0a975c0e454c",
+      "label": "B4",
+      "sequence_index": 4,
+      "machine_move_index": 1,
+      "state": "NOT_YET_FORMED",
+      "state_reasons": [],
+      "state_evidence": {
+        "nominal_included_deg": 90.0,
+        "measured_included_deg": 179.8,
+        "formed_fraction": 0.002222,
+        "parent_support_points": null,
+        "child_support_points": null,
+        "coverage_ratio": 0.9,
+        "prior_formed_probability": null
+      },
+      "characteristics": [
+        {
+          "characteristic_id": "bu_ef72a43a0a975c0e454c/FLANGE_LENGTH/A",
+          "kind": "FLANGE_LENGTH",
+          "bend_uid": "bu_ef72a43a0a975c0e454c",
+          "side": "A",
+          "stage_index": null,
+          "measurement_id": null,
+          "unit": "mm",
+          "required": false,
+          "state": "NOT_APPLICABLE",
+          "decision": "NOT_APPLICABLE",
+          "reason": "BEND_NOT_YET_FORMED",
+          "expected": 30.0,
+          "expected_source": "COMPILED_NOMINAL",
+          "actual": null,
+          "deviation": null,
+          "uncertainty": null,
+          "tolerance": {
+            "plus": 0.5,
+            "minus": 0.5,
+            "origin": "RECIPE_DEFAULT",
+            "standard": "SHOP_STANDARD"
+          },
+          "boundary_kind": "FREE_EDGE",
+          "adjacent_bend_uid": null,
+          "stations": null,
+          "evidence": null
+        },
+        {
+          "characteristic_id": "bu_ef72a43a0a975c0e454c/FLANGE_LENGTH/B",
+          "kind": "FLANGE_LENGTH",
+          "bend_uid": "bu_ef72a43a0a975c0e454c",
+          "side": "B",
+          "stage_index": null,
+          "measurement_id": null,
+          "unit": "mm",
+          "required": false,
+          "state": "NOT_APPLICABLE",
+          "decision": "NOT_APPLICABLE",
+          "reason": "BEND_NOT_YET_FORMED",
+          "expected": 30.0,
+          "expected_source": "COMPILED_NOMINAL",
+          "actual": null,
+          "deviation": null,
+          "uncertainty": null,
+          "tolerance": {
+            "plus": 0.5,
+            "minus": 0.5,
+            "origin": "RECIPE_DEFAULT",
+            "standard": "SHOP_STANDARD"
+          },
+          "boundary_kind": "ADJACENT_BEND",
+          "adjacent_bend_uid": "bu_6f6f1c8da12918ba6911",
+          "stations": null,
+          "evidence": null
+        },
+        {
+          "characteristic_id": "bu_ef72a43a0a975c0e454c/INCLUDED_ANGLE",
+          "kind": "INCLUDED_ANGLE",
+          "bend_uid": "bu_ef72a43a0a975c0e454c",
+          "side": null,
+          "stage_index": null,
+          "measurement_id": null,
+          "unit": "deg",
+          "required": false,
+          "state": "NOT_APPLICABLE",
+          "decision": "NOT_APPLICABLE",
+          "reason": "BEND_NOT_YET_FORMED",
+          "expected": 90.0,
+          "expected_source": "COMPILED_NOMINAL",
+          "actual": null,
+          "deviation": null,
+          "uncertainty": null,
+          "tolerance": {
+            "plus": 1.0,
+            "minus": 1.0,
+            "origin": "RECIPE_DEFAULT",
+            "standard": "SHOP_STANDARD"
+          },
+          "boundary_kind": null,
+          "adjacent_bend_uid": null,
+          "stations": null,
+          "evidence": null
+        },
+        {
+          "characteristic_id": "bu_ef72a43a0a975c0e454c/BEND_LINE_POSITION",
+          "kind": "BEND_LINE_POSITION",
+          "bend_uid": "bu_ef72a43a0a975c0e454c",
+          "side": null,
+          "stage_index": null,
+          "measurement_id": null,
+          "unit": "mm",
+          "required": false,
+          "state": "NOT_APPLICABLE",
+          "decision": "NOT_APPLICABLE",
+          "reason": "BEND_NOT_YET_FORMED",
+          "expected": 0.0,
+          "expected_source": "NOMINAL_LOCUS_REFERENCE",
+          "actual": null,
+          "deviation": null,
+          "uncertainty": null,
+          "tolerance": {
+            "plus": 0.5,
+            "minus": 0.5,
+            "origin": "RECIPE_DEFAULT",
+            "standard": "SHOP_STANDARD"
+          },
+          "boundary_kind": null,
+          "adjacent_bend_uid": null,
+          "stations": null,
+          "evidence": null
+        }
+      ],
+      "display": {
+        "nominal_polyline_mm": [
+          [
+            64.267477,
+            0.0,
+            28.0
+          ],
+          [
+            64.267477,
+            100.0,
+            28.0
+          ]
+        ],
+        "measured_polyline_mm": null,
+        "label_anchor_mm": [
+          64.267477,
+          50.0,
+          34.0
+        ],
+        "side_a_anchor_mm": [
+          74.267477,
+          50.0,
+          28.0
+        ],
+        "side_b_anchor_mm": [
+          64.267477,
+          50.0,
+          38.0
+        ]
+      },
+      "diagnostics": {},
+      "notes": []
+    }
+  ],
+  "general_measurements": [
+    {
+      "measurement_id": "gm-overall-width",
+      "label": "Overall width",
+      "characteristic": {
+        "characteristic_id": "gm/gm-overall-width",
+        "kind": "GENERAL_MEASUREMENT",
+        "bend_uid": null,
+        "side": null,
+        "stage_index": null,
+        "measurement_id": "gm-overall-width",
+        "unit": "mm",
+        "required": false,
+        "state": "NOT_APPLICABLE",
+        "decision": "NOT_APPLICABLE",
+        "reason": "NOT_APPLICABLE_AT_STAGE",
+        "expected": 86.0,
+        "expected_source": "CAD_DISTANCE",
+        "actual": null,
+        "deviation": null,
+        "uncertainty": null,
+        "tolerance": {
+          "plus": 0.8,
+          "minus": 0.8,
+          "origin": "RECIPE_DEFAULT",
+          "standard": "SHOP_STANDARD"
+        },
+        "boundary_kind": null,
+        "adjacent_bend_uid": null,
+        "stations": null,
+        "evidence": null
+      },
+      "nominal_start_mm": [
+        -18.0,
+        50.0,
+        2.0
+      ],
+      "nominal_end_mm": [
+        68.0,
+        50.0,
+        2.0
+      ],
+      "measured_start_mm": null,
+      "measured_end_mm": null
+    }
+  ],
+  "unplanned_creases": [],
+  "viewer_assets": {
+    "frame": "cad_model_mm",
+    "registered_scan": "registered_scan.ply",
+    "point_count": 812345,
+    "deviations": "deviations.f32",
+    "deviation_encoding": "float32_le_nan_missing",
+    "deviation_sign": "SIGNED_ALONG_STAGE_MODEL_OUTWARD_NORMAL",
+    "deviation_reference_stage": "S2",
+    "heatmap_band_mm": 0.5,
+    "heatmap_unavailable_reason": null,
+    "segment_labels": "segment_labels.u16",
+    "stage_mesh": "display/stage_mesh.ply",
+    "final_mesh": "display/final_mesh.ply",
+    "bend_geometry": "bend_geometry.json"
+  },
+  "artifacts": {
+    "pdf": null,
+    "overview_png": null
+  },
+  "warnings": [
+    "SYNTHETIC CONTRACT EXAMPLE"
+  ]
+}

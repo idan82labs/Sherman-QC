@@ -1,0 +1,344 @@
+{
+  "schema": "sherman.broad_baseline.score_report.v1",
+  "title": "generality check E3 e3-1.9.0",
+  "created_at": "2026-10-19T04:50:16Z",
+  "matcher": {
+    "source": "scripts/evaluate_f1_against_manual_gold.match_lines",
+    "axis_angle_deg": 5.0,
+    "transverse_offset_mm": 4.0,
+    "gold_span_overlap": 0.6,
+    "prediction_span_overlap": 0.6,
+    "assignment": "one_to_one_minimum_cost (scipy linear_sum_assignment)",
+    "frame": "scan_raw"
+  },
+  "by_tier": {
+    "GOLD_SET_V1": {
+      "lane_status_counts": {
+        "PREDICTIONS_MISSING": 2
+      },
+      "complete_labels": {
+        "case_count": 1,
+        "true_positive": 0,
+        "false_positive": 0,
+        "false_negative": 2,
+        "gold_bend_count": 2,
+        "prediction_count": 0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "precision_6": 0.0,
+        "recall_6": 0.0,
+        "f1_6": 0.0,
+        "exact_part_count": 0,
+        "exact_part_rate": 0.0,
+        "lane_failures": [
+          "sc_822f083e3dfc"
+        ],
+        "family_recall": {
+          "37126000": 0.0
+        },
+        "minimum_family_recall": 0.0
+      },
+      "partial_labels_recall_only": {
+        "case_count": 0,
+        "true_positive": 0,
+        "gold_bend_count": 0,
+        "false_negative": 0,
+        "recall": 0.0,
+        "unscored_unmatched_predictions": 0,
+        "note": "label_complete=false: recall/position only, no precision/F1"
+      },
+      "recall_all_scored_cases": {
+        "true_positive": 0,
+        "gold_bend_count": 2,
+        "recall": 0.0,
+        "note": "complete + partial label cases, recall only"
+      },
+      "zero_bend_controls": {
+        "case_count": 1,
+        "false_positive_lines": 0,
+        "cases_with_false_positive": [],
+        "note": "zero-bend controls: every predicted line is a false positive; not in line-F1"
+      },
+      "position_of_matches": {
+        "matched_pairs": 0
+      },
+      "excluded_before_scoring": []
+    },
+    "GOLD_SET_V2": {
+      "lane_status_counts": {
+        "OK": 1
+      },
+      "complete_labels": {
+        "case_count": 1,
+        "true_positive": 2,
+        "false_positive": 0,
+        "false_negative": 0,
+        "gold_bend_count": 2,
+        "prediction_count": 2,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "precision_6": 1.0,
+        "recall_6": 1.0,
+        "f1_6": 1.0,
+        "exact_part_count": 1,
+        "exact_part_rate": 1.0,
+        "lane_failures": [],
+        "family_recall": {
+          "49201000": 1.0
+        },
+        "minimum_family_recall": 1.0
+      },
+      "partial_labels_recall_only": {
+        "case_count": 0,
+        "true_positive": 0,
+        "gold_bend_count": 0,
+        "false_negative": 0,
+        "recall": 0.0,
+        "unscored_unmatched_predictions": 0,
+        "note": "label_complete=false: recall/position only, no precision/F1"
+      },
+      "recall_all_scored_cases": {
+        "true_positive": 2,
+        "gold_bend_count": 2,
+        "recall": 1.0,
+        "note": "complete + partial label cases, recall only"
+      },
+      "zero_bend_controls": {
+        "case_count": 0,
+        "false_positive_lines": 0,
+        "cases_with_false_positive": [],
+        "note": "zero-bend controls: every predicted line is a false positive; not in line-F1"
+      },
+      "position_of_matches": {
+        "matched_pairs": 2,
+        "axis_angle_deg": {
+          "median": 0.0127,
+          "p90": 0.0186,
+          "max": 0.0186
+        },
+        "transverse_offset_mm": {
+          "median": 0.2751,
+          "p90": 0.2808,
+          "max": 0.2808
+        },
+        "gold_span_overlap": {
+          "median": 0.9824,
+          "p90": 0.9831,
+          "max": 0.9831
+        },
+        "prediction_span_overlap": {
+          "median": 1.0,
+          "p90": 1.0,
+          "max": 1.0
+        }
+      },
+      "excluded_before_scoring": []
+    }
+  },
+  "all_tiers_combined_NOT_FOR_QUOTING": {
+    "lane_status_counts": {
+      "OK": 1,
+      "PREDICTIONS_MISSING": 2
+    },
+    "complete_labels": {
+      "case_count": 2,
+      "true_positive": 2,
+      "false_positive": 0,
+      "false_negative": 2,
+      "gold_bend_count": 4,
+      "prediction_count": 2,
+      "precision": 1.0,
+      "recall": 0.5,
+      "f1": 0.6666666666666666,
+      "precision_6": 1.0,
+      "recall_6": 0.5,
+      "f1_6": 0.666667,
+      "exact_part_count": 1,
+      "exact_part_rate": 0.5,
+      "lane_failures": [
+        "sc_822f083e3dfc"
+      ],
+      "family_recall": {
+        "37126000": 0.0,
+        "49201000": 1.0
+      },
+      "minimum_family_recall": 0.0
+    },
+    "partial_labels_recall_only": {
+      "case_count": 0,
+      "true_positive": 0,
+      "gold_bend_count": 0,
+      "false_negative": 0,
+      "recall": 0.0,
+      "unscored_unmatched_predictions": 0,
+      "note": "label_complete=false: recall/position only, no precision/F1"
+    },
+    "recall_all_scored_cases": {
+      "true_positive": 2,
+      "gold_bend_count": 4,
+      "recall": 0.5,
+      "note": "complete + partial label cases, recall only"
+    },
+    "zero_bend_controls": {
+      "case_count": 1,
+      "false_positive_lines": 0,
+      "cases_with_false_positive": [],
+      "note": "zero-bend controls: every predicted line is a false positive; not in line-F1"
+    },
+    "position_of_matches": {
+      "matched_pairs": 2,
+      "axis_angle_deg": {
+        "median": 0.0127,
+        "p90": 0.0186,
+        "max": 0.0186
+      },
+      "transverse_offset_mm": {
+        "median": 0.2751,
+        "p90": 0.2808,
+        "max": 0.2808
+      },
+      "gold_span_overlap": {
+        "median": 0.9824,
+        "p90": 0.9831,
+        "max": 0.9831
+      },
+      "prediction_span_overlap": {
+        "median": 1.0,
+        "p90": 1.0,
+        "max": 1.0
+      }
+    },
+    "excluded_before_scoring": []
+  },
+  "case_map": "docs/production/runlog/generality_check_2026-10-19/work/case_map_e3.json",
+  "frame_records": "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/broad_baseline/gold11_frame_recovery.json",
+  "cases": [
+    {
+      "case_id": "sc_822f083e3dfc",
+      "tier": "GOLD_SET_V1",
+      "family_id": "37126000",
+      "label_complete": true,
+      "predictions_path": "docs/production/runlog/generality_check_2026-10-19/work/sc_822f083e3dfc/predictions_e3.json",
+      "gold": {
+        "scan_sha256": "822f083e3dfc90ed680675a6fea67ef8d5e6116f294069b4c8f8c9f0d4358a96",
+        "label_frame": "source_ply_raw",
+        "frame_transform": {
+          "method": "SOURCE_PLY_RAW_IS_SCAN_RAW",
+          "identity": true
+        },
+        "zero_bend_control": false,
+        "review_status": "ai_adjudicated",
+        "annotator": "claude-vision-ai-v1",
+        "asset_id": "c769e053715d973985c0c85c",
+        "asset": "data:bend_corpus/incoming_email_2026-10-17/20260129_19c08b45/37126000_D.ply",
+        "gold_source": "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/annotations/ai_bend_lines_gold_v1/c769e053715d973985c0c85c.json"
+      },
+      "lane_status": "PREDICTIONS_MISSING",
+      "lane": null,
+      "gold_count": 2,
+      "prediction_count": 0,
+      "true_positive": 0,
+      "matches": [],
+      "unmatched_gold_ids": [
+        "B1",
+        "B2"
+      ],
+      "unmatched_prediction_ids": [],
+      "disposition": "SCORED_COMPLETE_LABEL",
+      "false_positive": 0,
+      "false_negative": 2,
+      "exact": false,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0
+    },
+    {
+      "case_id": "sc_b4719db3dd69",
+      "tier": "GOLD_SET_V1",
+      "family_id": "47479000",
+      "label_complete": true,
+      "predictions_path": "docs/production/runlog/generality_check_2026-10-19/work/sc_b4719db3dd69/predictions_e3.json",
+      "gold": {
+        "scan_sha256": "b4719db3dd69c45f6f5396609773e2b4b58f18ea801153a8adb1a5238d19e074",
+        "label_frame": "source_ply_raw",
+        "frame_transform": {
+          "method": "SOURCE_PLY_RAW_IS_SCAN_RAW",
+          "identity": true
+        },
+        "zero_bend_control": true,
+        "review_status": "ai_adjudicated",
+        "annotator": "claude-vision-ai-v1",
+        "asset_id": "af36cde5bd3c635214303345",
+        "asset": "source-assets:02_CAD_QC_3D/47479000_C.ply",
+        "gold_source": "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/annotations/ai_bend_lines_gold_v1/af36cde5bd3c635214303345.json"
+      },
+      "lane_status": "PREDICTIONS_MISSING",
+      "lane": null,
+      "disposition": "ZERO_BEND_CONTROL",
+      "gold_count": 0,
+      "prediction_count": 0,
+      "false_positive_lines": 0
+    },
+    {
+      "case_id": "sc_203b95d7a753",
+      "tier": "GOLD_SET_V2",
+      "family_id": "49201000",
+      "label_complete": true,
+      "predictions_path": "docs/production/runlog/generality_check_2026-10-19/work/sc_203b95d7a753/predictions_e3.json",
+      "gold": {
+        "scan_sha256": "203b95d7a75370e235abd70f09e1509e600ae5db90c9bd6db9f13e41d3a707dc",
+        "label_frame": "source_ply_raw",
+        "frame_transform": {
+          "method": "SOURCE_PLY_RAW_IS_SCAN_RAW",
+          "identity": true
+        },
+        "zero_bend_control": false,
+        "review_status": "ai_adjudicated",
+        "annotator": "claude-vision-ai-v1",
+        "asset_id": "24e4eadba66bc5a43a90d072",
+        "asset": "data:bend_corpus/incoming/2026-08-30_shaked_daily_scans/source_download/49201000_C.ply",
+        "gold_source": "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/annotations/ai_bend_lines_gold_v1/24e4eadba66bc5a43a90d072.json"
+      },
+      "lane_status": "OK",
+      "lane": "e3",
+      "gold_count": 2,
+      "prediction_count": 2,
+      "true_positive": 2,
+      "matches": [
+        {
+          "gold_id": "B1",
+          "prediction_id": "bu_df748a461bd4d2bf6f40",
+          "axis_angle_deg": 0.018581,
+          "transverse_offset_mm": 0.269448,
+          "gold_span_overlap": 0.983053,
+          "prediction_span_overlap": 1.0,
+          "shorter_span_overlap": 1.0,
+          "gold_length_mm": 208.636276,
+          "prediction_length_mm": 205.100453
+        },
+        {
+          "gold_id": "B2",
+          "prediction_id": "bu_acf23dd9e43b0270acf6",
+          "axis_angle_deg": 0.006826,
+          "transverse_offset_mm": 0.280834,
+          "gold_span_overlap": 0.981837,
+          "prediction_span_overlap": 1.0,
+          "shorter_span_overlap": 1.0,
+          "gold_length_mm": 208.81406,
+          "prediction_length_mm": 205.021409
+        }
+      ],
+      "unmatched_gold_ids": [],
+      "unmatched_prediction_ids": [],
+      "disposition": "SCORED_COMPLETE_LABEL",
+      "false_positive": 0,
+      "false_negative": 0,
+      "exact": true,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    }
+  ]
+}

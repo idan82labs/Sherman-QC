@@ -1,0 +1,27 @@
+{
+  "labeler": "claude-vision-ai-v1",
+  "no_bends_present": false,
+  "notes": "Gold11 parallel AI relabel of sc_cec08dfca9ab (10839000_01_scan_2.ply, Gold11 CG08506AE97D). Human gold is untouched. Owner conventions: apex locus on the outer-skin arc midline; a joggle counts as 2 bends; a fold ends where its flange ends. The part is a tray: a base with a window, a back wall with a top lip, two end walls (rear 199 mm only) with inward lips (131 mm only), and two full-width joggles (back-lip joggle and front-strip joggle). The prep is reused from auditor3 (bench_prep, default params, byte-identical copy).",
+  "bends": [
+    {"patches": [2, 3], "confidence": "auto",
+     "note": "base -> back wall (human HB1), outer skins, full width"},
+    {"patches": [3, 6], "confidence": "auto",
+     "note": "back wall -> back top lip (human HB2), outer skins, full width"},
+    {"patches": [2, 5], "confidence": "auto",
+     "note": "base -> right end wall (human HB3), outer skins; the end wall only spans the rear ~199 mm, so the fold ends at its front edge"},
+    {"patches": [2, 4], "confidence": "auto",
+     "note": "base -> left end wall (human HB4), outer skins; the end wall only spans the rear ~199 mm"},
+    {"patches": [4, 15], "confidence": "auto",
+     "note": "left end wall -> inward lip (human HB5), outer skins; the lip exists only over ~131 mm (plain wall top in front, relief to the separate back lip at the rear)"},
+    {"patches": [5, 16], "confidence": "auto",
+     "note": "right end wall -> inward lip (human HB6), outer skins; the lip exists only over ~131 mm"},
+    {"patches": [6, [18, 19, 28]], "confidence": "auto",
+     "note": "back-lip joggle bend 1 (lip outer portion -> joggle web), top skins = outer; not in the human gold"},
+    {"patches": [[18, 19, 28], 11], "confidence": "auto",
+     "note": "back-lip joggle bend 2 (web -> lowered inner portion with 3 holes); the outer (bottom) skin of the web is unscanned, so this is an inner (top) skin pair, and the tool's apex search lands on the scanned bottom-skin knee; not in the human gold"},
+    {"patches": [2, [20, 22]], "confidence": "auto", "extent_t": [-145.5, 160.4],
+     "note": "front-strip joggle bend 1 (base -> joggle web), bottom skins = outer; the web patches cover only part of the fold, so the extent is set edge to edge across the 306 mm strip (scan points within 2 mm of the apex line span t -145.6..160.5); not in the human gold"},
+    {"patches": [[23, 26, 27], 10], "confidence": "auto", "extent_t": [-149.7, 156.3],
+     "note": "front-strip joggle bend 2 (joggle web -> raised strip with 3 holes), top skins = outer; the extent is set edge to edge (scan points within 2 mm span t -149.8..156.4); not in the human gold"}
+  ]
+}

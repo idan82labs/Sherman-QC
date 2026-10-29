@@ -11,13 +11,16 @@ This module turns a bend-inspection report into:
 from __future__ import annotations
 
 import json
+import io
 import logging
 import math
 import re
+from collections.abc import Mapping
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple
+from xml.sax.saxutils import escape
 
 import numpy as np
 import open3d as o3d
@@ -34,8 +37,12 @@ from reportlab.platypus import (
     Table,
     TableStyle,
 )
+from PIL import Image as PILImage, ImageDraw, ImageFont
 
 from ai_analyzer import Model3DSnapshotRenderer
+from contracts.ui.bend_results import BendDecisionContract
+from domains.bend.application.finalize_bend_report import finalize_bend_report
+from domains.bend.services.inspection_frame import validate_alignment
 
 logger = logging.getLogger(__name__)
 
@@ -49,6 +56,85 @@ STATUS_COLORS = {
 CAD_LINE_RGB = [0.73, 0.78, 0.85]
 CAD_LINE_HEX = "#cbd5e1"
 DETECTED_LINE_HEX = "#38bdf8"
+RESEARCH_WATERMARK = "RESEARCH ONLY - NOT PRODUCTION QC"
+
+
+def _export_decision_evidence(report: Dict[str, Any]) -> Dict[str, Any]:
+    """Validate typed V1 evidence and its exact correspondence to raw targets.
+
+    No coercion, repaired authorization claim, missing row, duplicate identity,
+    or legacy count creates an observation. Countability follows the UI's
+    top-level-or-nested nullish fallback; all raw rows require exact coverage.
+    """
+    try:
+        raw = report.get("decision_contract")
+        if (
+            not isinstance(raw, dict)
+            or not isinstance(raw.get("reasons"), list)
+            or not isinstance(raw.get("bends"), list)
+            or any(not isinstance(row, dict) or not isinstance(row.get("reasons"), list) for row in raw["bends"])
+        ):
+            raise ValueError("explicit decision evidence fields are required")
+        decision = BendDecisionContract.model_validate(raw, strict=True)
+        alignment = report.get("alignment")
+        if alignment is not None and not isinstance(alignment, Mapping):
+            raise ValueError("alignment evidence must be a mapping or unavailable")
+        abstained = alignment.get("alignment_abstained") if alignment is not None else None
+        if abstained is not None and type(abstained) is not bool:
+            raise ValueError("alignment abstention evidence must be boolean or unavailable")
+        if abstained is True and decision.registration != "ABSTAINED":
+            raise ValueError("decision evidence contradicts raw registration abstention")
+        matches = report.get("matches")
+        if not isinstance(matches, list):
+            raise ValueError("raw target rows are unavailable")
+        rows = {row.bend_id: row for row in decision.bends}
+        identities = set()
+        expected = {"formed": 0, "unformed": 0, "unknown": 0, "total": 0, "partially_observed": 0}
+        for match in matches:
+            if not isinstance(match, dict):
+                raise ValueError("raw target row is malformed")
+            identity = match.get("bend_id")
+            if not isinstance(identity, str) or not identity.strip() or identity in identities or identity not in rows:
+                raise ValueError("raw targets require unique, covered identities")
+            identities.add(identity)
+            cad = match.get("cad_bend")
+            cad = cad if isinstance(cad, Mapping) else {}
+            countable = match.get("countable_in_regression")
+            if countable is None:
+                countable = cad.get("countable_in_regression")
+            if countable is not None and type(countable) is not bool:
+                raise ValueError("effective countability evidence must be boolean or unavailable")
+            if countable is False:
+                continue
+            row = rows[identity]
+            expected["total"] += 1
+            expected[row.state.lower()] += 1
+            if row.state == "UNKNOWN" and row.observation_detail == "PARTIALLY_OBSERVED":
+                expected["partially_observed"] += 1
+        if identities != set(rows) or expected != decision.observed_counts.model_dump():
+            raise ValueError("decision counts and coverage must match countable raw targets")
+    except (TypeError, ValueError):
+        return {
+            "schema_version": 1,
+            "kind": "BEND_DECISION_EVIDENCE_UNAVAILABLE",
+            "observed_counts": None,
+            "registration": "UNAVAILABLE",
+            "render_evidence": "UNAVAILABLE",
+            "production_disposition": "NOT_AUTHORIZED",
+            "reasons": ["DECISION_CONTRACT_UNAVAILABLE_OR_MALFORMED", "NO_PRODUCTION_DISPOSITION"],
+            "bends": [],
+        }
+    return decision.model_dump()
+
+
+def _export_qualification(report: Dict[str, Any]) -> Dict[str, Any]:
+    qualification = report.get("qualification_context")
+    return {
+        **(qualification if isinstance(qualification, dict) else {}),
+        "operating_mode": "RESEARCH_ONLY",
+        "production_use_allowed": False,
+        "promotion_status": "DECISION_EVIDENCE_NONAUTHORIZING",
+    }
 
 
 @dataclass
@@ -70,7 +156,7 @@ def _as_point(raw: Any) -> Optional[np.ndarray]:
         arr = np.asarray(raw[:3], dtype=np.float64)
     except Exception:
         return None
-    if not np.all(np.isfinite(arr)):
+    if arr.shape != (3,) or not np.all(np.isfinite(arr)):
         return None
     return arr
 
@@ -81,93 +167,75 @@ def _round_point(point: Optional[np.ndarray]) -> Optional[List[float]]:
     return [round(float(point[0]), 4), round(float(point[1]), 4), round(float(point[2]), 4)]
 
 
-def _percentile(values: Sequence[float], q: float) -> float:
-    if not values:
-        return 0.0
-    sorted_vals = sorted(float(v) for v in values)
-    idx = min(len(sorted_vals) - 1, max(0.0, (len(sorted_vals) - 1) * q))
-    lo = int(math.floor(idx))
-    hi = int(math.ceil(idx))
-    if lo == hi:
-        return sorted_vals[lo]
-    t = idx - lo
-    return sorted_vals[lo] * (1 - t) + sorted_vals[hi] * t
+# Display validation only, not a manufacturing tolerance or bend measurement.
+DISPLAY_SUPPORT_RADIUS_MM = 3.0
+DISPLAY_SAMPLE_SPACING_MM = 0.25
+DISPLAY_MIN_SUPPORT_FRACTION = 0.6
+DISPLAY_MIN_SPAN_MM = 8.0
+DISPLAY_MAX_LINE_SAMPLES = 8193
 
 
-def _compute_model_max_dim(points: np.ndarray) -> float:
-    if points.size < 3:
-        return 4.0
-    mins = np.min(points, axis=0)
-    maxs = np.max(points, axis=0)
-    return float(max(1.0, *(maxs - mins)))
-
-
-def _clip_line_to_reference(
-    midpoint: np.ndarray,
-    start: np.ndarray,
-    end: np.ndarray,
-    reference_positions: np.ndarray,
-) -> Tuple[np.ndarray, np.ndarray]:
-    direction = end - start
-    original_length = float(np.linalg.norm(direction))
-    if original_length < 1e-6:
-        return start.copy(), end.copy()
-
-    dir_vec = direction / original_length
-    model_max_dim = _compute_model_max_dim(reference_positions)
-    max_half_span = max(0.25, model_max_dim * 0.35)
-
-    if reference_positions.size < 12:
-        half = min(original_length / 2.0, max_half_span)
-        return midpoint - dir_vec * half, midpoint + dir_vec * half
-
-    near_distance = max(0.08, model_max_dim * 0.045)
-    samples: List[float] = []
-
-    for ref_pt in reference_positions:
-        offset = ref_pt - midpoint
-        axial = float(np.dot(offset, dir_vec))
-        if abs(axial) > max_half_span * 1.35:
-            continue
-        perp = offset - dir_vec * axial
-        if float(np.linalg.norm(perp)) <= near_distance:
-            samples.append(axial)
-
-    if len(samples) < 12:
-        half = min(original_length / 2.0, max_half_span)
-        return midpoint - dir_vec * half, midpoint + dir_vec * half
-
-    lo = _percentile(samples, 0.04)
-    hi = _percentile(samples, 0.96)
-    pad = max(0.03, model_max_dim * 0.012)
-    half = min(max_half_span, max(0.18, ((hi - lo) / 2.0) + pad))
-    return midpoint - dir_vec * half, midpoint + dir_vec * half
-
-
-def _load_reference_positions(reference_mesh_path: str | Path) -> np.ndarray:
-    mesh_path = Path(reference_mesh_path)
-    mesh = o3d.io.read_triangle_mesh(str(mesh_path))
-    if mesh.has_vertices():
-        return np.asarray(mesh.vertices, dtype=np.float64)
-    pcd = o3d.io.read_point_cloud(str(mesh_path))
-    if pcd.has_points():
-        return np.asarray(pcd.points, dtype=np.float64)
-    return np.zeros((0, 3), dtype=np.float64)
-
-
-def _detected_line_is_plausibly_aligned(
-    cad_start: Optional[np.ndarray],
-    cad_end: Optional[np.ndarray],
-    detected_start: Optional[np.ndarray],
-    detected_end: Optional[np.ndarray],
-) -> bool:
-    if cad_start is None or cad_end is None or detected_start is None or detected_end is None:
+def _has_reference_geometry_frame(report: Dict[str, Any]) -> bool:
+    try:
+        validate_alignment(report.get("alignment"))
+        return True
+    except (TypeError, ValueError, np.linalg.LinAlgError):
         return False
-    cad_mid = (cad_start + cad_end) / 2.0
-    detected_mid = (detected_start + detected_end) / 2.0
-    cad_len = float(np.linalg.norm(cad_end - cad_start))
-    separation = float(np.linalg.norm(detected_mid - cad_mid))
-    return separation <= max(cad_len, 0.12) * 2.5
+
+
+def _load_reference_surface(reference_mesh_path: str | Path):
+    """Distance queries must use faces: CAD tessellations have sparse vertices."""
+    mesh = o3d.io.read_triangle_mesh(str(reference_mesh_path))
+    if not mesh.has_triangles() or not mesh.has_vertices():
+        return None
+    vertices = np.asarray(mesh.vertices)
+    triangles = np.asarray(mesh.triangles)
+    if not np.all(np.isfinite(vertices)) or np.any(triangles < 0) or np.any(triangles >= len(vertices)):
+        return None
+    scene = o3d.t.geometry.RaycastingScene(nthreads=1)
+    scene.add_triangles(o3d.t.geometry.TriangleMesh.from_legacy(mesh))
+    return scene
+
+
+def _supported_display_line(start: Optional[np.ndarray], end: Optional[np.ndarray], scene):
+    """Trim to supported extent on the original axis; never snap to a surface.
+
+    These are reference-supported axis markers, not measured surface locations.
+    A conservative half-spacing margin bounds distances between query samples.
+    """
+    diagnostics = {"support_fraction": 0.0, "maximum_sample_distance_mm": None}
+    if start is None or end is None:
+        return None, "MISSING_LINE", diagnostics
+    if scene is None:
+        return None, "REFERENCE_TRIANGLES_UNAVAILABLE", diagnostics
+    length = float(np.linalg.norm(end - start))
+    if length <= 1e-6:
+        return None, "DEGENERATE_LINE", diagnostics
+    intervals = max(1, int(math.ceil(length / DISPLAY_SAMPLE_SPACING_MM)))
+    if intervals + 1 > DISPLAY_MAX_LINE_SAMPLES:
+        return None, "DISPLAY_VALIDATION_BUDGET_EXCEEDED", diagnostics
+    points = np.linspace(start, end, intervals + 1)
+    distances = scene.compute_distance(o3d.core.Tensor(points.astype(np.float32)), nthreads=1).numpy()
+    if not np.all(np.isfinite(distances)):
+        return None, "NONFINITE_SURFACE_DISTANCE", diagnostics
+    supported = distances + length / intervals / 2.0 <= DISPLAY_SUPPORT_RADIUS_MM
+    diagnostics["maximum_sample_distance_mm"] = float(np.max(distances))
+    # Find one contiguous interval, so a line cannot bridge unsupported space.
+    boundaries = np.diff(np.r_[False, supported, False].astype(np.int8))
+    runs = list(zip(np.flatnonzero(boundaries == 1), np.flatnonzero(boundaries == -1) - 1))
+    if not runs:
+        return None, "LINE_NOT_SUPPORTED_BY_REFERENCE_SURFACE", diagnostics
+    first, last = max(runs, key=lambda pair: pair[1] - pair[0])
+    fraction = float(last - first) / intervals
+    diagnostics.update({
+        "support_fraction": fraction,
+        "supported_span_mm": fraction * length,
+        "supported_maximum_sample_distance_mm": float(np.max(distances[first:last + 1])),
+        "retained_parameter_interval": [float(first / intervals), float(last / intervals)],
+    })
+    if fraction < DISPLAY_MIN_SUPPORT_FRACTION or fraction * length < DISPLAY_MIN_SPAN_MM:
+        return None, "INSUFFICIENT_CONTIGUOUS_REFERENCE_SUPPORT", diagnostics
+    return (points[first], points[last]), None, diagnostics
 
 
 def augment_report_with_overlay_geometry(
@@ -182,8 +250,10 @@ def augment_report_with_overlay_geometry(
     - backend-rendered bend overlay images
     - the bend PDF report
     """
-    reference_positions = _load_reference_positions(reference_mesh_path)
+    frame_valid = _has_reference_geometry_frame(report_dict)
+    reference_surface = _load_reference_surface(reference_mesh_path) if frame_valid else None
     matches = report_dict.get("matches", []) if isinstance(report_dict, dict) else []
+    matches = matches if isinstance(matches, list) else []
 
     issue_tiles: List[Dict[str, Any]] = []
     bends: List[Dict[str, Any]] = []
@@ -199,42 +269,53 @@ def augment_report_with_overlay_geometry(
         detected_start = _as_point(match.get("detected_line_start"))
         detected_end = _as_point(match.get("detected_line_end"))
 
-        display_cad_start = display_cad_end = None
-        display_detected_start = display_detected_end = None
         anchor = None
         match.pop("display_cad_line_start", None)
         match.pop("display_cad_line_end", None)
         match.pop("display_detected_line_start", None)
         match.pop("display_detected_line_end", None)
         match.pop("callout_anchor", None)
+        match["display_geometry_frame"] = "reference_mesh_raw" if frame_valid else None
+        match["display_geometry_provenance"] = "reference_triangle_surface_validation_v2" if frame_valid else None
+        match["display_geometry_valid"] = False
+        reasons = {}
+        support_diagnostics = {}
 
-        if cad_start is not None and cad_end is not None:
-            cad_mid = (cad_start + cad_end) / 2.0
-            display_cad_start, display_cad_end = _clip_line_to_reference(
-                cad_mid, cad_start, cad_end, reference_positions
-            )
-            match["display_cad_line_start"] = _round_point(display_cad_start)
-            match["display_cad_line_end"] = _round_point(display_cad_end)
-            anchor = (display_cad_start + display_cad_end) / 2.0
+        for kind, start, end in (
+            ("cad", cad_start, cad_end),
+            ("detected", detected_start, detected_end),
+        ):
+            if kind == "detected" and match.get("detected_line_geometry_source") == "CAD_REFERENCE_PLACEHOLDER":
+                # Refinement can measure scan planes while borrowing CAD axis
+                # endpoints. Those endpoints are not a detected positional line.
+                segment, reason, diagnostics = None, "CAD_REFERENCE_PLACEHOLDER_NOT_SCAN_LINE", {}
+            else:
+                segment, reason, diagnostics = (
+                    _supported_display_line(start, end, reference_surface)
+                    if frame_valid else (None, "REFERENCE_FRAME_UNPROVEN", {})
+                )
+            reasons[kind] = reason
+            support_diagnostics[kind] = diagnostics
+            if segment is None:
+                continue
+            supported_start, supported_end = segment
+            match[f"display_{kind}_line_start"] = _round_point(supported_start)
+            match[f"display_{kind}_line_end"] = _round_point(supported_end)
+            if kind == "cad" or status != "NOT_DETECTED":
+                anchor = (supported_start + supported_end) / 2.0
 
-        if detected_start is not None and detected_end is not None:
-            detected_mid = (detected_start + detected_end) / 2.0
-            display_detected_start, display_detected_end = _clip_line_to_reference(
-                detected_mid, detected_start, detected_end, reference_positions
-            )
-            if _detected_line_is_plausibly_aligned(
-                display_cad_start,
-                display_cad_end,
-                display_detected_start,
-                display_detected_end,
-            ):
-                match["display_detected_line_start"] = _round_point(display_detected_start)
-                match["display_detected_line_end"] = _round_point(display_detected_end)
-                if status != "NOT_DETECTED":
-                    anchor = (display_detected_start + display_detected_end) / 2.0
-
+        match["display_geometry_validation"] = {
+            "support_radius_mm": DISPLAY_SUPPORT_RADIUS_MM,
+            "minimum_support_fraction": DISPLAY_MIN_SUPPORT_FRACTION,
+            "minimum_span_mm": DISPLAY_MIN_SPAN_MM,
+            "semantics": "reference_supported_axis_not_measured_surface_location",
+            "lines": support_diagnostics,
+            "surface": "reference_mesh_triangles",
+            "rejections": reasons,
+        }
         if anchor is not None:
             match["callout_anchor"] = _round_point(anchor)
+            match["display_geometry_valid"] = True
 
         include_in_overview = status in {"FAIL", "WARNING"}
         issue_filename = None
@@ -268,6 +349,7 @@ def augment_report_with_overlay_geometry(
                     "display_end": match.get("display_cad_line_end"),
                 },
                 "detected_line": {
+                    "geometry_source": match.get("detected_line_geometry_source"),
                     "raw_start": match.get("detected_line_start"),
                     "raw_end": match.get("detected_line_end"),
                     "display_start": match.get("display_detected_line_start"),
@@ -275,6 +357,10 @@ def augment_report_with_overlay_geometry(
                 },
                 "delta": delta,
                 "anchor": match.get("callout_anchor"),
+                "display_geometry_frame": match.get("display_geometry_frame"),
+                "display_geometry_provenance": match.get("display_geometry_provenance"),
+                "display_geometry_valid": bool(match.get("display_geometry_valid")),
+                "display_geometry_validation": match.get("display_geometry_validation"),
                 "include_in_overview": include_in_overview,
                 "issue_tile": issue_filename,
                 "action_item": match.get("action_item"),
@@ -289,6 +375,8 @@ def augment_report_with_overlay_geometry(
 
     manifest = {
         "generated_at": datetime.now().isoformat(),
+        "qualification_context": _export_qualification(report_dict),
+        "decision_contract": _export_decision_evidence(report_dict),
         "overview_image": "bend_overlay_overview.png",
         "issue_tiles": issue_tiles,
         "bends": bends,
@@ -298,6 +386,49 @@ def augment_report_with_overlay_geometry(
 
 def _write_json(path: Path, payload: Dict[str, Any]) -> None:
     path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+
+
+def _production_use_allowed(manifest: Dict[str, Any]) -> bool:
+    """V1 and missing/unknown contracts cannot authorize detached artifacts.
+
+    A stale qualification flag is not an independent production release gate.
+    Any future authorizing schema requires a separately implemented verifier.
+    """
+    return False
+
+
+def _stamp_research_only(image_bytes: bytes) -> bytes:
+    """Add an inseparable warning to a detached visual artifact."""
+    with PILImage.open(io.BytesIO(image_bytes)) as source:
+        image = source.convert("RGB")
+    banner_height = max(38, int(round(image.height * 0.065)))
+    draw = ImageDraw.Draw(image)
+    draw.rectangle((0, 0, image.width, banner_height), fill=(136, 19, 55))
+    font_size = max(20, int(round(image.height * 0.026)))
+    font = None
+    for candidate in (
+        "/System/Library/Fonts/Supplemental/Arial Bold.ttf",
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+    ):
+        try:
+            font = ImageFont.truetype(candidate, font_size)
+            break
+        except OSError:
+            continue
+    if font is None:
+        font = ImageFont.load_default()
+    bbox = draw.textbbox((0, 0), RESEARCH_WATERMARK, font=font)
+    text_width = bbox[2] - bbox[0]
+    text_height = bbox[3] - bbox[1]
+    draw.text(
+        ((image.width - text_width) / 2, (banner_height - text_height) / 2),
+        RESEARCH_WATERMARK,
+        fill=(255, 255, 255),
+        font=font,
+    )
+    output = io.BytesIO()
+    image.save(output, format="PNG", optimize=True)
+    return output.getvalue()
 
 
 def render_bend_overlay_artifacts(
@@ -325,6 +456,8 @@ def render_bend_overlay_artifacts(
         focused_bend_ids=None,
         show_issue_callouts=True,
     )
+    if not _production_use_allowed(manifest):
+        overview_bytes = _stamp_research_only(overview_bytes)
     overview_path.write_bytes(overview_bytes)
 
     issue_paths: List[str] = []
@@ -343,6 +476,8 @@ def render_bend_overlay_artifacts(
             focused_bend_ids=[bend_id],
             show_issue_callouts=False,
         )
+        if not _production_use_allowed(manifest):
+            issue_bytes = _stamp_research_only(issue_bytes)
         issue_path.write_bytes(issue_bytes)
         issue_paths.append(str(issue_path))
 
@@ -369,6 +504,8 @@ def render_bend_overlay_artifacts(
                 show_3d_markers=False,
                 show_cad_lines=False,  # Clean bender view — mesh + 2D labels only
             )
+            if not _production_use_allowed(manifest):
+                view_bytes = _stamp_research_only(view_bytes)
             view_path.write_bytes(view_bytes)
             bender_view_paths[view_name] = str(view_path)
         except Exception:
@@ -441,25 +578,37 @@ class _BendPDF:
         content_width = A4[0] - 32 * mm
 
         summary = report_dict.get("summary", {})
-        operator_brief = report_dict.get("operator_brief", {})
+        summary = summary if isinstance(summary, dict) else {}
         scan_quality = report_dict.get("scan_quality", {})
+        scan_quality = scan_quality if isinstance(scan_quality, dict) else {}
         matches = report_dict.get("matches", [])
+        matches = matches if isinstance(matches, list) else []
+        decision = _export_decision_evidence(report_dict)
+        observed = decision["observed_counts"]
 
         story.append(Paragraph("Bend Inspection Report", self.title))
         story.append(Spacer(1, 3 * mm))
+        story.append(self._box(
+            "<b>RESEARCH ONLY - NOT QUALIFIED FOR PRODUCTION ACCEPT/REJECT.</b> "
+            "Observation states and tolerance comparisons are experimental evidence, not part disposition. "
+            "A missing observation is not an unfinished or defective bend.",
+            bg="#FFF1F2",
+            border="#E11D48",
+        ))
+        story.append(Spacer(1, 3 * mm))
+        observed_text = f"{observed['formed']}/{observed['total']}" if observed is not None else "Unavailable"
         story.append(Paragraph(
-            f"Part: <b>{report_dict.get('part_id', '-')}</b> &nbsp;&nbsp; "
-            f"Completed: <b>{summary.get('completed_bends', summary.get('detected', 0))}/"
-            f"{summary.get('expected_bends', summary.get('total_bends', 0))}</b>",
+            f"Part: <b>{escape(str(report_dict.get('part_id', '-')))}</b> &nbsp;&nbsp; "
+            f"Observed formed: <b>{observed_text}</b>",
             self.body,
         ))
         story.append(Spacer(1, 5 * mm))
 
         kpi_cells = [
-            self._kpi("In Spec", str(summary.get("completed_in_spec", summary.get("passed", 0))), "#059669"),
-            self._kpi("Out of Spec", str(summary.get("completed_out_of_spec", 0)), "#DC2626"),
-            self._kpi("Remaining", str(summary.get("remaining_bends", 0)), "#F59E0B" if summary.get("remaining_bends", 0) else "#059669"),
-            self._kpi("Scan Quality", str(summary.get("scan_quality_status", "-")), "#2563EB"),
+            self._kpi("Observed formed", str(observed["formed"]) if observed is not None else "Unavailable", "#2563EB"),
+            self._kpi("Observed unformed", str(observed["unformed"]) if observed is not None else "Unavailable", "#2563EB"),
+            self._kpi("Unknown", str(observed["unknown"]) if observed is not None else "Unavailable", "#64748B"),
+            self._kpi("Disposition", "Not authorized", "#BE123C"),
         ]
         kpi_table = Table([kpi_cells], colWidths=[content_width / 4.0] * 4)
         kpi_table.setStyle(TableStyle([
@@ -474,9 +623,25 @@ class _BendPDF:
         story.append(kpi_table)
         story.append(Spacer(1, 4 * mm))
 
-        if operator_brief:
-            story.append(Paragraph("Operator Brief", self.h2))
-            story.append(self._box(operator_brief.get("headline", "-"), bg="#EEF2FF", border="#93C5FD"))
+        story.append(Paragraph("Evidence limitations", self.h2))
+        story.append(self._box(
+            f"Registration: <b>{decision['registration']}</b>; "
+            f"render evidence: <b>{decision['render_evidence']}</b>. "
+            "Image availability does not establish correct registration, visibility or measurement validity.",
+            bg="#F8FAFC", border="#CBD5E1",
+        ))
+        story.append(Spacer(1, 3 * mm))
+        if summary:
+            estimated = summary.get("completed_bends", summary.get("detected", "Unavailable"))
+            expected = summary.get("expected_bends", summary.get("total_bends", "Unavailable"))
+            remaining = summary.get("remaining_bends", "Unavailable")
+            story.append(Paragraph("Model estimate - not observed completion", self.h2))
+            story.append(self._box(
+                f"Legacy estimate: {escape(str(estimated))}/{escape(str(expected))}; "
+                f"estimated remaining: {escape(str(remaining))}. "
+                "These model estimates are not observed formed/unformed counts or manufacturing instructions.",
+                bg="#F8FAFC", border="#CBD5E1",
+            ))
             story.append(Spacer(1, 3 * mm))
 
         if scan_quality:
@@ -486,24 +651,24 @@ class _BendPDF:
                 f" pts/cm² | Median spacing {scan_quality.get('median_spacing_mm', '-')}"
                 f" mm"
             )
-            story.append(Paragraph("Scan Quality", self.h2))
-            story.append(self._box(quality_line, bg="#F8FAFC", border="#CBD5E1"))
+            story.append(Paragraph("Experimental scan-quality measurements", self.h2))
+            story.append(self._box(escape(quality_line), bg="#F8FAFC", border="#CBD5E1"))
             story.append(Spacer(1, 3 * mm))
 
         overview_path = out_dir / str(manifest.get("overview_image", ""))
         if overview_path.exists():
-            story.append(Paragraph("3D Bend Overlay Overview", self.h2))
+            story.append(Paragraph("Experimental 3D overlay - geometry unverified", self.h2))
             story.append(Image(str(overview_path), width=content_width, height=content_width * 0.72))
             story.append(Spacer(1, 4 * mm))
 
-        story.append(Paragraph("Bend-by-Bend Status", self.h2))
-        story.append(self._bend_table(matches, content_width))
+        story.append(Paragraph("Observation states and experimental measurements", self.h2))
+        story.append(self._bend_table(matches, content_width, decision))
         story.append(Spacer(1, 4 * mm))
 
         issue_tiles = manifest.get("issue_tiles", [])
         if issue_tiles:
             story.append(PageBreak())
-            story.append(Paragraph("Out-of-Tolerance Bend Views", self.h2))
+            story.append(Paragraph("Experimental flagged-bend views - not defect dispositions", self.h2))
             for i in range(0, len(issue_tiles), 4):
                 chunk = issue_tiles[i:i + 4]
                 rows: List[List[Any]] = []
@@ -514,9 +679,9 @@ class _BendPDF:
                     status = str(tile.get("status", "-"))
                     if image_path.exists():
                         img = Image(str(image_path), width=(content_width / 2.0) - 8, height=((content_width / 2.0) - 8) * 0.72)
-                        cell = [img, Spacer(1, 1 * mm), Paragraph(f"<b>{bend_id}</b> - {status}", self.small)]
+                        cell = [img, Spacer(1, 1 * mm), Paragraph(f"<b>{escape(bend_id)}</b> - experimental {escape(status)}", self.small)]
                     else:
-                        cell = [Paragraph(f"<b>{bend_id}</b> - {status}", self.small)]
+                        cell = [Paragraph(f"<b>{escape(bend_id)}</b> - experimental {escape(status)}", self.small)]
                     row.append(cell)
                     if len(row) == 2:
                         rows.append(row)
@@ -537,10 +702,18 @@ class _BendPDF:
                 story.append(tile_table)
                 if i + 4 < len(issue_tiles):
                     story.append(PageBreak())
-                    story.append(Paragraph("Out-of-Tolerance Bend Views", self.h2))
+                    story.append(Paragraph("Experimental flagged-bend views - not defect dispositions", self.h2))
 
-        doc.build(story)
+        doc.build(story, onFirstPage=self._research_footer, onLaterPages=self._research_footer)
         return out_path
+
+    @staticmethod
+    def _research_footer(canvas, _doc) -> None:
+        canvas.saveState()
+        canvas.setFont("Helvetica-Bold", 8)
+        canvas.setFillColor(colors.HexColor("#BE123C"))
+        canvas.drawString(16 * mm, 7 * mm, RESEARCH_WATERMARK + " - DISPOSITION NOT AUTHORIZED")
+        canvas.restoreState()
 
     def _kpi(self, label: str, value: str, color_hex: str):
         return Paragraph(
@@ -561,22 +734,27 @@ class _BendPDF:
         ]))
         return tbl
 
-    def _bend_table(self, matches: Iterable[Dict[str, Any]], content_width: float):
+    def _bend_table(self, matches: Iterable[Dict[str, Any]], content_width: float, decision: Optional[Dict[str, Any]] = None):
+        observations = {row["bend_id"]: row["state"] for row in (decision or {}).get("bends", [])}
         rows: List[List[str]] = [[
-            "Bend", "Status", "Exp/Act Angle", "ΔA", "ΔR", "ΔC", "Action",
+            "Bend", "Observation", "Target/Meas Angle", "dAngle", "dRadius", "dCenter", "Experimental\ncomparison",
         ]]
         for match in matches:
+            if not isinstance(match, dict):
+                continue
             exp = match.get("target_angle")
             act = match.get("measured_angle")
-            action = str(match.get("action_item") or "-")
+            cad = match.get("cad_bend")
+            cad = cad if isinstance(cad, dict) else {}
+            bend_id = str(match.get("bend_id", cad.get("bend_id", "-")))
             rows.append([
-                str(match.get("bend_id", "-")),
-                str(match.get("status", "-")),
+                bend_id,
+                observations.get(bend_id, "Unavailable"),
                 f"{exp:.1f} / {act:.1f}" if isinstance(exp, (int, float)) and isinstance(act, (int, float)) else f"{exp if exp is not None else '-'} / -",
                 self._fmt_num(match.get("angle_deviation"), "°", 1),
                 self._fmt_num(match.get("radius_deviation"), " mm", 2),
                 self._fmt_num(match.get("line_center_deviation_mm"), " mm", 2),
-                action,
+                str(match.get("status", "-")),
             ])
 
         widths = [18 * mm, 24 * mm, 36 * mm, 22 * mm, 22 * mm, 22 * mm, content_width - 144 * mm]
@@ -594,10 +772,8 @@ class _BendPDF:
             ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
         ]
         for r in range(1, len(rows)):
-            status = rows[r][1]
-            palette = STATUS_COLORS.get(status, STATUS_COLORS["NOT_DETECTED"])
-            style.append(("BACKGROUND", (1, r), (1, r), colors.HexColor(palette["hex"])))
-            style.append(("TEXTCOLOR", (1, r), (1, r), colors.white))
+            style.append(("BACKGROUND", (1, r), (1, r), colors.HexColor("#E2E8F0")))
+            style.append(("TEXTCOLOR", (1, r), (1, r), colors.HexColor("#334155")))
         table.setStyle(TableStyle(style))
         return table
 
@@ -631,6 +807,16 @@ def build_bend_artifact_bundle(
         reference_mesh_path=reference_mesh_path,
         output_dir=out_dir,
     )
+    # Availability is a generation receipt, not native visual qualification.
+    # Legacy reports without V1 stay unavailable rather than gaining inferred
+    # observations as a side effect of exporting them.
+    if _export_decision_evidence(report_dict)["kind"] == "BEND_DECISION_CONTRACT_V1":
+        report_dict = finalize_bend_report(
+            report_dict, render_artifacts_available=bool(render_info.get("overview_path")),
+        )
+    manifest["decision_contract"] = _export_decision_evidence(report_dict)
+    manifest["qualification_context"] = _export_qualification(report_dict)
+    _write_json(out_dir / "bend_overlay_manifest.json", manifest)
     pdf_path = out_dir / "bend_inspection_report.pdf"
     generate_bend_inspection_pdf(
         report_dict=report_dict,

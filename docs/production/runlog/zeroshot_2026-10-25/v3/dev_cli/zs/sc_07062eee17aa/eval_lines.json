@@ -1,0 +1,255 @@
+{
+ "schema": "sherman.broad_baseline.eval_lines.v1",
+ "lane": "zs_lane_v3:zs",
+ "status": "OK",
+ "frame": "scan_raw",
+ "frame_definition": "coordinates of the scan file exactly as stored (source_ply_raw == scan_raw)",
+ "units": "scan file units (mm for every Sherman scan inspected so far; not re-estimated)",
+ "scan": {
+  "path": "/Users/idantal/ShermanQC/source-assets/02_CAD_QC_3D/38172000_01_SCAN_1.ply",
+  "sha256": "07062eee17aa4e41721b93cdb69ddb4b752e6713a16c5aab0a10df9c86d07880"
+ },
+ "source": {
+  "kind": "zs_lane_v3:zs",
+  "path": null,
+  "sha256": null
+ },
+ "conversion": {
+  "rule": "zs_lane_v3 variant zs",
+  "variant": "zs",
+  "threshold": 0.5,
+  "model": "docs/production/runlog/zeroshot_2026-10-25/v3/models/zs_lane_v3_zs_gbm.pkl",
+  "model_sha256": "ade6cde44ede85dbf8195d0f6c093a2eea50eb4a481a21ec99fa9f17cd49ffeb",
+  "z3_model": "docs/production/runlog/zeroshot_2026-10-25/v3/models/zs_lane_v3_z3_gbm.pkl",
+  "z3_model_sha256": "62e99d13ccf0945d4b6932b85f19879e757e09ca7f493041c3ce53503e74e28c",
+  "post": {
+   "dedupe_join": true,
+   "join": true,
+   "join_low": 0.0,
+   "sweep_min": 0.25
+  },
+  "fix": {
+   "ext": true,
+   "ext_dedupe": true,
+   "ext_min_in": 0.6,
+   "ext_ratio": 1.3,
+   "z3r": true,
+   "z3r_sweep_min": 0.25,
+   "z3r_tau": 0.9
+  },
+  "z3_params": {
+   "fallback_frac_only": true
+  },
+  "z2_fallback": true,
+  "code_fingerprint": "e34e1ba7f396eaf7782aff0250ea33599823e63e466ad2ca7eee4eddca965b4a",
+  "pins_ok": true,
+  "pin_mismatch": [],
+  "errors": {},
+  "stages": {
+   "z3": {
+    "wall": 4.177,
+    "t_mm": 1.4809160232543945,
+    "n_candidates": 14,
+    "area_total": 156811.99111663544,
+    "n_families": 7,
+    "family_fallback": false
+   },
+   "z2": {
+    "wall": 4.211,
+    "t_mm": 1.481,
+    "n_lines": 7
+   },
+   "pool": {
+    "wall": 0.003,
+    "n": 14
+   },
+   "snap_all": {
+    "wall": 0.127,
+    "n": 14
+   },
+   "evidence": {
+    "wall": 0.191
+   },
+   "select_post": {
+    "wall": 0.006,
+    "n": 7,
+    "ops": {
+     "keep": 7,
+     "split": 0,
+     "join": 0
+    },
+    "fixes": {
+     "EXT": 0,
+     "Z3R": 0
+    }
+   }
+  },
+  "guard_basis": "SPLIT_FROZEN_DEV_GOLD_OF_RECORD"
+ },
+ "line_count": 7,
+ "owned_bend_regions": [
+  {
+   "bend_id": "ZS001",
+   "line_start": [
+    -167.18980070187243,
+    -119.78967568138052,
+    178.14463858817751
+   ],
+   "line_end": [
+    -346.2246640363944,
+    -244.82997947913725,
+    161.63513439960917
+   ],
+   "score": 0.9989819503321553,
+   "incl": 89.54880468143097,
+   "src": [
+    "z2",
+    "z3"
+   ],
+   "op": "keep",
+   "parts": [
+    0
+   ]
+  },
+  {
+   "bend_id": "ZS002",
+   "line_start": [
+    -295.0926843324311,
+    56.79272121650412,
+    230.24191974570743
+   ],
+   "line_end": [
+    -474.76890195993775,
+    -71.05883650590899,
+    215.5559442416517
+   ],
+   "score": 0.9948991832539942,
+   "incl": 91.2987537536327,
+   "src": [
+    "z2",
+    "z3"
+   ],
+   "op": "keep",
+   "parts": [
+    1
+   ]
+  },
+  {
+   "bend_id": "ZS003",
+   "line_start": [
+    -348.0923811330375,
+    -4.148703778568255,
+    218.81343423156528
+   ],
+   "line_end": [
+    -421.25633340022006,
+    -54.49479813183723,
+    212.66116792156575
+   ],
+   "score": 0.8815455829942463,
+   "incl": 89.52380141115707,
+   "src": [
+    "z3"
+   ],
+   "op": "keep",
+   "parts": [
+    2
+   ]
+  },
+  {
+   "bend_id": "ZS004",
+   "line_start": [
+    -250.45381570313586,
+    -141.72258311247282,
+    178.75139348866438
+   ],
+   "line_end": [
+    -321.20903719892647,
+    -191.96396378028737,
+    172.34701342357764
+   ],
+   "score": 0.9973757667024973,
+   "incl": 88.76578284465452,
+   "src": [
+    "z2",
+    "z3"
+   ],
+   "op": "keep",
+   "parts": [
+    3
+   ]
+  },
+  {
+   "bend_id": "ZS005",
+   "line_start": [
+    -380.98675461568007,
+    -269.0952662987782,
+    158.61775111578032
+   ],
+   "line_end": [
+    -417.987757732654,
+    -294.9211541316217,
+    155.22313063967815
+   ],
+   "score": 0.6025399586944242,
+   "incl": 88.56230802484563,
+   "src": [
+    "z2",
+    "z3"
+   ],
+   "op": "keep",
+   "parts": [
+    4
+   ]
+  },
+  {
+   "bend_id": "ZS006",
+   "line_start": [
+    -316.4015413789866,
+    -187.4188362929602,
+    172.95305312508
+   ],
+   "line_end": [
+    -317.5849991032828,
+    -184.37066612779805,
+    158.39791709634406
+   ],
+   "score": 0.9956369720447766,
+   "incl": 148.13419841026075,
+   "src": [
+    "z2",
+    "z3"
+   ],
+   "op": "keep",
+   "parts": [
+    6
+   ]
+  },
+  {
+   "bend_id": "ZS007",
+   "line_start": [
+    -415.54605675262775,
+    -51.32112230062631,
+    213.09043835270788
+   ],
+   "line_end": [
+    -416.7984908380462,
+    -46.920781535770665,
+    199.01560728350933
+   ],
+   "score": 0.9940693835023587,
+   "incl": 147.62049474481825,
+   "src": [
+    "z2",
+    "z3"
+   ],
+   "op": "keep",
+   "parts": [
+    7
+   ]
+  }
+ ],
+ "dropped": [],
+ "failure": null,
+ "created_at": "2026-10-25T13:54:03Z"
+}

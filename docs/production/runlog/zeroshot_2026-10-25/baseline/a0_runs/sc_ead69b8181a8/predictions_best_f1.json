@@ -1,0 +1,57 @@
+{
+  "schema": "sherman.broad_baseline.eval_lines.v1",
+  "lane": "best_f1",
+  "status": "A0_ONLY_NO_CAD",
+  "frame": "scan_raw",
+  "frame_definition": "coordinates of the scan file exactly as stored (source_ply_raw == scan_raw)",
+  "units": "scan file units (mm for every Sherman scan inspected so far; not re-estimated)",
+  "scan": {
+    "path": "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260726_08dd61b5/49783000_00.ply",
+    "sha256": "ead69b8181a833db7bca714247768e1f671143cdad21110c549e55fbcc0bf235"
+  },
+  "source": {
+    "kind": "fusion",
+    "path": null,
+    "sha256": null
+  },
+  "conversion": {
+    "rule": "diagnose_f1_cad_scan_fusion_gold11 union",
+    "duplicate_rule": {
+      "axis_angle_deg_max": 5.0,
+      "transverse_offset_mm_max": 4.0,
+      "shorter_span_overlap_min": 0.6
+    },
+    "a0_lines": 1,
+    "cad_lines": 0,
+    "a0_status": "OK",
+    "cad_status": "LANE_SKIPPED_NO_CAD"
+  },
+  "line_count": 1,
+  "owned_bend_regions": [
+    {
+      "bend_id": "F1C_81f2bff5d1fefb94",
+      "line_start": [
+        62.39346642062638,
+        264.7326554118953,
+        355.79483796852696
+      ],
+      "line_end": [
+        255.3685364213057,
+        -637.6438174749376,
+        -52.586340010838825
+      ],
+      "fusion_source": "scan_only_a0"
+    }
+  ],
+  "dropped": [],
+  "failure": null,
+  "created_at": "2026-10-24T23:37:43Z",
+  "component_status": {
+    "a0": "OK",
+    "a0_failure": null,
+    "cad_gated": "LANE_SKIPPED_NO_CAD",
+    "cad_failure": {
+      "reason": "NO_CAD_SUPPLIED"
+    }
+  }
+}

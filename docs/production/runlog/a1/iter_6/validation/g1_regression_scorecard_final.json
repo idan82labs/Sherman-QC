@@ -1,0 +1,1029 @@
+{
+ "counts": {
+  "bends": 135,
+  "cases": 50,
+  "characteristics": 553,
+  "e1_e2_symmetry_disagreements": [
+   "E2-DEV-CR-002",
+   "E2-DEV-HT-002",
+   "E2-DEV-LB-002",
+   "E2-DEV-LB-006",
+   "E2-DEV-UC-002",
+   "E2-DEV-ZS-002"
+  ],
+  "families": 7,
+  "measured_scorable": 321,
+  "nominal_disagreements_gt_1e-3": 0,
+  "pose_check": {
+   "NOT_EVALUATED": 2,
+   "POSE_OK": 48
+  },
+  "run_status": {
+   "OK": 50
+  },
+  "scan_plans": {
+   "FULL": 50
+  },
+  "scenarios": {
+   "COMPLETE_ERRORS": 14,
+   "COMPLETE_NOMINAL": 8,
+   "EXTRA_BEND": 1,
+   "MIRRORED": 1,
+   "MISSING_BEND": 2,
+   "ORDER_SWAP": 2,
+   "PARTIAL_BEND": 1,
+   "STAGE_0": 7,
+   "STAGE_1": 7,
+   "STAGE_K": 6,
+   "WRONG_SKU": 1
+  },
+  "scorable": 330,
+  "stage_model_correct": {
+   "False": 1,
+   "None": 4,
+   "True": 45
+  },
+  "summary_states": {
+   "COMPLETE_ERRORS:OUT_OF_TOLERANCE_FOUND": 14,
+   "COMPLETE_NOMINAL:ALL_MEASURED_IN_TOLERANCE": 7,
+   "COMPLETE_NOMINAL:INCOMPLETE": 1,
+   "EXTRA_BEND:REVIEW_REQUIRED": 1,
+   "MIRRORED:INVALID_INSPECTION": 1,
+   "MISSING_BEND:REVIEW_REQUIRED": 2,
+   "ORDER_SWAP:REVIEW_REQUIRED": 2,
+   "PARTIAL_BEND:OUT_OF_TOLERANCE_FOUND": 1,
+   "STAGE_0:INCOMPLETE": 4,
+   "STAGE_0:REVIEW_REQUIRED": 3,
+   "STAGE_1:ALL_MEASURED_IN_TOLERANCE": 1,
+   "STAGE_1:INCOMPLETE": 1,
+   "STAGE_1:REVIEW_REQUIRED": 3,
+   "STAGE_1:STAGE_IN_TOLERANCE": 2,
+   "STAGE_K:OUT_OF_TOLERANCE_FOUND": 2,
+   "STAGE_K:REVIEW_REQUIRED": 3,
+   "STAGE_K:STAGE_IN_TOLERANCE": 1,
+   "WRONG_SKU:INVALID_INSPECTION": 1
+  },
+  "symmetric_cases": 1,
+  "symmetry_source": {
+   "E1": 46,
+   "E2_TRUTH_FALLBACK": 2,
+   "UNDEFINED_PART": 2
+  },
+  "unmatched_engine_characteristics_decided": 0
+ },
+ "eval_version": "e4a-eval-1.1.0",
+ "failed_gates": [],
+ "gates": [
+  {
+   "ci": {
+    "ci": 0.95,
+    "clusters": 7,
+    "hi": 0.024562761322211676,
+    "lo": -0.00638970170630004,
+    "resamples_undefined": 0,
+    "resamples_used": 2000,
+    "seed": 20261017
+   },
+   "comparator": "<=",
+   "description": "|bias| of FLANGE_LENGTH error (actual - truth)",
+   "details": {
+    "by_family": {
+     "CHANNEL_WITH_RETURNS": 0.025821,
+     "HAT": -0.015233,
+     "L_BRACKET": -0.017545,
+     "PANEL_WITH_HOLES_NOTCHES": 0.034629,
+     "TWO_DIRECTION_TAB": -0.002098,
+     "U_CHANNEL": 0.00147,
+     "Z_STEP": 0.029919
+    },
+    "mae": 0.044159,
+    "signed_bias": 0.009375,
+    "unit": "mm"
+   },
+   "id": "G1.ACC.FLANGE_LENGTH.BIAS",
+   "informational": false,
+   "n": 115,
+   "not_applicable_to_tier": false,
+   "population": "MEASURED scorable FLANGE_LENGTH on complete parts, FULL plan, native density",
+   "statistic": "|mean(error)|",
+   "threshold": 0.05,
+   "truth_population_n": 119,
+   "value": 0.009375,
+   "verdict": "PASS"
+  },
+  {
+   "ci": {
+    "ci": 0.95,
+    "clusters": 7,
+    "hi": 0.1440012043217601,
+    "lo": 0.08467399999999259,
+    "resamples_undefined": 0,
+    "resamples_used": 2000,
+    "seed": 20261017
+   },
+   "comparator": "<=",
+   "description": "P95 |error| of FLANGE_LENGTH",
+   "details": {
+    "by_family": {
+     "CHANNEL_WITH_RETURNS": 0.091936,
+     "HAT": 0.071898,
+     "L_BRACKET": 0.090648,
+     "PANEL_WITH_HOLES_NOTCHES": 0.105026,
+     "TWO_DIRECTION_TAB": 0.147643,
+     "U_CHANNEL": 0.069954,
+     "Z_STEP": 0.130741
+    },
+    "mae": 0.044159,
+    "max_abs": 0.160033,
+    "unit": "mm"
+   },
+   "id": "G1.ACC.FLANGE_LENGTH.P95",
+   "informational": false,
+   "n": 115,
+   "not_applicable_to_tier": false,
+   "population": "MEASURED scorable FLANGE_LENGTH on complete parts, FULL plan, native density",
+   "statistic": "p95(|error|)",
+   "threshold": 0.2,
+   "truth_population_n": 119,
+   "value": 0.103377,
+   "verdict": "PASS"
+  },
+  {
+   "ci": {
+    "ci": 0.95,
+    "clusters": 7,
+    "hi": -0.00047066068181066286,
+    "lo": -0.002645564675793864,
+    "resamples_undefined": 0,
+    "resamples_used": 2000,
+    "seed": 20261017
+   },
+   "comparator": "<=",
+   "description": "|bias| of INCLUDED_ANGLE error (actual - truth)",
+   "details": {
+    "by_family": {
+     "CHANNEL_WITH_RETURNS": -0.000863,
+     "HAT": -0.002794,
+     "L_BRACKET": -0.004661,
+     "PANEL_WITH_HOLES_NOTCHES": -0.000279,
+     "TWO_DIRECTION_TAB": 0.000532,
+     "U_CHANNEL": -0.00311,
+     "Z_STEP": -0.001551
+    },
+    "mae": 0.005665,
+    "signed_bias": -0.001521,
+    "unit": "deg"
+   },
+   "id": "G1.ACC.INCLUDED_ANGLE.BIAS",
+   "informational": false,
+   "n": 58,
+   "not_applicable_to_tier": false,
+   "population": "MEASURED scorable INCLUDED_ANGLE on complete parts, FULL plan, native density",
+   "statistic": "|mean(error)|",
+   "threshold": 0.1,
+   "truth_population_n": 60,
+   "value": 0.001521,
+   "verdict": "PASS"
+  },
+  {
+   "ci": {
+    "ci": 0.95,
+    "clusters": 7,
+    "hi": 0.02055752441756198,
+    "lo": 0.014301484535916837,
+    "resamples_undefined": 0,
+    "resamples_used": 2000,
+    "seed": 20261017
+   },
+   "comparator": "<=",
+   "description": "P95 |error| of INCLUDED_ANGLE",
+   "details": {
+    "by_family": {
+     "CHANNEL_WITH_RETURNS": 0.014868,
+     "HAT": 0.027907,
+     "L_BRACKET": 0.012866,
+     "PANEL_WITH_HOLES_NOTCHES": 0.01086,
+     "TWO_DIRECTION_TAB": 0.017491,
+     "U_CHANNEL": 0.012913,
+     "Z_STEP": 0.01281
+    },
+    "mae": 0.005665,
+    "max_abs": 0.03689,
+    "unit": "deg"
+   },
+   "id": "G1.ACC.INCLUDED_ANGLE.P95",
+   "informational": false,
+   "n": 58,
+   "not_applicable_to_tier": false,
+   "population": "MEASURED scorable INCLUDED_ANGLE on complete parts, FULL plan, native density",
+   "statistic": "p95(|error|)",
+   "threshold": 0.3,
+   "truth_population_n": 60,
+   "value": 0.019033,
+   "verdict": "PASS"
+  },
+  {
+   "ci": {
+    "ci": 0.95,
+    "clusters": 7,
+    "hi": 0.08449669916544451,
+    "lo": 0.0706483863797868,
+    "resamples_undefined": 0,
+    "resamples_used": 2000,
+    "seed": 20261017
+   },
+   "comparator": "<=",
+   "description": "P95 |error| of BEND_LINE_POSITION",
+   "details": {
+    "by_family": {
+     "CHANNEL_WITH_RETURNS": 0.067228,
+     "HAT": 0.070776,
+     "L_BRACKET": 0.039792,
+     "PANEL_WITH_HOLES_NOTCHES": 0.070797,
+     "TWO_DIRECTION_TAB": 0.075691,
+     "U_CHANNEL": 0.064972,
+     "Z_STEP": 0.078875
+    },
+    "mae": 0.033064,
+    "max_abs": 0.087359,
+    "unit": "mm"
+   },
+   "id": "G1.ACC.BEND_LINE_POSITION.P95",
+   "informational": false,
+   "n": 58,
+   "not_applicable_to_tier": false,
+   "population": "MEASURED scorable BEND_LINE_POSITION on complete parts, FULL plan, native density",
+   "statistic": "p95(|error|)",
+   "threshold": 0.3,
+   "truth_population_n": 60,
+   "value": 0.072959,
+   "verdict": "PASS"
+  },
+  {
+   "ci": {
+    "ci": 0.95,
+    "clusters": 7,
+    "hi": 1.0,
+    "lo": 0.9894338003107613,
+    "resamples_undefined": 0,
+    "resamples_used": 2000,
+    "seed": 20261017
+   },
+   "comparator": ">=",
+   "description": "share of scorable characteristics MEASURED (realistic occlusion)",
+   "details": {
+    "by_kind": {
+     "BACKGAUGE_LENGTH": 1.0,
+     "BEND_LINE_POSITION": 1.0,
+     "FLANGE_LENGTH": 0.993197,
+     "INCLUDED_ANGLE": 1.0
+    },
+    "by_plan": {
+     "FULL": 0.996894
+    },
+    "excused_ambiguous": 8,
+    "not_measured_reasons": {
+     "AMBIGUOUS_SEGMENTATION": 1
+    },
+    "raw_rate_without_excuse": 0.972727
+   },
+   "id": "G1.COVERAGE",
+   "informational": false,
+   "n": 322,
+   "not_applicable_to_tier": false,
+   "population": "scorable characteristics of defined parts, FULL plan, native density; failed runs included as not measured; AMBIGUOUS_POSE on E1-symmetric cases excused",
+   "statistic": "measured / scorable",
+   "threshold": 0.9,
+   "truth_population_n": 330,
+   "value": 0.996894,
+   "verdict": "PASS"
+  },
+  {
+   "ci": null,
+   "comparator": "<=",
+   "description": "PASS while the truth says it must not pass (E2 truth, never the engine's U)",
+   "details": {
+    "by_kind": {},
+    "examples": [],
+    "s5_tol_plus_u_count": 0
+   },
+   "id": "G1.FALSE_PASS",
+   "informational": false,
+   "n": 553,
+   "not_applicable_to_tier": false,
+   "population": "every characteristic, native density, every plan: scorable and out of tolerance, on E2's never-PASS list, or on a truly NOT_YET_FORMED bend",
+   "statistic": "count",
+   "threshold": 0,
+   "truth_population_n": 553,
+   "value": 0,
+   "verdict": "PASS"
+  },
+  {
+   "ci": null,
+   "comparator": "<=",
+   "description": "FAIL while the true deviation is within tolerance",
+   "details": {
+    "count": 0,
+    "examples": []
+   },
+   "id": "G1.FALSE_FAIL",
+   "informational": false,
+   "n": 269,
+   "not_applicable_to_tier": false,
+   "population": "MEASURED scorable characteristics with truth in tolerance, native density",
+   "statistic": "false FAIL / population",
+   "threshold": 0.005,
+   "truth_population_n": 277,
+   "value": 0.0,
+   "verdict": "PASS"
+  },
+  {
+   "ci": {
+    "ci": 0.95,
+    "clusters": 7,
+    "hi": 0.9941348973607038,
+    "lo": 0.9712189733743551,
+    "resamples_undefined": 0,
+    "resamples_used": 2000,
+    "seed": 20261017
+   },
+   "comparator": ">=",
+   "description": "|actual - truth| <= U",
+   "details": {
+    "by_kind": {
+     "BACKGAUGE_LENGTH": 1.0,
+     "BEND_LINE_POSITION": 1.0,
+     "FLANGE_LENGTH": 0.965753,
+     "INCLUDED_ANGLE": 1.0
+    }
+   },
+   "id": "G1.U_CALIBRATION",
+   "informational": false,
+   "n": 321,
+   "not_applicable_to_tier": false,
+   "population": "MEASURED scorable characteristics, native density",
+   "statistic": "share within U",
+   "threshold": 0.95,
+   "truth_population_n": 330,
+   "value": 0.984424,
+   "verdict": "PASS"
+  },
+  {
+   "ci": null,
+   "comparator": "<=",
+   "description": "median U (mm) at full visibility",
+   "details": {
+    "by_kind": {
+     "BACKGAUGE_LENGTH": 0.237468,
+     "BEND_LINE_POSITION": 0.09644,
+     "FLANGE_LENGTH": 0.143025
+    }
+   },
+   "id": "G1.MEDIAN_U.mm",
+   "informational": false,
+   "n": 240,
+   "not_applicable_to_tier": false,
+   "population": "MEASURED scorable mm characteristics, FULL plan, native density",
+   "statistic": "median(U)",
+   "threshold": 0.15,
+   "truth_population_n": 247,
+   "value": 0.106348,
+   "verdict": "PASS"
+  },
+  {
+   "ci": null,
+   "comparator": "<=",
+   "description": "median U (deg) at full visibility",
+   "details": {
+    "by_kind": {
+     "INCLUDED_ANGLE": 0.115944
+    }
+   },
+   "id": "G1.MEDIAN_U.deg",
+   "informational": false,
+   "n": 81,
+   "not_applicable_to_tier": false,
+   "population": "MEASURED scorable deg characteristics, FULL plan, native density",
+   "statistic": "median(U)",
+   "threshold": 0.25,
+   "truth_population_n": 83,
+   "value": 0.115944,
+   "verdict": "PASS"
+  },
+  {
+   "ci": {
+    "ci": 0.95,
+    "clusters": 7,
+    "hi": 0.9937699541417542,
+    "lo": 0.9741596498262497,
+    "resamples_undefined": 0,
+    "resamples_used": 2000,
+    "seed": 20261017
+   },
+   "comparator": ">=",
+   "description": "PASS or FAIL (not REVIEW) when |true dev| <= 0.5 tol or >= 1.5 tol",
+   "details": {},
+   "id": "G1.DECISIVENESS",
+   "informational": false,
+   "n": 300,
+   "not_applicable_to_tier": false,
+   "population": "MEASURED scorable characteristics with a guard-band decision, native density",
+   "statistic": "decided share",
+   "threshold": 0.9,
+   "truth_population_n": 309,
+   "value": 0.983333,
+   "verdict": "PASS"
+  },
+  {
+   "ci": {
+    "ci": 0.95,
+    "clusters": 7,
+    "hi": 1.025362539491754,
+    "lo": 0.9942425378758516,
+    "resamples_undefined": 0,
+    "resamples_used": 2000,
+    "seed": 20261017
+   },
+   "comparator": "in",
+   "description": "slope of measured vs true deviation (FLANGE_LENGTH)",
+   "details": {
+    "intercept": 0.008066,
+    "large_points": 42,
+    "truth_large_points": 43
+   },
+   "id": "G1.SLOPE.FLANGE_LENGTH",
+   "informational": false,
+   "n": 146,
+   "not_applicable_to_tier": false,
+   "population": "MEASURED scorable FLANGE_LENGTH, native density",
+   "statistic": "OLS slope",
+   "threshold": [
+    0.95,
+    1.05
+   ],
+   "truth_population_n": 151,
+   "value": 1.007861,
+   "verdict": "PASS"
+  },
+  {
+   "ci": {
+    "ci": 0.95,
+    "clusters": 7,
+    "hi": 1.0008753895290108,
+    "lo": 0.999142391383665,
+    "resamples_undefined": 0,
+    "resamples_used": 2000,
+    "seed": 20261017
+   },
+   "comparator": "in",
+   "description": "slope of measured vs true deviation (INCLUDED_ANGLE)",
+   "details": {
+    "intercept": -0.000913,
+    "large_points": 10,
+    "truth_large_points": 10
+   },
+   "id": "G1.SLOPE.INCLUDED_ANGLE",
+   "informational": false,
+   "n": 81,
+   "not_applicable_to_tier": false,
+   "population": "MEASURED scorable INCLUDED_ANGLE, native density",
+   "statistic": "OLS slope",
+   "threshold": [
+    0.95,
+    1.05
+   ],
+   "truth_population_n": 83,
+   "value": 1.000035,
+   "verdict": "PASS"
+  },
+  {
+   "ci": {
+    "ci": 0.95,
+    "clusters": 7,
+    "hi": 1.0228042501879409,
+    "lo": 0.9818365069491923,
+    "resamples_undefined": 0,
+    "resamples_used": 2000,
+    "seed": 20261017
+   },
+   "comparator": "in",
+   "description": "slope of measured vs true deviation (BEND_LINE_POSITION)",
+   "details": {
+    "intercept": -0.00458,
+    "large_points": 12,
+    "truth_large_points": 12
+   },
+   "id": "G1.SLOPE.BEND_LINE_POSITION",
+   "informational": false,
+   "n": 81,
+   "not_applicable_to_tier": false,
+   "population": "MEASURED scorable BEND_LINE_POSITION, native density",
+   "statistic": "OLS slope",
+   "threshold": [
+    0.95,
+    1.05
+   ],
+   "truth_population_n": 83,
+   "value": 0.993448,
+   "verdict": "PASS"
+  },
+  {
+   "ci": {
+    "ci": 0.95,
+    "clusters": 6,
+    "hi": 1.0217306316319776,
+    "lo": 0.6105033879595856,
+    "resamples_undefined": 0,
+    "resamples_used": 2000,
+    "seed": 20261017
+   },
+   "comparator": "in",
+   "description": "slope of measured vs true deviation (BACKGAUGE_LENGTH)",
+   "details": {
+    "intercept": 0.015613,
+    "large_points": 2,
+    "truth_large_points": 2
+   },
+   "id": "G1.SLOPE.BACKGAUGE_LENGTH",
+   "informational": true,
+   "n": 13,
+   "not_applicable_to_tier": true,
+   "population": "MEASURED scorable BACKGAUGE_LENGTH, native density",
+   "statistic": "OLS slope",
+   "threshold": [
+    0.95,
+    1.05
+   ],
+   "truth_population_n": 0,
+   "value": 0.987304,
+   "verdict": "NOT_EVALUABLE"
+  },
+  {
+   "ci": {
+    "ci": 0.95,
+    "clusters": 7,
+    "hi": 1.0,
+    "lo": 1.0,
+    "resamples_undefined": 0,
+    "resamples_used": 2000,
+    "seed": 20261017
+   },
+   "comparator": ">=",
+   "description": "per-bend formed/unformed state correct (UNKNOWN/AMBIGUOUS = error)",
+   "details": {
+    "all_unambiguous_cases_rate": 1.0,
+    "confusion": {
+     "FORMED->FORMED": 20,
+     "NOT_YET_FORMED->NOT_YET_FORMED": 44,
+     "PARTIALLY_FORMED->PARTIALLY_FORMED": 1,
+     "UNEXPECTED_FORMED->UNEXPECTED_FORMED": 2
+    },
+    "exact_vocabulary_rate": 1.0,
+    "unknown_or_ambiguous_errors": 0
+   },
+   "id": "G1.STAGE_STATE",
+   "informational": false,
+   "n": 67,
+   "not_applicable_to_tier": false,
+   "population": "bends of truth-unambiguous incomplete-part cases, native density; failed runs count as wrong",
+   "statistic": "correct / bends",
+   "threshold": 0.98,
+   "truth_population_n": 67,
+   "value": 1.0,
+   "verdict": "PASS"
+  },
+  {
+   "ci": null,
+   "comparator": "<=",
+   "description": "symmetric cases yield AMBIGUOUS or the right ids, never a confident wrong id",
+   "details": {
+    "ambiguous_pose_cases": 1,
+    "examples": [],
+    "identity": {
+     "NO_MEASUREMENT": 2
+    },
+    "measured_without_identity_evidence": 0,
+    "pose_checks": {
+     "POSE_OK": 2
+    },
+    "symmetric_cases": 1
+   },
+   "id": "G1.SYMMETRIC_NO_WRONG_ID",
+   "informational": false,
+   "n": 2,
+   "not_applicable_to_tier": false,
+   "population": "bends of E1-symmetric cases, native density; identity from the truth-frame line check and the registration (pose check), so withheld lines cannot hide a flip",
+   "statistic": "confident wrong ids",
+   "threshold": 0,
+   "truth_population_n": 2,
+   "value": 0,
+   "verdict": "PASS"
+  },
+  {
+   "ci": null,
+   "comparator": ">=",
+   "description": "measured lines land on their own bend in the truth frame (automated LANDS/TAG_OK)",
+   "details": {
+    "misplaced": 0,
+    "wrong_id": 0
+   },
+   "id": "G1.LINE_ON_OWN_BEND",
+   "informational": true,
+   "n": 81,
+   "not_applicable_to_tier": false,
+   "population": "bends with a measured line, native density",
+   "statistic": "share on own bend",
+   "threshold": 1.0,
+   "truth_population_n": null,
+   "value": 1.0,
+   "verdict": "PASS"
+  },
+  {
+   "ci": null,
+   "comparator": ">=",
+   "description": "the engine registration identifies the part (POSE_OK) on defined cases",
+   "details": {
+    "not_ok": [],
+    "verdicts": {
+     "POSE_OK": 48
+    }
+   },
+   "id": "G1.POSE_CHECK",
+   "informational": true,
+   "n": 48,
+   "not_applicable_to_tier": false,
+   "population": "defined cases with a result and registration truth, native density",
+   "statistic": "share POSE_OK",
+   "threshold": 1.0,
+   "truth_population_n": null,
+   "value": 1.0,
+   "verdict": "PASS"
+  },
+  {
+   "ci": null,
+   "comparator": "<=",
+   "description": "AMBIGUOUS_POSE on truth-unambiguous cases (counted as state errors)",
+   "details": {
+    "examples": []
+   },
+   "id": "G1.AMBIGUOUS_ON_UNAMBIGUOUS",
+   "informational": true,
+   "n": 47,
+   "not_applicable_to_tier": false,
+   "population": "defined cases that are not E1-symmetric",
+   "statistic": "cases",
+   "threshold": 0,
+   "truth_population_n": null,
+   "value": 0,
+   "verdict": "PASS"
+  },
+  {
+   "ci": null,
+   "comparator": ">=",
+   "description": "injected backgauge errors >= 0.5 mm decided FAIL or REVIEW",
+   "details": {
+    "fail_share": 1.0,
+    "missed": []
+   },
+   "id": "G1.BACKGAUGE_DETECTION",
+   "informational": false,
+   "n": 2,
+   "not_applicable_to_tier": false,
+   "population": "scorable backgauge characteristics (E1 side), native density",
+   "statistic": "detected share",
+   "threshold": 1.0,
+   "truth_population_n": 2,
+   "value": 1.0,
+   "verdict": "PASS"
+  },
+  {
+   "ci": null,
+   "comparator": "<=",
+   "description": "no NOT_YET_FORMED bend characteristic is ever FAIL",
+   "details": {
+    "decided_pass_counted_as_false_pass": 0,
+    "examples": []
+   },
+   "id": "G1.NOT_YET_FORMED_NEVER_FAIL",
+   "informational": false,
+   "n": 176,
+   "not_applicable_to_tier": false,
+   "population": "characteristics of truly NOT_YET_FORMED bends, every case",
+   "statistic": "FAIL count",
+   "threshold": 0,
+   "truth_population_n": 176,
+   "value": 0,
+   "verdict": "PASS"
+  },
+  {
+   "ci": null,
+   "comparator": "<=",
+   "description": "wrong-SKU and mirrored parts never PASS",
+   "details": {
+    "examples": [],
+    "mirrored_by_rms_distinguishability": {
+     "distinguishable=False:MIRRORED_PART_SUSPECTED": 1
+    },
+    "pass_without_truth_counterpart": 0,
+    "validity_states": {
+     "MIRRORED:MIRRORED_PART_SUSPECTED": 1,
+     "WRONG_SKU:UNTRUSTED_REGISTRATION": 1
+    }
+   },
+   "id": "G1.WRONG_OR_MIRRORED_NEVER_PASS",
+   "informational": false,
+   "n": 32,
+   "not_applicable_to_tier": false,
+   "population": "every characteristic of wrong-SKU / mirrored cases (with or without a truth counterpart)",
+   "statistic": "PASS count",
+   "threshold": 0,
+   "truth_population_n": 32,
+   "value": 0,
+   "verdict": "PASS"
+  },
+  {
+   "ci": null,
+   "comparator": "<=",
+   "description": "no forbidden summary (missing/extra bend in FINAL never ALL_MEASURED_IN_TOLERANCE, ...)",
+   "details": {
+    "examples": [],
+    "missing_extra_final_cases": 3
+   },
+   "id": "G1.SUMMARY_NEVER",
+   "informational": false,
+   "n": 50,
+   "not_applicable_to_tier": false,
+   "population": "every case with a result",
+   "statistic": "violations",
+   "threshold": 0,
+   "truth_population_n": 50,
+   "value": 0,
+   "verdict": "PASS"
+  },
+  {
+   "ci": null,
+   "comparator": "<=",
+   "description": "characteristics without defined truth are never measured or decided",
+   "details": {
+    "decided": 0,
+    "examples": []
+   },
+   "id": "G1.MUST_BE_UNKNOWN",
+   "informational": false,
+   "n": 13,
+   "not_applicable_to_tier": false,
+   "population": "truth must-be-unknown characteristics",
+   "statistic": "MEASURED count",
+   "threshold": 0,
+   "truth_population_n": 13,
+   "value": 0,
+   "verdict": "PASS"
+  },
+  {
+   "ci": null,
+   "comparator": "<=",
+   "description": "every engine outcome is a valid result (UNKNOWN/INVALID, never a crash)",
+   "details": {
+    "by_status": {},
+    "compile_failures": [],
+    "examples": [],
+    "not_run": 0
+   },
+   "id": "G1.ENGINE_FAILURES",
+   "informational": false,
+   "n": 50,
+   "not_applicable_to_tier": false,
+   "population": "every compiled case",
+   "statistic": "engine failures",
+   "threshold": 0,
+   "truth_population_n": 50,
+   "value": 0,
+   "verdict": "PASS"
+  },
+  {
+   "ci": null,
+   "comparator": "all",
+   "description": "more occlusion raises UNKNOWN, not error",
+   "details": {
+    "coverage_by_plan": {
+     "FULL": 0.996894,
+     "SINGLE": null,
+     "SPARSE": null,
+     "TOP_ONLY": null
+    },
+    "note": "coverage per plan is reported, not gated (cases differ between plans)"
+   },
+   "id": "G1.OCCLUSION_RAISES_UNKNOWN",
+   "informational": false,
+   "n": 0,
+   "not_applicable_to_tier": true,
+   "population": "cases scanned with TOP_ONLY / SPARSE / SINGLE plans, native density",
+   "statistic": "failures, false PASS and U calibration on degraded plans",
+   "threshold": {
+    "engine_failures": 0,
+    "false_pass": 0,
+    "u_calibration_min": 0.95
+   },
+   "truth_population_n": 0,
+   "value": {
+    "engine_failures": 0,
+    "false_pass": 0,
+    "u_calibration": null
+   },
+   "verdict": "NOT_EVALUABLE"
+  },
+  {
+   "ci": null,
+   "comparator": "<=",
+   "description": "runtime P95 <= 45.0 s at ~1M points",
+   "details": {
+    "cases_below_min_points": 50,
+    "max_wall_s": 16.111
+   },
+   "id": "G1.RUNTIME.P95",
+   "informational": true,
+   "n": 50,
+   "not_applicable_to_tier": false,
+   "population": "runtime-tier cases (>= 900000 points)",
+   "statistic": "p95(wall s)",
+   "threshold": 45.0,
+   "truth_population_n": null,
+   "value": 13.66145,
+   "verdict": "NOT_EVALUABLE"
+  },
+  {
+   "ci": null,
+   "comparator": "<=",
+   "description": "peak RSS <= 4 GiB at ~1M points",
+   "details": {},
+   "id": "G1.RUNTIME.RSS",
+   "informational": true,
+   "n": 50,
+   "not_applicable_to_tier": false,
+   "population": "runtime-tier cases",
+   "statistic": "max(peak RSS bytes)",
+   "threshold": 4294967296,
+   "truth_population_n": null,
+   "value": 893550592,
+   "verdict": "NOT_EVALUABLE"
+  },
+  {
+   "ci": null,
+   "comparator": "<=",
+   "description": "tier wall-time budget (engine runs; compiles are cached across A1 iterations)",
+   "details": {},
+   "id": "G1.TIER_BUDGET",
+   "informational": true,
+   "n": 50,
+   "not_applicable_to_tier": false,
+   "population": "every case of the regression tier",
+   "statistic": "sum of engine wall s",
+   "threshold": 1200.0,
+   "truth_population_n": null,
+   "value": 372.1,
+   "verdict": "PASS"
+  },
+  {
+   "ci": null,
+   "comparator": "all",
+   "description": ">= 200 cases across >= 7 families with every amendment-5 feature",
+   "details": {
+    "families": [
+     "CHANNEL_WITH_RETURNS",
+     "HAT",
+     "L_BRACKET",
+     "PANEL_WITH_HOLES_NOTCHES",
+     "TWO_DIRECTION_TAB",
+     "U_CHANNEL",
+     "Z_STEP"
+    ]
+   },
+   "id": "G1.SUITE",
+   "informational": true,
+   "n": 50,
+   "not_applicable_to_tier": false,
+   "population": "the scored tier",
+   "statistic": "cases / families / feature gaps",
+   "threshold": {
+    "min_cases": 200,
+    "min_families": 7
+   },
+   "truth_population_n": null,
+   "value": {
+    "cases": 50,
+    "families": 7,
+    "feature_gaps": {}
+   },
+   "verdict": "FAIL"
+  }
+ ],
+ "label": "SYNTHETIC ENGINEERING EVIDENCE (E2 suite); never physical or unseen-family accuracy -- DEV / NOT QUALIFYING",
+ "not_applicable_to_tier_gates": [
+  "G1.OCCLUSION_RAISES_UNKNOWN"
+ ],
+ "not_evaluable_gates": [
+  "G1.OCCLUSION_RAISES_UNKNOWN"
+ ],
+ "not_qualifying_reasons": [
+  "TIER_REGRESSION",
+  "SEEDSET_DEV",
+  "SCANNER_MODEL_PARTIAL",
+  "FREEZE_LEDGER_MISMATCH"
+ ],
+ "provenance": {
+  "engine_cmd": [
+   "-m",
+   "domains.production.engine.inspect"
+  ],
+  "engine_config_sha256": null,
+  "engine_versions": [
+   "e3-1.8.0"
+  ],
+  "fingerprints": {
+   "compile": "285e674e751683d7bef841a8c075190ad4b1c87c7634147b3824121af9702532",
+   "engine": "d163a32cdc2f16bdd25b71f56d1cf4610958c241fd002db64d86d7f90985b227",
+   "eval": "8aa6860c78d85a2daf1d36607b52c691079378c66507a29e6827e73c0f7cae6a"
+  },
+  "generator_version": "e2-synthetic-1.1.1",
+  "ledger_check": {
+   "anchor_checked": true,
+   "entry_id": "frz_d57683acfd83",
+   "first_entry_sha256": "cf01e709079c0fcc348758c5196884bff7d20f7836b88c7616883c0dcec67e67",
+   "latest_freeze_entry_id": "frz_7344c93bcfe8",
+   "mismatches": [
+    "CONTRACTS_CODE_CHANGED_SINCE_FREEZE"
+   ],
+   "ok": false,
+   "qual_runs": [],
+   "qual_seeds_reused": false,
+   "waived": [],
+   "waivers": []
+  },
+  "limits": {
+   "compile_timeout_s": 300.0,
+   "engine_rss_limit_bytes": 4294967296,
+   "engine_time_budget_s": 170.0,
+   "engine_timeout_s": 180.0
+  },
+  "oracle_results": false,
+  "run_conditions": {
+   "compile_module": "domains.production.engine.compile",
+   "compile_timeout_s": 300.0,
+   "engine_argv_tail": [
+    "-m",
+    "domains.production.engine.inspect"
+   ],
+   "engine_bundle_id": null,
+   "engine_extra_env_keys": [],
+   "engine_python": "/Users/idantal/ShermanQC/FullProject/.venv/bin/python",
+   "engine_rss_limit_bytes": 4294967296,
+   "engine_time_budget_s": 170.0,
+   "engine_timeout_s": 180.0
+  },
+  "run_elapsed_s": 521.2,
+  "run_finished_at": "2026-10-18T23:15:20Z",
+  "run_started_at": "2026-10-18T23:06:39Z",
+  "scanner_model_field_status": {
+   "depth_jump_mm": "ASSUMED",
+   "duplicate_skin_fraction": "MEASURED",
+   "duplicate_skin_offset_mm": "UPPER_BOUND",
+   "duplicate_skin_patch_mm": "ASSUMED",
+   "duplicate_skin_rotation_deg": "ASSUMED",
+   "edge_erosion_probability": "ASSUMED",
+   "edge_flare_mm": "LOWER_BOUND",
+   "edge_flare_probability": "LOWER_BOUND",
+   "grazing_cutoff_deg": "ASSUMED",
+   "grazing_start_deg": "ASSUMED",
+   "noise_incidence_gain": "ASSUMED",
+   "noise_sigma_mm": "MEASURED",
+   "outlier_fraction": "MEASURED",
+   "outlier_range_mm": "ASSUMED",
+   "point_spacing_mm": "MEASURED",
+   "random_dropout_probability": "ASSUMED",
+   "specular_cone_deg": "ASSUMED",
+   "specular_dropout_probability": "ASSUMED",
+   "triangulation_angle_deg": "ASSUMED",
+   "view_jitter_mm": "ASSUMED",
+   "working_distance_mm": "ASSUMED"
+  },
+  "scanner_model_provenance": "MODEL_CARD",
+  "scanner_model_sha256": "cf55a20c23f37e9076426f0be559584fa9f00941db5d856ddc109bac4cabf8ce",
+  "scanner_model_unmeasured_required_fields": [
+   "grazing_start_deg",
+   "grazing_cutoff_deg",
+   "specular_cone_deg",
+   "specular_dropout_probability"
+  ],
+  "scanner_model_waiver": null
+ },
+ "qualifying": false,
+ "regression_verdict": "PASS",
+ "schema": "sherman_e4_g1_scorecard_v1",
+ "seedset": "DEV",
+ "thresholds": {
+  "sha256": "d475df3a97e2a458ebbe59e4591e82efee4d36094a6a0f2865929532419ade17",
+  "version": "E4-G1-2 (2026-10-17)"
+ },
+ "tier": "regression",
+ "verdict": "INCOMPLETE"
+}

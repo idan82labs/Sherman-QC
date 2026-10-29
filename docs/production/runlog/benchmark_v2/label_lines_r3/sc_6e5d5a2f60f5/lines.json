@@ -1,0 +1,763 @@
+{
+  "tool": "bench_labeling_v1",
+  "created_at": "2026-10-17T08:27:00.111943+00:00",
+  "coordinate_frame": "source_ply_raw",
+  "scan_path": "/Users/idantal/ShermanQC/source-assets/02_CAD_QC_3D/48991006_A 4.ply",
+  "scan_name": "48991006_A 4.ply",
+  "scan_sha256": "6e5d5a2f60f5fb5481602e951357767fe5c54d05858a1f5209a67942bee75fe8",
+  "prep_dir": "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/benchmark_v2/label_prep/sc_6e5d5a2f60f5",
+  "prep_image_sha256": {
+    "iso": "907e6f8198674e51fe6fde526871be5ae0751f853b04c769386a9684b53b4779",
+    "front": "7d9f1b3d97f8b1e0730b2a670c1271bac660ca220b61a6c181938ef49945ea36",
+    "right": "b59d854cc9139d5726817eaa62221b7611eaad303d886806f84f33c88a7f8202",
+    "top": "05789fbd2c5723993a20f22226c838603e28f7df8b514c157933a136a11840a6",
+    "iso_under": "1d416280d5654bf59f0605790940eb9ca50d501dbfd9cbd2f7b236211d487701",
+    "contact_sheet": "c3ab3cb0f0ec2574c7eeaf461ca36228bcbe7636c86d1237071409a9e49c6093"
+  },
+  "pairs_file": "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/benchmark_v2/label_lines_r3/sc_6e5d5a2f60f5/pairs.json",
+  "pairs_sha256": "794837c82f9ec63b0ee4014851eccbe58433049f2fa61b87d56d98ac1470e57a",
+  "labeler": "claude-vision-ai-v1",
+  "locus": "apex",
+  "thickness_mm": 1.9365804577372923,
+  "ri_mm": 1.9365804577372923,
+  "line_params": {
+    "margin_mm": 3.0,
+    "fit_extra_mm": 20.0,
+    "percentile": 1.0,
+    "min_support": 30,
+    "min_length_mm": 2.0,
+    "expand_steps": 4,
+    "apex_lateral_mm": 0.6,
+    "min_parallel_deg": 2.0,
+    "fold_support_min_points": 3,
+    "fold_support_min_frac": 0.8
+  },
+  "no_bends_present": false,
+  "notes": "r3 investigation (2026-10-17): 5 real formed bends. The two side-wall 'back-half folds' (3|5 and 4|6, round-1 B3/B5) are NOT bends. Raw-mesh and downsampled sections behind the crease relief holes show the back-floor end face and the wall's bottom-edge face, with an empty outer corner and no arc on either skin. A cut-face test finds cut-edge faces at 25/27 (left) and 20/27 (right) back-half stations, against 0/47 and 2/47 stations along the folded front half. The walls are folded from the front floor only, and the crease relief holes start the slits. Physical scan: uniform 0.5 mm mesh; the +U-facing wall skins were not scanned.",
+  "bends": [
+    {
+      "bend_id": "B1",
+      "patches": [
+        [
+          1
+        ],
+        [
+          7
+        ]
+      ],
+      "note": "Front lip fold, about 74 deg bend (106 deg included), outer skin. Runs from corner relief to corner relief (about 106 mm). Both arcs are present in every section.",
+      "locus": "apex",
+      "sharp": {
+        "start": [
+          -182.31951624002764,
+          -197.0343137027333,
+          208.92511276062163
+        ],
+        "end": [
+          -103.31024274494517,
+          -125.83644348714267,
+          207.688298208692
+        ]
+      },
+      "apex": {
+        "start": [
+          -183.17533923896747,
+          -196.09642520848334,
+          208.24409708612217
+        ],
+        "end": [
+          -104.166065743885,
+          -124.89855499289271,
+          207.00728253419254
+        ]
+      },
+      "direction": [
+        0.7428252303939723,
+        0.6693843900456565,
+        -0.011628217978094909
+      ],
+      "bisector": [
+        -0.5939993230921923,
+        0.6509583540177798,
+        -0.4726711600050083
+      ],
+      "side_dirs": {
+        "plane_a": [
+          -0.6039657681512615,
+          0.677520974017405,
+          0.41975073635190185
+        ],
+        "plane_b": [
+          -0.11048370179880572,
+          0.10543757981816602,
+          -0.9882693298888318
+        ]
+      },
+      "included_angle_deg": 106.06109693801743,
+      "bend_angle_deg": 73.93890306198257,
+      "dihedral_normals_deg": 73.93890306198452,
+      "length_mm": 106.3632066632663,
+      "zone_radius_mm": 6.8731609154745845,
+      "zone_radius_used_mm": 6.8731609154745845,
+      "support_points": {
+        "a": 1331,
+        "b": 1400
+      },
+      "coverage": 1.0,
+      "plane_a": {
+        "normal": [
+          0.2888529521947145,
+          -0.3047783918352437,
+          0.9075649309436327
+        ],
+        "point": [
+          -153.2712967153631,
+          -151.40057876986515,
+          215.00458122888762
+        ],
+        "rms_mm": 0.007544627914081223
+      },
+      "plane_b": {
+        "normal": [
+          0.6603060114272576,
+          -0.7353961212335122,
+          -0.1522777598591861
+        ],
+        "point": [
+          -143.4119296896622,
+          -159.91294097066213,
+          198.36546022710044
+        ],
+        "rms_mm": 0.017629764336556424
+      },
+      "skin": "outer",
+      "apex_offset_mm": 1.440781101373407,
+      "apex_points": 2007,
+      "expected_apex_offset_mm": {
+        "outer": 0.9746149581044937,
+        "inner": 0.48730747905224686
+      },
+      "line_origin": [
+        -142.5855948524869,
+        -161.2287626203951,
+        208.30311625308005
+      ],
+      "t_range": [
+        -53.49026899162681,
+        52.872937671639484
+      ],
+      "t_range_auto": [
+        -53.49026899162681,
+        52.872937671639484
+      ],
+      "extent_source": "auto",
+      "status": "ok",
+      "label_line": {
+        "start": [
+          -183.17533923896747,
+          -196.09642520848334,
+          208.24409708612217
+        ],
+        "end": [
+          -104.166065743885,
+          -124.89855499289271,
+          207.00728253419254
+        ]
+      },
+      "label_locus": "apex",
+      "confidence": "certain",
+      "auto_confidence": "certain",
+      "confidence_reasons": [],
+      "fold_support_frac": 1.0,
+      "fold_support_gaps_t": [],
+      "override_support_frac": null,
+      "margin_mm": 3.0
+    },
+    {
+      "bend_id": "B2",
+      "patches": [
+        [
+          1
+        ],
+        [
+          3
+        ]
+      ],
+      "note": "Left wall fold, from the FRONT floor only, 90 deg, outer skin. Runs from the front corner relief to the crease relief hole (about 56 mm). Behind the crease relief the wall is not folded: floor 5 only butts against it (step profile, cut faces, no arc).",
+      "locus": "apex",
+      "sharp": {
+        "start": [
+          -101.75776100693194,
+          -120.14141820208236,
+          209.0778817922845
+        ],
+        "end": [
+          -135.57610694698917,
+          -82.06680588309865,
+          232.68119268954644
+        ]
+      },
+      "apex": {
+        "start": [
+          -103.4100180326,
+          -120.72122440145685,
+          207.64584949979255
+        ],
+        "end": [
+          -137.22836397265723,
+          -82.64661208247314,
+          231.24916039705448
+        ]
+      },
+      "direction": [
+        -0.6025103165056683,
+        0.6783402937507086,
+        0.4205184471321581
+      ],
+      "bisector": [
+        -0.7304264253983677,
+        -0.2563195453574723,
+        -0.6330699232687503
+      ],
+      "side_dirs": {
+        "plane_a": [
+          -0.7436808719054947,
+          -0.6684143097630894,
+          0.012691385496317728
+        ],
+        "plane_b": [
+          -0.28840769139780803,
+          0.3062361873460789,
+          -0.9072157412117166
+        ]
+      },
+      "included_angle_deg": 90.09873162541211,
+      "bend_angle_deg": 89.90126837458789,
+      "dihedral_normals_deg": 89.9012683745863,
+      "length_mm": 56.129073666639954,
+      "zone_radius_mm": 6.8731609154745845,
+      "zone_radius_used_mm": 6.8731609154745845,
+      "support_points": {
+        "a": 405,
+        "b": 652
+      },
+      "coverage": 1.0,
+      "plane_a": {
+        "normal": [
+          0.2896896257481578,
+          -0.30508483472331105,
+          0.9071952184374333
+        ],
+        "point": [
+          -131.76351727592873,
+          -111.98797880996614,
+          221.40141126643977
+        ],
+        "rms_mm": 0.004481134061992491
+      },
+      "plane_b": {
+        "normal": [
+          0.7441789583472785,
+          0.667887597903962,
+          -0.011128095939345752
+        ],
+        "point": [
+          -133.5536325215561,
+          -84.63553424122546,
+          213.76161267137567
+        ],
+        "rms_mm": 0.011863619578285632
+      },
+      "skin": "outer",
+      "apex_offset_mm": 2.2620444280434215,
+      "apex_points": 840,
+      "expected_apex_offset_mm": {
+        "outer": 1.599602501469822,
+        "inner": 0.799801250734911
+      },
+      "line_origin": [
+        -124.69675022803482,
+        -94.31540284547914,
+        225.08801118224116
+      ],
+      "t_range": [
+        -38.07235924878485,
+        18.056714417855108
+      ],
+      "t_range_auto": [
+        -38.07235924878485,
+        18.056714417855108
+      ],
+      "extent_source": "auto",
+      "status": "ok",
+      "label_line": {
+        "start": [
+          -103.4100180326,
+          -120.72122440145685,
+          207.64584949979255
+        ],
+        "end": [
+          -137.22836397265723,
+          -82.64661208247314,
+          231.24916039705448
+        ]
+      },
+      "label_locus": "apex",
+      "confidence": "certain",
+      "auto_confidence": "certain",
+      "confidence_reasons": [],
+      "fold_support_frac": 1.0,
+      "fold_support_gaps_t": [],
+      "override_support_frac": null,
+      "margin_mm": 3.0
+    },
+    {
+      "bend_id": "B3",
+      "patches": [
+        [
+          2
+        ],
+        [
+          4
+        ]
+      ],
+      "note": "Right wall fold, from the FRONT floor only, about 88 deg, inner skin (the wall's outer skin was not scanned). Runs from the front corner relief to the crease relief hole (about 57 mm). Behind that relief, floor 6 meets the wall at a sharp inner corner, with the wall's bottom-edge face (patch 18) beside it: a butt joint, not a fold.",
+      "locus": "apex",
+      "sharp": {
+        "start": [
+          -187.21757051716327,
+          -195.806442770629,
+          208.77903094566122
+        ],
+        "end": [
+          -221.6078740054372,
+          -157.22480444482377,
+          232.60923796901076
+        ]
+      },
+      "apex": {
+        "start": [
+          -187.39887033758794,
+          -196.20685288258815,
+          209.16566301586528
+        ],
+        "end": [
+          -221.78917382586187,
+          -157.62521455678294,
+          232.99587003921482
+        ]
+      },
+      "direction": [
+        -0.6042586199714284,
+        0.6779029309507831,
+        0.41871128047684936
+      ],
+      "bisector": [
+        0.30970739491098853,
+        0.6840049393342025,
+        -0.6604684492872185
+      ],
+      "side_dirs": {
+        "plane_a": [
+          0.7430354011491136,
+          0.6691603535152094,
+          -0.01108214431307018
+        ],
+        "plane_b": [
+          -0.3124480008467445,
+          0.2818143841288227,
+          -0.9071697193276267
+        ]
+      },
+      "included_angle_deg": 91.92134587143651,
+      "bend_angle_deg": 88.07865412856349,
+      "dihedral_normals_deg": 88.0786541285645,
+      "length_mm": 56.913219524944495,
+      "zone_radius_mm": 6.8731609154745845,
+      "zone_radius_used_mm": 6.8731609154745845,
+      "support_points": {
+        "a": 814,
+        "b": 1554
+      },
+      "coverage": 1.0,
+      "plane_a": {
+        "normal": [
+          0.2876976065757474,
+          -0.3044208230258319,
+          0.9080517879938684
+        ],
+        "point": [
+          -192.18228763838735,
+          -167.19218255770474,
+          219.94481907741036
+        ],
+        "rms_mm": 0.006989418961457923
+      },
+      "plane_b": {
+        "normal": [
+          -0.7329718732373758,
+          -0.678990625197748,
+          0.041520644701928115
+        ],
+        "point": [
+          -217.84220867249928,
+          -162.42760867490375,
+          214.00334855084787
+        ],
+        "rms_mm": 0.02185905183776452
+      },
+      "skin": "inner",
+      "apex_offset_mm": -0.5853906732733629,
+      "apex_points": 699,
+      "expected_apex_offset_mm": {
+        "outer": 1.5147389341892996,
+        "inner": 0.7573694670946498
+      },
+      "line_origin": [
+        -209.01257312852383,
+        -171.35516369575225,
+        223.8815270454778
+      ],
+      "t_range": [
+        -36.068997430919715,
+        20.844222094024776
+      ],
+      "t_range_auto": [
+        -36.068997430919715,
+        20.844222094024776
+      ],
+      "extent_source": "auto",
+      "status": "ok",
+      "label_line": {
+        "start": [
+          -187.39887033758794,
+          -196.20685288258815,
+          209.16566301586528
+        ],
+        "end": [
+          -221.78917382586187,
+          -157.62521455678294,
+          232.99587003921482
+        ]
+      },
+      "label_locus": "apex",
+      "confidence": "certain",
+      "auto_confidence": "certain",
+      "confidence_reasons": [],
+      "fold_support_frac": 1.0,
+      "fold_support_gaps_t": [],
+      "override_support_frac": null,
+      "margin_mm": 3.0
+    },
+    {
+      "bend_id": "B4",
+      "patches": [
+        [
+          1
+        ],
+        [
+          5
+        ]
+      ],
+      "note": "Floor crease, 17 deg bend, outer skin. Two flat floor planes meet at a localized kink (about 4-6 mm transition on both skins), with relief holes at both ends. This is a formed shallow bend, not a rolled surface. Runs relief to relief (about 106 mm).",
+      "locus": "apex",
+      "sharp": {
+        "start": [
+          -218.74985722304268,
+          -155.77252724004956,
+          234.30946302391456
+        ],
+        "end": [
+          -140.77495912940293,
+          -84.43928218581216,
+          233.5373523735773
+        ]
+      },
+      "apex": {
+        "start": [
+          -218.78481933082355,
+          -155.73617668932042,
+          234.13699545302484
+        ],
+        "end": [
+          -140.8099212371838,
+          -84.40293163508301,
+          233.36488480268758
+        ]
+      },
+      "direction": [
+        0.7378115992383368,
+        0.6749671612154378,
+        -0.007305840823673391
+      ],
+      "bisector": [
+        -0.19456818432138884,
+        0.20229503034495802,
+        -0.9598020328940811
+      ],
+      "side_dirs": {
+        "plane_a": [
+          0.6106588735049562,
+          -0.6720494919851258,
+          -0.4188618155575802
+        ],
+        "plane_b": [
+          -0.667962068392344,
+          0.7316283567879096,
+          0.13618598581662092
+        ]
+      },
+      "included_angle_deg": 163.06396014626802,
+      "bend_angle_deg": 16.936039853731984,
+      "dihedral_normals_deg": 16.936039853728126,
+      "length_mm": 105.68402309496815,
+      "zone_radius_mm": 6.8731609154745845,
+      "zone_radius_used_mm": 6.8731609154745845,
+      "support_points": {
+        "a": 2217,
+        "b": 2292
+      },
+      "coverage": 1.0,
+      "plane_a": {
+        "normal": [
+          0.2876278572024955,
+          -0.30457972946899575,
+          0.9080205967695306
+        ],
+        "point": [
+          -171.8981464608933,
+          -130.70925928321813,
+          227.87558496027603
+        ],
+        "rms_mm": 0.009957999151915779
+      },
+      "plane_b": {
+        "normal": [
+          0.09726622856076851,
+          -0.09559957544130615,
+          0.9906563490721727
+        ],
+        "point": [
+          -184.7826728421284,
+          -107.6310058489049,
+          235.6201587941969
+        ],
+        "rms_mm": 0.04469780707952625
+      },
+      "skin": "outer",
+      "apex_offset_mm": 0.17969077474203682,
+      "apex_points": 385,
+      "expected_apex_offset_mm": {
+        "outer": 0.042689781022341194,
+        "inner": 0.021344890511170597
+      },
+      "line_origin": [
+        -179.47995858741717,
+        -119.84751327893957,
+        233.92061087129207
+      ],
+      "t_range": [
+        -53.22483229616464,
+        52.459190798803505
+      ],
+      "t_range_auto": [
+        -53.22483229616464,
+        52.459190798803505
+      ],
+      "extent_source": "auto",
+      "status": "ok",
+      "label_line": {
+        "start": [
+          -218.78481933082355,
+          -155.73617668932042,
+          234.13699545302484
+        ],
+        "end": [
+          -140.8099212371838,
+          -84.40293163508301,
+          233.36488480268758
+        ]
+      },
+      "label_locus": "apex",
+      "confidence": "certain",
+      "auto_confidence": "certain",
+      "confidence_reasons": [],
+      "fold_support_frac": 1.0,
+      "fold_support_gaps_t": [],
+      "override_support_frac": null,
+      "margin_mm": 3.0
+    },
+    {
+      "bend_id": "B5",
+      "patches": [
+        [
+          11
+        ],
+        [
+          9
+        ]
+      ],
+      "note": "Back-right tab fold. The physical bend from floor 5 to tab 9 is about 113 deg (66.7 deg included). Patch 11 is the gently curved run-in that carries the first ~13.7 deg, so the 11|9 pair reports about 80 deg included. 11|9 is used because the 5|9 plane intersection is skewed 2.5 deg to the arc axis: 5+11|9 drifted up to 1.4 mm off the arc. 11|9 and the inner-skin pair 12|10 agree within 0.05 deg, and the 11|9 apex stays within 0.3 mm of the scanned arc ridge along its whole length. Covers 37.2 of the 38.3 mm tab (97%).",
+      "locus": "apex",
+      "sharp": {
+        "start": [
+          -245.63051602494096,
+          -128.32027858584567,
+          235.71154961369405
+        ],
+        "end": [
+          -217.6100129778005,
+          -103.55431621798057,
+          236.88178304193605
+        ]
+      },
+      "apex": {
+        "start": [
+          -243.9300907869126,
+          -130.16285602900038,
+          233.99089551343766
+        ],
+        "end": [
+          -215.90958773977212,
+          -105.39689366113528,
+          235.16112894167966
+        ]
+      },
+      "direction": [
+        0.7489139675816894,
+        0.66192869937749,
+        0.03127724574633846
+      ],
+      "bisector": [
+        0.5591813715273424,
+        -0.6059278342653069,
+        -0.5658335916144915
+      ],
+      "side_dirs": {
+        "plane_a": [
+          0.6568539473478241,
+          -0.7477548957334662,
+          0.09698199709335298
+        ],
+        "plane_b": [
+          0.1992642784004633,
+          -0.17993312968451158,
+          -0.9632849091496656
+        ]
+      },
+      "included_angle_deg": 80.09517183774352,
+      "bend_angle_deg": 99.90482816225648,
+      "dihedral_normals_deg": 80.09517183774362,
+      "length_mm": 37.41484904817729,
+      "zone_radius_mm": 7.60807563470988,
+      "zone_radius_used_mm": 7.60807563470988,
+      "support_points": {
+        "a": 239,
+        "b": 287
+      },
+      "coverage": 1.0,
+      "plane_a": {
+        "normal": [
+          0.08758288083091934,
+          -0.05208658989653006,
+          -0.9947945647912977
+        ],
+        "point": [
+          -227.13075840218818,
+          -123.54277673452711,
+          237.09014408551104
+        ],
+        "rms_mm": 0.048707758392763346
+      },
+      "plane_b": {
+        "normal": [
+          -0.6319981143283513,
+          0.7276499610268411,
+          -0.2666531786854313
+        ],
+        "point": [
+          -228.8626476793873,
+          -118.353549623165,
+          223.16727299592932
+        ],
+        "rms_mm": 0.05209505145276817
+      },
+      "skin": "outer",
+      "apex_offset_mm": 3.0409189658515245,
+      "apex_points": 620,
+      "expected_apex_offset_mm": {
+        "outer": 2.1464517408652566,
+        "inner": 1.0732258704326283
+      },
+      "line_origin": [
+        -232.13828937103207,
+        -116.39515443631637,
+        236.27503181189937
+      ],
+      "t_range": [
+        -18.015723084290304,
+        19.399125963886984
+      ],
+      "t_range_auto": [
+        -18.015723084290304,
+        19.399125963886984
+      ],
+      "extent_source": "auto",
+      "status": "ok",
+      "label_line": {
+        "start": [
+          -243.9300907869126,
+          -130.16285602900038,
+          233.99089551343766
+        ],
+        "end": [
+          -215.90958773977212,
+          -105.39689366113528,
+          235.16112894167966
+        ]
+      },
+      "label_locus": "apex",
+      "confidence": "certain",
+      "auto_confidence": "certain",
+      "confidence_reasons": [],
+      "fold_support_frac": 1.0,
+      "fold_support_gaps_t": [],
+      "override_support_frac": null,
+      "margin_mm": 3.0
+    }
+  ],
+  "n_ok": 5,
+  "n_failed": 0,
+  "required_views": [
+    "iso",
+    "front",
+    "right",
+    "top"
+  ],
+  "images": {
+    "iso": "render/verify_iso.png",
+    "front": "render/verify_front.png",
+    "right": "render/verify_right.png",
+    "top": "render/verify_top.png",
+    "iso_under": "render/verify_iso_under.png",
+    "contact_sheet": "render/verify_contact_sheet.png",
+    "closeup_B1": "render/closeup_B1.png",
+    "closeup_B2": "render/closeup_B2.png",
+    "closeup_B3": "render/closeup_B3.png",
+    "closeup_B4": "render/closeup_B4.png",
+    "closeup_B5": "render/closeup_B5.png"
+  },
+  "image_sha256": {
+    "iso": "551a347c1d96bc4e2622e3eb87d6c1279cf0d143c40c89d46735965de7c0d1af",
+    "front": "78127461aea0b21e6d5d65c701c77cd9dc24162cc3dca6033723373dafa684a1",
+    "right": "bcea5dee92bc19136e97563f2732f5f4fa070ec3c1d0df58f092071ac3c58ac1",
+    "top": "edd557adddba9a668fbcce1a30ba4046a4c8bf5ad2b3330bbbbbb758cfb06563",
+    "iso_under": "98f7b92e6acfd46258a77d8e9b82a214863116246e6e63589b2584589943c1f1",
+    "contact_sheet": "f3d1cce56aec270d9d99f46dcdf02b4a80bba42490b6b92c2052f11cf9111c26",
+    "closeup_B1": "b16152555f14dad874199ee2ec774e42415036c409af59bbf338972553851b36",
+    "closeup_B2": "3d5cd553ee062894ac4931483ea36381c9bd68d3b32fec5c865515eaf5a0932a",
+    "closeup_B3": "a5b8c82f99638ba27aeee26a366043b14f67c59aa9c67122d4b2b8083030ba0b",
+    "closeup_B4": "328634731ebf4645681bfd14c56e97062ae4fe106e4110d054cb95919e9add8f",
+    "closeup_B5": "db4a8d1852aa4e87815b387c590be4423fdbad3388a2cbf28919e4d8d6d81e85"
+  }
+}

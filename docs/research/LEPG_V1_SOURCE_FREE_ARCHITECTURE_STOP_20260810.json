@@ -1,0 +1,53 @@
+{
+  "architecture_token": "LINEAR_EXTRUSION_PROFILE_GRAMMAR_V1",
+  "authorization_token": "AUTHORIZE_LINEAR_EXTRUSION_PROFILE_GRAMMAR_V1_SOURCE_FREE_THEN_C006_FROZEN_ONE_SHOT",
+  "configuration_sha256": "fdadd94b0ffef2570f89f58b92e2244031686c7eb955a270232644d714aa6cd7",
+  "decision": "LEPG_V1_SOURCE_FREE_ARCHITECTURE_STOP",
+  "terminal_failed_gate": "SF01_90_degree_double_skin_positive",
+  "observed": {
+    "source_points": 8445,
+    "accepted_translation_pairs": 90611,
+    "translation_direction_candidates": 24,
+    "translation_consensus_profiles": 24,
+    "consensus_profile_cells_max": 1716,
+    "dual_circle_models": 13568,
+    "open_sector_models": 0,
+    "four_tangent_models": 0,
+    "final_axes": 0,
+    "wall_seconds": 35.69470720901154,
+    "peak_rss_bytes": 236109824
+  },
+  "required": {
+    "final_axes": 1,
+    "direction_error_degrees_max": 0.1,
+    "line_distance_over_s_max": 0.2,
+    "radius_error_over_s_max": 0.25,
+    "bend_angle_error_degrees_max": 2.0,
+    "all_four_continuations_pass": true
+  },
+  "visual_ruling": {
+    "path": "output/research/lepg-v1-source-free-causal-ruling/LEPG_V1_SOURCE_FREE_CAUSAL_RULING_4096.png",
+    "pixel_width": 4096,
+    "pixel_height": 4096,
+    "sha256": "1b0493485e144d40846d750940cccc9ffaae799c3e2fe73804a3b95fb40e0fd3",
+    "manual_critique": "The native X-Z source panel visibly contains the intended two offset open arcs with straight tangent continuations. The collapsed consensus profile preserves that same two-skin line-arc-line grammar cleanly and densely. Nevertheless, 13,568 frozen shared-center dual-circle models yield zero open-sector survivors. This is a representation-stage false negative on the mandatory easiest positive, not absence of the causal geometry, so LEPG cannot be funded."
+  },
+  "execution_policy": {
+    "constant_changed": false,
+    "fixture_replaced": false,
+    "threshold_sweep_run": false,
+    "rerun_after_terminal_result": false,
+    "c006_opened": false,
+    "c006_claim_created": false,
+    "c006_claim_consumed": false
+  },
+  "full_source_free_evidence_sha256": "1facb4fb35a09a42c8955a2275668f61d3eb834b4a04f9b7b3e8e29f176663e7",
+  "implementation_sha256": {
+    "config.py": "bdef04f6e6a7aba91ce5b980ef77e4d73055cdcf39f108de8f59fcf810853a6d",
+    "core.py": "863dce05fc17df3d543ff2bccc4800db5d97d15aa0c261dd79b2b017908045f6",
+    "fixtures.py": "61b37219070fd4902cd586af74c09dd2c78f191a3e774dc7c85a63c513944706",
+    "runner.py": "97a6d858b2970ff0670ab853b07591d148fdfd0f060cfffa8bf7c882b91fc367",
+    "tests.py": "109e72f8408dcfa6575064c93c1a4f2e45704ea739794091890db1672ad658c3"
+  },
+  "gold_labels_cad_expected_counts_benchmark_opened": false
+}

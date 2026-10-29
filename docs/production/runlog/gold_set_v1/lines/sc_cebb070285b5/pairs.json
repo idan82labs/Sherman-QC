@@ -1,0 +1,32 @@
+{
+  "labeler": "claude-vision-ai-v1",
+  "no_bends_present": false,
+  "notes": "GOLD v1 fix (round 1) of sc_cebb070285b5 (47959001_01PREL_scan1.ply, part 47959001, stage PARTIAL_SCAN_1, CAD bend lines 6; custody CONSUMED, BENCHMARK_V3 scans[117]). No machine lines existed; the 5 human lines (human_bend_lines_v1/d190acb5f24b27246619f3bb.json) all fail gold (3/3 auditors): HB1/HB2 overrun and sit off the apex, HB3 is the unformed front-wall fold, HB4 is the back-wall/end-wall butt seam, and HB5 is 9 mm off the tab fold. Part: box bracket, t~1.92 mm. Flat base plate 1/2 (the base and the front wall are still one flat plate in this stage), a long slotted back wall 3/4 folded down 90 deg off the base, a low end wall 5/6 folded down 90 deg off the base, two inward mounting tabs with holes on the back wall's lower edge (7/8 and 9/12), and a downturned mounting tab with a hole on the base's free edge (10/11). Exactly 5 formed folds against CAD 6: the base->front wall fold is not formed in PARTIAL_SCAN_1. The back-wall/end-wall corner is a butt seam (sharp outer corner, no arc) and is not a bend. Holes, slots, relief notches, thickness edges and the round marks on the back wall (13) are not bends. All lines are on the OUTER (convex) skin.",
+  "bends": [
+    {
+      "patches": [1, 4],
+      "note": "90 deg fold from the base plate (top skin 1) down into the long slotted back wall (outside skin 4). Runs the full shared edge (~107 mm), from the triple corner with the end wall to where the base plate edge leaves the wall; the back wall continues past as a flat overhang that has no fold. Inner pair [2,3] lies one thickness inward and is left out.",
+      "confidence": "auto"
+    },
+    {
+      "patches": [1, 5],
+      "note": "90 deg fold from the base plate (top skin 1) down into the low end wall (outside skin 5), ~76 mm from the triple corner to the relief notch. Inner pair [2,6] left out.",
+      "confidence": "auto"
+    },
+    {
+      "patches": [4, 8],
+      "note": "90 deg fold from the back wall (outside skin 4) inward into the mounting tab with a hole at the overhang end (bottom skin 8), ~24 mm, full tab width. Separate tab plate from 9/12, so its own bend. Inner pair [3,7] left out.",
+      "confidence": "auto"
+    },
+    {
+      "patches": [4, 9],
+      "note": "90 deg fold from the back wall (outside skin 4) inward into the mounting tab with a hole near the end wall (bottom skin 9), ~24 mm, full tab width. Separate tab plate from 7/8, so its own bend. Inner pair [3,12] left out.",
+      "confidence": "auto"
+    },
+    {
+      "patches": [1, 10],
+      "note": "90 deg fold from the base/front-wall plate (top skin 1) down into the mounting tab with a hole on its free edge (outside skin 10), ~24 mm, full tab width. The front wall itself is not yet folded, so the tab hangs off the flat plate. Inner pair [2,11] left out.",
+      "confidence": "auto"
+    }
+  ]
+}

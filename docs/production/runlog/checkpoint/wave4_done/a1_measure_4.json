@@ -1,0 +1,47 @@
+{
+ "gates": {
+  "G1": {
+   "pass": true,
+   "detail": "Regression DEV tier (50 cases, 7 families) passes with 0 failed accuracy gates. The values match iteration 3 apart from changes at the 6th decimal: flange bias 0.009375 mm, P95 0.103 mm; angle bias 0.0015 deg, P95 0.019 deg; line position P95 0.073 mm; coverage 0.997; false PASS 0/553; false FAIL 0; U calibration 0.984. Overall verdict is INCOMPLETE and the run is non-qualifying by construction (TIER_REGRESSION, SEEDSET_DEV, SCANNER_MODEL_PARTIAL). Synthetic P95 runtime 12.8 s, RSS 0.83 GiB."
+  },
+  "G2": {
+   "pass": false,
+   "detail": "Frozen G2 FAIL on two sub-gates. (a) The frozen scorer's gate is the human Gold11: F1 0.391 vs best lane 0.473. (f) Repeatability P95 is 0.426 deg on 15651004, whose three 'repeats' are three different stages. These pass: (b) coverage, angle 84/85 and flange 160/166; (c) known-good angle MAE 0.795 deg vs legacy 1.291 deg on 16 common bends (informational); (d) known-good flange P95 0.392 mm, max 0.455 mm; (e) runtime P95 27.2 s, max 31.2 s, 0 crashes; compile rate. All 9 Gold11 cases now run (4 in iteration 3).",
+   "line_f1_gold11_human": 0.391,
+   "line_f1_gold11_relabel": 0.987,
+   "precision": 0.975
+  },
+  "G3": {
+   "pass": false,
+   "detail": "First evaluation against the frozen truth table: 13 cases, 123 bends. State match 0.959 (118/123) FAIL. Four mismatches are pc_cec08dfca9ab (10839000 scan_2) B6/B8/B9/B11, the part's 180-deg near-twin; the iteration-4 change record's hole evidence says these truth rows look swapped and need re-adjudication. The fifth is pc_3bde9996f14d (28870000 SCAN_1), read UNKNOWN where truth says NOT_FORMED. Known-good formed-bend angle MAE 1.186 deg FAIL, dominated by 10839000 90-deg bends that read 1-2 deg overbent (legacy sees the same, so probably real). unformed_reported_as_defect = 2 FAIL (the disputed cec08 B6/B11). These pass: angle coverage 77/81, flange coverage 130/160, known-good flange P95 0.368 mm, blank stage 0, formed counts, truth complete."
+  },
+  "G5": {
+   "pass": false,
+   "detail": "g5_check FAIL. Backend tests have 10 NEW failures in tests/test_vendor_unfold_api_contract.py, the same 10 as iterations 0-3. The cause is apps/api/services/vendor_setup_service.py, edited by another workflow, not the engine. Manifest, tsc, lint and vendor scripts PASS (5 vendor scripts NOT_RUN, as in the baseline)."
+  }
+ },
+ "broad": {
+  "scans": 26,
+  "line_f1_micro": 0.678,
+  "line_f1_family_macro": 0.806,
+  "precision": 0.65,
+  "recall": 0.708,
+  "per_bend_correct_rate": 0.872,
+  "false_pass": 0
+ },
+ "top_failures": [
+  "Regression vs iteration 3 that CHANGE.md does not report, on pc_752e2bd54aad (50757000_02_X). The datum pose is identical, but B5/B6 are now UNKNOWN (OCCLUDED). B4 now FAILs its angle at -16.4 deg and its line no longer matches the gold. B7/B8 now FAIL at +15.1/+13.8 deg; iteration 3 read all of these within 0.3 deg. 19 decisions changed. It was already present after fixes 1-8 (validation/per_bend_all_fixes1to8.json), most likely from fix 5 (pose_on_plane) or fix 7; not bisected. It drops per-bend correctness on the 80 complete-scan BROAD bends from 0.788 to 0.738. Overlays 01, 02, 07.",
+  "G3 state match 0.959. Four rows on 10839000 scan_2 (B6/B8/B9/B11) contradict the hole evidence (10/0 vs 1/7) and need truth re-adjudication. 28870000 SCAN_1 reads UNKNOWN (rolled part). These rows also cause the 2 unformed-reported-as-defect and 2 of the 3 all-A1 false-PASS-proxy bends.",
+  "G3 known-good angle MAE 1.186 deg: 10839000 90-deg bends read 1-2 deg overbent on every scan (legacy agrees, so probably a real overbend).",
+  "G2(a) fails only because the frozen scorer gates on human Gold11 (0.391 vs best lane 0.473). On the owner's gold11_relabel_v1 it is 0.987 (P 0.975, R 1.0) vs best lane 0.547. The gate of record needs the owner's sign-off.",
+  "G2(f) repeatability P95 0.426 deg: 15651004's three 'repeat' scans are three different stages, so the case list is partly at fault.",
+  "38172000_01_SCAN_1 (pc_07062eee17aa): B1 PASS on a line GOLD_SET_V1 does not confirm (false-PASS proxy); B9 UNEXPECTED_FORMED with 3 FAILs. 38172000_01_X B5 flange side B -8.28 mm and angle +4.76 deg FAIL, unchanged since iteration 3.",
+  "23553000 SCAN_2 (pc_186463746daa) B2/B6/B10/B14 read UNEXPECTED_FORMED with characteristics UNKNOWN. CHANGE.md risk 7 (pose-sensitive hook flanges on 23553000 FULL, +-1.2 mm FAILs) remains unverified.",
+  "BROAD vs the older BROAD gold: precision 0.650 (55 FP), although GOLD_SET_V1 and the relabel confirm the same lines (0.977 / 0.987). The gap comes from gold conventions, not the engine.",
+  "G5: 10 backend test failures that are not from the engine (vendor_setup_service.py)."
+ ],
+ "summary": "A1 iteration-4 MEASURE of engine e3-1.5.0 (config 687eb815). This was an independent re-run: every heavy step ran one at a time under the shared lock with OMP_NUM_THREADS=1. Code fingerprints were the same at start and end (engine dd4f039d) and match the change step. The physical scores reproduce the change step byte for byte apart from runtime. This is the first measure step with the G3 truth table frozen: all 27 A1 cases ran (26 OK, 1 compile BLOCKED), and the physical scorecard counts as final and qualifying under the ledger check.\n\nAll comparisons are against the best F1 lane on the same scans.\n- **BROAD** (frozen A1 list: 26 cases, 24 line cases, 14 families): family-macro 0.806 and micro 0.678 (P 0.650, R 0.708) vs 0.543 / 0.508 for the best lane. The owner's 0.80 family-macro target is met (report-only).\n- **Gold11 relabel** (gold of record): 0.987 vs 0.547.\n- **Human Gold11**: 0.391 vs 0.473.\n- **GOLD_SET_V1** (23 A1 scans with STEP): 0.977 micro / 0.966 family-macro vs 0.566 / 0.583.\n\nPer-bend correctness given CAD:\n- **All A1 cases** (203 bends): 0.872 riser-aware, 0.818 strict, family-macro 0.891. The false-PASS proxy is 3, two of them on the disputed 10839000 scan_2 truth rows.\n- **Complete-scan BROAD cases** (80 bends): 0.738 against the BROAD gold and 71/80 against any gold; strict false PASS is 0.\n\nGate results:\n- **G1**: PASS (regression DEV tier).\n- **G2**: FAIL, only on (a), because the frozen scorer gates on the human gold, and on (f), whose repeats are different stages.\n- **G3**: FAIL on state match 0.959 (disputed twin rows), known-good angle MAE 1.186 deg and 2 unformed-reported-as-defect.\n- **G5**: FAIL (10 backend tests outside the engine).\n- **Runtime**: E3 P95 27-29 s, max 31.2 s, peak RSS 0.89 GiB.\n\nNew finding: a regression vs iteration 3 on 50757000_02_X, from fixes 1-8 and not reported in CHANGE.md (details in top failures).\n\nOutputs:\n- Scorecard: /Users/idantal/ShermanQC/FullProject/docs/production/runlog/a1/iter_4/scorecard.json\n- 20 worst-bend overlays (close-up + context PNGs, INDEX.json): /Users/idantal/ShermanQC/FullProject/docs/production/runlog/a1/iter_4/overlays/worst20/\n- Raw files, tools and logs: /Users/idantal/ShermanQC/FullProject/docs/production/runlog/a1/iter_4/measure/\n- Work dir: /private/tmp/claude-501/-Users-idantal/db065cf7-f766-4885-b217-ed8d7edd7ade/scratchpad/a1_iter4m\n\nCustody: only cases_A1.json was used; no SEALED, DEV-CHECK or FRESH data and no credentials were read; no engine code was edited.",
+ "config_hash": "687eb815ae0fc4c4e23aab02426e07f4dc57bd6f9e229b760fb4e0bea595d365",
+ "rss_peak_gib": 0.885,
+ "runtime_p95_s": 28.88
+}

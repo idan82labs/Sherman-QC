@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "architecture": {"const": "V73_INTEGRAL_TRANSVERSE_COVARIANCE_GROWTH_VETO_V1"},
+    "candidate_count": {"maximum": 65, "minimum": 0, "type": "integer"},
+    "candidates": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "candidate_metric_sha256": {"pattern": "^[0-9a-f]{64}$", "type": "string"},
+          "canonical_candidate_ordinal": {"maximum": 63, "minimum": 0, "type": "integer"},
+          "decision": {
+            "enum": [
+              "VETO_SMOOTH_COVARIANCE",
+              "KEEP_FEATURE_INCOMPATIBLE",
+              "KEEP_ABSTAIN_SHORT",
+              "KEEP_ABSTAIN_SUPPORT"
+            ]
+          },
+          "eligibility_mask": {"maximum": 511, "minimum": 0, "type": "integer"},
+          "flat_mask": {"maximum": 511, "minimum": 0, "type": "integer"},
+          "longest_smoothlike_run": {"maximum": 9, "minimum": 0, "type": "integer"},
+          "smooth_growth_mask": {"maximum": 511, "minimum": 0, "type": "integer"},
+          "smoothlike_mask": {"maximum": 511, "minimum": 0, "type": "integer"}
+        },
+        "required": [
+          "candidate_metric_sha256",
+          "canonical_candidate_ordinal",
+          "decision",
+          "eligibility_mask",
+          "flat_mask",
+          "longest_smoothlike_run",
+          "smooth_growth_mask",
+          "smoothlike_mask"
+        ],
+        "type": "object"
+      },
+      "maxItems": 64,
+      "type": "array"
+    },
+    "constants_sha256": {"pattern": "^[0-9a-f]{64}$", "type": "string"},
+    "implementation_sha256": {"pattern": "^[0-9a-f]{64}$", "type": "string"},
+    "input_manifest_sha256": {"pattern": "^[0-9a-f]{64}$", "type": "string"},
+    "result_sha256": {"pattern": "^[0-9a-f]{64}$", "type": "string"},
+    "source_count": {"maximum": 200001, "minimum": 0, "type": "integer"},
+    "status": {"enum": ["COMPLETE", "ABORT"]},
+    "work_counters": {
+      "additionalProperties": false,
+      "properties": {
+        "candidate_source_tests": {"maximum": 12800000, "minimum": 0, "type": "integer"},
+        "cell_finalizations": {"maximum": 12800000, "minimum": 0, "type": "integer"},
+        "cell_station_updates": {"maximum": 38400000, "minimum": 0, "type": "integer"},
+        "metric_tuples": {"maximum": 4608, "minimum": 0, "type": "integer"}
+      },
+      "required": ["candidate_source_tests", "cell_finalizations", "cell_station_updates", "metric_tuples"],
+      "type": "object"
+    },
+    "abort_code": {"type": "string"}
+  },
+  "required": [
+    "architecture",
+    "candidate_count",
+    "candidates",
+    "constants_sha256",
+    "implementation_sha256",
+    "source_count",
+    "status",
+    "work_counters"
+  ],
+  "title": "Sherman QC F1 V73 compact no-source audit",
+  "type": "object"
+}

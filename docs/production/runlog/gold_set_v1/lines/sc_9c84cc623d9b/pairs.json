@@ -1,0 +1,21 @@
+{
+  "labeler": "claude-vision-ai-v1",
+  "no_bends_present": false,
+  "notes": "GOLD v1 (gold fixer round 1, 2026-10-18) for sc_9c84cc623d9b (50535000_04.ply, part 50535000, stage FULL_PRESUMED_NO_STAGE_HINT, CAD bend lines -1 = unknown; CONSUMED in BENCHMARK_V3). Started from benchmark_v2/label_lines/sc_9c84cc623d9b/pairs.json (2-5, 3-6). Part: Z-profile in 1.51 mm sheet. A 60 mm trapezoid web 1/2 (3 holes) folds 90.7 deg (B1) into a ~17 mm wall 5/6, which folds 90.7 deg the other way (B2) into a 21 mm flange 3/4. The wall runs ~30 mm past the web and past the flange at each end as flat end tabs (one hole and a rounded corner each); the web and the flange end at relief steps against the wall. 2 formed bends. Three auditors and the fixer's own full-resolution sections agree on the 2 bends and that only B1 was off. GOLD FIX on B1: extent_xyz trims the +end from t=707.2 to the web relief step at t~679.4 (old line frame). The old line overran ~28 mm along the flat top edge of the wall end tab, which is a cut thickness edge with no arc and no second plate. The start moves from t=0 to t=-1.0, because the outer arc is scanned from t~-1.25. The trim also fixes the apex: in envelope mode the tab edge (h~0.3-0.45 mm from the sharp, more than 2% of the old stations) set the apex floor, so the old line sat 0.586 mm from the sharp, ~0.8 mm outside the outer arc in air. On the fold alone the apex is at h~1.39 (envelope 1.386; station_median 1.379 agrees). B2 is unchanged: on the outer apex, auto extent 0..609.3 against the scanned arc -0.75..610.0. Not bends: the wall end tabs (flat, coplanar with the wall), hole walls, the web trapezoid edges, the flange end corners, and thickness and perimeter edges.",
+  "bends": [
+    {
+      "patches": [2, 5],
+      "confidence": "auto",
+      "extent_xyz": [
+        [-141.431, -154.311, 215.929],
+        [-433.374, 401.084, 478.565]
+      ],
+      "note": "B1: web to wall, 90.7 deg, outer skins (web underside 2, wall outer face 5). The fold runs from the web relief at t~-1.25 to the web relief step at t~679.4. Past that, the wall end tab is flat, with only its cut top edge near the old line. GOLD FIX: extent_xyz gives the outer-apex points at t=-1.0 and t=679.2 of the old line, which trims the 28 mm overrun along the tab edge. With the tab edge out of the apex search, the line sits on the outer-arc apex (h~1.39 from the sharp), not 0.8 mm out in air."
+    },
+    {
+      "patches": [3, 6],
+      "confidence": "auto",
+      "note": "B2: wall to flange, 90.7 deg, outer skins (flange top 3, wall face 6). Unchanged. The auto extent of 609.3 mm covers the scanned outer arc (-0.75..610.0) at ~99.8%, ending at the flange relief steps, and the line is on the outer apex within ~0.1 mm."
+    }
+  ]
+}

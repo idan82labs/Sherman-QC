@@ -1,0 +1,34 @@
+{
+  "labeler": "claude-vision-ai-v1",
+  "no_bends_present": false,
+  "notes": "GOLD vision label, gold_set_v1 fixer round 1 (2026-10-18). sc_fee685eee4db = 49125000_A00.ply (CONSUMED, sha fee685ee...). Part: rolled shell (inner skin R 37.2 mm, outer 38.65, t 1.46, about 153 deg of roll, uniform curvature about 1.5 deg/mm with no localized kink anywhere on the arc) that ends in a full-width JOGGLE: two sharp formed bends of about 23 and 24 deg, about 10 mm apart, then a flat end flange with 2 holes and a corner tab. Gold = 2 lines (joggle = 2 bends). The rolled shell is not a line bend (gold rule; Gold11 rolled-shell precedent). Free edges, roll end face (patch 28), hole walls, notch/tab edges and the roll-crown scan speckle are not bends. Human v1 HB1/HB2 (d539518a0a75dbbf9332b4be) lie on the smooth roll at polar about -25 and -70 deg, not on a fold: not reused. CAD step_v10 count 1 is LOW_CONFIDENCE; Eyal-50 SLDPRT evidence for 49125000 = 3 CAD bend features = 2 conventional + 1 large rolled transition; manual truth 'rolled part, 2 bends' agrees with 2.",
+  "bends": [
+    {
+      "patches": [
+        {
+          "plane_from_points": {
+            "seed_xyz": [
+              -158.085,
+              -32.042,
+              260.616
+            ],
+            "radius_mm": 2.5,
+            "grow": true,
+            "tol_mm": 0.08
+          }
+        },
+        14
+      ],
+      "confidence": "auto",
+      "note": "joggle bend 1 (roll -> joggle strip), about 23 deg. Its convex (outer) skin is the roll's concave/inner skin, so both sides are on that skin. Side a = roll tangent plane just before the fold (plane_from_points, seed on the inner skin at polar 11 deg, grow with tol 0.08 mm so it stays on the roll band next to the fold); the segmented roll facet (patch 2, a chord over 18 deg of roll) tilts the plane and shifted the apex 0.4 mm. Side b = joggle strip inner skin (14)."
+    },
+    {
+      "patches": [
+        16,
+        17
+      ],
+      "confidence": "auto",
+      "note": "joggle bend 2 (joggle strip -> end flange), about 24 deg, outer-skin apex: 16 = strip outer skin, 17 = flange outer skin."
+    }
+  ]
+}

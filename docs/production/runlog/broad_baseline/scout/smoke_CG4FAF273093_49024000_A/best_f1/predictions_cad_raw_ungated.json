@@ -1,0 +1,91 @@
+{
+  "schema": "sherman.broad_baseline.eval_lines.v1",
+  "lane": "cad_raw_ungated",
+  "status": "OK",
+  "frame": "scan_raw",
+  "frame_definition": "coordinates of the scan file exactly as stored (source_ply_raw == scan_raw)",
+  "units": "scan file units (mm for every Sherman scan inspected so far; not re-estimated)",
+  "scan": {
+    "path": "/Users/idantal/ShermanQC/source-assets/02_CAD_QC_3D/49024000_A.ply",
+    "sha256": "70b39f530f00a72dd99acf00b4a065f45bfe4f50185e3579c3ba26143f7d2ade"
+  },
+  "source": {
+    "kind": "evaluate_bend_case_blind_cad_ply",
+    "path": "/private/tmp/claude-501/-Users-idantal/db065cf7-f766-4885-b217-ed8d7edd7ade/scratchpad/smoke_work/best_f1/cad/cad_case.json",
+    "sha256": "e152e6d3dbc09cdf5b6860d3b4b95c419b6cbf536efb5a923b69a38f25f2742d"
+  },
+  "conversion": {
+    "rule": "score_f1_cad_guided_gold13_e2e._cad_predictions (no gate)",
+    "gate_constants": null,
+    "frame_in": "MIXED: GLOBAL_DETECTION rows are raw-scan, local-refinement rows are CAD-aligned; the raw-scan support gate is the historical frame filter",
+    "transform": "none (historical)",
+    "gate_audit": [],
+    "inference_mode": "blind_cad_ply"
+  },
+  "line_count": 3,
+  "owned_bend_regions": [
+    {
+      "bend_id": "CAD_B1",
+      "line_start": [
+        -237.51920382092922,
+        -153.6632593916122,
+        269.1915669602532
+      ],
+      "line_end": [
+        -149.92088226141385,
+        -72.61681003143248,
+        319.90164664527657
+      ],
+      "origin": "cad_guided_blind_runtime_corpus_path",
+      "cad_target_id": "CAD_B1",
+      "assignment_source": "GLOBAL_DETECTION",
+      "measurement_method": "detected_bend_match",
+      "observability_state": "FORMED",
+      "detected_line_geometry_source": "SCAN_FIT",
+      "status": "FAIL"
+    },
+    {
+      "bend_id": "CAD_B3",
+      "line_start": [
+        -238.98774756172907,
+        -130.4745861476426,
+        245.09209664822166
+      ],
+      "line_end": [
+        -153.53781788034902,
+        -58.63131587047377,
+        301.39241558042556
+      ],
+      "origin": "cad_guided_blind_runtime_corpus_path",
+      "cad_target_id": "CAD_B3",
+      "assignment_source": "GLOBAL_DETECTION",
+      "measurement_method": "detected_bend_match",
+      "observability_state": "FORMED",
+      "detected_line_geometry_source": "SCAN_FIT",
+      "status": "FAIL"
+    },
+    {
+      "bend_id": "CAD_B4",
+      "line_start": [
+        -154.21670650504154,
+        -51.08722385012237,
+        293.2593449510091
+      ],
+      "line_end": [
+        -235.32297082316055,
+        -145.4644140325236,
+        264.62217059646525
+      ],
+      "origin": "cad_guided_blind_runtime_corpus_path",
+      "cad_target_id": "CAD_B4",
+      "assignment_source": "GLOBAL_DETECTION",
+      "measurement_method": "detected_bend_match",
+      "observability_state": "FORMED",
+      "detected_line_geometry_source": "SCAN_FIT",
+      "status": "FAIL"
+    }
+  ],
+  "dropped": [],
+  "failure": null,
+  "created_at": "2026-10-17T08:42:50Z"
+}

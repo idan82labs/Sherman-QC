@@ -1,0 +1,1515 @@
+{
+  "schema": "sherman.broad_baseline.summary.v1",
+  "created_at": "2026-10-17T16:27:21Z",
+  "case_list": {
+    "path": "docs/production/runlog/broad_baseline/case_list_broad_v3.json",
+    "file_sha256": "c359216232bd11f9516ab0f93ed790f988c2cc2df312bb7d6d92fdb3644dcd79",
+    "case_list_sha256": "c25a49c122686f6274518956d9d068240ef5d3c211529676df8ce76f297c02c7",
+    "cases": 60
+  },
+  "case_list_same_for_both_lanes": true,
+  "matcher": {
+    "source": "scripts/evaluate_f1_against_manual_gold.match_lines (via score.score_case)",
+    "axis_angle_deg": 5.0,
+    "transverse_offset_mm": 4.0,
+    "gold_span_overlap": 0.6,
+    "prediction_span_overlap": 0.6,
+    "assignment": "one_to_one_minimum_cost Hungarian",
+    "frame": "scan_raw"
+  },
+  "conventions": {
+    "micro": "summed TP/FP/FN over complete-label line scans",
+    "macro": "mean of per-scan precision/recall/F1 (scan with no predictions -> P=R=F1=0)",
+    "family_macro_f1": "mean over families of family-micro F1",
+    "zero_bend_controls": "not in line-F1; every predicted line counted as a false positive",
+    "diagnostic_causes": "nearest-counterpart classification; NOT the metric",
+    "gold_tiers": "GOLD11 (owner-verified except C05/C06 Codex multiview), GOLD_LINES_HUMAN_NON_GOLD11 (owner-verified), AI_GOLD_ACCEPTED (agent-adjudicated)"
+  },
+  "lanes": {
+    "best_f1": {
+      "cohorts": {
+        "ALL": {
+          "scans": 57,
+          "families": 41,
+          "gold_lines": 305,
+          "predicted_lines": 212,
+          "true_positive": 115,
+          "false_positive": 97,
+          "false_negative": 190,
+          "micro_precision": 0.542453,
+          "micro_recall": 0.377049,
+          "micro_f1": 0.4448742747,
+          "macro_precision": 0.5047,
+          "macro_recall": 0.3985,
+          "macro_f1": 0.4259,
+          "family_macro_f1": 0.4163,
+          "exact_scans": 6,
+          "scans_with_f1_ge_0_8": 8,
+          "scans_with_zero_tp": 14,
+          "scans_with_no_predictions": 9,
+          "angle_mae_deg_matched": 0.5597,
+          "position_error_mean_mm_matched": 1.2728,
+          "position_error_median_mm_matched": 1.0841,
+          "fn_cause_counts_diagnostic": {
+            "MISSED": 116,
+            "SPAN_LT_60PCT": 40,
+            "OFFSET_GT_4MM": 32,
+            "ANGLE_GT_5": 2
+          },
+          "fp_cause_counts_diagnostic": {
+            "SPURIOUS": 47,
+            "SPAN_LT_60PCT": 24,
+            "OFFSET_GT_4MM": 23,
+            "ANGLE_GT_5": 3
+          },
+          "zero_bend_controls": {
+            "scans": 3,
+            "false_positive_lines": 5,
+            "scans_with_false_positive": [
+              "sc_3bde9996f14d",
+              "sc_b4719db3dd69"
+            ]
+          }
+        },
+        "GOLD11": {
+          "scans": 11,
+          "families": 6,
+          "gold_lines": 71,
+          "predicted_lines": 60,
+          "true_positive": 30,
+          "false_positive": 30,
+          "false_negative": 41,
+          "micro_precision": 0.5,
+          "micro_recall": 0.422535,
+          "micro_f1": 0.4580152672,
+          "macro_precision": 0.5473,
+          "macro_recall": 0.4094,
+          "macro_f1": 0.4517,
+          "family_macro_f1": 0.4598,
+          "exact_scans": 0,
+          "scans_with_f1_ge_0_8": 0,
+          "scans_with_zero_tp": 1,
+          "scans_with_no_predictions": 0,
+          "angle_mae_deg_matched": 0.6911,
+          "position_error_mean_mm_matched": 1.2472,
+          "position_error_median_mm_matched": 1.0406,
+          "fn_cause_counts_diagnostic": {
+            "MISSED": 23,
+            "OFFSET_GT_4MM": 17,
+            "ANGLE_GT_5": 1
+          },
+          "fp_cause_counts_diagnostic": {
+            "SPURIOUS": 16,
+            "OFFSET_GT_4MM": 13,
+            "ANGLE_GT_5": 1
+          },
+          "zero_bend_controls": {
+            "scans": 0,
+            "false_positive_lines": 0,
+            "scans_with_false_positive": []
+          }
+        },
+        "NON_GOLD11": {
+          "scans": 46,
+          "families": 37,
+          "gold_lines": 234,
+          "predicted_lines": 152,
+          "true_positive": 85,
+          "false_positive": 67,
+          "false_negative": 149,
+          "micro_precision": 0.559211,
+          "micro_recall": 0.363248,
+          "micro_f1": 0.4404145078,
+          "macro_precision": 0.4946,
+          "macro_recall": 0.3959,
+          "macro_f1": 0.4198,
+          "family_macro_f1": 0.4007,
+          "exact_scans": 6,
+          "scans_with_f1_ge_0_8": 8,
+          "scans_with_zero_tp": 13,
+          "scans_with_no_predictions": 9,
+          "angle_mae_deg_matched": 0.5133,
+          "position_error_mean_mm_matched": 1.2818,
+          "position_error_median_mm_matched": 1.0841,
+          "fn_cause_counts_diagnostic": {
+            "MISSED": 93,
+            "SPAN_LT_60PCT": 40,
+            "OFFSET_GT_4MM": 15,
+            "ANGLE_GT_5": 1
+          },
+          "fp_cause_counts_diagnostic": {
+            "SPURIOUS": 31,
+            "SPAN_LT_60PCT": 24,
+            "OFFSET_GT_4MM": 10,
+            "ANGLE_GT_5": 2
+          },
+          "zero_bend_controls": {
+            "scans": 3,
+            "false_positive_lines": 5,
+            "scans_with_false_positive": [
+              "sc_3bde9996f14d",
+              "sc_b4719db3dd69"
+            ]
+          }
+        },
+        "HUMAN_GOLD_ALL": {
+          "scans": 15,
+          "families": 10,
+          "gold_lines": 91,
+          "predicted_lines": 69,
+          "true_positive": 35,
+          "false_positive": 34,
+          "false_negative": 56,
+          "micro_precision": 0.507246,
+          "micro_recall": 0.384615,
+          "micro_f1": 0.4375,
+          "macro_precision": 0.5302,
+          "macro_recall": 0.3969,
+          "macro_f1": 0.4381,
+          "family_macro_f1": 0.4362,
+          "exact_scans": 1,
+          "scans_with_f1_ge_0_8": 1,
+          "scans_with_zero_tp": 2,
+          "scans_with_no_predictions": 1,
+          "angle_mae_deg_matched": 0.6568,
+          "position_error_mean_mm_matched": 1.4428,
+          "position_error_median_mm_matched": 1.1628,
+          "fn_cause_counts_diagnostic": {
+            "MISSED": 34,
+            "OFFSET_GT_4MM": 21,
+            "ANGLE_GT_5": 1
+          },
+          "fp_cause_counts_diagnostic": {
+            "OFFSET_GT_4MM": 17,
+            "SPURIOUS": 16,
+            "ANGLE_GT_5": 1
+          },
+          "zero_bend_controls": {
+            "scans": 0,
+            "false_positive_lines": 0,
+            "scans_with_false_positive": []
+          }
+        },
+        "HUMAN_GOLD_NON_GOLD11": {
+          "scans": 4,
+          "families": 4,
+          "gold_lines": 20,
+          "predicted_lines": 9,
+          "true_positive": 5,
+          "false_positive": 4,
+          "false_negative": 15,
+          "micro_precision": 0.555556,
+          "micro_recall": 0.25,
+          "micro_f1": 0.3448275862,
+          "macro_precision": 0.4833,
+          "macro_recall": 0.3625,
+          "macro_f1": 0.4007,
+          "family_macro_f1": 0.4007,
+          "exact_scans": 1,
+          "scans_with_f1_ge_0_8": 1,
+          "scans_with_zero_tp": 1,
+          "scans_with_no_predictions": 1,
+          "angle_mae_deg_matched": 0.4512,
+          "position_error_mean_mm_matched": 2.617,
+          "position_error_median_mm_matched": 2.5459,
+          "fn_cause_counts_diagnostic": {
+            "MISSED": 11,
+            "OFFSET_GT_4MM": 4
+          },
+          "fp_cause_counts_diagnostic": {
+            "OFFSET_GT_4MM": 4
+          },
+          "zero_bend_controls": {
+            "scans": 0,
+            "false_positive_lines": 0,
+            "scans_with_false_positive": []
+          }
+        },
+        "AI_GOLD": {
+          "scans": 42,
+          "families": 34,
+          "gold_lines": 214,
+          "predicted_lines": 143,
+          "true_positive": 80,
+          "false_positive": 63,
+          "false_negative": 134,
+          "micro_precision": 0.559441,
+          "micro_recall": 0.373832,
+          "micro_f1": 0.4481792717,
+          "macro_precision": 0.4956,
+          "macro_recall": 0.3991,
+          "macro_f1": 0.4216,
+          "family_macro_f1": 0.4179,
+          "exact_scans": 5,
+          "scans_with_f1_ge_0_8": 7,
+          "scans_with_zero_tp": 12,
+          "scans_with_no_predictions": 8,
+          "angle_mae_deg_matched": 0.5172,
+          "position_error_mean_mm_matched": 1.1984,
+          "position_error_median_mm_matched": 1.0655,
+          "fn_cause_counts_diagnostic": {
+            "MISSED": 82,
+            "SPAN_LT_60PCT": 40,
+            "OFFSET_GT_4MM": 11,
+            "ANGLE_GT_5": 1
+          },
+          "fp_cause_counts_diagnostic": {
+            "SPURIOUS": 31,
+            "SPAN_LT_60PCT": 24,
+            "OFFSET_GT_4MM": 6,
+            "ANGLE_GT_5": 2
+          },
+          "zero_bend_controls": {
+            "scans": 3,
+            "false_positive_lines": 5,
+            "scans_with_false_positive": [
+              "sc_3bde9996f14d",
+              "sc_b4719db3dd69"
+            ]
+          }
+        },
+        "FULL_SCANS": {
+          "scans": 44,
+          "families": 38,
+          "gold_lines": 228,
+          "predicted_lines": 157,
+          "true_positive": 93,
+          "false_positive": 64,
+          "false_negative": 135,
+          "micro_precision": 0.592357,
+          "micro_recall": 0.407895,
+          "micro_f1": 0.4831168831,
+          "macro_precision": 0.5315,
+          "macro_recall": 0.4298,
+          "macro_f1": 0.4552,
+          "family_macro_f1": 0.4348,
+          "exact_scans": 6,
+          "scans_with_f1_ge_0_8": 8,
+          "scans_with_zero_tp": 11,
+          "scans_with_no_predictions": 8,
+          "angle_mae_deg_matched": 0.5198,
+          "position_error_mean_mm_matched": 1.2134,
+          "position_error_median_mm_matched": 1.059,
+          "fn_cause_counts_diagnostic": {
+            "MISSED": 85,
+            "SPAN_LT_60PCT": 28,
+            "OFFSET_GT_4MM": 20,
+            "ANGLE_GT_5": 2
+          },
+          "fp_cause_counts_diagnostic": {
+            "SPURIOUS": 32,
+            "SPAN_LT_60PCT": 16,
+            "OFFSET_GT_4MM": 13,
+            "ANGLE_GT_5": 3
+          },
+          "zero_bend_controls": {
+            "scans": 1,
+            "false_positive_lines": 2,
+            "scans_with_false_positive": [
+              "sc_b4719db3dd69"
+            ]
+          }
+        },
+        "STAGED_SCANS": {
+          "scans": 13,
+          "families": 7,
+          "gold_lines": 77,
+          "predicted_lines": 55,
+          "true_positive": 22,
+          "false_positive": 33,
+          "false_negative": 55,
+          "micro_precision": 0.4,
+          "micro_recall": 0.285714,
+          "micro_f1": 0.3333333333,
+          "macro_precision": 0.4142,
+          "macro_recall": 0.2926,
+          "macro_f1": 0.3269,
+          "family_macro_f1": 0.3129,
+          "exact_scans": 0,
+          "scans_with_f1_ge_0_8": 0,
+          "scans_with_zero_tp": 3,
+          "scans_with_no_predictions": 1,
+          "angle_mae_deg_matched": 0.7283,
+          "position_error_mean_mm_matched": 1.5238,
+          "position_error_median_mm_matched": 1.2203,
+          "fn_cause_counts_diagnostic": {
+            "MISSED": 31,
+            "OFFSET_GT_4MM": 12,
+            "SPAN_LT_60PCT": 12
+          },
+          "fp_cause_counts_diagnostic": {
+            "SPURIOUS": 15,
+            "OFFSET_GT_4MM": 10,
+            "SPAN_LT_60PCT": 8
+          },
+          "zero_bend_controls": {
+            "scans": 2,
+            "false_positive_lines": 3,
+            "scans_with_false_positive": [
+              "sc_3bde9996f14d"
+            ]
+          }
+        },
+        "CAD_AVAILABLE": {
+          "scans": 36,
+          "families": 22,
+          "gold_lines": 208,
+          "predicted_lines": 176,
+          "true_positive": 91,
+          "false_positive": 85,
+          "false_negative": 117,
+          "micro_precision": 0.517045,
+          "micro_recall": 0.4375,
+          "micro_f1": 0.4739583333,
+          "macro_precision": 0.5358,
+          "macro_recall": 0.4734,
+          "macro_f1": 0.4858,
+          "family_macro_f1": 0.4843,
+          "exact_scans": 4,
+          "scans_with_f1_ge_0_8": 6,
+          "scans_with_zero_tp": 6,
+          "scans_with_no_predictions": 1,
+          "angle_mae_deg_matched": 0.6302,
+          "position_error_mean_mm_matched": 1.2711,
+          "position_error_median_mm_matched": 1.1181,
+          "fn_cause_counts_diagnostic": {
+            "MISSED": 56,
+            "OFFSET_GT_4MM": 30,
+            "SPAN_LT_60PCT": 29,
+            "ANGLE_GT_5": 2
+          },
+          "fp_cause_counts_diagnostic": {
+            "SPURIOUS": 43,
+            "OFFSET_GT_4MM": 21,
+            "SPAN_LT_60PCT": 18,
+            "ANGLE_GT_5": 3
+          },
+          "zero_bend_controls": {
+            "scans": 3,
+            "false_positive_lines": 5,
+            "scans_with_false_positive": [
+              "sc_3bde9996f14d",
+              "sc_b4719db3dd69"
+            ]
+          }
+        },
+        "NO_CAD": {
+          "scans": 21,
+          "families": 19,
+          "gold_lines": 97,
+          "predicted_lines": 36,
+          "true_positive": 24,
+          "false_positive": 12,
+          "false_negative": 73,
+          "micro_precision": 0.666667,
+          "micro_recall": 0.247423,
+          "micro_f1": 0.3609022556,
+          "macro_precision": 0.4515,
+          "macro_recall": 0.2702,
+          "macro_f1": 0.3233,
+          "family_macro_f1": 0.3376,
+          "exact_scans": 2,
+          "scans_with_f1_ge_0_8": 2,
+          "scans_with_zero_tp": 8,
+          "scans_with_no_predictions": 8,
+          "angle_mae_deg_matched": 0.2923,
+          "position_error_mean_mm_matched": 1.2793,
+          "position_error_median_mm_matched": 1.0154,
+          "fn_cause_counts_diagnostic": {
+            "MISSED": 60,
+            "SPAN_LT_60PCT": 11,
+            "OFFSET_GT_4MM": 2
+          },
+          "fp_cause_counts_diagnostic": {
+            "SPAN_LT_60PCT": 6,
+            "SPURIOUS": 4,
+            "OFFSET_GT_4MM": 2
+          },
+          "zero_bend_controls": {
+            "scans": 0,
+            "false_positive_lines": 0,
+            "scans_with_false_positive": []
+          }
+        },
+        "NON_GOLD11_CAD_AVAILABLE_EXCL_LIDAR_DEMO": {
+          "scans": 25,
+          "families": 18,
+          "gold_lines": 137,
+          "predicted_lines": 116,
+          "true_positive": 61,
+          "false_positive": 55,
+          "false_negative": 76,
+          "micro_precision": 0.525862,
+          "micro_recall": 0.445255,
+          "micro_f1": 0.4822134387,
+          "macro_precision": 0.5308,
+          "macro_recall": 0.5015,
+          "macro_f1": 0.5008,
+          "family_macro_f1": 0.4673,
+          "exact_scans": 4,
+          "scans_with_f1_ge_0_8": 6,
+          "scans_with_zero_tp": 5,
+          "scans_with_no_predictions": 1,
+          "angle_mae_deg_matched": 0.6003,
+          "position_error_mean_mm_matched": 1.2828,
+          "position_error_median_mm_matched": 1.1245,
+          "fn_cause_counts_diagnostic": {
+            "MISSED": 33,
+            "SPAN_LT_60PCT": 29,
+            "OFFSET_GT_4MM": 13,
+            "ANGLE_GT_5": 1
+          },
+          "fp_cause_counts_diagnostic": {
+            "SPURIOUS": 27,
+            "SPAN_LT_60PCT": 18,
+            "OFFSET_GT_4MM": 8,
+            "ANGLE_GT_5": 2
+          },
+          "zero_bend_controls": {
+            "scans": 3,
+            "false_positive_lines": 5,
+            "scans_with_false_positive": [
+              "sc_3bde9996f14d",
+              "sc_b4719db3dd69"
+            ]
+          }
+        },
+        "LIDAR_DEMO_SYNTHETIC": {
+          "scans": 0,
+          "families": 0,
+          "gold_lines": 0,
+          "predicted_lines": 0,
+          "true_positive": 0,
+          "false_positive": 0,
+          "false_negative": 0,
+          "micro_precision": 0.0,
+          "micro_recall": 0.0,
+          "micro_f1": 0.0,
+          "macro_precision": null,
+          "macro_recall": null,
+          "macro_f1": null,
+          "family_macro_f1": null,
+          "exact_scans": 0,
+          "scans_with_f1_ge_0_8": 0,
+          "scans_with_zero_tp": 0,
+          "scans_with_no_predictions": 0,
+          "angle_mae_deg_matched": null,
+          "position_error_mean_mm_matched": null,
+          "position_error_median_mm_matched": null,
+          "fn_cause_counts_diagnostic": {},
+          "fp_cause_counts_diagnostic": {},
+          "zero_bend_controls": {
+            "scans": 0,
+            "false_positive_lines": 0,
+            "scans_with_false_positive": []
+          }
+        }
+      },
+      "resources": {
+        "runs_with_record": 60,
+        "lane_wall_s_total": 12362.4,
+        "lane_wall_s_median": 193.8935,
+        "lane_wall_s_max": 600.233,
+        "peak_rss_gib_max": 1.849,
+        "runs_over_4_gib": [],
+        "timeouts": [
+          "sc_85a7f8cca6bc"
+        ],
+        "not_run": []
+      },
+      "excluded_before_scoring": []
+    },
+    "runtime": {
+      "cohorts": {
+        "ALL": {
+          "scans": 57,
+          "families": 41,
+          "gold_lines": 305,
+          "predicted_lines": 64,
+          "true_positive": 21,
+          "false_positive": 43,
+          "false_negative": 284,
+          "micro_precision": 0.328125,
+          "micro_recall": 0.068852,
+          "micro_f1": 0.1138211382,
+          "macro_precision": 0.1455,
+          "macro_recall": 0.0874,
+          "macro_f1": 0.1014,
+          "family_macro_f1": 0.1203,
+          "exact_scans": 2,
+          "scans_with_f1_ge_0_8": 2,
+          "scans_with_zero_tp": 45,
+          "scans_with_no_predictions": 38,
+          "angle_mae_deg_matched": 0.4085,
+          "position_error_mean_mm_matched": 0.9093,
+          "position_error_median_mm_matched": 0.5761,
+          "fn_cause_counts_diagnostic": {
+            "MISSED": 250,
+            "OFFSET_GT_4MM": 17,
+            "SPAN_LT_60PCT": 16,
+            "ANGLE_GT_5": 1
+          },
+          "fp_cause_counts_diagnostic": {
+            "SPURIOUS": 20,
+            "SPAN_LT_60PCT": 12,
+            "OFFSET_GT_4MM": 10,
+            "ANGLE_GT_5": 1
+          },
+          "zero_bend_controls": {
+            "scans": 3,
+            "false_positive_lines": 3,
+            "scans_with_false_positive": [
+              "sc_3bde9996f14d"
+            ]
+          }
+        },
+        "GOLD11": {
+          "scans": 11,
+          "families": 6,
+          "gold_lines": 71,
+          "predicted_lines": 10,
+          "true_positive": 3,
+          "false_positive": 7,
+          "false_negative": 68,
+          "micro_precision": 0.3,
+          "micro_recall": 0.042254,
+          "micro_f1": 0.0740740741,
+          "macro_precision": 0.2121,
+          "macro_recall": 0.0712,
+          "macro_f1": 0.097,
+          "family_macro_f1": 0.1778,
+          "exact_scans": 0,
+          "scans_with_f1_ge_0_8": 0,
+          "scans_with_zero_tp": 8,
+          "scans_with_no_predictions": 7,
+          "angle_mae_deg_matched": 0.7232,
+          "position_error_mean_mm_matched": 2.0603,
+          "position_error_median_mm_matched": 1.5027,
+          "fn_cause_counts_diagnostic": {
+            "MISSED": 62,
+            "OFFSET_GT_4MM": 6
+          },
+          "fp_cause_counts_diagnostic": {
+            "OFFSET_GT_4MM": 6,
+            "SPURIOUS": 1
+          },
+          "zero_bend_controls": {
+            "scans": 0,
+            "false_positive_lines": 0,
+            "scans_with_false_positive": []
+          }
+        },
+        "NON_GOLD11": {
+          "scans": 46,
+          "families": 37,
+          "gold_lines": 234,
+          "predicted_lines": 54,
+          "true_positive": 18,
+          "false_positive": 36,
+          "false_negative": 216,
+          "micro_precision": 0.333333,
+          "micro_recall": 0.076923,
+          "micro_f1": 0.125,
+          "macro_precision": 0.1296,
+          "macro_recall": 0.0913,
+          "macro_f1": 0.1025,
+          "family_macro_f1": 0.1117,
+          "exact_scans": 2,
+          "scans_with_f1_ge_0_8": 2,
+          "scans_with_zero_tp": 37,
+          "scans_with_no_predictions": 31,
+          "angle_mae_deg_matched": 0.356,
+          "position_error_mean_mm_matched": 0.7174,
+          "position_error_median_mm_matched": 0.5525,
+          "fn_cause_counts_diagnostic": {
+            "MISSED": 188,
+            "SPAN_LT_60PCT": 16,
+            "OFFSET_GT_4MM": 11,
+            "ANGLE_GT_5": 1
+          },
+          "fp_cause_counts_diagnostic": {
+            "SPURIOUS": 19,
+            "SPAN_LT_60PCT": 12,
+            "OFFSET_GT_4MM": 4,
+            "ANGLE_GT_5": 1
+          },
+          "zero_bend_controls": {
+            "scans": 3,
+            "false_positive_lines": 3,
+            "scans_with_false_positive": [
+              "sc_3bde9996f14d"
+            ]
+          }
+        },
+        "HUMAN_GOLD_ALL": {
+          "scans": 15,
+          "families": 10,
+          "gold_lines": 91,
+          "predicted_lines": 10,
+          "true_positive": 3,
+          "false_positive": 7,
+          "false_negative": 88,
+          "micro_precision": 0.3,
+          "micro_recall": 0.032967,
+          "micro_f1": 0.0594059406,
+          "macro_precision": 0.1556,
+          "macro_recall": 0.0522,
+          "macro_f1": 0.0711,
+          "family_macro_f1": 0.1067,
+          "exact_scans": 0,
+          "scans_with_f1_ge_0_8": 0,
+          "scans_with_zero_tp": 12,
+          "scans_with_no_predictions": 11,
+          "angle_mae_deg_matched": 0.7232,
+          "position_error_mean_mm_matched": 2.0603,
+          "position_error_median_mm_matched": 1.5027,
+          "fn_cause_counts_diagnostic": {
+            "MISSED": 82,
+            "OFFSET_GT_4MM": 6
+          },
+          "fp_cause_counts_diagnostic": {
+            "OFFSET_GT_4MM": 6,
+            "SPURIOUS": 1
+          },
+          "zero_bend_controls": {
+            "scans": 0,
+            "false_positive_lines": 0,
+            "scans_with_false_positive": []
+          }
+        },
+        "HUMAN_GOLD_NON_GOLD11": {
+          "scans": 4,
+          "families": 4,
+          "gold_lines": 20,
+          "predicted_lines": 0,
+          "true_positive": 0,
+          "false_positive": 0,
+          "false_negative": 20,
+          "micro_precision": 0.0,
+          "micro_recall": 0.0,
+          "micro_f1": 0.0,
+          "macro_precision": 0.0,
+          "macro_recall": 0.0,
+          "macro_f1": 0.0,
+          "family_macro_f1": 0.0,
+          "exact_scans": 0,
+          "scans_with_f1_ge_0_8": 0,
+          "scans_with_zero_tp": 4,
+          "scans_with_no_predictions": 4,
+          "angle_mae_deg_matched": null,
+          "position_error_mean_mm_matched": null,
+          "position_error_median_mm_matched": null,
+          "fn_cause_counts_diagnostic": {
+            "MISSED": 20
+          },
+          "fp_cause_counts_diagnostic": {},
+          "zero_bend_controls": {
+            "scans": 0,
+            "false_positive_lines": 0,
+            "scans_with_false_positive": []
+          }
+        },
+        "AI_GOLD": {
+          "scans": 42,
+          "families": 34,
+          "gold_lines": 214,
+          "predicted_lines": 54,
+          "true_positive": 18,
+          "false_positive": 36,
+          "false_negative": 196,
+          "micro_precision": 0.333333,
+          "micro_recall": 0.084112,
+          "micro_f1": 0.1343283582,
+          "macro_precision": 0.142,
+          "macro_recall": 0.1,
+          "macro_f1": 0.1122,
+          "family_macro_f1": 0.123,
+          "exact_scans": 2,
+          "scans_with_f1_ge_0_8": 2,
+          "scans_with_zero_tp": 33,
+          "scans_with_no_predictions": 27,
+          "angle_mae_deg_matched": 0.356,
+          "position_error_mean_mm_matched": 0.7174,
+          "position_error_median_mm_matched": 0.5525,
+          "fn_cause_counts_diagnostic": {
+            "MISSED": 168,
+            "SPAN_LT_60PCT": 16,
+            "OFFSET_GT_4MM": 11,
+            "ANGLE_GT_5": 1
+          },
+          "fp_cause_counts_diagnostic": {
+            "SPURIOUS": 19,
+            "SPAN_LT_60PCT": 12,
+            "OFFSET_GT_4MM": 4,
+            "ANGLE_GT_5": 1
+          },
+          "zero_bend_controls": {
+            "scans": 3,
+            "false_positive_lines": 3,
+            "scans_with_false_positive": [
+              "sc_3bde9996f14d"
+            ]
+          }
+        },
+        "FULL_SCANS": {
+          "scans": 44,
+          "families": 38,
+          "gold_lines": 228,
+          "predicted_lines": 51,
+          "true_positive": 16,
+          "false_positive": 35,
+          "false_negative": 212,
+          "micro_precision": 0.313725,
+          "micro_recall": 0.070175,
+          "micro_f1": 0.1146953405,
+          "macro_precision": 0.1515,
+          "macro_recall": 0.0966,
+          "macro_f1": 0.1107,
+          "family_macro_f1": 0.1226,
+          "exact_scans": 2,
+          "scans_with_f1_ge_0_8": 2,
+          "scans_with_zero_tp": 35,
+          "scans_with_no_predictions": 28,
+          "angle_mae_deg_matched": 0.506,
+          "position_error_mean_mm_matched": 0.8427,
+          "position_error_median_mm_matched": 0.6787,
+          "fn_cause_counts_diagnostic": {
+            "MISSED": 180,
+            "OFFSET_GT_4MM": 17,
+            "SPAN_LT_60PCT": 14,
+            "ANGLE_GT_5": 1
+          },
+          "fp_cause_counts_diagnostic": {
+            "SPURIOUS": 14,
+            "OFFSET_GT_4MM": 10,
+            "SPAN_LT_60PCT": 10,
+            "ANGLE_GT_5": 1
+          },
+          "zero_bend_controls": {
+            "scans": 1,
+            "false_positive_lines": 0,
+            "scans_with_false_positive": []
+          }
+        },
+        "STAGED_SCANS": {
+          "scans": 13,
+          "families": 7,
+          "gold_lines": 77,
+          "predicted_lines": 13,
+          "true_positive": 5,
+          "false_positive": 8,
+          "false_negative": 72,
+          "micro_precision": 0.384615,
+          "micro_recall": 0.064935,
+          "micro_f1": 0.1111111111,
+          "macro_precision": 0.1253,
+          "macro_recall": 0.0564,
+          "macro_f1": 0.0699,
+          "family_macro_f1": 0.0836,
+          "exact_scans": 0,
+          "scans_with_f1_ge_0_8": 0,
+          "scans_with_zero_tp": 10,
+          "scans_with_no_predictions": 10,
+          "angle_mae_deg_matched": 0.0963,
+          "position_error_mean_mm_matched": 1.1222,
+          "position_error_median_mm_matched": 0.3244,
+          "fn_cause_counts_diagnostic": {
+            "MISSED": 70,
+            "SPAN_LT_60PCT": 2
+          },
+          "fp_cause_counts_diagnostic": {
+            "SPURIOUS": 6,
+            "SPAN_LT_60PCT": 2
+          },
+          "zero_bend_controls": {
+            "scans": 2,
+            "false_positive_lines": 3,
+            "scans_with_false_positive": [
+              "sc_3bde9996f14d"
+            ]
+          }
+        },
+        "CAD_AVAILABLE": {
+          "scans": 36,
+          "families": 22,
+          "gold_lines": 208,
+          "predicted_lines": 64,
+          "true_positive": 21,
+          "false_positive": 43,
+          "false_negative": 187,
+          "micro_precision": 0.328125,
+          "micro_recall": 0.100962,
+          "micro_f1": 0.1544117647,
+          "macro_precision": 0.2304,
+          "macro_recall": 0.1384,
+          "macro_f1": 0.1606,
+          "family_macro_f1": 0.2243,
+          "exact_scans": 2,
+          "scans_with_f1_ge_0_8": 2,
+          "scans_with_zero_tp": 24,
+          "scans_with_no_predictions": 17,
+          "angle_mae_deg_matched": 0.4085,
+          "position_error_mean_mm_matched": 0.9093,
+          "position_error_median_mm_matched": 0.5761,
+          "fn_cause_counts_diagnostic": {
+            "MISSED": 153,
+            "OFFSET_GT_4MM": 17,
+            "SPAN_LT_60PCT": 16,
+            "ANGLE_GT_5": 1
+          },
+          "fp_cause_counts_diagnostic": {
+            "SPURIOUS": 20,
+            "SPAN_LT_60PCT": 12,
+            "OFFSET_GT_4MM": 10,
+            "ANGLE_GT_5": 1
+          },
+          "zero_bend_controls": {
+            "scans": 3,
+            "false_positive_lines": 3,
+            "scans_with_false_positive": [
+              "sc_3bde9996f14d"
+            ]
+          }
+        },
+        "NO_CAD": {
+          "scans": 21,
+          "families": 19,
+          "gold_lines": 97,
+          "predicted_lines": 0,
+          "true_positive": 0,
+          "false_positive": 0,
+          "false_negative": 97,
+          "micro_precision": 0.0,
+          "micro_recall": 0.0,
+          "micro_f1": 0.0,
+          "macro_precision": 0.0,
+          "macro_recall": 0.0,
+          "macro_f1": 0.0,
+          "family_macro_f1": 0.0,
+          "exact_scans": 0,
+          "scans_with_f1_ge_0_8": 0,
+          "scans_with_zero_tp": 21,
+          "scans_with_no_predictions": 21,
+          "angle_mae_deg_matched": null,
+          "position_error_mean_mm_matched": null,
+          "position_error_median_mm_matched": null,
+          "fn_cause_counts_diagnostic": {
+            "MISSED": 97
+          },
+          "fp_cause_counts_diagnostic": {},
+          "zero_bend_controls": {
+            "scans": 0,
+            "false_positive_lines": 0,
+            "scans_with_false_positive": []
+          }
+        },
+        "NON_GOLD11_CAD_AVAILABLE_EXCL_LIDAR_DEMO": {
+          "scans": 25,
+          "families": 18,
+          "gold_lines": 137,
+          "predicted_lines": 54,
+          "true_positive": 18,
+          "false_positive": 36,
+          "false_negative": 119,
+          "micro_precision": 0.333333,
+          "micro_recall": 0.131387,
+          "micro_f1": 0.1884816754,
+          "macro_precision": 0.2385,
+          "macro_recall": 0.168,
+          "macro_f1": 0.1886,
+          "family_macro_f1": 0.2296,
+          "exact_scans": 2,
+          "scans_with_f1_ge_0_8": 2,
+          "scans_with_zero_tp": 16,
+          "scans_with_no_predictions": 10,
+          "angle_mae_deg_matched": 0.356,
+          "position_error_mean_mm_matched": 0.7174,
+          "position_error_median_mm_matched": 0.5525,
+          "fn_cause_counts_diagnostic": {
+            "MISSED": 91,
+            "SPAN_LT_60PCT": 16,
+            "OFFSET_GT_4MM": 11,
+            "ANGLE_GT_5": 1
+          },
+          "fp_cause_counts_diagnostic": {
+            "SPURIOUS": 19,
+            "SPAN_LT_60PCT": 12,
+            "OFFSET_GT_4MM": 4,
+            "ANGLE_GT_5": 1
+          },
+          "zero_bend_controls": {
+            "scans": 3,
+            "false_positive_lines": 3,
+            "scans_with_false_positive": [
+              "sc_3bde9996f14d"
+            ]
+          }
+        },
+        "LIDAR_DEMO_SYNTHETIC": {
+          "scans": 0,
+          "families": 0,
+          "gold_lines": 0,
+          "predicted_lines": 0,
+          "true_positive": 0,
+          "false_positive": 0,
+          "false_negative": 0,
+          "micro_precision": 0.0,
+          "micro_recall": 0.0,
+          "micro_f1": 0.0,
+          "macro_precision": null,
+          "macro_recall": null,
+          "macro_f1": null,
+          "family_macro_f1": null,
+          "exact_scans": 0,
+          "scans_with_f1_ge_0_8": 0,
+          "scans_with_zero_tp": 0,
+          "scans_with_no_predictions": 0,
+          "angle_mae_deg_matched": null,
+          "position_error_mean_mm_matched": null,
+          "position_error_median_mm_matched": null,
+          "fn_cause_counts_diagnostic": {},
+          "fp_cause_counts_diagnostic": {},
+          "zero_bend_controls": {
+            "scans": 0,
+            "false_positive_lines": 0,
+            "scans_with_false_positive": []
+          }
+        }
+      },
+      "resources": {
+        "runs_with_record": 60,
+        "lane_wall_s_total": 1043.1,
+        "lane_wall_s_median": 12.5645,
+        "lane_wall_s_max": 79.112,
+        "peak_rss_gib_max": 12.964,
+        "runs_over_4_gib": [
+          "sc_152f1b1aacb2",
+          "sc_9ef2cf4e52cb",
+          "sc_c623d2e45bff"
+        ],
+        "timeouts": [],
+        "not_run": []
+      },
+      "excluded_before_scoring": []
+    }
+  },
+  "worst_15_by_best_f1": [
+    {
+      "case_id": "sc_cec08dfca9ab",
+      "family_id": "10839000",
+      "tier": "GOLD11",
+      "scan_name": "10839000_01_scan_2.ply",
+      "staged": true,
+      "has_cad": true,
+      "gold": 6,
+      "best_f1": {
+        "prediction_count": 4,
+        "true_positive": 0,
+        "false_positive": 4,
+        "false_negative": 6,
+        "f1": 0.0,
+        "lane_status": "OK",
+        "fn_causes": {
+          "OFFSET_GT_4MM": 3,
+          "MISSED": 3
+        },
+        "fp_causes": {
+          "OFFSET_GT_4MM": 3,
+          "SPURIOUS": 1
+        },
+        "angle_mae_deg": null,
+        "position_error_mean_mm": null
+      },
+      "runtime": {
+        "prediction_count": 0,
+        "true_positive": 0,
+        "false_positive": 0,
+        "false_negative": 6,
+        "f1": 0.0,
+        "lane_status": "LANE_FAILED",
+        "worker_error": "Invalid raw scan to reference transform",
+        "failure_reason": "RUNTIME_WORKER_FAILED"
+      }
+    },
+    {
+      "case_id": "sc_8379cebef9e3",
+      "family_id": "49001000",
+      "tier": "AI_GOLD_ACCEPTED",
+      "scan_name": "49001000_A-PRELIM.obj",
+      "staged": true,
+      "has_cad": true,
+      "gold": 5,
+      "best_f1": {
+        "prediction_count": 2,
+        "true_positive": 0,
+        "false_positive": 2,
+        "false_negative": 5,
+        "f1": 0.0,
+        "lane_status": "OK",
+        "fn_causes": {
+          "MISSED": 3,
+          "SPAN_LT_60PCT": 2
+        },
+        "fp_causes": {
+          "SPAN_LT_60PCT": 1,
+          "SPURIOUS": 1
+        },
+        "angle_mae_deg": null,
+        "position_error_mean_mm": null
+      },
+      "runtime": {
+        "prediction_count": 0,
+        "true_positive": 0,
+        "false_positive": 0,
+        "false_negative": 5,
+        "f1": 0.0,
+        "lane_status": "LANE_FAILED",
+        "worker_error": "Alignment unavailable: insufficient shared registration fitness",
+        "failure_reason": "RUNTIME_WORKER_FAILED"
+      }
+    },
+    {
+      "case_id": "sc_38091ac91d9d",
+      "family_id": "28870000",
+      "tier": "AI_GOLD_ACCEPTED",
+      "scan_name": "28870000_A_FULL_SCAN.ply",
+      "staged": false,
+      "has_cad": true,
+      "gold": 2,
+      "best_f1": {
+        "prediction_count": 3,
+        "true_positive": 0,
+        "false_positive": 3,
+        "false_negative": 2,
+        "f1": 0.0,
+        "lane_status": "OK",
+        "fn_causes": {
+          "MISSED": 1,
+          "OFFSET_GT_4MM": 1
+        },
+        "fp_causes": {
+          "SPURIOUS": 2,
+          "OFFSET_GT_4MM": 1
+        },
+        "angle_mae_deg": null,
+        "position_error_mean_mm": null
+      },
+      "runtime": {
+        "prediction_count": 3,
+        "true_positive": 0,
+        "false_positive": 3,
+        "false_negative": 2,
+        "f1": 0.0,
+        "lane_status": "OK",
+        "worker_error": null,
+        "failure_reason": null
+      }
+    },
+    {
+      "case_id": "sc_822f083e3dfc",
+      "family_id": "37126000",
+      "tier": "AI_GOLD_ACCEPTED",
+      "scan_name": "37126000_D.ply",
+      "staged": false,
+      "has_cad": true,
+      "gold": 2,
+      "best_f1": {
+        "prediction_count": 3,
+        "true_positive": 0,
+        "false_positive": 3,
+        "false_negative": 2,
+        "f1": 0.0,
+        "lane_status": "OK",
+        "fn_causes": {
+          "MISSED": 2
+        },
+        "fp_causes": {
+          "SPURIOUS": 3
+        },
+        "angle_mae_deg": null,
+        "position_error_mean_mm": null
+      },
+      "runtime": {
+        "prediction_count": 3,
+        "true_positive": 0,
+        "false_positive": 3,
+        "false_negative": 2,
+        "f1": 0.0,
+        "lane_status": "OK",
+        "worker_error": null,
+        "failure_reason": null
+      }
+    },
+    {
+      "case_id": "sc_db1839480738",
+      "family_id": "38169000",
+      "tier": "AI_GOLD_ACCEPTED",
+      "scan_name": "38169000_04.ply",
+      "staged": false,
+      "has_cad": false,
+      "gold": 5,
+      "best_f1": {
+        "prediction_count": 0,
+        "true_positive": 0,
+        "false_positive": 0,
+        "false_negative": 5,
+        "f1": 0.0,
+        "lane_status": "A0_ONLY_NO_CAD",
+        "fn_causes": {
+          "MISSED": 5
+        },
+        "fp_causes": {},
+        "angle_mae_deg": null,
+        "position_error_mean_mm": null
+      },
+      "runtime": {
+        "prediction_count": 0,
+        "true_positive": 0,
+        "false_positive": 0,
+        "false_negative": 5,
+        "f1": 0.0,
+        "lane_status": "LANE_FAILED",
+        "worker_error": null,
+        "failure_reason": "RUNTIME_REQUIRES_CAD"
+      }
+    },
+    {
+      "case_id": "sc_9ef2cf4e52cb",
+      "family_id": "45796000",
+      "tier": "AI_GOLD_ACCEPTED",
+      "scan_name": "45796000_A_SCAN_2.ply",
+      "staged": true,
+      "has_cad": true,
+      "gold": 4,
+      "best_f1": {
+        "prediction_count": 0,
+        "true_positive": 0,
+        "false_positive": 0,
+        "false_negative": 4,
+        "f1": 0.0,
+        "lane_status": "NO_PREDICTIONS",
+        "fn_causes": {
+          "MISSED": 4
+        },
+        "fp_causes": {},
+        "angle_mae_deg": null,
+        "position_error_mean_mm": null
+      },
+      "runtime": {
+        "prediction_count": 0,
+        "true_positive": 0,
+        "false_positive": 0,
+        "false_negative": 4,
+        "f1": 0.0,
+        "lane_status": "NO_PREDICTIONS",
+        "worker_error": null,
+        "failure_reason": null
+      }
+    },
+    {
+      "case_id": "sc_6101a12648a9",
+      "family_id": "38965002",
+      "tier": "AI_GOLD_ACCEPTED",
+      "scan_name": "38965002_A_V.ply",
+      "staged": false,
+      "has_cad": false,
+      "gold": 3,
+      "best_f1": {
+        "prediction_count": 0,
+        "true_positive": 0,
+        "false_positive": 0,
+        "false_negative": 3,
+        "f1": 0.0,
+        "lane_status": "A0_ONLY_NO_CAD",
+        "fn_causes": {
+          "MISSED": 3
+        },
+        "fp_causes": {},
+        "angle_mae_deg": null,
+        "position_error_mean_mm": null
+      },
+      "runtime": {
+        "prediction_count": 0,
+        "true_positive": 0,
+        "false_positive": 0,
+        "false_negative": 3,
+        "f1": 0.0,
+        "lane_status": "LANE_FAILED",
+        "worker_error": null,
+        "failure_reason": "RUNTIME_REQUIRES_CAD"
+      }
+    },
+    {
+      "case_id": "sc_85a7f8cca6bc",
+      "family_id": "50539000",
+      "tier": "AI_GOLD_ACCEPTED",
+      "scan_name": "50539000_05.ply",
+      "staged": false,
+      "has_cad": false,
+      "gold": 3,
+      "best_f1": {
+        "prediction_count": 0,
+        "true_positive": 0,
+        "false_positive": 0,
+        "false_negative": 3,
+        "f1": 0.0,
+        "lane_status": "LANE_FAILED",
+        "fn_causes": {
+          "MISSED": 3
+        },
+        "fp_causes": {},
+        "angle_mae_deg": null,
+        "position_error_mean_mm": null
+      },
+      "runtime": {
+        "prediction_count": 0,
+        "true_positive": 0,
+        "false_positive": 0,
+        "false_negative": 3,
+        "f1": 0.0,
+        "lane_status": "LANE_FAILED",
+        "worker_error": null,
+        "failure_reason": "RUNTIME_REQUIRES_CAD"
+      }
+    },
+    {
+      "case_id": "sc_c60c74f5ae01",
+      "family_id": "38965002",
+      "tier": "AI_GOLD_ACCEPTED",
+      "scan_name": "38965002_A_X.ply",
+      "staged": false,
+      "has_cad": false,
+      "gold": 3,
+      "best_f1": {
+        "prediction_count": 0,
+        "true_positive": 0,
+        "false_positive": 0,
+        "false_negative": 3,
+        "f1": 0.0,
+        "lane_status": "A0_ONLY_NO_CAD",
+        "fn_causes": {
+          "MISSED": 3
+        },
+        "fp_causes": {},
+        "angle_mae_deg": null,
+        "position_error_mean_mm": null
+      },
+      "runtime": {
+        "prediction_count": 0,
+        "true_positive": 0,
+        "false_positive": 0,
+        "false_negative": 3,
+        "f1": 0.0,
+        "lane_status": "LANE_FAILED",
+        "worker_error": null,
+        "failure_reason": "RUNTIME_REQUIRES_CAD"
+      }
+    },
+    {
+      "case_id": "sc_9b930fe58a1b",
+      "family_id": "UNKNOWN:sc_9b930fe58a1b",
+      "tier": "AI_GOLD_ACCEPTED",
+      "scan_name": "scan.ply",
+      "staged": false,
+      "has_cad": false,
+      "gold": 2,
+      "best_f1": {
+        "prediction_count": 0,
+        "true_positive": 0,
+        "false_positive": 0,
+        "false_negative": 2,
+        "f1": 0.0,
+        "lane_status": "A0_ONLY_NO_CAD",
+        "fn_causes": {
+          "MISSED": 2
+        },
+        "fp_causes": {},
+        "angle_mae_deg": null,
+        "position_error_mean_mm": null
+      },
+      "runtime": {
+        "prediction_count": 0,
+        "true_positive": 0,
+        "false_positive": 0,
+        "false_negative": 2,
+        "f1": 0.0,
+        "lane_status": "LANE_FAILED",
+        "worker_error": null,
+        "failure_reason": "RUNTIME_REQUIRES_CAD"
+      }
+    },
+    {
+      "case_id": "sc_9b9fd762f361",
+      "family_id": "47266000",
+      "tier": "AI_GOLD_ACCEPTED",
+      "scan_name": "47266000_F (1).stl",
+      "staged": false,
+      "has_cad": true,
+      "gold": 1,
+      "best_f1": {
+        "prediction_count": 1,
+        "true_positive": 0,
+        "false_positive": 1,
+        "false_negative": 1,
+        "f1": 0.0,
+        "lane_status": "OK",
+        "fn_causes": {
+          "SPAN_LT_60PCT": 1
+        },
+        "fp_causes": {
+          "SPAN_LT_60PCT": 1
+        },
+        "angle_mae_deg": null,
+        "position_error_mean_mm": null
+      },
+      "runtime": {
+        "prediction_count": 0,
+        "true_positive": 0,
+        "false_positive": 0,
+        "false_negative": 1,
+        "f1": 0.0,
+        "lane_status": "LANE_FAILED",
+        "worker_error": "Alignment unavailable: insufficient shared registration fitness",
+        "failure_reason": "RUNTIME_WORKER_FAILED"
+      }
+    },
+    {
+      "case_id": "sc_9c890e76934f",
+      "family_id": "UNKNOWN:sc_9c890e76934f",
+      "tier": "AI_GOLD_ACCEPTED",
+      "scan_name": "part 2.stl",
+      "staged": false,
+      "has_cad": false,
+      "gold": 2,
+      "best_f1": {
+        "prediction_count": 0,
+        "true_positive": 0,
+        "false_positive": 0,
+        "false_negative": 2,
+        "f1": 0.0,
+        "lane_status": "A0_ONLY_NO_CAD",
+        "fn_causes": {
+          "MISSED": 2
+        },
+        "fp_causes": {},
+        "angle_mae_deg": null,
+        "position_error_mean_mm": null
+      },
+      "runtime": {
+        "prediction_count": 0,
+        "true_positive": 0,
+        "false_positive": 0,
+        "false_negative": 2,
+        "f1": 0.0,
+        "lane_status": "LANE_FAILED",
+        "worker_error": null,
+        "failure_reason": "RUNTIME_REQUIRES_CAD"
+      }
+    },
+    {
+      "case_id": "sc_abe194f04ade",
+      "family_id": "UNKNOWN:sc_abe194f04ade",
+      "tier": "AI_GOLD_ACCEPTED",
+      "scan_name": "part 1.ply",
+      "staged": false,
+      "has_cad": false,
+      "gold": 2,
+      "best_f1": {
+        "prediction_count": 0,
+        "true_positive": 0,
+        "false_positive": 0,
+        "false_negative": 2,
+        "f1": 0.0,
+        "lane_status": "A0_ONLY_NO_CAD",
+        "fn_causes": {
+          "MISSED": 2
+        },
+        "fp_causes": {},
+        "angle_mae_deg": null,
+        "position_error_mean_mm": null
+      },
+      "runtime": {
+        "prediction_count": 0,
+        "true_positive": 0,
+        "false_positive": 0,
+        "false_negative": 2,
+        "f1": 0.0,
+        "lane_status": "LANE_FAILED",
+        "worker_error": null,
+        "failure_reason": "RUNTIME_REQUIRES_CAD"
+      }
+    },
+    {
+      "case_id": "sc_fee685eee4db",
+      "family_id": "49125000",
+      "tier": "GOLD_LINES_HUMAN_NON_GOLD11",
+      "scan_name": "49125000_A00.ply",
+      "staged": false,
+      "has_cad": false,
+      "gold": 2,
+      "best_f1": {
+        "prediction_count": 0,
+        "true_positive": 0,
+        "false_positive": 0,
+        "false_negative": 2,
+        "f1": 0.0,
+        "lane_status": "A0_ONLY_NO_CAD",
+        "fn_causes": {
+          "MISSED": 2
+        },
+        "fp_causes": {},
+        "angle_mae_deg": null,
+        "position_error_mean_mm": null
+      },
+      "runtime": {
+        "prediction_count": 0,
+        "true_positive": 0,
+        "false_positive": 0,
+        "false_negative": 2,
+        "f1": 0.0,
+        "lane_status": "LANE_FAILED",
+        "worker_error": null,
+        "failure_reason": "RUNTIME_REQUIRES_CAD"
+      }
+    },
+    {
+      "case_id": "sc_d45186653eed",
+      "family_id": "11979003",
+      "tier": "AI_GOLD_ACCEPTED",
+      "scan_name": "11979003_C (1).stl",
+      "staged": false,
+      "has_cad": true,
+      "gold": 9,
+      "best_f1": {
+        "prediction_count": 7,
+        "true_positive": 1,
+        "false_positive": 6,
+        "false_negative": 8,
+        "f1": 0.125,
+        "lane_status": "OK",
+        "fn_causes": {
+          "ANGLE_GT_5": 1,
+          "SPAN_LT_60PCT": 7
+        },
+        "fp_causes": {
+          "ANGLE_GT_5": 1,
+          "SPAN_LT_60PCT": 4,
+          "SPURIOUS": 1
+        },
+        "angle_mae_deg": 0.4311,
+        "position_error_mean_mm": 0.549
+      },
+      "runtime": {
+        "prediction_count": 5,
+        "true_positive": 0,
+        "false_positive": 5,
+        "false_negative": 9,
+        "f1": 0.0,
+        "lane_status": "OK",
+        "worker_error": null,
+        "failure_reason": null
+      }
+    }
+  ],
+  "notes": {}
+}

@@ -1,0 +1,479 @@
+diff -ruN a/domains/production/engine/inspect/config.py b/domains/production/engine/inspect/config.py
+--- a/domains/production/engine/inspect/config.py	2026-10-28 00:57:28
++++ b/domains/production/engine/inspect/config.py	2026-10-28 00:57:28
+@@ -32,16 +32,16 @@
+ __all__ = ["ENGINE_VERSION", "ALGORITHM_VERSIONS", "InspectConfig", "ConfigError", "load_config"]
+ 
+ #: Version of the per-scan engine (``result.engine.engine_version``).
+-ENGINE_VERSION = "e3-1.13.0"
++ENGINE_VERSION = "e3-1.14.0-rc"
+ 
+ #: Algorithm identifiers recorded in ``result.engine.algorithm_versions``.
+ ALGORITHM_VERSIONS: dict[str, str] = {
+-    "ingest": "ply_stl_explicit_unit_density_guard_v2",
+-    "registration": "datum_plane_outline_fft_wall_edge_hole_polygon_flange_ends_hole_pairs_weak_dirs_walk_distinct_inscribed_hole_fill_hardware_mirror_symmetric_convert_free_datum_plane_seeds_symmetric_images_flange_end_rank_v6",
++    "ingest": "ply_stl_explicit_unit_dense_cell_thin_density_guard_v3",
++    "registration": "datum_plane_outline_fft_wall_edge_hole_polygon_flange_ends_hole_pairs_weak_dirs_walk_distinct_inscribed_hole_fill_hardware_mirror_symmetric_convert_free_datum_plane_seeds_symmetric_images_flange_end_rank_tilt_wells_v7",
+     "articulated_fit": "hinge_hough_region_grow_skin_levels_arc_fold_displaced_fold_window_short_child_window_support_tabs_one_skin_pose_on_plane_joggle_step_one_skin_reread_astray_wide_reversed_mirrored_hinge_v8",
+     "thickness": "datum_tile_two_skin_separation_v1",
+     "state_decode": "signed_dihedral_fraction_order_prior_symmetric_near_twins_hole_evidence_twin_agreement_v5",
+-    "metrology": "station_oml_section_crease_aware_unfolded_island_station_profile_short_side_consistency_footprint_edge_riser_model_reseat_signed_angle_reversed_position_mirrored_flat_start_flange_na_at_stage_pose_borne_lengths_one_skin_swap_branch_withhold_v12",
++    "metrology": "station_oml_section_crease_aware_unfolded_island_station_profile_short_side_consistency_footprint_edge_riser_model_reseat_signed_angle_reversed_position_mirrored_flat_start_flange_na_at_stage_pose_borne_lengths_one_skin_swap_branch_withhold_pose_alternative_withhold_v13",
+     "uncertainty": "station_mad_residual_pose_erosion_bias_thickness_station_spread_riser_length_v4",
+     "heatmap": "stage_cloud_nearest_signed_v1",
+ }
+@@ -73,6 +73,10 @@
+     density_guard_cell_mm: float = 0.63
+     density_guard_ppc: float = 15.0
+     density_guard_max_points: int = 3_000_000
++    #: e3-1.14 dense ingest (1 on, 0 off = the e3-1.13 guard). A cloud above ``density_guard_ppc`` is thinned to one
++    #: actual point per ``density_guard_cell_mm`` cell (the one nearest the cell's mean; ties by coordinates, then
++    #: file order) and measured; the max-points criterion of the guard then applies to the thinned cloud.
++    dense_thin: int = 1
+ 
+     # -- clouds ---------------------------------------------------------------------
+     #: Registration / segmentation voxel (mm): max(min, sqrt(area / target)).
+@@ -337,6 +341,24 @@
+     #: 1: run the resamples in worker processes (one per resample, ``spawn`` start method on every platform, so the
+     #: behaviour is the same on Windows) instead of serially. Off by default (repin_2026-10-26/REPIN.md).
+     resample_check_parallel: int = 0
++    #: e3-1.14 pose wells (1 on, 0 off). The datum plane fit keeps only points within a thin band of the current
++    #: plane, so a long datum started a fraction of a degree off can settle in a self-consistent tilted plane (a
++    #: local optimum). The chosen proper pose is therefore refined again from tilted starts: about each in-plane
++    #: axis through the datum's centroid, tilts that move the datum's far edge by +-``pose_well_edge_mm`` and
++    #: +-2x that (at most ``pose_well_max_deg``). Distinct optima ("wells": more than ``pose_well_min_gap_mm``
++    #: apart anywhere on the datum outline) whose datum score is within ``pose_well_score_slack`` of the chosen
++    #: one (or better) get the articulated fit (at most ``pose_well_articulate_max``). A well whose total beats
++    #: the chosen pose by more than ``pose_well_switch_margin`` replaces it; every other well within
++    #: ``pose_well_alt_margin`` of the (final) chosen total is an alternative pose: the scan is measured under it
++    #: too, and a decided characteristic the alternative does not decide the same way is withheld (REVIEW).
++    pose_wells: int = 1
++    pose_well_edge_mm: float = 1.5
++    pose_well_max_deg: float = 2.0
++    pose_well_min_gap_mm: float = 0.5
++    pose_well_score_slack: float = 0.1
++    pose_well_articulate_max: int = 3
++    pose_well_switch_margin: float = 0.03
++    pose_well_alt_margin: float = 0.06
+     local_fit_min_depth_mm: float = 4.0
+     #: Each side's station window starts on that side's own flat material (``metrology._flat_start``): a real inner
+     #: radius larger than the CAD's, or a springback transition, keeps bending beyond the CAD tangent line (+0.5 mm),
+@@ -528,7 +550,11 @@
+     "unit_ratio_limit": (1.0, None, True, False), "extent_trim_percent": (0.0, 25.0, False, True),
+     "min_scan_points": (10, None, False, False), "gross_outlier_extent_factor": (1.0, None, True, False),
+     "density_guard_cell_mm": _POS, "density_guard_ppc": (0.0, None, False, False),
+-    "density_guard_max_points": (0, None, False, False),
++    "density_guard_max_points": (0, None, False, False), "dense_thin": (0, 1, False, False),
++    "pose_wells": (0, 1, False, False), "pose_well_edge_mm": _POS, "pose_well_max_deg": (0.0, 10.0, True, False),
++    "pose_well_min_gap_mm": _POS, "pose_well_score_slack": (0.0, 1.0, False, False),
++    "pose_well_articulate_max": (0, 16, False, False), "pose_well_switch_margin": (0.0, 1.0, False, False),
++    "pose_well_alt_margin": (0.0, 1.0, False, False),
+     "voxel_min_mm": _POS, "voxel_max_mm": _POS, "voxel_target_points": (1000, None, False, False),
+     "normal_neighbours": (4, None, False, False), "graph_radius_voxels": (1.0, None, False, False),
+     "planar_spread_mm": _POS, "slab_radius_factor": _POS, "thin_normal_voxel_factor": _POS, "thin_spread_factor": _POS,
+diff -ruN a/domains/production/engine/inspect/engine.py b/domains/production/engine/inspect/engine.py
+--- a/domains/production/engine/inspect/engine.py	2026-10-28 00:57:28
++++ b/domains/production/engine/inspect/engine.py	2026-10-28 00:57:28
+@@ -91,7 +91,7 @@
+ )
+ from domains.production.engine.inspect.config import ALGORITHM_VERSIONS, ENGINE_VERSION, InspectConfig
+ from domains.production.engine.inspect.decode import BendDecode, choose_stage_model, decode_states
+-from domains.production.engine.inspect.geom import apply, robust_plane, signed_sweep_deg, skin_peaks, unit
++from domains.production.engine.inspect.geom import apply, rigid, robust_plane, signed_sweep_deg, skin_peaks, unit
+ from domains.production.engine.inspect.metrology import (
+     BendMeasure,
+     Measurement,
+@@ -144,6 +144,8 @@
+     subsample: tuple[float, int] | None = None
+     #: e3-1.13 safety net (internal): build the result but defer writing it (``_Ctx.finish_args`` keeps the inputs)
+     defer_finish: bool = False
++    #: e3-1.13 dense ingest (internal): the primary's thinning decision, inherited by its resamples (None: decide)
++    dense_thin: bool | None = None
+ 
+ 
+ @dataclass
+@@ -225,7 +227,8 @@
+     if valid:
+         if progress is not None:
+             progress("resample_check", 90)
+-        readings = _resample_readings(inputs, out_dir, cfg, opts, seeds, budget, t_primary)
++        ropts = dataclasses.replace(opts, dense_thin=bool(getattr(ctx, "dense_thinned", False)))
++        readings = _resample_readings(inputs, out_dir, cfg, ropts, seeds, budget, t_primary)
+     ctx.note(f"resample check: k={k} policy={cfg.resample_check_policy} parallel={cfg.resample_check_parallel} "
+              f"primary {t_primary:.1f}s total {budget.elapsed():.1f}s; "
+              + " ".join(f"s{sd}={'-' if r is None else r['validity']}" for sd, r in zip(seeds, readings)))
+@@ -415,7 +418,22 @@
+             if abs(math.log(r * f)) < math.log(1.5):
+                 hint = f";LIKELY_{name}"
+         return ctx.invalid("UNIT_MISMATCH_SUSPECTED", (f"SCAN_TO_CAD_EXTENT_RATIO:{r:.4g}{hint}",), None, None, log)
+-    # e3-1.13 density guard (after the unit check): a scan above the validated envelope is not measured (fail closed)
++    # e3-1.14 dense ingest (after the unit check): a cloud denser than the validated native envelope
++    # (``density_guard_ppc`` points per occupied ``density_guard_cell_mm`` cell) is thinned to one actual point per
++    # cell when ``dense_thin`` is on (its resamples inherit the decision); otherwise, and for a cloud that still holds
++    # more than ``density_guard_max_points`` points, the e3-1.13 density guard refuses it (fail closed)
++    thin = opts.dense_thin
++    if thin is None:
++        thin = bool(cfg.dense_thin) and cfg.density_guard_ppc > 0 and len(pts) > 0 and \
++            _cell_density(pts, cfg.density_guard_cell_mm) > cfg.density_guard_ppc
++    if thin:
++        n0 = len(pts)
++        ppc = _cell_density(pts, cfg.density_guard_cell_mm)
++        pts = _dense_thin(pts, cfg.density_guard_cell_mm)
++        ctx.points = pts
++        note(f"dense input thinned: {n0} -> {len(pts)} points (one per {cfg.density_guard_cell_mm:g} mm cell; "
++             f"{ppc:.2f} points per cell, trigger {cfg.density_guard_ppc:g})")
++    ctx.dense_thinned = bool(thin)
+     dense = _density_guard(pts, cfg)
+     if dense is not None:
+         note(f"density guard: {dense}")
+@@ -473,6 +491,18 @@
+     if any(h.free_extra for h in proper):
+         proper = _free_datum_rank(proper, pts, vox, part, model, cfg, budget, note, spacing)
+     best = proper[0]
++    # e3-1.14 pose wells: the chosen pose refined again from tilted starts (a datum plane fit can stop in a
++    # self-consistent tilted plane); a clearly better well replaces it, a near one is kept as an alternative pose
++    wells: list[_Hyp] = []
++    if cfg.pose_wells and best.art is not None and budget.left() > 0:
++        wells = _pose_wells(best, reg_src, reg_spacing, pts, vox, part, model, cfg, budget, note)
++        if wells and wells[0].total > best.total + cfg.pose_well_switch_margin:
++            note(f"pose well replaces the chosen pose: total {best.total:.3f} -> {wells[0].total:.3f} "
++                 f"(datum score {best.fit.score:.3f} -> {wells[0].fit.score:.3f})")
++            old_best, best = best, wells[0]
++            wells = sorted(wells[1:] + [old_best], key=lambda h: -h.total)
++            proper = sorted(proper + [best], key=lambda h: -h.total)
++            ctx.pose_switched = True
+     note(f"best datum score={best.fit.score:.3f} explained={best.explained:.3f} total={best.total:.3f}"
+          + (f" holes_with_hardware={best.fit.detail.get('holes_hardware')}" if best.fit.detail.get("holes_hardware")
+             else ""))
+@@ -637,6 +667,12 @@
+         _branch_withhold(outcomes, part, best, states, decodes, geoms, lines, transforms, stage_id, exact,
+                          reg_degenerate, ambiguous, idx, cfg, budget, thick, ctx, pos_trust)
+     ctx.general = _general_measurements(part, recipe, states, geoms, best.art, cfg, budget)
++    # e3-1.14: alternative poses (near wells of the datum fit) measured too; a decision they do not share is withheld
++    alts = [h for h in wells if h is not best and h.art is not None and h.total >= best.total - cfg.pose_well_alt_margin
++            and _pose_gap_mm(h.fit.T, best.fit.T, model) > cfg.pose_well_min_gap_mm]
++    if alts and not ambiguous:
++        _alternative_pose_withhold(outcomes, ctx.general[0], part, recipe, best, alts, pts, vox, cfg, budget, thick,
++                                   ctx, note)
+     # -- symmetric twins that tie (amendment ENGINE_IO-A2): publish only what every twin reads the same ---------
+     identity_ambiguous = False
+     if ambiguous and cfg.twin_agreement and best.twins and budget.left() > 0:
+@@ -716,6 +752,11 @@
+     #: e3-1.13 safety net: the arguments of the deferred :meth:`finish`, and the primary's own readings
+     finish_args: tuple | None = None
+     primary_raw: dict = field(default_factory=dict)
++    #: e3-1.13 dense ingest: whether the primary's points were thinned (its resamples inherit it)
++    dense_thinned: bool = False
++    #: e3-1.14 pose wells: the chosen pose was replaced by a better well; alternative-pose withholding record
++    pose_switched: bool = False
++    pose_alt: dict = field(default_factory=dict)
+ 
+     def _engine(self) -> EngineInfoV1:
+         return EngineInfoV1(engine_version=ENGINE_VERSION, config_sha256=self.cfg.sha256(),
+@@ -857,6 +898,193 @@
+     key = (q[:, 0] * dims[1] + q[:, 1]) * dims[2] + q[:, 2]
+     _, first = np.unique(key, return_index=True)
+     return pts[np.sort(first)]
++
++
++def _cell_keys(pts: np.ndarray, cell: float) -> np.ndarray:
++    q = np.floor((pts - pts.min(axis=0)) / cell).astype(np.int64)
++    dims = q.max(axis=0) + 1
++    return (q[:, 0] * dims[1] + q[:, 1]) * dims[2] + q[:, 2]
++
++
++def _cell_density(pts: np.ndarray, cell: float) -> float:
++    """Points per occupied ``cell`` voxel (grid anchored at the cloud's minimum corner)."""
++    if len(pts) == 0:
++        return 0.0
++    return float(len(pts)) / float(len(np.unique(_cell_keys(pts, cell))))
++
++
++def _dense_thin(pts: np.ndarray, cell: float) -> np.ndarray:
++    """One actual point per ``cell`` voxel: the one nearest the cell's mean (ties by coordinates, then file order);
++    the kept points stay in file order (deterministic)."""
++    key = _cell_keys(pts, cell)
++    order = np.argsort(key, kind="stable")  # file order within a cell
++    ks = key[order]
++    del key
++    starts = np.r_[0, np.nonzero(ks[1:] != ks[:-1])[0] + 1]
++    del ks
++    counts = np.diff(np.r_[starts, len(order)])
++    grp = np.repeat(np.arange(len(starts), dtype=np.int64), counts)
++    d2 = np.zeros(len(order))
++    for ax in range(3):
++        c = pts[order, ax]
++        m = np.add.reduceat(c, starts) / counts
++        d2 += np.square(c - m[grp])
++    best = np.minimum.reduceat(d2, starts)
++    tie = d2 == best[grp]
++    # the first tied point of each cell in file order; cells with several tied points are resolved by coordinates
++    cand = np.nonzero(tie)[0]
++    gc = grp[cand]
++    pick = cand[np.r_[True, gc[1:] != gc[:-1]]]
++    multi = np.nonzero(np.bincount(gc, minlength=len(starts)) > 1)[0]
++    if len(multi):
++        sel = {}
++        for i in cand[np.isin(gc, multi)]:
++            g = int(grp[i])
++            p = tuple(pts[order[i]])
++            if g not in sel or p < sel[g][0]:
++                sel[g] = (p, i)
++        pick = pick.copy()
++        pos = np.searchsorted(grp[pick], np.asarray(sorted(sel)))
++        pick[pos] = [sel[g][1] for g in sorted(sel)]
++    return pts[np.sort(order[pick])]
++
++
++def _pose_gap_mm(a: np.ndarray, b: np.ndarray, model: DatumModel) -> float:
++    """Largest displacement (mm) between two poses over the datum outline's vertices (in the CAD frame)."""
++    poly = np.asarray(model.polygon, dtype=np.float64)
++    q = model.p0[None, :] + (poly[:, :1] - float(model.to2d(model.p0[None])[0][0])) * model.f1[None, :] \
++        + (poly[:, 1:2] - float(model.to2d(model.p0[None])[0][1])) * model.f2[None, :]
++    rel = a @ np.linalg.inv(b)
++    return float(np.linalg.norm(q @ rel[:3, :3].T + rel[:3, 3] - q, axis=1).max())
++
++
++def _tilt_about(T: np.ndarray, centre: np.ndarray, axis: np.ndarray, deg: float) -> np.ndarray:
++    a = np.asarray(axis, dtype=np.float64)
++    a = a / np.linalg.norm(a)
++    th = math.radians(deg)
++    K = np.array([[0.0, -a[2], a[1]], [a[2], 0.0, -a[0]], [-a[1], a[0], 0.0]])
++    R = np.eye(3) + math.sin(th) * K + (1.0 - math.cos(th)) * (K @ K)
++    return rigid(R, centre - R @ centre) @ T
++
++
++def _pose_wells(best: "_Hyp", reg_src, reg_spacing: float, pts, vox, part: PartView, model: DatumModel,
++                cfg: InspectConfig, budget: "_Budget", note: Callable[[str], None]) -> list["_Hyp"]:
++    """e3-1.14 ``pose_wells``: other optima of the datum fit near the chosen pose, articulated, best total first.
++
++    The chosen pose is refined again (:func:`refine_datum`, the same fit every hypothesis gets) from tilted
++    starts: about each in-plane datum axis through the outline's centroid, by the angles that move the datum's
++    far edge (its half-extent across the axis) by +-``pose_well_edge_mm`` and +-2x that, at most
++    ``pose_well_max_deg``. Optima within ``pose_well_min_gap_mm`` of the chosen pose or of each other are one
++    well. Wells whose datum score is not below the chosen one's by more than ``pose_well_score_slack`` get the
++    articulated fit, best datum score first, at most ``pose_well_articulate_max``. Geometry only: no part logic."""
++    t_start = budget.elapsed()
++    poly = np.asarray(model.polygon, dtype=np.float64)
++    cen2 = poly.mean(axis=0)
++    o2 = model.to2d(model.p0[None])[0]
++    centre = model.p0 + model.f1 * float(cen2[0] - o2[0]) + model.f2 * float(cen2[1] - o2[1])
++    half = 0.5 * (poly.max(axis=0) - poly.min(axis=0))  # half-extents along f1, f2
++    starts = []
++    for axis, reach in ((model.f1, float(half[1])), (model.f2, float(half[0]))):
++        if reach <= 1e-6:
++            continue
++        for k in (1.0, -1.0, 2.0, -2.0):
++            deg = math.degrees(math.atan(k * cfg.pose_well_edge_mm / reach))
++            deg = max(-cfg.pose_well_max_deg, min(cfg.pose_well_max_deg, deg))
++            starts.append(_tilt_about(best.fit.T, centre, axis, deg))
++    fits: list[InPlaneFit] = []
++    for T0 in starts:
++        if budget.left() <= 0:
++            break
++        f = refine_datum(reg_src, T0, model, cfg, reg_spacing)
++        if _pose_gap_mm(f.T, best.fit.T, model) <= cfg.pose_well_min_gap_mm:
++            continue
++        if any(_pose_gap_mm(f.T, o.T, model) <= cfg.pose_well_min_gap_mm for o in fits):
++            continue
++        fits.append(f)
++    fits.sort(key=lambda f: -f.score)
++    cand = [f for f in fits if f.score >= best.fit.score - cfg.pose_well_score_slack][:cfg.pose_well_articulate_max]
++    out: list[_Hyp] = []
++    for f in cand:
++        if budget.left() <= 0:
++            break
++        h = _Hyp(fit=f, mirrored=best.mirrored)
++        _articulate(h, pts, vox, part, model, cfg, budget)
++        if h.art is not None:
++            out.append(h)
++    out.sort(key=lambda h: -h.total)
++    note(f"pose wells: {len(starts)} tilted starts, {len(fits)} other well(s), {len(out)} articulated: "
++         + " ".join(f"score {h.fit.score:.3f} total {h.total:.3f} gap {_pose_gap_mm(h.fit.T, best.fit.T, model):.2f}mm"
++                    for h in out) + f" (chosen score {best.fit.score:.3f} total {best.total:.3f}; {budget.elapsed() - t_start:.1f}s)")
++    return out
++
++
++def _alternative_pose_withhold(outcomes: list[BendOutcome], general: dict, part: PartView, recipe, best: "_Hyp",
++                               alts: list["_Hyp"], pts, vox, cfg: InspectConfig, budget: "_Budget", thick,
++                               ctx: "_Ctx", note: Callable[[str], None]) -> None:
++    """e3-1.14: the scan measured under each alternative pose (a near datum-fit well, ``pose_well_alt_margin``).
++
++    Each alternative is decoded and measured as the chosen pose is (no crease search, no wrong-way search, no
++    free-direction refinement). A decided characteristic (PASS or FAIL) of the chosen pose that an alternative
++    reads with another decision (REVIEW included) is withheld: REVIEW, with the difference added to its U. One
++    that the alternative cannot measure, or decodes as another bend state, is withheld too (the pose that decides
++    it is not established). Nothing becomes PASS: U only grows."""
++    model = ctx.model
++    t_start = budget.elapsed()
++    withheld: dict[str, list] = {}
++    saved = (ctx.free_edge_blocked, ctx.crease_sharps)
++    for h in alts:
++        if budget.left() <= 0:
++            ctx.warnings.append("POSE_ALTERNATIVE_CHECK_INCOMPLETE: decided characteristics withheld (REVIEW)")
++            h_out, h_gen = None, None
++        else:
++            decodes = h.decodes or []
++            states = [d.state for d in decodes]
++            stage_id, exact = choose_stage_model(part, states)
++            formed = [part.bends[j].uid for j, st in enumerate(states) if st in _FORMED_LIKE]
++            lines = part.stage_lines(stage_id, formed)
++            transforms = part.stage_transforms(stage_id, formed)
++            idx = PointIndex(apply(h.fit.T, pts), vox)
++            geoms = {j: measure_bend_geometry(idx, part, h.art, j, cfg) for j, st in enumerate(states)
++                     if st in _FORMED_LIKE and budget.left() > 0}
++            deg = bool(h.fit.degenerate) or _pose_sigma(h.fit) > cfg.degenerate_max_sigma_mm
++            pos_trust = _position_trust(part, h.fit, model, states, geoms, lines, transforms, deg, cfg)
++            reg_deg = deg and not any(ok for ok, _ in pos_trust.values())
++            h_out = _outcomes(part, h, states, decodes, geoms, lines, transforms, stage_id, exact, reg_deg, False, idx,
++                              cfg, budget, thick, ctx, pos_trust)
++            h_gen = _general_measurements(part, recipe, states, geoms, h.art, cfg, budget)[0]
++            ctx.free_edge_blocked, ctx.crease_sharps = saved
++            if budget.left() <= 0:
++                ctx.warnings.append("POSE_ALTERNATIVE_CHECK_INCOMPLETE: decided characteristics withheld (REVIEW)")
++                h_out, h_gen = None, None
++        items = [(cid, m, o, None if h_out is None else h_out[j]) for j, o in enumerate(outcomes)
++                 for cid, m in o.measurements.items()] + [(cid, m, None, None) for cid, m in general.items()]
++        for cid, m, o, oa in items:
++            if m.value is None or m.u is None or (o is not None and (cid in o.forced_unknown or cid in o.stage_na)):
++                continue
++            if o is not None and o.state in ("UNKNOWN", "NOT_YET_FORMED"):
++                continue
++            nom = part.nominals.get(cid)
++            d0 = _gb(nom, m.value, m.u)
++            if d0 not in ("PASS", "FAIL"):
++                continue
++            if h_out is None:
++                ma = None
++            elif o is None:
++                ma = h_gen.get(cid)
++            else:
++                ma = None if (oa is None or oa.state != o.state or cid in oa.forced_unknown) else oa.measurements.get(cid)
++            if ma is not None and ma.value is not None and ma.u is not None and _gb(nom, ma.value, ma.u) == d0:
++                continue
++            delta = 0.0 if ma is None or ma.value is None else abs(float(ma.value) - float(m.value))
++            u0 = float(m.u)
++            m.u = withhold_u(nom, m.value, u0, delta)
++            m.notes = tuple(m.notes) + ("POSE_ALTERNATIVE_WITHHELD",)
++            withheld[cid] = [d0, None if ma is None or ma.value is None else round(float(ma.value), 6), round(u0, 6)]
++    ctx.pose_alt = {"alternatives": [{"total": round(h.total, 4), "score": round(h.fit.score, 4)} for h in alts],
++                    "withheld": withheld}
++    note(f"alternative poses: {len(alts)} within {cfg.pose_well_alt_margin} of total {best.total:.3f} "
++         + " ".join(f"[{h.total:.3f}]" for h in alts) + f" ({budget.elapsed() - t_start:.1f}s); withheld "
++         + (" ".join(withheld) if withheld else "none"))
+ 
+ 
+ def _mirror_voxels(vox: VoxelCloud) -> VoxelCloud:
+diff -ruN a/tests/test_prod_engine_e3_1_13_candidate.py b/tests/test_prod_engine_e3_1_13_candidate.py
+--- a/tests/test_prod_engine_e3_1_13_candidate.py	2026-10-28 00:57:28
++++ b/tests/test_prod_engine_e3_1_13_candidate.py	2026-10-28 00:57:28
+@@ -23,7 +23,7 @@
+ 
+ 
+ def test_version_is_e3_1_13_0():
+-    assert ENGINE_VERSION == "e3-1.13.0"
++    assert ENGINE_VERSION in ("e3-1.13.0", "e3-1.14.0-rc")
+ 
+ 
+ def test_one_skin_side_on_its_inner_skin_moves_one_thickness_out():
+diff -ruN a/tests/test_prod_engine_e3_1_14_pose_wells.py b/tests/test_prod_engine_e3_1_14_pose_wells.py
+--- a/tests/test_prod_engine_e3_1_14_pose_wells.py	1970-01-01 02:00:00
++++ b/tests/test_prod_engine_e3_1_14_pose_wells.py	2026-10-28 00:57:28
+@@ -0,0 +1,85 @@
++"""e3-1.14.0-rc candidate: dense cell thinning, tilt pose wells and alternative-pose withholding helpers (synthetic)."""
++import math
++from types import SimpleNamespace
++
++import numpy as np
++import pytest
++
++from domains.production.engine.inspect import engine as E
++from domains.production.engine.inspect.config import ConfigError, InspectConfig, load_config
++
++
++def test_dense_thin_keeps_one_actual_point_per_cell_nearest_the_mean():
++    rng = np.random.default_rng(1)
++    pts = rng.uniform(0, 5, size=(20000, 3))
++    out = E._dense_thin(pts, 0.63)
++    keys = E._cell_keys(pts, 0.63)
++    assert len(out) == len(np.unique(keys))
++    # every kept point is an input point
++    s = {tuple(p) for p in pts}
++    assert all(tuple(p) in s for p in out)
++    # and it is the one nearest its cell's mean
++    for p in out[:200]:
++        k = E._cell_keys(np.vstack([pts, p]), 0.63)[-1]
++        cell = pts[keys == k]
++        d = np.square(cell - cell.mean(axis=0)).sum(axis=1)
++        assert np.isclose(np.square(p - cell.mean(axis=0)).sum(), d.min())
++
++
++def test_dense_thin_is_order_independent_as_a_set():
++    rng = np.random.default_rng(2)
++    pts = rng.uniform(0, 3, size=(5000, 3))
++    a = E._dense_thin(pts, 0.63)
++    b = E._dense_thin(pts[rng.permutation(len(pts))], 0.63)
++    assert sorted(map(tuple, a)) == sorted(map(tuple, b))
++
++
++def test_cell_density():
++    pts = np.repeat(np.array([[0.1, 0.1, 0.1], [1.1, 0.1, 0.1]]), 10, axis=0)
++    assert E._cell_density(pts, 0.63) == 10.0
++
++
++def _model(half_u=48.0, half_v=230.0):
++    poly = np.array([[-half_u, -half_v], [half_u, -half_v], [half_u, half_v], [-half_u, half_v]])
++    f1, f2, n0 = np.eye(3)
++    return SimpleNamespace(polygon=poly, p0=np.zeros(3), f1=f1, f2=f2, n0=n0,
++                           to2d=lambda q: np.asarray(q)[:, :2])
++
++
++@pytest.mark.parametrize("deg", [0.25, 0.63, 1.0])
++def test_tilt_and_gap(deg):
++    m = _model()
++    T = E._tilt_about(np.eye(4), np.zeros(3), m.f1, deg)
++    assert math.isclose(E._pose_gap_mm(T, np.eye(4), m), 230.0 * math.sin(math.radians(deg)), rel_tol=1e-3)
++    assert E._pose_gap_mm(np.eye(4), np.eye(4), m) == 0.0
++
++
++def test_pose_well_config():
++    c = InspectConfig()
++    assert c.pose_wells == 1 and c.pose_well_switch_margin < c.pose_well_alt_margin
++    assert load_config(None, pose_wells=0).pose_wells == 0
++    with pytest.raises(ConfigError):
++        load_config(None, pose_well_alt_margin=-0.1)
++
++
++def test_alternative_withhold_never_creates_a_pass():
++    nom = SimpleNamespace(nominal=72.6, tolerance=SimpleNamespace(plus=0.5, minus=0.5))
++    for v in np.linspace(71.0, 74.5, 71):
++        for u in (0.05, 0.2):
++            d0 = E._gb(nom, v, u)
++            if d0 not in ("PASS", "FAIL"):
++                continue
++            for delta in (0.0, 0.9, 1.3):
++                u2 = E.withhold_u(nom, v, u, delta)
++                assert E._gb(nom, v, u2) == "REVIEW"
++
++
++def test_thinned_cloud_passes_the_guard_and_thinning_can_be_switched_off():
++    from domains.production.engine.inspect.engine import _density_guard
++    rng = np.random.default_rng(4)
++    pts = rng.uniform(0, 6, size=(60000, 3)) * np.array([1.0, 1.0, 0.05])
++    cfg = InspectConfig()
++    assert _density_guard(pts, cfg) is not None            # above the native envelope
++    thin = E._dense_thin(pts, cfg.density_guard_cell_mm)
++    assert _density_guard(thin, cfg) is None                # one point per cell
++    assert load_config(None, dense_thin=0).dense_thin == 0  # e3-1.13 behaviour: refuse
+diff -ruN a/tests/test_prod_engine_fixes3_2026_10_19.py b/tests/test_prod_engine_fixes3_2026_10_19.py
+--- a/tests/test_prod_engine_fixes3_2026_10_19.py	2026-10-28 00:57:28
++++ b/tests/test_prod_engine_fixes3_2026_10_19.py	2026-10-28 00:57:28
+@@ -68,7 +68,7 @@
+ # --------------------------------------------------------------------------- D4
+ def test_d4_a_flange_next_to_an_unformed_bend_is_not_applicable_at_stage_a_formed_neighbour_is_measured(staged):
+     _, res = staged["hat_stage"]
+-    assert res["engine"]["engine_version"] == "e3-1.13.0"
++    assert res["engine"]["engine_version"] == "e3-1.14.0-rc"
+     assert res["inspection_validity"]["state"] == "VALID"
+     na = formed_nb = 0
+     for b, c, adj in _flanges(res):

@@ -92,6 +92,30 @@
   animation: slide-in 0.3s ease-out;
 }
 
+.bend-labeling-root button,
+.bend-labeling-root select,
+.bend-labeling-root input[type='checkbox'],
+.bend-labeling-root input[type='range'] {
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.bend-labeling-root button:disabled,
+.bend-labeling-root input:disabled {
+  cursor: not-allowed;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bend-labeling-root *,
+  .bend-labeling-root *::before,
+  .bend-labeling-root *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 /* Bender's View print styles */
 @media print {
   nav, .sidebar, .print\:hidden {

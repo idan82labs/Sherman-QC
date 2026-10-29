@@ -1,0 +1,61 @@
+{
+  "bends": [
+    {
+      "patches": [
+        [
+          1
+        ],
+        [
+          6
+        ]
+      ],
+      "note": "B1, keep. Base top skin 1 to the exterior face 6 (twin 8) of the long front down-flange. ~90 deg, outer skin. Line is 372.9 mm, the full fold, cov 1.0; the section apex sits on the outer arc."
+    },
+    {
+      "patches": [
+        [
+          2
+        ],
+        [
+          3
+        ]
+      ],
+      "note": "B2, keep. Base bottom skin 2 to the exterior face 3 (twin 7) of the tall front tab at the -y end. ~90 deg, outer skin. Line is 44.7 mm of a ~50 mm fold: the face-on shows the fold from x~200 to ~715 at 10.3 px/mm and the line from 218 to 680, so coverage is ~89-95%. Lands as is."
+    },
+    {
+      "patches": [
+        [
+          2
+        ],
+        [
+          15
+        ]
+      ],
+      "note": "B3, CHANGED from [2,4]. Same physical fold: the base to the tall front tab at the +y end, which leans in to ~110 deg. Patch 15 is the outer skin of the tab's lowest planar band (twin 16, offset 1.88 mm = sheet thickness, so it is not a thickness edge). It lies right against the bend arc along the whole fold (L 46.8 mm, s from -1.7 to 45 on the B3 axis). Patch 4/5 only starts above an ~11 deg kink, about 11-13 mm from the 2-4 sharp. With default params, [2,4] therefore found flange support over just 29.4 mm (b=136), which is ~60% coverage. Prep candidate [2,15] is 41.8 mm at cov 0.95. Patch 2's full-res labels reach the fold from s<-15 to s~42, so the expected line is ~42-44 mm of a ~47-50 mm fold. Its sharp is ~2 mm inboard of the 2-4 sharp and parallel to it (within 0.3 deg), and the apex lands on the same outer arc. The 15-to-4 ~11 deg kink and the 13 deg base-side facet 19 are parts of this one bend zone, not separate bends. Inner-skin fallback if needed: [1,16] (prep 43.9 mm, cov 1.0)."
+    },
+    {
+      "patches": [
+        [
+          1
+        ],
+        [
+          9
+        ]
+      ],
+      "note": "B4, CHANGED from [2,10] to the inner skin, because the outer base skin is not segmented at this fold. Patch 2 has no points within ~10 mm of it: 2 and 10 are not prep neighbours, and the iso_under view shows patch 1 through the hole in the bottom-skin scan here. That is why [2,10] gave a 3.6 mm stub with a 5x widened zone. Same physical 90 deg fold of the short back tab at the +y end, 9/10. Patch 9 is the tab's interior face (10 is the exterior); 17 is an arc facet. Prep candidate [1,9] is 46.4 mm at cov 1.0. Patch 1 deviates <0.1 mm from its plane here and 9 has rms 0.009, so the full-res line should be ~45 mm of the ~45.5 mm tab fold (~98%)."
+    },
+    {
+      "patches": [
+        [
+          2
+        ],
+        [
+          11
+        ]
+      ],
+      "note": "B5, keep pair [2,11] (outer skin). Patch 11 is the exterior face (twin 12) of the short back tab at the -y end, which leans outward; ~66 deg bend, fold ~46 mm (s from -35 to 10.7). With DEFAULT LineParams the line stays at ~10.5 mm (23%). The cause is the base sheet: it dips ~1 mm toward this fold (the section bulge, plus the 10 deg top-skin strip 21). The full-res 0.6 mm plane gate therefore drops patch-2 points from ~8 mm (front end) to ~15 mm (back end) from the sharp. The widening loop then stops at 10.2 mm, where only the front 10 mm overlaps. The inner pair [1,12] has the same dip (estimated ~20 mm), and no coplanar patch can bridge it. Fix: re-run lines through the Python API with a wider zone, e.g. run_lines(prep, pairs, out, params=LineParams(margin_mm=15)); the CLI has no flag for this. That should give ~43-46 mm, and B1-B4 are unaffected by that margin. If that re-run is not possible, B5 must not be written as a landed gold line."
+    }
+  ],
+  "no_bends_present": false,
+  "notes": "amended after independent verification (r2)"
+}

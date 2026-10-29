@@ -1,0 +1,711 @@
+diff -ru -x _ domains/production/engine/compile/brep.py /Users/idantal/ShermanQC/FullProject/domains/production/engine/compile/brep.py
+--- domains/production/engine/compile/brep.py	2026-10-17 05:40:45
++++ /Users/idantal/ShermanQC/FullProject/domains/production/engine/compile/brep.py	2026-10-19 16:02:21
+@@ -71,6 +71,11 @@
+ _PLANAR_RECOGNITION_TOL_MM = 1e-4
+ _CYLINDER_RECOGNITION_TOL_MM = 1e-3
+ _LINE_RECOGNITION_TOL_MM = 1e-4
++#: A STEP with several solids is read as its largest solid when every other solid is smaller than this
++#: share of it: the part is then the clear majority body and the others are attached hardware, weld-on
++#: brackets or stray bodies (noted, not inspected). At or above it, which body is "the part" is ambiguous
++#: and the read is refused (MULTIPLE_SOLID_BODIES).
++_DOMINANT_SOLID_RATIO = 0.5
+ 
+ 
+ class CadReadError(Exception):
+@@ -287,12 +292,35 @@
+     if not solids:
+         raise CadReadError("NO_SOLID_BODY", "the STEP holds no solid (surface model or empty)")
+     solids.sort(key=lambda item: -item[0])
+-    if len(solids) > 1 and solids[1][0] > 0.01 * solids[0][0]:
++    if len(solids) > 1 and solids[1][0] >= _DOMINANT_SOLID_RATIO * solids[0][0]:
+         raise CadReadError("MULTIPLE_SOLID_BODIES", f"{len(solids)} solids; the second has "
+                            f"{solids[1][0] / max(solids[0][0], 1e-12):.1%} of the largest volume")
+     return solids[0][1], len(solids), solids[0][0]
+ 
+ 
++def _extra_solid_note(solid_count: int, shape, volume: float) -> str | None:
++    """A note naming the bodies ignored next to the inspected (dominant) solid, or None."""
++    if solid_count <= 1:
++        return None
++    from OCP.BRepGProp import BRepGProp
++    from OCP.GProp import GProp_GProps
++    from OCP.TopAbs import TopAbs_SOLID
++    from OCP.TopExp import TopExp_Explorer
++    from OCP.TopoDS import TopoDS
++
++    vols = []
++    explorer = TopExp_Explorer(shape, TopAbs_SOLID)
++    while explorer.More():
++        props = GProp_GProps()
++        BRepGProp.VolumeProperties_s(TopoDS.Solid_s(explorer.Current()), props)
++        vols.append(abs(float(props.Mass())))
++        explorer.Next()
++    vols.sort(reverse=True)
++    second = vols[1] / max(volume, 1e-12) if len(vols) > 1 else 0.0
++    return (f"MULTIPLE_SOLID_BODIES_DOMINANT: {solid_count} solids; the largest is the part, the others (largest "
++            f"{second:.1%} of its volume) are attached or stray bodies and are not inspected")
++
++
+ def _unify(solid):
+     from OCP.BRepCheck import BRepCheck_Analyzer
+     from OCP.ShapeUpgrade import ShapeUpgrade_UnifySameDomain
+@@ -417,6 +445,9 @@
+ 
+     solid, solid_count, volume = _select_solid(shape)
+     notes: list[str] = []
++    extra = _extra_solid_note(solid_count, shape, volume)
++    if extra:
++        notes.append(extra)
+     unified = False
+     if unify:
+         solid, unified = _unify(solid)
+diff -ru -x _ domains/production/engine/compile/config.py /Users/idantal/ShermanQC/FullProject/domains/production/engine/compile/config.py
+--- domains/production/engine/compile/config.py	2026-10-17 19:36:10
++++ /Users/idantal/ShermanQC/FullProject/domains/production/engine/compile/config.py	2026-10-19 16:47:38
+@@ -24,11 +24,16 @@
+ #: Version of the compile algorithm; recorded in ``compiler.version`` (inside ``compiled_part_sha256``).
+ #: Kept at 1.1.0 by the 2026-10-17 evening revision so the pre-A1 freeze's compile hashes stay valid:
+ #: that revision changes the output only of compiles with a bound flat (Method B), which no frozen
+-#: DEV recipe has (verified hash-identical). The next change that alters other outputs bumps it.
++#: DEV recipe has (verified hash-identical). The 2026-10-19 revision (r3) likewise changes the output
++#: only of CAD files that did not compile before (a multi-body STEP with a dominant solid, a stepped
++#: bend skin, bend skins that are not coaxial): every frozen A1 / DEV-CHECK recipe and every
++#: previously compiling corpus STEP recompiles hash-identical (fixes/FIXES.md). The next change that
++#: alters other outputs bumps it.
+ COMPILER_VERSION = "e1-1.1.0"
+ #: Code revision within ``COMPILER_VERSION``; recorded in ``diagnostics.compiler_revision``, which is
+ #: outside ``compiled_part_sha256`` (ENGINE_COMPILE.md §11 lists what each revision changed).
+-COMPILER_REVISION = "e1-1.1.0-r2 (2026-10-17: Method B fold of a bound flat; wizard/robustness fixes)"
++COMPILER_REVISION = ("e1-1.1.0-r3 (2026-10-19: dominant solid of a multi-body STEP; stepped bend skins; offset "
++                     "(non-coaxial) bend skins unrolled onto [Ri, Ri + t]; DEV policy 2 in dev_recipe)")
+ #: Shop K-factor used when no flat is bound (plan §3.1).
+ DEFAULT_SHOP_K = 0.33
+ 
+diff -ru -x _ domains/production/engine/compile/dev_recipe.py /Users/idantal/ShermanQC/FullProject/domains/production/engine/compile/dev_recipe.py
+--- domains/production/engine/compile/dev_recipe.py	2026-10-17 05:51:42
++++ /Users/idantal/ShermanQC/FullProject/domains/production/engine/compile/dev_recipe.py	2026-10-19 16:07:12
+@@ -30,11 +30,20 @@
+ for MARK_AMBIGUOUS duplicates - and (3) candidates whose own cylinder faces are
+ an unsupported feature under the frozen per-feature rule excluded (amendment
+ 4d: "exclusions only through a pre-written per-feature UNSUPPORTED rule").
+-The policy never adds a bend that no extractor found, and a candidate that
+-matches no graph bend *and* is not a rule-declared feature stays in the recipe
+-and blocks the compile (MARK_NOT_IN_FLANGE_GRAPH), so the compile still tests
+-the agreement of two independent bend inventories.
++A candidate that matches no graph bend *and* is not a rule-declared feature
++stays in the recipe and blocks the compile (MARK_NOT_IN_FLANGE_GRAPH), so the
++compile still tests the agreement of the bend inventories.
+ 
++E1-DEV-POLICY-2 (2026-10-19) adds (4): a *supported* flange-graph bend that no
++extractor candidate is feasible for gets the identity mark an operator would
++add for the wizard's UNMARKED_BEND (the extractors miss some bends: a joggle on
++a narrow strip, skins that are not coaxial); the report lists them under
++``added_from_e1_graph``. It also applies rule (3) when the CAD has no planar
++flange panel at all (a rolled part or a seamed tube): candidates on
++rule-declared features (ROLLED, ...) are excluded, so a part whose only
++"bends" are rolled features yields no recipe (NO_CANDIDATE_BENDS) instead of
++a recipe that can only block.
++
+ Steps (2) and (3) use E1's own flange graph and feasibility test, so a compile
+ rate measured under this policy is *with E1-graph dedupe*: MARK_AMBIGUOUS
+ cannot arise from extractor duplicates. The amendment-4d figure is the strict
+@@ -90,7 +99,7 @@
+ Candidate = dict  # keys: line_start, line_end, target_angle (sweep deg), target_radius (Ri mm), label?
+ 
+ #: Version of the DEV candidate policy (union, geometric dedupe, E1-graph merge, rule exclusion).
+-DEV_POLICY_VERSION = "E1-DEV-POLICY-1"
++DEV_POLICY_VERSION = "E1-DEV-POLICY-2"
+ 
+ 
+ def dev_policy_sha256() -> str:
+@@ -212,14 +221,23 @@
+     brep = load_step(cad_path, linear_deflection=cfg.mesh_linear_deflection_mm,
+                      angular_deflection=cfg.mesh_angular_deflection_rad)
+     graph = build_flange_graph(brep, cfg)
+-    model = build_part_model(graph)
++    if graph.panels:
++        model = build_part_model(graph)
++        thickness = model.thickness
++        model_bends = model.bends
++    else:
++        # no planar flange joined by a bend (a rolled part, a tube with a seam): no graph bend can carry a mark,
++        # so every candidate is tested against the unsupported-feature rule alone (rule (3) below); a candidate
++        # that is not a rule-declared feature stays and the compile reports DATUM_PANEL_UNDETERMINED as before
++        model, model_bends = None, {}
++        thickness = graph.thickness if graph.thickness is not None else _min_skin_gap(brep)
+     groups: dict[Any, list[int]] = {}
+     order: list[Any] = []
+     for i, cand in enumerate(candidates):
+         mark = Mark("bu_" + "0" * 20, tuple(cand["line_start"]), tuple(cand["line_end"]))
+         best = None
+-        for gk in sorted(model.bends):
+-            ok, cost, _ = pair_metrics(model.bends[gk], mark, cfg)
++        for gk in sorted(model_bends):
++            ok, cost, _ = pair_metrics(model_bends[gk], mark, cfg)
+             if ok and (best is None or cost < best[0]):
+                 best = (cost, gk)
+         key = ("graph", best[1]) if best else ("solo", i)
+@@ -232,15 +250,22 @@
+         idx = groups[key]
+         if key[0] == "solo":
+             cand = candidates[idx[0]]
+-            faces = _candidate_cylinders(brep, cand, model.thickness)
++            faces = _candidate_cylinders(brep, cand, thickness) if thickness else []
+             roles = [graph.face_role.get(f, ("wall",)) for f in faces]
+             kinds = sorted({graph.features[r[1]].kind for r in roles if r[0] == "feature"})
+-            if faces and not kinds and all(r[0] == "wall" for r in roles):
++            if faces and not kinds and model is not None and all(r[0] == "wall" for r in roles):
+                 if wall_far is None:
+                     spacing = choose_spacing(brep, cfg.sample_spacing_mm, cfg.max_points_per_stage)
+                     wall_far = sample_final(model, brep, set(model.bends), spacing).wall_far_fraction
+                 if all(not wall_is_thin(wall_far.get(f, 0.0)) for f in faces):
+                     kinds = ["OTHER"]
++            if faces and not kinds and model is None and thickness:
++                # no flange panel: the frozen ROLLED (a) radius rule applied to the candidate's own skins
++                from domains.production.engine.compile.unsupported import ROLLED_RI_OVER_T
++
++                ri = cand.get("target_radius")
++                if ri is not None and float(ri) > ROLLED_RI_OVER_T * thickness:
++                    kinds = ["ROLLED"]
+             if faces and kinds:
+                 excluded.append({"candidate": idx[0], "rule": ",".join(kinds), "faces": faces,
+                                  "line_start": cand["line_start"], "line_end": cand["line_end"]})
+@@ -264,9 +289,56 @@
+         merged["target_radius"] = round(sum(radii) / len(radii), 6) if radii else None
+         out.append(merged)
+         notes.append(f"merged {len(idx)} pieces of graph bend {model.bends[key[1]].graph_bend_id}")
+-    return out, {"merge_notes": notes, "excluded_by_unsupported_rule": excluded}
++    # (4) E1's own inventory: a supported graph bend that no extractor candidate is feasible for gets the mark an
++    # operator would add for the wizard's UNMARKED_BEND (an extractor gap, e.g. a joggle on a narrow strip or a
++    # bend whose skins are not coaxial). Unsupported graph bends stay unmarked, as the compile's rule allows.
++    added = []
++    marked = {k[1] for k in order if k[0] == "graph"}
++    for gk in sorted(model_bends):
++        if gk in marked or model_bends[gk].graph.unsupported:
++            continue
++        cand = _graph_bend_candidate(model_bends[gk].graph)
++        if cand is not None:
++            out.append(cand)
++            added.append(cand["label"])
++    return out, {"merge_notes": notes, "excluded_by_unsupported_rule": excluded, "added_from_e1_graph": added}
+ 
+ 
++def _graph_bend_candidate(gb) -> Candidate | None:
++    """The identity mark of a flange-graph bend in the native convention: the mid-radius line at the bend's
++    angular middle, over its axial extent; ``target_angle`` = sweep, ``target_radius`` = Ri."""
++    import numpy as np
++
++    gid = gb.graph_bend_id
++    if gb.mid_radial is None or not (0.0 < gb.sweep_deg < 180.0):
++        return None
++    axis = np.asarray(gb.axis_dir, dtype=float)
++    p = np.asarray(gb.axis_point, dtype=float) + np.asarray(gb.mid_radial, dtype=float) * 0.5 * (gb.ri + gb.ro)
++    return {"line_start": _round_point(p + axis * gb.z0), "line_end": _round_point(p + axis * gb.z1),
++            "target_angle": round(float(gb.sweep_deg), 6), "target_radius": round(float(gb.ri), 6),
++            "label": f"E1_GRAPH_{gid}"}
++
++
++def _min_skin_gap(brep) -> float | None:
++    """Thickness of a part without flange panels: the smallest radius difference of a coaxial convex/concave
++    cylinder pair (the two skins of a roll); None when there is none."""
++    import numpy as np
++
++    cyls = [f for f in brep.faces if f.kind == "cylinder" and f.axis is not None]
++    best = None
++    for a in cyls:
++        for b in cyls:
++            if not (a.convex and not b.convex) or abs(float(a.axis @ b.axis)) < math.cos(math.radians(0.25)):
++                continue
++            rel = b.origin - a.origin
++            if float(np.linalg.norm(rel - float(rel @ a.axis) * a.axis)) > 0.02:
++                continue
++            gap = float(a.radius - b.radius)
++            if gap > 1e-3 and (best is None or gap < best):
++                best = gap
++    return best
++
++
+ def dev_candidates(cad_path: str | Path, sources: Sequence[str] = ("v10", "native")) -> tuple[list[Candidate], dict]:
+     """The DEV candidate policy (module docstring): union, geometric dedupe, graph-piece merge."""
+     per_source = {}
+@@ -280,8 +352,6 @@
+     report = {"policy": {"version": DEV_POLICY_VERSION, "sha256": dev_policy_sha256(), "sources": list(sources)},
+               "counts": {s: len(per_source[s]) for s in sources}, "union": len(union),
+               **{k: v for k, v in per_source.items() if k.endswith("_error")}}
+-    if not union:
+-        return [], report
+     try:
+         merged, extra = merge_graph_duplicates(cad_path, union)
+     except Exception as exc:  # the compile will report the graph failure itself
+diff -ru -x _ domains/production/engine/compile/flange_graph.py /Users/idantal/ShermanQC/FullProject/domains/production/engine/compile/flange_graph.py
+--- domains/production/engine/compile/flange_graph.py	2026-10-17 06:11:57
++++ /Users/idantal/ShermanQC/FullProject/domains/production/engine/compile/flange_graph.py	2026-10-19 16:06:22
+@@ -188,6 +188,10 @@
+     unsupported: str | None = None
+     unsupported_reason: str = ""
+     graph_bend_id: str = ""
++    #: offset-skin bends only (see _offset_skin_pieces): the outer skin cylinder's own axis point and radius;
++    #: ``ro`` is then the effective ``Ri + t`` about the inner axis. None for coaxial skins.
++    outer_axis_point: np.ndarray | None = None
++    outer_radius: float | None = None
+ 
+     @property
+     def thickness(self) -> float:
+@@ -337,6 +341,98 @@
+     return tangencies, cyl_cyl
+ 
+ 
++_SAME_RADIUS_MM = 0.01
++
++
++def _offset_skin_pieces(model: BrepModel, cand: list[int], pieces: list[dict], features: list,
++                        by_cyl: dict, cfg: CompileConfig) -> list[dict]:
++    """Bends whose inner and outer skins are parallel cylinders that are **not coaxial**.
++
++    Some CAD systems model a bend with an outer radius that is not ``Ri + t`` about the inner axis (the outer arc
++    has its own centre, e.g. a fixed outer die radius), so the coaxial grouping leaves both skins without a
++    partner. Such a pair is still one bend when the concave and the convex cylinder have parallel axes, overlap
++    axially, and are tangent at **both** angular ends to planes with the same end radials (the two skins of the
++    two flanges): the flanges, the sweep and the OML virtual sharp come from those planes, not from the arcs.
++    The bend is described by its inner cylinder (axis, Ri) and ``ro_eff`` = the outer skin planes' distance from
++    that axis (``Ri + t``), which must agree at both ends; anything less consistent stays unpaired (a feature
++    or a wall, as before).
++    """
++    faces = model.faces
++    used = {m for pc in pieces for m in pc["faces"]} | {m for f in features for m in f.face_indices}
++    orphans = [c for c in cand if c not in used and len(by_cyl.get(c, ())) >= 2]
++    cos_ax = math.cos(math.radians(cfg.coaxial_angle_deg))
++    cos_end = math.cos(math.radians(_END_CLUSTER_DEG))
++
++    def end_radials(c: int) -> list[np.ndarray] | None:
++        rs = [t.radial for t in by_cyl[c]]
++        labels = _cluster_radials(rs)
++        if len(set(labels)) != 2:
++            return None
++        return [unit(np.mean([r for r, lab in zip(rs, labels) if lab == k], axis=0)) for k in sorted(set(labels))]
++
++    out: list[dict] = []
++    taken: set[int] = set()
++    inners = [c for c in orphans if not faces[c].convex]
++    outers = [c for c in orphans if faces[c].convex]
++    for i in inners:
++        fi = faces[i]
++        ri_ends = end_radials(i)
++        if ri_ends is None or i in taken:
++            continue
++        axis = canonical_direction(fi.axis)
++        for o in outers:
++            fo = faces[o]
++            if o in taken or abs(float(fi.axis @ fo.axis)) < cos_ax:
++                continue
++            ro_ends = end_radials(o)
++            if ro_ends is None:
++                continue
++            if not all(any(float(a @ b) > cos_end for b in ro_ends) for a in ri_ends):
++                continue
++            (a0, a1), (b0, b1) = _face_axial_range(model, i, fi.origin, axis), _face_axial_range(model, o, fi.origin, axis)
++            if min(a1, b1) - max(a0, b0) <= 0.05:
++                continue
++            # the outer skin planes' distance from the inner axis, per end: one Ri + t for the whole bend
++            dists = []
++            for t in by_cyl[o]:
++                pl = faces[t.plane]
++                if pl.normal is None:
++                    continue
++                dists.append(abs(float((pl.centroid - fi.origin) @ pl.normal)))
++            if len(dists) < 2 or max(dists) - min(dists) > _COPLANAR_TOL_MM + 1e-3 * max(dists):
++                continue
++            ro_eff = float(np.mean(dists))
++            if not (0.05 <= ro_eff - fi.radius <= 30.0):
++                continue
++            ends: dict[int, dict] = {}
++            for k, r in enumerate(ri_ends):
++                ends[k] = {"inner": {t.plane for t in by_cyl[i] if float(t.radial @ r) > cos_end},
++                           "outer": {t.plane for t in by_cyl[o] if float(t.radial @ r) > cos_end}, "radial": r}
++            if not all(e["inner"] and e["outer"] for e in ends.values()):
++                continue
++            taken.update((i, o))
++            z_range = {i: (a0, a1), o: (b0, b1)}
++            out.append({"faces": [i, o], "inner": [i], "outer": [o], "axis": axis, "origin": fi.origin,
++                        "ends": ends, "z": z_range, "ro_eff": ro_eff, "offset_skins": True})
++            break
++    return out
++
++
++def _dominant_radius_class(faces, members: list[int]) -> list[int]:
++    """The faces of ``members`` whose radius equals (within ``_SAME_RADIUS_MM``) that of the radius class with
++    the largest total area (all of them when they share one radius)."""
++    classes: list[list[int]] = []
++    for m in sorted(members, key=lambda k: faces[k].radius):
++        if classes and abs(faces[m].radius - faces[classes[-1][-1]].radius) <= _SAME_RADIUS_MM:
++            classes[-1].append(m)
++        else:
++            classes.append([m])
++    if len(classes) <= 1:
++        return list(members)
++    best = max(classes, key=lambda c: (sum(faces[k].area for k in c), -min(c)))
++    return [m for m in members if m in best]
++
++
+ def _cluster_radials(radials: list[np.ndarray]) -> list[int]:
+     """Greedy clustering of unit radials (cos > cos(1 deg)); returns a label per radial."""
+     cos_t = math.cos(math.radians(_END_CLUSTER_DEG))
+@@ -411,6 +507,20 @@
+                 # curl (ROLLED b) or part of the formed feature around it; tangent only to walls (an
+                 # outline corner or slot round) it stays a wall
+                 continue
++            # one skin radius per side: coaxial cylinders of another radius on the same side are a stepped
++            # skin (a thinner or thicker strip across the width, e.g. a machined or coined step). The sheet's
++            # own skin is the radius class with the largest area; the other levels (and the planes they are
++            # tangent to) are an unsupported feature, so they never pair non-coplanar planes into one panel.
++            stepped: list[int] = []
++            for side in (ins, outs):
++                keep = _dominant_radius_class(faces, side)
++                stepped += [m for m in side if m not in keep]
++                side[:] = keep
++            if stepped:
++                features.append(FeatureRecord(kind="OTHER", reason="stepped bend skin: coaxial cylinders of "
++                                              "another radius on one side", face_indices=tuple(sorted(stepped)),
++                                              area_mm2=sum(faces[m].area for m in stepped)))
++                comp = [m for m in comp if m not in stepped]
+             radials = [t.radial for m in comp for t in by_cyl[m]]
+             owners = [(m, t) for m in comp for t in by_cyl[m]]
+             labels = _cluster_radials(radials)
+@@ -420,6 +530,7 @@
+                 (e["outer"] if faces[m].convex else e["inner"]).add(t.plane)  # type: ignore[union-attr]
+             pieces.append({"faces": comp, "inner": ins, "outer": outs, "axis": axis, "origin": origin,
+                            "ends": ends, "z": z_range})
++    pieces += _offset_skin_pieces(model, cand, pieces, features, by_cyl, cfg)
+ 
+     # -- panels: planes paired through bend ends, plus coplanar splits ---------------
+     puf = _UF()
+@@ -518,7 +629,9 @@
+             continue
+         ins, outs = piece["inner"], piece["outer"]
+         ri = float(np.mean([faces[m].radius for m in ins]))
+-        ro = float(np.mean([faces[m].radius for m in outs]))
++        # an offset-skin bend (see _offset_skin_pieces) is described by its inner cylinder and the outer skin
++        # planes' distance from that axis (Ri + t), the coaxial bend with the same skin planes
++        ro = float(piece["ro_eff"]) if "ro_eff" in piece else float(np.mean([faces[m].radius for m in outs]))
+         axis, origin = piece["axis"], piece["origin"]
+         zs = [piece["z"][m] for m in piece["faces"]]
+         z0, z1 = min(z for z, _ in zs), max(z for _, z in zs)
+@@ -531,7 +644,9 @@
+         raw_bends.append(GraphBend(key=-1, inner_faces=sorted(ins), outer_faces=sorted(outs), axis_point=origin,
+                                    axis_dir=axis, ri=ri, ro=ro, ends=(ends[0], ends[1]), z0=z0, z1=z1,
+                                    sweep_deg=sweep, cylinder_sweep_deg=cyl_sweep, tangency_error_mm=0.0,
+-                                   mid_radial=_mid_radial(faces, piece["faces"], origin, axis)))
++                                   mid_radial=_mid_radial(faces, piece["faces"], origin, axis),
++                                   outer_axis_point=faces[outs[0]].origin if "ro_eff" in piece else None,
++                                   outer_radius=float(faces[outs[0]].radius) if "ro_eff" in piece else None))
+     # merge split pieces of one bend (same panels, coaxial, same radii)
+     merged = _merge_same_panel_pieces(raw_bends, cfg)
+     merged = _break_cycles(merged, panels, plane_to_panel, faces, cfg, notes)
+diff -ru -x _ domains/production/engine/compile/stages.py /Users/idantal/ShermanQC/FullProject/domains/production/engine/compile/stages.py
+--- domains/production/engine/compile/stages.py	2026-10-17 19:57:24
++++ /Users/idantal/ShermanQC/FullProject/domains/production/engine/compile/stages.py	2026-10-19 16:06:22
+@@ -123,6 +123,15 @@
+     rdir = radial / safe[:, None]
+     if np.any(rho <= 1e-9):
+         rdir[rho <= 1e-9] = bend.r_parent
++    g = getattr(bend, "graph", None)
++    if g is not None and getattr(g, "outer_radius", None) is not None and bend.ro > bend.ri:
++        # offset-skin bend: the outer arc is not coaxial, so the material between the inner arc and the outer arc
++        # along each radial is mapped onto [Ri, Ri + t] (the inner skin stays at Ri, the outer skin lands on the
++        # flat OML skin)
++        rho_out = _ray_circle_distance(bend.axis_point, rdir, np.asarray(g.outer_axis_point, dtype=np.float64), a,
++                                       float(g.outer_radius))
++        span = np.maximum(rho_out - bend.ri, 1e-9)
++        rho = np.where(rho > bend.ri, bend.ri + (rho - bend.ri) * (bend.ro - bend.ri) / span, rho)
+     cos_phi = np.clip(rdir @ bend.r_parent, -1.0, 1.0)
+     sin_phi = np.cross(np.broadcast_to(bend.r_parent, rdir.shape), rdir) @ a
+     phi = wrap_bend_angle(np.arctan2(sin_phi, cos_phi), bend.sweep_rad)  # identity below 180 deg
+@@ -130,6 +139,17 @@
+     strip = (bend.axis_point + np.outer(z, a) + np.outer(rho, bend.r_parent)
+              - np.outer(frac * neutral_length, bend.p_out))
+     return strip, _rodrigues_batch(a, -phi, normals)
++
++
++def _ray_circle_distance(origin: np.ndarray, dirs: np.ndarray, centre: np.ndarray, axis: np.ndarray,
++                         radius: float) -> np.ndarray:
++    """Distance along each in-plane unit ray from ``origin`` (an axis point) to a circle of ``radius`` about the
++    parallel axis through ``centre`` (the far intersection; the circle encloses the origin's axis)."""
++    c = centre - origin
++    c = c - float(c @ axis) * axis
++    b = dirs @ c
++    disc = np.maximum(b * b - (float(c @ c) - radius * radius), 0.0)
++    return b + np.sqrt(disc)
+ 
+ 
+ def stage_transforms_from_compiled(compiled, formed_bend_uids: Iterable[str]) -> dict[str, np.ndarray]:
+diff -ru -x _ domains/production/engine/inspect/config.py /Users/idantal/ShermanQC/FullProject/domains/production/engine/inspect/config.py
+--- domains/production/engine/inspect/config.py	2026-10-19 04:40:08
++++ /Users/idantal/ShermanQC/FullProject/domains/production/engine/inspect/config.py	2026-10-19 16:23:19
+@@ -32,12 +32,12 @@
+ __all__ = ["ENGINE_VERSION", "ALGORITHM_VERSIONS", "InspectConfig", "ConfigError", "load_config"]
+ 
+ #: Version of the per-scan engine (``result.engine.engine_version``).
+-ENGINE_VERSION = "e3-1.9.0"
++ENGINE_VERSION = "e3-1.10.0"
+ 
+ #: Algorithm identifiers recorded in ``result.engine.algorithm_versions``.
+ ALGORITHM_VERSIONS: dict[str, str] = {
+     "ingest": "ply_stl_explicit_unit_v1",
+-    "registration": "datum_plane_outline_fft_wall_edge_hole_polygon_flange_ends_hole_pairs_weak_dirs_walk_distinct_v4",
++    "registration": "datum_plane_outline_fft_wall_edge_hole_polygon_flange_ends_hole_pairs_weak_dirs_walk_distinct_inscribed_hole_fill_hardware_mirror_symmetric_convert_v5",
+     "articulated_fit": "hinge_hough_region_grow_skin_levels_arc_fold_displaced_fold_window_short_child_window_support_tabs_one_skin_pose_on_plane_joggle_step_one_skin_reread_astray_wide_reversed_mirrored_hinge_v8",
+     "thickness": "datum_tile_two_skin_separation_v1",
+     "state_decode": "signed_dihedral_fraction_order_prior_symmetric_near_twins_hole_evidence_v4",
+diff -ru -x _ domains/production/engine/inspect/engine.py /Users/idantal/ShermanQC/FullProject/domains/production/engine/inspect/engine.py
+--- domains/production/engine/inspect/engine.py	2026-10-19 01:55:32
++++ /Users/idantal/ShermanQC/FullProject/domains/production/engine/inspect/engine.py	2026-10-19 17:29:52
+@@ -110,6 +110,7 @@
+ from domains.production.engine.inspect.outputs import copy_file, write_array, write_json, write_points_ply
+ from domains.production.engine.inspect.part import Inputs, PartView
+ from domains.production.engine.inspect.registration import (
++    MIRROR,
+     DatumModel,
+     InPlaneFit,
+     coarse_hypotheses,
+@@ -278,7 +279,9 @@
+                 _articulate(h, pts, vox, part, model, cfg, budget)
+     proper = sorted(proper, key=lambda h: -h.total)
+     best = proper[0]
+-    note(f"best datum score={best.fit.score:.3f} explained={best.explained:.3f} total={best.total:.3f}")
++    note(f"best datum score={best.fit.score:.3f} explained={best.explained:.3f} total={best.total:.3f}"
++         + (f" holes_with_hardware={best.fit.detail.get('holes_hardware')}" if best.fit.detail.get("holes_hardware")
++            else ""))
+     # -- mirrored part check -----------------------------------------------------------------
+     suspicious = best.fit.hole_mismatch > 0 or best.explained < cfg.mirror_check_explained or \
+         best.fit.score < cfg.mirror_check_score
+@@ -299,12 +302,37 @@
+         mirrored.sort(key=lambda h: -h.total)
+         if mirrored:
+             mb = mirrored[0]
++            sym_maps: list[np.ndarray] = []
+             note(f"mirrored best total={mb.total:.3f} holes_mismatch={mb.fit.hole_mismatch} vs proper {best.total:.3f}"
+                  f"/{best.fit.hole_mismatch}")
+             if mb.total > best.total + cfg.mirror_margin and mb.fit.hole_mismatch <= best.fit.hole_mismatch:
+-                return ctx.invalid("MIRRORED_PART_SUSPECTED",
+-                                   (f"MIRROR_FITS_BETTER:{mb.total:.3f}>{best.total:.3f}",), None, None, log,
+-                                   abstained=True)
++                # a CAD that is its own mirror image (a certified MIRROR self-map of a compiled stage) cannot tell
++                # a mirrored part from a proper one: its mirrored fit is a proper pose the proper search missed.
++                # That pose (the self-map composed with the mirrored fit) joins the proper hypotheses and competes
++                # like any other; only a chiral CAD, or a converted pose that still explains clearly less, refuses
++                # the symmetry that matters is that of the shape the scan shows: the stage the mirrored fit decoded
++                # (a flat blank is often mirror-symmetric while the formed part is not)
++                sym_maps = _mirror_self_maps(part, _decoded_stage_id(part, mb))
++                conv = []
++                for S in sym_maps:
++                    if budget.left() <= 0:
++                        break
++                    Tp = S @ mb.fit.T @ MIRROR
++                    h = _Hyp(fit=refine_datum(reg_src, Tp, model, cfg, reg_spacing), mirrored=False)
++                    if any(_close(h.fit.T, o.fit.T, dist=min(1.0, 0.4 * part.t)) for o in proper + conv):
++                        continue  # the proper search had it (or another self-map led to it)
++                    _articulate(h, pts, vox, part, model, cfg, budget)
++                    if h.art is not None:
++                        conv.append(h)
++                if conv:
++                    proper = sorted(proper + conv, key=lambda h: -h.total)
++                    best = proper[0]
++                    note(f"mirror-symmetric CAD: mirrored fit converted to {len(conv)} proper pose(s); best proper "
++                         f"total={best.total:.3f} explained={best.explained:.3f}")
++            why = _mirror_refusal(mb.total, best.total, mb.fit.hole_mismatch, best.fit.hole_mismatch,
++                                  symmetric=bool(sym_maps), margin=cfg.mirror_margin)
++            if why is not None:
++                return ctx.invalid("MIRRORED_PART_SUSPECTED", (why,), None, None, log, abstained=True)
+     # the pose is chosen by comparing complete articulated fits (and, when the best looks suspicious,
+     # the mirrored scan's): a budget that ran out on the way left that comparison unfinished, and a
+     # cut articulation explains less of the scan, which must never read as a wrong part. Nothing could
+@@ -886,6 +914,49 @@
+             ambiguous = True
+             out_states.append(st)
+     return ambiguous, out_states, margin, chosen
++
++
++def _mirror_refusal(mirror_total: float, proper_total: float, mirror_holes: int, proper_holes: int, *,
++                    symmetric: bool, margin: float) -> str | None:
++    """The MIRRORED_PART_SUSPECTED reason, or None (the scan is not called mirrored).
++
++    A chiral shape: the mirrored fit explaining clearly more (``margin``) without more filled datum holes is the
++    evidence. A shape that is its own mirror image (``symmetric``, after its mirrored fit was converted to a
++    proper pose): outline and flanges cannot tell the two apart, only asymmetric features can, so the claim
++    needs the datum holes: strictly fewer filled holes under the mirrored fit than under the best proper pose."""
++    if symmetric:
++        return f"MIRROR_HOLES_FIT_BETTER:{mirror_holes}<{proper_holes}" if mirror_holes < proper_holes else None
++    if mirror_total > proper_total + margin and mirror_holes <= proper_holes:
++        return f"MIRROR_FITS_BETTER:{mirror_total:.3f}>{proper_total:.3f}"
++    return None
++
++
++def _decoded_stage_id(part: PartView, h: "_Hyp") -> str | None:
++    """The exact compiled stage a hypothesis' decode names (None when its states name no exact stage)."""
++    if not h.decodes:
++        return None
++    stage_id, exact = choose_stage_model(part, [d.state for d in h.decodes])
++    return stage_id if exact else None
++
++
++def _mirror_self_maps(part: PartView, stage_id: str | None) -> list[np.ndarray]:
++    """The certified MIRROR self-maps (rms within E1's threshold) of compiled stage ``stage_id``, deduplicated
++    ([] when ``stage_id`` is None: no exact stage, so no certified symmetry to rely on).
++
++    E1's symmetry contract: such a candidate means a mirrored part is indistinguishable from the CAD at that
++    stage, so E3 must never claim MIRRORED_PART_SUSPECTED for a scan of it."""
++    out: list[np.ndarray] = []
++    for stage in part.compiled.stages:
++        if stage_id is None or stage.stage_model_id != stage_id:
++            continue
++        sym = stage.symmetry
++        for cand in sym.candidates:
++            if cand.kind != "MIRROR" or cand.rms_mm > sym.threshold_rms_mm + 1e-12:
++                continue
++            m = np.asarray(cand.transform, dtype=np.float64)
++            if not any(np.allclose(m, o, atol=1e-3) for o in out):
++                out.append(m)
++    return out
+ 
+ 
+ def _matching_symmetry(rel: np.ndarray, part: PartView, cfg: InspectConfig, rms_max: float | None = None) -> list:
+diff -ru -x _ domains/production/engine/inspect/registration.py /Users/idantal/ShermanQC/FullProject/domains/production/engine/inspect/registration.py
+--- domains/production/engine/inspect/registration.py	2026-10-18 15:59:17
++++ /Users/idantal/ShermanQC/FullProject/domains/production/engine/inspect/registration.py	2026-10-19 16:15:46
+@@ -1407,7 +1407,13 @@
+         if abs(dth) * L < 1e-4 and math.hypot(dtx, dty) < 1e-4:
+             break
+     uv = model.to2d(pc[cand]) if len(cand) else np.zeros((0, 2))
+-    con = _inplane_constraints(uv, model, segs, cfg, gap, spacing, cen2, L, wide=False, interior=interior)
++    # material standing proud of the datum slab (>= _HARDWARE_PROUD_MM beyond either skin): a stud, standoff or
++    # clinch nut pressed into a CAD hole shows there, concentric with the hole; a hole with no hole cut never does
++    hp_ = (pc - model.p0) @ model.n0
++    proud_idx = np.nonzero((hp_ >= _HARDWARE_PROUD_MM) | (hp_ <= -model.t - _HARDWARE_PROUD_MM))[0]
++    proud = model.to2d(pc[proud_idx]) if len(proud_idx) else np.zeros((0, 2))
++    con = _inplane_constraints(uv, model, segs, cfg, gap, spacing, cen2, L, wide=False, interior=interior,
++                               proud=proud)
+     wts = np.asarray(con["weights"], dtype=np.float64)
+     walled = np.asarray(con["walled"], dtype=bool)
+     if len(con["rows"]) >= 1:
+@@ -1494,6 +1500,7 @@
+         thickness_mm=None if thick is None else thick[0], thickness_sigma_mm=None if thick is None else thick[1],
+         thickness_tiles=0 if thick is None else thick[2],
+         detail={"min_information": float(evals.min()), "sigma_obs": sigma_obs, "edge_inlier": edge_in,
++                "holes_hardware": int(con.get("holes_hardware", 0)),
+                 "hole_inlier": hole_in, "raster_coverage": cov_raster, "violation": viol,
+                 "walled_share": float(walled.mean()) if len(walled) else 0.0, "rows": int(len(walled)),
+                 "erosion_mm": float(erosion),
+@@ -1914,7 +1921,8 @@
+ 
+ 
+ def _inplane_constraints(uv: np.ndarray, model: DatumModel, segs, cfg: InspectConfig, gap: float, spacing: float,
+-                         cen2: np.ndarray, L: float, *, wide: bool, interior: np.ndarray | None = None) -> dict:
++                         cen2: np.ndarray, L: float, *, wide: bool, interior: np.ndarray | None = None,
++                         proud: np.ndarray | None = None) -> dict:
+     """Point-to-edge-line and radial hole rows (and residual statistics) for the 2D pose solve.
+ 
+     ``interior`` flags the points between the two skins (cut walls). A bin whose
+@@ -1928,7 +1936,10 @@
+     opposite side). Round holes are binned radially about their centre;
+     ``hole_mismatch`` counts holes filled with material (round ones by their
+     inner disc where it is clear of compiled stage material, the others by
+-    their open core, :func:`_nonround_hole_filled`).
++    their open core, :func:`_nonround_hole_filled`). ``proud`` (2D points of material
++    standing proud of the datum slab) marks a hole holding installed hardware (a stud,
++    standoff or clinch nut, :func:`_hardware_in_hole`): such a hole is counted in
++    ``holes_hardware``, never as filled.
+     """
+     rows: list[list[float]] = []
+     rhs: list[float] = []
+@@ -1937,7 +1948,8 @@
+     edge_res: list[float] = []
+     edge_walled: list[bool] = []
+     hole_res: list[float] = []
+-    edge_bins = expected_bins = holes_seen = hole_mismatch = 0
++    edge_bins = expected_bins = holes_seen = hole_mismatch = holes_hardware = 0
++    proud_tree = cKDTree(proud) if proud is not None and len(proud) else None
+     hole_groups: list[list[float]] = []
+     hole_walled: list[list[bool]] = []
+     tree = cKDTree(uv) if len(uv) else None
+@@ -1997,7 +2009,10 @@
+             # (DatumModel.hole_segments) and its fill is judged on its open core
+             if tree is not None and hasattr(model, "hole_fill_cells") and \
+                     _nonround_hole_filled(uv, model, k_hole, spacing):
+-                hole_mismatch += 1
++                if _hardware_in_hole(proud_tree, hp, spacing):
++                    holes_hardware += 1
++                else:
++                    hole_mismatch += 1
+             continue
+         if tree is None or r_h < 1.0:
+             continue
+@@ -2006,7 +2021,11 @@
+             continue
+         rel = uv[sel] - c
+         rr = np.linalg.norm(rel, axis=1)
+-        r_in = max(0.5, r_h - 1.0)
++        # the fill test's disc lies inside the hole: 1 mm inside its *inscribed* circle. The mean radius r_h
++        # exceeds the inscribed one on a near-round hole (an obround within the round test's 8 % radius
++        # scatter), and a disc of r_h - 1 then reaches the bore's own cut walls on the straight sides
++        r_ins = min(r_h, float(_distance_to_polyline(c[None, :], np.vstack([hp, hp[:1]]))[0]))
++        r_in = max(0.5, r_ins - 1.0)
+         inner = rr < r_in
+         open_share = 1.0
+         blocked_of = getattr(model, "blocked_points", None)
+@@ -2018,8 +2037,11 @@
+             inner[inner_idx[model.open_cells(k_hole, uv[sel][inner_idx])]] = True
+             open_share = _open_disc_share(model, k_hole, c, r_in)
+         if open_share >= _HOLE_FILL_MIN_OPEN_SHARE and \
+-                inner.sum() > max(8, 0.05 * open_share * np.pi * r_h * r_h / max(spacing * spacing, 1e-6)):
+-            hole_mismatch += 1  # material where the CAD has a hole
++                inner.sum() > max(8, 0.05 * open_share * np.pi * r_ins * r_ins / max(spacing * spacing, 1e-6)):
++            if _hardware_in_hole(proud_tree, hp, spacing):
++                holes_hardware += 1  # a stud / nut pressed into the hole: the hole is there, occupied
++            else:
++                hole_mismatch += 1  # material where the CAD has a hole
+         ring = (rr > r_h - 1.5) & (rr < r_h + cfg.hole_annulus_mm)
+         if ring.sum() < 6:
+             continue
+@@ -2060,12 +2082,41 @@
+     return {"rows": rows, "rhs": rhs, "weights": weights, "walled": walled_rows, "edge_res": edge_res,
+             "edge_walled": edge_walled, "hole_res": hole_res, "edge_bins": edge_bins,
+             "expected_bins": expected_bins, "holes_seen": holes_seen, "hole_mismatch": hole_mismatch,
++            "holes_hardware": holes_hardware,
+             "hole_groups": hole_groups, "hole_walled": hole_walled}
+ 
+ 
+ #: A round hole whose inner disc is open (clear of compiled stage material) over less than this share is
+ #: not judged for fill: what the scan shows there is the part's own material.
+ _HOLE_FILL_MIN_OPEN_SHARE = 0.25
++
++
++#: Material at least this far beyond either datum skin (twice the datum slab's own 0.5 mm skin allowance) stands
++#: proud of the sheet: inside a CAD hole it is installed hardware, not sheet material.
++_HARDWARE_PROUD_MM = 1.0
++
++
++def _hardware_in_hole(proud_tree, hp: np.ndarray, spacing: float) -> bool:
++    """Installed hardware (stud, standoff, clinch nut) in hole ``hp``: material proud of the datum slab inside
++    the hole's inscribed circle, concentric with it.
++
++    A press-fit fastener fills the hole's footprint at the skin heights (its shank or barrel) *and* stands
++    out of the sheet (its head, body or thread); a part without that hole is flat sheet there and has nothing
++    proud of it. Required: at least as many proud points inside the inscribed circle as the round fill test
++    needs (8, or 5 % of the disc at the scan spacing), with their centroid within half that radius of the
++    hole's centre (a fastener is concentric; a stray flange crossing the hole is not)."""
++    if proud_tree is None:
++        return False
++    c = hp.mean(axis=0)
++    r_ins = float(_distance_to_polyline(c[None, :], np.vstack([hp, hp[:1]]))[0])
++    if r_ins <= 0.5:
++        return False
++    idx = proud_tree.query_ball_point(c, r=r_ins)
++    need = max(8, 0.05 * np.pi * r_ins * r_ins / max(spacing * spacing, 1e-6))
++    if len(idx) < need:
++        return False
++    cen = np.asarray(proud_tree.data)[idx].mean(axis=0)
++    return bool(np.linalg.norm(cen - c) <= 0.5 * r_ins)
+ 
+ 
+ def _open_disc_share(model: "DatumModel", k: int, c: np.ndarray, r: float, cell: float = 0.25) -> float:

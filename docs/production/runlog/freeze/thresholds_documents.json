@@ -1,0 +1,322 @@
+{
+ "G1": {
+  "document": {
+   "accuracy_complete_full_visibility": {
+    "BEND_LINE_POSITION": {
+     "abs_bias_max": null,
+     "p95_abs_error_max": 0.3,
+     "unit": "mm"
+    },
+    "FLANGE_LENGTH": {
+     "abs_bias_max": 0.05,
+     "p95_abs_error_max": 0.2,
+     "unit": "mm"
+    },
+    "INCLUDED_ANGLE": {
+     "abs_bias_max": 0.1,
+     "p95_abs_error_max": 0.3,
+     "unit": "deg"
+    }
+   },
+   "backgauge_detection": {
+    "min_abs_dev_mm": 0.5,
+    "min_rate": 1.0
+   },
+   "bootstrap": {
+    "ci": 0.95,
+    "cluster": "family",
+    "resamples": 2000,
+    "seed": 20261017
+   },
+   "coverage_min": 0.9,
+   "decisiveness": {
+    "far_fraction": 1.5,
+    "min_rate": 0.9,
+    "near_fraction": 0.5
+   },
+   "document": "G1",
+   "false_fail_max_rate": 0.005,
+   "false_pass_max_count": 0,
+   "false_pass_rule": "scorable and truth out of tolerance | on E2 characteristics_never_pass | on a truly NOT_YET_FORMED bend (E2 characteristics_never_fail)",
+   "gate_statistic": "point estimate on the full population; family-cluster bootstrap CI reported, not gated",
+   "line_check": {
+    "angle_deg_max": 5.0,
+    "offset_adds_ri_plus_t": true,
+    "offset_floor_mm": 2.0
+   },
+   "median_u_full_visibility_max": {
+    "deg": 0.25,
+    "mm": 0.15
+   },
+   "percentile_method": "numpy linear interpolation (Hyndman-Fan type 7)",
+   "pose_check": {
+    "candidate_kinds": [
+     "ROTATION"
+    ],
+    "candidate_rms_mm_max": 4.0,
+    "candidate_rotation_deg_max": 5.0,
+    "reference_points": "panel outer boundaries at the stage pose (<= 2000 points)",
+    "rms_displacement_mm_max": 4.0,
+    "rotation_deg_max": 5.0
+   },
+   "regression_verdict": "binding gates with a non-empty truth population in the tier",
+   "run_conditions": {
+    "engine_argv_tail": [
+     "-m",
+     "domains.production.engine.inspect"
+    ],
+    "engine_extra_env": "none",
+    "engine_rss_limit_bytes": 4294967296,
+    "engine_time_budget_s": 170.0,
+    "engine_timeout_s": 180.0
+   },
+   "runtime": {
+    "min_points": 900000,
+    "p95_wall_s_max": 45.0,
+    "rss_max_bytes": 4294967296
+   },
+   "scanner_model": {
+    "amendment_4b_quantities": {
+     "duplicate_skin_offset": [
+      "duplicate_skin_offset_mm"
+     ],
+     "edge_flare": [
+      "edge_flare_mm",
+      "edge_flare_probability"
+     ],
+     "grazing_dropout": [
+      "grazing_start_deg",
+      "grazing_cutoff_deg"
+     ],
+     "noise": [
+      "noise_sigma_mm"
+     ],
+     "point_spacing": [
+      "point_spacing_mm"
+     ],
+     "specular_dropout": [
+      "specular_cone_deg",
+      "specular_dropout_probability"
+     ]
+    },
+    "measured_statuses": [
+     "MEASURED",
+     "UPPER_BOUND",
+     "LOWER_BOUND"
+    ],
+    "qualifying_provenance": "MODEL_CARD"
+   },
+   "schema": "sherman_e4_thresholds_v1",
+   "slope": {
+    "kinds": [
+     "FLANGE_LENGTH",
+     "INCLUDED_ANGLE",
+     "BEND_LINE_POSITION",
+     "BACKGAUGE_LENGTH"
+    ],
+    "large_fraction_of_tol": 0.5,
+    "max": 1.05,
+    "min": 0.95,
+    "min_large_points": 5,
+    "min_points": 10
+   },
+   "source": "PRODUCTION_LINE_PLAN.md §5 G1; §10 amendments 3, 4, 5",
+   "stage_state_accuracy_min": 0.98,
+   "suite": {
+    "min_cases": 200,
+    "min_families": 7,
+    "qualifying_scanner_provenance": "MODEL_CARD",
+    "qualifying_seedset": "QUAL",
+    "qualifying_tier": "full",
+    "required_family_features": [
+     "stage_0",
+     "stage_1",
+     "acute",
+     "large_radius",
+     "short_flange",
+     "long_flange"
+    ]
+   },
+   "tier_budget_s": {
+    "regression": 1200.0
+   },
+   "u_calibration_min_rate": 0.95,
+   "version": "E4-G1-2 (2026-10-17)"
+  },
+  "sha256": "d475df3a97e2a458ebbe59e4591e82efee4d36094a6a0f2865929532419ade17"
+ },
+ "G2_LINE": {
+  "document": {
+   "aggregate": "script evaluate(): p = tp/(tp+fp) or 0.0, r = tp/(tp+fn) or 0.0, f1 = 2pr/(p+r) or 0.0",
+   "apex_rule": "measured OML + measured bisector * |nominal apex offset| * f(theta_measured) / f(theta_nominal), f(theta) = 1/sin(theta/2) - 1",
+   "declared_locus": "OUTER_APEX",
+   "diagnostic_loci": [
+    "OML_VIRTUAL_SHARP"
+   ],
+   "document": "G2_LINE",
+   "f1_min": 0.8,
+   "label": "recipe-guided vs blind union, not like-for-like",
+   "matcher": {
+    "axis_angle_deg": 5.0,
+    "gold_span_overlap": 0.6,
+    "matching": "one_to_one_minimum_cost",
+    "prediction_span_overlap": 0.6,
+    "transverse_offset_mm": 4.0
+   },
+   "precision_min": 0.9,
+   "schema": "sherman_e4_thresholds_v1",
+   "source": "PRODUCTION_LINE_PLAN.md §5 G2a; §10 amendment 6a; scripts/evaluate_f1_against_manual_gold.py",
+   "transform_residual_max_mm": 0.01,
+   "version": "E4-G2-LINE-2 (2026-10-17)"
+  },
+  "sha256": "eb00d448cacee65d797645948d9de20d11e8bed03fc1785cf726524f626e9902"
+ },
+ "G2_PHYSICAL": {
+  "document": {
+   "angle_nominal_relative": {
+    "engine_coverage_at_least_legacy": true,
+    "mae_deg_max": 1.0,
+    "no_worse_than_legacy": true,
+    "population": "bends both arms MEASURE (amendment 6c)",
+    "report": "per part, with histograms"
+   },
+   "compile_rate_min": 0.8,
+   "coverage": {
+    "bend_angle_measured_min": 0.9,
+    "flange_side_length_measured_min": 0.7
+   },
+   "dev_check": {
+    "family_fraction": "about one third, including one staged family",
+    "gates": "G2 and G3 must also hold on it",
+    "runs": 1,
+    "seen_by_a1": false
+   },
+   "document": "G2_PHYSICAL",
+   "flange_nominal_relative": {
+    "exclusions": "none (amendment 6d)",
+    "large_deviation_evidence": "zoomed section crop each, reported separately",
+    "large_deviation_mm": 1.0,
+    "p95_abs_mm_max": 1.0
+   },
+   "label": "consumed development parts (engineering ledger); never unseen-family accuracy",
+   "repeatability": {
+    "better_than_legacy": true,
+    "p95_abs_between_repeats_deg_max": 0.3,
+    "p95_abs_between_repeats_mm_max": 0.3,
+    "parts": [
+     "15651004 x3",
+     "42288005 x2",
+     "47959001 (PLY and STL)"
+    ]
+   },
+   "runtime": {
+    "crashes_max": 0,
+    "every_failure": "explicit UNKNOWN or INVALID",
+    "legacy_control_p95_s": 46.0,
+    "p95_wall_s_max": 45.0
+   },
+   "schema": "sherman_e4_thresholds_v1",
+   "source": "PRODUCTION_LINE_PLAN.md §5 G2(b-f); §10 amendments 4d, 4e, 4f, 6",
+   "version": "E4-G2-PHYS-1 (2026-10-17)"
+  },
+  "sha256": "148d0440b0b56c52e5e8f34379d892ef0201e6a680f5eaaa072359a074b0a340"
+ },
+ "G3": {
+  "document": {
+   "blank_stage": {
+    "all_bends": "NOT_YET_FORMED",
+    "stage": 0
+   },
+   "document": "G3",
+   "formed_bends_meet": [
+    "G2_PHYSICAL.coverage",
+    "G2_PHYSICAL.angle_nominal_relative",
+    "G2_PHYSICAL.flange_nominal_relative"
+   ],
+   "formed_count_equals_expected_completed": "where expected_completed exists (scoring only, never an engine input)",
+   "schema": "sherman_e4_thresholds_v1",
+   "source": "PRODUCTION_LINE_PLAN.md §5 G3; §10 amendment 7",
+   "state_match_rate_min": 1.0,
+   "truth_table": {
+    "built_before_engine_output": true,
+    "frozen": true,
+    "labels": [
+     "FORMED",
+     "NOT_FORMED",
+     "NOT_DETERMINABLE"
+    ],
+    "reviewers": 2,
+    "tiebreak": 1
+   },
+   "unformed_reported_as_defect_max": 0,
+   "unknown_matches_only": "NOT_DETERMINABLE",
+   "version": "E4-G3-1 (2026-10-17)"
+  },
+  "sha256": "c67d15278b530a5ef1b0b73659cefcd595f693728cc4bde1c1d19664df1285f6"
+ },
+ "G4": {
+  "document": {
+   "ambiguity_rule": "AMBIGUOUS_POSE justified iff the bend is in an E1 ambiguous_bend_groups orbit of the decoded stage; without a decoded stage, of the stage whose formed set is the bends not reported NOT_YET_FORMED (of any stage model only when none matches)",
+   "canaries": {
+    "kinds": [
+     "LINE_SHIFT",
+     "LABEL_SWAP"
+    ],
+    "lands_margin_mm": 3.0,
+    "min_fraction": 0.1,
+    "shift_mm_max": 15.0,
+    "shift_mm_min": 8.0
+   },
+   "closeup_min_px_per_mm": 8.0,
+   "closeup_px_per_mm": 10.0,
+   "document": "G4",
+   "gate": {
+    "baseline_sources": [
+     "LEGACY"
+    ],
+    "canary_flag_rate_min": 1.0,
+    "gated_sources": [
+     "E3"
+    ],
+    "lands_rate_min": 1.0,
+    "mistag_max": 0,
+    "no_line_justified_rate_min": 1.0,
+    "self_test_sources": [
+     "ORACLE"
+    ],
+    "test_seed_packets_count": false,
+    "unknown_justified_rate_min": 1.0
+   },
+   "global_views": [
+    "ISO",
+    "TOP",
+    "FRONT",
+    "SIDE"
+   ],
+   "lands_rule": {
+    "min_length_fraction": 0.8,
+    "offset": "max(2 mm, Ri + t) from the crease",
+    "offset_floor_mm": 2.0,
+    "parallel": true
+   },
+   "reviewers": {
+    "primary": 2,
+    "tiebreak": 1
+   },
+   "rule_classes_not_reviewer_justified": {
+    "INVALID_INSPECTION": "the whole scan is INVALID (judged by G1 on synthetic and G2(e) on physical scans)",
+    "REGISTRATION_RULE": "position withheld as REGISTRATION_UNTRUSTED (amendment 9)",
+    "UNSUPPORTED_RULE": "bend excluded by E1's per-feature UNSUPPORTED rule (amendment 4d)"
+   },
+   "scale_bar_mm": 10.0,
+   "schema": "sherman_e4_thresholds_v1",
+   "source": "PRODUCTION_LINE_PLAN.md §5 G4; §10 amendment 8",
+   "synthetic_sample": {
+    "min_incomplete_scans": 1,
+    "min_scans": 20
+   },
+   "version": "E4-G4-2 (2026-10-17)"
+  },
+  "sha256": "cfe774d0d70a9843aa48deb9461f58cc83c368d8f43db6e3c45cc6ec521dd41f"
+ }
+}

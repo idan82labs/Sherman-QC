@@ -1,0 +1,45 @@
+{
+ "gates": {
+  "G1": {
+   "pass": true,
+   "detail": "I ran the synthetic regression tier (DEV seeds, 50 cases, 7 families, scanner model card, e2-synthetic-1.1.1). regression_verdict PASS. Every accuracy gate passes: flange bias 0.009 mm and P95 0.103 mm; angle bias 0.0015 deg and P95 0.019 deg; position P95 0.073 mm; coverage 0.997; false PASS 0 of 553; false FAIL 0%; U calibration 0.984; median U 0.106 mm / 0.116 deg; decisiveness 0.983; stage state 1.0; 0 engine failures. G1.SUITE FAILs by construction because this tier has fewer than 200 cases. The runtime gates cannot be evaluated on this tier. The run is not qualifying (TIER_REGRESSION, SEEDSET_DEV, SCANNER_MODEL_PARTIAL). Ledger check OK, anchor checked."
+  },
+  "G2": {
+   "pass": false,
+   "line_f1_gold11_human": 0,
+   "line_f1_gold11_relabel": 0,
+   "precision": 0,
+   "detail": "FAIL, not final (no truth table). (a) Line-F1 is 0.0 against both human Gold11 (0 of 59) and the relabel (0 of 77). 5 of the 9 cases were refused by the amendment-7 gate; the other 4 came back WRONG_PART_SUSPECTED and published no line. The best F1 lane on the same 9 cases scores 0.547 against the relabel and 0.473 against human; on the 4 cases the engine ran it scores 0.561 relabel and 0.717 human. Legacy arm 0.088 (informational). (b) Coverage: angle 0.264 (24/91), flange 0.258 (46/178), both FAIL. (c) Known-good angle MAE 0.461 deg on 10 bends; on the 5 common bends 0.556 vs legacy 1.115. FAIL because coverage is 0.31 vs legacy 0.50. (d) Known-good flange P95 1.22 mm, FAIL against 1.0. (e) Runtime P95 20.8 s with 0 crashes, but all_cases_run FAILs (5 refused, 1 compile BLOCKED). (f) Repeatability not evaluable. (4d) Compile rate 24/26 = 0.923, PASS."
+  },
+  "G3": {
+   "pass": false,
+   "detail": "NOT_EVALUABLE. The frozen visual truth table (amendment 7) does not exist, so run-physical refused E3 on all 13 truth-relevant A1 cases."
+  },
+  "G5": {
+   "pass": false,
+   "detail": "FAIL. Manifest, tsc, lint and vendor scripts PASS. There are 10 NEW backend failures in tests/test_vendor_unfold_api_contract.py. Cause: another workflow edited apps/api/services/vendor_setup_service.py at 02:05 so that get_vendor_setup calls a new module-level helper, _natural_label_key. The test copies only get_vendor_setup into an isolated scope, so the call raises NameError. Not engine-related. Reproduced twice."
+  }
+ },
+ "broad": {
+  "scans": 26,
+  "line_f1_micro": 0.282,
+  "line_f1_family_macro": 0.319,
+  "precision": 0.923,
+  "recall": 0.167,
+  "per_bend_correct_rate": 0.25,
+  "false_pass": 2
+ },
+ "top_failures": [
+  "Amendment-7 gate (a process block, not the engine): the G3 truth table is not frozen, so E3 was refused on 13 of 26 BROAD cases and 5 of 9 Gold11 G2(a) cases. These count as misses: 66 BROAD gold lines.",
+  "False WRONG_PART_SUSPECTED (DATUM_HOLES_FILLED:1-2) on 5 of the 13 real scans that ran (38172000 X/V, 37361005, 49024000, 34499000): the whole inspection is INVALID with no lines, losing 30 BROAD gold lines. This is why all 4 G2(a) cases that ran scored 0.",
+  "REGISTRATION_UNTRUSTED leaves BEND_LINE_POSITION NOT_MEASURED, so no line is published even though the bends are FORMED with angle and flanges MEASURED (15651004 3 bends, 49204020 12 bends): 15 gold lines lost. These bends still get angle/flange PASS decisions, 15 PASS-without-line bends in total.",
+  "50757000 sc_752e: 5 of 9 bends UNKNOWN (OCCLUDED / BEND_STATE_UNKNOWN), and B1 is a spurious PARTIALLY_FORMED at +70.5 deg. Its twin scan is 9 of 9 exact.",
+  "Known-good flange nominal-relative P95 is 1.22 mm (above 1.0): 11979003 side B is off by about 1.1-1.2 mm and 15651004 B3 side B by 1.45 mm.",
+  "Jev A/B BLOCKED: export (26 candidates) and dry-run are done, but the live calls failed with HTTP 402 (TypeSafe has no credits). With only 2 false positives, the possible gain is at most +0.004 F1.",
+  "G5: 10 new test failures caused by another workflow's 02:05 edit to apps/api/services/vendor_setup_service.py (not the engine)."
+ ],
+ "runtime_p95_s": 20.82,
+ "rss_peak_gib": 0.88,
+ "config_hash": "960f5f3e2e009da4b348fe5aabfe9065641d30fafe49558746cbb60a951568a9",
+ "summary": "The iteration-0 engine (e3-1.1.0, default config, unchanged) is below the bar on every line metric. Where it publishes a line it is very precise (24/26 on BROAD, 26/26 on the gold set), but recall is very low.\n\nSame-scan comparisons with the best F1 lane:\n- BROAD, all 26 A1 cases (refused cases count as misses): family-macro 0.319 / micro 0.282, vs 0.543 / 0.508 for the best lane.\n- The 13 scans the engine ran: 0.406 / 0.462, vs 0.649 / 0.620.\n- Gold11 relabel (gold of record): 0.0, vs 0.547 for the best lane on the same 9 cases.\n- GOLD_SET_V1, the 13 A1 scans the engine ran: micro 0.491 / family-macro 0.440, vs 0.597 / 0.653.\n\nGates:\n- G1 regression PASS: every synthetic accuracy gate passes and false PASS is 0.\n- G2 FAIL (not final).\n- G3 NOT_EVALUABLE: no frozen truth table, so 13 cases were refused.\n- G5 FAIL, caused by a concurrent edit to apps/api/services/vendor_setup_service.py, not the engine.\n\nThe lost lines come from three engine refusals:\n- false datum-hole wrong-part flags on real scans;\n- no line published when registration is untrusted;\n- occluded or unknown bends.\nThe missing G3 truth table also blocks half the cases.\n\nPer-bend correctness given CAD is 0.25 (20 of 80 bends). The false-PASS proxy is 2 bends, both from a gold-convention conflict on 11979003. Another 15 bends have PASS decisions but no published line. Runtime P95 is 20.8 s and peak RSS is 0.88 GiB. The Jev A/B was blocked by HTTP 402.\n\nOutputs:\n- /Users/idantal/ShermanQC/FullProject/docs/production/runlog/a1/iter_0/scorecard.json\n- /Users/idantal/ShermanQC/FullProject/docs/production/runlog/a1/iter_0/BASELINE.md\n- /Users/idantal/ShermanQC/FullProject/docs/production/runlog/a1/iter_0/overlays/ (20 bends, close-up and context images, INDEX.json)\n- /Users/idantal/ShermanQC/FullProject/docs/production/runlog/a1/iter_0/raw/\n- /Users/idantal/ShermanQC/FullProject/docs/production/runlog/a1/iter_0/jev_ab_e3/\n- /Users/idantal/ShermanQC/FullProject/docs/production/runlog/a1/iter_0/tools/\n- Work directory: /private/tmp/claude-501/-Users-idantal/db065cf7-f766-4885-b217-ed8d7edd7ade/scratchpad/a1_iter0"
+}

@@ -1,0 +1,109 @@
+{
+ "schema": "sherman_g4_scan_review_v1",
+ "scan_ref": "scan_94bfeff3c2",
+ "packet": "/Users/idantal/ShermanQC/FullProject/docs/production/runlog/g4/packet_legacy",
+ "packet_manifest_sha256_commitment": "ca06bd4c2845ed156377edcc29e8d8e8e71a9b8a67c5e94374cab548310f6068",
+ "protocol": {
+  "sha256": "cfe774d0d70a9843aa48deb9461f58cc83c368d8f43db6e3c45cc6ec521dd41f",
+  "version": "E4-G4-2 (2026-10-17)"
+ },
+ "instructions": "Two independent reviewers (max effort, did not write the engine) inspect EVERY image and append one G4VerdictV1 line per image to g4_verdicts.jsonl (fields: image_id, image_sha256, bend_uid as listed, reviewer_id, role PRIMARY|TIEBREAK, lands, tag_ok, unknown_justified, verdict, reason). Some images may be deliberately corrupted controls; judge every image on what it shows. No metrics are provided.",
+ "lands_rule": {
+  "min_length_fraction": 0.8,
+  "offset": "max(2 mm, Ri + t) from the crease",
+  "offset_floor_mm": 2.0,
+  "parallel": true
+ },
+ "images": [
+  {
+   "file": "img_8b7327b4980a.png",
+   "image_id": "img_8b7327b4980a",
+   "kind": "CLOSEUP",
+   "px_per_mm": 10.0,
+   "questions": [
+    "The engine reports this bend UNKNOWN (reason in the header), so no measured line is drawn. Is that justified: is the bend really occluded or missing in the scan near the grey dashed line, so that its state cannot be judged? Answer unknown_justified YES or NO; lands = NOT_APPLICABLE.",
+    "TAG_OK: does the bold subject label match the RECIPE CAD label at the same spot? YES / NO / UNDETERMINABLE."
+   ],
+   "scan_ref": "scan_94bfeff3c2",
+   "sha256": "17871e53b658461db2c2aceecb46ce92c966456f9a01ff55ef4eb93f0555b961",
+   "subject": {
+    "bend_uid": "bu_7641b50e19aaef549b39",
+    "display": "1 · B1 · 7641b5",
+    "label": "B1",
+    "measured_line_shown": false,
+    "sequence_index": 1,
+    "state_shown": "UNKNOWN"
+   },
+   "tile": {
+    "count": 1,
+    "index": 0
+   }
+  },
+  {
+   "file": "img_207e842e56aa.png",
+   "image_id": "img_207e842e56aa",
+   "kind": "GLOBAL_SIDE",
+   "questions": [
+    "Context only: overview of the registered scan with every bend's line and label. Record a verdict only if something contradicts the close-ups (lands = NOT_APPLICABLE, tag_ok = UNDETERMINABLE)."
+   ],
+   "scan_ref": "scan_94bfeff3c2",
+   "sha256": "373e6e398e2998a69bcf6dbe0e357ae1fcb983b42bffb04afbe846eb64f958d4",
+   "subject": null
+  },
+  {
+   "file": "img_2f07081fa375.png",
+   "image_id": "img_2f07081fa375",
+   "kind": "GLOBAL_TOP",
+   "questions": [
+    "Context only: overview of the registered scan with every bend's line and label. Record a verdict only if something contradicts the close-ups (lands = NOT_APPLICABLE, tag_ok = UNDETERMINABLE)."
+   ],
+   "scan_ref": "scan_94bfeff3c2",
+   "sha256": "857e6fa0bb8d0b56413a275c0266793411dfbe16a4145870acaac1279d7d8a3b",
+   "subject": null
+  },
+  {
+   "file": "img_4e6137318106.png",
+   "image_id": "img_4e6137318106",
+   "kind": "GLOBAL_ISO",
+   "questions": [
+    "Context only: overview of the registered scan with every bend's line and label. Record a verdict only if something contradicts the close-ups (lands = NOT_APPLICABLE, tag_ok = UNDETERMINABLE)."
+   ],
+   "scan_ref": "scan_94bfeff3c2",
+   "sha256": "f3c13acb6eaf207df101c743031b88add4a376b4f0a832859ea9fd88cbf1cf3d",
+   "subject": null
+  },
+  {
+   "file": "img_626b29e2e905.png",
+   "image_id": "img_626b29e2e905",
+   "kind": "GLOBAL_FRONT",
+   "questions": [
+    "Context only: overview of the registered scan with every bend's line and label. Record a verdict only if something contradicts the close-ups (lands = NOT_APPLICABLE, tag_ok = UNDETERMINABLE)."
+   ],
+   "scan_ref": "scan_94bfeff3c2",
+   "sha256": "df0c420da61fd0aee667c39840c650cb54364d4c8cecfb3fa16aaf52813b7427",
+   "subject": null
+  },
+  {
+   "file": "img_b225af021bb9.png",
+   "image_id": "img_b225af021bb9",
+   "kind": "GLOBAL_DIMENSIONS",
+   "questions": [
+    "Context only: overview of the registered scan with every bend's line and label. Record a verdict only if something contradicts the close-ups (lands = NOT_APPLICABLE, tag_ok = UNDETERMINABLE)."
+   ],
+   "scan_ref": "scan_94bfeff3c2",
+   "sha256": "3f7da3f718a68dab44766582e7e737fae03841ef3532fd580023f94d97e77c41",
+   "subject": null
+  },
+  {
+   "file": "img_b969eb76becc.png",
+   "image_id": "img_b969eb76becc",
+   "kind": "GLOBAL_HEATMAP",
+   "questions": [
+    "Context only: overview of the registered scan with every bend's line and label. Record a verdict only if something contradicts the close-ups (lands = NOT_APPLICABLE, tag_ok = UNDETERMINABLE)."
+   ],
+   "scan_ref": "scan_94bfeff3c2",
+   "sha256": "01b2c68a02d2c81788ae44548bee4bbe1f445fa748e9585e34b412a96ffa2669",
+   "subject": null
+  }
+ ]
+}

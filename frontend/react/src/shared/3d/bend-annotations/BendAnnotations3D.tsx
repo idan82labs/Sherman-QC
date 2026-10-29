@@ -41,7 +41,9 @@ export function BendAnnotations3D({ annotations, transform, referencePositions, 
         const rawDetectedMid = rawDetectedLineStart && rawDetectedLineEnd
           ? new THREE.Vector3().addVectors(rawDetectedLineStart, rawDetectedLineEnd).multiplyScalar(0.5)
           : null
-        const detectedLineLooksAligned = !isRolledSection && rawDetectedMid && rawCadMid && rawCadLineStart && rawCadLineEnd
+        const detectedLineLooksAligned = annotation.displayGeometryCanonical && annotation.coordinateFrame === 'reference_mesh_raw'
+          ? !isRolledSection && !!rawDetectedMid
+          : !isRolledSection && rawDetectedMid && rawCadMid && rawCadLineStart && rawCadLineEnd
           ? rawDetectedMid.distanceTo(rawCadMid) <= Math.max(rawCadLineStart.distanceTo(rawCadLineEnd), 0.12) * 2.5
           : false
         const baseMid = !isRolledSection && rawDetectedMid

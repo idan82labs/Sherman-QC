@@ -1,0 +1,77 @@
+{
+ "reconciler": {
+  "real_bends": 8,
+  "no_bends_present": false,
+  "unusable": false,
+  "not_a_scan": false,
+  "bends": [
+   {
+    "patches": [
+     2,
+     4
+    ],
+    "note": "base to wall 4 (outer skin: base bottom + wall outer), ~90 deg"
+   },
+   {
+    "patches": [
+     2,
+     5
+    ],
+    "extent_t": [
+     -45.25,
+     55.2
+    ],
+    "note": "base to wall 5 (outer skin). The auto line was clipped to 57.9 mm by the outer-base dropout, but the arc is continuous to the corner. Extent mirrors twin fold B1 (100.5 mm)."
+   },
+   {
+    "patches": [
+     2,
+     6
+    ],
+    "extent_t": [
+     -43.18,
+     51.18
+    ],
+    "note": "base to wall 6 (outer skin). The auto line was clipped to 88.6 mm by the outer-base dropout near the +y corner, but the arc is continuous. Extent mirrors twin fold B4 (94.4 mm)."
+   },
+   {
+    "patches": [
+     2,
+     7
+    ],
+    "note": "base to wall 7 (outer skin), ~90 deg"
+   },
+   {
+    "patches": [
+     3,
+     17
+    ],
+    "note": "wall 4/3 to narrow outward top flange 17/15 (convex skin = wall inner + flange top)"
+   },
+   {
+    "patches": [
+     10,
+     16
+    ],
+    "note": "wall 5/10 to narrow outward top flange 16/19 (convex skin); 18 is the flange's thickness edge, not a bend"
+   },
+   {
+    "patches": [
+     8,
+     13
+    ],
+    "note": "wall 6/8 to wide outward top flange 13/14 with holes (convex skin)"
+   },
+   {
+    "patches": [
+     9,
+     12
+    ],
+    "note": "wall 7/9 to wide outward top flange 12/11 with holes (convex skin)"
+   }
+  ],
+  "reason": "Reconciled. Both blind labelers found 8 bends with the same patch pairs. They differed only in the B2/B3 extent overrides, by up to 1.2 mm. My own check covered 12 views, x/y sections, corner close-ups and arc-point profiles. Part 45796000 is CONSUMED, not FRESH, so the label goes in the non-sealed dir. It is a real scan (noise and an outer-base dropout), not CAD: an open press-brake tray about 106x100x38 mm, t about 1.97. It has 4 base-to-wall folds and 4 wall-to-outward-top-flange folds, all about 90 deg. The wall corners are butt seams with no arc. Patch 18 is a thickness edge and patch 20 is a dropout island; neither is a bend. The B2 and B3 outer arcs run to the corners with no gap over 2 mm, but patch 2 is missing next to them, so the auto lines stopped short at 57.9 and 88.6 mm. I set their extent_t to mirror the twin folds' auto extents: B1 gives B2 [-45.25, 55.2] and B4 gives B3 [-43.18, 51.18]. Final lines run (under the geometry lock): rc=0, 8 ok, 0 failed, all outer skin and certain. B2 is 100.45 mm and B3 94.36 mm, each with override support 1.0 and no gaps. I opened all close-ups and overview renders: every line sits on its fold apex and runs corner to corner. One iteration was enough. Output: docs/production/runlog/benchmark_v3/label_lines/sc_2852c2845b94/{pairs.json, lines.json, render/}."
+ },
+ "verifier1": null,
+ "verifier2": null
+}

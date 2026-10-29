@@ -1,0 +1,120 @@
+{
+ "schema": "sherman.gold11_audit.relabel_verification.v1",
+ "scan_id": "sc_07062eee17aa",
+ "gold11_id": "CG65CD575B1C",
+ "round": "r2",
+ "lines_json": "docs/production/runlog/broad_baseline/gold11_audit/relabel/sc_07062eee17aa_r2/lines.json",
+ "lines_json_sha256": "d126fbedfa1ae4c88542fc5486ffb3cda9a04eea91ad9714166d1625eb559087",
+ "date": "2026-10-17",
+ "labeler_self_check": {
+  "pass": true,
+  "evidence": "docs/production/runlog/broad_baseline/gold11_audit/relabel/sc_07062eee17aa_r2/vision (global_views.png 10 views, bend_B1..B6.png close-up + 25/50/75 % sections, b2_profile_r1_vs_r2.png), apex_stations_r2.txt"
+ },
+ "verifiers": [
+  {
+   "verifier": 1,
+   "pass": true,
+   "blind": true,
+   "images_seen": "12 tool renders + 6 prep renders + 27 own (18 sections at 25/50/75 %, 6 profiles, 3 missed-bend maps)",
+   "dir": "docs/production/runlog/broad_baseline/gold11_audit/relabel/sc_07062eee17aa_r2/verifier1",
+   "summary": "verifier1 (independent, blind) -- sc_07062eee17aa r2 -- 2026-10-17\nMethod: own full-scan perpendicular sections (1 mm stations on 90-deg folds, 0.25 mm on ears); per station the two outer plates\nare line-fitted locally, intersected (my virtual sharp), and the outer-skin apex is taken on my local bisector. Offsets = label - my outer apex\n(depth: + = into material, - = toward sharp; lateral = across the arc). Method reproduces the r1 B2 failure (r1 depth median -0.74 mm).\n\nB1 PASS  25/50/75%: depth +0.07/+0.05/+0.01, lat +0.09/-0.07/-0.04 mm; full length dist med 0.07 p90 0.16; fold [0,306] incl notch 44..87, label 0..304.8, coverage 0.996; incl 89.4 (label 89.3)\nB2 PASS  25/50/75%: depth +0.10/-0.31/+0.01, lat +0.47/-0.32/-0.06 mm; bowed fold: label dist med 0.445 p90 1.15 max 2.5 (worst first 10 mm at -X end, ~1.75)\n         vs best straight lines LSQ med 0.55 p90 0.90 / minimax med 0.66 p90 1.02; depth median +0.025 (no systematic offset); coverage 0.997; incl 92.0 (label 91.7)\nB3 PASS  25/50/75%: depth +0.02/+0.02/-0.00, lat +0.01/+0.05/+0.02; dist med 0.04 p90 0.07; fold ~[-1(-3),78], label 0..77.9, coverage 0.96; incl 88.8\nB4 PASS  25/50/75%: depth -0.00/+0.02/+0.04, lat -0.03/-0.00/+0.08; dist med 0.05 p90 0.13; fold ~[-1(-3),78], label 0..77.5, coverage 0.96; incl 89.1 (label 89.8)\nB5 PASS  25/50/75%: depth +0.07/+0.01/-0.01, lat +0.19/+0.02/+0.01; dist med 0.09 p90 0.18; fold [-0.25,12.0], label 0..12.0, coverage 0.98; incl 148.3 (bend 31.7)\nB6 PASS  25/50/75%: depth -0.01/-0.02/+0.07, lat +0.27/+0.31/-0.03; depth always within +-0.1 (on outer skin); lateral drift +0.75 -> -0.2 along a shallow\n         31-deg arc (outer R ~7 mm, arc ~+-1.9 mm wide) = within the arc; fold [-0.5,12.0], label 0..11.6, coverage 0.93; incl 149.1 (bend 30.9)\nMissed bends: none. Normal clusters = web, flanges/tabs, ears, arc sectors near labeled lines; flagged web points only at sheet edges/holes.\n -Y web strip beside tab-B window is tilted ~6.5 deg (smooth twist, flat again at e1=-440/-250; no crease) = distortion, not a formed bend (<15 deg).\nOVERALL: PASS\n"
+  },
+  {
+   "verifier": 2,
+   "pass": true,
+   "blind": true,
+   "images_seen": "12 tool renders + 6 prep renders + own section/fold/missed-bend sheets",
+   "dir": "docs/production/runlog/broad_baseline/gold11_audit/relabel/sc_07062eee17aa_r2/verifier2",
+   "verdict": {
+    "verifier": "verifier2 (independent, blind to labeler claims)",
+    "scan": "sc_07062eee17aa r2",
+    "method": "own full-res perpendicular slabs every 1 mm (0.5 mm ears) extended past line ends; local 2D refit of both outer-skin legs per station -> local sharp, local bisector, measured outer apex = first skin point along bisector (arc midline); offsets = label point - measured apex (bis + = into material, - = toward sharp/air)",
+    "B1": {
+     "verdict": "PASS",
+     "off_mm_30_50_75pct": [
+      0.11,
+      0.09,
+      0.05
+     ],
+     "note": "25% station (t=76) lies in the notch; 30% used. median |d| 0.075, p90 0.149; fold 0..306 incl notch gap 45-86; label 0..304.8 -> coverage 0.996; bend 90.5 (label 90.7)"
+    },
+    "B2": {
+     "verdict": "PASS (marginal)",
+     "off_mm_30_50_75pct": [
+      0.38,
+      0.43,
+      0.06
+     ],
+     "signed_bis_50pct": -0.31,
+     "note": "fold physically bowed ~2 mm (apex u -1.4..+0.38, w -0.35..+1.8). Label median dist 0.445 (LSQ best line 0.54, min-p90 line 0.56), p90 1.15 (best 0.82), max 2.33 (minimax 1.14, LSQ 1.81). Signed offset median +0.04 / mean +0.14 mm (no systematic toward-sharp offset, r1 fault gone). Label within 0.55 mm of LSQ line everywhere. Weak spot: t=-1..10 (-X end, 4.5% of length) label 1.5-2.3 mm from outer apex (on the inner skin). Fold -1..306, coverage 0.99; bend ~87.6 median (84-95 along length, strip twist; label 88.3)"
+    },
+    "B3": {
+     "verdict": "PASS",
+     "off_mm_25_50_75pct": [
+      0.03,
+      0.05,
+      0.01
+     ],
+     "note": "fold ~-1..78 (relief gap at t=-2; beyond is the ear, not this fold); coverage ~0.97; bend 91.1 (label 91.2)"
+    },
+    "B4": {
+     "verdict": "PASS",
+     "off_mm_25_50_75pct": [
+      0.0,
+      0.03,
+      0.1
+     ],
+     "note": "fold ~-1..78; coverage ~0.97; bend 90.8 (label 90.2)"
+    },
+    "B5": {
+     "verdict": "PASS",
+     "off_mm_25_50_75pct": [
+      0.14,
+      0.04,
+      0.04
+     ],
+     "note": "ear bend ~-0.5..12.2 (relief at 12.5, B3 zone beyond); label 0..12.0 -> coverage ~0.94; bend 31.2 (label 31.4)"
+    },
+    "B6": {
+     "verdict": "PASS",
+     "off_mm_25_50_75pct": [
+      0.39,
+      0.3,
+      0.05
+     ],
+     "note": "depth offsets <=0.11 mm everywhere (label on outer skin); lateral 0.3-0.66 mm in lower half on a 31 deg arc whose outer half-width is ~0.62 mm; label direction within 0.5/1.1 deg of the outer/inner face-plane intersections, 3.5 deg off my apex-trend (lateral apex ill-conditioned on 31 deg bend). ear bend ~-0.5..12.2, label 0..11.6 -> coverage ~0.91; bend 30.3 (label 31.5)"
+    },
+    "missed_bends": "none: no face family >8 deg off the 7 known families away from labelled lines; web rms 0.19 mm, no creases; -Y web strip beside window B is warped ~5 deg (smooth, no crease, <15 deg); +X/-Y corner piece behind a slit lowered ~0.7 mm / tilt <=5 deg, smooth (not a joggle); ear tops abut the web edge with sharp corners (cut, no bend arc) -> no web-ear fold",
+    "overall": "PASS"
+   }
+  }
+ ],
+ "both_passed": true,
+ "per_line": {
+  "B1": {
+   "v1": "PASS",
+   "v2": "PASS"
+  },
+  "B2": {
+   "v1": "PASS",
+   "v2": "PASS (marginal)"
+  },
+  "B3": {
+   "v1": "PASS",
+   "v2": "PASS"
+  },
+  "B4": {
+   "v1": "PASS",
+   "v2": "PASS"
+  },
+  "B5": {
+   "v1": "PASS",
+   "v2": "PASS"
+  },
+  "B6": {
+   "v1": "PASS",
+   "v2": "PASS"
+  }
+ },
+ "b2_note": "B2 is a physically bowed fold (~2-3.5 mm); straight line: median 0.445 mm from the measured apex (both verifiers), better than the least-squares line (0.54-0.55) on the median, worse at p90 (1.15 vs 0.88-0.90); no systematic offset (signed median +0.025/+0.04 mm). Weak spot: first ~10 mm at the -X end, 1.5-2.3 mm (best straight lines ~1.8 there). Verifier 2 called the B2 pass marginal."
+}

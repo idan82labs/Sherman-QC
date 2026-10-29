@@ -1,0 +1,1233 @@
+Decisive ruling
+
+Authorize exactly one executable tranche based on a projective Gauss-image ruled-ribbon mechanism.
+
+ARCHITECTURE_FAMILY_TOKEN:
+PROJECTIVE_GAUSS_RULING_RIBBON_V1
+
+PRIMITIVE_TOKEN:
+ANTIPODAL_GREAT_CIRCLE_ARC_RULED_PREIMAGE
+
+EXECUTABLE_TRANCHE:
+PGRR_V1_C006_FROZEN_TARGET_CAUSAL_PREFLIGHT_V1
+
+The tranche is a gold-free causal preflight on the exact C006 source. It is not an F1 evaluation and cannot establish generalization. Its purpose is narrower and decisive: determine whether a continuous normal-space arc with a connected, longitudinally ruled source-space preimage can cross the exact frozen target-support wall and cause a novel downstream effect.
+
+No truth opening is authorized. No stopped family is revived.
+
+1. Mechanism and intended observable
+
+For a candidate axis a, define the corresponding great circle of unoriented surface normals as
+
+G(a)={n∈S
+2
+:n⋅a=0}.
+
+Because scan normals are unoriented, n and −n are identified. The normal field therefore lives in the projective sphere, and angular position along G(a) is represented modulo π.
+
+The single defect-relevant observable is:
+
+A source-connected ribbon whose unoriented normals traverse a continuous great-circle arc while the ribbon remains repeatedly elongated along the common axis a.
+
+For a straight sheet-metal bend, the Sherman-specific hypothesis is that normals rotate across the bend but remain approximately constant along its longitudinal direction. A candidate is therefore not accepted merely because many normals lie near a great circle. Its source-space preimage must form a coherent ruled ribbon, and that ribbon must subsequently pass the exact frozen parent, tube, pair-support, side-gate, and attribution predicates.
+
+The prior CIIP miss margin of 0.048610888363373 mm is not imported as a tolerance, score, or success condition. PGRR must pass the existing frozen support predicate exactly.
+
+2. Research basis and its limits
+
+Peternell’s point-cloud work represents a developable surface through a one-parameter family of tangent planes. For a general cylinder with axis direction a, the tangent planes are parallel to a, so their normals satisfy n⋅a=0; the corresponding tangent-plane image is curve-like rather than two-dimensional. That establishes the geometric basis for looking for a one-dimensional normal-space arc and a common ruling direction. It does not establish that such an arc will detect Sherman bends or improve F1. 
+Geometrie
++2
+Geometrie
++2
+
+Mapping cylinder normals to a Gaussian sphere and identifying their great-circle structure is also established in cylinder-recognition literature. Recent 2024 work continues to use Gaussian-sphere and great-circle geometry for normal-based cylinder pose estimation, although its density estimation, random sampling, and pose-fitting procedures are not adopted here. 
+ipb.uni-bonn.de
++2
+Papercept
++2
+
+Local least-squares tangent planes obtained from covariance eigenvectors over k-nearest-neighbour sets are a standard point-cloud normal estimator. PGRR uses that operation only to obtain an unoriented measurement at every sufficiently conditioned point. It does not turn covariance eigenvalues into seeds, maxima, rankings, or defect scores. 
+Hugues Hoppe
++1
+
+The Funk–Radon transform supplies the mathematical notion of aggregating a spherical function along all great circles. PGRR uses only a finite, preregistered great-circle band census; no inversion result, stability theorem, or statistical guarantee from the Funk–Radon literature is claimed for the detector. 
+michaelquellmalz.github.io
++1
+
+Current geometry-processing research still treats long ruling lines and common tangent-plane behaviour along a rule as fundamental characteristics of developable ruled patches. That 2025 work concerns mesh approximation and fabrication, not scan-based bend detection, but it supports ruling coherence as a genuine geometric observable rather than a Sherman-specific invention. 
+Nico Pietroni
++1
+
+Sherman-specific hypothesis
+
+The unproven hypothesis being tested is:
+
+At least one useful frozen C006 bend target has enough measured curved support to create a continuous projective great-circle arc whose source preimage forms a longitudinal ruled ribbon, passes the exact frozen handoff, and creates a novel attributable certificate.
+
+Project-specific constants
+
+Every numerical value below is an engineering constant, not a literature fact:
+
+neighbourhood sizes;
+
+angular tolerances;
+
+pole-grid resolution;
+
+point, component, and candidate minima;
+
+arc span and bin width;
+
+longitudinal occupancy requirements;
+
+elongation ratios;
+
+deduplication thresholds;
+
+evidence and resource caps.
+
+They must be serialized in one immutable configuration and hashed before the first worker starts. None may change after seeing any PGRR output.
+
+3. Why this is causally distinct from every stopped lane
+Stopped lane	PGRR distinction
+LPF / frozen cross-parent rungs	No plane-fragment extraction, fragment pairing, fragment graph, local bridge search, or direct parent-to-parent rung is used.
+Transition-mode probe	No normal-mode clustering, mode birth, transition seed, or mode-count event is used. PGRR requires a continuous angular traversal.
+PWTS	No pointwise tensor maxima, seed rows, wedge pairing, paired strip construction, or changed resource cap is used. Every stable point participates in a complete fixed pole transform.
+CIIP	No voxel phase, cubical complex, filtration, persistence class, H0 merge record, merge witness, persistence cutoff, or alternate CIIP localization is used.
+Frozen handoff rescue	No parent/tube tolerance, line tube, pair support, side gate, or certificate predicate is modified.
+
+PGRR eventually attaches evidence to frozen parents because that is the required downstream causal test. It does so as an intermediate-node support chain, not by collapsing the ribbon into a direct cross-parent edge. If the frozen research graph cannot accept intermediate nodes without changing its side-gate semantics, the tranche terminates with an interface STOP; it may not silently collapse the chain into a conventional rung.
+
+4. Complete deterministic construction
+Stage 0 — immutable binding and capability separation
+
+The execution binds to:
+
+source_sha256:
+050cba324c35e32979b9ee626a1e73e64f8e39e4d7797c04a48eb8a9ff52bb97
+
+successful_v4_container_sha256:
+7065b3b77a15435d8654d047d9afb50e954e8997375d94e9a3e1606141477817
+
+Additional requirements:
+
+Reproduce the exact V4 canonical point-order hash.
+
+Require finite binary64 coordinates and point_count <= 200000.
+
+Bind the exact frozen 4,788-target ledger.
+
+Derive the exact C006 projection from the existing source-to-case binding and require exactly 73 target rows.
+
+Candidate construction runs in a process that cannot read the target ledger, target geometry, baseline outcomes, filenames, or case identity.
+
+After candidate construction and deduplication, write and fsync an immutable candidate commitment. Only then may a separate handoff process read the 73 target rows.
+
+Any binding mismatch terminates before geometry is computed.
+
+The source identifier may appear in provenance and output paths but is never exposed to the candidate algorithm as a feature.
+
+Stage 1 — deterministic multiscale unoriented normals
+
+For each canonical point p
+i
+	​
+:
+
+Compute the first 48 non-self nearest neighbours.
+
+Distance ties are ordered by:
+
+(squared_binary64_distance, canonical_point_id)
+
+Define:
+
+Q
+24
+	​
+(i)={p
+i
+	​
+}∪first 23 neighbours,
+Q
+48
+	​
+(i)={p
+i
+	​
+}∪first 47 neighbours.
+
+For each set, compute its centroid and unweighted covariance in canonical point-ID order.
+
+Let the covariance eigenvalues be
+
+λ
+0
+	​
+≤λ
+1
+	​
+≤λ
+2
+	​
+.
+
+The unoriented normal is the eigenvector of λ
+0
+	​
+.
+
+A scale is numerically conditioned only if:
+
+λ
+2
+	​
+>0,λ
+1
+	​
+≥2
+−12
+λ
+2
+	​
+.
+
+A point is stable only if both scales are conditioned and:
+
+arccos(∣n
+24
+	​
+⋅n
+48
+	​
+∣)≤10
+∘
+.
+
+Flip n
+48
+	​
+ only for averaging so that n
+24
+	​
+⋅n
+48
+	​
+≥0, then define:
+
+m
+i
+	​
+=
+∥n
+24
+	​
++n
+48
+	​
+∥
+n
+24
+	​
++n
+48
+	​
+	​
+.
+
+No global normal orientation is computed.
+
+Define the source-density scale s as the lower median of the distance to each point’s twelfth non-self neighbour:
+
+s=d
+12
+↑
+	​
+[⌊
+2
+N−1
+	​
+⌋].
+
+Require s > 0.
+
+These covariances are measurements only. There is no pointwise score, local maximum, seed selection, ranking, or threshold sweep.
+
+Stage 2 — complete projective great-circle transform
+
+Generate a level-3 icosphere from a fixed face list, giving 642 antipodally paired vertices. Canonicalize each pair to one projective pole and obtain exactly 321 axes.
+
+For every pole a:
+
+Canonicalize its sign by making the first nonzero component in x,y,z order positive.
+
+Select the Cartesian basis vector e minimizing ∣a⋅e∣, with ties X < Y < Z.
+
+Define:
+
+u
+a
+	​
+=
+∥e−(a⋅e)a∥
+e−(a⋅e)a
+	​
+,v
+a
+	​
+=a×u
+a
+	​
+.
+
+A stable point is pole-eligible only if both scale normals satisfy:
+
+arcsin∣a⋅n
+24
+	​
+∣≤12
+∘
+,arcsin∣a⋅n
+48
+	​
+∣≤12
+∘
+.
+
+Its projective angular coordinate is:
+
+θ
+i
+	​
+=atan2(m
+i
+	​
+⋅v
+a
+	​
+,m
+i
+	​
+⋅u
+a
+	​
+)modπ.
+
+All 321 poles are processed. There is no accumulator peak selection, score ordering, top-k, suppression radius, or best-axis choice.
+
+Earliest pole-mass wall
+
+Before source-graph construction, a pole is potentially viable only if it has:
+
+at least 64 eligible points; and
+
+at least a 20
+∘
+ projective angular spread.
+
+If no pole satisfies both necessary conditions, stop immediately with:
+
+PGRR_V1_NO_GAUSS_ARC_MASS_ARCHITECTURE_STOP
+Stage 3 — source-space ruled-ribbon construction
+
+Construct the mutual 12-nearest-neighbour graph G
+12
+	​
+:
+
+(i,j)∈G
+12
+	​
+⟺j∈N
+12
+	​
+(i) and i∈N
+12
+	​
+(j).
+
+It has at most:
+
+2
+200000×12
+	​
+=1,200,000
+
+undirected edges.
+
+For each pole, retain an edge only when both endpoints are eligible and:
+
+d
+π
+	​
+(θ
+i
+	​
+,θ
+j
+	​
+)=min(∣θ
+i
+	​
+−θ
+j
+	​
+∣,π−∣θ
+i
+	​
+−θ
+j
+	​
+∣)≤7.5
+∘
+.
+
+Compute connected components of this induced graph.
+
+Canonical angular interval
+
+For each component:
+
+Sort its θ values by (theta, canonical_point_id).
+
+Compute all circular gaps on the projective circle of length π.
+
+Choose the largest gap.
+
+If gaps tie bit-exactly, choose the gap whose successor has the lowest canonical point ID.
+
+Cut at that gap and unwrap the complementary interval.
+
+Let its span be A.
+
+Require:
+
+64\leq\text{member_count},
+20
+∘
+≤A≤165
+∘
+.
+
+Define:
+
+L=⌈
+5
+∘
+A
+	​
+⌉,4≤L≤33.
+
+Partition the unwrapped interval into L equal-width bins. The last endpoint belongs to bin L−1.
+
+Require:
+
+at least four points in every angular bin;
+
+maximum consecutive angular gap at most 7.5
+∘
+;
+
+at least one retained source edge crossing every adjacent angular-bin boundary.
+
+Longitudinal preimage
+
+For each component define:
+
+z
+i
+	​
+=a⋅p
+i
+	​
+.
+
+For a sorted vector x
+0
+	​
+,…,x
+m−1
+	​
+, use the exact lower quantile:
+
+Q
+q
+	​
+(x)=x
+⌊q(m−1)⌋
+	​
+.
+
+Let q
+05
+	​
+=Q
+0.05
+	​
+(z) and q
+95
+	​
+=Q
+0.95
+	​
+(z). Require:
+
+q
+95
+	​
+−q
+05
+	​
+≥8s.
+
+Divide [q
+05
+	​
+,q
+95
+	​
+] into eight equal longitudinal columns. The first seven are half-open and the last is closed. An angular-bin/column cell is occupied only when it contains at least two component points.
+
+Require:
+
+At least six of eight longitudinal columns occupy at least
+
+⌈
+4
+3L
+	​
+⌉
+
+angular bins.
+
+Every angular bin is occupied in at least four longitudinal columns.
+
+Ruling coherence
+
+Within each angular bin, using only points between q
+05
+	​
+ and q
+95
+	​
+, compute a second covariance with eigenvalues:
+
+μ
+0
+	​
+≤μ
+1
+	​
+≤μ
+2
+	​
+
+
+and principal eigenvector r.
+
+A bin is ruling-coherent when:
+
+arccos∣r⋅a∣≤15
+∘
+
+and
+
+μ
+2
+	​
+≥4μ
+1
+	​
+,μ
+2
+	​
+>0.
+
+Require ruling coherence in at least:
+
+⌈
+4
+3L
+	​
+⌉
+
+angular bins.
+
+A component passing every condition is a raw PGRR ribbon.
+
+Stage 4 — deterministic selectivity, deduplication, and candidate freeze
+
+The raw-ribbon ceiling is 512. Encountering the 513th passing ribbon in canonical processing order terminates with a nonselective STOP; the list is never truncated.
+
+Two raw ribbons are duplicate-related only if:
+
+arccos∣a
+1
+	​
+⋅a
+2
+	​
+∣≤8
+∘
+
+and their exact source-membership Jaccard ratio satisfies:
+
+∣M
+1
+	​
+∪M
+2
+	​
+∣
+∣M
+1
+	​
+∩M
+2
+	​
+∣
+	​
+≥0.80.
+
+Build the duplicate graph and take its connected components. The representative is the lexicographically lowest raw-ribbon key:
+
+(pole_id, component_min_point_id, membership_sha256)
+
+There is no score-based representative selection.
+
+Require:
+
+1 <= deduplicated_ribbon_count <= 128
+
+Otherwise terminate with either the no-representation or nonselective token.
+
+The candidate commitment contains:
+
+configuration hash;
+
+pole-table hash;
+
+normal-field commitment hash;
+
+candidate-membership hashes;
+
+exact arc and ruling predicate outputs;
+
+canonical candidate order.
+
+It contains no source coordinates or point-index arrays.
+
+Only after this commitment is immutable may the target handoff begin.
+
+Stage 5 — exact frozen target handoff
+
+Compute internal bitsets for each of C006’s 73 frozen targets:
+
+exact frozen tube membership;
+
+exact first-parent support membership;
+
+exact second-parent support membership.
+
+This is 73 × 200000 point-target rows. The bitsets remain internal and are represented in evidence only by hashes and counts.
+
+For every deduplicated ribbon and every one of the 73 targets, evaluate both endpoint assignments:
+
+first angular bin  -> parent A
+last angular bin   -> parent B
+
+and the swapped assignment.
+
+An assignment passes only when:
+
+The two endpoint-bin support sets pass the byte-exact frozen V4 parent-support predicates on opposite parents.
+
+Every interior angular bin contains at least one point inside the exact frozen target tube.
+
+For every adjacent angular-bin pair, at least one retained source edge crosses that bin boundary with both endpoints in the tube, except that the first and last boundary may use the corresponding endpoint-parent support region.
+
+The complete frozen pair-support predicate passes unchanged.
+
+No tube radius, endpoint distance, spatial tolerance, pair relation, side gate, or target property is altered.
+
+If both orientations pass, choose the lexicographically lower assignment tuple. This is canonicalization, not ranking.
+
+Graph representation
+
+For every passing ribbon-target assignment, add:
+
+one intermediate node per angular bin;
+
+an attachment from the first node to the first frozen parent;
+
+an attachment from the last node to the second frozen parent;
+
+one chain edge for every adjacent angular-bin boundary proven by source evidence.
+
+No direct parent-to-parent edge is emitted.
+
+The typed relation is:
+
+PGRR_SUPPORT_CHAIN
+
+The frozen side-gate and certificate code must consume the augmented graph without semantic modification. If intermediate nodes cannot be accepted without changing frozen logic:
+
+PGRR_V1_FROZEN_INTERFACE_INCOMPATIBLE_STOP
+
+Collapsing the chain into a conventional rung is forbidden.
+
+The candidate-to-target comparison is limited to the exact 73-row C006 projection, but downstream target outcomes are rebuilt for the full frozen 4,788-target population.
+
+5. Direct gold-free causal falsifier
+
+The single direct falsifier is:
+
+CANONICAL_MID_ARC_CUT_ABLATION
+
+For every complete support chain with L angular bins, define the cut boundary:
+
+c=⌊
+2
+L−1
+	​
+⌋.
+
+Remove every candidate-specific source edge and chain edge crossing between bins c and c+1.
+
+The intervention preserves:
+
+every source point;
+
+both endpoint-bin memberships;
+
+both frozen parent attachments;
+
+pole and axis;
+
+angular coordinates and bins;
+
+target assignment;
+
+target tube and parent masks;
+
+every non-cut edge;
+
+all thresholds and candidate IDs.
+
+There is no redetection, refitting, reassignment, or fallback path.
+
+The tranche performs exactly four downstream constructions per role:
+
+BASELINE: no PGRR namespace.
+
+AUGMENTED: complete PGRR chains.
+
+ALL_PGRR_ABLATION: remove the entire PGRR namespace.
+
+MID_ARC_CUT: retain endpoints and chain nodes but cut every chain centrally.
+
+Required causal result:
+
+MID_ARC_CUT target-outcome table
+    ==
+ALL_PGRR_ABLATION target-outcome table
+    ==
+BASELINE target-outcome table
+
+byte-for-byte, while AUGMENTED must produce the required positive effects.
+
+If any PGRR-attributed effect survives the central cut, the supposed ribbon body was not causal. That is an architecture STOP, not a request for a different cut.
+
+6. Exact evidence tables and canonical order
+
+All tables use UTF-8, LF line endings, fixed column order, 0/1 booleans, and C99 hexadecimal binary64 notation. No locale formatting is permitted.
+
+File	Required contents and canonical key
+00_binding_census.tsv	Source/container/config/code/target/pole hashes, canonical point-order hash, point count, target counts, density scale, capability flags, resource ceilings. One row.
+01_normal_field_census.tsv	Counts of conditioned and rejected neighbourhoods at both scales, scale-agreement counts, stable count, kNN commitment hash, normal-field commitment hash. Key: scale/status.
+02_pole_census.tsv	Pole vector, eligible count, induced-edge count, component count, raw-pass count, fail counts, eligible-set hash, angular-coordinate commitment. Key: pole_id.
+03_component_fail_census.tsv	Count and commitment hash for every atomic representation failure code at every pole. Key: (pole_id, fail_code).
+04_raw_ribbons.tsv	Membership hash/count, pole, arc cut/span, bin counts, angular-gap margin, quantiles, occupancy mask, column coverage, ruling metrics, predicate vector. Key: (pole_id, component_min_point_id, membership_sha256).
+05_deduplicated_ribbons.tsv	Representative key, duplicate-cluster size/hash, candidate ID, membership hash/count, axis, bounding box, endpoint/interior commitments, all representation margins. Key: ribbon_id.
+06_target_handoff.tsv	Every one of at most 9,344 ribbon-target pairs; both assignment results, endpoint support counts, exact distance/tolerance margins, per-bin tube counts, adjacent-boundary edge counts, frozen pair-support result, failure and near-miss codes. Key: (target_id, ribbon_id).
+07_support_chains_and_midcut.tsv	Relation ID, target/ribbon IDs, node and edge counts, endpoint attachments, chain commitment, central-cut index, removed-edge count, full connectivity, cut connectivity. Key: relation_id.
+08_target_effects.tsv	All 4,788 targets with baseline, augmented, all-ablation and mid-cut side-gate/certificate hashes; reached, advanced, attributable, novel and baseline-equivalent flags. Key: exact frozen target_id.
+09_role_consensus.tsv	Producer, permuted producer, and validator semantic bundle hashes, baseline hashes, resource observations, numeric-boundary adjudications and consensus flags. Key: role_id.
+10_visual_audit_manifest.tsv	Subject type, ribbon/target IDs, image hashes, camera commitment, counter claim, reviewer reconciliation and every prohibited-artifact flag. Key: visual_subject_id.
+
+Canonical ribbon ordering is never based on support margin, target effect, certificate presence, or visual appearance.
+
+The final scalar artifact is:
+
+output/research/pgrr-v1-c006-frozen-target-causal-preflight-v1/result.json
+
+The evidence bundle root is:
+
+SHA256(
+  path_utf8 || 0x00 || uint64_le(file_length) || file_bytes
+  for every evidence file in lexicographic path order
+)
+
+No source coordinates, point membership lists, neighbourhood lists, or source-point indices may be serialized. Internal bitsets are permitted; only their hashes and aggregate counts leave memory.
+
+7. Formal near misses and the visual critique package
+
+A decisive pass is every ribbon-target pair producing a complete PGRR_SUPPORT_CHAIN.
+
+A formal near miss is a representation-passing ribbon-target pair for which exactly one handoff predicate fails, all others pass, and the failure is one of:
+
+one endpoint or tube-distance predicate misses by no more than 0.25s;
+
+one interior angular bin has zero in-tube support, its adjacent bins both have support, and its nearest source point misses the tube by no more than 0.25s;
+
+exactly one adjacent angular-bin boundary lacks an in-tube source edge while an unconstrained retained source edge exists across that same boundary.
+
+A formal near miss remains a failure. It cannot advance any counter.
+
+Every decisive pass and every formal near miss must receive a local close-up. Numerical GO is permitted only when the complete discovered set contains at most 128 such subjects. Discovery of a 129th subject terminates as nonselective; there is no visual top-k or truncated GO.
+
+Required images
+
+The package must contain:
+
+Global canonical overlays
+
+One six-view source-space contact sheet using exact orthographic:
+
++X, -X, +Y, -Y, +Z, -Z
+
+It must show all deduplicated ribbons, all complete chains, all formal near misses, and the relevant frozen target tubes and parent regions.
+
+Per-subject four-panel raster
+
+For every decisive pass and near miss:
+
+canonical whole-source view;
+
+pole-aligned local source close-up;
+
+projective Gauss-arc plot showing band distance, unwrapped angle, bins, endpoints and central cut;
+
+full-chain versus mid-arc-cut source and graph overlay.
+
+Negative and causal controls
+
+Use the lexicographically first available subject for each category, never the highest or lowest score:
+
+insufficient arc span;
+
+angular disconnection;
+
+longitudinal occupancy failure;
+
+ruling-coherence failure;
+
+exact endpoint-support failure;
+
+frozen pair-support failure;
+
+all-PGRR ablation;
+
+canonical mid-arc cut.
+
+Absent categories are recorded as NOT_PRESENT; no synthetic visual substitute is created.
+
+Written critique
+
+visual/visual_critique.md must reconcile each displayed counter with what is visibly present. For every subject it must state:
+
+scalar claim;
+
+visible geometry;
+
+agreement or disagreement;
+
+exact threshold boundary involved;
+
+whether the full and cut images support the causal claim.
+
+The following fields must all be false for GO:
+
+clipping_present
+voxel_or_grid_phase_artifact
+angular_partition_boundary_artifact
+misregistration
+duplicate_spatial_witness
+boundary_condition_accident
+aggregate_misleading
+counter_image_disagreement
+review_unresolved
+
+PGRR itself contains no voxelization. Any voxel-phase dependency in the implementation is therefore an invalid implementation, not an architecture variant.
+
+The visual reviewer is read-only and may see only the committed scalar evidence, source-space rasters, frozen non-truth target overlays, and image hashes. Gold, CAD, expected counts, manual bend truth, or benchmark answers remain unavailable.
+
+A numerical GO without completed visual reconciliation is invalid.
+
+8. Independent-validator strategy
+
+Three roles run sequentially.
+
+Producer A
+
+A native deterministic implementation using:
+
+its own exact spatial index;
+
+fixed-order covariance accumulation;
+
+a fixed symmetric eigensolver;
+
+union-find source components;
+
+bitset target intersections;
+
+intermediate-node graph augmentation.
+
+Producer A-PERM
+
+The same implementation receives a deterministic SHA-256 permutation of the input rows before canonicalization. It must produce a byte-identical producer bundle after canonicalization.
+
+Validator B
+
+A separately implemented validator that:
+
+does not import, link, or call producer geometry code;
+
+uses a different spatial-index implementation;
+
+uses LAPACK/NumPy-style symmetric eigenanalysis rather than the producer eigensolver;
+
+uses sparse-graph connected components rather than producer union-find;
+
+regenerates the icosphere from the fixed icosahedral face list instead of trusting the producer pole table;
+
+independently rebuilds candidate memberships from the raw source;
+
+writes its candidate commitment before being given access to target rows;
+
+independently constructs target masks, chains and central cuts;
+
+independently rebuilds all four target-outcome tables.
+
+The validator does not read producer candidate rows until its own semantic bundle has been committed.
+
+Numeric disagreements
+
+Any producer/validator disagreement or any decisive predicate within 32 ULP of its boundary is recomputed from the original binary64 coordinates using at least 160-bit arithmetic.
+
+A uniquely resolved result becomes normative.
+
+An exact or unresolved boundary produces PGRR_V1_NUMERIC_BOUNDARY_INVALID_STOP.
+
+No epsilon is widened.
+
+Consensus requires exact equality of:
+
+stable-point commitment;
+
+raw and deduplicated membership hashes;
+
+candidate IDs;
+
+target assignment IDs;
+
+complete-chain IDs;
+
+all Boolean predicates;
+
+all four target-outcome table hashes;
+
+terminal token.
+
+Diagnostic floating values may differ only where their predicate signs and high-precision adjudications agree.
+
+Mandatory tamper regressions
+
+Before the real launch, the validator must reject:
+
+an input-order dependency;
+
+a normal-sign flip that changes projective results;
+
+one-bit alteration of a pole coordinate;
+
+equal-count exchange of source membership between two candidates;
+
+equal-count exchange of two target IDs;
+
+deletion of the canonical central chain edge while a full-chain effect is still asserted;
+
+a claimed baseline hash over an augmented outcome table.
+
+Synthetic or analytic fixtures may test code paths, but they contribute nothing to scientific GO and cannot rescue a real-data STOP.
+
+9. Inputs and explicitly forbidden inputs
+Permitted
+
+exact source bytes with the stated SHA-256;
+
+exact successful V4 container;
+
+exact V4 canonicalization and frozen graph interface;
+
+exact frozen 4,788-target ledger;
+
+exact 73-row C006 source projection, accessible only after candidate freeze;
+
+locked PGRR configuration, schema, source code and pole table;
+
+baseline outcomes used solely for exact reproduction and novelty comparison;
+
+read-only visual rendering of the source, candidates, target tubes, parents and causal controls.
+
+Forbidden
+
+gold or sealed truth;
+
+manual bend adjudication;
+
+CAD or reference geometry;
+
+expected object or bend counts;
+
+benchmark or held-out answers;
+
+target names, filenames or identities as detector features;
+
+family-routing labels;
+
+learned models or embeddings;
+
+random sampling or random seeds;
+
+GPU execution;
+
+parameter sweeps;
+
+ranking, top-k or score cutoffs;
+
+part-specific threshold changes;
+
+CIIP witnesses, merges, filtrations or near-miss rows as detector input;
+
+LPF fragments or cross-parent rungs;
+
+transition-mode rows;
+
+PWTS seeds, wedges or strips;
+
+changed target tubes or support tolerances;
+
+replacement source, replay, rerun or synthetic rescue;
+
+runtime/main or production mutation.
+
+10. Static cardinality and resource contract
+Quantity	Hard maximum
+Source points	200,000
+Stored non-self neighbour references	9,600,000
+Projective axes	321
+Two-scale pole-normal band tests	128,400,000
+Mutual-12NN source edges	1,200,000
+Pole-edge eligibility tests	385,200,000
+Raw passing ribbons	512
+Exact raw-ribbon dedup pairs	130,816
+Deduplicated ribbons	128
+C006 frozen targets	73
+Point-target rows for internal masks	14,600,000
+Ribbon-target handoff rows	9,344
+Angular bins per ribbon	33
+Adjacent-boundary checks across all handoff rows	299,008
+Frozen downstream outcome rows per build	4,788
+Downstream constructions per role	4
+
+Exact nearest-neighbour search has data-dependent traversal, so no honest hardware-independent runtime theorem follows from N alone. The following are therefore hard execution ceilings, not empirical targets:
+
+peak_RSS_ceiling:
+6,442,450,944 bytes        # 6 GiB
+
+total_machine_wall_ceiling:
+1,800 seconds
+
+scientific_serialization_ceiling:
+67,108,864 bytes           # 64 MiB
+
+visual_package_ceiling:
+335,544,320 bytes          # 320 MiB
+
+log_ceiling:
+16,777,216 bytes           # 16 MiB
+
+total_output_ceiling:
+419,430,400 bytes          # 400 MiB
+
+The accounted live binary arrays are below approximately 0.75 GiB:
+
+coordinates;
+
+48-neighbour IDs and distances;
+
+two normal fields and eigenvalues;
+
+the mutual source graph;
+
+pole working arrays;
+
+up to 512 source-membership bitsets;
+
+the three frozen target-region bitsets per target;
+
+target and graph outcome tables.
+
+Producer, permuted producer, validator and renderer run sequentially. BLAS and numerical-library thread counts are fixed to one. Exceeding any ceiling yields:
+
+PGRR_V1_RESOURCE_CONTRACT_STOP
+
+No increased ceiling or automatic rerun is authorized.
+
+11. Exact GO and STOP rules
+Scientific survival counts
+
+The augmented execution must report:
+
+aggregate_added_pgrr_support_chain_count
+target_reached_by_pgrr_support_chain_count
+target_side_gate_advanced_count
+target_pgrr_attributable_certificate_count
+target_novel_pgrr_attributable_certificate_count
+
+A certificate is attributable only when it:
+
+appears in AUGMENTED;
+
+is absent from BASELINE;
+
+disappears in ALL_PGRR_ABLATION;
+
+disappears in MID_ARC_CUT.
+
+A certificate is novel only when its canonical certificate hash is absent from the frozen baseline certificate multiset.
+
+GO requires all of the following
+coarse_possible_pole_count > 0
+raw_ribbon_count > 0
+1 <= deduplicated_ribbon_count <= 128
+complete_target_handoff_count > 0
+
+aggregate_added_pgrr_support_chain_count > 0
+target_reached_by_pgrr_support_chain_count > 0
+target_side_gate_advanced_count > 0
+target_pgrr_attributable_certificate_count > 0
+target_novel_pgrr_attributable_certificate_count > 0
+
+mid_arc_cut_connected_chain_count == 0
+mid_arc_cut_target_outcome_sha256 == baseline_target_outcome_sha256
+all_pgrr_ablation_target_outcome_sha256 == baseline_target_outcome_sha256
+
+baseline_hash_reproduction_ok == true
+producer_permutation_consensus_ok == true
+producer_validator_semantic_consensus_ok == true
+target_access_before_candidate_freeze == false
+visual_audit_ok == true
+all_resource_ceilings_respected == true
+
+The sole GO token is:
+
+PGRR_V1_GOLD_FREE_CAUSAL_MECHANISM_GO
+
+That token authorizes no truth opening, held-out evaluation, tuning, runtime integration, or production work. It only establishes that this architecture survived its first gold-free representation, handoff and causal wall.
+
+Terminal scientific STOPs
+
+The earliest applicable token wins:
+
+PGRR_V1_INVALID_BINDING_OR_EXECUTION_STOP
+PGRR_V1_NUMERIC_BOUNDARY_INVALID_STOP
+PGRR_V1_NO_GAUSS_ARC_MASS_ARCHITECTURE_STOP
+PGRR_V1_NO_RULED_PREIMAGE_ARCHITECTURE_STOP
+PGRR_V1_NONSELECTIVE_REPRESENTATION_ARCHITECTURE_STOP
+PGRR_V1_FROZEN_INTERFACE_INCOMPATIBLE_STOP
+PGRR_V1_NO_COMPLETE_FROZEN_HANDOFF_ARCHITECTURE_STOP
+PGRR_V1_MID_ARC_CAUSALITY_ARCHITECTURE_STOP
+PGRR_V1_NO_NOVEL_TARGET_EFFECT_ARCHITECTURE_STOP
+PGRR_V1_VISUAL_RECONCILIATION_STOP
+PGRR_V1_RESOURCE_CONTRACT_STOP
+
+Any zero among the five scientific survival counts is a formal PGRR family STOP. There is no alternate pole grid, second angular band, changed k, reduced point minimum, bin-phase rescue, different central cut, tolerance relaxation, or one-more-run branch.
+
+12. Earliest cheap terminal wall
+
+Execution must stop as soon as the earliest failed prerequisite is known:
+
+Binding wall: hashes, point count, target projection, canonical ordering.
+
+Great-circle mass wall: no pole has enough stable angular support. Target files remain unread.
+
+Ruled-preimage wall: no component satisfies angular continuity, longitudinal coverage and ruling coherence.
+
+Selectivity wall: more than 512 raw or 128 deduplicated ribbons.
+
+Frozen-handoff wall: no complete chain passes the unchanged target predicates. No downstream graph build is needed beyond baseline verification.
+
+Mid-arc causality wall: central cuts do not return outcomes to baseline.
+
+Novel-effect wall: any required survival count is zero.
+
+Visual wall: the images contradict, duplicate or materially qualify the numerical result.
+
+Only after all eight gates pass would a later, separately authorized, blinded family-held-out truth evaluation be scientifically justified.
+
+A truth opening is not necessary now because this architecture has a direct gold-free causal test remaining.
+
+13. Exact executable tranche
+TRANCHE_ID:
+PGRR_V1_C006_FROZEN_TARGET_CAUSAL_PREFLIGHT_V1
+
+CLAIM:
+On the exact C006 source, at least one target-blind projective
+great-circle normal arc has a connected ruled source preimage that
+passes the exact frozen C006 handoff, advances a frozen side gate,
+and produces a novel attributable certificate; cutting every accepted
+chain at its canonical mid-arc boundary removes every new target
+effect and returns the complete 4,788-target outcome table to the
+exact baseline.
+
+EXECUTION_COUNT:
+exactly_one
+
+CLAIM_CONSUMPTION:
+before_first_worker_launch
+
+OUTPUT_ROOT:
+output/research/pgrr-v1-c006-frozen-target-causal-preflight-v1/
+
+Required safety flags:
+
+research_only=true
+runtime_main_write=false
+production_access=false
+production_import=false
+gold_access=false
+truth_opening=false
+cad_access=false
+expected_count_access=false
+manual_adjudication=false
+benchmark_feedback=false
+family_routing=false
+target_access_before_candidate_freeze=false
+filename_feature_access=false
+randomness=false
+gpu=false
+parameter_sweep=false
+ranking=false
+top_k=false
+threshold_mutation=false
+source_point_serialization=false
+replacement_input=false
+replay=false
+synthetic_scientific_evidence=false
+visual_review_read_only=true
+
+AUTHORIZE_PGRR_V1_C006_FROZEN_TARGET_CAUSAL_PREFLIGHT_V1

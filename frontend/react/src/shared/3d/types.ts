@@ -1,1 +1,1 @@
-export type { BendAnnotation, DeviationStats, ScreenBendCallout } from './bend-annotations/types'
+export type { BendAnnotation, DeviationStats, ManualBendSegment, ScreenBendCallout } from './bend-annotations/types'

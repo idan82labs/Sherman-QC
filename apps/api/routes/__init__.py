@@ -10,11 +10,15 @@ def _load_all_routers() -> list[APIRouter]:
     from apps.api.routes.auth import router as auth_router
     from apps.api.routes.batch import router as batch_router
     from apps.api.routes.bend_inspection import router as bend_inspection_router
+    from apps.api.routes.bend_labeling import router as bend_labeling_router
     from apps.api.routes.gdt import router as gdt_router
     from apps.api.routes.jobs import router as jobs_router
     from apps.api.routes.live_scan import router as live_scan_router
     from apps.api.routes.manual_assistant import router as manual_assistant_router
     from apps.api.routes.part_catalog import router as part_catalog_router
+    from apps.api.routes.production_line import router as production_line_router
+    from apps.api.routes.production_recipes import router as production_recipes_router
+    from apps.api.routes.vendor_setup import router as vendor_setup_router
     from apps.api.routes.recognition import router as recognition_router
     from apps.api.routes.reports import router as reports_router
     from apps.api.routes.spc import router as spc_router
@@ -30,10 +34,14 @@ def _load_all_routers() -> list[APIRouter]:
         gdt_router,
         spc_router,
         bend_inspection_router,
+        bend_labeling_router,
         part_catalog_router,
+        vendor_setup_router,
         recognition_router,
         live_scan_router,
         manual_assistant_router,
+        production_recipes_router,
+        production_line_router,
     ]
 
 

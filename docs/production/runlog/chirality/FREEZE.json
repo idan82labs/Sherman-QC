@@ -1,0 +1,68 @@
+{
+ "schema": "chirality_freeze_v0",
+ "frozen_at": "2026-10-28 (before any synthetic evaluation run; smoke runs on seeds 9001-9003 were pipeline debugging only)",
+ "map_thresholds": {
+  "fit_voxel_mm": 1.0,
+  "fit_source_points": 4000,
+  "fit_iterations": 40,
+  "eval_voxel_mm": 0.5,
+  "dev_mm": 1.0,
+  "core_mm": 2.0,
+  "shared_mm": 0.5,
+  "link_mm": 3.0,
+  "min_cluster_points": 20,
+  "gross_fraction": 0.05,
+  "hyp_overlap_min": 0.5,
+  "hyp_max": 6,
+  "hyp_dedupe_deg": 2.0,
+  "hyp_dedupe_mm": 1.0,
+  "ring_inner_mm": 1.0,
+  "ring_outer_mm": 5.0,
+  "probe_cap": 300,
+  "min_core_probes": 8,
+  "side_dot": 0.5
+ },
+ "map_thresholds_sha256": "3fa1a3edbaf333c19992249ee08d0364964d735d303f0d2559eb7e08113dac20",
+ "check_thresholds": {
+  "hit_mm": 0.8,
+  "present_fraction": 0.5,
+  "absent_fraction": 0.1,
+  "ring_coverage_min": 0.5,
+  "min_side_probes": 4
+ },
+ "check_thresholds_sha256": "22f6f6e739ad5c5d9705c8d186795a78fda84c067a2abaf12431d70a9ad950ef",
+ "synthetic": {
+  "occlusion_mm": 8.0,
+  "small_feature_mm": 60.0,
+  "scanner_model": "docs/production/runlog/scanner_model_card.json",
+  "plans": {
+   "G/M*": "FULL",
+   "T": "TOP_ONLY"
+  }
+ },
+ "pass_conditions": {
+  "P1": "0 mirrored scans (MX/MY/MZ/OX) of part-stages whose map class is not ACHIRAL end with any PASS characteristic",
+  "P2a": "0 genuine scans (G/T/O) refused MIRRORED_PART_SUSPECTED",
+  "P2b": "0 mirrored scans of ACHIRAL part-stages refused MIRRORED_PART_SUSPECTED",
+  "P3": "report: share of genuine occluded scans (O) whose PASSes are withheld (decision UNCONFIRMED) among VALID O scans; also genuine G/T withhold rate (cost)"
+ },
+ "files_sha256": {
+  "research/chirality/chirality_map.py": "a7a5ccf777b4ec6c4d0fbaf334aac0017f511c0937bf86122eb8d1a744582947",
+  "research/chirality/check.py": "c1f0884c5cf2e99bbfb04dddd051e0708abfb86ab0a0c935ef983be087e5d4d8",
+  "research/chirality/synth_scans.py": "4e2edfec19ccef70eb2c23bde9d6e73b4ffa927a8ecc40dda56a2465ac9b6210",
+  "docs/production/runlog/chirality/e3_1_15_0_rc_chirality.patch": "416c62b6408d4d1f72825b4207e703211cf96ee5b5f91c7bc50187d6c3971ef8",
+  "repo_c/engine.py": "c22eb4706bf1f66fadc5fb4fa48ce4339c17aec70400b51cc8b0412e6750bbb8",
+  "repo_c/config.py": "2476b43b88f11fa4e3e0d3f07d9cbeb14da204117c7e959f2a01eca27593e7ec",
+  "repo_c/cli.py": "6dbb75293a26688901e8d8cf426d96a8da0efc19b6bac62c4d68399e989b5f3e",
+  "repo_c/chirality.py": "c1f0884c5cf2e99bbfb04dddd051e0708abfb86ab0a0c935ef983be087e5d4d8",
+  "tools/run_c.py": "47ca3be8a9a12efa29a460f83a9a350a84af36958dbde7f71e7f158bbd63bd4c",
+  "tools/eval_plan.py": "56404d4239006942b7ecdc6c31ed1395bd1f5961ecad3702c62dfc771f640432",
+  "tools/job.sh": "f09ba65112ea12017a7699f4fe65fab7c331366df1894c295b1db240fefec47d",
+  "tools/gen_one.sh": "392f4b89a355d2d40deb2f675e9d3fd625a2967ec982a261a39dfc45054d621f",
+  "tools/real_jobs.py": "c6bbcfd9e459ec77c1b39bf4fb89d4df64b4a37bacf2c26281533def2efec68a",
+  "corpus.json": "79eb0dbd62c077e86c311482f7f915db64dd69b7ab713de2f6bf06a1d1d3bea2",
+  "plan.json": "7ae35e6a3d55638d4a7053377d75e2bb95f6692588e6a2fd8c725d9cc9d1565d",
+  "runs.txt": "7eace8b9c93bbce2d73669a6ffa076640fd50b2f7a3c7d07d2573245451ee3bc",
+  "real_runs.txt": "4c0a996b228f948a6219146748fbb5c7b54092700ea5125d4b059a85a7c6a190"
+ }
+}

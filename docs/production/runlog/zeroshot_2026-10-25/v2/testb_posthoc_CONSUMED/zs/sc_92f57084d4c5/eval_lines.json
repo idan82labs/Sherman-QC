@@ -1,0 +1,219 @@
+{
+ "schema": "sherman.broad_baseline.eval_lines.v1",
+ "lane": "zs_lane_v2:zs",
+ "status": "OK",
+ "frame": "scan_raw",
+ "frame_definition": "coordinates of the scan file exactly as stored (source_ply_raw == scan_raw)",
+ "units": "scan file units (mm for every Sherman scan inspected so far; not re-estimated)",
+ "scan": {
+  "path": "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260910_c9c0b064/38539000_02 (X).ply",
+  "sha256": "92f57084d4c53d6655a0a71684df42d1d1de268d6e9486933713ea4388b4dcc4"
+ },
+ "source": {
+  "kind": "zs_lane_v2:zs",
+  "path": null,
+  "sha256": null
+ },
+ "conversion": {
+  "rule": "zs_lane_v2 variant zs",
+  "variant": "zs",
+  "threshold": 0.5,
+  "model": "docs/production/runlog/zeroshot_2026-10-25/v2/models/zs_lane_v2_zs_gbm.pkl",
+  "model_sha256": "91b3646653936394807b8ce665c95906fea7f61d83425e96bb7b1e0b02d8f6f6",
+  "post": {
+   "dedupe_join": true,
+   "join": true,
+   "join_low": 0.0,
+   "sweep_min": 0.25
+  },
+  "z3_params": {
+   "fallback_frac_only": true
+  },
+  "z2_fallback": true,
+  "code_fingerprint": "39c0efb92c3c3962605168fb2cda977edff5840a2da1cd4518659e7544209097",
+  "pins_ok": true,
+  "pin_mismatch": [],
+  "errors": {},
+  "stages": {
+   "z3": {
+    "wall": 3.422,
+    "t_mm": 1.8853697776794434,
+    "n_candidates": 16,
+    "area_total": 200215.94515527948,
+    "n_families": 3,
+    "family_fallback": false
+   },
+   "z2": {
+    "wall": 6.451,
+    "t_mm": 1.887,
+    "n_lines": 8
+   },
+   "pool": {
+    "wall": 0.004,
+    "n": 16
+   },
+   "snap_all": {
+    "wall": 0.196,
+    "n": 16
+   },
+   "evidence": {
+    "wall": 0.267
+   },
+   "select_post": {
+    "wall": 0.003,
+    "n": 6,
+    "ops": {
+     "keep": 6,
+     "split": 0,
+     "join": 0
+    }
+   }
+  },
+  "posthoc_consumed_testb": true,
+  "guard_basis": "POSTHOC_CONSUMED_TESTB (zs_lane_v1 one-time run consumed TEST-B; not a held-out result)"
+ },
+ "line_count": 6,
+ "owned_bend_regions": [
+  {
+   "bend_id": "ZS001",
+   "line_start": [
+    -83.13582073808539,
+    -111.07476291940623,
+    161.07331023486609
+   ],
+   "line_end": [
+    -306.332148172002,
+    -259.1162097429771,
+    141.84832113168866
+   ],
+   "score": 0.9996089982729937,
+   "incl": 88.42017611270188,
+   "src": [
+    "z2",
+    "z3"
+   ],
+   "op": "keep",
+   "parts": [
+    0
+   ]
+  },
+  {
+   "bend_id": "ZS002",
+   "line_start": [
+    -310.10001256297426,
+    -260.5437903329085,
+    138.23928234765327
+   ],
+   "line_end": [
+    -392.44617610822394,
+    -140.45357010005088,
+    259.51469374374454
+   ],
+   "score": 0.7490070411587093,
+   "incl": 89.76856605404772,
+   "src": [
+    "z3"
+   ],
+   "op": "keep",
+   "parts": [
+    1
+   ]
+  },
+  {
+   "bend_id": "ZS003",
+   "line_start": [
+    -132.22065583456578,
+    -22.579360204389214,
+    48.992213848231245
+   ],
+   "line_end": [
+    -358.06355910403636,
+    -177.93625015555264,
+    24.930738025054318
+   ],
+   "score": 0.9989316076829736,
+   "incl": 90.02009531578241,
+   "src": [
+    "z2",
+    "z3"
+   ],
+   "op": "keep",
+   "parts": [
+    2
+   ]
+  },
+  {
+   "bend_id": "ZS004",
+   "line_start": [
+    -442.4215872522494,
+    -57.87008994295826,
+    144.89143068001914
+   ],
+   "line_end": [
+    -397.501158093905,
+    -137.69470642102794,
+    254.05508547437046
+   ],
+   "score": 0.9615688603313015,
+   "incl": 89.40698396398655,
+   "src": [
+    "z2",
+    "z3"
+   ],
+   "op": "keep",
+   "parts": [
+    3
+   ]
+  },
+  {
+   "bend_id": "ZS005",
+   "line_start": [
+    -361.1197809855281,
+    -177.36453692701485,
+    25.267476236431992
+   ],
+   "line_end": [
+    -373.6203660218843,
+    -158.30110719858695,
+    44.78246755616403
+   ],
+   "score": 0.5008757712724473,
+   "incl": 89.55498718913077,
+   "src": [
+    "z2",
+    "z3"
+   ],
+   "op": "keep",
+   "parts": [
+    4
+   ]
+  },
+  {
+   "bend_id": "ZS006",
+   "line_start": [
+    -353.16596223035725,
+    -117.64701639999028,
+    264.7329771709464
+   ],
+   "line_end": [
+    -384.78112059249185,
+    -137.29741771071346,
+    263.03072976787126
+   ],
+   "score": 0.5878277862701341,
+   "incl": 89.70847350728877,
+   "src": [
+    "z2",
+    "z3"
+   ],
+   "op": "keep",
+   "parts": [
+    6
+   ]
+  }
+ ],
+ "dropped": [],
+ "failure": null,
+ "created_at": "2026-10-25T08:47:13Z",
+ "ledger_note": "POSTHOC_CONSUMED: TEST-B was consumed by zs_lane_v1; this is not a held-out result"
+}

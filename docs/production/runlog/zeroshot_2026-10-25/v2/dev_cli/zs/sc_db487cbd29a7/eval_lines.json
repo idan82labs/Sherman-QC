@@ -1,0 +1,104 @@
+{
+ "schema": "sherman.broad_baseline.eval_lines.v1",
+ "lane": "zs_lane_v2:zs",
+ "status": "OK",
+ "frame": "scan_raw",
+ "frame_definition": "coordinates of the scan file exactly as stored (source_ply_raw == scan_raw)",
+ "units": "scan file units (mm for every Sherman scan inspected so far; not re-estimated)",
+ "scan": {
+  "path": "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260129_19c09099/47266000_F.ply",
+  "sha256": "db487cbd29a7d447f95f2cf3591ef5b42324336df7d7ff7deccaf1009820412a"
+ },
+ "source": {
+  "kind": "zs_lane_v2:zs",
+  "path": null,
+  "sha256": null
+ },
+ "conversion": {
+  "rule": "zs_lane_v2 variant zs",
+  "variant": "zs",
+  "threshold": 0.5,
+  "model": "docs/production/runlog/zeroshot_2026-10-25/v2/models/zs_lane_v2_zs_gbm.pkl",
+  "model_sha256": "91b3646653936394807b8ce665c95906fea7f61d83425e96bb7b1e0b02d8f6f6",
+  "post": {
+   "dedupe_join": true,
+   "join": true,
+   "join_low": 0.0,
+   "sweep_min": 0.25
+  },
+  "z3_params": {
+   "fallback_frac_only": true
+  },
+  "z2_fallback": true,
+  "code_fingerprint": "39c0efb92c3c3962605168fb2cda977edff5840a2da1cd4518659e7544209097",
+  "pins_ok": true,
+  "pin_mismatch": [],
+  "errors": {},
+  "stages": {
+   "z3": {
+    "wall": 0.937,
+    "t_mm": 3.1791305541992188,
+    "n_candidates": 4,
+    "area_total": 8629.433080918016,
+    "n_families": 3,
+    "family_fallback": false
+   },
+   "z2": {
+    "wall": 0.876,
+    "t_mm": 3.18,
+    "n_lines": 1
+   },
+   "pool": {
+    "wall": 0.002,
+    "n": 4
+   },
+   "snap_all": {
+    "wall": 0.013,
+    "n": 4
+   },
+   "evidence": {
+    "wall": 0.032
+   },
+   "select_post": {
+    "wall": 0.003,
+    "n": 1,
+    "ops": {
+     "keep": 1,
+     "split": 0,
+     "join": 0
+    }
+   }
+  },
+  "posthoc_consumed_testb": false,
+  "guard_basis": "SPLIT_FROZEN_DEV_GOLD_OF_RECORD"
+ },
+ "line_count": 1,
+ "owned_bend_regions": [
+  {
+   "bend_id": "ZS001",
+   "line_start": [
+    -138.22793921448115,
+    -53.38543662020706,
+    266.3814862206614
+   ],
+   "line_end": [
+    -112.91707349195096,
+    -51.37165139362118,
+    251.3628180961471
+   ],
+   "score": 0.9970078146440151,
+   "incl": 89.54862709676728,
+   "src": [
+    "z2",
+    "z3"
+   ],
+   "op": "keep",
+   "parts": [
+    0
+   ]
+  }
+ ],
+ "dropped": [],
+ "failure": null,
+ "created_at": "2026-10-25T08:41:36Z"
+}

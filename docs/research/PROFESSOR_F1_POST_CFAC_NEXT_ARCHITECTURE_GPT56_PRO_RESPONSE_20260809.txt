@@ -1,0 +1,488 @@
+RULING
+CONCENTRIC_FOCAL_AXIS_COLLAPSE_V1 is terminal. No CFAC vote-cap, stage-order, fixture, or gate correction is authorized.
+Authorize exactly one new family:
+LOCAL_SCREW_SLIPPAGE_COHERENCE_V1
+Causal hypothesis
+A true sheet-metal bend contains a connected band of single-surface neighborhoods with exactly two stable infinitesimal slippable rigid motions:
+
+
+translation along one axis;
+
+
+rotation about that same axis.
+
+
+Transversely, that two-motion band must terminate on both sides in three-motion planar neighborhoods whose normals are nonparallel and whose cross product agrees with the recovered screw axis.
+A complete cylinder has the two-motion signature everywhere but has no bilateral planar tails. A flat sheet is three-slippable rather than two-slippable. A hole wall has cylindrical slippage, but its adjacent planar normals are parallel to the hole axis and occur radially rather than on the two circumferential sides. Terminal walls, spheres, generic doubly curved surfaces, and sharp joins fail either the two-motion signature or the bilateral-tail geometry.
+This is causally distinct from every named closed family:
+
+
+no support-growth exponent or spherical direction rank from SDRA;
+
+
+no opposite-skin pairing or mid-surface construction from AMHC;
+
+
+no focal-center voting, radius estimate, or twin-radius gain from CFAC;
+
+
+no Gauss-map path, great-circle arc, or ruled-normal ribbon from PGRR;
+
+
+no cubical complex or persistence invariant from CIIP;
+
+
+no graph geodesic, chord deficit, or flux backprojection from GCDF.
+
+
+The planar signatures below are only post-candidate bracketing witnesses. They are never grown into plane fragments and never independently generate a bend candidate.
+ESTABLISHED MECHANISM
+Gelfand and Guibas define an infinitesimal rigid motion by v(x) = r cross x + t and call the motion slippable when its normal component vanishes over the surface. A plane admits two tangent translations and a rotation about its normal; a cylinder admits translation along its axis and rotation about that axis. Guibas Lab
+For a point neighborhood, they reduce the tangency objective to a symmetric 6 by 6 matrix assembled from point-normal terms. Near-null eigenvectors of that matrix form the local slippage signature. Their formulation applies to unorganized point clouds after local normal estimation and centers and rescales each neighborhood for numerical conditioning. Guibas Lab+1
+They report classifying an eigenvalue as small using an inverse eigenvalue ratio between 100 and 300. LSSC freezes the reciprocal of 250, namely 0.004, and adds a separate 0.008 hysteresis wall. The multiscale schedule, screw-axis extraction, bilateral planar bracketing, graph construction, source-free fixtures, and all fund/kill criteria are new Sherman-specific hypotheses, not published bend-detection results. Guibas Lab
+FROZEN CONSTRUCTION
+1. Input, scale, and normals
+input_min_points = 1024
+input_max_points = 200000
+coordinate_type = IEEE-754 float64
+duplicate_rule = exact XYZ equality after mapping negative zero to positive zero
+canonical_order = lexicographic XYZ
+spacing_neighbor_rank = 4
+normal_neighbor_count = 24
+normal_radius_max = 4.0 * s
+normal_min_neighbors = 16
+normal_surface_ratio_min = 0.12
+normal_thickness_ratio_max = 0.25
+chart_neighbor_count = 16
+chart_edge_length_max = 2.5 * s
+chart_normal_angle_max_deg = 35.0
+chart_normal_abs_dot_min = 0.8191520442889918
+For every canonical point, let d4 be the distance to its fourth distinct nearest neighbor. Define:
+s = median(d4)
+Reject the input if s is nonfinite or nonpositive.
+For normal estimation, use the available members of the 24 nearest distinct neighbors whose distance is at most 4.0s. Compute the unweighted covariance eigenvalues:
+eta_1 <= eta_2 <= eta_3
+A point is surface-eligible only when:
+eta_2 / max(eta_3, 1e-15) >= 0.12
+eta_1 / max(eta_2, 1e-15) <= 0.25
+Its unoriented normal is the eigenvector of eta_1.
+Construct the undirected source-chart graph from the union of each eligible point’s 16 nearest eligible-neighbor proposals. Keep an edge only when its length is at most 2.5s and the absolute normal dot product is at least 0.8191520442889918.
+No oriented-normal propagation is performed.
+2. Deterministic anchors
+Let M be the number of eligible points.
+A = min(M, 12000, max(2048, ceil(M / 24)))
+For every eligible point, construct an anchor key from:
+ASCII string "LSSC_V1_ANCHOR"
+the point minus the eligible-point centroid, divided by s
+the first 8 sorted distinct-neighbor distances, divided by s
+all numeric fields rounded to the nearest multiple of 1e-9
+all numeric fields encoded as little-endian float64
+Hash that byte sequence with SHA-256. Select the A lowest digests, breaking an exact digest tie by canonical point index.
+This selection is permutation-invariant. Rigid-transform tests judge inverse-mapped output geometry rather than anchor identity.
+3. Multiscale slippage matrix
+Use exactly these neighborhood radii:
+patch_radii_over_s = [6.0, 10.0, 16.0, 24.0]
+patch_min_points = 48
+patch_max_points = 4096
+total_patch_membership_max = 32000000
+For anchor q and radius rho, first take eligible points within Euclidean distance rho. From that induced subgraph, keep only the connected component containing q.
+A patch with fewer than 48 points is invalid at that radius. A patch exceeding 4,096 points, or a run exceeding 32,000,000 total point-patch memberships, is a resource STOP; it is not thinned or silently truncated.
+For patch points x_i and unoriented normals n_i, calculate:
+c = mean(x_i)
+a = mean(norm(x_i - c))
+u_i = (x_i - c) / a
+b_i = concatenate(cross(u_i, n_i), n_i)
+C = mean(b_i b_i^T)
+Require:
+a >= 0.5 * s
+lambda_6 >= 1e-12
+Let:
+lambda_1 <= lambda_2 <= ... <= lambda_6
+be the eigenvalues of C.
+Normal reversal changes the sign of b_i but not b_i b_i^T; therefore the matrix is exactly unoriented-normal invariant.
+4. Two-motion cylindrical-slippage gate
+A patch reaches the screw-extraction stage only when:
+lambda_2 / lambda_6 <= 0.004
+lambda_3 / lambda_6 >= 0.008
+lambda_4 / lambda_6 >= 0.15
+Let U2 contain the first two eigenvectors of C, with its first three rows denoted R2 and last three rows denoted T2.
+Let z_t be the unit eigenvector associated with the smallest eigenvalue of:
+R2^T R2
+Define:
+m_t = U2 z_t
+m_t = concatenate(r_t, t_t)
+translation_leak = norm(r_t) / norm(m_t)
+Require:
+norm(t_t) > 1e-9
+translation_leak <= 0.08
+Let z_r be the unit two-vector orthogonal to z_t, and calculate:
+m_r = U2 z_r
+m_r = concatenate(r, t)
+d_t = t_t / norm(t_t)
+d_r = r / norm(r)
+Require:
+norm(r) > 1e-9
+abs(dot(d_t, d_r)) >= 0.9902680687415704
+Remove the axial translation from the rotational generator:
+t_0 = t - dot(t, d_t) d_t
+rotation_fraction =
+    norm(r) / sqrt(norm(r)^2 + norm(t_0)^2)
+Require:
+rotation_fraction >= 0.20
+Recover the screw axis in patch-normalized coordinates:
+axis_point_normalized = cross(r, t_0) / dot(r, r)
+axis_point = c + a * axis_point_normalized
+axis_direction = d_r
+foot = axis_point
+       + axis_direction
+       * dot(axis_direction, q - axis_point)
+Require:
+norm(q - foot) <= 3.25 * rho
+For an anchor, choose the smallest radius in [6s, 10s, 16s, 24s] satisfying every gate above. No radius value is emitted or compared between skins.
+5. Three-motion planar-tail signature
+At the selected screw radius rho, an anchor is a planar-tail witness only when:
+lambda_3 / lambda_6 <= 0.004
+lambda_4 / lambda_6 >= 0.20
+Let U3 contain the first three eigenvectors. Partition it into rotational and translational blocks R3 and T3.
+Let the descending singular values of R3 be:
+sigma_R1 >= sigma_R2 >= sigma_R3
+Let the descending singular values of T3 be:
+sigma_T1 >= sigma_T2 >= sigma_T3
+Require:
+sigma_R2 / max(sigma_R1, 1e-12) <= 0.05
+sigma_T2 >= 0.90
+The planar normal is the first left singular vector of R3. It remains unoriented.
+6. Bilateral localization
+For a screw candidate at anchor q, define:
+radial = q - foot
+Reject it if:
+norm(radial) < 0.5 * s
+Define the transverse bend direction:
+g = normalize(cross(axis_direction, radial))
+Search only selected anchors in the same source-chart component, and only their planar signatures at the screw candidate’s selected radius.
+A positive-side tail candidate with displacement delta must satisfy:
+1.40 * rho <= norm(delta) <= 4.00 * rho
+abs(dot(delta, axis_direction)) / norm(delta) <= 0.35
+dot(delta, g) >= 1.25 * rho
+dot(delta, g) / norm(delta) >= 0.70
+A negative-side candidate must satisfy the same conditions with:
+dot(delta, g) <= -1.25 * rho
+-dot(delta, g) / norm(delta) >= 0.70
+Retain the nearest 32 candidates on each side, ordered by distance and then anchor digest.
+For a positive and negative tail pair with plane normals n_plus and n_minus, require:
+abs(dot(q_plus - q_minus, axis_direction)) <= 0.75 * rho
+
+abs(dot(n_plus, axis_direction))
+    <= 0.20791169081775931
+
+abs(dot(n_minus, axis_direction))
+    <= 0.20791169081775931
+Define the unoriented dihedral:
+theta =
+    degrees(acos(clamp(abs(dot(n_plus, n_minus)), 0, 1)))
+Require:
+25.0 <= theta <= 90.0
+norm(cross(n_plus, n_minus)) > 1e-9
+
+abs(dot(normalize(cross(n_plus, n_minus)),
+        axis_direction))
+    >= 0.9781476007338057
+Choose the valid pair minimizing, in order:
+sum of the two tail distances
+absolute axial separation
+positive anchor digest
+negative anchor digest
+Only candidates with a valid pair become localized screw votes.
+There is no vote count, source fraction, or object count stop before or during this causal stage. A full cylinder is therefore allowed to make every anchor a raw two-motion candidate and must be rejected specifically because it has no bilateral planar tails.
+7. Screw-vote graph
+Each localized vote contributes:
+axis point
+unoriented axis direction
+axis foot
+selected radius
+tail dihedral
+tail-pair geometry
+Query vote neighbors whose feet are within 8.0s.
+Two votes may be linked only when:
+unoriented axis angle <= 8.0 degrees
+infinite-line separation <= 2.5 * s
+selected-radius ratio <= 2.0
+absolute tail-dihedral difference <= 15.0 degrees
+Let delta_f be the foot displacement. If norm(delta_f) > 2.0s, additionally require:
+abs(dot(delta_f, mean sign-aligned axis direction))
+    / norm(delta_f)
+    >= 0.75
+For nearly parallel lines, line separation is the norm of the displacement perpendicular to either line. Otherwise it is the absolute scalar triple product divided by the norm of the direction cross product.
+For each vote, retain at most 24 passing neighbor proposals, ordered by foot distance, axis angle, and neighbor digest. Use the undirected union of those proposals.
+8. Component fitting and retention
+For a component, sign-align its vote directions and compute the principal eigenvector of:
+sum(d_i d_i^T)
+as the common direction d.
+Find the common point p by solving:
+A_fit = sum(I - d_i d_i^T) + d d^T
+b_fit = sum((I - d_i d_i^T) a_i)
+p = solve(A_fit, b_fit)
+Components are merged when all of the following hold:
+common-axis angle <= 6.0 degrees
+common-line separation <= 2.0 * s
+axial interval gap <= 8.0 * s
+median tail-dihedral difference <= 12.0 degrees
+Refit after each union-find merge.
+A final component must satisfy:
+vote_count >= 8
+axial_P95_minus_P05 >= 24.0 * s
+foot_RMS_line_residual <= 1.5 * s
+foot_P90_line_residual <= 2.5 * s
+median_vote_axis_deviation <= 4.0 degrees
+P90_vote_axis_deviation <= 8.0 degrees
+tail_dihedral_IQR <= 15.0 degrees
+P90_tail_cross_axis_error <= 12.0 degrees
+selected_radius_P90 / selected_radius_P10 <= 2.0
+Bin the central 90 percent axial interval at width 4.0s. Require:
+occupied_bin_fraction >= 0.65
+maximum_empty_run <= 8.0 * s
+For descending covariance eigenvalues of the vote feet:
+q_1 >= q_2 >= q_3
+require:
+q_1 / max(q_2, s^2) >= 12.0
+Final axes are canonicalized by making the first direction component whose magnitude exceeds 1e-12 positive, converting the line point to the point closest to the coordinate origin, and sorting lexicographically.
+MANDATORY SOURCE-FREE REGRESSION
+All surface grids use unit arclength and unit axial sampling before jitter. Fixture jitter is generated independently for each coordinate from SHA-256 of the fixture token, lattice indices, and coordinate index, mapped uniformly into [-0.03s, 0.03s].
+A point is deleted when the first 64 hash bits of its fixture identity are below 0.05 * 2^64. No test may change its seed or realization after implementation begins.
+SF01: double-skin 90-degree bend
+axis = y
+axis interval = [-48s, 48s]
+skin radii = 8s and 16s
+arc angle = 90 degrees
+tangent flange length on each side = 40s
+caps = none
+Required:
+final axes = exactly 1
+axis direction error <= 2.0 degrees
+line distance to true y-axis <= 1.5s
+axial P95-minus-P05 >= 60s
+SF02: axial crop
+Use SF01 and retain:
+y in [-24s, 24s]
+Required:
+final axes = exactly 1
+axis direction error <= 2.0 degrees
+line distance <= 1.5s
+axial P95-minus-P05 >= 24s
+SF03: scale and angle positive
+axis = y
+axis interval = [-48s, 48s]
+skin radii = 21s and 27s
+arc angle = 60 degrees
+tangent flange length on each side = 54s
+caps = none
+Required:
+final axes = exactly 1
+axis direction error <= 2.0 degrees
+line distance <= 2.0s
+axial P95-minus-P05 >= 60s
+SF04: single-skin positive
+single radius = 12s
+arc angle = 90 degrees
+axis interval = [-48s, 48s]
+flange length = 40s per side
+Required:
+final axes = exactly 1
+axis direction error <= 2.0 degrees
+line distance <= 1.5s
+This test is mandatory causal evidence that LSSC is not a twin-skin or twin-radius architecture.
+SF05: flat double skin
+dimensions = 120s by 96s
+skin separation = 8s
+walls = none
+Required:
+final axes = 0
+SF06: complete concentric-cylinder decoy
+axis = y
+axis interval = [-48s, 48s]
+radii = 8s and 16s
+circumference = complete 360 degrees
+caps = none
+Among anchors having at least one valid patch, require:
+raw two-motion candidate fraction >= 0.90
+bilateral planar-tail pairs = 0
+final axes = 0
+The producer must record that the two-motion stage was reached. Rejection before that stage is a failed regression.
+SF07: shallow complete-cylinder decoy
+single radius = 27s
+axis interval = [-48s, 48s]
+circumference = complete 360 degrees
+caps = none
+Required:
+raw two-motion candidate fraction >= 0.90
+bilateral planar-tail pairs = 0
+final axes = 0
+This prevents a small-radius-only interpretation of SF06.
+SF08: through-hole geometry
+flat skin dimensions = 120s by 96s
+skin positions = z at -4s and 4s
+centered circular hole radius = 12s
+cylindrical hole wall joins the two skins
+external walls = none
+Required:
+final axes = 0
+every raw hole-wall screw candidate fails bilateral-tail geometry
+SF09: terminal end wall
+flat skin dimensions = 120s by 96s
+skin positions = z at -4s and 4s
+one planar terminal wall joins the skins at x = 60s
+other external walls = none
+Required:
+final axes = 0
+SF10: sphere
+single complete spherical surface
+radius = 16s
+approximately unit-area sampling
+Required:
+bilateral planar-tail pairs = 0
+final axes = 0
+SF11: metamorphic checks
+Permutation:
+order points by SHA-256 of their original fixture bytes
+After excluding timing, RSS, and filesystem fields, the canonical semantic JSON must be byte-identical to SF01.
+Rigid transformations:
+T1 = right-handed Rx(17 degrees), translation (11s, -7s, 5s)
+T2 = right-handed Ry(71 degrees) then Rz(-23 degrees),
+     translation (-23s, 9s, 31s)
+T3 = right-handed Rz(-43 degrees), Ry(29 degrees), Rx(11 degrees),
+     translation (101s, -37s, 19s)
+After inverse mapping:
+final axis count = exactly 1 for each transform
+direction disagreement from SF01 <= 0.75 degrees
+line distance from SF01 <= 0.75s
+Uniform scales:
+scale factors = 0.5 and 3.0
+After dividing output coordinates by the scale factor:
+axis count = exactly 1
+direction disagreement <= 0.75 degrees
+line distance <= 0.75s
+Any failed source-free condition produces an immediate architecture STOP. No constant change, fixture replacement, threshold sweep, or C006 run follows.
+ONE BOUNDED C006 FUND/KILL RUN
+After all source-free checks pass:
+
+
+Freeze and hash the producer, independent validator, configuration, tests, and visual renderer.
+
+
+Create a fresh C006 source-only claim.
+
+
+Consume that claim immediately before the first C006 read.
+
+
+Run the ordinary producer and independently implemented validator under the same orchestration.
+
+
+Do not open gold, CAD, labels, expected counts, benchmark results, prior C006 projections, or filenames beyond the frozen content binding.
+
+
+Do not rerun after any terminal result.
+
+
+Resource contract:
+producer_wall_max = 135 seconds
+validator_wall_max = 135 seconds
+orchestration_wall_max = 285 seconds
+peak_RSS_each_max = 15.5 GiB
+source_graph_edges_max = 3200000
+patch_memberships_max = 32000000
+localized_vote_graph_edges_max = 24 * A
+nonvisual_artifacts_max = 32 MiB
+all_artifacts_including_two_PNGs_max = 128 MiB
+serialized_source_XYZ = forbidden
+The validator independently rebuilds scale, normals, chart graph, anchors, every patch matrix, stage assignment, tail pair, vote graph, and final component. It does not consume producer intermediates as truth.
+Required agreement:
+eligible-point count = exact
+anchor digests = exact
+per-stage anchor counts = exact
+selected scale per anchor = exact
+tail-pair identities = exact
+final component count = exact
+all canonical numeric fields equal after rounding to 1e-9
+FUND
+The C006 run is a source-only FUND only when all of the following hold:
+producer status = valid
+validator status = valid
+producer-validator agreement = pass
+final axis count between 1 and 64 inclusive
+every emitted axis passes every frozen component gate
+final retained vote count divided by A <= 0.25
+resource contract = pass
+native visual ruling = pass
+The ceiling of 64 is an artifact and nonselectivity wall, not a target-specific expected count.
+The raw two-motion fraction is deliberately unrestricted. It may equal 1.0 without causing an early stop.
+KILL
+Any of the following is a terminal architecture KILL:
+zero final axes
+more than 64 final axes
+final retained vote fraction above 0.25
+producer-validator disagreement
+resource wall
+permutation or deterministic-replay disagreement
+final support forming a sheet, ring, or broad surface rather than a line
+retained support dominated by a complete cylinder, hole wall, terminal wall,
+scan boundary, or one-sided planar continuation
+A numerical pass with a failed native visual ruling remains a KILL.
+A FUND authorizes preservation of the compact source-only evidence and consideration of a later separately governed evaluation tranche. It does not authorize opening gold in this run.
+EXACTLY TWO NATIVE-RESOLUTION VISUALS
+LSSC_V1_SOURCE_FREE_CAUSAL_RULING_4096.png
+One 4096 by 4096 contact sheet containing:
+
+
+SF01, SF03, and SF04 positives;
+
+
+SF06 and SF07 complete-cylinder decoys;
+
+
+SF08 through-hole;
+
+
+raw two-motion anchors;
+
+
+bilateral-tail survivors;
+
+
+recovered screw axes;
+
+
+planar-tail normals.
+
+
+The full-cylinder panels must visibly show dense raw two-motion activation followed by zero bilateral-tail survivors.
+LSSC_V1_C006_NATIVE_RULING_4096.png
+One 4096 by 4096 audit containing:
+
+
+native orthographic X-Y, X-Z, and Z-Y views;
+
+
+one perspective view;
+
+
+source points in neutral intensity;
+
+
+raw two-motion anchors in a subdued overlay;
+
+
+bilateral-tail survivors in a distinct overlay;
+
+
+final axes at full contrast;
+
+
+short arrows for both planar-tail normals;
+
+
+diagnostic insets for every final component and the eight largest rejected raw components.
+
+
+The manual ruling must explicitly reject the run if a retained structure is visibly a two-dimensional strip, a closed ring, a complete pipe axis unsupported by two planar flanks, a hole-wall response, a terminal-wall response, a scan-boundary response, or a line supported from only one transverse side.
+AUTHORIZE_LOCAL_SCREW_SLIPPAGE_COHERENCE_V1_C006_FROZEN_SOURCE_ONLY_CAUSAL_PREFLIGHT_V1

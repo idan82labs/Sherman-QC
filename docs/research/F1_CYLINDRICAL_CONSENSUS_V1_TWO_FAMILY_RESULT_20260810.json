@@ -1,0 +1,84 @@
+{
+  "schema_version": 1,
+  "result_id": "F1_CYLINDRICAL_CONSENSUS_V1_TWO_FAMILY_RESULT_20260810",
+  "status": "TERMINAL_FAMILY_B_TRANSFER_RESULT",
+  "freeze_path": "docs/research/F1_CYLINDRICAL_CONSENSUS_V1_FAMILY_B_FREEZE_20260810.json",
+  "freeze_sha256": "147528c0b4aecce79db21a596c0053e621f9caf0e2284752952dcf320f7ffbd0",
+  "family_A": {
+    "role": "iterative_development",
+    "case_id": "corpus/09_47959001",
+    "metrics": {
+      "true_positive": 5,
+      "false_positive": 0,
+      "false_negative": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "exact": true
+    },
+    "conclusion": "all true objects existed in the pre-existing scan-only cylindrical candidate representation; selection was the limiting stage"
+  },
+  "family_B": {
+    "role": "immutable_one_shot_transfer",
+    "case_id": "corpus/13_ysherman",
+    "claim_status": "consumed",
+    "claim_path": "output/research/f1-quarantined-semantic-oracle-v1/family_B/cylindrical_consensus_v1_one_shot_claim.json",
+    "claim_sha256": "5b53af72a273da01a2bccdc4820eafa43582cd2353c2c0fffb1a57a50f45e03d",
+    "feedback_path": "output/research/f1-quarantined-semantic-oracle-v1/family_B/cylindrical_consensus_v1_feedback.json",
+    "feedback_sha256": "1dfb9e84f082428fa2ab8fb3aa1db0010330f8c097c31d402957688b586c891f",
+    "metrics": {
+      "true_positive": 6,
+      "false_positive": 5,
+      "false_negative": 6,
+      "precision": 0.545455,
+      "recall": 0.5,
+      "f1": 0.521739,
+      "exact": false
+    },
+    "true_source_line_objects": [
+      "cylindrical_standard::CB1_175",
+      "cylindrical_standard::CB5_135",
+      "cylindrical_standard::CB6_38",
+      "cylindrical_standard::CB8_228",
+      "cylindrical_standard::CB9_10",
+      "cylindrical_standard::CB12_21"
+    ],
+    "unmatched_source_line_objects": [
+      "cylindrical_standard::CB2_178",
+      "cylindrical_standard::CB4_56",
+      "cylindrical_standard::CB7_87",
+      "cylindrical_standard::CB8_278",
+      "cylindrical_standard::CB13_156"
+    ],
+    "terminal_native_visual_path": "output/research/f1-quarantined-semantic-oracle-v1/family_B/cylindrical_consensus_v1_terminal_native_4096.png",
+    "terminal_native_visual_sha256": "5d05ecff0ac70b6b7d98ce928c71af02981b878ceb515d45e41872f6b7beb8c4",
+    "manual_visual_findings": [
+      "the six accepted green candidates occupy visually distinct fold boundaries across the box-like assembly",
+      "the five red candidates are not a single failure type: one is a shallow candidate and four are near-orthogonal candidates",
+      "the false shallow transfer shows that the Family-A shallow-partial-cylinder rule does not generalize to this family",
+      "six false negatives remain unrendered, so this terminal execution alone cannot distinguish missing candidate representation from selector suppression"
+    ],
+    "rerun_authorized": false,
+    "threshold_tuning_on_family_B_authorized": false
+  },
+  "scientific_conclusion": {
+    "supported": [
+      "cylindrical consensus can exactly recover one development family",
+      "the frozen selector transfers a real six-object structural core to a different family",
+      "the current selector is not sufficiently general for the stated F1 objective"
+    ],
+    "not_supported": [
+      "90 percent cross-family F1",
+      "production promotion",
+      "runtime/main replacement",
+      "a claim that all six Family-B misses are absent from the raw candidate pool"
+    ]
+  },
+  "safety": {
+    "gold_geometry_exposed": false,
+    "expected_count_exposed": false,
+    "c006_opened": false,
+    "cad_opened": false,
+    "runtime_main_or_production_written": false
+  }
+}

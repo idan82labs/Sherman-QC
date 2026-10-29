@@ -1,0 +1,682 @@
+{
+ "schema": "sherman_a1_iteration_scorecard_v1",
+ "iteration": 0,
+ "created": "2026-10-18",
+ "label": "consumed development (engineering ledger); never unseen-family accuracy. Iteration 0 = the production engine exactly as built in waves 1-3, no changes.",
+ "engine": {
+  "engine_version": "e3-1.1.0",
+  "config": "default (no --config)",
+  "config_sha256": "960f5f3e2e009da4b348fe5aabfe9065641d30fafe49558746cbb60a951568a9",
+  "code_fingerprints_now": {
+   "compile": "d4e870e8071856f22869a323f5f574ae72e05907dca87ad0278fdb078895b71a",
+   "engine": "46546e8af142e3e486002ebeb5ba9639c9d096012b7b07ac4b3f9ae4ba0cb585",
+   "eval": "8aa6860c78d85a2daf1d36607b52c691079378c66507a29e6827e73c0f7cae6a"
+  },
+  "code_fingerprints_at_freeze": {
+   "engine": "5edada163ba033bbdd566bb66aa8de9c83ff3af051657956e84b0c838bcc1090",
+   "compile": "6147b43c87596a79b98e340b171f76a6e213b134770fc31d67224e4c24f460df",
+   "eval": "8aa6860c78d85a2daf1d36607b52c691079378c66507a29e6827e73c0f7cae6a"
+  },
+  "notes": "engine and compile code changed after the freeze (allowed: engine is A1's knob); eval fingerprint unchanged; compile-frozen recompiled 18/18 A1 recipes byte-identical to the freeze (17 COMPILED, 1 BLOCKED)"
+ },
+ "ledger": {
+  "anchor": "cf01e709079c0fcc348758c5196884bff7d20f7836b88c7616883c0dcec67e67",
+  "ledger_check_ok": true,
+  "anchor_checked": true,
+  "physical_final": false,
+  "physical_qualifying": false,
+  "g1_qualifying": false,
+  "g1_not_qualifying_reasons": [
+   "TIER_REGRESSION",
+   "SEEDSET_DEV",
+   "SCANNER_MODEL_PARTIAL"
+  ]
+ },
+ "G1_synthetic_regression_DEV": {
+  "tier": "regression DEV, 50 cases / 7 families, e2-synthetic-1.1.1, scanner model card (PARTIAL)",
+  "verdict": "INCOMPLETE",
+  "regression_verdict": "PASS",
+  "failed_gates": [],
+  "gates": {
+   "G1.ACC.FLANGE_LENGTH.BIAS": {
+    "verdict": "PASS",
+    "value": 0.009329,
+    "threshold": 0.05,
+    "n": 115
+   },
+   "G1.ACC.FLANGE_LENGTH.P95": {
+    "verdict": "PASS",
+    "value": 0.103252,
+    "threshold": 0.2,
+    "n": 115
+   },
+   "G1.ACC.INCLUDED_ANGLE.BIAS": {
+    "verdict": "PASS",
+    "value": 0.001521,
+    "threshold": 0.1,
+    "n": 58
+   },
+   "G1.ACC.INCLUDED_ANGLE.P95": {
+    "verdict": "PASS",
+    "value": 0.019033,
+    "threshold": 0.3,
+    "n": 58
+   },
+   "G1.ACC.BEND_LINE_POSITION.P95": {
+    "verdict": "PASS",
+    "value": 0.072959,
+    "threshold": 0.3,
+    "n": 58
+   },
+   "G1.COVERAGE": {
+    "verdict": "PASS",
+    "value": 0.996894,
+    "threshold": 0.9,
+    "n": 322
+   },
+   "G1.FALSE_PASS": {
+    "verdict": "PASS",
+    "value": 0,
+    "threshold": 0,
+    "n": 553
+   },
+   "G1.FALSE_FAIL": {
+    "verdict": "PASS",
+    "value": 0.0,
+    "threshold": 0.005,
+    "n": 269
+   },
+   "G1.U_CALIBRATION": {
+    "verdict": "PASS",
+    "value": 0.984424,
+    "threshold": 0.95,
+    "n": 321
+   },
+   "G1.MEDIAN_U.mm": {
+    "verdict": "PASS",
+    "value": 0.106348,
+    "threshold": 0.15,
+    "n": 240
+   },
+   "G1.MEDIAN_U.deg": {
+    "verdict": "PASS",
+    "value": 0.115927,
+    "threshold": 0.25,
+    "n": 81
+   },
+   "G1.DECISIVENESS": {
+    "verdict": "PASS",
+    "value": 0.983333,
+    "threshold": 0.9,
+    "n": 300
+   },
+   "G1.SLOPE.FLANGE_LENGTH": {
+    "verdict": "PASS",
+    "value": 1.007851,
+    "threshold": [
+     0.95,
+     1.05
+    ],
+    "n": 146
+   },
+   "G1.SLOPE.INCLUDED_ANGLE": {
+    "verdict": "PASS",
+    "value": 1.000042,
+    "threshold": [
+     0.95,
+     1.05
+    ],
+    "n": 81
+   },
+   "G1.SLOPE.BEND_LINE_POSITION": {
+    "verdict": "PASS",
+    "value": 0.993447,
+    "threshold": [
+     0.95,
+     1.05
+    ],
+    "n": 81
+   },
+   "G1.SLOPE.BACKGAUGE_LENGTH": {
+    "verdict": "NOT_EVALUABLE",
+    "value": 0.987282,
+    "threshold": [
+     0.95,
+     1.05
+    ],
+    "n": 13
+   },
+   "G1.STAGE_STATE": {
+    "verdict": "PASS",
+    "value": 1.0,
+    "threshold": 0.98,
+    "n": 67
+   },
+   "G1.SYMMETRIC_NO_WRONG_ID": {
+    "verdict": "PASS",
+    "value": 0,
+    "threshold": 0,
+    "n": 2
+   },
+   "G1.LINE_ON_OWN_BEND": {
+    "verdict": "PASS",
+    "value": 1.0,
+    "threshold": 1.0,
+    "n": 81
+   },
+   "G1.POSE_CHECK": {
+    "verdict": "PASS",
+    "value": 1.0,
+    "threshold": 1.0,
+    "n": 48
+   },
+   "G1.AMBIGUOUS_ON_UNAMBIGUOUS": {
+    "verdict": "PASS",
+    "value": 0,
+    "threshold": 0,
+    "n": 47
+   },
+   "G1.BACKGAUGE_DETECTION": {
+    "verdict": "PASS",
+    "value": 1.0,
+    "threshold": 1.0,
+    "n": 2
+   },
+   "G1.NOT_YET_FORMED_NEVER_FAIL": {
+    "verdict": "PASS",
+    "value": 0,
+    "threshold": 0,
+    "n": 176
+   },
+   "G1.WRONG_OR_MIRRORED_NEVER_PASS": {
+    "verdict": "PASS",
+    "value": 0,
+    "threshold": 0,
+    "n": 32
+   },
+   "G1.SUMMARY_NEVER": {
+    "verdict": "PASS",
+    "value": 0,
+    "threshold": 0,
+    "n": 50
+   },
+   "G1.MUST_BE_UNKNOWN": {
+    "verdict": "PASS",
+    "value": 0,
+    "threshold": 0,
+    "n": 13
+   },
+   "G1.ENGINE_FAILURES": {
+    "verdict": "PASS",
+    "value": 0,
+    "threshold": 0,
+    "n": 50
+   },
+   "G1.OCCLUSION_RAISES_UNKNOWN": {
+    "verdict": "NOT_EVALUABLE",
+    "value": {
+     "engine_failures": 0,
+     "false_pass": 0,
+     "u_calibration": null
+    },
+    "threshold": {
+     "engine_failures": 0,
+     "false_pass": 0,
+     "u_calibration_min": 0.95
+    },
+    "n": 0
+   },
+   "G1.RUNTIME.P95": {
+    "verdict": "NOT_EVALUABLE",
+    "value": 10.93115,
+    "threshold": 45.0,
+    "n": 50
+   },
+   "G1.RUNTIME.RSS": {
+    "verdict": "NOT_EVALUABLE",
+    "value": 873922560,
+    "threshold": 4294967296,
+    "n": 50
+   },
+   "G1.TIER_BUDGET": {
+    "verdict": "PASS",
+    "value": 262.4,
+    "threshold": 1200.0,
+    "n": 50
+   },
+   "G1.SUITE": {
+    "verdict": "FAIL",
+    "value": {
+     "cases": 50,
+     "families": 7,
+     "feature_gaps": {}
+    },
+    "threshold": {
+     "min_cases": 200,
+     "min_families": 7
+    },
+    "n": 50
+   }
+  },
+  "note": "G1.SUITE FAIL is by construction on the regression tier (needs >= 200 cases, the full/QUAL tier); runtime gates need the runtime tier"
+ },
+ "G2": {
+  "verdict": "FAIL",
+  "gates": {
+   "a_line_metric": "FAIL",
+   "b_angle_coverage": "FAIL",
+   "b_flange_coverage": "FAIL",
+   "c_angle_known_good": "FAIL",
+   "compile_rate": "PASS",
+   "d_flange_known_good": "FAIL",
+   "e_runtime_and_failures": "FAIL",
+   "f_repeatability": "NOT_EVALUABLE"
+  },
+  "a_line_metric": {
+   "gate_of_record_per_freeze": "HUMAN_GOLD11 (owner 2026-10-17: gold11_relabel_v1 adopted as gold of record; both reported)",
+   "all_9_A1_gold11_cases": {
+    "human": {
+     "engine": {
+      "f1": 0.0,
+      "precision": 0.0,
+      "recall": 0.0,
+      "true_positive": 0,
+      "false_positive": 0,
+      "false_negative": 59,
+      "case_count": 9
+     },
+     "best_f1": {
+      "f1": 0.4727272727272727,
+      "precision": 0.5098039215686274,
+      "recall": 0.4406779661016949,
+      "true_positive": 26,
+      "false_positive": 25,
+      "false_negative": 33,
+      "case_count": 9
+     }
+    },
+    "relabel": {
+     "engine": {
+      "f1": 0.0,
+      "precision": 0.0,
+      "recall": 0.0,
+      "true_positive": 0,
+      "false_positive": 0,
+      "false_negative": 77,
+      "case_count": 9
+     },
+     "best_f1": {
+      "f1": 0.546875,
+      "precision": 0.6862745098039216,
+      "recall": 0.45454545454545453,
+      "true_positive": 35,
+      "false_positive": 16,
+      "false_negative": 42,
+      "case_count": 9
+     }
+    }
+   },
+   "same_scans_engine_ran_4": {
+    "cases": [
+     "pc_d1732de18023",
+     "pc_70b39f530f00",
+     "pc_4f8188b4d1a8",
+     "pc_2714fb7e0c0b"
+    ],
+    "human": {
+     "engine": {
+      "f1": 0.0,
+      "precision": 0.0,
+      "recall": 0.0,
+      "true_positive": 0,
+      "false_positive": 0,
+      "false_negative": 27,
+      "case_count": 4
+     },
+     "best_f1": {
+      "f1": 0.7169811320754716,
+      "precision": 0.7307692307692307,
+      "recall": 0.7037037037037037,
+      "true_positive": 19,
+      "false_positive": 7,
+      "false_negative": 8,
+      "case_count": 4
+     }
+    },
+    "relabel": {
+     "engine": {
+      "f1": 0.0,
+      "precision": 0.0,
+      "recall": 0.0,
+      "true_positive": 0,
+      "false_positive": 0,
+      "false_negative": 31,
+      "case_count": 4
+     },
+     "best_f1": {
+      "f1": 0.5614035087719298,
+      "precision": 0.6153846153846154,
+      "recall": 0.5161290322580645,
+      "true_positive": 16,
+      "false_positive": 10,
+      "false_negative": 15,
+      "case_count": 4
+     }
+    }
+   },
+   "legacy_arm_informational": {
+    "f1": 0.08823529411764705,
+    "precision": 0.3333333333333333,
+    "recall": 0.05084745762711865,
+    "true_positive": 3,
+    "false_positive": 6,
+    "false_negative": 56
+   },
+   "relabel_changed_since_freeze": false,
+   "bar": "best F1 lane: 0.510 Gold11 relabel (11 scans); on the 9 A1 Gold11 cases it scores 0.547 relabel / 0.473 human"
+  },
+  "b_coverage": {
+   "angle": {
+    "measured": 24,
+    "planned": 91,
+    "rate": 0.26373626373626374,
+    "gate": "FAIL"
+   },
+   "flange_sides": {
+    "measured": 46,
+    "planned": 178,
+    "rate": 0.25842696629213485,
+    "gate": "FAIL"
+   }
+  },
+  "c_angle_known_good": {
+   "common_bends": 5,
+   "common_e3_mae_deg": 0.5561154,
+   "common_legacy_mae_deg": 1.1147049181706108,
+   "e3_coverage": 0.3125,
+   "e3_mae_deg": 0.4607545,
+   "e3_measured": 10,
+   "gate": "FAIL",
+   "gates": {
+    "coverage_at_least_legacy": "FAIL",
+    "mae_all_measured": "PASS",
+    "mae_common": "PASS",
+    "no_worse_than_legacy": "PASS"
+   },
+   "legacy_coverage": 0.5,
+   "legacy_delta_definition": "legacy measured_angle - E1 included nominal folded like the worker (max(theta, 180 - theta)); both arms against the same nominal",
+   "legacy_measured": 16,
+   "planned_bends": 32
+  },
+  "d_flange_known_good": {
+   "exclusions": "none (amendment 6d)",
+   "gate": "FAIL",
+   "large_deviations": [
+    {
+     "bend_uid": "bu_4dca39a571f11566a790",
+     "case_ref": "pc_d45186653eed",
+     "deviation_mm": -1.085675,
+     "evidence": "zoomed section crop required",
+     "side": "B"
+    },
+    {
+     "bend_uid": "bu_a481c4126f40dded2f52",
+     "case_ref": "pc_d45186653eed",
+     "deviation_mm": 1.210961,
+     "evidence": "zoomed section crop required",
+     "side": "B"
+    },
+    {
+     "bend_uid": "bu_38f551d22c898d74f24a",
+     "case_ref": "pc_03395097cd96",
+     "deviation_mm": 1.453028,
+     "evidence": "zoomed section crop required",
+     "side": "B"
+    }
+   ],
+   "max_abs_mm": 1.453028,
+   "measured_sides": 20,
+   "p95_abs_mm": 1.22306435
+  },
+  "e_runtime": {
+   "crashes": [],
+   "explicit_refusals": [
+    {
+     "case_ref": "pc_b4719db3dd69",
+     "detail": "COMPILE_BLOCKED",
+     "status": "ENGINE_EXIT_2"
+    }
+   ],
+   "gate": "FAIL",
+   "gates": {
+    "all_cases_run": "FAIL",
+    "crashes": "PASS",
+    "p95_wall": "PASS"
+   },
+   "legacy_control_p95_s": 46.0,
+   "max_wall_s": 22.047,
+   "not_run": [
+    "pc_71cf0b216f43",
+    "pc_927a2fa13067",
+    "pc_8dfdab44605d",
+    "pc_6eba02723d4b",
+    "pc_38091ac91d9d"
+   ],
+   "p95_wall_s": 20.8176,
+   "runs": 10
+  },
+  "f_repeatability": {
+   "e3_p95_angle_deg": null,
+   "e3_p95_flange_mm": null,
+   "gate": "NOT_EVALUABLE",
+   "gates": {
+    "angle_better_than_legacy": "NOT_EVALUABLE",
+    "flange_better_than_legacy_edge_proxy": "NOT_EVALUABLE",
+    "p95_angle": "NOT_EVALUABLE",
+    "p95_flange": "NOT_EVALUABLE"
+   },
+   "legacy_flange_note": "legacy has no OML flange length; its tip-to-tip edge distance is the proxy",
+   "legacy_p95_angle_deg": null,
+   "legacy_p95_edge_proxy_mm": null
+  },
+  "compile_rate": {
+   "rate": 0.9230769230769231,
+   "gate": "PASS"
+  },
+  "population_note": "5 of 15 G2_COMPLETE cases refused by the amendment-7 gate (provisional-complete / G3-listed), 1 compile BLOCKED (47479000); refused cases stay in the denominators"
+ },
+ "G3": {
+  "population": 11,
+  "reason": "the frozen visual truth table (amendment 7) does not exist yet",
+  "truth_table": "MISSING",
+  "verdict": "NOT_EVALUABLE"
+ },
+ "BROAD": {
+  "bar": "best F1 lane 0.458 on broad-57 (old definition); on the frozen A1 BROAD gold the same lane scores family-macro 0.543 / micro 0.508",
+  "all_26_cases_frozen_scorer": {
+   "engine": {
+    "line_cases": 24,
+    "families": 14,
+    "true_positive": 24,
+    "false_positive": 2,
+    "false_negative": 120,
+    "micro": {
+     "precision": 0.9230769230769231,
+     "recall": 0.16666666666666666,
+     "f1": 0.2823529411764706
+    },
+    "family_macro_f1": 0.3188364055299539,
+    "family_macro_f1_with_controls": 0.3188364055299539
+   },
+   "best_f1": {
+    "line_cases": 24,
+    "families": 14,
+    "true_positive": 65,
+    "false_positive": 47,
+    "false_negative": 79,
+    "micro": {
+     "precision": 0.5803571428571429,
+     "recall": 0.4513888888888889,
+     "f1": 0.5078125
+    },
+    "family_macro_f1": 0.5434347974094519,
+    "family_macro_f1_with_controls": 0.5434347974094518
+   }
+  },
+  "same_13_scans_engine_ran": {
+   "cases": [
+    "pc_03395097cd96",
+    "pc_2714fb7e0c0b",
+    "pc_361fc1049e39",
+    "pc_4f8188b4d1a8",
+    "pc_70b39f530f00",
+    "pc_752e2bd54aad",
+    "pc_777c64c88967",
+    "pc_828bc34d9c8b",
+    "pc_9b9fd762f361",
+    "pc_d1732de18023",
+    "pc_d45186653eed",
+    "pc_e080ae094f35",
+    "pc_ff1667a2a80a"
+   ],
+   "engine": {
+    "line_cases": 13,
+    "families": 11,
+    "true_positive": 24,
+    "false_positive": 2,
+    "false_negative": 54,
+    "micro": {
+     "precision": 0.9230769230769231,
+     "recall": 0.3076923076923077,
+     "f1": 0.4615384615384615
+    },
+    "family_macro_f1": 0.405791788856305,
+    "family_macro_f1_with_controls": 0.405791788856305
+   },
+   "best_f1": {
+    "line_cases": 13,
+    "families": 11,
+    "true_positive": 44,
+    "false_positive": 20,
+    "false_negative": 34,
+    "micro": {
+     "precision": 0.6875,
+     "recall": 0.5641025641025641,
+     "f1": 0.619718309859155
+    },
+    "family_macro_f1": 0.6488095238095238,
+    "family_macro_f1_with_controls": 0.6488095238095238
+   }
+  },
+  "recipe_ceiling_family_macro": 0.9672619047619048,
+  "coverage_complete_broad": {
+   "angle": {
+    "measured": 41,
+    "planned": 115,
+    "rate": 0.3565217391304348
+   },
+   "flange_sides": {
+    "measured": 77,
+    "planned": 226,
+    "rate": 0.3407079646017699
+   }
+  },
+  "engine_bend_states": {
+   "FORMED": 40,
+   "PARTIALLY_FORMED": 1,
+   "UNKNOWN": 39
+  },
+  "characteristic_decisions": {
+   "FAIL": 4,
+   "PASS": 116,
+   "REVIEW": 24,
+   "UNKNOWN": 176
+  },
+  "runtime": {
+   "p95_wall_s": 22.938199999999995,
+   "max_wall_s": 24.275,
+   "runs": 13,
+   "crashes": []
+  },
+  "per_bend_given_cad": {
+   "definition": "complete-label COMPLETE BROAD scans the engine ran; every recipe bend assumed formed (complete scan); correct = engine state FORMED-like AND its apex line matches a gold line (frozen 5deg/4mm/0.6 matcher) AND angle + both flange sides MEASURED. False PASS proxy = any PASS decision on a bend whose line matches no gold line (no physical dimensional truth exists; report-only)",
+   "bends": 80,
+   "correct": 20,
+   "correct_rate": 0.25,
+   "formed_rate": 0.5125,
+   "line_match_rate": 0.3,
+   "angle_measured_rate": 0.5125,
+   "false_pass_proxy": 17,
+   "false_pass_proxy_split": {
+    "pass_on_published_line_matching_no_gold": 2,
+    "pass_without_published_line": 15,
+    "pass_decisions_on_gold_confirmed_bends": 69,
+    "pass_decisions_total": 116
+   },
+   "decision_counts": {
+    "FAIL": 4,
+    "PASS": 116,
+    "REVIEW": 24,
+    "UNKNOWN": 176
+   },
+   "state_counts": {
+    "FORMED": 40,
+    "PARTIALLY_FORMED": 1,
+    "UNKNOWN": 39
+   }
+  }
+ },
+ "GOLD_SET_V1": {
+  "scope": "GOLD_SET_V1 scans that are A1 cases with STEP and an OK engine run (13 scans / 11 families); DEV-CHECK never read; 12 A1 gold-set scans not run (amendment-7 gate)",
+  "e3": {
+   "scans": 13,
+   "families": 11,
+   "tp": 26,
+   "fp": 0,
+   "fn": 54,
+   "precision": 1.0,
+   "recall": 0.325,
+   "micro_f1": 0.4905660377358491,
+   "family_macro_f1": 0.4398826979472141,
+   "zero_bend_controls": 0,
+   "control_fp_lines": 0,
+   "other_dispositions": []
+  },
+  "best_f1": {
+   "scans": 13,
+   "families": 11,
+   "tp": 43,
+   "fp": 21,
+   "fn": 37,
+   "precision": 0.671875,
+   "recall": 0.5375,
+   "micro_f1": 0.5972222222222222,
+   "family_macro_f1": 0.653482880755608,
+   "zero_bend_controls": 0,
+   "control_fp_lines": 0,
+   "other_dispositions": []
+  }
+ },
+ "G5": {
+  "verdict": "FAIL",
+  "manifest": "PASS (1 allowlisted add)",
+  "tsc": "PASS",
+  "lint": "PASS",
+  "vendor_scripts": "PASS (5 NOT_RUN matching baseline)",
+  "backend_tests": "FAIL: 10 NEW failures in tests/test_vendor_unfold_api_contract.py",
+  "cause": "apps/api/services/vendor_setup_service.py was edited at 02:05 by a concurrent workflow (not A1): get_vendor_setup now calls a new module-level helper _natural_label_key; the test AST-extracts only get_vendor_setup into an isolated scope -> NameError. Not engine-related; reproduced twice."
+ },
+ "jev_ab": {
+  "status": "BLOCKED_HTTP_402",
+  "detail": "export (26 candidates: 24 TP / 2 FP on the BROAD gold) and dry-run (est. $0.0014) done; live calib calls refused: TypeSafe organisation has no API credits (HTTP 402 billing_error). A filter can only remove lines; the engine lane's 2 FP bound the possible gain to <= +0.004 micro F1.",
+  "dir": "docs/production/runlog/a1/iter_0/jev_ab_e3"
+ },
+ "runtime_rss": {
+  "physical_e3_p95_wall_s_G2": 20.8176,
+  "physical_e3_p95_wall_s_BROAD": 22.938199999999995,
+  "physical_e3_peak_rss_gib": 0.884,
+  "synthetic_p95_wall_s": 10.93,
+  "synthetic_engine_peak_rss_gib": 0.814,
+  "generator_peak_rss_gib": 1.73
+ }
+}

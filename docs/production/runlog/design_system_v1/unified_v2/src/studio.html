@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="he" dir="rtl"><head><meta charset="utf-8"><title>Studio</title>
+<link rel="stylesheet" href="tokens.css">
+<script src="icons.js"></script><script src="shell.js"></script>
+<style>
+body{display:grid;grid-template-columns:248px 1fr}
+.app{display:grid;grid-template-rows:72px 76px 1fr;min-width:0}
+.top{display:flex;align-items:center;gap:var(--s-4);padding:0 var(--s-8);background:var(--surface);border-bottom:1px solid var(--line)}
+.crumb{color:var(--tx-3);font-size:var(--t-sm);display:flex;align-items:center;gap:6px}
+.crumb .ic{transform:scaleX(-1)}
+.pn{font-size:var(--t-xl);font-weight:700}
+.sp{flex:1}
+.save{font-size:var(--t-sm);color:var(--chk);display:flex;align-items:center;gap:8px}.save i{width:7px;height:7px;background:var(--chk-solid)}
+.steps{display:flex;align-items:center;padding:0 var(--s-8);background:var(--surface);border-bottom:1px solid var(--line)}
+.st{display:flex;align-items:center;gap:10px;font-size:var(--t-sm);color:var(--tx-2);white-space:nowrap}
+.st .k{width:30px;height:30px;border:1px solid var(--line-2);border-radius:var(--r-1);display:grid;place-items:center;font-size:var(--t-sm);font-weight:600;color:var(--tx-3);background:var(--surface)}
+.st b{display:block;font-weight:600;color:var(--tx);font-size:var(--t-sm)}
+.st small{font-size:var(--t-xs);color:var(--tx-3)}
+.st.done .k{background:var(--tx);border-color:var(--tx);color:#fff}
+.st.cur .k{background:var(--accent);border-color:var(--accent);color:#fff}.st.cur small{color:var(--accent)}
+.st.blk .k{color:var(--fix);border-color:var(--fix)}
+.conn{flex:1;height:1px;background:var(--line-2);margin:0 14px;min-width:20px}.conn.done{background:var(--tx)}
+.work{display:grid;grid-template-columns:1fr 480px;min-height:0}
+.canvas{position:relative;background-color:var(--surface-2);overflow:hidden;border-inline-end:1px solid var(--line)}
+.canvas .grid{position:absolute;inset:0;background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);background-size:40px 40px;opacity:.7}
+#part{position:absolute;inset:0}
+.chead{position:absolute;top:0;inset-inline:0;height:68px;display:flex;align-items:center;gap:var(--s-4);padding:0 var(--s-6);background:var(--surface);border-bottom:1px solid var(--line)}
+.chead h2{font-size:var(--t-lg);font-weight:700}
+.guide{display:flex}
+.guide span{display:flex;align-items:center;gap:8px;height:40px;padding:0 14px;border:1px solid var(--line-2);margin-inline-start:-1px;font-size:var(--t-sm);color:var(--tx-2);background:var(--surface)}
+.guide span:first-child{border-start-start-radius:var(--r-1);border-end-start-radius:var(--r-1)}
+.guide span:last-child{border-start-end-radius:var(--r-1);border-end-end-radius:var(--r-1)}
+.guide .d{color:var(--tx)}.guide .d .ic{color:var(--ok)}
+.guide .c{border-color:var(--accent);background:var(--accent-bg);color:var(--accent);font-weight:600;position:relative;z-index:1}
+.ctools{position:absolute;bottom:var(--s-5);inset-inline:var(--s-5);display:flex;gap:var(--s-3)}
+.zoom{display:flex;flex-direction:column;position:absolute;top:88px;inset-inline-end:var(--s-5);border:1px solid var(--line-2);border-radius:var(--r-1);background:var(--surface)}
+.zoom span{width:48px;height:48px;display:grid;place-items:center;border-bottom:1px solid var(--line);color:var(--tx-2)}.zoom span:last-child{border:0}
+.note{position:absolute;top:84px;inset-inline-start:var(--s-6);font-size:var(--t-xs);color:var(--tx-3);display:flex;gap:6px;align-items:center}
+aside{background:var(--surface);display:flex;flex-direction:column;min-height:0}
+aside .h{padding:var(--s-5) var(--s-6) var(--s-4);border-bottom:1px solid var(--line)}
+aside h3{font-size:var(--t-lg);font-weight:700}
+aside p{font-size:var(--t-sm);color:var(--tx-3);margin-top:4px}
+.chips{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:var(--s-3) var(--s-6) var(--s-5)}
+.oc{height:60px;border:1px solid var(--line-2);border-radius:var(--r-1);display:flex;align-items:center;gap:12px;padding:0 12px;background:var(--surface)}
+.oc .k{width:30px;height:30px;border-radius:var(--r-1);background:var(--tx);color:#fff;display:grid;place-items:center;font-weight:700;font-size:var(--t-sm)}
+.oc b{font-size:var(--t-lg);font-weight:700}
+.oc small{display:block;font-size:var(--t-xs);color:var(--accent);font-weight:600;line-height:1}
+.oc.mv{border-color:var(--accent);background:var(--accent-bg)}.oc.mv .k{background:var(--accent)}
+.oc.last{box-shadow:0 0 0 2px var(--accent)}
+.moves{margin:0 var(--s-6);border:1px solid var(--line);border-radius:var(--r-1)}
+.moves .r{display:flex;align-items:center;gap:12px;height:52px;padding:0 var(--s-4);border-bottom:1px solid var(--line);font-size:var(--t-md)}
+.moves .r:last-child{border:0}
+.moves .r .ic{color:var(--accent)}
+.now{margin:var(--s-4) var(--s-6);padding:var(--s-4);background:var(--surface-2);border:1px solid var(--line);border-radius:var(--r-1)}
+.now .t{display:flex;align-items:center;gap:8px;font-size:var(--t-md);margin-bottom:var(--s-3)}
+.now .row{display:flex;gap:8px}.now .btn{flex:1;justify-content:center}
+.foot{margin-top:auto;border-top:1px solid var(--line);padding:var(--s-4) var(--s-6);display:flex;gap:8px}
+.foot .btn.primary{flex:1;justify-content:center}
+</style></head><body class="theme-light bp">
+<script>document.write(shell('חלקים לייצור'))</script>
+<div class="app">
+  <div class="top">
+    <span class="crumb">חלקים לייצור</span><span class="crumb" id="chev"></span><span class="pn num">10839000</span><span style="color:var(--tx-2)">Joggle bracket · גרסה <span class="num">01</span></span><span class="badge">דורש סדר כיפוף</span>
+    <span class="sp"></span><span class="save"><i></i>יש שינויים שלא נשמרו</span><span class="btn">סיום, חזרה לאשף</span>
+  </div>
+  <div class="steps" id="steps"></div>
+  <div class="work">
+    <section class="canvas bp"><div id="part"></div>
+      <div class="chead"><h2>הכיפופים בדגם ה-CAD</h2>
+        <div class="guide" id="guide"></div><span class="sp"></span>
+        <div class="seg"><span class="on">מכופף</span><span>פרוס</span></div>
+      </div>
+      <div class="note" id="note"></div>
+      <div class="zoom" id="zoom"></div>
+      <div class="ctools" id="ctools"></div>
+    </section>
+    <aside>
+      <div class="h"><h3>סדר הכיפופים</h3><p>אתם קובעים את סדר העבודה. הסדר שהגיע מה-CAD הוא רק נקודת פתיחה.</p></div>
+      <div class="rule" style="margin:18px 24px 0">סדר · <span class="num">12</span> כיפופים</div>
+      <div class="chips" id="chips"></div>
+      <div class="rule" style="margin:0 24px 10px">מהלכים</div>
+      <div class="moves" id="moves"></div>
+      <div class="now" id="now"></div>
+      <div class="foot" id="foot"></div>
+    </aside>
+  </div>
+</div>
+<script src="shared.js"></script>
+<script>
+const $=id=>document.getElementById(id)
+$('chev').innerHTML=icon('chevron',16)
+const steps=[['פרטי חלק','done','הושלם'],['דגם CAD מכופף','done','הושלם'],['שרטוט','done','הושלם'],['חלק פרוס','opt','רשות'],['כיפופים וסדר','cur','אתם כאן'],['סבולות','todo','הבא'],['ערכים צפויים','opt','רשות'],['שחרור','blk','חסום']]
+$('steps').innerHTML=steps.map(([t,s,sub],i)=>`${i?`<span class="conn ${s==='done'||s==='cur'?'done':''}"></span>`:''}<span class="st ${s}"><span class="k">${s==='done'?icon('ok',16,2.2):i+1}</span><span><b>${t}</b><small>${sub}</small></span></span>`).join('')
+$('guide').innerHTML=`<span class="d">${icon('ok',16,2.2)}אישור הכיפופים</span><span class="d">${icon('ok',16,2.2)}סדר הכיפוף</span><span class="c">${icon('press',16)}קיבוץ למהלכים · רשות</span>`
+$('note').innerHTML=icon('info',14)+'הקווים מוצגים לפי קובץ ה-CAD. יחידות המידה עדיין לא אומתו.'
+$('zoom').innerHTML=`<span>${icon('zoomin')}</span><span>${icon('zoomout')}</span><span>${icon('reset')}</span>`
+$('ctools').innerHTML=`<span class="btn">${icon('add',18)}הוספת כיפוף חסר</span><span class="btn">${icon('pdf',18)}ייצוא דף עבודה</span><span class="btn quiet">${icon('fit',18)}כל החלק</span>`
+$('chips').innerHTML=SQ.bends.map(b=>`<div class="oc ${b.move?'mv':''} ${b.id==='B9'?'last':''}"><span class="k num">${b.seq}</span><div><b class="num">${b.id}</b>${b.move?'<small>מהלך 1</small>':''}</div></div>`).join('')
+$('moves').innerHTML=`<div class="r">${icon('press',20)}<b>מהלך 1</b><span class="num" style="color:var(--tx-2)">B1 · B2</span><span class="sp"></span><span class="btn quiet" style="height:32px">${icon('close',16)}</span></div>`
+$('now').innerHTML=`<div class="t">${icon('tag',18)}סומנו עכשיו: <b class="num">B9</b></div><div class="row"><span class="btn primary lg">${icon('press',20)}+ מהלך</span><span class="btn lg">בלי מהלך</span></div>`
+$('foot').innerHTML=`<span class="btn primary lg">${icon('ok',20,2)}אישור סדר הכיפופים</span><span class="btn lg">${icon('undo',20)}ביטול האחרון</span>`
+const el=$('part'), r=el.parentElement.getBoundingClientRect()
+el.innerHTML=SQ.render({w:r.width,h:r.height,scale:2.0,yaw:-30,pitch:26,ox:0,oy:24,
+  face:l=>`hsl(210 14% ${74+l*16}%)`,edge:'#8693A3',edgeW:.8,
+  bendColor:b=>b.move?'#0B67AE':'#2B3B4F',bendW:2,selected:'B9',selColor:'#0B67AE',glow:'#4FA3E3',glowW:14,glowBlur:4,selW:4,
+  tick:'#8693A3',markerBox:[30,26],markerFor:()=>true,
+  marker:(b,x,y,sel)=>`<g transform="translate(${x-15},${y-13})"><rect width="30" height="26" rx="3" fill="${sel?'#0B67AE':b.move?'#E7F1FA':'#fff'}" stroke="${sel||b.move?'#0B67AE':'#2B3B4F'}" stroke-width="1"/><text x="15" y="18" text-anchor="middle" font-family="Heebo" font-size="14" font-weight="700" fill="${sel?'#fff':b.move?'#0B67AE':'#0E1A28'}">${b.seq}</text></g>`})
+</script>
+</body></html>

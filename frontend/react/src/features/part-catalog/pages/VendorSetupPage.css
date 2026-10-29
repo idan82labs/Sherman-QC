@@ -1,0 +1,198 @@
+@font-face {
+  font-family: 'Assistant';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url('/fonts/vendor/assistant-hebrew.woff2') format('woff2');
+  unicode-range: U+0307-0308, U+0590-05FF, U+200C-2010, U+20AA, U+25CC, U+FB1D-FB4F;
+}
+
+@font-face {
+  font-family: 'Assistant';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url('/fonts/vendor/assistant-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Heebo';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url('/fonts/vendor/heebo-hebrew.woff2') format('woff2');
+  unicode-range: U+0307-0308, U+0590-05FF, U+200C-2010, U+20AA, U+25CC, U+FB1D-FB4F;
+}
+
+@font-face {
+  font-family: 'Heebo';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url('/fonts/vendor/heebo-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+.vendor-setup-root {
+  min-width: 0;
+  font-family: 'Assistant', sans-serif;
+}
+
+.vendor-setup-root :is(h1, h2, h3, h4, button, summary) {
+  font-family: 'Heebo', 'Assistant', sans-serif;
+}
+
+.vendor-setup-root button,
+.vendor-setup-root select,
+.vendor-setup-root input:not([type='file']):not([type='range']),
+.vendor-setup-root summary,
+.vendor-setup-root label.btn,
+.vendor-setup-root a.btn {
+  min-height: 48px;
+  touch-action: manipulation;
+}
+
+.vendor-setup-root button {
+  min-width: 48px;
+}
+
+.vendor-setup-demo-switch {
+  min-height: 48px;
+}
+
+.vendor-setup-demo-switch select {
+  min-height: 46px;
+  max-width: min(320px, 55vw);
+  touch-action: manipulation;
+}
+
+.vendor-setup-root :is(button, a, input, select, summary):focus-visible,
+.vendor-setup-root label.btn:focus-within {
+  outline: 3px solid #60a5fa;
+  outline-offset: 2px;
+}
+
+.vendor-setup-root input[type='range'] {
+  height: 48px;
+  min-width: 0;
+  touch-action: manipulation;
+}
+
+.vendor-setup-workspace {
+  display: grid;
+  gap: 20px;
+  min-width: 0;
+}
+
+.vendor-setup-model,
+.vendor-setup-bend-panel {
+  min-width: 0;
+}
+
+.vendor-setup-canvas {
+  height: clamp(500px, 68vh, 900px);
+  min-width: 0;
+  touch-action: none;
+}
+
+.vendor-setup-bend-list {
+  max-height: 530px;
+}
+
+@media (min-width: 1200px) {
+  .vendor-setup-workspace:not(.vendor-setup-workspace--expanded) {
+    grid-template-columns: minmax(0, 1fr) 360px;
+    align-items: start;
+  }
+
+  .vendor-setup-workspace:not(.vendor-setup-workspace--expanded) .vendor-setup-canvas {
+    height: clamp(560px, 68vh, 900px);
+  }
+
+  .vendor-setup-workspace:not(.vendor-setup-workspace--expanded) .vendor-setup-bend-panel {
+    max-height: calc(clamp(560px, 68vh, 900px) + 132px);
+    overflow-y: auto;
+  }
+
+  .vendor-setup-workspace:not(.vendor-setup-workspace--expanded) .vendor-setup-bend-list {
+    max-height: none;
+  }
+}
+
+.vendor-setup-select-bend {
+  min-height: 52px;
+}
+
+.vendor-setup-measures > div {
+  min-width: 0;
+  text-align: start;
+}
+
+.vendor-setup-measures span,
+.vendor-setup-measures strong {
+  display: block;
+  overflow-wrap: anywhere;
+}
+
+.vendor-setup-measures span {
+  color: #cbd5e1;
+  font-size: 12px;
+}
+
+.vendor-setup-measures strong {
+  color: #f8fafc;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.vendor-setup-workspace--expanded {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 360px);
+  gap: 12px;
+  overflow: hidden;
+  padding: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+  background: #020617;
+  margin: 0 !important;
+}
+
+.vendor-setup-workspace--expanded .vendor-setup-model {
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+}
+
+.vendor-setup-workspace--expanded .vendor-setup-canvas {
+  flex: 1;
+  height: auto;
+  min-height: 0;
+}
+
+.vendor-setup-workspace--expanded .vendor-setup-bend-panel {
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.vendor-setup-workspace--expanded .vendor-setup-bend-list {
+  max-height: none;
+}
+
+@media (max-width: 899px) {
+  .vendor-setup-workspace--expanded {
+    display: block;
+    overflow-y: auto;
+  }
+
+  .vendor-setup-workspace--expanded .vendor-setup-canvas {
+    height: min(62dvh, 700px);
+    min-height: 340px;
+  }
+
+  .vendor-setup-workspace--expanded .vendor-setup-bend-panel {
+    margin-top: 12px;
+    overflow: visible;
+  }
+}

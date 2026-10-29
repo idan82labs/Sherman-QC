@@ -20,6 +20,7 @@ import {
 import { partCatalogApi, getErrorMessage } from '../services/api'
 import type { Part, PartCreateRequest, PartUpdateRequest } from '../types'
 import clsx from 'clsx'
+import { Link } from 'react-router-dom'
 
 const ITEMS_PER_PAGE = 15
 
@@ -88,6 +89,7 @@ export default function PartCatalog() {
           <p className="text-dark-400 mt-1">Manage parts, CAD files, and bend specifications</p>
         </div>
         <div className="flex gap-2">
+          <Link to="/parts/vendor-setup" className="btn btn-secondary flex items-center">Vendor setup</Link>
           <button
             onClick={() => setShowImportModal(true)}
             className="btn btn-secondary flex items-center"
@@ -250,6 +252,7 @@ export default function PartCatalog() {
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center justify-end gap-1">
+                        <Link to={`/parts/vendor-setup/${part.id}`} className="rounded-lg px-3 py-2 text-sm text-primary-300 hover:bg-dark-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary-400">Setup</Link>
                         {!part.cad_file_path && (
                           <button
                             onClick={() => setShowUploadModal(part)}

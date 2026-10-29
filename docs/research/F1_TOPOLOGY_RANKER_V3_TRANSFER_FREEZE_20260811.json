@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "kind": "sherman_qc_f1_topology_ranker_v3_transfer_freeze",
+  "status": "frozen_before_oracle_open",
+  "profile": "F1_CANONICAL_TOPOLOGY_RANKER_V3",
+  "lock_sha256": "a3aa5a4405712f6481104b1e9ab403f6dbf55be502454f24404fc3cdc19fb01b",
+  "model_sha256": "6d9335e84058dfeabce98a8fffeca009e4107e186d0b7f3566792b47418b1eb8",
+  "development_report_sha256": "c20f139833d28186d71887266b0585c4547cb1cd5d69c14238a03c13259cec5c",
+  "development_leave_one_family_out_micro": {
+    "true_positive": 26,
+    "false_positive": 19,
+    "false_negative": 26,
+    "precision": 0.577778,
+    "recall": 0.5,
+    "f1": 0.536082
+  },
+  "transfer_cases": [
+    {
+      "case_token": "C029",
+      "candidate_count": 3,
+      "submission_sha256": "b7e6aba816da2b1843cf8761bba5f6afba19b4b454bd099d265e03605ac5a5c7",
+      "native_visual_sha256": "93497505e1e86c133079aa54c951db2a975480c63a638b90e41a12e047ae1f87",
+      "visual_precommit_critique": "Three lines track exterior silhouettes or overshoot the compact part; high perimeter/terminal risk."
+    },
+    {
+      "case_token": "C013",
+      "candidate_count": 4,
+      "submission_sha256": "ee64fd88675f3b09fe44128c60df2fa5e01b858dd86bfd7ffa10843d15571acc",
+      "native_visual_sha256": "74b93f12794123b2efe613854f8f45b23d372cb9ad11a9ebe88c2cc5103b234c",
+      "visual_precommit_critique": "Four predictions are near tray panel boundaries and are the only visually plausible transfer set, though some appear on outer rims."
+    },
+    {
+      "case_token": "C015",
+      "candidate_count": 0,
+      "submission_sha256": "b97cf8ba7f3d16d5111f1a61004782e7a88c0ba097f47d6e60b8b21049cbe716",
+      "native_visual_sha256": "11ac1678780d7674d7126d485d372569caefa35daab543db60d98ab256ba81ba",
+      "visual_precommit_critique": "Zero predictions despite multiple visible wall-to-base junctions; severe undercall risk."
+    },
+    {
+      "case_token": "C019",
+      "candidate_count": 3,
+      "submission_sha256": "48160732415d9b738d4cdcdb0d258ea06588181d86abef6ac4df364ec1c89f61",
+      "native_visual_sha256": "45d431506ea9c757ab2beb51cc2102bd739895e0dc5b282cb9f4fb722bf51778",
+      "visual_precommit_critique": "Long predictions cut across or extend well beyond the formed geometry; strong non-bend/perimeter risk."
+    }
+  ],
+  "transfer_feedback_used": false,
+  "manual_visual_feedback_used_for_selection": false,
+  "rerun_or_threshold_rescue_authorized": false,
+  "c006_opened": false
+}

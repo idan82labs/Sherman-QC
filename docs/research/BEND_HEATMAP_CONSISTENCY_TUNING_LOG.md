@@ -1,0 +1,90 @@
+# Bend Heatmap Consistency Tuning Log
+
+## 2026-03-26 — v2 ROI and policy pass
+- Policy version: `heatmap_consistency_v2`
+- ROI version: `bend_center_local_v2`
+- Output:
+  - `/Users/idant/82Labs/Sherman QC/Full Project/data/bend_corpus/evaluation/heatmap_consistency_backtest_20260326_v3`
+- Aggregate:
+  - supported bends: `50`
+  - contradicted bends: `17`
+  - insufficient-evidence bends: `126`
+  - supported rate: `0.259`
+  - contradicted rate: `0.088`
+  - `PASS` contradicted: `2`
+  - `NOT_DETECTED` contradicted: `0`
+  - full observed folded bend evaluable rate: `0.581`
+  - full observed `PASS` contradiction rate: `0.087`
+- Comparison vs v1 baseline:
+  - contradicted bends: `89 -> 17`
+  - contradicted rate: `0.443 -> 0.088`
+  - supported rate: `0.368 -> 0.259`
+  - insufficient-evidence bends: `38 -> 126`
+- Decision:
+  - keep v2 contradiction policy
+  - next iteration should recover support without reintroducing contradiction on `PASS` or `NOT_DETECTED`
+- Notes:
+  - three corpus cases timed out under the existing `420s` runner cap
+  - remaining contradictions are concentrated in a small set of full-scan `PASS` and quiet `FAIL` cases
+
+## 2026-03-27 — v2 support-recovery pass
+- Policy version: `heatmap_consistency_v2_support_recovery_1`
+- ROI version: `bend_center_local_v2`
+- Output:
+  - `/Users/idant/82Labs/Sherman QC/Full Project/data/bend_corpus/evaluation/heatmap_consistency_backtest_20260327_v4`
+- Aggregate:
+  - supported bends: `57`
+  - contradicted bends: `18`
+  - insufficient-evidence bends: `125`
+  - supported rate: `0.285`
+  - contradicted rate: `0.090`
+  - `PASS` contradicted: `3`
+  - active-fail (`FAIL` / `WARNING`) support increased on the intended slice
+  - `NOT_DETECTED` contradicted: `0`
+  - full-scan supported rate: `0.329`
+  - partial-scan supported rate: `0.252`
+- Comparison vs `heatmap_consistency_backtest_20260326_v3`:
+  - supported bends: `50 -> 57`
+  - supported rate: `0.259 -> 0.285`
+  - contradicted rate: `0.088 -> 0.090`
+  - `FAIL` supported: `29 -> 33`
+  - `NOT_DETECTED` contradicted stayed `0`
+- Decision:
+  - keep the relaxed `FAIL` / `WARNING` support gate
+  - do not loosen contradiction gates
+  - do not promote the validator beyond advisory yet
+- Notes:
+  - recovered support came from the intended slice
+  - support is still below the `0.30` target
+  - v4 had better scan completion than v3, so the improvement should be treated as directionally valid, not perfectly controlled
+
+## 2026-03-27 — v2 support-recovery pass 2
+- Policy version: `heatmap_consistency_v2_support_recovery_2`
+- ROI version: `bend_center_local_v2`
+- Output:
+  - `/Users/idant/82Labs/Sherman QC/Full Project/data/bend_corpus/evaluation/heatmap_consistency_backtest_20260327_v5`
+- Aggregate:
+  - supported bends: `61`
+  - contradicted bends: `18`
+  - insufficient-evidence bends: `120`
+  - supported rate: `0.307`
+  - contradicted rate: `0.090`
+  - `PASS` contradicted: `3`
+  - active-fail support:
+    - `FAIL`: `35`
+    - `WARNING`: `19`
+    - combined `FAIL/WARNING`: `54`
+  - full observed folded bend evaluable rate: `0.800`
+- Comparison vs `heatmap_consistency_backtest_20260327_v4`:
+  - supported bends: `57 -> 61`
+  - supported rate: `0.285 -> 0.307`
+  - contradicted rate: `0.090 -> 0.090`
+  - insufficient-evidence bends: `125 -> 120`
+  - full-scan supported rate: `0.329 -> 0.369`
+- Decision:
+  - keep this policy as the new advisory baseline
+  - do not loosen contradiction gates
+  - do not promote to a gating validator yet
+- Notes:
+  - this pass reached the support-rate floor without reopening contradiction
+  - two corpus cases still timed out, so benchmark runtime stability remains a separate issue

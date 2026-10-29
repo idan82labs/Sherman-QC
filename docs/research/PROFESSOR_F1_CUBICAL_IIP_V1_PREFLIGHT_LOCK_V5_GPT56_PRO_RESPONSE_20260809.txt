@@ -1,0 +1,146 @@
+LOCK_DECISION: CUBICAL_IIP_V1_LOCK_AUDIT_REQUIRES_ONE_NONEXECUTION_CORRECTION
+NEXT_STEP: BUILD_ONE_CUBICAL_IIP_V1_LOCK_CORRECTION_PACKET_ONLY
+EXECUTION_AUTHORITY: NONE
+
+Minimum non-execution correction
+
+Reconcile the isotropic field-row identity contract so that the baseline-to-isotropic preservation requirement and the arm-bound field-row-ID preimage define one satisfiable identity rule.
+
+The normative specification requires the isotropic construction to preserve “row IDs … byte-identically.” The locked configuration simultaneously defines each field-row ID as a truncated SHA-256 over, among other inputs, arm_u8. Because BASELINE=0 and ISOTROPIC=1, corresponding baseline and isotropic rows necessarily have different canonical preimages and, ordinarily, different IDs. The tamper contract also requires rejection of a changed negative row ID. These requirements cannot all be satisfied as written. 
+
+04_NORMATIVE_CUBICAL_IIP_V1_PRE…
+
+ 
+
+05_LOCKED_CUBICAL_IIP_V1_CONFIG…
+
+ 
+
+08_INDEPENDENT_VALIDATOR_AND_TA…
+
+Using the packet’s own known-answer fixture:
+
+Baseline field-row ID, arm_u8=0: ae35aeb5777676ad6ac61aba20f90caa
+
+Recomputed corresponding isotropic field-row ID, arm_u8=1: 72dc258326cb1f01014240070cc9e59b
+
+Thus the conflict is concrete, not merely stylistic. The correction packet must establish one unambiguous paper identity relation and rebind the affected documents. This ruling does not choose which clause to alter and supplies no alternate executable configuration, constants, or implementation.
+
+Independent integrity verification
+
+I read file 00 and all nine evidence attachments completely. The independently recomputed external SHA-256 values match the authoritative list 9/9:
+
+01_SOURCE_LOCK_INPUT_MANIFEST.json
+0d7d02698fdfc873ca56ff2248d7df9876a3e00ef1662bb73caab2d68f5b0bc4
+
+02_LINEAGE_CLAIM_AND_CROSSBINDING_LEDGER.md
+954cdde2a82e3baf74dae4edc413bccdb426a2c5693535494cfdb8df32db331e
+
+03_PRIMARY_SOURCE_AND_ENGINEERING_ASSUMPTION_LEDGER.md
+c0f29e4ae134f4287d87adab04eb0cd749f5f91ac0404ab051ecc21708e68d07
+
+04_NORMATIVE_CUBICAL_IIP_V1_PREFLIGHT_SPEC.md
+21a793355974f3a872f92988a3cbf3d46fb8c740720f1d22b8fffb4253aeab44
+
+05_LOCKED_CUBICAL_IIP_V1_CONFIGURATION.json
+8a687faa65083f9245d9abe39ed164d7bec232604deda2b6fafec954e731af6d
+
+06_LOCKED_CUBICAL_IIP_V1_SCHEMA.json
+e996566e2b7da94dfc99b97e8bb59e5b6f1fdb25692a16890b63731b5c16ea4f
+
+07_STATIC_CARDINALITY_EVIDENCE_RESOURCE_PROOF.json
+79354d493bab81c92d7cb3d1bd73e1775bf677ccf3198647a56a55a765ed3a67
+
+08_INDEPENDENT_VALIDATOR_AND_TAMPER_CONTRACT.md
+3a4048cb8893a9b578ee3a1879c7aa11a11461578fd90033ed2b4c7b0f77bc80
+
+09_SAFETY_AUTHORITY_AND_TERMINAL_CONTRACT.json
+e027440ed43de766d2d55ecd285dd3f8e1741091d6e5cc7c423033517af4e559
+
+These exactly match file 00’s attachment table. 
+
+00_GPT_PRO_CUBICAL_IIP_V1_PREFL…
+
+The independently reconstructed canonical-object bindings also match:
+
+Source-manifest canonical object:
+a87b10e9b14119a543d5d114d84579007a1272616b29c317f505812c4f4667fd
+
+Configuration:
+7ce81273baf53c99d5a39913a1044b75ac28cf34dfe187aa65199ce1944ba1aa
+
+Schema:
+b101e8177a96bf0a623db77c9b867d913371894cd9128ca7f25a1c8930c53376
+
+Static resource proof:
+c9131c279f4debb32a635d81adf0d7996e78977d996d6d60a96cfd92aff41858
+
+Safety contract:
+c070719e284657abae73ce81e9522d1a523eb30513b0d19afd620c9a5816f04d
+
+The byte-exact embedded architecture-selection response, including its trailing newline, independently hashes to:
+
+20380ec3cc4c84c8daa6ebdf539d18298f22f41d08200433d040fd07f71325e5
+
+The lineage, architecture token, primitive token, configuration, schema, resource proof, and safety authority therefore cross-bind correctly. 
+
+00_GPT_PRO_CUBICAL_IIP_V1_PREFL…
+
+ 
+
+02_LINEAGE_CLAIM_AND_CROSSBINDI…
+
+Reproduced non-defective portions of the lock
+
+Source census. Independent aggregation of the manifest gives 37 scans, 13,991,575 finite XYZ records, 448,084 exact duplicates, and 699,881,650 raw bytes. The maxima are 1,140,033 finite records and 64,382,075 raw bytes in one scan, exactly matching the bound source envelope. These remain scan observations, not evidence of 37 physical parts or families. 
+
+02_LINEAGE_CLAIM_AND_CROSSBINDI…
+
+Known-answer commitments. I independently reproduced every listed identifier and commitment vector: case, point, sample rank, Morton code, node, cell, edge, baseline field row, essential death, finite and essential intervals, leaf/subtree/support membership, partition commitment, and six-table directory. All matched the locked expected values. The cross-arm field-row computation above is the isolated contradiction exposed by applying that same locked preimage rule to arm_u8=1.
+
+Cardinality and byte arithmetic. The schema field widths independently sum to the locked row widths: 88, 64, 128, 32, 64, and 32 bytes. At O=32,768, S=3, and two arms, the maximum table census is 1,048,575 rows, or 1,048,576 including the metadata record. The complete-role payload is 64,487,336 bytes, leaving 2,621,528 bytes below the 64 MiB cap. 
+
+04_NORMATIVE_CUBICAL_IIP_V1_PRE…
+
+ 
+
+07_STATIC_CARDINALITY_EVIDENCE_…
+
+Resource arithmetic. The semantic-allocation ledger sums to 596,856,088 bytes; fixed reserves sum to 1,140,850,688 bytes; the resulting static process-tree bound is 1,737,706,776 bytes, leaving 2,557,260,520 bytes below the 4 GiB static cap. The independently summed work ledger is 4,600,208,856 major bounded steps per maximum role. The scratch and serialized-payload bounds also reproduce. 
+
+04_NORMATIVE_CUBICAL_IIP_V1_PRE…
+
+ 
+
+07_STATIC_CARDINALITY_EVIDENCE_…
+
+Scientific boundary. The packet correctly distinguishes the proposed equal-mass digital occupied shell from Pottmann’s surface-bounded solid-domain integral invariant and makes no bend-detector or accuracy claim. The cited primary literature supports the general mechanisms of integral invariants, moment-based curvature information, persistent homology on filtered complexes, and cubical-complex processing; it does not establish this occupied-shell extrapolation, its Sherman-specific constants, or its accuracy. 
+Springer
++3
+ScienceDirect
++3
+ScienceDirect
++3
+ 
+
+02_LINEAGE_CLAIM_AND_CROSSBINDI…
+
+ 
+
+03_PRIMARY_SOURCE_AND_ENGINEERI…
+
+Isotropic-negative scope. The admission is mathematically appropriate: equal eigenvalues force q=0, while attribution requires positive q. A clean isotropic result is therefore an implementation-dependency and hidden-channel integrity check only. It cannot establish baseline scientific selectivity or determine whether baseline anisotropy arose from a physical bend, boundary, hole, density variation, or voxel quantization. 
+
+04_NORMATIVE_CUBICAL_IIP_V1_PRE…
+
+Classification
+
+The row-identity contradiction prevents a paper-coherence PASS because no implementation could simultaneously obey both locked clauses. It does not establish that the CIIP_DIGITAL_OCCUPIED_SHELL_H0_V1 scientific family must stop: the defect is isolated, declarative, and repairable through one non-execution correction packet.
+
+The only authorized next action is the paper-only correction packet named above. No implementation, raw-scan semantic processing, geometry, parameter trial, synthetic or replay run, gold/truth access, labels, CAD/reference, render, benchmark, runtime integration, production use, or promotion is authorized. 
+
+09_SAFETY_AUTHORITY_AND_TERMINA…
+
+ 
+
+04_NORMATIVE_CUBICAL_IIP_V1_PRE…

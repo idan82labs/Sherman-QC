@@ -1,0 +1,63 @@
+{
+  "architecture_token": "LOCAL_SCREW_SLIPPAGE_COHERENCE_V1",
+  "authorization_token": "AUTHORIZE_LOCAL_SCREW_SLIPPAGE_COHERENCE_V1_C006_FROZEN_SOURCE_ONLY_CAUSAL_PREFLIGHT_V1",
+  "configuration_sha256": "68e279615b71dc198ba3ae30e951578934edb30c4f7f80e1e0f10dac38e55ff4",
+  "decision": "LSSC_V1_SOURCE_FREE_REGRESSION_ARCHITECTURE_STOP",
+  "terminal_failed_gate": "SF03_scale_angle_positive",
+  "executed_checks": [
+    {
+      "check": "SF01_double_skin_90_degree_bend",
+      "passed": true,
+      "observed": {
+        "raw_two_motion_candidates": 270,
+        "bilateral_tail_pairs": 266,
+        "final_axes": 1
+      }
+    },
+    {
+      "check": "SF02_axial_crop",
+      "passed": true
+    },
+    {
+      "check": "SF03_scale_angle_positive",
+      "passed": false,
+      "observed": {
+        "raw_two_motion_candidates": 275,
+        "bilateral_tail_pairs": 275,
+        "final_axes": 0
+      },
+      "required": {
+        "final_axes": 1,
+        "axis_direction_error_degrees_max": 2.0,
+        "line_distance_over_s_max": 2.0,
+        "axial_span_over_s_min": 60.0
+      }
+    }
+  ],
+  "execution_policy": {
+    "constant_changed": false,
+    "fixture_replaced": false,
+    "threshold_sweep_run": false,
+    "c006_run_authorized_after_stop": false,
+    "rerun_after_terminal_result": false
+  },
+  "visual_ruling": {
+    "path": "output/research/lssc-v1-source-free-causal-ruling/LSSC_V1_SOURCE_FREE_CAUSAL_RULING_4096.png",
+    "pixel_width": 4096,
+    "pixel_height": 4096,
+    "sha256": "fdafcf9b77645cd30a29e25f2914aec2050ae4a432e3005c49c7df14fa9d9494",
+    "manual_critique": "SF01 visibly localizes its orange bilateral-tail survivors to the curved bend zones and retains one axis. The renderer draws a transverse red direction glyph in X-Z rather than a literal projected 3D axis, so that red glyph is not valid evidence of axis tilt and must not be overinterpreted. SF03 has a dense, visually coherent orange bend-band response with 275 bilateral-tail survivors yet produces zero retained axes. The architecture therefore loses a visually valid scale-angle positive at its downstream graph/component stage and cannot be funded."
+  },
+  "accounting_note": "The one-shot computation and 4096px visual completed. Strict JSON serialization then rejected non-finite diagnostic placeholders after the terminal SF03 result. This accounting defect did not alter or rerun the scientific execution; the runner was corrected only so future failures serialize null diagnostics.",
+  "c006_source_opened": false,
+  "c006_claim_created": false,
+  "c006_claim_consumed": false,
+  "gold_labels_cad_expected_counts_benchmark_opened": false,
+  "implementation_sha256": {
+    "config.py": "9df7c4a0c582633d55dffdbb52a686ff812028363f656fc9b9a04d4ab1f025af",
+    "core.py": "f3da047e9e0dc29f47496d29314fa8eb88a887ece48c1fcb8d18f3bbec63b7ff",
+    "fixtures.py": "106727b81011ad826c2a76c53c23f98e0171d53e9fc4c509760e9960ab57975b",
+    "runner.py_pre_accounting_fix": "62874843bd3d5af3e6d2a8547494214e0b74eb1de7993be76c3bb240b76189c6",
+    "tests.py": "32e8ce4d88d0e4e30f07826f2e65c79ce3372233bc768e62e0ad7045387a6640"
+  }
+}

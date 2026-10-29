@@ -1,0 +1,11 @@
+# gb_efbb1e marker B
+- Result: 3 bends. Narrow C-channel (276 mm long, web ~14 mm, flanges ~9 mm, t ~1.2).
+- B1: web 1 to side-A flange. B2: web to side-B flange.
+- Each flange is cut into 5 coplanar segments by reliefs and slots along the fold (3/4, 17/19, 9/10, 21/22, 13/14 and 5/6, 18/23, 11/12, 20/24, 15/16), so each side is 1 line per the window/relief rule.
+- B3: the web has a long central slot, and a ~2.9 mm lip 7/8 is formed up along one slot edge (~82 deg, 254 mm). The formed radius is visible on the section, so it is counted as a fold.
+- apex_mode is station_median because the web plane is slightly bowed (rms 0.30 mm), so all three lines are flagged uncertain.
+- B1 fold support is 0.52 because of the regular relief slots along the fold line.
+- Rejected: end tab 25/26, which is coplanar with the web.
+- Doubts:
+  - B3 could be viewed as a lanced rib rather than a bend;
+  - the low B1 support.

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Activity, AlertCircle } from 'lucide-react'
+import { AlertCircle } from 'lucide-react'
+import BrandLogo from '../components/BrandLogo'
 import { useAuth } from '../hooks/useAuth'
 import { getErrorMessage } from '../services/api'
 
@@ -32,9 +33,8 @@ export default function Login() {
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
-          <Activity className="w-16 h-16 text-primary-500 mx-auto mb-4" />
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-primary-400 to-secondary-400 bg-clip-text text-transparent">
-            Sherman QC
+          <h1 className="flex justify-center">
+            <BrandLogo alt="Sherman QC" />
           </h1>
           <p className="text-dark-400 mt-2">AI-Powered Quality Control</p>
         </div>

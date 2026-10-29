@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-08-11",
+  "part_id": "45796000_A",
+  "scope": "source_only_unlabeled_scan_triage",
+  "f1_transfer_experiment_membership": "excluded",
+  "label_status": "No good/bad labels were supplied for these three scans.",
+  "tool_output_label_warning": "The pair-comparison utility names its arguments good/V and defective/X. For this triage those names are positional placeholders only and must not be interpreted as source truth.",
+  "comparisons": {
+    "scan_1_vs_scan_2": {
+      "symmetric_p80_mm": 15.363777645315434,
+      "directional_median_mm": 0.46000624459059175,
+      "directional_p95_mm": 31.258491473277477,
+      "directional_p99_mm": 32.99030181203386,
+      "directional_max_mm": 34.05157978637329,
+      "fraction_above_5_mm": 0.3497866764672984,
+      "visual_finding": "The central sheet partially aligns, but SCAN_1 contains two upright return walls while SCAN_2 presents a substantially flatter/cross-shaped formed state. This is not ordinary repeat-scan noise."
+    },
+    "full_vs_scan_1": {
+      "symmetric_p80_mm": 11.123553842295236,
+      "directional_median_mm": 2.002758969863661,
+      "directional_p95_mm": 30.710707353107814,
+      "directional_p99_mm": 36.946159967885286,
+      "directional_max_mm": 37.61209543259388,
+      "fraction_above_5_mm": 0.31885252624671917,
+      "visual_finding": "SCAN_1 is the closer structural match to FULL_SCAN because both exhibit the U/box-shaped upright returns, but their footprints, return extents, and heights still differ materially."
+    },
+    "full_vs_scan_2": {
+      "symmetric_p80_mm": 28.06762856758482,
+      "directional_median_mm": 15.648433590186098,
+      "directional_p95_mm": 39.370158723894114,
+      "directional_p99_mm": 44.140613170878076,
+      "directional_max_mm": 47.93396191521703,
+      "fraction_above_5_mm": 0.644021348332561,
+      "visual_finding": "SCAN_2 is grossly incompatible with FULL_SCAN: the full scan has two upright return walls while SCAN_2 remains shallow/flat across those regions."
+    }
+  },
+  "native_resolution_visual_conclusion": {
+    "outcome": "TRIAGE_SEPARATION_DETECTED",
+    "findings": [
+      "The three files should not be pooled as interchangeable repeat scans.",
+      "SCAN_1 and FULL_SCAN share the same broad U/box topology; SCAN_2 does not.",
+      "The large residuals are structured around missing or differently formed returns, not distributed like random point noise.",
+      "Without provenance labels or tolerance data, the evidence supports routing and human review, not assigning production good/bad status."
+    ],
+    "recommended_routing": "Keep SCAN_2 in a separate severe-deviation/alternate-state bucket and request the operator's scan-state or good/bad annotation. Keep SCAN_1 and FULL_SCAN paired only as structural relatives, not as dimensionally equivalent repeats."
+  },
+  "artifacts": {
+    "scan_1_vs_scan_2": {
+      "summary_sha256": "23a0d27ee9075ac39051e5cb4637a9a219523733b7bb6bf8644952ecf6ab41bc",
+      "overlay_sha256": "e87ca7a18622f86a44d5fb23aea00f7564b46b732258ede3904fc2dc9fe5e930",
+      "heatmap_sha256": "6ddc58d5e5032d60248ec93ad0c0aca030a7a07bf645e30d1aa55de0e3debd32",
+      "directory": "output/research/scan-repeatability-20260811/45796000_A_SCAN_1_vs_SCAN_2"
+    },
+    "full_vs_scan_1": {
+      "summary_sha256": "d85ac47ed125a772adb3c8fe1f02f619f18e6f72e86ab74005a9c0ac8cf494c2",
+      "overlay_sha256": "55f218de7a4c16e1d10ec1182b06fa497a4cafb7ee83b36b84867f5b319b1741",
+      "heatmap_sha256": "e54f0b46b10c52fd5cb7197e37dc9087c805a4c65e7f8ad4cf551715d96ef8d0",
+      "directory": "output/research/scan-repeatability-20260811/45796000_A_FULL_vs_SCAN_1"
+    },
+    "full_vs_scan_2": {
+      "summary_sha256": "5c9a99b2fafa33f32bf182c67783e7c10ab20fa25a426ce72564739a6b86e700",
+      "overlay_sha256": "fb3964ba1614db532c6e34910598c3fc2e862013738a186b829b5c6eee8dc478",
+      "heatmap_sha256": "80f5875795c7c3ea574d5fac2f6dd29a628be314ec46e66c8b6da92adc73a801",
+      "directory": "output/research/scan-repeatability-20260811/45796000_A_FULL_vs_SCAN_2"
+    }
+  }
+}

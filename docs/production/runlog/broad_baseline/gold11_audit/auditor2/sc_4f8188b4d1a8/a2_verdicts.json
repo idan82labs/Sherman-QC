@@ -1,0 +1,264 @@
+{
+ "auditor": "auditor2",
+ "scan_id": "sc_4f8188b4d1a8",
+ "gold11_id": "CG1E0BBA2933",
+ "gold": "bend_line_gold_catalog_v1.json#shaked_xv/C05 (codex_manual_multiview_drawing_backed; lines derived from F1 zero_shot_support_strip candidates)",
+ "frame": "scan_raw identity (gold and scan in the same raw frame)",
+ "formed_bends_in_scan": 12,
+ "gold_lines": 10,
+ "gold_on_real_bend": 8,
+ "frozen_matcher_gold_vs_auditor_ai_apex_lines": {
+  "tp": 8,
+  "fp": 4,
+  "fn": 2,
+  "unmatched_gold": [
+   "B07",
+   "B08"
+  ],
+  "unmatched_ai": [
+   "end wall Lmax",
+   "end wall Lmin",
+   "B09 tab kink",
+   "B10 tab kink"
+  ]
+ },
+ "lines": [
+  {
+   "gold_id": "B01",
+   "verdict": "OK",
+   "reason": "On the main-plate x B01-flange 90 deg fold (Ro~2.8 mm). Inside the material on the concave side of the outer apex, drifting lateral toward one end (0.57 deg skew); covers the whole fold, overhangs the fold ends by ~2 mm and ~4.6 mm into the corner reliefs. Frozen matcher vs AI apex line: 0.99 mm, angle 0.56 deg, overlap 0.97/1.00.",
+   "offset_mm": 0.99,
+   "offset_from_fitted_apex_min_mid_max_mm": [
+    0.97,
+    0.97,
+    1.45
+   ],
+   "coverage_pct": 100.0,
+   "coverage_pct_fitted_fold_vs_ai_line": [
+    100.0,
+    100.0
+   ]
+  },
+  {
+   "gold_id": "B02",
+   "verdict": "OK",
+   "reason": "Main plate x B02 flange. Sits on the inner apex / inner virtual sharp (inner-mold-line-like locus, ~1 mm toward the concave side), parallel (0.12 deg), full length. Matcher vs AI apex line: 0.98 mm.",
+   "offset_mm": 0.98,
+   "offset_from_fitted_apex_min_mid_max_mm": [
+    0.82,
+    0.98,
+    1.16
+   ],
+   "coverage_pct": 96.0,
+   "coverage_pct_fitted_fold_vs_ai_line": [
+    96.0,
+    96.1
+   ]
+  },
+  {
+   "gold_id": "B03",
+   "verdict": "OK",
+   "reason": "Main plate x step wall. Inside the material between the outer apex and the inner corner (0.6-1.45 mm), 0.47 deg skew, full length. Matcher vs AI apex line: 0.72 mm.",
+   "offset_mm": 0.72,
+   "offset_from_fitted_apex_min_mid_max_mm": [
+    0.58,
+    0.74,
+    1.45
+   ],
+   "coverage_pct": 97.1,
+   "coverage_pct_fitted_fold_vs_ai_line": [
+    97.1,
+    97.2
+   ]
+  },
+  {
+   "gold_id": "B04",
+   "verdict": "OK",
+   "reason": "Main plate x B04 flange. Sits on the inner virtual sharp (0.1-0.3 mm from it), 1.3-1.45 mm from the outer apex, parallel, full length. Same locus as the engine F1C line (0.18 mm). Matcher vs AI apex line: 1.33 mm.",
+   "offset_mm": 1.33,
+   "offset_from_fitted_apex_min_mid_max_mm": [
+    1.31,
+    1.34,
+    1.45
+   ],
+   "coverage_pct": 94.9,
+   "coverage_pct_fitted_fold_vs_ai_line": [
+    94.9,
+    94.9
+   ]
+  },
+  {
+   "gold_id": "B05",
+   "verdict": "OK",
+   "reason": "Step wall x lower plate. 1.42 mm toward the inner side at one end, converging to 0.3 mm from the apex at the other (0.45 deg skew), full length. Matcher vs AI apex line: 0.60 mm.",
+   "offset_mm": 0.6,
+   "offset_from_fitted_apex_min_mid_max_mm": [
+    0.3,
+    0.62,
+    1.42
+   ],
+   "coverage_pct": 96.4,
+   "coverage_pct_fitted_fold_vs_ai_line": [
+    96.4,
+    97.4
+   ]
+  },
+  {
+   "gold_id": "B06",
+   "verdict": "OK",
+   "reason": "Lower plate x B06 flange. Sits on the inner apex (0.9-1.3 mm from the outer apex), parallel, full length. Matcher vs AI apex line: 1.04 mm.",
+   "offset_mm": 1.04,
+   "offset_from_fitted_apex_min_mid_max_mm": [
+    0.88,
+    1.06,
+    1.27
+   ],
+   "coverage_pct": 97.5,
+   "coverage_pct_fitted_fold_vs_ai_line": [
+    97.5,
+    97.8
+   ]
+  },
+  {
+   "gold_id": "B07",
+   "verdict": "NOT_A_BEND",
+   "reason": "Vertical 15 mm line at the L-max corner of the lower channel, where the B06 flange meets the L-max end wall. Constant-height sections show two separate cut edges: the B06 flange ends at L~218.2 and the end-wall edge at W~1.1, with a ~1.3 mm gap and no continuous arc of material. Both walls are bent separately from the lower plate, so this is an open corner seam. The gold sits in free air at the outer corner, ~1.0 mm from the outer virtual corner and >=1.4 mm from any scan point (0% within 1 mm of the scan). The real fold of this end wall is the 44 mm lower-plate x end-wall fold, perpendicular to B07, which the gold does not have.",
+   "coverage_pct": 0.0,
+   "dist_to_outer_virtual_corner_mm": [
+    0.923,
+    1.047,
+    1.197
+   ]
+  },
+  {
+   "gold_id": "B08",
+   "verdict": "NOT_A_BEND",
+   "reason": "Same as B07 at the L-min corner: the B06 flange end (L~-2.4) and the end-wall edge (W~0.5) are separate with a ~1.2-2 mm gap. Open corner seam, no formed arc. The gold sits in free air ~0.8-1.0 mm from the outer virtual corner and ~1.5 mm from the scan. The real L-min end-wall fold, perpendicular to B08, is missing from the gold.",
+   "coverage_pct": 0.0,
+   "dist_to_outer_virtual_corner_mm": [
+    0.798,
+    0.917,
+    1.051
+   ]
+  },
+  {
+   "gold_id": "B09",
+   "verdict": "REAL_ERROR",
+   "reason": "Correct fold (main plate x B09 slot tab, 90 deg, 78 mm), wrong locus. The line lies on the flat of the tab at mid-thickness, 2.96-3.86 mm from the outer apex (mid 3.4 mm), 1.4-1.9 mm past the bend tangent line. It is 4.0-4.7 mm from the outer virtual sharp and 2.5-3.0 mm from the inner virtual sharp, so it matches no locus convention. It is also shifted ~3.4 mm along its axis: it starts 3.3-3.5 mm before the fold, inside the kinked tab end, and stops ~3.3 mm short of the other end. It still matches an exact apex line under the frozen gate (3.42 mm midpoint offset, angle 0.8 deg, overlap 0.96/0.98), with only ~0.6 mm of slack. It fails against an outer-virtual-sharp line (4.33 mm), and the engine best_f1 leaves it unmatched.",
+   "offset_mm": 3.42,
+   "offset_from_fitted_apex_min_mid_max_mm": [
+    2.96,
+    3.38,
+    3.82
+   ],
+   "coverage_pct": 95.7,
+   "coverage_pct_fitted_fold_vs_ai_line": [
+    95.7,
+    97.5
+   ]
+  },
+  {
+   "gold_id": "B10",
+   "verdict": "REAL_ERROR",
+   "reason": "Same as B09 on the B10 slot tab: on the tab flat at mid-thickness, 2.88-3.96 mm from the outer apex (mid 3.4 mm), 1.2-1.9 mm past the tangent line, 4.0-4.7 mm from the outer virtual sharp, about 1 deg skew. It overhangs the fold start by 2.8-3.5 mm. The frozen-gate midpoint offset against the AI apex line is 3.43 mm, a marginal pass; it fails against the outer-sharp line (4.28 mm). The engine best_f1 leaves it unmatched.",
+   "offset_mm": 3.43,
+   "offset_from_fitted_apex_min_mid_max_mm": [
+    2.9,
+    3.38,
+    3.94
+   ],
+   "coverage_pct": 95.3,
+   "coverage_pct_fitted_fold_vs_ai_line": [
+    95.3,
+    95.5
+   ]
+  }
+ ],
+ "missing_bends": [
+  {
+   "id": "MISS_endwall_Lmax",
+   "desc": "Fold between the lower plate and the L-max end wall of the lower channel (90 deg, Ro~2.8 mm, continuous over the full 44 mm width).",
+   "ai_apex_line_raw": {
+    "start": [
+     -480.53448143785084,
+     -117.06121188420296,
+     242.54007990144544
+    ],
+    "end": [
+     -441.23095755860703,
+     -102.30172840512812,
+     253.50197628812097
+    ]
+   },
+   "bend_angle_deg": 91.7,
+   "length_mm": 43.4
+  },
+  {
+   "id": "MISS_endwall_Lmin",
+   "desc": "Fold between the lower plate and the L-min end wall of the lower channel (90 deg, continuous over 44 mm).",
+   "ai_apex_line_raw": {
+    "start": [
+     -386.93861412410075,
+     -299.63336777180604,
+     152.4781517162424
+    ],
+    "end": [
+     -347.65012867026684,
+     -284.9356559768981,
+     163.42055180318323
+    ]
+   },
+   "bend_angle_deg": 90.8,
+   "length_mm": 43.4
+  },
+  {
+   "id": "MISS_tabkink_B09",
+   "desc": "About 24 deg kink across the B09 slot tab where its pointed end turns away (both skins kink, thickness kept), ~12 mm long and running in the tab height direction.",
+   "ai_apex_line_raw": {
+    "start": [
+     -373.679867298236,
+     -71.88656962912653,
+     210.97597019309885
+    ],
+    "end": [
+     -375.35906785413124,
+     -77.78660452609573,
+     221.5042078464868
+    ]
+   },
+   "bend_angle_deg": 24.2,
+   "length_mm": 12.2
+  },
+  {
+   "id": "MISS_tabkink_B10",
+   "desc": "About 24.5 deg kink across the B10 slot tab end, ~11.7 mm long.",
+   "ai_apex_line_raw": {
+    "start": [
+     -301.0823495099306,
+     -212.88159162686688,
+     142.38622760080813
+    ],
+    "end": [
+     -303.264008892146,
+     -218.84736156774875,
+     152.24716674204424
+    ]
+   },
+   "bend_angle_deg": 24.5,
+   "length_mm": 11.7
+  }
+ ],
+ "reused_prior_auditor2_outputs": [
+  "a2_audit.json",
+  "a2_sections.json",
+  "xsec_a2_B01..B10.png",
+  "a2_sec_*.png",
+  "bench_prep/",
+  "bench_lines12/",
+  "bench_lines_seams/"
+ ],
+ "new_light_checks": [
+  "a2_match_bench.json (scripts/a2_match_bench.py)",
+  "a2_engine_check.json (scripts/a2_engine_check.py)"
+ ]
+}

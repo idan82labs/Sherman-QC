@@ -1,0 +1,269 @@
+{
+ "schema": "sherman.zeroshot.gold_adjudication.v1",
+ "batch": "T2",
+ "gid": "gb_678f8f",
+ "scan_id": "sc_76b89855765e",
+ "portion": "TEST_B",
+ "original_path": "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260909_1dadd1bd/48099000_01 (X).ply",
+ "adjudicated_at": "2026-10-25T03:20:42.044509+00:00",
+ "by": "T2/adjudicator",
+ "matcher": "research/broad_baseline/score.py score_case (frozen, apex locus); accept offset<=1.5 mm, angle<=2 deg",
+ "marker_A_lines": "docs/production/runlog/zeroshot_2026-10-25/gold/T2/gb_678f8f/adjudicator/A_lines_rerun/lines.json",
+ "marker_B_lines": "docs/production/runlog/zeroshot_2026-10-25/gold/T2/gb_678f8f/marker_B/lines/lines.json",
+ "marker_A_note": "marker A stopped before running lines on this scan; the adjudicator ran A's own pairs.json through lines unchanged (adjudicator/A_lines_rerun); A did not verify these renders",
+ "ab": {
+  "f1": 0.9473684210526316,
+  "tp": 9,
+  "n_ref": 9,
+  "n_pred": 10,
+  "ref_only": [],
+  "pred_only": [
+   "B3"
+  ],
+  "matches": [
+   [
+    "B1",
+    "B4",
+    0.0,
+    0.0,
+    1.0,
+    1.0
+   ],
+   [
+    "B3",
+    "B2",
+    0.0,
+    0.0,
+    1.0,
+    1.0
+   ],
+   [
+    "B4",
+    "B1",
+    0.0,
+    0.0,
+    1.0,
+    1.0
+   ],
+   [
+    "B5",
+    "B5",
+    0.0,
+    0.0,
+    1.0,
+    1.0
+   ],
+   [
+    "B6",
+    "B6",
+    0.0,
+    0.0,
+    1.0,
+    1.0
+   ],
+   [
+    "B7",
+    "B7",
+    0.0,
+    0.0,
+    1.0,
+    1.0
+   ],
+   [
+    "B8",
+    "B8",
+    0.0,
+    0.0,
+    1.0,
+    1.0
+   ],
+   [
+    "B9",
+    "B9",
+    0.0,
+    0.0,
+    1.0,
+    1.0
+   ],
+   [
+    "B10",
+    "B10",
+    0.0,
+    0.0,
+    1.0,
+    1.0
+   ]
+  ]
+ },
+ "accepted_matched_pairs": [
+  {
+   "A": "B1",
+   "B": "B4",
+   "offset_mm": 0.0,
+   "angle_deg": 0.0,
+   "line_from": "B (identical to A: same patches, same deterministic prep)"
+  },
+  {
+   "A": "B3",
+   "B": "B2",
+   "offset_mm": 0.0,
+   "angle_deg": 0.0,
+   "line_from": "B (identical to A: same patches, same deterministic prep)"
+  },
+  {
+   "A": "B4",
+   "B": "B1",
+   "offset_mm": 0.0,
+   "angle_deg": 0.0,
+   "line_from": "B (identical to A: same patches, same deterministic prep)"
+  },
+  {
+   "A": "B5",
+   "B": "B5",
+   "offset_mm": 0.0,
+   "angle_deg": 0.0,
+   "line_from": "B (identical to A: same patches, same deterministic prep)"
+  },
+  {
+   "A": "B6",
+   "B": "B6",
+   "offset_mm": 0.0,
+   "angle_deg": 0.0,
+   "line_from": "B (identical to A: same patches, same deterministic prep)"
+  },
+  {
+   "A": "B7",
+   "B": "B7",
+   "offset_mm": 0.0,
+   "angle_deg": 0.0,
+   "line_from": "B (identical to A: same patches, same deterministic prep)"
+  },
+  {
+   "A": "B8",
+   "B": "B8",
+   "offset_mm": 0.0,
+   "angle_deg": 0.0,
+   "line_from": "B (identical to A: same patches, same deterministic prep)"
+  },
+  {
+   "A": "B9",
+   "B": "B9",
+   "offset_mm": 0.0,
+   "angle_deg": 0.0,
+   "line_from": "B (identical to A: same patches, same deterministic prep)"
+  },
+  {
+   "A": "B10",
+   "B": "B10",
+   "offset_mm": 0.0,
+   "angle_deg": 0.0,
+   "line_from": "B (identical to A: same patches, same deterministic prep)"
+  }
+ ],
+ "disagreements": [
+  {
+   "verdict": "ACCEPT_B",
+   "A": "B2 (pair [1,6], status failed: no overlapping support)",
+   "B": "B3 ([1] + plane_from_points grow=false + extent_xyz, incl 94.2 deg, 151.9 mm, support 0.99)",
+   "reason": "Both markers intended the same fold (plate 1 bent out of the window along its top edge). A's auto run failed because the counter-plate runs past the fold and leaves only a stub; B fixed it with a raw plane + explicit extent. Adjudicator checked B closeup_B3: the section shows a real formed ~86 deg fold with a tight radius, the dot sits on the outer-skin sharp of the two planes, the line runs the full visible fold along the window top edge (one 2 mm support gap). Real formed fold, outer skin, parallel, >=80% coverage."
+  }
+ ],
+ "fresh_third_marking": {
+  "path": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED/2e7c7cd868cce77aa237e49f.json",
+  "final_vs_fresh": {
+   "f1": 1.0,
+   "tp": 10,
+   "n_ref": 10,
+   "n_pred": 10,
+   "ref_only": [],
+   "pred_only": [],
+   "matches": [
+    [
+     "B1",
+     "B4",
+     0.0,
+     0.0,
+     1.0,
+     1.0
+    ],
+    [
+     "B2",
+     "B3",
+     1.36,
+     1.11,
+     1.0,
+     0.98
+    ],
+    [
+     "B3",
+     "B2",
+     0.0,
+     0.0,
+     1.0,
+     1.0
+    ],
+    [
+     "B4",
+     "B1",
+     0.0,
+     0.0,
+     1.0,
+     1.0
+    ],
+    [
+     "B5",
+     "B5",
+     0.0,
+     0.0,
+     1.0,
+     1.0
+    ],
+    [
+     "B6",
+     "B6",
+     0.0,
+     0.0,
+     1.0,
+     1.0
+    ],
+    [
+     "B7",
+     "B7",
+     0.0,
+     0.0,
+     1.0,
+     1.0
+    ],
+    [
+     "B8",
+     "B8",
+     0.0,
+     0.0,
+     1.0,
+     1.0
+    ],
+    [
+     "B9",
+     "B9",
+     0.0,
+     0.0,
+     1.0,
+     1.0
+    ],
+    [
+     "B10",
+     "B10",
+     0.0,
+     0.0,
+     1.0,
+     1.0
+    ]
+   ]
+  },
+  "adjudication": {
+   "verdict": "AGREES",
+   "reason": "FRESH matches the adjudicated set one-to-one."
+  }
+ },
+ "final_source": "marker_B/lines (B covers every accepted line and the ACCEPT_B verdicts; all A/B matched lines are geometrically identical)"
+}

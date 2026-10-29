@@ -1,0 +1,521 @@
+............................................................................................................................FFFFFFFFFFF...........................................
+=================================== FAILURES ===================================
+_ test_actual_workflow_requested_returned_configuration_mismatch_never_measures[missing_returned_configuration-INVALID_EXPECTED_SCAN_PLANE_CONFIGURATION-v12] _
+
+adapter_case = namespace(scan={'status': 'AVAILABLE', 'reasons': [], 'raw_points': array([[0., 0., 0.],
+       [1., 0., 0.],
+       [...surement_calls=[], binding_failures=[], scan_binding_calls=[], run=<function adapter_case.<locals>.run at 0x10ecd87c0>)
+version = 'v12', fault = 'missing_returned_configuration'
+expected_reason = 'INVALID_EXPECTED_SCAN_PLANE_CONFIGURATION'
+
+    @pytest.mark.parametrize("version", ["v12", "v13"])
+    @pytest.mark.parametrize("fault,expected_reason", [
+        ("missing_returned_configuration", "INVALID_EXPECTED_SCAN_PLANE_CONFIGURATION"),
+        ("top_budget_mismatch", "REGISTRATION_SCAN_PLANE_CONFIGURATION_MISMATCH"),
+        ("initialization_budget_mismatch", "REGISTRATION_SCAN_PLANE_CONFIGURATION_MISMATCH"),
+        ("unrequested_composite", "UNREQUESTED_COMPOSITE_SCAN_PLANE_CONFIGURATION"),
+        ("hidden_composite_schema", "UNREQUESTED_OR_INVALID_SCAN_PLANE_SCHEMA")])
+    def test_actual_workflow_requested_returned_configuration_mismatch_never_measures(adapter_case, version, fault, expected_reason):
+        state, requested = adapter_case, "composite_v1"
+        evidence = state.registration["evidence"]
+        initialization = evidence["initialization"]
+        if fault == "missing_returned_configuration": initialization.pop("scan_plane_configuration")
+        elif fault == "top_budget_mismatch": evidence["scan_plane_configuration"]["seeded_budgets"]["max_seeds"] = 31
+        elif fault == "initialization_budget_mismatch": initialization["scan_plane_configuration"]["composite_budgets"]["max_qualified_planes"] = 65551
+        elif fault == "unrequested_composite": requested = "v7"
+        elif fault == "hidden_composite_schema":
+            requested = "v7"
+            evidence.pop("scan_plane_configuration")
+            initialization.pop("scan_plane_configuration")
+>       result = state.run(version, requested)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_cad_guided_composite_plane_integration_v1.py:470: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+version = 'v12', requested = 'composite_v1'
+
+    def run(version, requested):
+        workflow = getattr(modules, "workflow_"+version)
+        policy_class = getattr(workflow, "MeshWorkflowPolicy"+version.upper())
+        kwargs = dict(scan_bytes=helper.SCAN_BYTES, cad_bytes=helper.CAD_BYTES,
+            position_error_bound_mm=.05, allow_ocp=True,
+            workflow_policy=policy_class(max_registration_scan_rows=36, cad_sample_count=36),
+>           registration_policy=_policy(modules), measurement_policy=modules.native.NativeGuidedPolicy(fit_model="free_circle"),
+                                                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+            instance_policy=modules.instances.SupportPolicy(4., 5., 20., 3), scan_plane_mode=requested)
+E       TypeError: NativeGuidedPolicy.__init__() missing 5 required positional arguments: 'flange_window_mm', 'search_margin_mm', 'max_fit_residual_mm', 'plane_exclusion_mm', and 'max_tangency_error_mm'
+
+tests/test_cad_guided_composite_plane_integration_v1.py:442: TypeError
+_ test_actual_workflow_requested_returned_configuration_mismatch_never_measures[missing_returned_configuration-INVALID_EXPECTED_SCAN_PLANE_CONFIGURATION-v13] _
+
+adapter_case = namespace(scan={'status': 'AVAILABLE', 'reasons': [], 'raw_points': array([[0., 0., 0.],
+       [1., 0., 0.],
+       [...surement_calls=[], binding_failures=[], scan_binding_calls=[], run=<function adapter_case.<locals>.run at 0x10e774e00>)
+version = 'v13', fault = 'missing_returned_configuration'
+expected_reason = 'INVALID_EXPECTED_SCAN_PLANE_CONFIGURATION'
+
+    @pytest.mark.parametrize("version", ["v12", "v13"])
+    @pytest.mark.parametrize("fault,expected_reason", [
+        ("missing_returned_configuration", "INVALID_EXPECTED_SCAN_PLANE_CONFIGURATION"),
+        ("top_budget_mismatch", "REGISTRATION_SCAN_PLANE_CONFIGURATION_MISMATCH"),
+        ("initialization_budget_mismatch", "REGISTRATION_SCAN_PLANE_CONFIGURATION_MISMATCH"),
+        ("unrequested_composite", "UNREQUESTED_COMPOSITE_SCAN_PLANE_CONFIGURATION"),
+        ("hidden_composite_schema", "UNREQUESTED_OR_INVALID_SCAN_PLANE_SCHEMA")])
+    def test_actual_workflow_requested_returned_configuration_mismatch_never_measures(adapter_case, version, fault, expected_reason):
+        state, requested = adapter_case, "composite_v1"
+        evidence = state.registration["evidence"]
+        initialization = evidence["initialization"]
+        if fault == "missing_returned_configuration": initialization.pop("scan_plane_configuration")
+        elif fault == "top_budget_mismatch": evidence["scan_plane_configuration"]["seeded_budgets"]["max_seeds"] = 31
+        elif fault == "initialization_budget_mismatch": initialization["scan_plane_configuration"]["composite_budgets"]["max_qualified_planes"] = 65551
+        elif fault == "unrequested_composite": requested = "v7"
+        elif fault == "hidden_composite_schema":
+            requested = "v7"
+            evidence.pop("scan_plane_configuration")
+            initialization.pop("scan_plane_configuration")
+>       result = state.run(version, requested)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_cad_guided_composite_plane_integration_v1.py:470: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+version = 'v13', requested = 'composite_v1'
+
+    def run(version, requested):
+        workflow = getattr(modules, "workflow_"+version)
+        policy_class = getattr(workflow, "MeshWorkflowPolicy"+version.upper())
+        kwargs = dict(scan_bytes=helper.SCAN_BYTES, cad_bytes=helper.CAD_BYTES,
+            position_error_bound_mm=.05, allow_ocp=True,
+            workflow_policy=policy_class(max_registration_scan_rows=36, cad_sample_count=36),
+>           registration_policy=_policy(modules), measurement_policy=modules.native.NativeGuidedPolicy(fit_model="free_circle"),
+                                                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+            instance_policy=modules.instances.SupportPolicy(4., 5., 20., 3), scan_plane_mode=requested)
+E       TypeError: NativeGuidedPolicy.__init__() missing 5 required positional arguments: 'flange_window_mm', 'search_margin_mm', 'max_fit_residual_mm', 'plane_exclusion_mm', and 'max_tangency_error_mm'
+
+tests/test_cad_guided_composite_plane_integration_v1.py:442: TypeError
+_ test_actual_workflow_requested_returned_configuration_mismatch_never_measures[top_budget_mismatch-REGISTRATION_SCAN_PLANE_CONFIGURATION_MISMATCH-v12] _
+
+adapter_case = namespace(scan={'status': 'AVAILABLE', 'reasons': [], 'raw_points': array([[0., 0., 0.],
+       [1., 0., 0.],
+       [...surement_calls=[], binding_failures=[], scan_binding_calls=[], run=<function adapter_case.<locals>.run at 0x10e1ed120>)
+version = 'v12', fault = 'top_budget_mismatch'
+expected_reason = 'REGISTRATION_SCAN_PLANE_CONFIGURATION_MISMATCH'
+
+    @pytest.mark.parametrize("version", ["v12", "v13"])
+    @pytest.mark.parametrize("fault,expected_reason", [
+        ("missing_returned_configuration", "INVALID_EXPECTED_SCAN_PLANE_CONFIGURATION"),
+        ("top_budget_mismatch", "REGISTRATION_SCAN_PLANE_CONFIGURATION_MISMATCH"),
+        ("initialization_budget_mismatch", "REGISTRATION_SCAN_PLANE_CONFIGURATION_MISMATCH"),
+        ("unrequested_composite", "UNREQUESTED_COMPOSITE_SCAN_PLANE_CONFIGURATION"),
+        ("hidden_composite_schema", "UNREQUESTED_OR_INVALID_SCAN_PLANE_SCHEMA")])
+    def test_actual_workflow_requested_returned_configuration_mismatch_never_measures(adapter_case, version, fault, expected_reason):
+        state, requested = adapter_case, "composite_v1"
+        evidence = state.registration["evidence"]
+        initialization = evidence["initialization"]
+        if fault == "missing_returned_configuration": initialization.pop("scan_plane_configuration")
+        elif fault == "top_budget_mismatch": evidence["scan_plane_configuration"]["seeded_budgets"]["max_seeds"] = 31
+        elif fault == "initialization_budget_mismatch": initialization["scan_plane_configuration"]["composite_budgets"]["max_qualified_planes"] = 65551
+        elif fault == "unrequested_composite": requested = "v7"
+        elif fault == "hidden_composite_schema":
+            requested = "v7"
+            evidence.pop("scan_plane_configuration")
+            initialization.pop("scan_plane_configuration")
+>       result = state.run(version, requested)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_cad_guided_composite_plane_integration_v1.py:470: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+version = 'v12', requested = 'composite_v1'
+
+    def run(version, requested):
+        workflow = getattr(modules, "workflow_"+version)
+        policy_class = getattr(workflow, "MeshWorkflowPolicy"+version.upper())
+        kwargs = dict(scan_bytes=helper.SCAN_BYTES, cad_bytes=helper.CAD_BYTES,
+            position_error_bound_mm=.05, allow_ocp=True,
+            workflow_policy=policy_class(max_registration_scan_rows=36, cad_sample_count=36),
+>           registration_policy=_policy(modules), measurement_policy=modules.native.NativeGuidedPolicy(fit_model="free_circle"),
+                                                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+            instance_policy=modules.instances.SupportPolicy(4., 5., 20., 3), scan_plane_mode=requested)
+E       TypeError: NativeGuidedPolicy.__init__() missing 5 required positional arguments: 'flange_window_mm', 'search_margin_mm', 'max_fit_residual_mm', 'plane_exclusion_mm', and 'max_tangency_error_mm'
+
+tests/test_cad_guided_composite_plane_integration_v1.py:442: TypeError
+_ test_actual_workflow_requested_returned_configuration_mismatch_never_measures[top_budget_mismatch-REGISTRATION_SCAN_PLANE_CONFIGURATION_MISMATCH-v13] _
+
+adapter_case = namespace(scan={'status': 'AVAILABLE', 'reasons': [], 'raw_points': array([[0., 0., 0.],
+       [1., 0., 0.],
+       [...surement_calls=[], binding_failures=[], scan_binding_calls=[], run=<function adapter_case.<locals>.run at 0x10d6b36a0>)
+version = 'v13', fault = 'top_budget_mismatch'
+expected_reason = 'REGISTRATION_SCAN_PLANE_CONFIGURATION_MISMATCH'
+
+    @pytest.mark.parametrize("version", ["v12", "v13"])
+    @pytest.mark.parametrize("fault,expected_reason", [
+        ("missing_returned_configuration", "INVALID_EXPECTED_SCAN_PLANE_CONFIGURATION"),
+        ("top_budget_mismatch", "REGISTRATION_SCAN_PLANE_CONFIGURATION_MISMATCH"),
+        ("initialization_budget_mismatch", "REGISTRATION_SCAN_PLANE_CONFIGURATION_MISMATCH"),
+        ("unrequested_composite", "UNREQUESTED_COMPOSITE_SCAN_PLANE_CONFIGURATION"),
+        ("hidden_composite_schema", "UNREQUESTED_OR_INVALID_SCAN_PLANE_SCHEMA")])
+    def test_actual_workflow_requested_returned_configuration_mismatch_never_measures(adapter_case, version, fault, expected_reason):
+        state, requested = adapter_case, "composite_v1"
+        evidence = state.registration["evidence"]
+        initialization = evidence["initialization"]
+        if fault == "missing_returned_configuration": initialization.pop("scan_plane_configuration")
+        elif fault == "top_budget_mismatch": evidence["scan_plane_configuration"]["seeded_budgets"]["max_seeds"] = 31
+        elif fault == "initialization_budget_mismatch": initialization["scan_plane_configuration"]["composite_budgets"]["max_qualified_planes"] = 65551
+        elif fault == "unrequested_composite": requested = "v7"
+        elif fault == "hidden_composite_schema":
+            requested = "v7"
+            evidence.pop("scan_plane_configuration")
+            initialization.pop("scan_plane_configuration")
+>       result = state.run(version, requested)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_cad_guided_composite_plane_integration_v1.py:470: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+version = 'v13', requested = 'composite_v1'
+
+    def run(version, requested):
+        workflow = getattr(modules, "workflow_"+version)
+        policy_class = getattr(workflow, "MeshWorkflowPolicy"+version.upper())
+        kwargs = dict(scan_bytes=helper.SCAN_BYTES, cad_bytes=helper.CAD_BYTES,
+            position_error_bound_mm=.05, allow_ocp=True,
+            workflow_policy=policy_class(max_registration_scan_rows=36, cad_sample_count=36),
+>           registration_policy=_policy(modules), measurement_policy=modules.native.NativeGuidedPolicy(fit_model="free_circle"),
+                                                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+            instance_policy=modules.instances.SupportPolicy(4., 5., 20., 3), scan_plane_mode=requested)
+E       TypeError: NativeGuidedPolicy.__init__() missing 5 required positional arguments: 'flange_window_mm', 'search_margin_mm', 'max_fit_residual_mm', 'plane_exclusion_mm', and 'max_tangency_error_mm'
+
+tests/test_cad_guided_composite_plane_integration_v1.py:442: TypeError
+_ test_actual_workflow_requested_returned_configuration_mismatch_never_measures[initialization_budget_mismatch-REGISTRATION_SCAN_PLANE_CONFIGURATION_MISMATCH-v12] _
+
+adapter_case = namespace(scan={'status': 'AVAILABLE', 'reasons': [], 'raw_points': array([[0., 0., 0.],
+       [1., 0., 0.],
+       [...surement_calls=[], binding_failures=[], scan_binding_calls=[], run=<function adapter_case.<locals>.run at 0x10e48b9c0>)
+version = 'v12', fault = 'initialization_budget_mismatch'
+expected_reason = 'REGISTRATION_SCAN_PLANE_CONFIGURATION_MISMATCH'
+
+    @pytest.mark.parametrize("version", ["v12", "v13"])
+    @pytest.mark.parametrize("fault,expected_reason", [
+        ("missing_returned_configuration", "INVALID_EXPECTED_SCAN_PLANE_CONFIGURATION"),
+        ("top_budget_mismatch", "REGISTRATION_SCAN_PLANE_CONFIGURATION_MISMATCH"),
+        ("initialization_budget_mismatch", "REGISTRATION_SCAN_PLANE_CONFIGURATION_MISMATCH"),
+        ("unrequested_composite", "UNREQUESTED_COMPOSITE_SCAN_PLANE_CONFIGURATION"),
+        ("hidden_composite_schema", "UNREQUESTED_OR_INVALID_SCAN_PLANE_SCHEMA")])
+    def test_actual_workflow_requested_returned_configuration_mismatch_never_measures(adapter_case, version, fault, expected_reason):
+        state, requested = adapter_case, "composite_v1"
+        evidence = state.registration["evidence"]
+        initialization = evidence["initialization"]
+        if fault == "missing_returned_configuration": initialization.pop("scan_plane_configuration")
+        elif fault == "top_budget_mismatch": evidence["scan_plane_configuration"]["seeded_budgets"]["max_seeds"] = 31
+        elif fault == "initialization_budget_mismatch": initialization["scan_plane_configuration"]["composite_budgets"]["max_qualified_planes"] = 65551
+        elif fault == "unrequested_composite": requested = "v7"
+        elif fault == "hidden_composite_schema":
+            requested = "v7"
+            evidence.pop("scan_plane_configuration")
+            initialization.pop("scan_plane_configuration")
+>       result = state.run(version, requested)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_cad_guided_composite_plane_integration_v1.py:470: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+version = 'v12', requested = 'composite_v1'
+
+    def run(version, requested):
+        workflow = getattr(modules, "workflow_"+version)
+        policy_class = getattr(workflow, "MeshWorkflowPolicy"+version.upper())
+        kwargs = dict(scan_bytes=helper.SCAN_BYTES, cad_bytes=helper.CAD_BYTES,
+            position_error_bound_mm=.05, allow_ocp=True,
+            workflow_policy=policy_class(max_registration_scan_rows=36, cad_sample_count=36),
+>           registration_policy=_policy(modules), measurement_policy=modules.native.NativeGuidedPolicy(fit_model="free_circle"),
+                                                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+            instance_policy=modules.instances.SupportPolicy(4., 5., 20., 3), scan_plane_mode=requested)
+E       TypeError: NativeGuidedPolicy.__init__() missing 5 required positional arguments: 'flange_window_mm', 'search_margin_mm', 'max_fit_residual_mm', 'plane_exclusion_mm', and 'max_tangency_error_mm'
+
+tests/test_cad_guided_composite_plane_integration_v1.py:442: TypeError
+_ test_actual_workflow_requested_returned_configuration_mismatch_never_measures[initialization_budget_mismatch-REGISTRATION_SCAN_PLANE_CONFIGURATION_MISMATCH-v13] _
+
+adapter_case = namespace(scan={'status': 'AVAILABLE', 'reasons': [], 'raw_points': array([[0., 0., 0.],
+       [1., 0., 0.],
+       [...surement_calls=[], binding_failures=[], scan_binding_calls=[], run=<function adapter_case.<locals>.run at 0x10d660720>)
+version = 'v13', fault = 'initialization_budget_mismatch'
+expected_reason = 'REGISTRATION_SCAN_PLANE_CONFIGURATION_MISMATCH'
+
+    @pytest.mark.parametrize("version", ["v12", "v13"])
+    @pytest.mark.parametrize("fault,expected_reason", [
+        ("missing_returned_configuration", "INVALID_EXPECTED_SCAN_PLANE_CONFIGURATION"),
+        ("top_budget_mismatch", "REGISTRATION_SCAN_PLANE_CONFIGURATION_MISMATCH"),
+        ("initialization_budget_mismatch", "REGISTRATION_SCAN_PLANE_CONFIGURATION_MISMATCH"),
+        ("unrequested_composite", "UNREQUESTED_COMPOSITE_SCAN_PLANE_CONFIGURATION"),
+        ("hidden_composite_schema", "UNREQUESTED_OR_INVALID_SCAN_PLANE_SCHEMA")])
+    def test_actual_workflow_requested_returned_configuration_mismatch_never_measures(adapter_case, version, fault, expected_reason):
+        state, requested = adapter_case, "composite_v1"
+        evidence = state.registration["evidence"]
+        initialization = evidence["initialization"]
+        if fault == "missing_returned_configuration": initialization.pop("scan_plane_configuration")
+        elif fault == "top_budget_mismatch": evidence["scan_plane_configuration"]["seeded_budgets"]["max_seeds"] = 31
+        elif fault == "initialization_budget_mismatch": initialization["scan_plane_configuration"]["composite_budgets"]["max_qualified_planes"] = 65551
+        elif fault == "unrequested_composite": requested = "v7"
+        elif fault == "hidden_composite_schema":
+            requested = "v7"
+            evidence.pop("scan_plane_configuration")
+            initialization.pop("scan_plane_configuration")
+>       result = state.run(version, requested)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_cad_guided_composite_plane_integration_v1.py:470: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+version = 'v13', requested = 'composite_v1'
+
+    def run(version, requested):
+        workflow = getattr(modules, "workflow_"+version)
+        policy_class = getattr(workflow, "MeshWorkflowPolicy"+version.upper())
+        kwargs = dict(scan_bytes=helper.SCAN_BYTES, cad_bytes=helper.CAD_BYTES,
+            position_error_bound_mm=.05, allow_ocp=True,
+            workflow_policy=policy_class(max_registration_scan_rows=36, cad_sample_count=36),
+>           registration_policy=_policy(modules), measurement_policy=modules.native.NativeGuidedPolicy(fit_model="free_circle"),
+                                                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+            instance_policy=modules.instances.SupportPolicy(4., 5., 20., 3), scan_plane_mode=requested)
+E       TypeError: NativeGuidedPolicy.__init__() missing 5 required positional arguments: 'flange_window_mm', 'search_margin_mm', 'max_fit_residual_mm', 'plane_exclusion_mm', and 'max_tangency_error_mm'
+
+tests/test_cad_guided_composite_plane_integration_v1.py:442: TypeError
+_ test_actual_workflow_requested_returned_configuration_mismatch_never_measures[unrequested_composite-UNREQUESTED_COMPOSITE_SCAN_PLANE_CONFIGURATION-v12] _
+
+adapter_case = namespace(scan={'status': 'AVAILABLE', 'reasons': [], 'raw_points': array([[0., 0., 0.],
+       [1., 0., 0.],
+       [...surement_calls=[], binding_failures=[], scan_binding_calls=[], run=<function adapter_case.<locals>.run at 0x10cb9d580>)
+version = 'v12', fault = 'unrequested_composite'
+expected_reason = 'UNREQUESTED_COMPOSITE_SCAN_PLANE_CONFIGURATION'
+
+    @pytest.mark.parametrize("version", ["v12", "v13"])
+    @pytest.mark.parametrize("fault,expected_reason", [
+        ("missing_returned_configuration", "INVALID_EXPECTED_SCAN_PLANE_CONFIGURATION"),
+        ("top_budget_mismatch", "REGISTRATION_SCAN_PLANE_CONFIGURATION_MISMATCH"),
+        ("initialization_budget_mismatch", "REGISTRATION_SCAN_PLANE_CONFIGURATION_MISMATCH"),
+        ("unrequested_composite", "UNREQUESTED_COMPOSITE_SCAN_PLANE_CONFIGURATION"),
+        ("hidden_composite_schema", "UNREQUESTED_OR_INVALID_SCAN_PLANE_SCHEMA")])
+    def test_actual_workflow_requested_returned_configuration_mismatch_never_measures(adapter_case, version, fault, expected_reason):
+        state, requested = adapter_case, "composite_v1"
+        evidence = state.registration["evidence"]
+        initialization = evidence["initialization"]
+        if fault == "missing_returned_configuration": initialization.pop("scan_plane_configuration")
+        elif fault == "top_budget_mismatch": evidence["scan_plane_configuration"]["seeded_budgets"]["max_seeds"] = 31
+        elif fault == "initialization_budget_mismatch": initialization["scan_plane_configuration"]["composite_budgets"]["max_qualified_planes"] = 65551
+        elif fault == "unrequested_composite": requested = "v7"
+        elif fault == "hidden_composite_schema":
+            requested = "v7"
+            evidence.pop("scan_plane_configuration")
+            initialization.pop("scan_plane_configuration")
+>       result = state.run(version, requested)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_cad_guided_composite_plane_integration_v1.py:470: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+version = 'v12', requested = 'v7'
+
+    def run(version, requested):
+        workflow = getattr(modules, "workflow_"+version)
+        policy_class = getattr(workflow, "MeshWorkflowPolicy"+version.upper())
+        kwargs = dict(scan_bytes=helper.SCAN_BYTES, cad_bytes=helper.CAD_BYTES,
+            position_error_bound_mm=.05, allow_ocp=True,
+            workflow_policy=policy_class(max_registration_scan_rows=36, cad_sample_count=36),
+>           registration_policy=_policy(modules), measurement_policy=modules.native.NativeGuidedPolicy(fit_model="free_circle"),
+                                                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+            instance_policy=modules.instances.SupportPolicy(4., 5., 20., 3), scan_plane_mode=requested)
+E       TypeError: NativeGuidedPolicy.__init__() missing 5 required positional arguments: 'flange_window_mm', 'search_margin_mm', 'max_fit_residual_mm', 'plane_exclusion_mm', and 'max_tangency_error_mm'
+
+tests/test_cad_guided_composite_plane_integration_v1.py:442: TypeError
+_ test_actual_workflow_requested_returned_configuration_mismatch_never_measures[unrequested_composite-UNREQUESTED_COMPOSITE_SCAN_PLANE_CONFIGURATION-v13] _
+
+adapter_case = namespace(scan={'status': 'AVAILABLE', 'reasons': [], 'raw_points': array([[0., 0., 0.],
+       [1., 0., 0.],
+       [...surement_calls=[], binding_failures=[], scan_binding_calls=[], run=<function adapter_case.<locals>.run at 0x10e3611c0>)
+version = 'v13', fault = 'unrequested_composite'
+expected_reason = 'UNREQUESTED_COMPOSITE_SCAN_PLANE_CONFIGURATION'
+
+    @pytest.mark.parametrize("version", ["v12", "v13"])
+    @pytest.mark.parametrize("fault,expected_reason", [
+        ("missing_returned_configuration", "INVALID_EXPECTED_SCAN_PLANE_CONFIGURATION"),
+        ("top_budget_mismatch", "REGISTRATION_SCAN_PLANE_CONFIGURATION_MISMATCH"),
+        ("initialization_budget_mismatch", "REGISTRATION_SCAN_PLANE_CONFIGURATION_MISMATCH"),
+        ("unrequested_composite", "UNREQUESTED_COMPOSITE_SCAN_PLANE_CONFIGURATION"),
+        ("hidden_composite_schema", "UNREQUESTED_OR_INVALID_SCAN_PLANE_SCHEMA")])
+    def test_actual_workflow_requested_returned_configuration_mismatch_never_measures(adapter_case, version, fault, expected_reason):
+        state, requested = adapter_case, "composite_v1"
+        evidence = state.registration["evidence"]
+        initialization = evidence["initialization"]
+        if fault == "missing_returned_configuration": initialization.pop("scan_plane_configuration")
+        elif fault == "top_budget_mismatch": evidence["scan_plane_configuration"]["seeded_budgets"]["max_seeds"] = 31
+        elif fault == "initialization_budget_mismatch": initialization["scan_plane_configuration"]["composite_budgets"]["max_qualified_planes"] = 65551
+        elif fault == "unrequested_composite": requested = "v7"
+        elif fault == "hidden_composite_schema":
+            requested = "v7"
+            evidence.pop("scan_plane_configuration")
+            initialization.pop("scan_plane_configuration")
+>       result = state.run(version, requested)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_cad_guided_composite_plane_integration_v1.py:470: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+version = 'v13', requested = 'v7'
+
+    def run(version, requested):
+        workflow = getattr(modules, "workflow_"+version)
+        policy_class = getattr(workflow, "MeshWorkflowPolicy"+version.upper())
+        kwargs = dict(scan_bytes=helper.SCAN_BYTES, cad_bytes=helper.CAD_BYTES,
+            position_error_bound_mm=.05, allow_ocp=True,
+            workflow_policy=policy_class(max_registration_scan_rows=36, cad_sample_count=36),
+>           registration_policy=_policy(modules), measurement_policy=modules.native.NativeGuidedPolicy(fit_model="free_circle"),
+                                                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+            instance_policy=modules.instances.SupportPolicy(4., 5., 20., 3), scan_plane_mode=requested)
+E       TypeError: NativeGuidedPolicy.__init__() missing 5 required positional arguments: 'flange_window_mm', 'search_margin_mm', 'max_fit_residual_mm', 'plane_exclusion_mm', and 'max_tangency_error_mm'
+
+tests/test_cad_guided_composite_plane_integration_v1.py:442: TypeError
+_ test_actual_workflow_requested_returned_configuration_mismatch_never_measures[hidden_composite_schema-UNREQUESTED_OR_INVALID_SCAN_PLANE_SCHEMA-v12] _
+
+adapter_case = namespace(scan={'status': 'AVAILABLE', 'reasons': [], 'raw_points': array([[0., 0., 0.],
+       [1., 0., 0.],
+       [...surement_calls=[], binding_failures=[], scan_binding_calls=[], run=<function adapter_case.<locals>.run at 0x10ea718a0>)
+version = 'v12', fault = 'hidden_composite_schema'
+expected_reason = 'UNREQUESTED_OR_INVALID_SCAN_PLANE_SCHEMA'
+
+    @pytest.mark.parametrize("version", ["v12", "v13"])
+    @pytest.mark.parametrize("fault,expected_reason", [
+        ("missing_returned_configuration", "INVALID_EXPECTED_SCAN_PLANE_CONFIGURATION"),
+        ("top_budget_mismatch", "REGISTRATION_SCAN_PLANE_CONFIGURATION_MISMATCH"),
+        ("initialization_budget_mismatch", "REGISTRATION_SCAN_PLANE_CONFIGURATION_MISMATCH"),
+        ("unrequested_composite", "UNREQUESTED_COMPOSITE_SCAN_PLANE_CONFIGURATION"),
+        ("hidden_composite_schema", "UNREQUESTED_OR_INVALID_SCAN_PLANE_SCHEMA")])
+    def test_actual_workflow_requested_returned_configuration_mismatch_never_measures(adapter_case, version, fault, expected_reason):
+        state, requested = adapter_case, "composite_v1"
+        evidence = state.registration["evidence"]
+        initialization = evidence["initialization"]
+        if fault == "missing_returned_configuration": initialization.pop("scan_plane_configuration")
+        elif fault == "top_budget_mismatch": evidence["scan_plane_configuration"]["seeded_budgets"]["max_seeds"] = 31
+        elif fault == "initialization_budget_mismatch": initialization["scan_plane_configuration"]["composite_budgets"]["max_qualified_planes"] = 65551
+        elif fault == "unrequested_composite": requested = "v7"
+        elif fault == "hidden_composite_schema":
+            requested = "v7"
+            evidence.pop("scan_plane_configuration")
+            initialization.pop("scan_plane_configuration")
+>       result = state.run(version, requested)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_cad_guided_composite_plane_integration_v1.py:470: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+version = 'v12', requested = 'v7'
+
+    def run(version, requested):
+        workflow = getattr(modules, "workflow_"+version)
+        policy_class = getattr(workflow, "MeshWorkflowPolicy"+version.upper())
+        kwargs = dict(scan_bytes=helper.SCAN_BYTES, cad_bytes=helper.CAD_BYTES,
+            position_error_bound_mm=.05, allow_ocp=True,
+            workflow_policy=policy_class(max_registration_scan_rows=36, cad_sample_count=36),
+>           registration_policy=_policy(modules), measurement_policy=modules.native.NativeGuidedPolicy(fit_model="free_circle"),
+                                                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+            instance_policy=modules.instances.SupportPolicy(4., 5., 20., 3), scan_plane_mode=requested)
+E       TypeError: NativeGuidedPolicy.__init__() missing 5 required positional arguments: 'flange_window_mm', 'search_margin_mm', 'max_fit_residual_mm', 'plane_exclusion_mm', and 'max_tangency_error_mm'
+
+tests/test_cad_guided_composite_plane_integration_v1.py:442: TypeError
+_ test_actual_workflow_requested_returned_configuration_mismatch_never_measures[hidden_composite_schema-UNREQUESTED_OR_INVALID_SCAN_PLANE_SCHEMA-v13] _
+
+adapter_case = namespace(scan={'status': 'AVAILABLE', 'reasons': [], 'raw_points': array([[0., 0., 0.],
+       [1., 0., 0.],
+       [...surement_calls=[], binding_failures=[], scan_binding_calls=[], run=<function adapter_case.<locals>.run at 0x10d602ac0>)
+version = 'v13', fault = 'hidden_composite_schema'
+expected_reason = 'UNREQUESTED_OR_INVALID_SCAN_PLANE_SCHEMA'
+
+    @pytest.mark.parametrize("version", ["v12", "v13"])
+    @pytest.mark.parametrize("fault,expected_reason", [
+        ("missing_returned_configuration", "INVALID_EXPECTED_SCAN_PLANE_CONFIGURATION"),
+        ("top_budget_mismatch", "REGISTRATION_SCAN_PLANE_CONFIGURATION_MISMATCH"),
+        ("initialization_budget_mismatch", "REGISTRATION_SCAN_PLANE_CONFIGURATION_MISMATCH"),
+        ("unrequested_composite", "UNREQUESTED_COMPOSITE_SCAN_PLANE_CONFIGURATION"),
+        ("hidden_composite_schema", "UNREQUESTED_OR_INVALID_SCAN_PLANE_SCHEMA")])
+    def test_actual_workflow_requested_returned_configuration_mismatch_never_measures(adapter_case, version, fault, expected_reason):
+        state, requested = adapter_case, "composite_v1"
+        evidence = state.registration["evidence"]
+        initialization = evidence["initialization"]
+        if fault == "missing_returned_configuration": initialization.pop("scan_plane_configuration")
+        elif fault == "top_budget_mismatch": evidence["scan_plane_configuration"]["seeded_budgets"]["max_seeds"] = 31
+        elif fault == "initialization_budget_mismatch": initialization["scan_plane_configuration"]["composite_budgets"]["max_qualified_planes"] = 65551
+        elif fault == "unrequested_composite": requested = "v7"
+        elif fault == "hidden_composite_schema":
+            requested = "v7"
+            evidence.pop("scan_plane_configuration")
+            initialization.pop("scan_plane_configuration")
+>       result = state.run(version, requested)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_cad_guided_composite_plane_integration_v1.py:470: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+version = 'v13', requested = 'v7'
+
+    def run(version, requested):
+        workflow = getattr(modules, "workflow_"+version)
+        policy_class = getattr(workflow, "MeshWorkflowPolicy"+version.upper())
+        kwargs = dict(scan_bytes=helper.SCAN_BYTES, cad_bytes=helper.CAD_BYTES,
+            position_error_bound_mm=.05, allow_ocp=True,
+            workflow_policy=policy_class(max_registration_scan_rows=36, cad_sample_count=36),
+>           registration_policy=_policy(modules), measurement_policy=modules.native.NativeGuidedPolicy(fit_model="free_circle"),
+                                                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+            instance_policy=modules.instances.SupportPolicy(4., 5., 20., 3), scan_plane_mode=requested)
+E       TypeError: NativeGuidedPolicy.__init__() missing 5 required positional arguments: 'flange_window_mm', 'search_margin_mm', 'max_fit_residual_mm', 'plane_exclusion_mm', and 'max_tangency_error_mm'
+
+tests/test_cad_guided_composite_plane_integration_v1.py:442: TypeError
+_ test_v13_prepares_composite_metadata_once_and_reuses_same_token_for_every_context _
+
+adapter_case = namespace(scan={'status': 'AVAILABLE', 'reasons': [], 'raw_points': array([[0., 0., 0.],
+       [1., 0., 0.],
+       [...surement_calls=[], binding_failures=[], scan_binding_calls=[], run=<function adapter_case.<locals>.run at 0x10e410f40>)
+modules = namespace(initialize=<module 'backend.cad_guided_plane_initialization_v12' from '/Users/idantal/ShermanQC/FullProject/..._cover_measurement_v2' from '/Users/idantal/ShermanQC/FullProject/backend/cad_guided_support_cover_measurement_v2.py'>)
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10d4a2110>
+
+    def test_v13_prepares_composite_metadata_once_and_reuses_same_token_for_every_context(adapter_case, modules, monkeypatch):
+        state, bound_contexts = adapter_case, []
+        real = modules.workflow_v13._registration_binding
+        def bind(*args, **kwargs):
+            bound_contexts.append((kwargs["context_index"], kwargs["_prepared_scan_plane_binding"]))
+            return real(*args, **kwargs)
+        monkeypatch.setattr(modules.workflow_v13, "_registration_binding", bind)
+>       result = state.run("v13", "composite_v1")
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_cad_guided_composite_plane_integration_v1.py:500: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+version = 'v13', requested = 'composite_v1'
+
+    def run(version, requested):
+        workflow = getattr(modules, "workflow_"+version)
+        policy_class = getattr(workflow, "MeshWorkflowPolicy"+version.upper())
+        kwargs = dict(scan_bytes=helper.SCAN_BYTES, cad_bytes=helper.CAD_BYTES,
+            position_error_bound_mm=.05, allow_ocp=True,
+            workflow_policy=policy_class(max_registration_scan_rows=36, cad_sample_count=36),
+>           registration_policy=_policy(modules), measurement_policy=modules.native.NativeGuidedPolicy(fit_model="free_circle"),
+                                                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+            instance_policy=modules.instances.SupportPolicy(4., 5., 20., 3), scan_plane_mode=requested)
+E       TypeError: NativeGuidedPolicy.__init__() missing 5 required positional arguments: 'flange_window_mm', 'search_margin_mm', 'max_fit_residual_mm', 'plane_exclusion_mm', and 'max_tangency_error_mm'
+
+tests/test_cad_guided_composite_plane_integration_v1.py:442: TypeError
+=========================== short test summary info ============================
+FAILED ../../../../dev::test_actual_workflow_requested_returned_configuration_mismatch_never_measures[missing_returned_configuration-INVALID_EXPECTED_SCAN_PLANE_CONFIGURATION-v12]
+FAILED ../../../../dev::test_actual_workflow_requested_returned_configuration_mismatch_never_measures[missing_returned_configuration-INVALID_EXPECTED_SCAN_PLANE_CONFIGURATION-v13]
+FAILED ../../../../dev::test_actual_workflow_requested_returned_configuration_mismatch_never_measures[top_budget_mismatch-REGISTRATION_SCAN_PLANE_CONFIGURATION_MISMATCH-v12]
+FAILED ../../../../dev::test_actual_workflow_requested_returned_configuration_mismatch_never_measures[top_budget_mismatch-REGISTRATION_SCAN_PLANE_CONFIGURATION_MISMATCH-v13]
+FAILED ../../../../dev::test_actual_workflow_requested_returned_configuration_mismatch_never_measures[initialization_budget_mismatch-REGISTRATION_SCAN_PLANE_CONFIGURATION_MISMATCH-v12]
+FAILED ../../../../dev::test_actual_workflow_requested_returned_configuration_mismatch_never_measures[initialization_budget_mismatch-REGISTRATION_SCAN_PLANE_CONFIGURATION_MISMATCH-v13]
+FAILED ../../../../dev::test_actual_workflow_requested_returned_configuration_mismatch_never_measures[unrequested_composite-UNREQUESTED_COMPOSITE_SCAN_PLANE_CONFIGURATION-v12]
+FAILED ../../../../dev::test_actual_workflow_requested_returned_configuration_mismatch_never_measures[unrequested_composite-UNREQUESTED_COMPOSITE_SCAN_PLANE_CONFIGURATION-v13]
+FAILED ../../../../dev::test_actual_workflow_requested_returned_configuration_mismatch_never_measures[hidden_composite_schema-UNREQUESTED_OR_INVALID_SCAN_PLANE_SCHEMA-v12]
+FAILED ../../../../dev::test_actual_workflow_requested_returned_configuration_mismatch_never_measures[hidden_composite_schema-UNREQUESTED_OR_INVALID_SCAN_PLANE_SCHEMA-v13]
+FAILED ../../../../dev::test_v13_prepares_composite_metadata_once_and_reuses_same_token_for_every_context
+11 failed, 167 passed in 9.36s
+{"worker_cpu_seconds": 9.432102, "worker_peak_rss_bytes": 133955584}

@@ -1,0 +1,175 @@
+{
+ "schema": "sherman.zeroshot.gold_adjudication.v1",
+ "batch": "T6",
+ "gid": "gb_c716d4",
+ "scan_id": "sc_8a4a24043800",
+ "portion": "TEST_B",
+ "original_path": "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/incoming_codex_fetch_2026-10-17/20260910_94882b43/38539000_02 (V).ply",
+ "adjudicator": "T6/adjudicator (claude-vision-ai-v1)",
+ "adjudicated_at": "2026-10-25T03:17:59+00:00",
+ "protocol": "PLAN.md 2.4-2.6; frozen matcher research/broad_baseline/score.py score_case (5 deg / 4 mm / 60 % both spans); accept threshold 1.5 mm / 2 deg",
+ "inputs_seen": [
+  "marker_A and marker_B lines/pairs/notes/renders",
+  "raw scan (own per-station skin checks)",
+  "FRESH label as third marking (TEST-B only, at adjudication)"
+ ],
+ "not_seen": "no engine, lane, A0, pool, E3, best_f1, CAD or baseline output",
+ "marker_A_lines_sha256": "cf421e386945345cbe846ea27342e468d6fe9ab2338098280e627afceb6245a6",
+ "marker_B_lines_sha256": "c950c386c40a110950b2c7ed42ac2feb34dc5fd34fee827c58ce79ed780d3d75",
+ "final_lines_sha256": "8c3df00848c60b4925bbb7254990b14c3bbbc9a06cbe4808963b70603cd0c35a",
+ "ab_match": {
+  "nA": 4,
+  "nB": 4,
+  "tp": 4,
+  "accepted": 3,
+  "matched_not_accepted": [
+   [
+    "B4",
+    "B4",
+    1.877393,
+    0.0
+   ]
+  ],
+  "A_only": [],
+  "B_only": [],
+  "f1": 1.0,
+  "matches": [
+   [
+    "B1",
+    "B1",
+    0.08,
+    0.0,
+    1.0,
+    1.0
+   ],
+   [
+    "B2",
+    "B2",
+    0.0,
+    0.0,
+    0.69,
+    0.98
+   ],
+   [
+    "B3",
+    "B3",
+    0.0,
+    0.0,
+    1.0,
+    1.0
+   ],
+   [
+    "B4",
+    "B4",
+    1.88,
+    0.0,
+    1.0,
+    1.0
+   ]
+  ]
+ },
+ "lines": [
+  {
+   "final_id": "B1",
+   "marker_A_id": "B1",
+   "marker_B_id": "B1",
+   "from": "A",
+   "verdict": "AGREED",
+   "ab_offset_mm": 0.08,
+   "ab_angle_deg": 0.0,
+   "ab_span_overlap": [
+    1.0,
+    1.0
+   ],
+   "reason": "A/B matched within 1.5 mm / 2 deg; line from A."
+  },
+  {
+   "final_id": "B2",
+   "marker_A_id": "B2",
+   "marker_B_id": "B2",
+   "from": "A",
+   "verdict": "AGREED",
+   "ab_offset_mm": 0.0,
+   "ab_angle_deg": 0.0,
+   "ab_span_overlap": [
+    0.69,
+    0.98
+   ],
+   "reason": "Accepted pair (offset 0.0, angle 0.0) with a span difference: A 260 mm (extent_t override, fold support 1.0) vs B 183 mm (auto extent clipped at a window). A close-up shows the rounded fold over the full part length; B would cover ~70 % < 80 % rule. Line taken from A."
+  },
+  {
+   "final_id": "B3",
+   "marker_A_id": "B3",
+   "marker_B_id": "B3",
+   "from": "A",
+   "verdict": "AGREED",
+   "ab_offset_mm": 0.0,
+   "ab_angle_deg": 0.0,
+   "ab_span_overlap": [
+    1.0,
+    1.0
+   ],
+   "reason": "A/B matched within 1.5 mm / 2 deg; line from A."
+  },
+  {
+   "final_id": "B4",
+   "marker_A_id": "B4",
+   "marker_B_id": "B4",
+   "from": "B",
+   "verdict": "ACCEPT_B",
+   "ab_offset_mm": 1.88,
+   "ab_angle_deg": 0.0,
+   "ab_span_overlap": [
+    1.0,
+    1.0
+   ],
+   "reason": "Same patches [5,9]; A auto apex sits at the virtual sharp (apex offset -0.22 vs expected 1.64) because a mid-length notch edge pulled the envelope apex. Own station check: A line is 1.80-1.94 mm off the nearest mesh vertex at 11/13 stations (floating outside the rounded corner); B (station_median, offset 1.66) is 0.04-0.17 mm from the surface at those stations. Only the 2 notch stations favour A."
+  }
+ ],
+ "final_vs_reference": {
+  "ref": "FRESH",
+  "f1": 1.0,
+  "tp": 4,
+  "n_ref": 4,
+  "n_final": 4,
+  "ref_only": [],
+  "final_only": [],
+  "matched_but_off_gt1.5mm_or_2deg": [
+   [
+    "B3",
+    "B4",
+    1.88
+   ]
+  ],
+  "final_vs_A_f1": 1.0,
+  "final_vs_B_f1": 1.0
+ },
+ "fresh_third_marking": {
+  "fresh_label_path": "data/bend_corpus/annotations/ai_bend_lines_fresh_v1_SEALED/3c537652d65efa4b708c4ae3.json",
+  "fresh_n_lines": 4,
+  "fresh_vs_A": {
+   "f1": 1.0,
+   "tp": 4,
+   "ref_only": [],
+   "m_only": []
+  },
+  "fresh_vs_B": {
+   "f1": 1.0,
+   "tp": 4,
+   "ref_only": [],
+   "m_only": []
+  },
+  "fresh_vs_final_f1": 1.0,
+  "disagreements": [
+   {
+    "fresh_ids": [
+     "B3"
+    ],
+    "final_id": "B4",
+    "verdict": "ACCEPT_B",
+    "fresh_wrong": true,
+    "reason": "FRESH (auto apex) reproduces marker A position: 1.88 mm off the adjudicated line, at the virtual sharp, 1.8-1.9 mm off the mesh surface at 11/13 stations. Final uses marker B station_median apex on the outer skin."
+   }
+  ]
+ }
+}

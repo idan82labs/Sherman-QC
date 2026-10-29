@@ -1,0 +1,23 @@
+.F.......................................
+=================================== FAILURES ===================================
+_ test_actual_fifty_row_two_plane_point_zero_five_lane_required_positive[True] _
+
+legacy = <module '_v11_reviewed_v10_array_fixtures' from '/Users/idantal/ShermanQC/FullProject/tests/test_cad_guided_plane_initialization_v10.py'>
+noisy = True
+
+    @pytest.mark.parametrize("noisy", (False, True))
+    def test_actual_fifty_row_two_plane_point_zero_five_lane_required_positive(legacy, noisy):
+        inputs, nominal, clean_observed = _two_rectangles(legacy, noisy)
+        answer = v11.prefilter_plane_initializations_v11(*inputs,
+            position_error_bounds_mm=.05, registration_policy=legacy._policy(50), unit_assumption=UNIT,
+            search_budgets=v11._search.PlaneSearchBudgetsV6(max_bank_planes=2))
+        legacy._assert_complete_prefilter(answer)
+>       assert answer["start_groups"], answer["reasons"]
+E       AssertionError: ['NO_FINITE_PREFILTERED_NOISY_PLANE_STARTS']
+E       assert []
+
+tests/test_cad_guided_plane_initialization_v11.py:139: AssertionError
+=========================== short test summary info ============================
+FAILED ../../../../dev::test_actual_fifty_row_two_plane_point_zero_five_lane_required_positive[True]
+1 failed, 40 passed in 1.44s
+{"worker_cpu_seconds": 1.496111, "worker_peak_rss_bytes": 97697792}

@@ -1,0 +1,395 @@
+{
+ "schema": "sherman.benchmark_v2.synthetic_demo_exclusions.v1",
+ "generated_at": "2026-10-17",
+ "generator": "backend/_server_legacy_impl.py _write_lidar_demo_scan (POST /api/live-scan/demo/load): samples LIVE_SCAN_DEMO_ASSETS[part].scan_mesh_relpath (test_files/<part>/scan.stl) with Open3D, subsamples to point_count (default 14000), adds N(0, noise_sigma_mm=0.08) jitter, drops ~6% of points, writes binary PLY xyz-only to live_scans/<part>_LIDAR_DEMO_<YYYYmmdd_HHMMSS_ffffff>.ply",
+ "method": "Checked every scan row in merged_inventory.json (360 path rows, 128 scans): PLY header (Open3D comment, properties, face count), vertex count, file mtime vs the name stamp; then point-to-source-mesh distance for every LIDAR_DEMO file. No other Open3D-header file in the inventory matches the signature (the other Open3D files are the 3 already-excluded synthetic fixtures with 3500/5000 points, and sc_2e584e9d1ffe, 43468 points with normals, already flagged POSSIBLE_CAD_REFERENCE_MESH).",
+ "gold_set_hits": [],
+ "gold_note": "None of the 9 files is in Gold11, Gold37 or physical15 (prior_use other-consumed, no gold_lines/Gold11 basis; parts 47266000 and 11979003 have in_gold11/in_gold37/in_physical15 = false). Gold unchanged.",
+ "not_excluded_related": {
+  "sc_2e584e9d1ffe": "Open3D header but 43468 points with normals and no name stamp; already POSSIBLE_CAD_REFERENCE_MESH (excluded from scan-accuracy scoring), not the demo signature",
+  "sc_9b9fd762f361": "test_files/47266000_F/scan.stl, the demo source for the 7 47266000 files; not itself a demo output, left as is",
+  "sc_d45186653eed": "test_files/11979003_C/scan.stl, the demo source for the 2 11979003 files; left as is"
+ },
+ "scan_ids": [
+  "sc_d5d7f0cfa36c",
+  "sc_43e1dbdce7e3",
+  "sc_657b87ceeba6",
+  "sc_573c999ef6ea",
+  "sc_123f84b5afcb",
+  "sc_c2ff6d5b6c2f",
+  "sc_9018b86ccc9a",
+  "sc_a0b6add3f6e6",
+  "sc_e632352b37f2"
+ ],
+ "results": [
+  {
+   "scan_id": "sc_d5d7f0cfa36c",
+   "sha256": "d5d7f0cfa36cc2492093daeb66cfd83aa0da3888140284628132dda98e6f6e56",
+   "part_id": "11979003",
+   "path": "~/ShermanQC/FullProject/live_scans/11979003_C_LIDAR_DEMO_20260209_154630_251479.ply",
+   "status_before": "REJECTED_NOT_A_SCAN",
+   "role_before": "EXCLUDED_NOT_A_SCAN",
+   "already_excluded_by": "review11_verdicts_2026-10-17.json (REJECTED_NOT_A_SCAN)",
+   "role": "EXCLUDED_NOT_A_SCAN",
+   "evidence": {
+    "ply_header": "binary PLY, 'comment Created by Open3D', vertex props x,y,z only (no normals/colour/faces)",
+    "open3d_header": true,
+    "vertex_props": [
+     "x",
+     "y",
+     "z"
+    ],
+    "faces": null,
+    "points": 11293,
+    "points_over_0.94": 12014,
+    "point_count_note": "= requested 14000 (API default) or 12000, minus ~6% random dropout",
+    "mtime": "2026-02-09T15:46:30",
+    "mtime_minus_name_stamp_s": 0.251,
+    "source_mesh": "test_files/11979003_C/scan.stl",
+    "source_scan_id": "sc_d45186653eed",
+    "dist_to_source_mm": {
+     "median": 0.0533,
+     "p95": 0.1563,
+     "max": 0.317
+    },
+    "sigma_from_median_mm": 0.079,
+    "dist_to_cad_mesh_median_mm": 293.5708,
+    "distance_note": "unsigned distance of every point to the source triangle mesh; N(0,0.08 mm) jitter predicts median 0.054 / p95 0.157 mm. A physical scan registered to nothing would not sit within 0.4 mm of the demo source mesh in its own raw frame."
+   },
+   "ai_label_files_left_in_place": {
+    "lines_dir": "docs/production/runlog/benchmark_v2/label_lines_r3/sc_d5d7f0cfa36c",
+    "studio_label_path": null,
+    "studio_asset_id": null
+   },
+   "scorer_action": "SKIP: not a physical scan; do not score for scan accuracy or line F1 and do not count in any benchmark denominator"
+  },
+  {
+   "scan_id": "sc_43e1dbdce7e3",
+   "sha256": "43e1dbdce7e3c60f061aa2b5f149d85dcf364386c48f840fa7eda4d4c563ff86",
+   "part_id": "11979003",
+   "path": "~/ShermanQC/FullProject/live_scans/11979003_C_LIDAR_DEMO_20260209_155351_508814.ply",
+   "status_before": "REJECTED_NOT_A_SCAN",
+   "role_before": "EXCLUDED_NOT_A_SCAN",
+   "already_excluded_by": "review11_verdicts_2026-10-17.json (REJECTED_NOT_A_SCAN)",
+   "role": "EXCLUDED_NOT_A_SCAN",
+   "evidence": {
+    "ply_header": "binary PLY, 'comment Created by Open3D', vertex props x,y,z only (no normals/colour/faces)",
+    "open3d_header": true,
+    "vertex_props": [
+     "x",
+     "y",
+     "z"
+    ],
+    "faces": null,
+    "points": 13191,
+    "points_over_0.94": 14033,
+    "point_count_note": "= requested 14000 (API default) or 12000, minus ~6% random dropout",
+    "mtime": "2026-02-09T15:53:52",
+    "mtime_minus_name_stamp_s": 0.491,
+    "source_mesh": "test_files/11979003_C/scan.stl",
+    "source_scan_id": "sc_d45186653eed",
+    "dist_to_source_mm": {
+     "median": 0.0531,
+     "p95": 0.1564,
+     "max": 0.307
+    },
+    "sigma_from_median_mm": 0.0788,
+    "dist_to_cad_mesh_median_mm": 294.06,
+    "distance_note": "unsigned distance of every point to the source triangle mesh; N(0,0.08 mm) jitter predicts median 0.054 / p95 0.157 mm. A physical scan registered to nothing would not sit within 0.4 mm of the demo source mesh in its own raw frame."
+   },
+   "ai_label_files_left_in_place": {
+    "lines_dir": "docs/production/runlog/benchmark_v2/label_lines_r3/sc_43e1dbdce7e3",
+    "studio_label_path": null,
+    "studio_asset_id": null
+   },
+   "scorer_action": "SKIP: not a physical scan; do not score for scan accuracy or line F1 and do not count in any benchmark denominator"
+  },
+  {
+   "scan_id": "sc_657b87ceeba6",
+   "sha256": "657b87ceeba6632f7b20e8be8c5f2578ca9e98f7c59fd799eacdc9d934cafbe0",
+   "part_id": "47266000",
+   "path": "~/ShermanQC/FullProject/live_scans/47266000_F_LIDAR_DEMO_20260209_154559_545707.ply",
+   "status_before": "AI_GOLD_ACCEPTED",
+   "role_before": "benchmark_scan",
+   "already_excluded_by": null,
+   "role": "EXCLUDED_NOT_A_SCAN",
+   "evidence": {
+    "ply_header": "binary PLY, 'comment Created by Open3D', vertex props x,y,z only (no normals/colour/faces)",
+    "open3d_header": true,
+    "vertex_props": [
+     "x",
+     "y",
+     "z"
+    ],
+    "faces": null,
+    "points": 11284,
+    "points_over_0.94": 12004,
+    "point_count_note": "= requested 14000 (API default) or 12000, minus ~6% random dropout",
+    "mtime": "2026-02-09T15:45:59",
+    "mtime_minus_name_stamp_s": 0.546,
+    "source_mesh": "test_files/47266000_F/scan.stl",
+    "source_scan_id": "sc_9b9fd762f361",
+    "dist_to_source_mm": {
+     "median": 0.0553,
+     "p95": 0.1575,
+     "max": 0.338
+    },
+    "sigma_from_median_mm": 0.082,
+    "dist_to_cad_mesh_median_mm": 231.39,
+    "distance_note": "unsigned distance of every point to the source triangle mesh; N(0,0.08 mm) jitter predicts median 0.054 / p95 0.157 mm. A physical scan registered to nothing would not sit within 0.4 mm of the demo source mesh in its own raw frame."
+   },
+   "ai_label_files_left_in_place": {
+    "lines_dir": "docs/production/runlog/benchmark_v2/label_lines/sc_657b87ceeba6",
+    "studio_label_path": "data/bend_corpus/annotations/ai_bend_lines_v1/7590fd22d5d86158a6baf337.json",
+    "studio_asset_id": "7590fd22d5d86158a6baf337"
+   },
+   "scorer_action": "SKIP: not a physical scan; do not score for scan accuracy or line F1 and do not count in any benchmark denominator"
+  },
+  {
+   "scan_id": "sc_573c999ef6ea",
+   "sha256": "573c999ef6eaedcfc68d3891f9b364bc258b1fe3980d1e212fc0ef825b217857",
+   "part_id": "47266000",
+   "path": "~/ShermanQC/FullProject/live_scans/47266000_F_LIDAR_DEMO_20260209_154744_233337.ply",
+   "status_before": "AI_GOLD_ACCEPTED",
+   "role_before": "benchmark_scan",
+   "already_excluded_by": null,
+   "role": "EXCLUDED_NOT_A_SCAN",
+   "evidence": {
+    "ply_header": "binary PLY, 'comment Created by Open3D', vertex props x,y,z only (no normals/colour/faces)",
+    "open3d_header": true,
+    "vertex_props": [
+     "x",
+     "y",
+     "z"
+    ],
+    "faces": null,
+    "points": 13185,
+    "points_over_0.94": 14027,
+    "point_count_note": "= requested 14000 (API default) or 12000, minus ~6% random dropout",
+    "mtime": "2026-02-09T15:47:44",
+    "mtime_minus_name_stamp_s": 0.233,
+    "source_mesh": "test_files/47266000_F/scan.stl",
+    "source_scan_id": "sc_9b9fd762f361",
+    "dist_to_source_mm": {
+     "median": 0.0542,
+     "p95": 0.1577,
+     "max": 0.327
+    },
+    "sigma_from_median_mm": 0.0804,
+    "dist_to_cad_mesh_median_mm": 231.3486,
+    "distance_note": "unsigned distance of every point to the source triangle mesh; N(0,0.08 mm) jitter predicts median 0.054 / p95 0.157 mm. A physical scan registered to nothing would not sit within 0.4 mm of the demo source mesh in its own raw frame."
+   },
+   "ai_label_files_left_in_place": {
+    "lines_dir": "docs/production/runlog/benchmark_v2/label_lines/sc_573c999ef6ea",
+    "studio_label_path": "data/bend_corpus/annotations/ai_bend_lines_v1/5cbf6ce5c255984ca17a4e4b.json",
+    "studio_asset_id": "5cbf6ce5c255984ca17a4e4b"
+   },
+   "scorer_action": "SKIP: not a physical scan; do not score for scan accuracy or line F1 and do not count in any benchmark denominator"
+  },
+  {
+   "scan_id": "sc_123f84b5afcb",
+   "sha256": "123f84b5afcb1a5a5835a580feee6c13f51c65eb69ee1e29187888ef5fc2e3f3",
+   "part_id": "47266000",
+   "path": "~/ShermanQC/FullProject/live_scans/47266000_F_LIDAR_DEMO_20260209_155246_866937.ply",
+   "status_before": "AI_GOLD_ACCEPTED",
+   "role_before": "benchmark_scan",
+   "already_excluded_by": null,
+   "role": "EXCLUDED_NOT_A_SCAN",
+   "evidence": {
+    "ply_header": "binary PLY, 'comment Created by Open3D', vertex props x,y,z only (no normals/colour/faces)",
+    "open3d_header": true,
+    "vertex_props": [
+     "x",
+     "y",
+     "z"
+    ],
+    "faces": null,
+    "points": 13130,
+    "points_over_0.94": 13968,
+    "point_count_note": "= requested 14000 (API default) or 12000, minus ~6% random dropout",
+    "mtime": "2026-02-09T15:52:47",
+    "mtime_minus_name_stamp_s": 0.133,
+    "source_mesh": "test_files/47266000_F/scan.stl",
+    "source_scan_id": "sc_9b9fd762f361",
+    "dist_to_source_mm": {
+     "median": 0.0543,
+     "p95": 0.1564,
+     "max": 0.398
+    },
+    "sigma_from_median_mm": 0.0804,
+    "dist_to_cad_mesh_median_mm": 231.08,
+    "distance_note": "unsigned distance of every point to the source triangle mesh; N(0,0.08 mm) jitter predicts median 0.054 / p95 0.157 mm. A physical scan registered to nothing would not sit within 0.4 mm of the demo source mesh in its own raw frame."
+   },
+   "ai_label_files_left_in_place": {
+    "lines_dir": "docs/production/runlog/benchmark_v2/label_lines/sc_123f84b5afcb",
+    "studio_label_path": "data/bend_corpus/annotations/ai_bend_lines_v1/a11df0bda44de7b856734cd9.json",
+    "studio_asset_id": "a11df0bda44de7b856734cd9"
+   },
+   "scorer_action": "SKIP: not a physical scan; do not score for scan accuracy or line F1 and do not count in any benchmark denominator"
+  },
+  {
+   "scan_id": "sc_c2ff6d5b6c2f",
+   "sha256": "c2ff6d5b6c2fcabbf34b43d786776d89cc5994a959c6bc35fca5251bd83ba42c",
+   "part_id": "47266000",
+   "path": "~/ShermanQC/FullProject/live_scans/47266000_F_LIDAR_DEMO_20260209_155400_715790.ply",
+   "status_before": "AI_GOLD_ACCEPTED",
+   "role_before": "benchmark_scan",
+   "already_excluded_by": null,
+   "role": "EXCLUDED_NOT_A_SCAN",
+   "evidence": {
+    "ply_header": "binary PLY, 'comment Created by Open3D', vertex props x,y,z only (no normals/colour/faces)",
+    "open3d_header": true,
+    "vertex_props": [
+     "x",
+     "y",
+     "z"
+    ],
+    "faces": null,
+    "points": 13179,
+    "points_over_0.94": 14020,
+    "point_count_note": "= requested 14000 (API default) or 12000, minus ~6% random dropout",
+    "mtime": "2026-02-09T15:54:00",
+    "mtime_minus_name_stamp_s": 0.716,
+    "source_mesh": "test_files/47266000_F/scan.stl",
+    "source_scan_id": "sc_9b9fd762f361",
+    "dist_to_source_mm": {
+     "median": 0.0538,
+     "p95": 0.1567,
+     "max": 0.327
+    },
+    "sigma_from_median_mm": 0.0798,
+    "dist_to_cad_mesh_median_mm": 231.4041,
+    "distance_note": "unsigned distance of every point to the source triangle mesh; N(0,0.08 mm) jitter predicts median 0.054 / p95 0.157 mm. A physical scan registered to nothing would not sit within 0.4 mm of the demo source mesh in its own raw frame."
+   },
+   "ai_label_files_left_in_place": {
+    "lines_dir": "docs/production/runlog/benchmark_v2/label_lines/sc_c2ff6d5b6c2f",
+    "studio_label_path": "data/bend_corpus/annotations/ai_bend_lines_v1/7f7dd0eace422ac665b7df31.json",
+    "studio_asset_id": "7f7dd0eace422ac665b7df31"
+   },
+   "scorer_action": "SKIP: not a physical scan; do not score for scan accuracy or line F1 and do not count in any benchmark denominator"
+  },
+  {
+   "scan_id": "sc_9018b86ccc9a",
+   "sha256": "9018b86ccc9a5e5ae8d7902f9a7ca934dc6468386080edf4bdc82916b2d2f930",
+   "part_id": "47266000",
+   "path": "~/ShermanQC/FullProject/live_scans/47266000_F_LIDAR_DEMO_20260209_165235_383038.ply",
+   "status_before": "AI_GOLD_ACCEPTED",
+   "role_before": "benchmark_scan",
+   "already_excluded_by": null,
+   "role": "EXCLUDED_NOT_A_SCAN",
+   "evidence": {
+    "ply_header": "binary PLY, 'comment Created by Open3D', vertex props x,y,z only (no normals/colour/faces)",
+    "open3d_header": true,
+    "vertex_props": [
+     "x",
+     "y",
+     "z"
+    ],
+    "faces": null,
+    "points": 13154,
+    "points_over_0.94": 13994,
+    "point_count_note": "= requested 14000 (API default) or 12000, minus ~6% random dropout",
+    "mtime": "2026-02-09T16:52:35",
+    "mtime_minus_name_stamp_s": 0.383,
+    "source_mesh": "test_files/47266000_F/scan.stl",
+    "source_scan_id": "sc_9b9fd762f361",
+    "dist_to_source_mm": {
+     "median": 0.0541,
+     "p95": 0.1569,
+     "max": 0.313
+    },
+    "sigma_from_median_mm": 0.0802,
+    "dist_to_cad_mesh_median_mm": 231.2053,
+    "distance_note": "unsigned distance of every point to the source triangle mesh; N(0,0.08 mm) jitter predicts median 0.054 / p95 0.157 mm. A physical scan registered to nothing would not sit within 0.4 mm of the demo source mesh in its own raw frame."
+   },
+   "ai_label_files_left_in_place": {
+    "lines_dir": "docs/production/runlog/benchmark_v2/label_lines/sc_9018b86ccc9a",
+    "studio_label_path": "data/bend_corpus/annotations/ai_bend_lines_v1/c1e4bcd502f8b3993cbe7722.json",
+    "studio_asset_id": "c1e4bcd502f8b3993cbe7722"
+   },
+   "scorer_action": "SKIP: not a physical scan; do not score for scan accuracy or line F1 and do not count in any benchmark denominator"
+  },
+  {
+   "scan_id": "sc_a0b6add3f6e6",
+   "sha256": "a0b6add3f6e6f36d08bc84a30dc746a5d3b565b67dcc613af4ba6c06d5adac7f",
+   "part_id": "47266000",
+   "path": "~/ShermanQC/FullProject/live_scans/47266000_F_LIDAR_DEMO_20260209_211408_450619.ply",
+   "status_before": "AI_GOLD_ACCEPTED",
+   "role_before": "benchmark_scan",
+   "already_excluded_by": null,
+   "role": "EXCLUDED_NOT_A_SCAN",
+   "evidence": {
+    "ply_header": "binary PLY, 'comment Created by Open3D', vertex props x,y,z only (no normals/colour/faces)",
+    "open3d_header": true,
+    "vertex_props": [
+     "x",
+     "y",
+     "z"
+    ],
+    "faces": null,
+    "points": 13196,
+    "points_over_0.94": 14038,
+    "point_count_note": "= requested 14000 (API default) or 12000, minus ~6% random dropout",
+    "mtime": "2026-02-09T21:14:08",
+    "mtime_minus_name_stamp_s": 0.451,
+    "source_mesh": "test_files/47266000_F/scan.stl",
+    "source_scan_id": "sc_9b9fd762f361",
+    "dist_to_source_mm": {
+     "median": 0.0533,
+     "p95": 0.1568,
+     "max": 0.328
+    },
+    "sigma_from_median_mm": 0.079,
+    "dist_to_cad_mesh_median_mm": 231.1437,
+    "distance_note": "unsigned distance of every point to the source triangle mesh; N(0,0.08 mm) jitter predicts median 0.054 / p95 0.157 mm. A physical scan registered to nothing would not sit within 0.4 mm of the demo source mesh in its own raw frame."
+   },
+   "ai_label_files_left_in_place": {
+    "lines_dir": "docs/production/runlog/benchmark_v2/label_lines/sc_a0b6add3f6e6",
+    "studio_label_path": "data/bend_corpus/annotations/ai_bend_lines_v1/387a26b4a83c91527b86793d.json",
+    "studio_asset_id": "387a26b4a83c91527b86793d"
+   },
+   "scorer_action": "SKIP: not a physical scan; do not score for scan accuracy or line F1 and do not count in any benchmark denominator"
+  },
+  {
+   "scan_id": "sc_e632352b37f2",
+   "sha256": "e632352b37f26bef750bbbbece8051482903c1075efa4f4e4835556bea4832cc",
+   "part_id": "47266000",
+   "path": "~/ShermanQC/FullProject/live_scans/47266000_F_LIDAR_DEMO_20260209_211721_100645.ply",
+   "status_before": "AI_GOLD_ACCEPTED",
+   "role_before": "benchmark_scan",
+   "already_excluded_by": null,
+   "role": "EXCLUDED_NOT_A_SCAN",
+   "evidence": {
+    "ply_header": "binary PLY, 'comment Created by Open3D', vertex props x,y,z only (no normals/colour/faces)",
+    "open3d_header": true,
+    "vertex_props": [
+     "x",
+     "y",
+     "z"
+    ],
+    "faces": null,
+    "points": 13174,
+    "points_over_0.94": 14015,
+    "point_count_note": "= requested 14000 (API default) or 12000, minus ~6% random dropout",
+    "mtime": "2026-02-09T21:17:21",
+    "mtime_minus_name_stamp_s": 0.101,
+    "source_mesh": "test_files/47266000_F/scan.stl",
+    "source_scan_id": "sc_9b9fd762f361",
+    "dist_to_source_mm": {
+     "median": 0.0532,
+     "p95": 0.1556,
+     "max": 0.333
+    },
+    "sigma_from_median_mm": 0.0789,
+    "dist_to_cad_mesh_median_mm": 231.2918,
+    "distance_note": "unsigned distance of every point to the source triangle mesh; N(0,0.08 mm) jitter predicts median 0.054 / p95 0.157 mm. A physical scan registered to nothing would not sit within 0.4 mm of the demo source mesh in its own raw frame."
+   },
+   "ai_label_files_left_in_place": {
+    "lines_dir": "docs/production/runlog/benchmark_v2/label_lines/sc_e632352b37f2",
+    "studio_label_path": "data/bend_corpus/annotations/ai_bend_lines_v1/c9ac548e818e85512c838483.json",
+    "studio_asset_id": "c9ac548e818e85512c838483"
+   },
+   "scorer_action": "SKIP: not a physical scan; do not score for scan accuracy or line F1 and do not count in any benchmark denominator"
+  }
+ ]
+}

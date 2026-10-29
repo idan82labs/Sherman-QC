@@ -1,0 +1,66 @@
+{
+  "schema": "sherman.broad_baseline.eval_lines.v1",
+  "lane": "runtime_gated",
+  "status": "NO_PREDICTIONS",
+  "frame": "scan_raw",
+  "frame_definition": "coordinates of the scan file exactly as stored (source_ply_raw == scan_raw)",
+  "units": "scan file units (mm for every Sherman scan inspected so far; not re-estimated)",
+  "scan": {
+    "path": "/Users/idantal/ShermanQC/source-assets/02_CAD_QC_3D/40500000_0_SCAN2 1.ply",
+    "sha256": "152f1b1aacb20920a601f7a8197d4c89a111688325bcf557a6a731641f306614"
+  },
+  "source": {
+    "kind": "bend_analysis_worker_report",
+    "path": "/private/tmp/claude-501/-Users-idantal/db065cf7-f766-4885-b217-ed8d7edd7ade/scratchpad/gold11_repro_work_rerun/sc_152f1b1aacb2/runtime/runtime/bend_inspection_report.json",
+    "sha256": "e16476b6a4a8d8500c791edb7e2262bcea92ab2ec0f27e6a4544892188f57256"
+  },
+  "conversion": {
+    "rule": "detected_line_* of matches; inv(raw_scan_to_reference_transform) to scan_raw",
+    "frame_in": "reference_mesh_raw (shared worker alignment)",
+    "frame_out": "scan_raw",
+    "transform": {
+      "available": true,
+      "raw_scan_to_reference_transform": [
+        [
+          0.8801372179284558,
+          0.14775297500271029,
+          -0.45114026199732354,
+          264.11754037036724
+        ],
+        [
+          -0.1408518787771605,
+          -0.8262576706141546,
+          -0.5453980289625259,
+          95.35632960279607
+        ],
+        [
+          -0.4533422833379959,
+          0.5435690573690849,
+          -0.7064088433823426,
+          139.63015656121038
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "geometry_frame": "reference_mesh_raw",
+      "fitness": 0.9164706277725501,
+      "rmse_mm": 0.7643266032849624,
+      "scale": 1.0000000000000004,
+      "rotation_deg": 145.71691744159756,
+      "translation_mm": 313.60402635795,
+      "orthogonality_error": 5.10702591327572e-15
+    },
+    "include_placeholders": false,
+    "gate_applied": true,
+    "raw_scan_support_audit": []
+  },
+  "line_count": 0,
+  "owned_bend_regions": [],
+  "dropped": [],
+  "failure": null,
+  "created_at": "2026-10-17T10:15:12Z"
+}

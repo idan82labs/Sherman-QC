@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "kind": "sherman_qc_f1_multifamily_terminal_result",
+  "objective": "Sherman QC scan-only F1 bend-line generalization",
+  "v2": {
+    "profile": "F1_MULTIFAMILY_NEIGHBOR_CONSENSUS_SELECTOR_V2",
+    "transfer_case_tokens": ["C020", "C030", "C024", "C017", "C023"],
+    "true_positive": 1,
+    "false_positive": 7,
+    "false_negative": 19,
+    "micro_precision": 0.125,
+    "micro_recall": 0.05,
+    "micro_f1": 0.071429,
+    "ruling": "RETIRED",
+    "failure_mode": "Family-pooled candidate confidence selected repeated strong lines but did not generalize ownership; three families were completely undercalled."
+  },
+  "v3": {
+    "profile": "F1_CANONICAL_TOPOLOGY_RANKER_V3",
+    "transfer_case_tokens": ["C029", "C013", "C015", "C019"],
+    "true_positive": 8,
+    "false_positive": 2,
+    "false_negative": 13,
+    "micro_precision": 0.8,
+    "micro_recall": 0.380952,
+    "micro_f1": 0.516129,
+    "ruling": "FUNDED_AS_PRECISION_CORE_RESEARCH_ONLY",
+    "remaining_failure_mode": "Precision transferred, but recall remained poor and one seven-object family was completely undercalled."
+  },
+  "visual_findings": [
+    "C024 V2 stacked six longitudinal lines on non-bend structure; all six were unmatched.",
+    "C030 V2 emitted two aliases of one object; one was true and one was duplicate.",
+    "C029 V3 demonstrated that visually overshooting lines can still represent true bend axes; all three were true.",
+    "C013 V3 placed three true panel-junction lines and one false outer-rim line.",
+    "C019 V3 placed two true lines and one false diagonal cross-part line.",
+    "C015 V3 emitted no predictions despite visible wall-to-base junctions."
+  ],
+  "next_research_tranche": {
+    "profile": "V3 precision core plus source-specific mesh-adjacency recall route",
+    "twelve_family_leave_one_family_out_micro_f1": 0.557692,
+    "status": "RESEARCH_ONLY_AWAITING_GENUINELY_UNSEEN_LABELED_FAMILY",
+    "no_claim_of_transfer_improvement": true
+  },
+  "promotion_to_runtime_main_or_production": false,
+  "rerun_or_replacement_submission_performed": false,
+  "c006_opened": false
+}

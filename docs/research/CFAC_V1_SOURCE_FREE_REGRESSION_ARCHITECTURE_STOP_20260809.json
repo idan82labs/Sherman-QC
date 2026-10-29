@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "architecture_token": "CONCENTRIC_FOCAL_AXIS_COLLAPSE_V1",
+  "authorization_token": "AUTHORIZE_CONCENTRIC_FOCAL_AXIS_COLLAPSE_V1_IMPLEMENT_AND_EXECUTE_C006_FROZEN_SOURCE_ONLY_PREFLIGHT",
+  "decision": "CFAC_V1_SOURCE_FREE_REGRESSION_ARCHITECTURE_STOP",
+  "architecture_funded": false,
+  "c006_execution_authorized_after_regression": false,
+  "c006_source_opened": false,
+  "c006_claim_created": false,
+  "c006_claim_consumed": false,
+  "rerun_or_rescue_authorized": false,
+  "scientific_checks_passed_before_stop": 8,
+  "terminal_failed_check": {
+    "fixture": "concentric_full_cylinder_decoy",
+    "mandatory_expected_stage": "TWIN_RADIUS_THEN_OCCUPIED_ARC_WIDTH_REJECTION",
+    "observed_stage": "FOCAL_VOTE_NONSELECTIVE_CAP",
+    "source_points": 14223,
+    "focal_votes": 13927,
+    "focal_vote_fraction": 0.9791886381213527,
+    "frozen_focal_vote_cap_fraction": 0.60,
+    "frozen_focal_vote_cap_count": 8533.8,
+    "dense_votes_if_cap_did_not_preempt": 13925,
+    "focal_graph_built": false,
+    "twin_radius_stage_reached": false,
+    "occupied_arc_stage_reached": false
+  },
+  "visual_review": {
+    "reviewed_image_count": 1,
+    "all_images_opened_native_resolution": "YES",
+    "native_pixels": [4096, 4096],
+    "image_relative": "output/research/cfac-v1-source-free-regression-stop/full-cylinder-focal-cap-preemption.png",
+    "image_sha256": "648e2a04d0b6a70fdec3f4d956e8364f3cc9f44c2c0b18fba366565964a1b7f2",
+    "source_geometry": "TWO_COMPLETE_CONCENTRIC_CYLINDERS",
+    "focal_geometry": "VISIBLY_ONE_DIMENSIONAL_COMMON_AXIS",
+    "focal_sheet": "ABSENT",
+    "axis_collapse": "PRESENT",
+    "observation": "The X-Z cross-section shows both source radii collapsing onto the same focal center. The X-Y and Z-Y projections show a narrow red axis across the full axial span. The focal transform is visually doing the intended thing, but the frozen 60% vote cap rejects a pure cylindrical decoy before the graph, twin-radius, and occupied-arc causal gates can run."
+  },
+  "evidence": {
+    "source_free_regressions_relative": "docs/research/CFAC_V1_SOURCE_FREE_REGRESSIONS_20260809.json",
+    "source_free_regressions_sha256": "4be01b22f12585231bd17cb5939209f90bda521fa2dcdd7c5f42bb3742861a0c",
+    "professor_response_relative": "docs/research/PROFESSOR_F1_POST_AMHC_NEXT_ARCHITECTURE_GPT56_PRO_RESPONSE_20260809.txt",
+    "professor_response_sha256": "ec03284443313b97b4f355a82e7acf80a8cbc21a4b0b86c57e15d5056bb5f29f",
+    "clarification_relative": "docs/research/PROFESSOR_F1_POST_AMHC_CFAC_MISSING_GATES_CLARIFICATION_GPT56_PRO_RESPONSE_20260809.txt",
+    "configuration_sha256": "77d80b4d394263bcb2cd2a74b2e3fe1203dd4a1b03c5d0b36b694f30d2710033",
+    "implementation_sha256": {
+      "research/f1_cfac_v1/config.py": "6cde377396d207a948249a9bd3ce50ad4672a588ff701f6f56a57602b2d2bb35",
+      "research/f1_cfac_v1/core.py": "089cb30fc3985855194133c56e34743055ee3209d48184aaa3bfff1fa84de412",
+      "research/f1_cfac_v1/fixtures.py": "443445dbd271d7a6cf6542b88b391577b52366e1a17195ff1a7235d5fd44f627",
+      "scripts/run_f1_cfac_v1_source_free_regressions.py": "db719e67555bee152ab82549fc49b258f55f6b9448e3915bcd262b08da143f3e",
+      "scripts/render_f1_cfac_v1_full_cylinder_preemption.py": "99a09d6f92082e0d800f693b2439df955c49c308e41c2133f3256c5b80502c60"
+    }
+  },
+  "scientific_interpretation": "CFAC correctly passed three positive bend families, flat and single-skin controls, hole and terminal negatives, permutation, and three rigid transforms. Its mandatory pure full-cylinder decoy nevertheless makes almost every source point a valid focal vote, as the architecture intends for cylindrical skins. The global M<=0.60N gate therefore prevents that decoy from reaching the explicitly required twin-radius and occupied-arc rejection. Because the specification says any source-free failure is terminal and forbids fixture or threshold rescue, C006 remains unopened."
+}

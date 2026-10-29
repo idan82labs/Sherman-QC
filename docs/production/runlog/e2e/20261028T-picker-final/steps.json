@@ -1,0 +1,1921 @@
+{
+  "run": "20261028T-picker-final",
+  "counts": {
+    "PASS": 11,
+    "FAIL": 2
+  },
+  "steps": [
+    {
+      "id": "S0",
+      "title": "custody copies of the real part (read-only, byte-identical) and a temporary app copy (C04 --profile app)",
+      "status": "PASS",
+      "assertions": [
+        {
+          "what": "authorized 10839000 STEP and drawing PDF present",
+          "ok": true,
+          "value": null
+        },
+        {
+          "what": "scan full present",
+          "ok": true,
+          "value": "/Users/idantal/ShermanQC/source-assets/02_CAD_QC_3D/10839000/10839000_01_full_scan.ply"
+        },
+        {
+          "what": "scan scan_1 present",
+          "ok": true,
+          "value": "/Users/idantal/ShermanQC/source-assets/02_CAD_QC_3D/10839000/10839000_01_scan_1.ply"
+        },
+        {
+          "what": "read-only temp copies are byte-identical to the sources",
+          "ok": true,
+          "value": {
+            "10839000_01.stp": {
+              "source": "/Users/idantal/ShermanQC/source-assets/02_CAD_QC_3D/10839000_01.stp",
+              "sha256": "ea3e4820dff568916164c79417925ead79f307fba8aff11c7b3aeda7375e0b37",
+              "identical": true
+            },
+            "10839000_drawing.pdf": {
+              "source": "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/incoming_email_2026-10-17/20260308_19ccdcb6/שרטוט 10839000.pdf",
+              "sha256": "82ba62d60dfbb4e33f269cbe85a9ff9de98102f966f73cd529f273f8c747f6cf",
+              "identical": true
+            },
+            "full.ply": {
+              "source": "/Users/idantal/ShermanQC/source-assets/02_CAD_QC_3D/10839000/10839000_01_full_scan.ply",
+              "sha256": "71cf0b216f43284e401c891091cd56c10321aa3eebccde204f8d206683999215",
+              "identical": true
+            },
+            "scan_1.ply": {
+              "source": "/Users/idantal/ShermanQC/source-assets/02_CAD_QC_3D/10839000/10839000_01_scan_1.ply",
+              "sha256": "08686dc1d5d4c89725393907082e8cc4e4c0f5a21427697760ff44d29c7939fc",
+              "identical": true
+            }
+          }
+        },
+        {
+          "what": "app copy built (exit 0)",
+          "ok": true,
+          "value": 0
+        },
+        {
+          "what": "copy has a built SPA",
+          "ok": true,
+          "value": null
+        }
+      ],
+      "screenshots": [],
+      "started": "2026-10-27T23:59:05.162Z",
+      "custody": {
+        "10839000_01.stp": {
+          "source": "/Users/idantal/ShermanQC/source-assets/02_CAD_QC_3D/10839000_01.stp",
+          "sha256": "ea3e4820dff568916164c79417925ead79f307fba8aff11c7b3aeda7375e0b37",
+          "identical": true
+        },
+        "10839000_drawing.pdf": {
+          "source": "/Users/idantal/ShermanQC/FullProject/data/bend_corpus/incoming_email_2026-10-17/20260308_19ccdcb6/שרטוט 10839000.pdf",
+          "sha256": "82ba62d60dfbb4e33f269cbe85a9ff9de98102f966f73cd529f273f8c747f6cf",
+          "identical": true
+        },
+        "full.ply": {
+          "source": "/Users/idantal/ShermanQC/source-assets/02_CAD_QC_3D/10839000/10839000_01_full_scan.ply",
+          "sha256": "71cf0b216f43284e401c891091cd56c10321aa3eebccde204f8d206683999215",
+          "identical": true
+        },
+        "scan_1.ply": {
+          "source": "/Users/idantal/ShermanQC/source-assets/02_CAD_QC_3D/10839000/10839000_01_scan_1.ply",
+          "sha256": "08686dc1d5d4c89725393907082e8cc4e4c0f5a21427697760ff44d29c7939fc",
+          "identical": true
+        }
+      },
+      "bundle": {
+        "bundle_id": "bd74cc13f9b88900",
+        "profile": "app",
+        "files": 1495,
+        "has_legacy_worker": true
+      },
+      "duration_s": 1.8
+    },
+    {
+      "id": "S1",
+      "title": "bootstrap admin, start the API server and the line service from the app copy",
+      "status": "PASS",
+      "assertions": [
+        {
+          "what": "bootstrap_admin exit 0 (first-admin provisioning is a CLI step by design)",
+          "ok": true,
+          "value": ""
+        },
+        {
+          "what": "line ready",
+          "ok": true,
+          "value": {
+            "ready": true,
+            "checks": {
+              "db": "ok",
+              "disk": "ok",
+              "runner": "ok",
+              "hotfolder:cell-1": "ok"
+            }
+          }
+        }
+      ],
+      "screenshots": [],
+      "started": "2026-10-27T23:59:06.918Z",
+      "duration_s": 2.8
+    },
+    {
+      "id": "W1",
+      "title": "admin logs in; Production -> Parts -> New part 10839000; upload its folded STEP (CAD solver auto-marks bends)",
+      "status": "PASS",
+      "assertions": [
+        {
+          "what": "login stored a user token",
+          "ok": true,
+          "value": null
+        },
+        {
+          "what": "SKU preview = 10839000",
+          "ok": true,
+          "value": "10839000"
+        },
+        {
+          "what": "the CAD bend solver auto-marked bends on the real STEP (wizard count = API candidates)",
+          "ok": true,
+          "value": {
+            "candidates": 12,
+            "candidate_generation": "babf1414740b274197762460c1ebf80f5bcafd245b41c420808fe74f4ad907b2",
+            "labels": [
+              "B1:35",
+              "B2:35",
+              "B3:35",
+              "B4:35",
+              "B5:90",
+              "B6:90",
+              "B7:90",
+              "B8:90",
+              "B9:90",
+              "B10:90",
+              "B11:90",
+              "B12:90"
+            ]
+          }
+        },
+        {
+          "what": "the CAD card names the uploaded file (not the stored hash name)",
+          "ok": true,
+          "value": "STEP 10839000_01.stp 211 KB · File fingerprint ea3e4820dff5 12 bends found in the CAD"
+        }
+      ],
+      "screenshots": [
+        {
+          "file": "01-new-part-form.png",
+          "pairs_with": "SKU preview attribute = 10839000"
+        },
+        {
+          "file": "02-wizard-cad.png",
+          "pairs_with": "candidate count = 12 (= API candidates); card names STEP 10839000_01.stp 211 KB · File fingerprint ea3e4820dff5 12 bends found in the CAD"
+        }
+      ],
+      "started": "2026-10-27T23:59:09.852Z",
+      "cad": {
+        "candidates": 12,
+        "candidate_generation": "babf1414740b274197762460c1ebf80f5bcafd245b41c420808fe74f4ad907b2",
+        "labels": [
+          "B1:35",
+          "B2:35",
+          "B3:35",
+          "B4:35",
+          "B5:90",
+          "B6:90",
+          "B7:90",
+          "B8:90",
+          "B9:90",
+          "B10:90",
+          "B11:90",
+          "B12:90"
+        ]
+      },
+      "cad_card": "STEP 10839000_01.stp 211 KB · File fingerprint ea3e4820dff5 12 bends found in the CAD",
+      "duration_s": 5.5
+    },
+    {
+      "id": "W2",
+      "title": "upload the part's drawing PDF; \"Next\" goes to the optional flat step (not skipped)",
+      "status": "PASS",
+      "assertions": [
+        {
+          "what": "the drawing card names the uploaded file (not the stored hash name)",
+          "ok": true,
+          "value": "PDF 10839000_drawing.pdf 156 KB · File fingerprint 82ba62d60dfb Attached to the part"
+        },
+        {
+          "what": "the rail suggests the optional unfolded-part step next",
+          "ok": true,
+          "value": "flat"
+        },
+        {
+          "what": "\"Next\" from the drawing step opens the optional unfolded-part (flat) step",
+          "ok": true,
+          "value": "flat"
+        },
+        {
+          "what": "skipping the optional flat step goes to Bends & order",
+          "ok": true,
+          "value": "bends"
+        }
+      ],
+      "screenshots": [
+        {
+          "file": "03-wizard-drawing.png",
+          "pairs_with": "drawing card: PDF 10839000_drawing.pdf 156 KB · File fingerprint 82ba62d60dfb Attached to the part"
+        },
+        {
+          "file": "04-wizard-flat-optional.png",
+          "pairs_with": "flat step shown (optional); 10839000 has no flat DXF on file"
+        }
+      ],
+      "started": "2026-10-27T23:59:15.356Z",
+      "drawing_card": "PDF 10839000_drawing.pdf 156 KB · File fingerprint 82ba62d60dfb Attached to the part",
+      "rail_next": "flat",
+      "duration_s": 2.5
+    },
+    {
+      "id": "W3",
+      "title": "Vendor Setup studio: confirm every auto-marked bend ON THE MODEL, tag the order, one מהלך of two bends, save, back to the wizard",
+      "status": "PASS",
+      "assertions": [
+        {
+          "what": "studio lists every bend the CAD solver auto-marked (DOM rows = API candidates)",
+          "ok": true,
+          "value": {
+            "dom": 12,
+            "api": 12
+          }
+        },
+        {
+          "what": "auto-marked bends start unconfirmed (pending)",
+          "ok": true,
+          "value": [
+            "pending",
+            "pending",
+            "pending",
+            "pending",
+            "pending",
+            "pending",
+            "pending",
+            "pending",
+            "pending",
+            "pending",
+            "pending",
+            "pending"
+          ]
+        },
+        {
+          "what": "the CAD view draws one numbered marker per auto-marked bend",
+          "ok": true,
+          "value": {
+            "markers": 12,
+            "candidates": 12
+          }
+        },
+        {
+          "what": "the CAD solver labelled the 12 bends B1..B12 as expected",
+          "ok": true,
+          "value": [
+            "B1",
+            "B2",
+            "B3",
+            "B4",
+            "B5",
+            "B6",
+            "B7",
+            "B8",
+            "B9",
+            "B10",
+            "B11",
+            "B12"
+          ]
+        },
+        {
+          "what": "every auto-marked bend shows confirmed",
+          "ok": true,
+          "value": null
+        },
+        {
+          "what": "מהלך 1 names its two bends",
+          "ok": true,
+          "value": "Move 1\nB1 · B2"
+        },
+        {
+          "what": "every bend was clicked on the CAD model (no list fallback)",
+          "ok": true,
+          "value": {
+            "model": 24,
+            "list": 0
+          }
+        },
+        {
+          "what": "save raised no error",
+          "ok": true,
+          "value": null
+        },
+        {
+          "what": "saved draft (read back): order = the clicked order",
+          "ok": true,
+          "value": {
+            "sequence": [
+              "B1",
+              "B2",
+              "B3",
+              "B4",
+              "B5",
+              "B10",
+              "B7",
+              "B12",
+              "B6",
+              "B11",
+              "B8",
+              "B9"
+            ],
+            "machine_moves": [
+              [
+                "B1",
+                "B2"
+              ]
+            ],
+            "operator_sequence_confirmed": true
+          }
+        },
+        {
+          "what": "saved draft: מהלך group = the tagged pair",
+          "ok": true,
+          "value": {
+            "sequence": [
+              "B1",
+              "B2",
+              "B3",
+              "B4",
+              "B5",
+              "B10",
+              "B7",
+              "B12",
+              "B6",
+              "B11",
+              "B8",
+              "B9"
+            ],
+            "machine_moves": [
+              [
+                "B1",
+                "B2"
+              ]
+            ],
+            "operator_sequence_confirmed": true
+          }
+        },
+        {
+          "what": "saved draft: every CAD mark confirmed, no manual marks",
+          "ok": true,
+          "value": null
+        }
+      ],
+      "screenshots": [
+        {
+          "file": "05-bends-entry.png",
+          "pairs_with": "wizard step 5 with the \"Tag bends\" action"
+        },
+        {
+          "file": "06-studio-auto-marked.png",
+          "pairs_with": "12 auto-marked bends, all pending, one marker each"
+        },
+        {
+          "file": "07-studio-confirmed.png",
+          "pairs_with": "all rows confirmed"
+        },
+        {
+          "file": "08-studio-order-moves.png",
+          "pairs_with": "order tagged; Move 1 B1 · B2"
+        },
+        {
+          "file": "09-studio-saved.png",
+          "pairs_with": "saved, no error"
+        },
+        {
+          "file": "10-wizard-bends-order.png",
+          "pairs_with": "wizard step 5 after Done"
+        }
+      ],
+      "started": "2026-10-27T23:59:17.809Z",
+      "ui": {
+        "clicks": [
+          {
+            "id": "0fe93f51-a639-4e3b-a8ba-af87cce6e861",
+            "label": "B1",
+            "verb": "Select bend",
+            "via": "model"
+          },
+          {
+            "id": "46b65bf6-8614-4cf2-8701-e6e8c3d812fa",
+            "label": "B2",
+            "verb": "Select bend",
+            "via": "model"
+          },
+          {
+            "id": "c020fd17-5fe7-41e5-b947-44bb6a14e52a",
+            "label": "B3",
+            "verb": "Select bend",
+            "via": "model"
+          },
+          {
+            "id": "798ebd72-5336-4b6b-ab52-659f691bcdbf",
+            "label": "B4",
+            "verb": "Select bend",
+            "via": "model"
+          },
+          {
+            "id": "253962e3-dccd-4acc-bf5d-0e8031d5251b",
+            "label": "B5",
+            "verb": "Select bend",
+            "via": "model"
+          },
+          {
+            "id": "6cfde99d-ebe5-4759-8e6e-32c4c74834f2",
+            "label": "B10",
+            "verb": "Select bend",
+            "via": "model"
+          },
+          {
+            "id": "9f77cb46-3efd-4e1f-9755-99753443dfbc",
+            "label": "B7",
+            "verb": "Select bend",
+            "via": "model"
+          },
+          {
+            "id": "7f0a51b8-a5a4-4c5f-8f24-88c88df303ff",
+            "label": "B12",
+            "verb": "Select bend",
+            "via": "model"
+          },
+          {
+            "id": "99559c4d-817e-43ad-aece-12bf97e5a12f",
+            "label": "B6",
+            "verb": "Select bend",
+            "via": "model"
+          },
+          {
+            "id": "1250bb5b-9da3-4175-a6ef-91a90694206e",
+            "label": "B11",
+            "verb": "Select bend",
+            "via": "model"
+          },
+          {
+            "id": "ede549d3-9546-46bc-962d-35a144e1f2cd",
+            "label": "B8",
+            "verb": "Select bend",
+            "via": "model"
+          },
+          {
+            "id": "12708149-da97-4294-98eb-83b260e0b08f",
+            "label": "B9",
+            "verb": "Select bend",
+            "via": "model"
+          },
+          {
+            "id": "0fe93f51-a639-4e3b-a8ba-af87cce6e861",
+            "label": "B1",
+            "verb": "Tag bend",
+            "via": "model"
+          },
+          {
+            "id": "46b65bf6-8614-4cf2-8701-e6e8c3d812fa",
+            "label": "B2",
+            "verb": "Tag bend",
+            "via": "model"
+          },
+          {
+            "id": "c020fd17-5fe7-41e5-b947-44bb6a14e52a",
+            "label": "B3",
+            "verb": "Tag bend",
+            "via": "model"
+          },
+          {
+            "id": "798ebd72-5336-4b6b-ab52-659f691bcdbf",
+            "label": "B4",
+            "verb": "Tag bend",
+            "via": "model"
+          },
+          {
+            "id": "253962e3-dccd-4acc-bf5d-0e8031d5251b",
+            "label": "B5",
+            "verb": "Tag bend",
+            "via": "model"
+          },
+          {
+            "id": "6cfde99d-ebe5-4759-8e6e-32c4c74834f2",
+            "label": "B10",
+            "verb": "Tag bend",
+            "via": "model"
+          },
+          {
+            "id": "9f77cb46-3efd-4e1f-9755-99753443dfbc",
+            "label": "B7",
+            "verb": "Tag bend",
+            "via": "model"
+          },
+          {
+            "id": "7f0a51b8-a5a4-4c5f-8f24-88c88df303ff",
+            "label": "B12",
+            "verb": "Tag bend",
+            "via": "model"
+          },
+          {
+            "id": "99559c4d-817e-43ad-aece-12bf97e5a12f",
+            "label": "B6",
+            "verb": "Tag bend",
+            "via": "model"
+          },
+          {
+            "id": "1250bb5b-9da3-4175-a6ef-91a90694206e",
+            "label": "B11",
+            "verb": "Tag bend",
+            "via": "model"
+          },
+          {
+            "id": "ede549d3-9546-46bc-962d-35a144e1f2cd",
+            "label": "B8",
+            "verb": "Tag bend",
+            "via": "model"
+          },
+          {
+            "id": "12708149-da97-4294-98eb-83b260e0b08f",
+            "label": "B9",
+            "verb": "Tag bend",
+            "via": "model"
+          }
+        ],
+        "candidates": [
+          {
+            "feature_id": "0fe93f51-a639-4e3b-a8ba-af87cce6e861",
+            "label": "B1",
+            "target_angle": 35
+          },
+          {
+            "feature_id": "46b65bf6-8614-4cf2-8701-e6e8c3d812fa",
+            "label": "B2",
+            "target_angle": 35
+          },
+          {
+            "feature_id": "c020fd17-5fe7-41e5-b947-44bb6a14e52a",
+            "label": "B3",
+            "target_angle": 35
+          },
+          {
+            "feature_id": "798ebd72-5336-4b6b-ab52-659f691bcdbf",
+            "label": "B4",
+            "target_angle": 35
+          },
+          {
+            "feature_id": "253962e3-dccd-4acc-bf5d-0e8031d5251b",
+            "label": "B5",
+            "target_angle": 90
+          },
+          {
+            "feature_id": "99559c4d-817e-43ad-aece-12bf97e5a12f",
+            "label": "B6",
+            "target_angle": 90
+          },
+          {
+            "feature_id": "9f77cb46-3efd-4e1f-9755-99753443dfbc",
+            "label": "B7",
+            "target_angle": 90
+          },
+          {
+            "feature_id": "ede549d3-9546-46bc-962d-35a144e1f2cd",
+            "label": "B8",
+            "target_angle": 90
+          },
+          {
+            "feature_id": "12708149-da97-4294-98eb-83b260e0b08f",
+            "label": "B9",
+            "target_angle": 90
+          },
+          {
+            "feature_id": "6cfde99d-ebe5-4759-8e6e-32c4c74834f2",
+            "label": "B10",
+            "target_angle": 90
+          },
+          {
+            "feature_id": "1250bb5b-9da3-4175-a6ef-91a90694206e",
+            "label": "B11",
+            "target_angle": 90
+          },
+          {
+            "feature_id": "7f0a51b8-a5a4-4c5f-8f24-88c88df303ff",
+            "label": "B12",
+            "target_angle": 90
+          }
+        ],
+        "order": [
+          "B1",
+          "B2",
+          "B3",
+          "B4",
+          "B5",
+          "B10",
+          "B7",
+          "B12",
+          "B6",
+          "B11",
+          "B8",
+          "B9"
+        ],
+        "moves": [
+          [
+            "B1",
+            "B2"
+          ]
+        ],
+        "via": {
+          "model": 24,
+          "list": 0
+        },
+        "draft": {
+          "sequence": [
+            "B1",
+            "B2",
+            "B3",
+            "B4",
+            "B5",
+            "B10",
+            "B7",
+            "B12",
+            "B6",
+            "B11",
+            "B8",
+            "B9"
+          ],
+          "machine_moves": [
+            [
+              "B1",
+              "B2"
+            ]
+          ],
+          "operator_sequence_confirmed": true
+        }
+      },
+      "duration_s": 30.1
+    },
+    {
+      "id": "W3b",
+      "title": "Vendor Setup studio: author one general measurement between two parallel bends (bend_pair) by clicking on the CAD, save",
+      "status": "PASS",
+      "assertions": [
+        {
+          "what": "found a pair of parallel bends to measure between",
+          "ok": true,
+          "value": [
+            "B10",
+            "B7"
+          ]
+        },
+        {
+          "what": "both bends picked on the model",
+          "ok": true,
+          "value": [
+            {
+              "id": "6cfde99d-ebe5-4759-8e6e-32c4c74834f2",
+              "label": "B10",
+              "verb": "Select bend",
+              "via": "model"
+            },
+            {
+              "id": "9f77cb46-3efd-4e1f-9755-99753443dfbc",
+              "label": "B7",
+              "verb": "Select bend",
+              "via": "model"
+            }
+          ]
+        },
+        {
+          "what": "both bend markers (and their on-line anchors) found",
+          "ok": true,
+          "value": {
+            "B10": {
+              "x": 1047.5750175068265,
+              "y": 812.9734916788915,
+              "leader": true
+            },
+            "B7": {
+              "x": 1081.5005155711717,
+              "y": 516.229089156866,
+              "leader": true
+            }
+          }
+        },
+        {
+          "what": "a CAD surface point was picked next to B10",
+          "ok": true,
+          "value": [
+            {
+              "bend": "B10",
+              "anchor": {
+                "x": 1047.5750175068265,
+                "y": 812.9734916788915,
+                "leader": true
+              },
+              "dx": 10,
+              "dy": 0
+            },
+            {
+              "bend": "B7",
+              "anchor": {
+                "x": 1081.5005155711717,
+                "y": 516.229089156866,
+                "leader": true
+              },
+              "dx": 10,
+              "dy": 0
+            }
+          ]
+        },
+        {
+          "what": "a CAD surface point was picked next to B7",
+          "ok": true,
+          "value": [
+            {
+              "bend": "B10",
+              "anchor": {
+                "x": 1047.5750175068265,
+                "y": 812.9734916788915,
+                "leader": true
+              },
+              "dx": 10,
+              "dy": 0
+            },
+            {
+              "bend": "B7",
+              "anchor": {
+                "x": 1081.5005155711717,
+                "y": 516.229089156866,
+                "leader": true
+              },
+              "dx": 10,
+              "dy": 0
+            }
+          ]
+        },
+        {
+          "what": "draft holds the bend_pair measurement",
+          "ok": true,
+          "value": [
+            {
+              "label": "E2E B10-B7",
+              "kind": "bend_pair",
+              "bend_ids": [
+                "6cfde99d-ebe5-4759-8e6e-32c4c74834f2",
+                "9f77cb46-3efd-4e1f-9755-99753443dfbc"
+              ],
+              "cad_distance": 310.1870415413876
+            }
+          ]
+        },
+        {
+          "what": "the two picked points sit next to different bends (one per bend)",
+          "ok": true,
+          "value": [
+            [
+              "B10:7.5mm",
+              "B7:311.8mm"
+            ],
+            [
+              "B10:311.4mm",
+              "B7:2.1mm"
+            ]
+          ]
+        },
+        {
+          "what": "draft still fresh with the order confirmed",
+          "ok": true,
+          "value": null
+        }
+      ],
+      "screenshots": [
+        {
+          "file": "11-studio-measurement-picked.png",
+          "pairs_with": "bend_pair B10 ↔ B7: two points picked on the CAD"
+        },
+        {
+          "file": "12-studio-measurement-saved.png",
+          "pairs_with": "general measurement saved in the draft"
+        }
+      ],
+      "started": "2026-10-27T23:59:47.871Z",
+      "pair": [
+        "B10",
+        "B7"
+      ],
+      "bend_clicks": [
+        {
+          "id": "6cfde99d-ebe5-4759-8e6e-32c4c74834f2",
+          "label": "B10",
+          "verb": "Select bend",
+          "via": "model"
+        },
+        {
+          "id": "9f77cb46-3efd-4e1f-9755-99753443dfbc",
+          "label": "B7",
+          "verb": "Select bend",
+          "via": "model"
+        }
+      ],
+      "anchors": {
+        "B10": {
+          "x": 1047.5750175068265,
+          "y": 812.9734916788915,
+          "leader": true
+        },
+        "B7": {
+          "x": 1081.5005155711717,
+          "y": 516.229089156866,
+          "leader": true
+        }
+      },
+      "points": [
+        {
+          "bend": "B10",
+          "anchor": {
+            "x": 1047.5750175068265,
+            "y": 812.9734916788915,
+            "leader": true
+          },
+          "dx": 10,
+          "dy": 0
+        },
+        {
+          "bend": "B7",
+          "anchor": {
+            "x": 1081.5005155711717,
+            "y": 516.229089156866,
+            "leader": true
+          },
+          "dx": 10,
+          "dy": 0
+        }
+      ],
+      "cad_distance_text": "General measurements Define the exact points the bender will measure. The dashed line is a straight-line CAD reference, not a scan measurement. Both points are set. Name the reference, add the drawing dimension if needed, then add it. B10 · B7 CAD anchor distance (assumed mm): 310.19 Reference name ",
+      "saved": [
+        {
+          "label": "E2E B10-B7",
+          "kind": "bend_pair",
+          "bend_ids": [
+            "6cfde99d-ebe5-4759-8e6e-32c4c74834f2",
+            "9f77cb46-3efd-4e1f-9755-99753443dfbc"
+          ],
+          "cad_distance": 310.1870415413876
+        }
+      ],
+      "point_owner": [
+        [
+          "B10:7.5mm",
+          "B7:311.8mm"
+        ],
+        [
+          "B10:311.4mm",
+          "B7:2.1mm"
+        ]
+      ],
+      "duration_s": 12.2
+    },
+    {
+      "id": "W4",
+      "title": "tolerances (FINAL), review, release 10839000@v1 (E1 compile from the saved setup), expectations table",
+      "status": "PASS",
+      "assertions": [
+        {
+          "what": "release names 10839000@v1",
+          "ok": true,
+          "value": null
+        },
+        {
+          "what": "expectations table has 12 rows",
+          "ok": true,
+          "value": null
+        },
+        {
+          "what": "the released recipe carries the studio order (sequence_index = clicked order, by CAD label)",
+          "ok": true,
+          "value": {
+            "recipe": [
+              "1:B1<-B1:1",
+              "2:B2<-B2:1",
+              "3:B3<-B3:",
+              "4:B4<-B4:",
+              "5:B5<-B5:",
+              "6:B6<-B10:",
+              "7:B7<-B7:",
+              "8:B8<-B12:",
+              "9:B9<-B6:",
+              "10:B10<-B11:",
+              "11:B11<-B8:",
+              "12:B12<-B9:"
+            ],
+            "studio": [
+              "B1",
+              "B2",
+              "B3",
+              "B4",
+              "B5",
+              "B10",
+              "B7",
+              "B12",
+              "B6",
+              "B11",
+              "B8",
+              "B9"
+            ]
+          }
+        }
+      ],
+      "screenshots": [
+        {
+          "file": "13-tolerances.png",
+          "pairs_with": "tolerances saved"
+        },
+        {
+          "file": "14-review.png",
+          "pairs_with": "review step"
+        },
+        {
+          "file": "15-released.png",
+          "pairs_with": "released 10839000@v1"
+        },
+        {
+          "file": "16-released-expectations.png",
+          "pairs_with": "nominal flange lengths and angles"
+        }
+      ],
+      "started": "2026-10-28T00:00:00.115Z",
+      "expectations": [
+        "1 Move 1 B1 R 0.10 145.0° ±1° 3.61 to bend B2 ±0.5 13.04 to free edge ±0.5 ±0.5 S1 342.98",
+        "2 Move 1 B2 R 0.10 145.0° ±1° 21.41 to bend B11 ±0.5 3.61 to bend B1 ±0.5 ±0.5 S2 340.02",
+        "3 B3 R 0.10 145.0° ±1° 3.61 to bend B4 ±0.5 13.04 to free edge ±0.5 ±0.5 S3 327.62",
+        "4 B4 R 0.10 145.0° ±1° 21.41 to bend B9 ±0.5 3.61 to bend B3 ±0.5 ±0.5 S4 324.65",
+        "5 B5 R 0.78 90.0° ±1° 12.00 to free edge ±0.5 41.20 to bend B6 ±0.5 ±0.5 S5 399.66",
+        "6 B6 CAD B10 R 0.78 90.0° ±1° 41.20 to bend B5 ±0.5 312.93 to bend B8 ±0.5 ±0.5 S6 361.02",
+        "7 B7 R 0.78 90.0° ±1° 12.00 to free edge ±0.5 41.20 to bend B8 ±0.5 ±0.5 S7 351.57",
+        "8 B8 CAD B12 R 0.78 90.0° ±1° 41.20 to bend B7 ±0.5 312.93 to bend B6 ±0.5 ±0.5 S8 312.93",
+        "9 B9 CAD B6 R 0.78 90.0° ±1° 21.41 to bend B4 ±0.5 43.00 to bend B10 ±0.5 ±0.5 S9 305.80",
+        "10 B10 CAD B11 R 0.78 90.0° ±1° 43.00 to bend B9 ±0.5 206.06 to bend B12 ±0.5 ±0.5 S10 265.36",
+        "11 B11 CAD B8 R 0.78 90.0° ±1° 21.41 to bend B2 ±0.5 43.00 to bend B12 ±0.5 ±0.5 S11 246.50",
+        "12 B12 CAD B9 R 0.78 90.0° ±1° 43.00 to bend B11 ±0.5 206.06 to bend B10 ±0.5 ±0.5 —"
+      ],
+      "recipe": {
+        "bends": 12,
+        "benchmark": {
+          "status": "REGISTERED",
+          "registered_at": "2026-10-28T00:00:16.493Z",
+          "compiled_part_sha256": "2a380d18578e0d9efae625653fd64ef70836d163598077d0462ad0d44a7fdf14",
+          "algo_version": "e1-1.1.0"
+        }
+      },
+      "recipe_order": [
+        "1:B1<-B1:1",
+        "2:B2<-B2:1",
+        "3:B3<-B3:",
+        "4:B4<-B4:",
+        "5:B5<-B5:",
+        "6:B6<-B10:",
+        "7:B7<-B7:",
+        "8:B8<-B12:",
+        "9:B9<-B6:",
+        "10:B10<-B11:",
+        "11:B11<-B8:",
+        "12:B12<-B9:"
+      ],
+      "duration_s": 18
+    },
+    {
+      "id": "K1",
+      "title": "open the station screen as the signed-in admin (no device token minted through the API)",
+      "status": "PASS",
+      "assertions": [
+        {
+          "what": "no token gate: the station accepts the signed-in user",
+          "ok": true,
+          "value": null
+        },
+        {
+          "what": "station on the live stream",
+          "ok": true,
+          "value": "live",
+          "informational": true
+        }
+      ],
+      "screenshots": [
+        {
+          "file": "17-station-empty.png",
+          "pairs_with": "station connected (live)"
+        }
+      ],
+      "started": "2026-10-28T00:00:18.180Z",
+      "duration_s": 0.2
+    },
+    {
+      "id": "R-full",
+      "title": "drop the real full PLY into the hot folder (ZEISS-style); runner -> E3 -> station -> PDF; direct E3 CLI equality",
+      "status": "FAIL",
+      "assertions": [
+        {
+          "what": "station showed the in-progress state",
+          "ok": true,
+          "value": true,
+          "informational": true
+        },
+        {
+          "what": "full: the job completed",
+          "ok": true,
+          "value": {
+            "execution_status": "completed",
+            "attempts": 1,
+            "wall_s": 105,
+            "failure": null
+          }
+        },
+        {
+          "what": "full: station shows the job within 5 s, no reload",
+          "ok": true,
+          "value": 0.136
+        },
+        {
+          "what": "full: the result was produced by the E3 production engine",
+          "ok": true,
+          "value": "sherman_production_engine e3-1.14.0"
+        },
+        {
+          "what": "full: the job carries a zero-shot overlay (GET /zeroshot-overlay 200)",
+          "ok": false,
+          "value": 404
+        }
+      ],
+      "screenshots": [
+        {
+          "file": "18-11-full-in-progress.png",
+          "pairs_with": "station shows the running job (active ribbon)"
+        },
+        {
+          "file": "19-FAIL-R-full-wizard.png",
+          "pairs_with": "failure state (diagnostic, not an assertion)"
+        },
+        {
+          "file": "20-FAIL-R-full-station.png",
+          "pairs_with": "failure state (diagnostic, not an assertion)"
+        }
+      ],
+      "started": "2026-10-28T00:00:18.429Z",
+      "scan": {
+        "key": "full",
+        "zeiss_name": "10839000_01_FULL_SCAN 1.ply",
+        "kind": "FULL",
+        "scan_sha256": "71cf0b216f43284e401c891091cd56c10321aa3eebccde204f8d206683999215",
+        "job_id": "line_09e5766761dd45479a0bb1dffa2f333b",
+        "job": {
+          "execution_status": "completed",
+          "attempts": 1,
+          "wall_s": 105,
+          "failure": null
+        },
+        "update_lag_s": 0.136,
+        "engine_log_head": [
+          "[   0.00s] ingest",
+          "[   0.20s] clouds",
+          "[   0.64s] points=863115 spacing=0.399 voxel=0.80 voxels=290312",
+          "[   0.64s] registration",
+          "[   2.75s] planes=11 coarse hypotheses=28 hole-pair hypotheses=0",
+          "[  17.44s] articulated"
+        ],
+        "engine": {
+          "engine_name": "sherman_production_engine",
+          "engine_version": "e3-1.14.0",
+          "config_sha256": "4f107f5a90d4cb114a22132365aff524a1ed4f2ccd8b4ee5856c547dad6ee8d0",
+          "bundle_id": "d9763a5986e38eec",
+          "compiled_part_sha256": "2a380d18578e0d9efae625653fd64ef70836d163598077d0462ad0d44a7fdf14",
+          "algorithm_versions": {
+            "articulated_fit": "hinge_hough_region_grow_skin_levels_arc_fold_displaced_fold_window_short_child_window_support_tabs_one_skin_pose_on_plane_joggle_step_one_skin_reread_astray_wide_reversed_mirrored_hinge_v8",
+            "heatmap": "stage_cloud_nearest_signed_v1",
+            "ingest": "ply_stl_explicit_unit_dense_cell_thin_density_guard_v3",
+            "metrology": "station_oml_section_crease_aware_unfolded_island_station_profile_short_side_consistency_footprint_edge_riser_model_reseat_signed_angle_reversed_position_mirrored_flat_start_flange_na_at_stage_pose_borne_lengths_one_skin_swap_branch_withhold_pose_alternative_withhold_v13",
+            "registration": "datum_plane_outline_fft_wall_edge_hole_polygon_flange_ends_hole_pairs_weak_dirs_walk_distinct_inscribed_hole_fill_hardware_mirror_symmetric_convert_free_datum_plane_seeds_symmetric_images_flange_end_rank_tilt_wells_v7",
+            "state_decode": "signed_dihedral_fraction_order_prior_symmetric_near_twins_hole_evidence_twin_agreement_v5",
+            "thickness": "datum_tile_two_skin_separation_v1",
+            "uncertainty": "station_mad_residual_pose_erosion_bias_thickness_station_spread_riser_length_v4"
+          },
+          "duration_s": 100.189086,
+          "peak_rss_bytes": 969195520
+        },
+        "summary": {
+          "validity": "VALID",
+          "stage": "CONSISTENT",
+          "inferred_stage": 12,
+          "summary": "OUT_OF_TOLERANCE_FOUND"
+        },
+        "bends": [
+          {
+            "label": "B1",
+            "seq": 1,
+            "state": "FORMED"
+          },
+          {
+            "label": "B2",
+            "seq": 2,
+            "state": "FORMED"
+          },
+          {
+            "label": "B3",
+            "seq": 3,
+            "state": "FORMED"
+          },
+          {
+            "label": "B4",
+            "seq": 4,
+            "state": "FORMED"
+          },
+          {
+            "label": "B5",
+            "seq": 5,
+            "state": "FORMED"
+          },
+          {
+            "label": "B6",
+            "seq": 6,
+            "state": "FORMED"
+          },
+          {
+            "label": "B7",
+            "seq": 7,
+            "state": "FORMED"
+          },
+          {
+            "label": "B8",
+            "seq": 8,
+            "state": "FORMED"
+          },
+          {
+            "label": "B9",
+            "seq": 9,
+            "state": "FORMED"
+          },
+          {
+            "label": "B10",
+            "seq": 10,
+            "state": "FORMED"
+          },
+          {
+            "label": "B11",
+            "seq": 11,
+            "state": "FORMED"
+          },
+          {
+            "label": "B12",
+            "seq": 12,
+            "state": "FORMED"
+          }
+        ],
+        "overlay_api_status": 404
+      },
+      "detail": "AssertionError [ERR_ASSERTION]: full: the job carries a zero-shot overlay (GET /zeroshot-overlay 200) (404) |     at check (file:///Users/idantal/ShermanQC/FullProject/scripts/production/run_e2e_real.mjs:100:10) |     at scanFlow (file:///Users/idantal/ShermanQC/FullProject/scripts/production/run_e2e_real.mjs:714:3) |     at async step.requires (file:///Users/idantal/ShermanQC/FullProject/scripts/production/run_e2e_real.mjs:831:18)",
+      "duration_s": 112.3
+    },
+    {
+      "id": "R-scan_1",
+      "title": "drop the real scan_1 PLY into the hot folder (ZEISS-style); runner -> E3 -> station -> PDF; direct E3 CLI equality",
+      "status": "FAIL",
+      "assertions": [
+        {
+          "what": "station showed the in-progress state",
+          "ok": true,
+          "value": true,
+          "informational": true
+        },
+        {
+          "what": "scan_1: the job completed",
+          "ok": true,
+          "value": {
+            "execution_status": "completed",
+            "attempts": 1,
+            "wall_s": 120,
+            "failure": null
+          }
+        },
+        {
+          "what": "scan_1: station shows the job within 5 s, no reload",
+          "ok": true,
+          "value": 0.4
+        },
+        {
+          "what": "scan_1: the result was produced by the E3 production engine",
+          "ok": true,
+          "value": "sherman_production_engine e3-1.14.0"
+        },
+        {
+          "what": "scan_1: the job carries a zero-shot overlay (GET /zeroshot-overlay 200)",
+          "ok": false,
+          "value": 404
+        }
+      ],
+      "screenshots": [
+        {
+          "file": "21-12-scan_1-in-progress.png",
+          "pairs_with": "station shows the running job (active ribbon)"
+        },
+        {
+          "file": "22-FAIL-R-scan_1-wizard.png",
+          "pairs_with": "failure state (diagnostic, not an assertion)"
+        },
+        {
+          "file": "23-FAIL-R-scan_1-station.png",
+          "pairs_with": "failure state (diagnostic, not an assertion)"
+        }
+      ],
+      "started": "2026-10-28T00:02:10.745Z",
+      "scan": {
+        "key": "scan_1",
+        "zeiss_name": "10839000_01_SCAN_1 1.ply",
+        "kind": "PARTIAL",
+        "scan_sha256": "08686dc1d5d4c89725393907082e8cc4e4c0f5a21427697760ff44d29c7939fc",
+        "job_id": "line_6b93eb05f357478292060798b25fed9b",
+        "job": {
+          "execution_status": "completed",
+          "attempts": 1,
+          "wall_s": 120,
+          "failure": null
+        },
+        "update_lag_s": 0.4,
+        "engine_log_head": [
+          "[   0.00s] ingest",
+          "[   0.25s] clouds",
+          "[   0.68s] points=837407 spacing=0.521 voxel=1.02 voxels=222827",
+          "[   0.68s] registration",
+          "[   3.11s] planes=6 coarse hypotheses=28 hole-pair hypotheses=0",
+          "[  22.40s] articulated"
+        ],
+        "engine": {
+          "engine_name": "sherman_production_engine",
+          "engine_version": "e3-1.14.0",
+          "config_sha256": "4f107f5a90d4cb114a22132365aff524a1ed4f2ccd8b4ee5856c547dad6ee8d0",
+          "bundle_id": "d9763a5986e38eec",
+          "compiled_part_sha256": "2a380d18578e0d9efae625653fd64ef70836d163598077d0462ad0d44a7fdf14",
+          "algorithm_versions": {
+            "articulated_fit": "hinge_hough_region_grow_skin_levels_arc_fold_displaced_fold_window_short_child_window_support_tabs_one_skin_pose_on_plane_joggle_step_one_skin_reread_astray_wide_reversed_mirrored_hinge_v8",
+            "heatmap": "stage_cloud_nearest_signed_v1",
+            "ingest": "ply_stl_explicit_unit_dense_cell_thin_density_guard_v3",
+            "metrology": "station_oml_section_crease_aware_unfolded_island_station_profile_short_side_consistency_footprint_edge_riser_model_reseat_signed_angle_reversed_position_mirrored_flat_start_flange_na_at_stage_pose_borne_lengths_one_skin_swap_branch_withhold_pose_alternative_withhold_v13",
+            "registration": "datum_plane_outline_fft_wall_edge_hole_polygon_flange_ends_hole_pairs_weak_dirs_walk_distinct_inscribed_hole_fill_hardware_mirror_symmetric_convert_free_datum_plane_seeds_symmetric_images_flange_end_rank_tilt_wells_v7",
+            "state_decode": "signed_dihedral_fraction_order_prior_symmetric_near_twins_hole_evidence_twin_agreement_v5",
+            "thickness": "datum_tile_two_skin_separation_v1",
+            "uncertainty": "station_mad_residual_pose_erosion_bias_thickness_station_spread_riser_length_v4"
+          },
+          "duration_s": 117.524035,
+          "peak_rss_bytes": 1044611072
+        },
+        "summary": {
+          "validity": "VALID",
+          "stage": "FINAL_INCOMPLETE",
+          "inferred_stage": 8,
+          "summary": "OUT_OF_TOLERANCE_FOUND"
+        },
+        "bends": [
+          {
+            "label": "B1",
+            "seq": 1,
+            "state": "FORMED"
+          },
+          {
+            "label": "B2",
+            "seq": 2,
+            "state": "FORMED"
+          },
+          {
+            "label": "B3",
+            "seq": 3,
+            "state": "FORMED"
+          },
+          {
+            "label": "B4",
+            "seq": 4,
+            "state": "FORMED"
+          },
+          {
+            "label": "B5",
+            "seq": 5,
+            "state": "FORMED"
+          },
+          {
+            "label": "B6",
+            "seq": 6,
+            "state": "FORMED"
+          },
+          {
+            "label": "B7",
+            "seq": 7,
+            "state": "FORMED"
+          },
+          {
+            "label": "B8",
+            "seq": 8,
+            "state": "FORMED"
+          },
+          {
+            "label": "B9",
+            "seq": 9,
+            "state": "NOT_YET_FORMED"
+          },
+          {
+            "label": "B10",
+            "seq": 10,
+            "state": "NOT_YET_FORMED"
+          },
+          {
+            "label": "B11",
+            "seq": 11,
+            "state": "NOT_YET_FORMED"
+          },
+          {
+            "label": "B12",
+            "seq": 12,
+            "state": "NOT_YET_FORMED"
+          }
+        ],
+        "overlay_api_status": 404
+      },
+      "detail": "AssertionError [ERR_ASSERTION]: scan_1: the job carries a zero-shot overlay (GET /zeroshot-overlay 200) (404) |     at check (file:///Users/idantal/ShermanQC/FullProject/scripts/production/run_e2e_real.mjs:100:10) |     at scanFlow (file:///Users/idantal/ShermanQC/FullProject/scripts/production/run_e2e_real.mjs:714:3) |     at async step.requires (file:///Users/idantal/ShermanQC/FullProject/scripts/production/run_e2e_real.mjs:831:18)",
+      "duration_s": 128.8
+    },
+    {
+      "id": "R-hebrew",
+      "title": "station in Hebrew (RTL) on the last real job",
+      "status": "PASS",
+      "assertions": [
+        {
+          "what": "RTL station has no page scroll",
+          "ok": true,
+          "value": {
+            "sw": 1920,
+            "sh": 1080
+          }
+        },
+        {
+          "what": "Hebrew verdict word",
+          "ok": true,
+          "value": "לתקן"
+        },
+        {
+          "what": "Hebrew: a tapped bend opens its callout on a leader line",
+          "ok": true,
+          "value": {
+            "uid": "bu_2823718e12cd89b5276c",
+            "label": "B1",
+            "verdict": "CHECK",
+            "visible": true,
+            "placement": "up-left",
+            "leader": true,
+            "lines": [
+              {
+                "kind": "FLANGE_LENGTH",
+                "side": "A",
+                "decision": "UNKNOWN"
+              },
+              {
+                "kind": "FLANGE_LENGTH",
+                "side": "B",
+                "decision": "REVIEW"
+              },
+              {
+                "kind": "INCLUDED_ANGLE",
+                "side": null,
+                "decision": "REVIEW"
+              },
+              {
+                "kind": "BEND_LINE_POSITION",
+                "side": null,
+                "decision": "REVIEW"
+              }
+            ]
+          }
+        }
+      ],
+      "screenshots": [
+        {
+          "file": "24-station-hebrew-rtl.png",
+          "pairs_with": "station-root dir=rtl"
+        },
+        {
+          "file": "25-station-hebrew-rtl-callout.png",
+          "pairs_with": "Hebrew callout B1"
+        }
+      ],
+      "started": "2026-10-28T00:04:19.585Z",
+      "duration_s": 4.5
+    },
+    {
+      "id": "P1",
+      "title": "part picker: an unknown-name scan and an unnamed (Hebrew) scan are held back; the operator picks 10839000 at the station (Hebrew/RTL), the job runs E3 and is marked \"assigned by operator\"; the other is dismissed with a reason",
+      "status": "PASS",
+      "assertions": [
+        {
+          "what": "unknown name held back as UNMATCHED_SKU",
+          "ok": true,
+          "value": {
+            "file": "10839 000_01_FULL_SCAN 9.ply",
+            "reason": "UNMATCHED_SKU"
+          }
+        },
+        {
+          "what": "the filename fuzzy match suggests 10839000 first",
+          "ok": true,
+          "value": [
+            {
+              "sku": "10839000",
+              "recipe_id": "10839000@v1",
+              "source": "FILENAME_FUZZY",
+              "score": 1,
+              "recipe_version": 1,
+              "revision": "01",
+              "part_name": "Joggle bracket 10839000",
+              "inspection_stage": "FINAL",
+              "assignable": true
+            }
+          ]
+        },
+        {
+          "what": "the Hebrew/space filename survives ingest unchanged",
+          "ok": true,
+          "value": [
+            "סריקה ללא שם 1.ply",
+            "10839 000_01_FULL_SCAN 9.ply"
+          ]
+        },
+        {
+          "what": "the unnamed scan is held back (no part number in the name)",
+          "ok": true,
+          "value": "UNMATCHED_SKU"
+        },
+        {
+          "what": "the picker lists both held-back scans",
+          "ok": true,
+          "value": null
+        },
+        {
+          "what": "suggested part first in the list",
+          "ok": true,
+          "value": "10839000"
+        },
+        {
+          "what": "the picker shows the file name",
+          "ok": true,
+          "value": "10839 000_01_FULL_SCAN 9.ply"
+        },
+        {
+          "what": "why-held text is Hebrew",
+          "ok": true,
+          "value": "המק\"ט לא שוחרר לבדיקה"
+        },
+        {
+          "what": "picker is RTL, nothing spills out of the dialog, no page scroll at 1920x1080",
+          "ok": true,
+          "value": {
+            "dir": "rtl",
+            "rect": [
+              220,
+              90,
+              1480,
+              900
+            ],
+            "overflowing": [],
+            "pageScroll": [
+              1920,
+              1080
+            ]
+          }
+        },
+        {
+          "what": "the active recipe version is pre-selected",
+          "ok": true,
+          "value": "10839000@v1"
+        },
+        {
+          "what": "stage defaults to the recipe (FINAL)",
+          "ok": true,
+          "value": "FINAL"
+        },
+        {
+          "what": "confirm step shows SKU / revision / version",
+          "ok": true,
+          "value": {
+            "sku": "10839000",
+            "version": "v1",
+            "revision": "01"
+          }
+        },
+        {
+          "what": "confirm step: nothing spills out of the dialog",
+          "ok": true,
+          "value": {
+            "dir": "rtl",
+            "rect": [
+              220,
+              90,
+              1480,
+              900
+            ],
+            "overflowing": [],
+            "pageScroll": [
+              1920,
+              1080
+            ]
+          }
+        },
+        {
+          "what": "exactly one QUARANTINE_ASSIGNED for the double click",
+          "ok": true,
+          "value": 1
+        },
+        {
+          "what": "assign event: operator, time, from-outcome, chosen recipe",
+          "ok": true,
+          "value": {
+            "principal": {
+              "id": "2",
+              "kind": "user",
+              "role": "admin"
+            },
+            "payload": {
+              "assigned_at": "2026-10-28T00:04:37.903Z",
+              "compiled_part_sha256": "2a380d18578e0d9efae625653fd64ef70836d163598077d0462ad0d44a7fdf14",
+              "declared_stage": null,
+              "from_detail": "NO_KNOWN_SKU_TOKEN",
+              "from_outcome": "UNMATCHED",
+              "job_created": true,
+              "operator_name": "e2e-admin",
+              "original_name": "10839 000_01_FULL_SCAN 9.ply",
+              "previous_reason": "UNMATCHED_SKU",
+              "recipe_id": "10839000@v1",
+              "recipe_sha256": "8a7221a129b5c9f81f9543fe21908a6b973f18e6592618e6cfe62c64969cc6c5",
+              "recipe_version": 1,
+              "sku": "10839000"
+            }
+          }
+        },
+        {
+          "what": "dismiss event with the reason and operator",
+          "ok": true,
+          "value": {
+            "dismiss_reason": "RESCAN",
+            "dismissed_at": "2026-10-28T00:04:41.581Z",
+            "from_outcome": "UNMATCHED",
+            "note": "",
+            "operator_name": "e2e-admin",
+            "original_name": "סריקה ללא שם 1.ply",
+            "reason": "UNMATCHED_SKU"
+          }
+        },
+        {
+          "what": "the operator-assigned job completed",
+          "ok": true,
+          "value": {
+            "execution_status": "completed",
+            "failure": null
+          }
+        },
+        {
+          "what": "job record: part assigned by operator",
+          "ok": true,
+          "value": {
+            "by_operator": true,
+            "assigned_at": "2026-10-28T00:04:37.903Z",
+            "from_reason": "UNMATCHED_SKU",
+            "assigned_by": {
+              "id": "2",
+              "kind": "user",
+              "role": "admin"
+            }
+          }
+        },
+        {
+          "what": "the verdict is E3's own result (job summary = result file)",
+          "ok": true,
+          "value": {
+            "validity": "VALID",
+            "summary": "OUT_OF_TOLERANCE_FOUND",
+            "stage": "CONSISTENT",
+            "engine": "sherman_production_engine e3-1.14.0"
+          }
+        },
+        {
+          "what": "station shows \"part assigned by operator\" (Hebrew)",
+          "ok": true,
+          "value": "החלק הוקצה ע\"י מפעיל"
+        },
+        {
+          "what": "no held-back scan left on the station",
+          "ok": true,
+          "value": null
+        },
+        {
+          "what": "RTL station with the badge has no page scroll",
+          "ok": true,
+          "value": {
+            "sw": 1920,
+            "sh": 1080
+          }
+        }
+      ],
+      "screenshots": [
+        {
+          "file": "26-picker-ribbon-held.png",
+          "pairs_with": "ribbon: Scan held back (UNMATCHED_SKU) + Choose part (2)"
+        },
+        {
+          "file": "27-picker-he-suggested.png",
+          "pairs_with": "picker (Hebrew/RTL): why held, file name, suggested 10839000 first"
+        },
+        {
+          "file": "28-picker-he-search-select.png",
+          "pairs_with": "search \"1083\", selected 10839000, version 10839000@v1, stage FINAL"
+        },
+        {
+          "file": "29-picker-he-confirm.png",
+          "pairs_with": "confirm: 10839000 rev 01 v1"
+        },
+        {
+          "file": "30-picker-he-assigned.png",
+          "pairs_with": "assigned; the picker moves on to the other held scan"
+        },
+        {
+          "file": "31-picker-he-dismiss.png",
+          "pairs_with": "dismiss with reason: rescan"
+        },
+        {
+          "file": "32-picker-he-result.png",
+          "pairs_with": "job c0de9f4c: E3 OUT_OF_TOLERANCE_FOUND; badge \"החלק הוקצה ע\"י מפעיל\""
+        },
+        {
+          "file": "33-picker-en-result.png",
+          "pairs_with": "English: \"Part assigned by operator\" badge"
+        }
+      ],
+      "started": "2026-10-28T00:04:24.109Z",
+      "picker": {
+        "unknown_name": "10839 000_01_FULL_SCAN 9.ply",
+        "unnamed_name": "סריקה ללא שם 1.ply",
+        "unknown_sha": "ed2a8e284436286b1eca0176a87ae4da6802e6df21ddc14c4e52a4ab82520c1e",
+        "unknown_held": {
+          "scan_file_id": "scan_ed2a8e284436286b1eca0176",
+          "station_id": "cell-1",
+          "file_name": "10839 000_01_FULL_SCAN 9.ply",
+          "received_at": "2026-10-28T00:04:27.375Z",
+          "quarantined_at": "2026-10-28T00:04:27.376Z",
+          "reason_code": "UNMATCHED_SKU",
+          "resolvable": true,
+          "message": "NO_KNOWN_SKU_TOKEN",
+          "outcome": "UNMATCHED",
+          "outcome_reason": "NO_KNOWN_SKU_TOKEN",
+          "parsed": {
+            "status": "UNMATCHED",
+            "sku": null,
+            "revision": null,
+            "expected_revision": null,
+            "revision_status": null,
+            "serial": null,
+            "scan_label": null,
+            "candidates": []
+          },
+          "stats": {
+            "size_bytes": 42835031,
+            "format": "PLY_BINARY_LE",
+            "vertex_count": 863115,
+            "face_count": 1701535,
+            "bbox_mm": [
+              [
+                -464.1347961425781,
+                -352.6655578613281,
+                145.95750427246094
+              ],
+              [
+                -115.40850067138672,
+                9.695172309875488,
+                303.24908447265625
+              ]
+            ]
+          },
+          "declared_stage": null,
+          "suggestions": [
+            {
+              "sku": "10839000",
+              "recipe_id": "10839000@v1",
+              "source": "FILENAME_FUZZY",
+              "score": 1,
+              "recipe_version": 1,
+              "revision": "01",
+              "part_name": "Joggle bracket 10839000",
+              "inspection_stage": "FINAL",
+              "assignable": true
+            }
+          ],
+          "catalog_error": null
+        },
+        "unnamed_sha": "72a32316cdc44f803f5dac83bbe8bab03718e6dd37bddd1c03528f57248000a8",
+        "unnamed_reason": "UNMATCHED_SKU",
+        "ribbon_reason": "UNMATCHED_SKU",
+        "why_he": "המק\"ט לא שוחרר לבדיקה",
+        "layout_he": {
+          "dir": "rtl",
+          "rect": [
+            220,
+            90,
+            1480,
+            900
+          ],
+          "overflowing": [],
+          "pageScroll": [
+            1920,
+            1080
+          ]
+        },
+        "version_selected": "10839000@v1",
+        "stage_default": "FINAL",
+        "confirm": {
+          "sku": "10839000",
+          "version": "v1",
+          "revision": "01"
+        },
+        "assigned_event": {
+          "schema": "sherman_line_event_v1",
+          "id": 32,
+          "ts": "2026-10-28T00:04:37.903Z",
+          "kind": "QUARANTINE_ASSIGNED",
+          "station_id": "cell-1",
+          "job_id": "line_c0de9f4c9c234066822f3c7dd9b679d5",
+          "scan_file_id": "scan_ed2a8e284436286b1eca0176",
+          "principal": {
+            "id": "2",
+            "kind": "user",
+            "role": "admin"
+          },
+          "payload": {
+            "assigned_at": "2026-10-28T00:04:37.903Z",
+            "compiled_part_sha256": "2a380d18578e0d9efae625653fd64ef70836d163598077d0462ad0d44a7fdf14",
+            "declared_stage": null,
+            "from_detail": "NO_KNOWN_SKU_TOKEN",
+            "from_outcome": "UNMATCHED",
+            "job_created": true,
+            "operator_name": "e2e-admin",
+            "original_name": "10839 000_01_FULL_SCAN 9.ply",
+            "previous_reason": "UNMATCHED_SKU",
+            "recipe_id": "10839000@v1",
+            "recipe_sha256": "8a7221a129b5c9f81f9543fe21908a6b973f18e6592618e6cfe62c64969cc6c5",
+            "recipe_version": 1,
+            "sku": "10839000"
+          }
+        },
+        "dismissed_event": {
+          "schema": "sherman_line_event_v1",
+          "id": 36,
+          "ts": "2026-10-28T00:04:41.581Z",
+          "kind": "QUARANTINE_DISMISSED",
+          "station_id": "cell-1",
+          "job_id": null,
+          "scan_file_id": "scan_72a32316cdc44f803f5dac83",
+          "principal": {
+            "id": "2",
+            "kind": "user",
+            "role": "admin"
+          },
+          "payload": {
+            "dismiss_reason": "RESCAN",
+            "dismissed_at": "2026-10-28T00:04:41.581Z",
+            "from_outcome": "UNMATCHED",
+            "note": "",
+            "operator_name": "e2e-admin",
+            "original_name": "סריקה ללא שם 1.ply",
+            "reason": "UNMATCHED_SKU"
+          }
+        },
+        "job_id": "line_c0de9f4c9c234066822f3c7dd9b679d5",
+        "job": {
+          "execution_status": "completed",
+          "failure": null
+        },
+        "assignment": {
+          "by_operator": true,
+          "assigned_at": "2026-10-28T00:04:37.903Z",
+          "from_reason": "UNMATCHED_SKU",
+          "assigned_by": {
+            "id": "2",
+            "kind": "user",
+            "role": "admin"
+          }
+        },
+        "result": {
+          "validity": "VALID",
+          "summary": "OUT_OF_TOLERANCE_FOUND",
+          "stage": "CONSISTENT",
+          "engine": "sherman_production_engine e3-1.14.0"
+        },
+        "badge_he": "החלק הוקצה ע\"י מפעיל"
+      },
+      "duration_s": 125.8
+    },
+    {
+      "id": "Z1",
+      "title": "no page errors; no legacy worker process; inbox emptied",
+      "status": "PASS",
+      "assertions": [
+        {
+          "what": "no uncaught page errors",
+          "ok": true,
+          "value": []
+        },
+        {
+          "what": "server/service logs never mention the legacy bend_analysis_worker",
+          "ok": true,
+          "value": null
+        },
+        {
+          "what": "legacy engine routes refused on the line (403 ROUTE_DISABLED)",
+          "ok": true,
+          "value": {
+            "/api/analyze": "403 ROUTE_DISABLED",
+            "/api/batch/analyze": "403 ROUTE_DISABLED",
+            "/api/bend-inspection/analyze": "403 ROUTE_DISABLED",
+            "/api/bend-inspection/analyze-from-catalog": "403 ROUTE_DISABLED"
+          }
+        },
+        {
+          "what": "GET /api/line/features: line enabled, legacy engine off",
+          "ok": true,
+          "value": {
+            "line_enabled": true,
+            "legacy_engine_enabled": false
+          }
+        },
+        {
+          "what": "sidebar hides New Analysis / Batch Processing / Bend Inspection on the line",
+          "ok": true,
+          "value": [
+            "/",
+            "/jobs",
+            "/live-scan",
+            "/sherman-chat",
+            "/parts",
+            "/production/parts"
+          ]
+        },
+        {
+          "what": "legacy page routes redirect home on the line",
+          "ok": true,
+          "value": {
+            "/upload": "/",
+            "/batch": "/",
+            "/bend-inspection": "/"
+          }
+        },
+        {
+          "what": "inbox emptied",
+          "ok": true,
+          "value": []
+        }
+      ],
+      "screenshots": [
+        {
+          "file": "34-sidebar-line.png",
+          "pairs_with": "sidebar on the line: no legacy analysis pages"
+        }
+      ],
+      "started": "2026-10-28T00:06:29.859Z",
+      "page_errors": [],
+      "legacy_routes": {
+        "/api/analyze": "403 ROUTE_DISABLED",
+        "/api/batch/analyze": "403 ROUTE_DISABLED",
+        "/api/bend-inspection/analyze": "403 ROUTE_DISABLED",
+        "/api/bend-inspection/analyze-from-catalog": "403 ROUTE_DISABLED"
+      },
+      "line_features": {
+        "line_enabled": true,
+        "legacy_engine_enabled": false
+      },
+      "sidebar": [
+        "/",
+        "/jobs",
+        "/live-scan",
+        "/sherman-chat",
+        "/parts",
+        "/production/parts"
+      ],
+      "legacy_page_redirects": {
+        "/upload": "/",
+        "/batch": "/",
+        "/bend-inspection": "/"
+      },
+      "duration_s": 2.2
+    }
+  ]
+}

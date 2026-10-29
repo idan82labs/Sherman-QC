@@ -1,0 +1,171 @@
+{
+ "arms": {
+  "comparison": {
+   "code_fingerprint_sha256": "af87df2f96426a9e69a46ed942ced4f19f0eb770e71e50aada43ddd27ec1441c",
+   "command": "docs/production/runlog/zeroshot_2026-10-25/integration/run_cohort.sh <scan_list.tsv> docs/production/runlog/zeroshot_2026-10-25/newscans_<batch>/runs/v1 zs 0 1",
+   "config": {
+    "path": "research/zeroshot/zs_lane_v1/config_v1.json",
+    "sha256": "dec044e8788a546b9de4c8367f74c9ce8d15579091a3db07c5b40ff30e849f4a"
+   },
+   "lane": "zs_lane_v1",
+   "model_sha256": "ccc28773687b7a32c1c72e127448445794e75cee5e26f896395cc14b9eb1b052",
+   "name": "zs_lane_v1 (live production lane, Z3 + Z2 pooled GBM + D1 snap)",
+   "output": "docs/production/runlog/zeroshot_2026-10-25/newscans_<batch>/runs/v1/zs",
+   "run_driver": {
+    "path": "docs/production/runlog/zeroshot_2026-10-25/integration/run_cohort.sh",
+    "sha256": "c19ba67dbf8f921dc57f05233da2b186a0353e61bd2280435a3dc17f7829535f"
+   },
+   "variant": "zs"
+  },
+  "primary": {
+   "budget": {
+    "cell_mm": 0.3,
+    "max_faces": 3000000,
+    "rule": "a scan with more triangles than max_faces (file header) runs on a resampling of itself on a fixed absolute grid (cell cell_mm x 1.12^k, the smallest k whose output has at most max_faces faces): one QEF vertex per (cell, skin) from the scan's grid-line crossings, one quad per crossing (budget.py, revision 3); within the budget the scan is used unchanged"
+   },
+   "code_fingerprint_sha256": "dc23a905bc2cf83a2fff2a4e1270ca654e95b8d3d6f2077db97c50559c85476f",
+   "command": "research/zeroshot/zs_lane_v3/run_cohort.sh <scan_list.tsv> docs/production/runlog/zeroshot_2026-10-25/newscans_<batch>/runs/v3 0 1   (each scan through tools/guarded_slot.sh, --strict-pins: refuses on any pin mismatch or unpinned module)",
+   "config": {
+    "path": "research/zeroshot/zs_lane_v3/config_v3.json",
+    "sha256": "8e002f3e9dac696fc6072d2d6a3abca6d964bd9704a25b54dd8f3b084b08b8b4"
+   },
+   "fix": {
+    "ext": true,
+    "ext_dedupe": true,
+    "ext_min_in": 0.6,
+    "ext_ratio": 1.3,
+    "z3r": true,
+    "z3r_sweep_min": 0.25,
+    "z3r_tau": 0.9
+   },
+   "lane": "zs_lane_v3",
+   "model_sha256": "ade6cde44ede85dbf8195d0f6c093a2eea50eb4a481a21ec99fa9f17cd49ffeb",
+   "name": "zs_lane_v3 revision 3 (zs_lane_v2 + EXT + Z3R; exact bounded Z3 merge, Z2 before Z3, density-invariant 3M-face budget: fixed-grid resampling, cell 0.30 mm)",
+   "output": "docs/production/runlog/zeroshot_2026-10-25/newscans_<batch>/runs/v3/zs",
+   "post": {
+    "dedupe_join": true,
+    "join": true,
+    "join_low": 0.0,
+    "sweep_min": 0.25
+   },
+   "revision": 3,
+   "run_driver": {
+    "path": "research/zeroshot/zs_lane_v3/run_cohort.sh",
+    "sha256": "f8c15aa60f3df3908280b155a135ae0018146f667ff358df8fd8f7512d1b6e79"
+   },
+   "supersedes": {
+    "code_fingerprint_sha256": "ab31d061c6231f5f7581f4cf03d451e77dbc5667e0193e66f3acac955e30a03d",
+    "config_sha256": "1c3f8cb7787185f33a61922dda8a2fced900c2e3011ea0105612f4fd5cc0fc53",
+    "freeze_ledger_seq": 22,
+    "revision": 2,
+    "superseded_before_that": {
+     "revision": 1,
+     "freeze_ledger_seq": 20,
+     "code_fingerprint_sha256": "e34e1ba7f396eaf7782aff0250ea33599823e63e466ad2ca7eee4eddca965b4a",
+     "config_sha256": "9860f46b56d34d99302cfd1d1396626980e216f9b31aa2c6c05420a5c20f0417"
+    }
+   },
+   "threshold": 0.5,
+   "variant": "zs",
+   "z3_model_sha256": "62e99d13ccf0945d4b6932b85f19879e757e09ca7f493041c3ce53503e74e28c"
+  }
+ },
+ "cohort": {
+  "batch": "<FILL IN before ledgering> (e.g. N2)",
+  "minimum_size_for_a_decision": "at least 10 complete-label line scans from at least 5 families; below that the run is descriptive only and the default stays zs_lane_v1",
+  "registry": "<FILL IN before ledgering> newscans_<batch>/REGISTRY.json (path + sha256)",
+  "rule": "NEW_UNSEEN_FAMILY_TEST: the families must not be in DEV, DEV-CHECK, FRESH, TEST-B or N1 (check family ids and sha256 against INVENTORY.json, SPLIT_FROZEN.json and newscans_N1/REGISTRY.json). Nothing may be tuned, calibrated or selected on these scans. No v3 parameter, threshold, model or rule changes after this file is ledgered.",
+  "scan_ids": "<FILL IN before ledgering>",
+  "scan_ids_sha256": "<FILL IN before ledgering>",
+  "scan_list": "<FILL IN before ledgering> newscans_<batch>/<batch>_scans.tsv (sid<TAB>path)",
+  "source": "fresh scans expected from the customer; never seen by any lane"
+ },
+ "context_not_a_decision_input": {
+  "dev_oof_micro": {
+   "zs_lane_v1": 0.9444,
+   "zs_lane_v2": 0.9579,
+   "zs_lane_v3": 0.966
+  },
+  "dev_zero_bend_control_fp_lines": {
+   "zs_lane_v1": 5,
+   "zs_lane_v2": 1,
+   "zs_lane_v3": 1
+  },
+  "n1": "consumed (post-hoc diagnosis only); never a v3 score",
+  "testb_zs_lane_v1": "0.855 micro (consumed)",
+  "v3_disclosure": "the EXT / Z3R parameters were set on all-DEV OOF prototypes (selection-aware); the containment value 0.6 is the middle of the DEV plateau (0.5-0.75), not the N1-aware 0.75; see research/zeroshot/zs_lane_v3/README.md",
+  "v3_rev2": "revision 2 is runtime/memory only: DEV OOF with the v3 fold models 0.9660, 597/20/22, control FP 1 (identical to revision 1); full refit procedure 0.9651, 595/19/24, control FP 1 (paired -0.0009 [-0.0055, +0.0032]); see v3/rev2/FREEZE_REV2.md",
+  "v3_rev3": "revision 3 changes the budget step only (density-invariant fixed-grid resampling above 3M faces): DEV OOF with the v3 fold models 0.9660, 597/20/22, control FP 1, rolled FP 0 (identical to revisions 1 and 2; 119/119 unbudgeted DEV dumps bit-identical, the 6 budgeted scans keep their TP/FP/FN); full refit procedure 0.9612, 595/24/24, control FP 1 (refit noise, all count changes on unbudgeted scans; models are not refit); densified DEV scans A-D up to 46M faces: every native-density line reproduced; see v3/rev3/FREEZE_REV3.md"
+ },
+ "created_at": "2026-10-25",
+ "created_by": "zeroshot_2026-10-25/v3-packager",
+ "gold_rule": {
+  "adjudication_sha256": "<FILL IN before ledgering>",
+  "gold_ledger_last_entry_sha256": "<FILL IN before ledgering>",
+  "gold_ledger_sha256": "<FILL IN before ledgering>",
+  "labels": "<FILL IN before ledgering> {sid: {path, sha256, ledger_seq, ledger_entry_sha256, part_id}}",
+  "labels_sha256": "<FILL IN before ledgering>",
+  "ledger_tool": {
+   "path": "docs/production/runlog/zeroshot_2026-10-25/tools/gold_ledger_newscans.py",
+   "sha256": "684b396323648320a7ec9fe86406fdf62903dce69f46551371c63e3b7e026da8"
+  },
+  "rule": "GOLD IS FROZEN BEFORE ANY RUN. Gold is marked blind by two markers plus adjudication with a canary (gold/MARKER_HOWTO.md, as gold/N1), REGISTERED and FROZEN in gold/GOLD_LEDGER.jsonl with tools/gold_ledger_newscans.py (labels only in data/bend_corpus/annotations/ai_bend_lines_newscans_<batch>_v1/), and only then is this PREREG filled and ledgered. The gold guard (research/zeroshot/common/gold_guard.py, pinned in every lane fingerprint) refuses any scan that is not FROZEN, so a lane cannot run first. Gold is never edited after the run."
+ },
+ "guard": {
+  "gold_guard_py_sha256": "031f1276334bc676ceaaf4d41b83b86e914f920008cf00e1dc11aca2f117d40a",
+  "path": "docs/production/runlog/zeroshot_2026-10-25/tools/guarded_slot.sh",
+  "sha256": "95716619e4fa3071aad2a41d360b0ac6856df8e486e2844caa4866ff611f1859"
+ },
+ "metrics": {
+  "ci": "percentile family bootstrap, n 10000, seed 20261025",
+  "controls": "zero-bend scans (gold 0 lines, disposition ZERO_BEND_CONTROL) and rolled shells reported separately as FP lines per arm",
+  "failed_scans": "a missing or FAILED output = empty prediction (all gold FN; on a control 0 FP); no scan is dropped, no re-run",
+  "family_macro": "mean over part families of the family-micro F1",
+  "micro": "summed TP/FP/FN over complete-label line scans",
+  "paired": "v3 - v1 paired family bootstrap of micro and family-macro (n 10000, seed 20261025), families better / worse",
+  "runtime": "wall time and peak RSS per process from run_record.json"
+ },
+ "programme": "zeroshot_2026-10-25",
+ "proposed_decision_rule": {
+  "amendments": [
+   {
+    "after": "v3 per-process wall P95 <= 60 s and peak RSS < 32 GiB (owner amendment 2026-10-25; the runner's zs limits are 90 s and the engine's RSS cap, 32 GiB under ENGINE_IO-A5)",
+    "before": "v3 per-process wall P95 <= 60 s and peak RSS < 4 GiB (the runner's zs limits are 90 s / 4 GiB)",
+    "by": "owner (2026-10-25): approved changing the memory clause from 'peak RSS < 4 GiB' to '< 32 GiB' with the production per-step cap raise (ENGINE_IO-A5: one-job station, 256 GB RAM, 5-50 M-point ZEISS ScanBox scans)",
+    "clause_index": 4,
+    "date": "2026-10-25",
+    "note": "ENGINE_IO-A5 (the runner cap 4 -> 32 GiB) is PROPOSED, not yet in force: contracts/production/line_job.py is a pinned file of every zs lane pin, so raising the cap needs an owner decision on re-pinning; until then the runner's zs RSS limit is still 4 GiB and a v3 run above 4 GiB would be killed (no overlay) in production",
+    "scope": "memory clause only; the P95 <= 60 s clause and every other clause are unchanged; no fresh run had happened",
+    "supersedes": "the memory clause of freeze-ledger seq 21"
+   }
+  ],
+  "flip_allowed_if_all": [
+   "the cohort meets minimum_size_for_a_decision",
+   "v3 - v1 paired micro point estimate >= 0",
+   "v3 control + rolled FP lines <= v1 control + rolled FP lines",
+   "0 FAILED or refused v3 outputs (pins_ok on every scan)",
+   "v3 per-process wall P95 <= 60 s and peak RSS < 32 GiB (owner amendment 2026-10-25; the runner's zs limits are 90 s and the engine's RSS cap, 32 GiB under ENGINE_IO-A5)"
+  ],
+  "otherwise": "the default stays zs_lane_v1; the result is recorded, nothing is re-run or tuned",
+  "status": "OWNER_CONFIRMED_2026-10-25"
+ },
+ "purpose": "one-time test of zs_lane_v3 (primary) against zs_lane_v1 (live production lane, comparison) on fresh customer scans of never-seen part families; it decides whether pin.DEFAULT_LANE may be flipped to zs_lane_v3 (v3/REPIN_PLAN.md)",
+ "run_procedure": [
+  "gold FROZEN (gold ledger) -> this file filled -> freeze-ledger NOTE 'PRE-REGISTRATION' (binds this file's sha256) -> freeze-ledger RUN entry (tier NEW_UNSEEN_FAMILY_TEST, seedset, case_ids_sha256) -> one run per arm per scan -> score -> RESULTS + freeze-ledger NOTE binding the RESULTS sha256",
+  "each arm x scan exactly once, through tools/guarded_slot.sh (gold guard, one geometry slot, OMP 1); at most 3 concurrent geometry jobs, process-tree RSS < 16 GiB",
+  "a crash is recorded, not retried"
+ ],
+ "schema": "sherman.zeroshot.newscans_prereg_template.v1",
+ "scorer": {
+  "driver": "research/zeroshot/zs_lane_v2/scoring.py score_scan + aggregate (unchanged; v3's scorer fingerprint), the same call for both arms",
+  "fingerprint_sha256": "05cc9314f471d22571cf9b108c53d11f384db89318dd4baeb31699d3c8104471",
+  "matcher": "research/broad_baseline/score.py score_case (frozen): 5 deg / 4 mm / 0.6 of both spans (gold and prediction), one-to-one Hungarian, apex locus, raw scan frame",
+  "settings": {
+   "axis_angle_deg": 5.0,
+   "gold_span_overlap": 0.6,
+   "offset_mm": 4.0,
+   "prediction_span_overlap": 0.6
+  }
+ },
+ "status": "TEMPLATE - not a pre-registration. Copy to newscans_<batch>/PREREG.json, fill every <FILL IN> field, have the owner confirm the decision rule, and append it to the freeze ledger as a NOTE 'PRE-REGISTRATION' entry. All of this happens only AFTER the gold of every scan is FROZEN and BEFORE any lane process touches the scans."
+}

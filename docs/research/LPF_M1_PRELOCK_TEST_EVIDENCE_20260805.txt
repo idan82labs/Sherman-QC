@@ -1,0 +1,18 @@
+Sherman QC LPF-M1 focused regression evidence
+Date: 2026-08-05
+Working directory: /Users/idantal/ShermanQC/FullProject
+
+Command:
+.venv/bin/python -m pytest -q tests/test_f1_local_plane_fragment_probe.py tests/test_f1_local_plane_fragment_probe_memory.py tests/test_build_f1_local_plane_fragment_probe_bundle.py tests/test_attribute_f1_local_plane_fragment_probe_gold.py tests/test_attribute_f1_transition_probe_gold.py tests/test_f1_transition_mode_probe.py tests/test_transition_atom_graph_v2.py tests/test_build_f1_scan_only_candidate_pool.py tests/test_patch_graph_latent_decomposition.py tests/test_f1_structured_birth_diagnostics.py tests/test_build_f1_transition_probe_postlock_bundles.py
+
+Output:
+........................................................................ [ 42%]
+........................................................................ [ 84%]
+..........................                                               [100%]
+170 passed in 2.19s
+
+Interpretation:
+The implementation and its current provisional singleton behavior are internally
+tested. This passing result does not resolve the pre-lock specification
+contradiction documented in LPF_M1_PRELOCK_CONTRADICTION_20260805.md and does
+not authorize a 37-case lock or opening gold.

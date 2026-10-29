@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any, Dict, List
 
 from contracts.ui.bend_results import (
+    BendDecisionContract,
     BendHeatmapConsistencyResult,
     BendHeatmapConsistencySummaryResult,
     BendInspectionResult,
@@ -76,5 +77,10 @@ def map_bend_report_to_contract(part_id: str, report_dict: Dict[str, Any]) -> Be
         summary=summary,
         matches=matches,
         alignment=(dict(report_dict.get("alignment")) if isinstance(report_dict.get("alignment"), dict) else None),
+        decision_contract=(
+            BendDecisionContract(**report_dict["decision_contract"])
+            if isinstance(report_dict.get("decision_contract"), dict)
+            else None
+        ),
         report_payload=dict(report_dict),
     )

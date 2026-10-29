@@ -1,0 +1,111 @@
+{
+  "labeler": "claude-vision-ai-v1",
+  "no_bends_present": false,
+  "notes": "Gold11 parallel AI relabel of sc_08686dc1d5d4 (10839000_01_scan_1.ply, Gold11 CGE4B0549E41). Human gold untouched. Owner conventions: apex locus = outer-skin arc midline (outer-skin patch pairs, --locus apex); joggle = 2 bends; a fold ends where its flange ends. Part (intermediate stage of the 10839000 tray): flat plate 1/2 (1 = inner/top skin facing the walls, 2 = outer/bottom skin) with a window; two ~37 mm walls 4/5 (outer 5) and 3/6 (outer 3) on two opposite plate edges, each with a short inward return lip (12 on wall 4/5, 11 on wall 3/6, outer = face away from the plate); a ~1.3 mm joggle along each of the other two plate edges (raised strips 8/10 and 7/9, raised toward the wall side; joggle webs = thin ~2 mm patches). 8 formed bends. Prep run fresh by this agent (no earlier bench prep of this scan existed). Run 2: joggle bends B5-B8 get edge-to-edge extent_t overrides (validated by the tool fold-support check); B1-B4 keep the auto extents (within 1.2 mm of the measured fold ends).",
+  "bends": [
+    {
+      "patches": [
+        2,
+        5
+      ],
+      "confidence": "auto",
+      "note": "plate -> wall 4/5 (human M01 bend), outer skins (plate bottom 2, wall outer 5); the wall spans ~200 mm of the 304 mm plate edge, so the fold ends at the wall ends"
+    },
+    {
+      "patches": [
+        2,
+        3
+      ],
+      "confidence": "auto",
+      "note": "plate -> wall 3/6 (human M02 bend), outer skins (plate bottom 2, wall outer 3)"
+    },
+    {
+      "patches": [
+        5,
+        12
+      ],
+      "confidence": "auto",
+      "note": "wall 4/5 -> inward return lip 12 (~133 mm), outer skins; not in the human gold"
+    },
+    {
+      "patches": [
+        3,
+        11
+      ],
+      "confidence": "auto",
+      "note": "wall 3/6 -> inward return lip 11 (~133 mm), outer skins; not in the human gold"
+    },
+    {
+      "patches": [
+        2,
+        [
+          16,
+          21,
+          24,
+          26,
+          28,
+          35,
+          40
+        ]
+      ],
+      "confidence": "auto",
+      "note": "joggle at strip 8/10, bend 1 (plate -> joggle web), outer = bottom skins (plate 2 + web bottom fragments); not in the human gold (human M04 sits ~10 mm outboard on the flat strip); auto extent t -134.2..150.1 stopped ~21 mm short at the t<0 plate end (web-bottom fragments do not reach it); fold support over t -180..180 is one run -157..152 and both flanges span t -155.7..150.8 (prep cloud, 3-10 mm bands), so the extent is set edge to edge",
+      "extent_t": [
+        -155.6,
+        150.8
+      ]
+    },
+    {
+      "patches": [
+        [
+          19,
+          27,
+          30,
+          31,
+          32,
+          33,
+          36,
+          38,
+          39
+        ],
+        10
+      ],
+      "confidence": "auto",
+      "note": "joggle at strip 8/10, bend 2 (joggle web -> raised strip), outer = top skins (web top fragments + strip top 10); not in the human gold; auto extent t -149.7..144.9 stopped ~11 mm short at the t>0 plate end; fold support run -152..157, flanges t -150.6..155.7, so the extent is set edge to edge",
+      "extent_t": [
+        -150.6,
+        155.7
+      ]
+    },
+    {
+      "patches": [
+        2,
+        [
+          13,
+          37
+        ]
+      ],
+      "confidence": "auto",
+      "note": "joggle at strip 7/9, bend 1 (plate -> joggle web), outer = bottom skins (plate 2 + web bottom 13/37); not in the human gold (human M03 is ~70 mm inboard on flat plate); auto extent t -147.6..152.5 stopped ~5 mm short at the t<0 end; fold support run -154..155, flanges t -152.8..153.4, so the extent is set edge to edge",
+      "extent_t": [
+        -152.8,
+        153.4
+      ]
+    },
+    {
+      "patches": [
+        [
+          14,
+          18
+        ],
+        7
+      ],
+      "confidence": "auto",
+      "note": "joggle at strip 7/9, bend 2 (joggle web -> raised strip), outer = top skins (web top 14/18 + strip top 7); not in the human gold; auto extent t -148.9..150.8 stopped ~6 mm short at the t<0 end; fold support run -156..153, flanges t -154.8..151.5, so the extent is set edge to edge",
+      "extent_t": [
+        -154.8,
+        151.5
+      ]
+    }
+  ]
+}

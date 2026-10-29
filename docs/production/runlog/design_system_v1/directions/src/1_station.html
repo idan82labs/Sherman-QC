@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="he" dir="rtl"><head><meta charset="utf-8"><title>D1 station</title>
+<style>
+@font-face{font-family:Heebo;font-weight:300 800;src:url(heebo-hebrew.woff2) format('woff2');unicode-range:U+0590-05FF,U+FB1D-FB4F}
+@font-face{font-family:Heebo;font-weight:300 800;src:url(heebo-latin.woff2) format('woff2');unicode-range:U+0000-00FF,U+2000-206F,U+2190-21FF,U+2212}
+:root{
+  --bg:#0B1016;--s1:#10161D;--s2:#151C25;--s3:#1B2430;--line:#243040;--line2:#2E3B4D;
+  --tx:#E7ECF2;--tx2:#A9B4C2;--tx3:#748296;
+  --brand:#01416F;--accent:#2E9BDA;--accent-tx:#7CC6F0;
+  --fix:#E5484D;--fix-bg:rgba(229,72,77,.12);--chk:#E2A336;--chk-bg:rgba(226,163,54,.12);--ok:#3DB47E;--ok-bg:rgba(61,180,126,.12);--nb:#5B6778;
+  --r:3px;
+}
+*{box-sizing:border-box;margin:0}
+body{width:1920px;height:1080px;background:var(--bg);color:var(--tx);font:400 15px/1.35 Heebo,system-ui,sans-serif;font-variant-numeric:tabular-nums;display:grid;grid-template-rows:72px 1fr 52px;overflow:hidden}
+.num{font-variant-numeric:tabular-nums;direction:ltr;unicode-bidi:isolate}
+header{display:grid;grid-template-columns:auto auto 1fr auto auto auto;align-items:stretch;border-bottom:1px solid var(--line);background:var(--s1)}
+header>*{display:flex;align-items:center;padding:0 24px;border-inline-start:1px solid var(--line)}
+header>:first-child{border:0}
+.logo img{height:34px;display:block}
+.part .pn{font-size:24px;font-weight:600;letter-spacing:.01em}
+.part .meta{color:var(--tx3);font-size:13px;margin-top:2px}
+.part .meta b{color:var(--tx2);font-weight:500}
+.lbl{font-size:12px;color:var(--tx3);letter-spacing:.02em}
+.prog{gap:14px}
+.prog .big{font-size:22px;font-weight:600}
+.segs{display:flex;gap:2px;direction:ltr}
+.segs i{width:14px;height:6px;background:var(--accent);display:block}
+.verdict{gap:16px;background:var(--fix-bg);box-shadow:inset 0 -3px 0 var(--fix);min-width:420px}
+.verdict .v{font-size:30px;font-weight:700;color:#FF6B6F;line-height:1}
+.verdict .c{display:flex;gap:18px;font-size:15px;color:var(--tx2)}
+.verdict .c b{font-size:20px;color:var(--tx);font-weight:600}
+.sq{width:10px;height:10px;display:inline-block;margin-inline-end:6px}
+.clock{flex-direction:column;align-items:flex-start;justify-content:center}
+.clock .t{font-size:20px;font-weight:500}
+.lang{font-size:14px;color:var(--tx2);border:1px solid var(--line2);padding:6px 12px;border-radius:var(--r)}
+main{display:grid;grid-template-columns:1fr 820px;min-height:0}
+.view{position:relative;background:radial-gradient(circle at 50% 45%,#141C26 0,#0B1016 70%);overflow:hidden}
+.view svg.part{position:absolute;inset:0}
+.grid{position:absolute;inset:0;background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);background-size:48px 48px;opacity:.25}
+.vhead{position:absolute;top:16px;inset-inline-start:20px;display:flex;gap:10px;align-items:center;color:var(--tx3);font-size:13px}
+.vhead b{color:var(--tx2);font-weight:500}
+.tools{position:absolute;bottom:16px;inset-inline-start:16px;inset-inline-end:16px;display:flex;justify-content:space-between}
+.seg{display:flex;border:1px solid var(--line2);background:var(--s1);border-radius:var(--r)}
+.seg button{all:unset;padding:0 16px;height:44px;display:flex;align-items:center;gap:8px;font-size:14px;color:var(--tx2);border-inline-start:1px solid var(--line2)}
+.seg button:first-child{border:0}
+.seg button.on{color:var(--tx);background:var(--s3);box-shadow:inset 0 -2px 0 var(--accent)}
+.seg svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.5}
+/* docked inspector */
+.insp{position:absolute;top:0;inset-inline-end:0;width:440px;background:var(--s1);border-inline-start:1px solid var(--line);border-bottom:1px solid var(--line)}
+.insp .h{display:flex;align-items:center;gap:12px;padding:14px 20px;border-bottom:1px solid var(--line)}
+.tag{font-weight:600;font-size:13px;padding:2px 8px;border:1px solid;border-radius:2px;display:inline-flex;align-items:center;gap:6px;line-height:18px}
+.tag.fix{color:#FF7B7F;border-color:rgba(229,72,77,.6);background:var(--fix-bg)}
+.tag.chk{color:#F0BC5E;border-color:rgba(226,163,54,.55);background:var(--chk-bg)}
+.tag.ok{color:#5FCB98;border-color:rgba(61,180,126,.5);background:var(--ok-bg)}
+.tag.nb{color:var(--tx3);border-color:var(--line2)}
+.insp .id{font-size:26px;font-weight:700}
+.insp .h .x{margin-inline-start:auto;color:var(--tx3);font-size:13px}
+.insp table{width:100%;border-collapse:collapse}
+.insp th{font-size:12px;font-weight:400;color:var(--tx3);text-align:start;padding:10px 20px 6px}
+.insp td{padding:10px 20px;border-top:1px solid var(--line);vertical-align:top}
+.insp td.n{text-align:end}
+.insp .ea{font-size:17px}.insp .ea s{text-decoration:none;color:var(--tx3)}
+.insp .tol{font-size:12px;color:var(--tx3)}
+.insp tr.bad td{background:rgba(229,72,77,.06)}
+.insp .d{font-size:17px;font-weight:600}
+.bar{position:relative;height:6px;background:var(--s3);margin-top:8px;direction:ltr}
+.bar .tolb{position:absolute;top:0;bottom:0;background:#2A3747}
+.bar .m{position:absolute;top:-3px;width:2px;height:12px}
+.bar .z{position:absolute;top:-2px;width:1px;height:10px;background:var(--tx3)}
+.insp .act{display:flex;gap:10px;padding:14px 20px;border-top:1px solid var(--line);font-size:14px;color:var(--tx);background:var(--s2)}
+.insp .act::before{content:'';width:3px;background:var(--fix);flex:none}
+/* list */
+.list{border-inline-start:1px solid var(--line);background:var(--s1);display:flex;flex-direction:column;min-height:0}
+.list table{width:100%;border-collapse:collapse}
+.list th{font-size:12px;font-weight:400;color:var(--tx3);text-align:start;padding:12px 14px;border-bottom:1px solid var(--line2);position:sticky;top:0;background:var(--s1)}
+.list td{padding:0 14px;height:70px;border-bottom:1px solid var(--line);white-space:nowrap}
+.list th.n,.list td.n{text-align:end}
+.list tr.sel td{background:var(--s3)}
+.list tr.sel td:first-child{box-shadow:inset -3px 0 0 var(--accent)}
+.list .seq{color:var(--tx3);font-size:13px;width:36px}
+.list .bid{font-size:18px;font-weight:600;width:70px}
+.list .mv{font-size:11px;color:var(--tx3);display:block;font-weight:400}
+.cell .d{font-size:16px;font-weight:600}
+.cell .a{font-size:13px;color:var(--tx3);margin:0 8px}
+.cell .w{display:inline-flex;flex-direction:column;align-items:flex-end}
+.cell .mini{display:block;height:3px;background:var(--s3);margin-top:6px;position:relative;width:110px;direction:ltr}
+.cell .mini i{position:absolute;top:-2px;width:2px;height:7px}
+.cell .mini b{position:absolute;inset:0 30%;background:#2A3747}
+.nm{color:var(--tx3);font-size:13px}
+.d.fix{color:#FF7B7F}.d.chk{color:#F0BC5E}.d.ok{color:var(--tx)}
+.legend{margin-top:auto;padding:12px 16px;border-top:1px solid var(--line);display:flex;gap:22px;font-size:12px;color:var(--tx3)}
+footer{display:flex;align-items:center;border-top:1px solid var(--line);background:var(--s1)}
+footer>*{padding:0 20px;display:flex;align-items:center;gap:10px;height:100%;border-inline-start:1px solid var(--line)}
+footer>:first-child{border:0;flex:1}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--ok)}
+.chip{font-size:13px;border:1px solid var(--line2);padding:4px 10px;border-radius:2px;color:var(--tx2)}
+.chip.cur{border-color:var(--accent);color:var(--tx)}
+.btn{all:unset;display:inline-flex;align-items:center;gap:8px;height:36px;padding:0 16px;border:1px solid var(--line2);border-radius:var(--r);font-size:14px;color:var(--tx);background:var(--s3)}
+</style></head><body>
+<header>
+  <div class="logo"><img src="sherman-logo-white.png" alt="Sherman"></div>
+  <div class="part"><div><div class="pn num">10839000</div><div class="meta">Joggle bracket 10839000 · מתכון <b>v1</b> · עבודה <b class="num">7eec6c</b> · סידורי —</div></div></div>
+  <div class="prog"><div><div class="lbl">כיפופים בוצעו</div><div class="big"><span class="num">12 / 12</span></div></div><div class="segs" id="segs"></div></div>
+  <div class="verdict"><div class="v">לתקן</div><div><div class="c"><span><b class="num">4</b> לתיקון</span><span><b class="num">8</b> לבדיקה</span></div><div class="lbl" style="margin-top:2px">נמצאה חריגה מטולרנס</div></div></div>
+  <div><span class="lang">English</span></div>
+  <div class="clock"><div class="t num">14:08:12</div><div class="lbl">עמדה <span class="num">cell-1</span> · <span style="color:var(--ok)">מחובר</span></div></div>
+</header>
+<main>
+  <section class="view">
+    <div class="grid"></div>
+    <div id="part"></div>
+    <div class="vhead"><b>סריקה מלאה</b> · <span class="num">10839000_01_FULL_SCAN 1.ply</span></div>
+    <aside class="insp" id="insp"></aside>
+    <div class="tools">
+      <div class="seg">
+        <button class="on"><svg viewBox="0 0 16 16"><path d="M8 1.5 14 5v6l-6 3.5L2 11V5z M2 5l6 3.5L14 5 M8 8.5V14.5"/></svg>שרטוט</button>
+        <button><svg viewBox="0 0 16 16"><rect x="2.5" y="2.5" width="11" height="11" stroke-dasharray="2 2"/></svg>חלק גמור</button>
+        <button class="on"><svg viewBox="0 0 16 16"><path d="M2 5V2h3M11 2h3v3M14 11v3h-3M5 14H2v-3M4 8h8"/></svg>סריקה</button>
+        <button><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="M8 2v12"/></svg>מפת סטיות</button>
+      </div>
+      <div class="seg">
+        <button class="on">תוויות: חריגות</button><button>הכול</button>
+      </div>
+      <div class="seg">
+        <button><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="5.5"/><circle cx="8" cy="8" r="1.5"/></svg>החריגה הבאה</button>
+        <button><svg viewBox="0 0 16 16"><path d="M2 5V2h3M11 2h3v3M14 11v3h-3M5 14H2v-3"/></svg>כל החלק</button>
+      </div>
+    </div>
+  </section>
+  <section class="list">
+    <table><thead><tr><th>#</th><th>כיפוף</th><th>תוצאה</th><th class="n">כנף A <span class="num">Δ mm</span></th><th class="n">כנף B <span class="num">Δ mm</span></th><th class="n">זווית <span class="num">Δ °</span></th></tr></thead><tbody id="rows"></tbody></table>
+    <div class="legend"><span><span class="sq" style="background:#2A3747"></span>טולרנס</span><span><span class="sq" style="background:var(--tx)"></span>נמדד</span><span>כנף A/B מ״מ · זווית במעלות</span></div>
+  </section>
+</main>
+<footer>
+  <div><span class="dot"></span><span style="color:var(--tx2)">ממתין לסריקה הבאה</span></div>
+  <div><span class="lbl">סריקות אחרונות</span><span class="chip cur num">7eec6c 14:08</span><span class="chip num">4f667b 14:10</span><span class="chip num">d01173 14:11</span></div>
+  <div><span class="lbl">סיוע למפעיל – אינו קבלה או דחייה אוטומטית</span></div>
+  <div><button class="btn"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2v8m-3-3 3 3 3-3M3 13h10"/></svg>הורדת PDF</button></div>
+</footer>
+<script src="shared.js"></script>
+<script>
+const {bends,render,byId}=SQ, SEL='B11'
+const cls={FIX:'fix',CHECK:'chk',OK:'ok'}, heV={FIX:'לתקן',CHECK:'לבדוק',OK:'תקין'}
+const col={FIX:'#E5484D',CHECK:'#E2A336',OK:'#3DB47E'}
+document.getElementById('segs').innerHTML=bends.map(()=>'<i></i>').join('')
+const tolW=(c,i)=>i==='g'?1.0:0.5
+function mini(c,k){ if(c[3]==='nm')return ''
+  const t=k==='g'?1:0.5, v=parseFloat(c[2].replace('−','-')), x=Math.max(2,Math.min(98,50+v/(t*3)*50))
+  return `<span class="mini"><b style="inset:0 ${50-100/6}%"></b><i style="left:${x}%;background:${c[3]==='fix'?'#E5484D':c[3]==='check'?'#E2A336':'#E7ECF2'}"></i></span>` }
+function cell(c,k){ if(c[3]==='nm')return `<td class="n"><span class="nm">לא נמדד</span></td>`
+  const s=c[3]==='fix'?'fix':c[3]==='check'?'chk':'ok'
+  return `<td class="n cell"><span class="w"><span><span class="a num">${c[1]}${k==='g'?'°':''}</span><span class="d ${s} num">${c[2]}${k==='g'?'°':''}</span></span>${mini(c,k)}</span></td>`}
+document.getElementById('rows').innerHTML=bends.map(b=>`<tr class="${b.id===SEL?'sel':''}"><td class="seq num">${b.seq}</td><td class="bid num">${b.id}${b.move?`<span class="mv">מהלך ${b.move}</span>`:''}</td><td><span class="tag ${cls[b.v]}">${b.v==='FIX'?'✕':b.v==='CHECK'?'!':'✓'} ${heV[b.v]}</span></td>${cell(b.a,'a')}${cell(b.b,'b')}${cell(b.g,'g')}</tr>`).join('')
+// inspector
+const b=byId(SEL)
+function irow(name,c,k,tol){const bad=c[3]==='fix', u=k==='g'?'°':' mm'
+  const v=parseFloat(c[2].replace('−','-')), x=Math.max(1,Math.min(99,50+v/(tol*2.5)*50)), tw=100/2.5
+  return `<tr class="${bad?'bad':''}"><td style="color:var(--tx2);width:90px">${name}</td>
+  <td><div class="ea num"><s>${c[0]}${k==='g'?'°':''}</s> → ${c[1]}${u}</div>
+  <div class="bar"><span class="tolb" style="left:${50-tw/2}%;width:${tw}%"></span><span class="z" style="left:50%"></span><span class="m" style="left:${x}%;background:${bad?'#E5484D':'#E7ECF2'}"></span></div>
+  <div class="tol" style="margin-top:6px">טולרנס <span class="num">±${tol.toFixed(1)}${k==='g'?'°':''}</span>${bad?' · <span style="color:#FF7B7F">כיפוף יתר</span>':''}</div></td>
+  <td class="n"><div class="d num" style="color:${bad?'#FF7B7F':'var(--tx)'}">${c[2]}${k==='g'?'°':''}</div><div class="tol">${bad?'✕ מחוץ':'✓ בתוך'}</div></td></tr>`}
+document.getElementById('insp').innerHTML=`<div class="h"><span class="id num">${b.id}</span><span class="tag fix">✕ לתקן</span><span class="lbl">כיפוף <span class="num">10</span> מתוך <span class="num">12</span></span><span class="x">סגירה ✕</span></div>
+<table><thead><tr><th></th><th>צפוי → בפועל</th><th style="text-align:end">סטייה</th></tr></thead><tbody>
+${irow('כנף A',b.a,'a',0.5)}${irow('כנף B',b.b,'b',0.5)}${irow('זווית',b.g,'g',1.0)}</tbody></table>
+<div class="act">${SQ.he.action}</div>`
+// part
+const el=document.getElementById('part'), r=el.parentElement.getBoundingClientRect()
+el.innerHTML=render({w:r.width,h:r.height,scale:1.95,yaw:-30,pitch:26,ox:190,oy:0,
+  face:l=>`hsl(212 14% ${14+l*22}%)`,edge:'#5E6E82',edgeW:.8,faceOverlay:'url(#dots)',
+  extraDefs:'<pattern id="dots" width="4" height="4" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r=".6" fill="#C9D4E0" opacity=".28"/></pattern>',
+  bendColor:b=>col[b.v],bendW:2,selected:SEL,selColor:'#FF5A5F',glow:'#E5484D',glowW:18,selW:4,selCore:'#FFD9DA',
+  tick:'#748296',markerBox:[44,22],
+  markerFor:b=>b.v==='FIX',
+  marker:(b,x,y,sel)=>`<g transform="translate(${x-22},${y-11})"><rect width="44" height="22" rx="2" fill="${sel?'#E5484D':'#10161D'}" stroke="${col[b.v]}" stroke-width="1"/><text x="22" y="15.5" text-anchor="middle" font-family="Heebo" font-size="13" font-weight="600" fill="${sel?'#fff':'#FF8A8D'}">${b.id}</text></g>`})
+</script>
+</body></html>

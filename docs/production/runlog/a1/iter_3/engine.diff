@@ -1,0 +1,775 @@
+diff -ru -x __pycache__ before/engine/inspect/articulated.py /Users/idantal/ShermanQC/FullProject/domains/production/engine/inspect/articulated.py
+--- before/engine/inspect/articulated.py	2026-10-18 05:03:02
++++ /Users/idantal/ShermanQC/FullProject/domains/production/engine/inspect/articulated.py	2026-10-18 08:18:09
+@@ -31,14 +31,27 @@
+    formed-like angles are searched again with ``hinge_rho_slack_wide_mm`` over
+    the fine reach, and a clearly better supported line (a formed flange whose
+    bend line sits millimetres off nominal) replaces the narrow one, so the
+-   defect is measured instead of read as a half-formed bend.
++   defect is measured instead of read as a half-formed bend. On such a child the
++   window stops, on the side toward the parallel bend, halfway to that bend's
++   hinge (``grand_u`` in :func:`_hough`): a formed tab beyond a still flat riser
++   is the parallel bend's line, not this one's displaced. Its line support also
++   stops where the riser ends, at the parallel bend's tangent lines (``s_cut``,
++   the limit the child's growth already uses): the arc and the sheet beyond them
++   are that bend's, and a shallow line crossing them must not outscore the riser's
++   own line. A line seen on one skin
++   reads alike as either skin; the reading nearer the nominal kinematics is
++   taken (:func:`_one_skin_tie`).
+ 3. **Region growing.** Seeds are the points on the winning line. The child's
+    material slab (mid-plane +- t/2 + tolerance, voxel normals within a cone)
+    is grown over the voxel neighbour graph from the seeds, the plane is refitted
+    robustly and the growth repeated. Points already owned by another panel are
+-   never taken. The converged slab's skins are then taken from its height
+-   levels (:func:`~domains.production.engine.inspect.geom.skin_peaks`), so cut
+-   walls, flare and fused setups between the skins do not bias them.
++   never taken; a panel owns nothing inside the core of its own holes (a tab cut
++   out of a window lies flat in it until formed, :func:`in_footprint`). The
++   mid-plane follows the slab's skin height levels
++   (:func:`~domains.production.engine.inspect.geom.skin_peaks`) at every step,
++   so cut walls, flare and fused setups between the skins neither bias it nor
++   walk it onto one skin; a slab seen on one skin is named by the hinge line
++   pair it grew from (:func:`_one_skin_mid`).
+ 4. **Pose.** The child's pose follows the fold kinematics
+    (:func:`fold_transform`): the arc consumes ``theta * R_n`` of the bend's
+    neutral strip, centred on the bend line (E1's Method A when flat, the
+@@ -72,7 +85,7 @@
+ from domains.production.engine.inspect.part import BendView, PartView
+ 
+ __all__ = ["PanelFit", "BendFit", "ArticulatedFit", "fit_articulated", "fold_transform", "hinge_frame", "HingeFrame",
+-           "inside_grown", "rho_window"]
++           "inside_grown", "in_footprint", "rho_window"]
+ 
+ 
+ @dataclass
+@@ -207,7 +220,7 @@
+ 
+ 
+ def _hough(zc, uc, vc, frame: HingeFrame, thetas: np.ndarray, cfg: InspectConfig, s_max: float,
+-           continuity: bool = False):
++           continuity: bool = False, grand_u: float | None = None, s_cut=None):
+     """Best two-skin line per angle: (score, rho_iml, n_iml, n_oml) arrays.
+ 
+     ``continuity``: at angles within ``flat_continuity_max_deg`` of flat, a
+@@ -218,6 +231,24 @@
+     or barely kinked strip is the parent's sheet continued; a parallel sheet one
+     thickness off (a joggle's far flange) starts millimetres out, and a shallow
+     line pair crossing it touches it far from the hinge only.
++
++    ``grand_u``: the child carries a parallel bend whose axis lies ``grand_u``
++    along ``u`` from this one's (the child flat). A line at ``theta`` whose hinge
++    sits ``d`` farther along ``u`` is offset by ``-d sin theta`` in ``rho``; a hinge
++    nearer that bend than this one is that bend's line (this one flat, that one
++    formed: a joggle or a hook half made), so on that side the window reaches at
++    most ``max(hinge_rho_slack_flat_mm, grand_u / 2 |sin theta|)``.
++
++    ``s_cut``: ``(s_limits, z_lo, z_hi)``, per angle the distance along the line
++    where that child ends (the parallel bend's tangent lines placed at ``theta``,
++    :func:`_short_child_limit`). Within the parallel bend's axial span
++    ``z_lo..z_hi`` no point beyond it supports the line: past it lie that bend's
++    arc and the sheet beyond, which a shallow line crosses at length.
++
++    With one skin visible, its line is also the other skin's line one thickness
++    off, and both readings score alike: the tie (within ``one_skin_tie_fraction``)
++    goes to the reading nearer the window centre (the nominal kinematics), never
++    to whichever lies first in ``rho``.
+     """
+     hb = cfg.hough_bin_mm
+     slack = cfg.hinge_rho_slack_mm
+@@ -225,6 +256,15 @@
+     win = [rho_window(frame, float(th), slack, cfg) for th in thetas]
+     centres = np.asarray([c for c, _ in win]) if win else np.asarray([frame.rho_iml])
+     halves = np.asarray([h for _, h in win]) if win else np.asarray([slack])
++    lows, highs = halves.copy(), halves.copy()
++    if grand_u is not None and grand_u > 0:
++        for k, th in enumerate(thetas):
++            sth = math.sin(float(th))
++            lim = max(float(cfg.hinge_rho_slack_flat_mm), 0.5 * float(grand_u) * abs(sth))
++            if sth >= 0:
++                lows[k] = min(lows[k], lim)
++            else:
++                highs[k] = min(highs[k], lim)
+     lo_r = float(np.min(np.minimum(centres, centres + frame.delta) - halves)) - abs(frame.delta) - 1.0
+     hi_r = float(np.max(np.maximum(centres, centres + frame.delta) + halves)) + abs(frame.delta) + 1.0
+     nb = int(math.ceil((hi_r - lo_r) / hb)) + 1
+@@ -243,6 +283,8 @@
+         c, s = math.cos(th), math.sin(th)
+         sv = uc * c + vc * s
+         sel = (sv > s_min) & (sv < s_max)
++        if s_cut is not None:
++            sel &= ~((zc > s_cut[1]) & (zc < s_cut[2]) & (sv >= s_cut[0][k]))
+         if not sel.any():
+             continue
+         rho = -uc[sel] * s + vc[sel] * c
+@@ -250,8 +292,8 @@
+         ok = (idx >= 0) & (idx < nb)
+         hist = np.bincount(idx[ok], minlength=nb).astype(np.float64)
+         sm = np.convolve(hist, kernel, mode="same")
+-        ci_lo = int(math.floor((centres[k] - halves[k] - lo_r) / hb))
+-        ci_hi = int(math.ceil((centres[k] + halves[k] - lo_r) / hb))
++        ci_lo = int(math.floor((centres[k] - lows[k] - lo_r) / hb))
++        ci_hi = int(math.ceil((centres[k] + highs[k] - lo_r) / hb))
+         cand = np.arange(max(0, ci_lo), min(nb, ci_hi + 1))
+         if len(cand) == 0:
+             continue
+@@ -265,6 +307,7 @@
+         j = int(np.argmax(comb))
+         if continuity and comb[j] <= 0.0:
+             continue
++        j = _one_skin_tie(j, cand, comb, sm, h_o, shift, centres[k], lo_r, hb, cfg)
+         scores[k] = comb[j]
+         rhos[k] = lo_r + (cand[j] + 0.5) * hb
+         n_i[k] = sm[cand[j]]
+@@ -272,6 +315,36 @@
+     return scores, rhos, n_i, n_o
+ 
+ 
++def _one_skin_tie(j: int, cand: np.ndarray, comb: np.ndarray, sm: np.ndarray, h_o: np.ndarray, shift: int,
++                  centre: float, lo_r: float, hb: float, cfg: InspectConfig) -> int:
++    """The candidate index for one visible skin: the reading nearer ``centre`` when both readings tie.
++
++    A line seen on one skin only is read two ways that score alike: as the inner
++    skin (its outer partner empty) or as the outer skin (its inner partner empty),
++    one thickness apart. When neither reading's weaker skin holds more than
++    ``one_skin_fraction`` of the stronger one's support and the two scores agree
++    within ``one_skin_tie_fraction``, the reading whose inner-skin offset lies
++    nearer the window centre (the nominal kinematics) is taken. With the second
++    skin seen, the reading that uses it scores higher and stands.
++    """
++    if shift == 0 or comb[j] <= 0.0:
++        return j
++    n_i, n_o = float(sm[cand[j]]), float(h_o[j])
++    big = max(n_i, n_o)
++    target = int(cand[j] - shift) if n_i >= n_o else int(cand[j] + shift)
++    if target < int(cand[0]) or target > int(cand[-1]):
++        return j
++    ja = target - int(cand[0])
++    p_a = min(float(sm[cand[ja]]), float(h_o[ja]))
++    if max(min(n_i, n_o), p_a) > cfg.one_skin_fraction * big:
++        return j
++    if comb[ja] < (1.0 - cfg.one_skin_tie_fraction) * comb[j]:
++        return j
++    d_j = abs(lo_r + (cand[j] + 0.5) * hb - centre)
++    d_a = abs(lo_r + (cand[ja] + 0.5) * hb - centre)
++    return ja if d_a < d_j else j
++
++
+ def _continuous_at_hinge(sv: np.ndarray, idx: np.ndarray, cand: np.ndarray, shift: int, nb: int, kernel: np.ndarray,
+                          comb: np.ndarray, s_min: float, s_max: float, cfg: InspectConfig) -> np.ndarray:
+     """Per candidate rho bin: is the line's material continuous from the hinge (see :func:`_hough`)?"""
+@@ -291,14 +364,16 @@
+     return np.all(both >= need[:, None], axis=1)
+ 
+ 
+-def _displaced_formed(zc, uc, vc, frame: HingeFrame, sweep_deg: float, cfg: InspectConfig, reach: float
+-                      ) -> tuple[float, float, float, float, float] | None:
++def _displaced_formed(zc, uc, vc, frame: HingeFrame, sweep_deg: float, cfg: InspectConfig, reach: float,
++                      grand_u: float | None = None, s_cut_fn=None) -> tuple[float, float, float, float, float] | None:
+     """``(theta, rho_iml, score, n_iml, n_oml)`` of the best formed-like two-skin line whose inner skin
+     lies beyond the narrow slack (up to ``hinge_rho_slack_wide_mm`` from nominal), else None.
+ 
+     Angles from half the nominal sweep to the overbend limit; support counted
+     over the fine reach, like the narrow fine search it is compared with. A
+     line inside the narrow window was already weighed by the narrow search.
++    ``grand_u`` limits the side toward a parallel bend the child carries, and
++    ``s_cut_fn(thetas)`` gives the support cut, as in :func:`_hough`.
+     """
+     from dataclasses import replace
+ 
+@@ -308,12 +383,14 @@
+     coarse = np.radians(np.arange(lo, hi + 1e-9, cfg.theta_coarse_step_deg))
+     if len(coarse) == 0:
+         return None
+-    sc, _, _, _ = _hough(zc, uc, vc, frame, coarse, wide, reach)
++    sc, _, _, _ = _hough(zc, uc, vc, frame, coarse, wide, reach, grand_u=grand_u,
++                         s_cut=None if s_cut_fn is None else s_cut_fn(coarse))
+     if float(sc.max()) <= 0.0:
+         return None
+     k = int(np.argmax(sc))
+     fine = np.radians(np.arange(math.degrees(coarse[k]) - 1.5, math.degrees(coarse[k]) + 1.51, 0.1))
+-    sc2, rh2, ni2, no2 = _hough(zc, uc, vc, frame, fine, wide, reach)
++    sc2, rh2, ni2, no2 = _hough(zc, uc, vc, frame, fine, wide, reach, grand_u=grand_u,
++                                s_cut=None if s_cut_fn is None else s_cut_fn(fine))
+     k2 = int(np.argmax(sc2))
+     centre, half = rho_window(frame, float(fine[k2]), cfg.hinge_rho_slack_mm, cfg)
+     if abs(float(rh2[k2]) - centre) <= half:
+@@ -339,6 +416,14 @@
+     return best
+ 
+ 
++def _grand_offset(part: PartView, bend: BendView, grand: int, parent: PanelFit, frame: HingeFrame) -> float | None:
++    """How far along ``u`` from this bend's axis the child's parallel bend ``grand`` has its axis, the child flat."""
++    A = parent.A @ fold_transform(bend, 0.0)
++    p = apply(A, np.asarray(part.bends[grand].axis_point, dtype=np.float64)[None])[0]
++    u = float((p - frame.o) @ frame.u)
++    return u if u > 0 else None
++
++
+ def _short_child_limit(part: PartView, bend: BendView, grand: int, parent: PanelFit, frame: HingeFrame, theta: float,
+                        flat: bool, cfg: InspectConfig) -> tuple[float, float, float]:
+     """``(s_limit, z_lo, z_hi)``: a short child grows, over the grandchild bend's axial span, only so far along its line.
+@@ -421,10 +506,20 @@
+         # about one thickness off the parent: near flat, only material continuous from the hinge counts
+         grand = _short_child(part, bend, reach)
+         short = grand is not None
+-        sc, rh, ni, no = _hough(zc, uc, vc, frame, coarse, cfg, frame.band, continuity=short)
++        grand_u = _grand_offset(part, bend, grand, parent, frame) if short else None
++
++        def _cut(ths, _g=grand, _b=bend, _p=parent, _f=frame):
++            """Per angle, where the short child ends along its line (None without one)."""
++            if _g is None:
++                return None
++            lims = [_short_child_limit(part, _b, _g, _p, _f, float(t), False, cfg) for t in ths]
++            return np.asarray([x[0] for x in lims]), lims[0][1], lims[0][2]
++        sc, rh, ni, no = _hough(zc, uc, vc, frame, coarse, cfg, frame.band, continuity=short, grand_u=grand_u,
++                                s_cut=_cut(coarse))
+         k = int(np.argmax(sc))
+         fine = np.radians(np.arange(math.degrees(coarse[k]) - 1.5, math.degrees(coarse[k]) + 1.51, 0.1))
+-        sc2, rh2, ni2, no2 = _hough(wz, wu, wv, frame, fine, cfg, reach, continuity=short)
++        sc2, rh2, ni2, no2 = _hough(wz, wu, wv, frame, fine, cfg, reach, continuity=short, grand_u=grand_u,
++                                    s_cut=_cut(fine))
+         k2 = int(np.argmax(sc2))
+         theta, rho_i = float(fine[k2]), float(rh2[k2])
+         score = float(sc2[k2])
+@@ -435,7 +530,7 @@
+         # leaves the narrow search on clutter at a flat or partial angle: a formed-like line found with
+         # the wide slack over the full reach replaces it when its support is clearly stronger
+         if sweep_deg >= cfg.displaced_min_sweep_deg and math.degrees(theta) < cfg.formed_fraction_min * sweep_deg:
+-            alt = _displaced_formed(wz, wu, wv, frame, sweep_deg, cfg, reach)
++            alt = _displaced_formed(wz, wu, wv, frame, sweep_deg, cfg, reach, grand_u=grand_u, s_cut_fn=_cut)
+             if alt is not None and alt[2] >= cfg.displaced_support_ratio * max(score, 1.0):
+                 detail.update({"narrow_theta_deg": math.degrees(theta), "narrow_score": score,
+                                "displaced_mm": float(alt[1] - frame.rho_iml_at(alt[0])), "n_iml": alt[3],
+@@ -482,22 +577,62 @@
+ 
+ def _slab_voxels_in_outline(vox_reg: np.ndarray, part: PartView, panel_index: int, A: np.ndarray, n0: np.ndarray,
+                             d0: float, t: float, grow: float) -> np.ndarray:
+-    """Voxels inside the panel's slab (skin 0 .. skin 1, +- tolerance) whose projection is inside its outline."""
++    """Voxels inside the panel's slab (skin 0 .. skin 1, +- tolerance) whose projection is inside its outline.
++
++    The cores of the panel's holes are not the panel (:func:`in_footprint`): a
++    tab cut out of a window lies flat inside it until it is formed.
++    """
+     h = vox_reg @ n0 - d0
+     slab = (h < 0.6) & (h > -t - 0.6)
+     idx = np.nonzero(slab)[0]
+     if len(idx) == 0:
+         return idx
+-    panel = part.panels[panel_index].model
+-    outer = apply(A, np.asarray(panel.outer_boundary_mm, dtype=np.float64))
++    return idx[in_footprint(vox_reg[idx], part, panel_index, A, n0, grow)]
++
++
++def in_footprint(pts: np.ndarray, part: PartView, panel_index: int, A: np.ndarray, n0: np.ndarray,
++                 grow: float) -> np.ndarray:
++    """Points whose projection on the panel's plane (pose ``A``) lies inside its outline grown by ``grow``
++    and outside the core of every hole (the hole shrunk by ``grow``).
++
++    Material inside a hole's core is never the panel's own: a tab cut out of a
++    window lies flat in it until its bend is formed, and it belongs to that tab
++    (the child), not to the panel around it.
++    """
+     from domains.production.engine.inspect.geom import orthonormal_frame
+ 
++    panel = part.panels[panel_index].model
+     e1, e2 = orthonormal_frame(n0)
+-    poly = np.stack([outer @ e1, outer @ e2], axis=1)
+-    q = np.stack([vox_reg[idx] @ e1, vox_reg[idx] @ e2], axis=1)
+-    return idx[inside_grown(poly, q, grow)]
++    outer = apply(A, np.asarray(panel.outer_boundary_mm, dtype=np.float64))
++    q = np.stack([pts @ e1, pts @ e2], axis=1)
++    keep = inside_grown(np.stack([outer @ e1, outer @ e2], axis=1), q, grow)
++    for hole in panel.holes_mm:
++        if len(hole) < 3 or not keep.any():
++            continue
++        hw = apply(A, np.asarray(hole, dtype=np.float64))
++        keep &= ~_in_core(np.stack([hw @ e1, hw @ e2], axis=1), q, grow)
++    return keep
+ 
+ 
++def _in_core(poly: np.ndarray, q: np.ndarray, margin: float) -> np.ndarray:
++    """Points inside the 2D polygon by more than ``margin`` (distance to its boundary)."""
++    inside = MplPath(poly).contains_points(q)
++    if margin <= 0 or not inside.any():
++        return inside
++    cand = np.nonzero(inside)[0]
++    best = np.full(len(cand), np.inf)
++    closed = np.vstack([poly, poly[:1]])
++    for a, b in zip(closed[:-1], closed[1:]):
++        d = b - a
++        ll = float(d @ d)
++        if ll < 1e-18:
++            continue
++        sp = np.clip((q[cand] - a) @ d / ll, 0.0, 1.0)
++        best = np.minimum(best, np.linalg.norm(q[cand] - (a + sp[:, None] * d), axis=1))
++    inside[cand[best <= margin]] = False
++    return inside
++
++
+ def inside_grown(poly: np.ndarray, q: np.ndarray, grow: float) -> np.ndarray:
+     """Points inside the 2D polygon or within ``grow`` of its boundary."""
+     inside = MplPath(poly).contains_points(q)
+@@ -565,31 +700,33 @@
+         dd = pts @ nrm - d_mid
+         inslab = np.abs(dd) < 0.5 * t + cfg.grow_plane_tol_mm
+         pts, dd = pts[inslab], dd[inslab]
+-        upper, lower = pts[dd > 0], pts[dd <= 0]
+-        planes = []
+-        for grp in (upper, lower):
+-            if len(grp) >= 30:
+-                pl = robust_plane(grp, iterations=3)
+-                planes.append((pl if float(pl.n @ nrm) > 0 else pl.flipped(), len(grp)))
+-        if not planes:
++        if len(dd) < 30:
+             break
++        # the skins are the slab's height levels, not its two halves: cut walls, flare and fused setups
++        # fill the slab between them, and a half's median pulled by that clutter walks the mid-plane
++        # onto one skin, which then drops the other out of the slab
++        top, bottom = skin_peaks(dd, t)
++        tol = min(cfg.grow_plane_tol_mm, 0.4 * t)
++        groups = [pts[np.abs(dd - lv) < tol] for lv in ((top, bottom) if bottom is not None else (top,))]
++        groups = [g for g in groups if len(g) >= 30]
++        if not groups:
++            break
++        planes = []
++        for grp in groups:
++            pl = robust_plane(grp, iterations=3)
++            planes.append((pl if float(pl.n @ nrm) > 0 else pl.flipped(), len(grp)))
+         nrm = unit(sum(pl.n * cnt for pl, cnt in planes))
+-        if len(upper) >= 30 and len(lower) >= 30:
+-            d_mid = 0.5 * (float(np.median(upper @ nrm)) + float(np.median(lower @ nrm)))
++        if len(groups) == 2:
++            d_mid = 0.5 * (float(np.median(groups[0] @ nrm)) + float(np.median(groups[1] @ nrm)))
+             seen = (0, 1)
+-        elif len(upper) >= 30:
+-            d_mid = float(np.median(upper @ nrm)) - 0.5 * t
+-            seen = (bend.oml_skin,) if sig > 0 else (1 - bend.oml_skin,)
+         else:
+-            d_mid = float(np.median(lower @ nrm)) + 0.5 * t
+-            seen = (1 - bend.oml_skin,) if sig > 0 else (bend.oml_skin,)
++            d_mid, seen = _one_skin_mid(float(np.median(groups[0] @ nrm)), nrm, frame, rho_i, t, sig, bend)
+     if len(region) == 0:
+         return PanelFit(bend.child, "UNKNOWN", None, reason="AMBIGUOUS_SEGMENTATION")
+     # the skins are the converged slab's height levels: cut-wall points, flare and fused setups
+-    # fill the slab between them, and with one skin seen the split at the mid-plane above
+-    # averages the visible skin with that clutter. The split still decides which side a single
+-    # visible skin is on.
+-    d_mid, seen = _refine_skin_levels(full_reg[np.isin(vox.inverse, region)], nrm, d_mid, t, sig, bend, seen, cfg)
++    # fill the slab between them. A single visible skin is named by the hinge line pair.
++    d_mid, seen = _refine_skin_levels(full_reg[np.isin(vox.inverse, region)], nrm, d_mid, t, sig, bend, seen, cfg,
++                                      ref=(frame, rho_i))
+     d_oml = d_mid + sig * 0.5 * t
+     d_iml = d_mid - sig * 0.5 * t
+     if bend.oml_skin == 0:
+@@ -628,8 +765,14 @@
+ 
+ 
+ def _refine_skin_levels(pts: np.ndarray, nrm: np.ndarray, d_mid: float, t: float, sig: float, bend: BendView,
+-                        seen: tuple[int, ...], cfg: InspectConfig) -> tuple[float, tuple[int, ...]]:
+-    """Mid-plane offset and seen skins of a child slab from its height levels (``skin_peaks``)."""
++                        seen: tuple[int, ...], cfg: InspectConfig, ref: tuple | None = None
++                        ) -> tuple[float, tuple[int, ...]]:
++    """Mid-plane offset and seen skins of a child slab from its height levels (``skin_peaks``).
++
++    ``ref`` ``(frame, rho_iml)``: the hinge line pair the slab was grown from;
++    a single visible skin is the one of that pair it lies on at the hinge
++    (:func:`_one_skin_mid`). Without it, the side of the current mid-plane decides.
++    """
+     dd = pts @ nrm - d_mid
+     dd = dd[np.abs(dd) < 0.5 * t + cfg.grow_plane_tol_mm]
+     if len(dd) < 30:
+@@ -644,20 +787,32 @@
+     if len(near) < 30:
+         return d_mid, seen
+     lv = float(np.median(near))
++    if ref is not None:
++        return _one_skin_mid(d_mid + lv, nrm, ref[0], ref[1], t, sig, bend)
+     if lv > 0:  # the upper skin (along +nrm) is the one seen
+         return d_mid + lv - 0.5 * t, ((bend.oml_skin,) if sig > 0 else (1 - bend.oml_skin,))
+     return d_mid + lv + 0.5 * t, ((1 - bend.oml_skin,) if sig > 0 else (bend.oml_skin,))
+ 
+ 
++def _one_skin_mid(level: float, nrm: np.ndarray, frame: HingeFrame, rho_i: float, t: float, sig: float,
++                  bend: BendView) -> tuple[float, tuple[int, ...]]:
++    """``(mid-plane offset, seen skins)`` of a child slab seen on one skin at offset ``level`` along ``nrm``.
++
++    The skin is named by the hinge line pair the slab grew from: at the hinge
++    point the inner line lies at ``rho_i`` and the outer at ``rho_i + delta``
++    (``nrm`` keeps the line normal's orientation), and the visible skin's plane
++    passes nearer one of them. A flange's plane is evaluated where its lines
++    were found, so a tilt of the region-wide fit does not move the comparison.
++    """
++    off = level - float(nrm @ frame.o)
++    is_oml = abs(off - (rho_i + frame.delta)) < abs(off - rho_i)
++    if is_oml:
++        return level - sig * 0.5 * t, (bend.oml_skin,)
++    return level + sig * 0.5 * t, (1 - bend.oml_skin,)
++
++
+ def _restrict_to_footprint(vox_reg: np.ndarray, region: np.ndarray, part: PartView, panel_index: int, A: np.ndarray,
+                            n0: np.ndarray, grow: float) -> np.ndarray:
+     if len(region) == 0:
+         return region
+-    from domains.production.engine.inspect.geom import orthonormal_frame
+-
+-    panel = part.panels[panel_index].model
+-    outer = apply(A, np.asarray(panel.outer_boundary_mm, dtype=np.float64))
+-    e1, e2 = orthonormal_frame(n0)
+-    poly = np.stack([outer @ e1, outer @ e2], axis=1)
+-    q = np.stack([vox_reg[region] @ e1, vox_reg[region] @ e2], axis=1)
+-    return region[inside_grown(poly, q, grow)]
++    return region[in_footprint(vox_reg[region], part, panel_index, A, n0, grow)]
+diff -ru -x __pycache__ before/engine/inspect/config.py /Users/idantal/ShermanQC/FullProject/domains/production/engine/inspect/config.py
+--- before/engine/inspect/config.py	2026-10-18 05:11:07
++++ /Users/idantal/ShermanQC/FullProject/domains/production/engine/inspect/config.py	2026-10-18 08:18:14
+@@ -32,16 +32,16 @@
+ __all__ = ["ENGINE_VERSION", "ALGORITHM_VERSIONS", "InspectConfig", "ConfigError", "load_config"]
+ 
+ #: Version of the per-scan engine (``result.engine.engine_version``).
+-ENGINE_VERSION = "e3-1.3.0"
++ENGINE_VERSION = "e3-1.4.0"
+ 
+ #: Algorithm identifiers recorded in ``result.engine.algorithm_versions``.
+ ALGORITHM_VERSIONS: dict[str, str] = {
+     "ingest": "ply_stl_explicit_unit_v1",
+     "registration": "datum_plane_outline_fft_wall_edge_hole_polygon_flange_ends_v3",
+-    "articulated_fit": "hinge_hough_region_grow_skin_levels_arc_fold_displaced_fold_window_short_child_v3",
++    "articulated_fit": "hinge_hough_region_grow_skin_levels_arc_fold_displaced_fold_window_short_child_window_support_tabs_one_skin_v4",
+     "thickness": "datum_tile_two_skin_separation_v1",
+-    "state_decode": "dihedral_fraction_order_prior_symmetric_twins_v1",
+-    "metrology": "station_oml_section_crease_aware_unfolded_island_station_profile_short_side_consistency_v4",
++    "state_decode": "dihedral_fraction_order_prior_symmetric_near_twins_v2",
++    "metrology": "station_oml_section_crease_aware_unfolded_island_station_profile_short_side_consistency_footprint_edge_v5",
+     "uncertainty": "station_mad_residual_pose_erosion_bias_thickness_v2",
+     "heatmap": "stage_cloud_nearest_signed_v1",
+ }
+@@ -198,6 +198,11 @@
+     flat_continuity_step_mm: float = 0.5
+     #: ... and such a short child grows only up to the tangent lines of that parallel bend plus this (mm).
+     short_child_margin_mm: float = 1.0
++    #: One visible skin: a line whose weaker skin (in both readings, inner or outer) holds at most this
++    #: share of the stronger one's support is read as one skin; when the two readings score within
++    #: ``one_skin_tie_fraction`` of each other, the one nearer the nominal kinematics is taken.
++    one_skin_fraction: float = 0.05
++    one_skin_tie_fraction: float = 0.1
+     min_child_points: int = 25
+     min_child_axial_coverage: float = 0.12
+     grow_plane_tol_mm: float = 0.35
+@@ -233,6 +238,10 @@
+     far_edge_material_slack_mm: float = 0.25
+     #: Contiguity gap (in scan spacings) when the far-edge run continues past the grown region.
+     far_edge_gap_factor: float = 2.5
++    #: A FREE_EDGE far edge reads the panel's grown region only within its fitted outline grown by
++    #: this (mm): a region that ran through a touching coplanar panel into another one is cut there
++    #: (the run past the region still follows contiguous material, so a long flange stays long).
++    free_edge_footprint_margin_mm: float = 5.0
+     #: A visible cut wall (points between the skins near the extreme) gives the edge directly.
+     wall_min_thickness_mm: float = 0.7
+     wall_skin_margin_fraction: float = 0.25
+@@ -321,6 +330,10 @@
+     ambiguity_margin: float = 0.03
+     symmetry_match_deg: float = 6.0
+     symmetry_match_mm: float = 6.0
++    #: A rival pose whose motion matches a rotation E1 found within this RMS (mm; E1 certifies a
++    #: symmetry below 0.3 mm) is a near twin: within ``ambiguity_margin`` of the best total it joins
++    #: the order-prior choice (never the ambiguity decision).
++    near_twin_rms_mm: float = 1.0
+ 
+     # -- unplanned creases -------------------------------------------------------------------------
+     crease_min_area_mm2: float = 60.0
+@@ -394,7 +407,7 @@
+     "hinge_rho_slack_mm": _POS, "hinge_rho_slack_flat_mm": _POS, "hinge_rho_slack_wide_mm": _POS, "displaced_support_ratio": (1.0, None, False, False),
+     "displaced_min_sweep_deg": (0.0, 180.0, False, False),
+     "flat_continuity_max_deg": (0.0, 45.0, False, False), "flat_continuity_mm": _POS, "flat_continuity_step_mm": _POS,
+-    "short_child_margin_mm": _POS,
++    "short_child_margin_mm": _POS, "one_skin_fraction": _FRAC, "one_skin_tie_fraction": _FRAC,
+     "min_child_points": (1, None, False, False), "min_child_axial_coverage": _FRAC,
+     "grow_plane_tol_mm": _POS, "grow_normal_tol_deg": (0.0, 90.0, True, True), "grow_iterations": (1, None, False, False),
+     "flat_fraction_max": (0.0, 1.0, False, True), "formed_fraction_min": (0.0, 1.0, True, False),
+@@ -403,6 +416,7 @@
+     "station_region_max_deg": (0.0, 180.0, True, False),
+     "min_station_points": (3, None, False, False), "station_skin_reach_mm": _POS,
+     "far_edge_rank": (1, None, False, False), "wall_skin_margin_fraction": (0.0, 0.5, False, True),
++    "free_edge_footprint_margin_mm": _POS,
+     "wall_zone_mm": _POS, "wall_min_points": (1, None, False, False), "min_station_fraction": (0.0, 1.0, True, False),
+     "unfold_min_angle_deg": _POS, "truncation_gap_mm": _POS, "truncation_min_points": (1, None, False, False),
+     "bare_edge_station_share": (0.0, 1.0, True, False),
+@@ -413,6 +427,7 @@
+     "explained_tight_fraction": _POS, "explained_tight_min_mm": _POS, "explained_tight_max_mm": _POS,
+     "wrong_part_hole_mismatch_min": (1, None, False, False), "mirror_check_explained": _FRAC,
+     "mirror_check_score": (None, None, False, False), "symmetry_match_deg": _POS, "symmetry_match_mm": _POS,
++    "near_twin_rms_mm": _POS,
+     "crease_min_area_mm2": _POS, "crease_min_angle_deg": _POS, "crease_hinge_search_mm": _POS,
+     "heatmap_max_distance_mm": _POS, "heatmap_max_lateral_mm": _POS, "time_budget_s": _POS,
+ }
+diff -ru -x __pycache__ before/engine/inspect/engine.py /Users/idantal/ShermanQC/FullProject/domains/production/engine/inspect/engine.py
+--- before/engine/inspect/engine.py	2026-10-18 04:21:52
++++ /Users/idantal/ShermanQC/FullProject/domains/production/engine/inspect/engine.py	2026-10-18 06:54:16
+@@ -250,11 +250,13 @@
+         return ctx.invalid("UNTRUSTED_REGISTRATION", ("NO_DATUM_PLANE_MATCHED",), None, None, log, abstained=True)
+     step("articulated", 40)
+     # the best datum poses get the articulated fit, and so does every symmetric twin of one of
+-    # them (a motion matching a compiled stage's symmetry candidate): a twin explains the scan as
+-    # well, so the decode must see it, whatever its noisy datum score
++    # them (a motion matching a compiled stage's symmetry candidate, or a near symmetry within
++    # ``near_twin_rms_mm``): a twin explains the scan as well, so the decode must see it, whatever
++    # its noisy datum score
+     scored = list(proper[:cfg.articulated_hypotheses])
+     for h in proper[cfg.articulated_hypotheses:]:
+-        if any(_matching_symmetry(h.fit.T @ np.linalg.inv(g.fit.T), part, cfg) for g in scored):
++        if any(_matching_symmetry(h.fit.T @ np.linalg.inv(g.fit.T), part, cfg, rms_max=cfg.near_twin_rms_mm)
++               for g in scored):
+             scored.append(h)
+     for h in scored:
+         if budget.left() <= 0:
+@@ -360,7 +362,8 @@
+     ctx.crease_sharps = {}
+     for c in found:
+         point = None if c.sharp is None else c.sharp[0]
+-        ctx.crease_sharps.setdefault(c.panel, []).append((point, c.direction, c.sharp_u, c.model.crease_id))
++        ctx.crease_sharps.setdefault(c.panel, []).append((point, c.direction, c.sharp_u, c.model.crease_id,
++                                                          np.asarray(c.model.polyline_mm, dtype=np.float64)))
+     # a datum whose edges and holes leave an in-plane direction free still fixes every bend-line
+     # position measured across that direction: such positions are measured, the others withheld
+     pos_trust = _position_trust(part, best.fit, model, states, geoms, lines, transforms, in_plane_degenerate, cfg)
+@@ -725,10 +728,14 @@
+     twin maps the datum onto itself, so its datum score differs only by noise).
+     Among them the planned order is the soft prior: an
+     order-consistent decode is preferred (a symmetric U-channel with one flange
+-    formed is S1, not the out-of-order "other flange" image of it). The pose is
++    formed is S1, not the out-of-order "other flange" image of it). A *near twin*
++    (the motion matches a rotation E1 found within ``near_twin_rms_mm`` RMS, above
++    its 0.3 mm symmetry threshold) whose total is within the margin joins this
++    choice too: such a part's datum barely tells the two poses apart, so the
++    order decides which half of a half-made part was formed. The pose is
+     ambiguous only when E1's symmetry test of the *chosen decode's* stage matches
+     the motion to a rival and the two disagree on a bend state or on the identity
+-    of a formed bend.
++    of a formed bend; a near twin never makes it ambiguous.
+     """
+     scored = [h for h in hyps if h.art is not None]
+     if not scored:
+@@ -739,13 +746,19 @@
+     margin = float(best.total - scored[1].total)
+     pool = [best]
+     for h in scored[1:]:
+-        if not _matching_symmetry(h.fit.T @ np.linalg.inv(best.fit.T), part, cfg):
+-            continue  # not a symmetric twin: simply a worse pose
+-        # a certified twin maps the datum onto itself, so its datum-score difference is noise;
+-        # it is a rival when the totals or the explained shares of the articulated model agree
+-        same = abs(best.explained - h.explained) + abs(best.explained_tight - h.explained_tight)
+-        if best.total - h.total <= cfg.ambiguity_margin or same <= cfg.ambiguity_margin:
+-            pool.append(h)
++        # a near twin (a rotation E1 finds within ``near_twin_rms_mm`` but above its symmetry threshold)
++        # joins the order-prior choice only; it can never make the pose ambiguous (below)
++        rel = h.fit.T @ np.linalg.inv(best.fit.T)
++        if _matching_symmetry(rel, part, cfg):
++            # a certified twin maps the datum onto itself, so its datum-score difference is noise;
++            # it is a rival when the totals or the explained shares of the articulated model agree
++            same = abs(best.explained - h.explained) + abs(best.explained_tight - h.explained_tight)
++            if best.total - h.total <= cfg.ambiguity_margin or same <= cfg.ambiguity_margin:
++                pool.append(h)
++        elif _matching_symmetry(rel, part, cfg, rms_max=cfg.near_twin_rms_mm):
++            if best.total - h.total <= cfg.ambiguity_margin:
++                pool.append(h)
++        # anything else is not a symmetric twin: simply a worse pose
+     if len(pool) < 2:
+         return False, [], margin, best
+ 
+@@ -775,15 +788,21 @@
+     return ambiguous, out_states, margin, chosen
+ 
+ 
+-def _matching_symmetry(rel: np.ndarray, part: PartView, cfg: InspectConfig) -> list:
+-    """Every ROTATION symmetry candidate (within E1's threshold) of a compiled stage that ``rel`` matches."""
++def _matching_symmetry(rel: np.ndarray, part: PartView, cfg: InspectConfig, rms_max: float | None = None) -> list:
++    """Every ROTATION symmetry candidate of a compiled stage that ``rel`` matches.
++
++    Candidates count within E1's threshold (a certified symmetry), or, with
++    ``rms_max``, within the larger of the two (a near symmetry: the part maps onto
++    itself to within ``rms_max`` mm RMS).
++    """
+     final = part.cloud(f"S{part.n}").points
+     probe = final[:: max(1, len(final) // 2000)]
+     out = []
+     for stage in part.compiled.stages:
+         sym = stage.symmetry
++        limit = sym.threshold_rms_mm if rms_max is None else max(sym.threshold_rms_mm, float(rms_max))
+         for cand in sym.candidates:
+-            if cand.kind != "ROTATION" or cand.rms_mm > sym.threshold_rms_mm + 1e-12:
++            if cand.kind != "ROTATION" or cand.rms_mm > limit + 1e-12:
+                 continue
+             m = np.asarray(cand.transform, dtype=np.float64)
+             r = rel[:3, :3] @ m[:3, :3].T
+diff -ru -x __pycache__ before/engine/inspect/metrology.py /Users/idantal/ShermanQC/FullProject/domains/production/engine/inspect/metrology.py
+--- before/engine/inspect/metrology.py	2026-10-18 04:52:49
++++ /Users/idantal/ShermanQC/FullProject/domains/production/engine/inspect/metrology.py	2026-10-18 06:54:22
+@@ -833,9 +833,10 @@
+ 
+     ``erosion_mm`` is the scan's erosion scale of skin edges seen without their
+     cut wall; it enters U in proportion to the stations without a visible wall.
+-    ``creases`` are (point, direction, U, id) OML virtual sharps of unplanned
++    ``creases`` are (point, direction, U, id[, polyline]) OML virtual sharps of unplanned
+     creases on the side panel: one running along this bend ends a FREE_EDGE side
+-    there (the contract measures to a bend's OML sharp, planned or not).
++    there (the contract measures to a bend's OML sharp, planned or not), at the
++    stations its polyline spans (:func:`_crease_covers`).
+     ``thick`` carries single-skin offsets into U. The measurement records how
+     many FREE_EDGE stations saw the cut wall (``walls_seen``), for the bare-edge
+     rule (:func:`bare_edge_untrusted`).
+@@ -883,7 +884,7 @@
+         t_far = thickness_along(other, far_is_parent, thick)
+     else:
+         u_far = 0.0
+-        along = [c for c in creases if abs(float(unit(c[1]) @ bm.line_dir)) >= 0.8]
++        along = [c for c in creases if abs(float(unit(c[1]) @ bm.line_dir)) >= 0.8 and _crease_covers(c, bm) is not False]
+         if any(c[0] is None for c in along):
+             return Measurement.unknown("AMBIGUOUS_SEGMENTATION", "OML_SHARP_TO_UNPLANNED_CREASE_SHARP",
+                                        "an unplanned crease splits this side; its OML sharp is unresolved")
+@@ -894,7 +895,7 @@
+             method = "OML_SHARP_TO_UNPLANNED_CREASE_SHARP"
+             u_edge = 0.0
+         else:
+-            mask = _panel_region(idx, art, panel_idx)
++            mask = _panel_footprint_region(idx, part, art, panel_idx, cfg.free_edge_footprint_margin_mm)
+             method = "OML_SHARP_TO_FREE_EDGE"
+             flatten_of = None
+             if profile is not None:
+@@ -947,15 +948,34 @@
+                        components=comps, walls_seen=int(sum(walls)), wall_stations=len(walls))
+ 
+ 
++def _crease_covers(crease, bm: BendMeasure, z: float | None = None) -> bool | None:
++    """Does the crease's own extent reach the bend's stations (or station position ``z``)? None: extent unknown.
++
++    A crease is found where a segment hinges off the panel; it ends a FREE_EDGE side only
++    over the length it actually runs, never along the whole flange as an unbounded line.
++    """
++    if len(crease) < 5 or crease[4] is None or len(crease[4]) < 2 or bm.z is None or len(bm.z) == 0:
++        return None
++    zc = (np.asarray(crease[4], dtype=np.float64) - bm.line_point) @ bm.line_dir
++    half = 0.5 * float(bm.width)
++    if z is None:
++        return bool(zc.max() >= float(np.min(bm.z)) - half and zc.min() <= float(np.max(bm.z)) + half)
++    return bool(zc.min() - half <= z <= zc.max() + half)
++
++
+ def _crease_crossings(bm: BendMeasure, w: np.ndarray, d_t: float, creases) -> list[tuple[float, float]]:
+-    """Per valid station: (distance to the nearest crease OML sharp along ``w``, its U) for creases along the bend."""
++    """Per valid station: (distance to the nearest crease OML sharp along ``w``, its U) for creases along the bend
++    whose extent covers that station (:func:`_crease_covers`)."""
+     out: list[tuple[float, float]] = []
+     along = [c for c in creases if c[0] is not None and abs(float(unit(c[1]) @ bm.line_dir)) >= 0.8]
+     if not along:
+         return out
+     for i in np.nonzero(bm.valid)[0]:
+         best = None
+-        for cp, cd, cu, _cid in along:
++        for c in along:
++            if _crease_covers(c, bm, float(bm.z[i])) is False:
++                continue
++            cp, cd, cu = c[0], c[1], c[2]
+             ls = _station_crossing(bm.sharp[i], bm.line_dir, w, cp, unit(cd))
+             if ls is not None and ls > d_t and (best is None or ls < best[0]):
+                 best = (ls, cu)
+@@ -986,6 +1006,32 @@
+     panel = art.panels[panel_idx]
+     vox = panel.region if len(panel.region) else panel.voxels
+     return idx.region_mask(("panel", panel_idx), vox)
++
++
++def _panel_footprint_region(idx: PointIndex, part: PartView, art: ArticulatedFit, panel_idx: int,
++                            margin: float) -> np.ndarray:
++    """The panel's grown region, kept within its fitted outline grown by ``margin`` (holes' cores excluded).
++
++    A grown region follows coplanar material over the voxel graph, so it can
++    run through a touching coplanar panel into another one far away (the lips and
++    tabs on one face of a box): a FREE_EDGE far edge taken from it would be that
++    other panel's edge. The run past the region's last point still follows
++    contiguous material (:func:`_far_free`), so a flange cut long is measured long.
++    """
++    panel = art.panels[panel_idx]
++    base = _panel_region(idx, art, panel_idx)
++    if panel.A is None or panel.n0 is None:
++        return base
++    key = ("panel_footprint", panel_idx, float(margin))
++    if key not in idx._masks:
++        sel = np.nonzero(base)[0]
++        out = np.zeros(len(base), dtype=bool)
++        if len(sel):
++            from domains.production.engine.inspect.articulated import in_footprint
++
++            out[sel[in_footprint(idx.pts[sel], part, panel_idx, panel.A, panel.n0, margin)]] = True
++        idx._masks[key] = out
++    return idx._masks[key]
+ 
+ 
+ def unfold_island(idx: PointIndex, part: PartView, art: ArticulatedFit, side_panel: int, island: list[int],
+diff -ru -x __pycache__ before/engine/inspect/registration.py /Users/idantal/ShermanQC/FullProject/domains/production/engine/inspect/registration.py
+--- before/engine/inspect/registration.py	2026-10-18 04:52:35
++++ /Users/idantal/ShermanQC/FullProject/domains/production/engine/inspect/registration.py	2026-10-18 06:46:27
+@@ -31,6 +31,9 @@
+    stage (a tab lying flat in its window at S_0 blocks that part). A hole is
+    "filled" (WRONG_PART evidence) by its inner disc when round, else when the
+    scan covers its open core about as densely as the datum around it.
++   A round hole's fill is judged only where its disc is clear of compiled stage
++   material (a stepped or countersunk hole's smaller bore lies inside the loop
++   E1 reports on skin 0).
+    A bin whose **cut wall** is seen (points between the skins) is observed at
+    the wall; a bare skin edge sits at a range-image depth discontinuity, where
+    the scanner erodes it inward, so it gets a low weight and its possible
+@@ -1693,7 +1696,8 @@
+     straight run, :meth:`DatumModel.hole_segments`, stops short of the hole's
+     opposite side). Round holes are binned radially about their centre;
+     ``hole_mismatch`` counts holes filled with material (round ones by their
+-    inner disc, the others by their open core, :func:`_nonround_hole_filled`).
++    inner disc where it is clear of compiled stage material, the others by
++    their open core, :func:`_nonround_hole_filled`).
+     """
+     rows: list[list[float]] = []
+     rhs: list[float] = []
+@@ -1771,8 +1775,19 @@
+             continue
+         rel = uv[sel] - c
+         rr = np.linalg.norm(rel, axis=1)
+-        inner = rr < max(0.5, r_h - 1.0)
+-        if inner.sum() > max(8, 0.05 * np.pi * r_h * r_h / max(spacing * spacing, 1e-6)):
++        r_in = max(0.5, r_h - 1.0)
++        inner = rr < r_in
++        open_share = 1.0
++        blocked_of = getattr(model, "blocked_points", None)
++        if blocked_of is not None and len(blocked_of(k_hole)) and inner.any():
++            # compiled stage material inside the hole's loop (the smaller bore of a stepped or countersunk
++            # hole, a tab lying flat in it): scan material there is the part's own, never a filled hole
++            inner_idx = np.nonzero(inner)[0]
++            inner = np.zeros(len(rr), dtype=bool)
++            inner[inner_idx[model.open_cells(k_hole, uv[sel][inner_idx])]] = True
++            open_share = _open_disc_share(model, k_hole, c, r_in)
++        if open_share >= _HOLE_FILL_MIN_OPEN_SHARE and \
++                inner.sum() > max(8, 0.05 * open_share * np.pi * r_h * r_h / max(spacing * spacing, 1e-6)):
+             hole_mismatch += 1  # material where the CAD has a hole
+         ring = (rr > r_h - 1.5) & (rr < r_h + cfg.hole_annulus_mm)
+         if ring.sum() < 6:
+@@ -1815,6 +1830,22 @@
+             "edge_walled": edge_walled, "hole_res": hole_res, "edge_bins": edge_bins,
+             "expected_bins": expected_bins, "holes_seen": holes_seen, "hole_mismatch": hole_mismatch,
+             "hole_groups": hole_groups, "hole_walled": hole_walled}
++
++
++#: A round hole whose inner disc is open (clear of compiled stage material) over less than this share is
++#: not judged for fill: what the scan shows there is the part's own material.
++_HOLE_FILL_MIN_OPEN_SHARE = 0.25
++
++
++def _open_disc_share(model: "DatumModel", k: int, c: np.ndarray, r: float, cell: float = 0.25) -> float:
++    """Share of the disc of radius ``r`` about ``c`` that is clear of compiled stage material in hole ``k``."""
++    g = np.arange(-r, r + 1e-9, cell)
++    xx, yy = np.meshgrid(g, g)
++    cells = np.stack([xx.ravel(), yy.ravel()], axis=1)
++    cells = cells[np.hypot(cells[:, 0], cells[:, 1]) <= r] + c
++    if len(cells) == 0:
++        return 1.0
++    return float(np.mean(model.open_cells(k, cells)))
+ 
+ 
+ def _hole_bins(r_h: float, spacing: float, cfg: InspectConfig) -> int:
